@@ -32,6 +32,8 @@ const QB_CLIENT_SECRET = process.env.QB_CLIENT_SECRET;
 const QB_REDIRECT_URI  = process.env.QB_REDIRECT_URI;
 const QB_ENVIRONMENT   = process.env.QB_ENVIRONMENT || 'sandbox';
 const PROXY_SECRET     = process.env.PROXY_SECRET;
+const WORKER_SECRET = process.env.WORKER_SECRET || '';
+const BASE44_REMINDER_URL = process.env.BASE44_REMINDER_URL || '';
 const ENCRYPTION_KEY   = process.env.ENCRYPTION_KEY || 'default-key-change-in-production';
 
 const QB_TOKEN_URL = 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer';
@@ -429,7 +431,64 @@ app.get('/invoices/:id/pdf', requireProxySecret, async (req, res) => {
 });
 
 // ── Start ─────────────────────────────────────────────────────────────────────
+// ─── Appointment Reminders ────────────────────────────────────────────────────
 
+async function runAppointmentReminders() {
+  if (!BASE44_REMINDER_URL) {
+    console.log('[reminders] BASE44_REMINDER_URL not configured — skipping');
+    return { skipped: true };
+  }
+
+  console.log('[reminders] Triggering at', new Date().toISOString());
+
+  const res = await fetch(BASE44_REMINDER_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-worker-secret': WORKER_SECRET,
+    },
+    body: JSON.stringify({}),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Reminder API ${res.status}: ${text.slice(0, 300)}`);
+  }
+
+  const result = await res.json();
+  console.log('[reminders] Complete:', JSON.stringify(result));
+  return result;
+}
+
+app.post('/remind', (req, res) => {
+  const provided = req.headers['x-worker-secret'] || '';
+
+  if (WORKER_SECRET && provided !== WORKER_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  runAppointmentReminders()
+    .then(result => res.json({ success: true, result }))
+    .catch(e => {
+      console.error('[reminders] Failed:', e.message);
+      res.status(500).json({ success: false, error: e.message });
+    });
+});
+
+// Start reminder cron: first run 60s after boot, then every 30 minutes
+setTimeout(() => {
+  console.log('[reminders] Cron started — every 30 minutes');
+
+  runAppointmentReminders().catch(e =>
+    console.error('[reminders] Initial run failed:', e.message)
+  );
+
+  setInterval(() => {
+    runAppointmentReminders().catch(e =>
+      console.error('[reminders] Cron run failed:', e.message)
+    );
+  }, 30 * 60 * 1000);
+}, 60 * 1000);
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`[proxy] QuickBooks Proxy running on port ${PORT}`);
