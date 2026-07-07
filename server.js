@@ -21,7 +21,8 @@ const express = require('express');
 const fs = require('fs');
 const crypto = require('crypto');
 const path = require('path');
-
+const multer = require('multer');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const app = express();
 app.use(express.json());
 
@@ -489,6 +490,136 @@ setTimeout(() => {
     );
   }, 30 * 60 * 1000);
 }, 60 * 1000);
+// ── File Upload to Cloudflare R2 / S3 ───────────────────────────────────────
+const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID;
+const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
+const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
+const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME;
+const R2_PUBLIC_URL = (process.env.R2_PUBLIC_URL || '').replace(/\/$/, '');
+
+const S3_REGION = process.env.S3_REGION || 'us-east-1';
+const S3_ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID;
+const S3_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY;
+const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
+const S3_PUBLIC_URL = (process.env.S3_PUBLIC_URL || '').replace(/\/$/, '');
+
+let s3Client = null;
+let activeBucket = null;
+let activePublicUrl = null;
+
+if (R2_ACCOUNT_ID && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY && R2_BUCKET_NAME) {
+  s3Client = new S3Client({
+    region: 'auto',
+    endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+    credentials: {
+      accessKeyId: R2_ACCESS_KEY_ID,
+      secretAccessKey: R2_SECRET_ACCESS_KEY,
+    },
+  });
+  activeBucket = R2_BUCKET_NAME;
+  activePublicUrl = R2_PUBLIC_URL;
+  console.log('[upload] Cloudflare R2 configured — bucket:', R2_BUCKET_NAME);
+} else if (S3_ACCESS_KEY_ID && S3_SECRET_ACCESS_KEY && S3_BUCKET_NAME) {
+  s3Client = new S3Client({
+    region: S3_REGION,
+    credentials: {
+      accessKeyId: S3_ACCESS_KEY_ID,
+      secretAccessKey: S3_SECRET_ACCESS_KEY,
+    },
+  });
+  activeBucket = S3_BUCKET_NAME;
+  activePublicUrl = S3_PUBLIC_URL || `https://${S3_BUCKET_NAME}.s3.${S3_REGION}.amazonaws.com`;
+  console.log('[upload] AWS S3 configured — bucket:', S3_BUCKET_NAME);
+} else {
+  console.warn('[upload] No R2/S3 credentials configured — file uploads will be disabled');
+}
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ];
+
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`File type not allowed: ${file.mimetype}`));
+    }
+  },
+});
+
+app.post('/api/files/upload', requireProxySecret, upload.single('file'), async (req, res) => {
+  if (!s3Client) {
+    return res.status(503).json({
+      success: false,
+      error: 'File storage not configured. Set R2_* or S3_* environment variables.',
+    });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      error: 'No file provided. Use multipart/form-data with field name "file".',
+    });
+  }
+
+  try {
+    const file = req.file;
+    const now = new Date();
+    const year = now.getUTCFullYear();
+    const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+    const ts = now.getTime();
+    const sanitized = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const key = `uploads/${year}/${month}/${ts}-${sanitized}`;
+
+    await s3Client.send(new PutObjectCommand({
+      Bucket: activeBucket,
+      Key: key,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+      ContentDisposition: `inline; filename="${sanitized}"`,
+    }));
+
+    const url = activePublicUrl ? `${activePublicUrl}/${key}` : `https://${activeBucket}/${key}`;
+
+    console.log(`[upload] Uploaded: ${key} (${file.size} bytes)`);
+
+    res.json({
+      success: true,
+      url,
+      key,
+      fileName: file.originalname,
+      contentType: file.mimetype,
+      size: file.size,
+    });
+  } catch (err) {
+    console.error('[upload] Upload failed:', err.message);
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+});
+
+app.get('/api/files/status', requireProxySecret, (req, res) => {
+  res.json({
+    configured: !!s3Client,
+    provider: R2_ACCOUNT_ID ? 'cloudflare_r2' : S3_ACCESS_KEY_ID ? 'aws_s3' : 'none',
+    bucket: activeBucket || null,
+    publicUrl: activePublicUrl || null,
+  });
+});
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`[proxy] QuickBooks Proxy running on port ${PORT}`);
