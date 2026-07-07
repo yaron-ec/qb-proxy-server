@@ -620,6 +620,7 @@ app.get('/api/files/status', requireProxySecret, (req, res) => {
     publicUrl: activePublicUrl || null,
   });
 });
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`[proxy] QuickBooks Proxy running on port ${PORT}`);
