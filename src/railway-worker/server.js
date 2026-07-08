@@ -368,6 +368,18 @@ setTimeout(() => {
   }, INVOICE_RETRY_INTERVAL_MS);
 }, 90 * 1000);
 
+// Estimate PDF fetch cron — every 1 hour, staggered 150s after boot so it never collides with the reminder/invoice loops
+const ESTIMATE_PDF_INTERVAL_MS = 60 * 60 * 1000;
+setTimeout(() => {
+  console.log('[cron] Estimate PDF fetch loop started — firing every 1 hour');
+  callBase44Function('fetchEstimatePdfs')
+    .catch(e => console.error('[cron] Initial estimate PDF fetch run failed:', e.message));
+  setInterval(() => {
+    callBase44Function('fetchEstimatePdfs')
+      .catch(e => console.error('[cron] Estimate PDF fetch run failed:', e.message));
+  }, ESTIMATE_PDF_INTERVAL_MS);
+}, 150 * 1000);
+
 // ─── Routes ────────────────────────────────────────────────────────────────────
 
 app.get('/health', requireSecret, (req, res) => {
