@@ -356,6 +356,18 @@ setTimeout(() => {
   }, REMINDER_INTERVAL_MS);
 }, 60 * 1000);
 
+// Invoice retry cron — every 2 hours, staggered 90s after boot so it never collides with the reminder loop
+const INVOICE_RETRY_INTERVAL_MS = 2 * 60 * 60 * 1000;
+setTimeout(() => {
+  console.log('[cron] Invoice retry loop started — firing every 2 hours');
+  callBase44Function('retryFailedInvoices')
+    .catch(e => console.error('[cron] Initial invoice retry run failed:', e.message));
+  setInterval(() => {
+    callBase44Function('retryFailedInvoices')
+      .catch(e => console.error('[cron] Invoice retry run failed:', e.message));
+  }, INVOICE_RETRY_INTERVAL_MS);
+}, 90 * 1000);
+
 // ─── Routes ────────────────────────────────────────────────────────────────────
 
 app.get('/health', requireSecret, (req, res) => {
