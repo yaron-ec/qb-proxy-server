@@ -25,6 +25,7 @@ const multer = require('multer');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const qbMatch = require('./lib/qbMatch');
 const b44 = require('./lib/base44');
+const base44EntityGateway = require('./lib/base44EntityGateway');
 const app = express();
 app.use(express.json());
 
@@ -957,6 +958,38 @@ app.post('/diag/sdk-test', requireProxySecret, async (req, res) => {
   }
 
   res.json(result);
+});
+
+// ── Diagnostic: Base44 Entity Gateway connection check (read-only) ─────────────
+// Insert before `const PORT = process.env.PORT || 3000;` in server.js
+app.post('/diag/base44-gateway', requireProxySecret, async (req, res) => {
+  const leadId = req.body && req.body.leadId;
+  if (!leadId || typeof leadId !== 'string') {
+    return res.status(400).json({ error: 'leadId is required' });
+  }
+  const start = Date.now();
+  try {
+    const result = await base44EntityGateway.callGateway('get_lead', { leadId });
+    const durationMs = Date.now() - start;
+    if (!result.success) {
+      return res.status(result.status || 502).json({
+        success: false,
+        error: result.error,
+        gatewayRequestId: result.requestId,
+        durationMs,
+      });
+    }
+    // Safe summary only — never return the full lead record
+    return res.json({
+      success: true,
+      gatewayRequestId: result.requestId,
+      leadFound: !!(result.data && result.data.lead),
+      leadId,
+      durationMs,
+    });
+  } catch (e) {
+    return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Diagnostic failed' }, durationMs: Date.now() - start });
+  }
 });
 
 const PORT = process.env.PORT || 3000;
