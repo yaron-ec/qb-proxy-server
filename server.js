@@ -823,6 +823,38 @@ scopedSync.register(app, {
   getQuickBooksCustomer: getQuickBooksCustomer,
 });
 
+// ── Base44 Config Diagnostic (masked, read-only) ──────────────────────────────
+// Reports masked env values + self-test so we can confirm Base44 connectivity.
+app.post('/diag/base44-config', requireProxySecret, async (req, res) => {
+  function mask(v) {
+    if (!v) return { present: false };
+    const s = String(v);
+    return { present: true, length: s.length, preview: s.slice(0, 4) + '...' + s.slice(-4), hasApiBase44Com: s.includes('api.base44.com'), hasBase44App: s.includes('base44.app') };
+  }
+  const b44 = require('./lib/base44');
+  const rawUrl = process.env.BASE44_API_URL || '';
+  const effectiveUrl = (!rawUrl || rawUrl.includes('api.base44.com')) ? 'https://base44.app' : rawUrl.replace(/\/$/, '');
+  const config = {
+    raw_BASE44_API_URL: mask(rawUrl),
+    effective_API_URL: effectiveUrl,
+    BASE44_APP_ID: mask(process.env.BASE44_APP_ID),
+    BASE44_API_KEY: mask(process.env.BASE44_API_KEY),
+    PROXY_SECRET: mask(process.env.PROXY_SECRET),
+    QB_ENVIRONMENT: process.env.QB_ENVIRONMENT || null,
+    QB_SANDBOX: process.env.QB_SANDBOX || null,
+    R2_configured: !!(process.env.R2_ACCOUNT_ID && process.env.R2_ACCESS_KEY_ID),
+    b44_isConfigured: b44.isConfigured(),
+  };
+  // Self-test: try a lightweight entity read
+  try {
+    const test = await b44.filter('SyncCursor', {});
+    config.selfTest = { ok: true, count: Array.isArray(test) ? test.length : 'unknown', responseType: typeof test };
+  } catch (e) {
+    config.selfTest = { ok: false, error: (e.message || '').slice(0, 200) };
+  }
+  res.json(config);
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`[proxy] QuickBooks Proxy running on port ${PORT}`);
