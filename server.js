@@ -15,7 +15,7 @@
  *   PORT                 - (optional) defaults to 3000
  */
 
-// NOTE: This file is a standalone Node.js server — not a browser or Deno module.
+// NOTE: This file is a standalone Node.js server â not a browser or Deno module.
 // Run with: node server.js  (requires Node.js 18+)
 const express = require('express');
 const fs = require('fs');
@@ -28,7 +28,7 @@ const b44 = require('./lib/base44');
 const app = express();
 app.use(express.json());
 
-// ── Config ──────────────────────────────────────────────────────────────────
+// ââ Config ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 const QB_CLIENT_ID     = process.env.QB_CLIENT_ID;
 const QB_CLIENT_SECRET = process.env.QB_CLIENT_SECRET;
@@ -47,7 +47,7 @@ const QB_API_BASE = QB_ENVIRONMENT === 'production'
   ? 'https://quickbooks.api.intuit.com/v3/company'
   : 'https://sandbox-quickbooks.api.intuit.com/v3/company';
 
-// ── Persistent Token Storage ────────────────────────────────────────────────
+// ââ Persistent Token Storage ââââââââââââââââââââââââââââââââââââââââââââââââ
 
 const TOKEN_FILE = path.join(__dirname, '.qb-tokens.encrypted');
 
@@ -95,17 +95,17 @@ function saveTokens(tokens) {
 // Load tokens from disk on startup
 let storedTokens = loadTokens();
 
-// ── Auth middleware ──────────────────────────────────────────────────────────
+// ââ Auth middleware ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 function requireProxySecret(req, res, next) {
   const secret = req.headers['x-proxy-secret'];
   if (!PROXY_SECRET || secret !== PROXY_SECRET) {
-    return res.status(401).json({ error: 'Unauthorized — missing or invalid X-Proxy-Secret' });
+    return res.status(401).json({ error: 'Unauthorized â missing or invalid X-Proxy-Secret' });
   }
   next();
 }
 
-// ── Token helpers ────────────────────────────────────────────────────────────
+// ââ Token helpers ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 async function refreshTokenIfNeeded() {
   if (!storedTokens) throw new Error('Not connected to QuickBooks. Call /auth/connect first.');
@@ -164,7 +164,7 @@ async function qbQuery(query) {
   return qbFetch(`/query?query=${encodeURIComponent(query)}&minorversion=65`);
 }
 
-// ── Health ───────────────────────────────────────────────────────────────────
+// ââ Health âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 app.get('/health', (req, res) => {
   res.json({
@@ -176,9 +176,9 @@ app.get('/health', (req, res) => {
   });
 });
 
-// ── Auth routes ──────────────────────────────────────────────────────────────
+// ââ Auth routes ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
-// GET /auth/connect — returns the Intuit OAuth URL
+// GET /auth/connect â returns the Intuit OAuth URL
 app.get('/auth/connect', requireProxySecret, (req, res) => {
   if (!QB_CLIENT_ID) return res.status(500).json({ error: 'QB_CLIENT_ID not configured on proxy' });
   const params = new URLSearchParams({
@@ -191,7 +191,7 @@ app.get('/auth/connect', requireProxySecret, (req, res) => {
   res.json({ auth_url: `${QB_AUTH_URL}?${params}`, environment: QB_ENVIRONMENT });
 });
 
-// POST /auth/callback — exchange code for tokens (called from your OAuth callback page)
+// POST /auth/callback â exchange code for tokens (called from your OAuth callback page)
 app.post('/auth/callback', requireProxySecret, async (req, res) => {
   const { code, realmId } = req.body;
   if (!code || !realmId) return res.status(400).json({ error: 'Missing code or realmId' });
@@ -216,11 +216,11 @@ app.post('/auth/callback', requireProxySecret, async (req, res) => {
   };
 
   saveTokens(storedTokens);
-  console.log('[proxy] OAuth complete — realm_id:', realmId, 'env:', QB_ENVIRONMENT);
+  console.log('[proxy] OAuth complete â realm_id:', realmId, 'env:', QB_ENVIRONMENT);
   res.json({ success: true, realm_id: realmId, environment: QB_ENVIRONMENT });
 });
 
-// GET /auth/status — connection status
+// GET /auth/status â connection status
 app.get('/auth/status', requireProxySecret, (req, res) => {
   if (!storedTokens) return res.json({ connected: false });
   const refreshExpired = storedTokens.refresh_expires_at
@@ -249,7 +249,7 @@ app.post('/auth/disconnect', requireProxySecret, (req, res) => {
   res.json({ success: true });
 });
 
-// ── Company Info ─────────────────────────────────────────────────────────────
+// ââ Company Info âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 app.get('/company', requireProxySecret, async (req, res) => {
   try {
@@ -261,9 +261,9 @@ app.get('/company', requireProxySecret, async (req, res) => {
   }
 });
 
-// ── Customers ─────────────────────────────────────────────────────────────────
+// ââ Customers âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
-// GET /customers?since=ISO_DATE   — paginated fetch of all customers (optional incremental)
+// GET /customers?since=ISO_DATE   â paginated fetch of all customers (optional incremental)
 app.get('/customers', requireProxySecret, async (req, res) => {
   try {
     const { since } = req.query;
@@ -283,7 +283,7 @@ app.get('/customers', requireProxySecret, async (req, res) => {
   }
 });
 
-// POST /customers — create or update a customer
+// POST /customers â create or update a customer
 app.post('/customers', requireProxySecret, async (req, res) => {
   try {
     const data = await qbFetch('/customer?minorversion=65', {
@@ -317,9 +317,9 @@ app.get('/customers/search', requireProxySecret, async (req, res) => {
   }
 });
 
-// ── Estimates ─────────────────────────────────────────────────────────────────
+// ââ Estimates âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
-// GET /estimates?since=ISO_DATE&customerId=X   — paginated
+// GET /estimates?since=ISO_DATE&customerId=X   â paginated
 app.get('/estimates', requireProxySecret, async (req, res) => {
   try {
     const { since, customerId } = req.query;
@@ -345,7 +345,7 @@ app.get('/estimates', requireProxySecret, async (req, res) => {
   }
 });
 
-// POST /estimates — create estimate
+// POST /estimates â create estimate
 app.post('/estimates', requireProxySecret, async (req, res) => {
   try {
     const data = await qbFetch('/estimate?minorversion=65', {
@@ -375,7 +375,7 @@ app.get('/estimates/:id/pdf', requireProxySecret, async (req, res) => {
   }
 });
 
-// ── Invoices ──────────────────────────────────────────────────────────────────
+// ââ Invoices ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 // GET /invoices?since=ISO_DATE&customerId=X
 app.get('/invoices', requireProxySecret, async (req, res) => {
@@ -403,7 +403,7 @@ app.get('/invoices', requireProxySecret, async (req, res) => {
   }
 });
 
-// POST /invoices — create invoice
+// POST /invoices â create invoice
 app.post('/invoices', requireProxySecret, async (req, res) => {
   try {
     const data = await qbFetch('/invoice?minorversion=65', {
@@ -433,12 +433,12 @@ app.get('/invoices/:id/pdf', requireProxySecret, async (req, res) => {
   }
 });
 
-// ── Start ─────────────────────────────────────────────────────────────────────
-// ─── Appointment Reminders ────────────────────────────────────────────────────
+// ââ Start âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// âââ Appointment Reminders ââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 async function runAppointmentReminders() {
   if (!BASE44_REMINDER_URL) {
-    console.log('[reminders] BASE44_REMINDER_URL not configured — skipping');
+    console.log('[reminders] BASE44_REMINDER_URL not configured â skipping');
     return { skipped: true };
   }
 
@@ -480,7 +480,7 @@ app.post('/remind', (req, res) => {
 
 // Start reminder cron: first run 60s after boot, then every 30 minutes
 setTimeout(() => {
-  console.log('[reminders] Cron started — every 30 minutes');
+  console.log('[reminders] Cron started â every 30 minutes');
 
   runAppointmentReminders().catch(e =>
     console.error('[reminders] Initial run failed:', e.message)
@@ -492,7 +492,7 @@ setTimeout(() => {
     );
   }, 30 * 60 * 1000);
 }, 60 * 1000);
-// ── File Upload to Cloudflare R2 / S3 ───────────────────────────────────────
+// ââ File Upload to Cloudflare R2 / S3 âââââââââââââââââââââââââââââââââââââââ
 const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID;
 const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
 const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
@@ -520,7 +520,7 @@ if (R2_ACCOUNT_ID && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY && R2_BUCKET_NAME)
   });
   activeBucket = R2_BUCKET_NAME;
   activePublicUrl = R2_PUBLIC_URL;
-  console.log('[upload] Cloudflare R2 configured — bucket:', R2_BUCKET_NAME);
+  console.log('[upload] Cloudflare R2 configured â bucket:', R2_BUCKET_NAME);
 } else if (S3_ACCESS_KEY_ID && S3_SECRET_ACCESS_KEY && S3_BUCKET_NAME) {
   s3Client = new S3Client({
     region: S3_REGION,
@@ -531,9 +531,9 @@ if (R2_ACCOUNT_ID && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY && R2_BUCKET_NAME)
   });
   activeBucket = S3_BUCKET_NAME;
   activePublicUrl = S3_PUBLIC_URL || `https://${S3_BUCKET_NAME}.s3.${S3_REGION}.amazonaws.com`;
-  console.log('[upload] AWS S3 configured — bucket:', S3_BUCKET_NAME);
+  console.log('[upload] AWS S3 configured â bucket:', S3_BUCKET_NAME);
 } else {
-  console.warn('[upload] No R2/S3 credentials configured — file uploads will be disabled');
+  console.warn('[upload] No R2/S3 credentials configured â file uploads will be disabled');
 }
 
 const upload = multer({
@@ -623,7 +623,7 @@ app.get('/api/files/status', requireProxySecret, (req, res) => {
   });
 });
 
-// ── Manual QB estimate sync ───────────────────────────────────────────────
+// ââ Manual QB estimate sync âââââââââââââââââââââââââââââââââââââââââââââââ
 async function getAllQuickBooksEstimates() {
   const all = [];
   let pos = 1;
@@ -823,7 +823,7 @@ scopedSync.register(app, {
   getQuickBooksCustomer: getQuickBooksCustomer,
 });
 
-// ── Base44 Config Diagnostic (masked, read-only) ──────────────────────────────
+// ââ Base44 Config Diagnostic (masked, read-only) ââââââââââââââââââââââââââââââ
 // Reports masked env values + self-test so we can confirm Base44 connectivity.
 app.post('/diag/base44-config', requireProxySecret, async (req, res) => {
   function mask(v) {
@@ -853,6 +853,110 @@ app.post('/diag/base44-config', requireProxySecret, async (req, res) => {
     config.selfTest = { ok: false, error: (e.message || '').slice(0, 200) };
   }
   res.json(config);
+});
+
+// === SDK Auth Diagnostic (read-only, temporary - Phase 3 test) ===
+// Tests the official Base44 SDK external-backend auth path.
+// Does NOT use asServiceRole. Does NOT create/update/delete.
+app.post('/diag/sdk-test', requireProxySecret, async (req, res) => {
+  const appId = process.env.BASE44_APP_ID;
+  const serverUrl = 'https://base44.app';
+  const apiKey = process.env.BASE44_API_KEY || '';
+  const adminEmail = process.env.ADMIN_EMAIL || '';
+  const testLeadId = '6a24f481aed1c5c0a65a5d66';
+
+  const result = {
+    sdkVersion: null,
+    clientInitialized: false,
+    noAuthRead: null,
+    apiKeyAsBearerRead: null,
+    loginProbe: null,
+    testLeadRead: null,
+    classification: null
+  };
+
+  try {
+    const sdk = await import('@base44/sdk');
+    result.sdkVersion = '0.8.37';
+    const makeClient = sdk.createClient;
+
+    // Test 1: SDK init + read with NO auth
+    try {
+      const client = makeClient({ appId, serverUrl, requiresAuth: false });
+      result.clientInitialized = true;
+      const leads = await client.entities.Lead.list('-created_date', 1);
+      result.noAuthRead = { status: 'SUCCESS', count: leads.length };
+    } catch (e) {
+      result.noAuthRead = {
+        status: 'ERROR',
+        message: (e.message || '').slice(0, 150),
+        httpStatus: e.response?.status || null
+      };
+    }
+
+    // Test 2: Read with BASE44_API_KEY as Bearer token (current approach)
+    try {
+      const client = makeClient({ appId, serverUrl, token: apiKey, requiresAuth: false });
+      const leads = await client.entities.Lead.list('-created_date', 1);
+      result.apiKeyAsBearerRead = { status: 'SUCCESS', count: leads.length };
+    } catch (e) {
+      result.apiKeyAsBearerRead = {
+        status: 'ERROR',
+        message: (e.message || '').slice(0, 150),
+        httpStatus: e.response?.status || null
+      };
+    }
+
+    // Test 3: Login endpoint probe (confirms server-side login is viable)
+    try {
+      const loginRes = await fetch(serverUrl + '/api/apps/' + appId + '/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: adminEmail || 'probe@test.invalid', password: 'probe_fake_password_only' })
+      });
+      const loginBody = await loginRes.text();
+      result.loginProbe = {
+        status: loginRes.status,
+        isCaptchaRequired: loginBody.toLowerCase().includes('captcha') || loginBody.toLowerCase().includes('turnstile'),
+        isAuthError: loginBody.toLowerCase().includes('invalid') || loginBody.toLowerCase().includes('incorrect'),
+        bodyPreview: loginBody.slice(0, 200)
+      };
+    } catch (e) {
+      result.loginProbe = { status: 'FETCH_ERROR', message: (e.message || '').slice(0, 150) };
+    }
+
+    // Test 4: Read the dedicated test lead with no auth (expect 403)
+    try {
+      const client = makeClient({ appId, serverUrl, requiresAuth: false });
+      const lead = await client.entities.Lead.get(testLeadId);
+      result.testLeadRead = { status: 'SUCCESS', leadId: lead.id };
+    } catch (e) {
+      result.testLeadRead = {
+        status: 'ERROR',
+        message: (e.message || '').slice(0, 150),
+        httpStatus: e.response?.status || null
+      };
+    }
+
+    // Classify
+    const noAuthFailed = result.noAuthRead.status === 'ERROR';
+    const apiKeyFailed = result.apiKeyAsBearerRead.status === 'ERROR';
+    const loginAccessible = result.loginProbe && !result.loginProbe.isCaptchaRequired;
+    if (noAuthFailed && apiKeyFailed && loginAccessible) {
+      result.classification = 'USER_TOKEN_REQUIRED';
+    } else if (!noAuthFailed) {
+      result.classification = 'SUPPORTED_AND_WORKING';
+    } else if (!apiKeyFailed) {
+      result.classification = 'SUPPORTED_AND_WORKING';
+    } else {
+      result.classification = 'EXTERNAL_ENTITY_ACCESS_NOT_SUPPORTED';
+    }
+  } catch (e) {
+    result.initError = (e.message || '').slice(0, 200);
+    result.classification = 'UNDETERMINED';
+  }
+
+  res.json(result);
 });
 
 const PORT = process.env.PORT || 3000;
