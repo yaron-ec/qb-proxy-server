@@ -23,6 +23,8 @@ const crypto = require('crypto');
 const path = require('path');
 const multer = require('multer');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const qbMatch = require('./lib/qbMatch');
+const b44 = require('./lib/base44');
 const app = express();
 app.use(express.json());
 
@@ -619,6 +621,192 @@ app.get('/api/files/status', requireProxySecret, (req, res) => {
     bucket: activeBucket || null,
     publicUrl: activePublicUrl || null,
   });
+});
+
+// ── Manual QB estimate sync ───────────────────────────────────────────────
+async function getAllQuickBooksEstimates() {
+  const all = [];
+  let pos = 1;
+  while (true) {
+    const qr = await qbQuery(`SELECT * FROM Estimate STARTPOSITION ${pos} MAXRESULTS 1000`);
+    const batch = qr?.QueryResponse?.Estimate || [];
+    all.push(...batch);
+    if (batch.length < 1000) break;
+    pos += 1000;
+  }
+  return all;
+}
+
+async function getQuickBooksCustomer(customerRef) {
+  if (!customerRef?.value) return null;
+  try {
+    const data = await qbFetch(`/customer/${customerRef.value}?minorversion=65`);
+    return data.Customer || null;
+  } catch (e) {
+    console.warn('[sync] Unable to fetch QB customer:', e.message);
+    return null;
+  }
+}
+
+async function updateQuickBooksEstimateSyncCursor(syncTime) {
+  try {
+    const existing = await b44.filter('SyncCursor', { entity: 'qb_estimates' });
+    const cursor = Array.isArray(existing) ? existing[0] : null;
+    const payload = { entity: 'qb_estimates', last_synced_at: syncTime, updated_at: syncTime };
+    if (cursor?.id) {
+      await b44.update('SyncCursor', cursor.id, payload);
+    } else {
+      await b44.create('SyncCursor', payload);
+    }
+  } catch (e) {
+    console.warn('[sync] Unable to update SyncCursor:', e.message);
+  }
+}
+
+app.get('/qb/health', (req, res) => {
+  const refreshExpired = storedTokens?.refresh_expires_at
+    ? new Date(storedTokens.refresh_expires_at) < new Date()
+    : false;
+  res.json({
+    status: 'ok',
+    environment: QB_ENVIRONMENT,
+    connected: !!storedTokens && !refreshExpired,
+    realmId: storedTokens?.realm_id || null,
+    tokenExpiresAt: storedTokens?.expires_at || null,
+    refreshExpiresAt: storedTokens?.refresh_expires_at || null,
+    reconnectRequired: !storedTokens || refreshExpired,
+  });
+});
+
+app.post('/sync/qb-estimates', requireProxySecret, async (req, res) => {
+  try {
+    if (!b44.isConfigured()) {
+      return res.status(503).json({ ok: false, error: 'Base44 is not configured for sync' });
+    }
+
+    const estimates = await getAllQuickBooksEstimates();
+    const leads = await b44.filter('Lead', {});
+    const existingRecords = await b44.filter('HandoffEstimate', {});
+    const existingByQbId = new Map((existingRecords || []).filter(Boolean).map(record => [String(record.qb_estimate_id || ''), record]));
+
+    let created = 0;
+    let updated = 0;
+    let matchedLeads = 0;
+    let unmatchedLeads = 0;
+
+    for (const estimate of estimates) {
+      const qbEstimateId = estimate.Id || estimate.id;
+      if (!qbEstimateId) continue;
+
+      const customer = await getQuickBooksCustomer(estimate.CustomerRef);
+      const matchedLead = customer ? qbMatch.findMatchingLead(customer, leads || []) : null;
+      if (matchedLead) matchedLeads += 1;
+      else unmatchedLeads += 1;
+
+      const payload = {
+        qb_estimate_id: String(qbEstimateId),
+        qb_customer_id: estimate.CustomerRef?.value || null,
+        qb_customer_name: customer?.DisplayName || estimate.CustomerRef?.name || null,
+        qb_doc_number: estimate.DocNumber || null,
+        qb_total_amount: estimate.TotalAmt || null,
+        qb_balance: estimate.Balance || null,
+        qb_status: estimate.Balance === 0 ? 'paid' : 'open',
+        lead_id: matchedLead?.id || matchedLead?._id || null,
+        lead_name: matchedLead ? `${matchedLead.first_name || ''} ${matchedLead.last_name || ''}`.trim() : null,
+        lead_email: matchedLead?.email || null,
+        lead_phone: matchedLead?.phone || null,
+        synced_at: new Date().toISOString(),
+        source: 'qb_proxy_sync',
+        qb_last_updated_at: estimate.MetaData?.LastUpdatedTime || null,
+      };
+
+      const existing = existingByQbId.get(String(qbEstimateId));
+      if (existing?.id || existing?._id) {
+        await b44.update('HandoffEstimate', existing.id || existing._id, payload);
+        updated += 1;
+      } else {
+        await b44.create('HandoffEstimate', payload);
+        created += 1;
+      }
+    }
+
+    const syncTime = new Date().toISOString();
+    await updateQuickBooksEstimateSyncCursor(syncTime);
+
+    res.json({
+      ok: true,
+      stats: {
+        estimatesSeen: estimates.length,
+        created,
+        updated,
+        matchedLeads,
+        unmatchedLeads,
+        cursorUpdated: true,
+        syncedAt: syncTime,
+      },
+    });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.post('/sync/qb-estimate-pdfs', requireProxySecret, async (req, res) => {
+  try {
+    if (!b44.isConfigured()) {
+      return res.status(503).json({ ok: false, error: 'Base44 is not configured for PDF sync' });
+    }
+
+    const records = await b44.filter('HandoffEstimate', {});
+    const tokens = await refreshTokenIfNeeded();
+    const results = { updated: 0, skipped: 0, failed: 0, errors: [] };
+
+    for (const record of records || []) {
+      const recordId = record.id || record._id;
+      const qbEstimateId = record.qb_estimate_id;
+      if (!recordId || !qbEstimateId) {
+        results.skipped += 1;
+        continue;
+      }
+
+      try {
+        const pdfUrl = `${QB_API_BASE}/${tokens.realm_id}/estimate/${qbEstimateId}/pdf?minorversion=65`;
+        const pdfRes = await fetch(pdfUrl, {
+          headers: { Authorization: `Bearer ${tokens.access_token}`, Accept: 'application/pdf' },
+        });
+
+        const now = new Date().toISOString();
+        if (!pdfRes.ok) {
+          await b44.update('HandoffEstimate', recordId, {
+            pdf_status: 'error',
+            pdf_error: `PDF fetch failed: ${pdfRes.status}`,
+            pdf_last_checked_at: now,
+          });
+          results.failed += 1;
+          continue;
+        }
+
+        const contentType = pdfRes.headers.get('content-type') || '';
+        await b44.update('HandoffEstimate', recordId, {
+          pdf_status: contentType.includes('pdf') ? 'available' : 'downloaded',
+          pdf_content_type: contentType,
+          pdf_error: '',
+          pdf_last_checked_at: now,
+        });
+        results.updated += 1;
+      } catch (e) {
+        results.failed += 1;
+        results.errors.push(e.message);
+      }
+    }
+
+    res.json({
+      ok: true,
+      results,
+      processed: results.updated + results.failed + results.skipped,
+    });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
 });
 
 const PORT = process.env.PORT || 3000;
