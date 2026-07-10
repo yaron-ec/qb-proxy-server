@@ -809,6 +809,20 @@ app.post('/sync/qb-estimate-pdfs', requireProxySecret, async (req, res) => {
   }
 });
 
+const scopedSync = require('./lib/scopedSync');
+scopedSync.register(app, {
+  requireProxySecret: requireProxySecret,
+  qbQuery: qbQuery,
+  refreshTokenIfNeeded: refreshTokenIfNeeded,
+  QB_API_BASE: QB_API_BASE,
+  QB_ENVIRONMENT: QB_ENVIRONMENT,
+  s3Client: s3Client,
+  activeBucket: activeBucket,
+  activePublicUrl: activePublicUrl,
+  getAllQuickBooksEstimates: getAllQuickBooksEstimates,
+  getQuickBooksCustomer: getQuickBooksCustomer,
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`[proxy] QuickBooks Proxy running on port ${PORT}`);
