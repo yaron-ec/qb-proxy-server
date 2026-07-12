@@ -22,7 +22,8 @@ const fs = require('fs');
 const crypto = require('crypto');
 const path = require('path');
 const multer = require('multer');
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const qbMatch = require('./lib/qbMatch');
 const b44 = require('./lib/base44');
 const base44EntityGateway = require('./lib/base44EntityGateway');
@@ -622,6 +623,56 @@ app.get('/api/files/status', requireProxySecret, (req, res) => {
     bucket: activeBucket || null,
     publicUrl: activePublicUrl || null,
   });
+});
+
+// POST /api/files/signed-url — short-lived presigned GET URL for one private R2 object
+// Body: { key: "uploads/...", disposition: "inline" | "attachment" }
+// Returns: { success, url, expiresIn: 600 }
+app.post('/api/files/signed-url', requireProxySecret, async (req, res) => {
+  const { key, disposition } = req.body || {};
+  if (!key || typeof key !== 'string' || !key.startsWith('uploads/')) {
+    return res.status(400).json({ success: false, error: 'Invalid key (must start with uploads/).' });
+  }
+  if (!s3Client) {
+    return res.status(503).json({ success: false, error: 'File storage not configured on server.' });
+  }
+  try {
+    const isAttachment = disposition === 'attachment';
+    const fileName = key.split('/').pop() || 'file';
+    const command = new GetObjectCommand({
+      Bucket: activeBucket,
+      Key: key,
+      ResponseContentDisposition: isAttachment
+        ? `attachment; filename="${fileName}"`
+        : 'inline',
+    });
+    const url = await getSignedUrl(s3Client, command, { expiresIn: 600 });
+    res.json({ success: true, url, expiresIn: 600 });
+  } catch (err) {
+    console.error('[signed-url] Failed:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// DELETE /api/files/delete — delete one R2 object by key
+// Body: { key: "uploads/..." }
+// Returns: { success, key }
+app.delete('/api/files/delete', requireProxySecret, async (req, res) => {
+  const { key } = req.body || {};
+  if (!key || typeof key !== 'string' || !key.startsWith('uploads/')) {
+    return res.status(400).json({ success: false, error: 'Invalid key (must start with uploads/).' });
+  }
+  if (!s3Client) {
+    return res.status(503).json({ success: false, error: 'File storage not configured on server.' });
+  }
+  try {
+    await s3Client.send(new DeleteObjectCommand({ Bucket: activeBucket, Key: key }));
+    console.log(`[delete] Deleted R2 object: ${key}`);
+    res.json({ success: true, key });
+  } catch (err) {
+    console.error('[delete] Failed:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // ââ Manual QB estimate sync âââââââââââââââââââââââââââââââââââââââââââââââ
