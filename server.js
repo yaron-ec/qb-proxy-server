@@ -1094,6 +1094,12 @@ app.post('/diag/base44-gateway', requireProxySecret, async (req, res) => {
   }
 });
 
+// ── Reminder system (Railway-owned) ─────────────────────────────────────────
+// Atomic per-reminder claims live in Railway Postgres; Base44 is used only to
+// read CRM leads and to write the post-success REMINDER_SENT Activity.
+// Phase 2: REMINDER_DRY_RUN=true forces dry-run (no emails, no claim writes).
+app.use('/reminders', require('./lib/reminderRouter'));
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`[proxy] QuickBooks Proxy running on port ${PORT}`);
