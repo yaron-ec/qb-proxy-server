@@ -117,3 +117,31 @@ CREATE TABLE IF NOT EXISTS reminder_activity_queue (
 
 CREATE INDEX IF NOT EXISTS reminder_activity_queue_next_idx
   ON reminder_activity_queue (next_attempt_at);
+
+-- ---------------------------------------------------------------------
+-- test_leads — SYNTHETIC dataset for the dry-run / test path only.
+-- Created and populated by db/seedTestLeads.js when REMINDER_TEST_SEED=true.
+-- In REMINDER_SOURCE=postgres mode the reminder worker reads leads from here
+-- instead of Base44, so the engine can be validated with ZERO Base44 access.
+-- This table is never used by production and never holds real customer data.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS test_leads (
+  id                          TEXT PRIMARY KEY,
+  first_name                  TEXT NOT NULL,
+  last_name                   TEXT NOT NULL,
+  email                       TEXT,
+  phone                       TEXT,
+  property_address            TEXT,
+  city                        TEXT,
+  project_type                TEXT,
+  follow_up_date              TEXT,        -- 'YYYY-MM-DD' string (mirrors Base44)
+  follow_up_time              TEXT,
+  follow_up_type              TEXT,        -- 'Meeting' | 'Phone Call'
+  appointment_date            TEXT,        -- 'YYYY-MM-DD' string (mirrors Base44)
+  appointment_time            TEXT,
+  assigned_rep                TEXT,
+  budget_range                TEXT,
+  notes                       TEXT,
+  customer_reminders_disabled BOOLEAN NOT NULL DEFAULT FALSE,
+  crm_created_date            TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
