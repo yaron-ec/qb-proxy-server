@@ -28,11 +28,15 @@ async function ensureSchema() {
   if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL not set — Railway Postgres is required for the reminder system');
   }
-  const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
+  const schemaPath = path.join(__dirname, 'schema.sql');
+  const schema = fs.readFileSync(schemaPath, 'utf8');
   // node-postgres simple-query protocol executes the full multi-statement string.
   await pool.query(schema);
   _schemaEnsured = true;
-  console.log('[db] schema ensured (reminder_claims, reminder_runs, reminder_activity_queue)');
+  // Truthfully list every table ensured — derived from schema.sql so the log
+  // can never drift from the actual schema source of truth.
+  const tables = [...schema.matchAll(/CREATE TABLE IF NOT EXISTS (\w+)/g)].map(m => m[1]);
+  console.log(`[db] schema ensured (${tables.join(', ')})`);
 }
 
 async function query(text, params) {
