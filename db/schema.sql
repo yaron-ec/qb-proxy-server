@@ -145,3 +145,52 @@ CREATE TABLE IF NOT EXISTS test_leads (
   customer_reminders_disabled BOOLEAN NOT NULL DEFAULT FALSE,
   crm_created_date            TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- ---------------------------------------------------------------------
+-- reminder_leads — PRODUCTION lead table for the reminder system.
+--
+-- Fed by POST /api/reminders/leads/upsert (CRM create/update) and by the
+-- one-time importer (db/importLeads.js). The production reminder worker
+-- (REMINDER_SOURCE=postgres, REMINDER_TEST_MODE off) reads from here.
+--
+-- Columns are EXACTLY the fields the reminder engine (lib/reminderEngine.js)
+-- reads — nothing more (no lead_score, no status, no source, no timezone:
+-- all appointment times are interpreted as America/Los_Angeles by the
+-- engine, so they are stored as plain 'YYYY-MM-DD' / 'HH:MM' strings).
+--   id                         external CRM lead id (stable upsert key)
+--   first_name / last_name     customer name
+--   email / phone              customer contact
+--   property_address / city    appointment location
+--   project_type               job type (shown in reminder emails)
+--   follow_up_date/time/type   follow-up appointment (preferred when present)
+--   appointment_date/time      standalone appointment
+--   assigned_rep               rep name (engine derives the staff email)
+--   budget_range / notes       context shown in the staff reminder email
+--   customer_reminders_disabled true = customer opted out of customer-facing
+--                              reminders (staff reminders still fire)
+--   crm_created_date           when the lead was created in the CRM
+--                              (engine uses it for the 24h catch-up window)
+--   created_at / updated_at    operational upsert timestamps
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS reminder_leads (
+  id                          TEXT PRIMARY KEY,
+  first_name                  TEXT NOT NULL,
+  last_name                   TEXT NOT NULL,
+  email                       TEXT,
+  phone                       TEXT,
+  property_address            TEXT,
+  city                        TEXT,
+  project_type                TEXT,
+  follow_up_date              TEXT,
+  follow_up_time              TEXT,
+  follow_up_type              TEXT,
+  appointment_date            TEXT,
+  appointment_time            TEXT,
+  assigned_rep                TEXT,
+  budget_range                TEXT,
+  notes                       TEXT,
+  customer_reminders_disabled BOOLEAN NOT NULL DEFAULT FALSE,
+  crm_created_date            TIMESTAMPTZ,
+  created_at                  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at                  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
