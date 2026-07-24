@@ -1094,6 +1094,24 @@ app.post('/diag/base44-gateway', requireProxySecret, async (req, res) => {
   }
 });
 
+
+// ── Phase 1: Railway Email Service + permanent auth (public /api/v1) ──
+// Public, JWT-authenticated API surface (no PROXY_SECRET, no Gmail tokens in browser).
+// Schema is applied separately via 'npm run migrate' (node db/migrate.js); the
+// server assumes the Phase 1 tables already exist.
+app.use('/api/v1', require('cors')({ origin: true, allowedHeaders: ['Content-Type', 'Authorization'], credentials: false }));
+app.use('/api/v1/auth', require('./routes/auth'));
+app.use('/api/v1', require('./routes/emails'));
+
+// Internal single-send primitive (X-Proxy-Secret guarded) — server-to-server only.
+app.post('/internal/email/send', requireProxySecret, async (req, res) => {
+  try {
+    const { to, cc, replyTo, subject, htmlBody, attachments, idempotencyKey, fromName, fromAddress, role } = req.body || {};
+    if (!to || !subject || !htmlBody || !idempotencyKey) return res.status(400).json({ error: 'to, subject, htmlBody, idempotencyKey required' });
+    const result = await require('./lib/emailService').send({ to, cc, replyTo, subject, htmlBody, attachments, idempotencyKey, fromName, fromAddress, role });
+    res.json(result);
+  } catch (e) { res.status(/credentials/i.test(e.message) ? 503 : 500).json({ error: e.message }); }
+});
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`[proxy] QuickBooks Proxy running on port ${PORT}`);
