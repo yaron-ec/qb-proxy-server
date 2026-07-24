@@ -134,9 +134,12 @@ async function cleanup() {
 // ── Main ─────────────────────────────────────────────────────────────────────
 async function main() {
   // 0. Branch / commit
-  let branch = 'unavailable', commit = 'unavailable';
-  try { branch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8' }).trim(); } catch { /* not a git checkout */ }
-  try { commit = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim(); } catch { /* not a git checkout */ }
+  // Prefer Railway-provided git metadata; fall back to the local git binary.
+  // A missing git binary is non-critical and reported as "unavailable" (never a failure).
+  let branch = process.env.RAILWAY_GIT_BRANCH || 'unavailable';
+  let commit = process.env.RAILWAY_GIT_COMMIT_SHA ? String(process.env.RAILWAY_GIT_COMMIT_SHA).slice(0, 7) : 'unavailable';
+  if (branch === 'unavailable') { try { branch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8' }).trim(); } catch { /* git binary unavailable */ } }
+  if (commit === 'unavailable') { try { commit = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim(); } catch { /* git binary unavailable */ } }
   line('=== RAILWAY DRY WALKTHROUGH — ' + new Date().toISOString() + ' ===');
   line('branch: ' + branch);
   line('commit: ' + commit);
@@ -479,27 +482,45 @@ function abort() { line('  (aborted before further work)'); return 'aborted'; }
   } finally {
     // Cleanup ALWAYS runs
     await cleanup();
-    // After-cleanup counts vs snapshot
-    line('\n— Row counts after cleanup (must match before) —');
-    const wantTables = ['reminder_leads', 'reminder_action_tokens', 'reminder_actions', 'reminder_notifications', 'reminder_form_nonces'];
+    // After-cleanup: table-specific verification (dependency-aware).
+    // reminder_leads is keyed by `id`; reminder_form_nonces has no lead_id, so it is
+    // verified through the token_hash relationship to reminder_action_tokens. Each
+    // query is wrapped so a verification error is recorded but never prevents the
+    // cleanup result from printing.
+    line('\n— Row counts after cleanup (must be zero synthetic rows) —');
+    const verifyQueries = [
+      ['reminder_leads',         `SELECT count(*)::int n FROM reminder_leads WHERE id=$1`],
+      ['reminder_action_tokens', `SELECT count(*)::int n FROM reminder_action_tokens WHERE lead_id=$1`],
+      ['reminder_actions',       `SELECT count(*)::int n FROM reminder_actions WHERE lead_id=$1`],
+      ['reminder_notifications', `SELECT count(*)::int n FROM reminder_notifications WHERE lead_id=$1`],
+      ['reminder_form_nonces',   `SELECT count(*)::int n FROM reminder_form_nonces WHERE token_hash IN (SELECT token_hash FROM reminder_action_tokens WHERE lead_id=$1)`],
+    ];
     let delta = 0;
-    const SNAP = {}; // re-fetch "before" is not available here; instead assert synthetic rows are gone
-    for (const t of wantTables) {
-      const { rows } = await db.query(`SELECT count(*)::int n FROM ${t} WHERE lead_id=$1`, [SYNTH_ID]);
-      const n = rows[0].n;
+    let cleanupFailed = 0;
+    for (const [t, sql] of verifyQueries) {
+      let n;
+      try {
+        const { rows } = await db.query(sql, [SYNTH_ID]);
+        n = rows[0].n;
+      } catch (e) {
+        fail(`cleanup verification failed for ${t}: ${e.message}`);
+        cleanupFailed++;
+        line(`  ${t} synthetic rows remaining: ERROR (verification query failed)`);
+        continue;
+      }
       line(`  ${t} synthetic rows remaining: ${n}`);
       if (n !== 0) { fail(`${t} still has ${n} synthetic rows`); delta += n; }
     }
-    if (delta === 0) pass('all synthetic rows removed');
+    if (delta === 0 && cleanupFailed === 0) pass('all synthetic rows removed');
 
     // Summary
     line('\n=== SUMMARY ===');
-    line('result: ' + (FAILURES === 0 && outcome === 'done' && delta === 0 ? 'PASS' : 'FAIL'));
+    line('result: ' + (FAILURES === 0 && outcome === 'done' && delta === 0 && cleanupFailed === 0 ? 'PASS' : 'FAIL'));
     line('failures: ' + FAILURES);
-    line('remaining gaps: (1) branch/commit may be "unavailable" if not a git checkout; (2) cron-disabled is an operator-confirmed precondition, not asserted by this script; (3) rate-limit burst used the shared public proxy IP — see note; (4) row-count delta vs absolute before-snapshot is not stored across the finally boundary — synthetic-row-removal is asserted instead.');
+    line('remaining gaps: (1) branch/commit is "unavailable" when neither Railway git env vars nor the git binary are present (non-critical); (2) cron-disabled is an operator-confirmed precondition, not asserted by this script; (3) rate-limit burst used the shared public proxy IP — see note; (4) row-count delta vs absolute before-snapshot is not stored across the finally boundary — synthetic-row-removal is asserted instead.');
 
     process.stdout.write(REPORT.join('\n') + '\n');
-    const code = (FAILURES === 0 && outcome === 'done' && delta === 0) ? 0 : 1;
+    const code = (FAILURES === 0 && outcome === 'done' && delta === 0 && cleanupFailed === 0) ? 0 : 1;
     process.exit(code);
   }
 })();
