@@ -190,7 +190,115 @@ CREATE TABLE IF NOT EXISTS reminder_leads (
   budget_range                TEXT,
   notes                       TEXT,
   customer_reminders_disabled BOOLEAN NOT NULL DEFAULT FALSE,
-  crm_created_date            TIMESTAMPTZ,
+  crm_created_date           TIMESTAMPTZ,
   created_at                  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at                  TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
+  );
+
+  -- ---------------------------------------------------------------------
+  -- reminder_leads: representative snapshot columns (stored at ingestion time so
+  -- the action flow NEVER reads representative data from Base44).
+  -- ---------------------------------------------------------------------
+  ALTER TABLE reminder_leads ADD COLUMN IF NOT EXISTS assigned_rep_name  TEXT;
+  ALTER TABLE reminder_leads ADD COLUMN IF NOT EXISTS assigned_rep_email TEXT;
+  ALTER TABLE reminder_leads ADD COLUMN IF NOT EXISTS assigned_rep_phone TEXT;
+
+  -- ---------------------------------------------------------------------
+  -- reminder_action_tokens — opaque token registrations created at email-send
+  -- time. Only SHA-256(token) is stored; the raw token exists only in the
+  -- customer's email link and is never logged.
+  -- ---------------------------------------------------------------------
+  CREATE TABLE IF NOT EXISTS reminder_action_tokens (
+    id                     UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    token_hash             TEXT NOT NULL,
+    lead_id                TEXT NOT NULL,
+    appointment_fingerprint TEXT NOT NULL,
+    action_type            TEXT NOT NULL CHECK (action_type IN ('confirm','reschedule','contact')),
+    expires_at             TIMESTAMPTZ NOT NULL,
+    status                 TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','revoked')),
+    snapshot               JSONB,
+    created_at             TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at             TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );
+  CREATE UNIQUE INDEX IF NOT EXISTS reminder_action_tokens_hash_uidx ON reminder_action_tokens (token_hash);
+  CREATE INDEX IF NOT EXISTS reminder_action_tokens_lead_idx ON reminder_action_tokens (lead_id);
+  CREATE INDEX IF NOT EXISTS reminder_action_tokens_expire_idx ON reminder_action_tokens (expires_at) WHERE status = 'active';
+
+  -- ---------------------------------------------------------------------
+  -- reminder_actions — event log for customer actions. token_hash links to
+  -- reminder_action_tokens (the raw token is NEVER stored). Completion rows
+  -- carry the idempotency guarantees via partial UNIQUE indexes.
+  -- ---------------------------------------------------------------------
+  -- Idempotent: CREATE IF NOT EXISTS only. Never DROP in production —
+  -- reminder_actions holds the immutable customer-action audit log.
+  CREATE TABLE IF NOT EXISTS reminder_actions (
+    id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    token_hash              TEXT NOT NULL,
+    lead_id                 TEXT NOT NULL,
+    appointment_fingerprint TEXT NOT NULL,
+    action_type             TEXT NOT NULL CHECK (action_type IN ('confirm','reschedule','contact')),
+    event_type              TEXT NOT NULL CHECK (event_type IN ('page_opened','action_completed','button_clicked')),
+    status                  TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','completed')),
+    requested_date          TEXT CHECK (requested_date IS NULL OR requested_date ~ '^\d{4}-\d{2}-\d{2}$'),
+    requested_time          TEXT CHECK (requested_time IS NULL OR requested_time ~ '^\d{2}:\d{2}$'),
+    note                    TEXT CHECK (note IS NULL OR length(note) <= 500),
+    note_hash               TEXT,
+    expires_at              TIMESTAMPTZ,
+    clicked_at              TIMESTAMPTZ,
+    completed_at            TIMESTAMPTZ,
+    ip                      TEXT,
+    user_agent              TEXT,
+    created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at              TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );
+  CREATE INDEX IF NOT EXISTS reminder_actions_token_idx ON reminder_actions (token_hash);
+  CREATE INDEX IF NOT EXISTS reminder_actions_lead_idx ON reminder_actions (lead_id);
+  CREATE INDEX IF NOT EXISTS reminder_actions_appt_idx ON reminder_actions (appointment_fingerprint);
+  -- Appointment-specific confirmation idempotency: exactly one completed confirm per appointment.
+  CREATE UNIQUE INDEX IF NOT EXISTS reminder_actions_confirm_uidx
+    ON reminder_actions (appointment_fingerprint)
+    WHERE action_type = 'confirm' AND event_type = 'action_completed';
+  -- Duplicate reschedule protection: one completed request per (appointment, requested date/time, note).
+  CREATE UNIQUE INDEX IF NOT EXISTS reminder_actions_reschedule_uidx
+    ON reminder_actions (appointment_fingerprint, requested_date, requested_time, note_hash)
+    WHERE action_type = 'reschedule' AND event_type = 'action_completed';
+
+  -- ---------------------------------------------------------------------
+  -- reminder_notifications — internal notification queue (Railway only).
+  -- Enqueued atomically with the customer action; delivered by a separate
+  -- Gmail path. A Gmail failure never loses the customer action.
+  -- ---------------------------------------------------------------------
+  CREATE TABLE IF NOT EXISTS reminder_notifications (
+    id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    lead_id                 TEXT NOT NULL,
+    appointment_fingerprint TEXT NOT NULL,
+    notification_type       TEXT NOT NULL CHECK (notification_type IN ('confirm','reschedule')),
+    assigned_rep            TEXT,
+    assigned_rep_email      TEXT,
+    recipient_emails        TEXT NOT NULL,
+    subject                 TEXT NOT NULL,
+    body                    TEXT NOT NULL,
+    status                  TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','processing','sent','failed')),
+    attempt_count           INTEGER NOT NULL DEFAULT 0,
+    last_error              TEXT,
+    next_attempt_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    sent_at                 TIMESTAMPTZ,
+    created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at              TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );
+  CREATE INDEX IF NOT EXISTS reminder_notifications_status_idx ON reminder_notifications (status, next_attempt_at);
+
+  -- ---------------------------------------------------------------------
+  -- reminder_form_nonces — one-time CSRF nonces for POST forms. Hash-only
+  -- storage (raw nonce never stored).
+  -- ---------------------------------------------------------------------
+  CREATE TABLE IF NOT EXISTS reminder_form_nonces (
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    nonce_hash    TEXT NOT NULL,
+    token_hash    TEXT NOT NULL,
+    expires_at    TIMESTAMPTZ NOT NULL,
+    consumed_at   TIMESTAMPTZ,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );
+  CREATE UNIQUE INDEX IF NOT EXISTS reminder_form_nonces_hash_uidx ON reminder_form_nonces (nonce_hash);
+  CREATE INDEX IF NOT EXISTS reminder_form_nonces_token_idx ON reminder_form_nonces (token_hash);

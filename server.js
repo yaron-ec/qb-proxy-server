@@ -1214,6 +1214,10 @@ app.post('/reminders/send-lead', requireProxySecret, (req, res) => {
 // Phase 2: REMINDER_DRY_RUN=true forces dry-run (no emails, no claim writes).
 app.use('/reminders', require('./lib/reminderRouter'));
 
+// Public, unauthenticated customer-action pages (confirm / reschedule / contact).
+// Token-gated by HMAC-signed expiring tokens — no proxy secret, no login.
+app.use('/r', require('./lib/actionRouter'));
+
 // ── Lead ingestion (CRM → Railway Postgres) ────────────────────────────────
 // Protected by a DEDICATED secret (X-Ingest-Secret / REMINDER_INGEST_SECRET),
 // separate from the proxy's X-Proxy-Secret. Creates/updates rows in the
