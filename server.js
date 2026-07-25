@@ -27,6 +27,7 @@ const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const qbMatch = require('./lib/qbMatch');
 const b44 = require('./lib/base44');
 const base44EntityGateway = require('./lib/base44EntityGateway');
+const tokenStore = require('./lib/qbTokenStore'); // QB credential persistence (encrypted Postgres)
 const app = express();
 app.use(express.json());
 
@@ -49,53 +50,10 @@ const QB_API_BASE = QB_ENVIRONMENT === 'production'
   ? 'https://quickbooks.api.intuit.com/v3/company'
   : 'https://sandbox-quickbooks.api.intuit.com/v3/company';
 
-// ââ Persistent Token Storage ââââââââââââââââââââââââââââââââââââââââââââââââ
+// ââ Persistent QB Token Storage (generic encrypted credential store) ââââââââââââââââââââââââââââââââââââââââââââââââ
 
-const TOKEN_FILE = path.join(__dirname, '.qb-tokens.encrypted');
-
-function encryptToken(data) {
-  const key = crypto.scryptSync(ENCRYPTION_KEY, 'salt', 32);
-  const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
-  let encrypted = cipher.update(JSON.stringify(data), 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-  return iv.toString('hex') + ':' + encrypted;
-}
-
-function decryptToken(encryptedData) {
-  const key = crypto.scryptSync(ENCRYPTION_KEY, 'salt', 32);
-  const [ivHex, encrypted] = encryptedData.split(':');
-  const iv = Buffer.from(ivHex, 'hex');
-  const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-  let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-  decrypted += decipher.final('utf8');
-  return JSON.parse(decrypted);
-}
-
-function loadTokens() {
-  try {
-    if (fs.existsSync(TOKEN_FILE)) {
-      const encrypted = fs.readFileSync(TOKEN_FILE, 'utf8');
-      return decryptToken(encrypted);
-    }
-  } catch (e) {
-    console.error('[proxy] Failed to load tokens:', e.message);
-  }
-  return null;
-}
-
-function saveTokens(tokens) {
-  try {
-    const encrypted = encryptToken(tokens);
-    fs.writeFileSync(TOKEN_FILE, encrypted, 'utf8');
-    console.log('[proxy] Tokens saved to disk');
-  } catch (e) {
-    console.error('[proxy] Failed to save tokens:', e.message);
-  }
-}
-
-// Load tokens from disk on startup
-let storedTokens = loadTokens();
+let storedTokens = null;
+let tokenStorageMethod = 'pending';
 
 // ââ Auth middleware ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
@@ -135,7 +93,7 @@ async function refreshTokenIfNeeded() {
     expires_at: new Date(Date.now() + (data.expires_in || 3600) * 1000).toISOString(),
     last_refresh_at: new Date().toISOString(),
   };
-  saveTokens(storedTokens);
+  tokenStorageMethod = await tokenStore.savePersistedTokens(QB_ENVIRONMENT, storedTokens);
   console.log('[proxy] Token refreshed successfully');
   return storedTokens;
 }
@@ -168,13 +126,22 @@ async function qbQuery(query) {
 
 // ââ Health âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
-app.get('/health', (req, res) => {
+app.get('/health', async (req, res) => {
+  let credentialLastUsedAt = null;
+  let credentialLastErrorAt = null;
+  try {
+    const cred = await tokenStore.loadPersistedTokens(QB_ENVIRONMENT);
+    credentialLastUsedAt = cred?.last_used_at || null;
+    credentialLastErrorAt = cred?.last_error_at || null;
+  } catch (e) { /* best-effort — health must never fail on metadata read */ }
   res.json({
     status: 'ok',
     environment: QB_ENVIRONMENT,
     connected: !!storedTokens,
     realm_id: storedTokens?.realm_id || null,
     token_expires_at: storedTokens?.expires_at || null,
+    credential_last_used_at: credentialLastUsedAt,
+    credential_last_error_at: credentialLastErrorAt,
   });
 });
 
@@ -217,7 +184,12 @@ app.post('/auth/callback', requireProxySecret, async (req, res) => {
     connected_at: new Date().toISOString(),
   };
 
-  saveTokens(storedTokens);
+  try {
+    tokenStorageMethod = await tokenStore.savePersistedTokens(QB_ENVIRONMENT, storedTokens);
+  } catch (e) {
+    storedTokens = null;
+    return res.status(500).json({ error: 'Token persistence failed: ' + e.message });
+  }
   console.log('[proxy] OAuth complete â realm_id:', realmId, 'env:', QB_ENVIRONMENT);
   res.json({ success: true, realm_id: realmId, environment: QB_ENVIRONMENT });
 });
@@ -239,14 +211,13 @@ app.get('/auth/status', requireProxySecret, (req, res) => {
 });
 
 // POST /auth/disconnect
-app.post('/auth/disconnect', requireProxySecret, (req, res) => {
+app.post('/auth/disconnect', requireProxySecret, async (req, res) => {
+  const realmId = storedTokens?.realm_id;
   storedTokens = null;
   try {
-    if (fs.existsSync(TOKEN_FILE)) {
-      fs.unlinkSync(TOKEN_FILE);
-    }
+    tokenStorageMethod = await tokenStore.deletePersistedTokens(QB_ENVIRONMENT, realmId);
   } catch (e) {
-    console.error('[proxy] Failed to delete token file:', e.message);
+    console.error('[proxy] Failed to delete persisted tokens:', e.message);
   }
   res.json({ success: true });
 });
@@ -766,10 +737,17 @@ async function updateQuickBooksEstimateSyncCursor(syncTime) {
   }
 }
 
-app.get('/qb/health', (req, res) => {
+app.get('/qb/health', async (req, res) => {
   const refreshExpired = storedTokens?.refresh_expires_at
     ? new Date(storedTokens.refresh_expires_at) < new Date()
     : false;
+  let credentialLastUsedAt = null;
+  let credentialLastErrorAt = null;
+  try {
+    const cred = await tokenStore.loadPersistedTokens(QB_ENVIRONMENT);
+    credentialLastUsedAt = cred?.last_used_at || null;
+    credentialLastErrorAt = cred?.last_error_at || null;
+  } catch (e) { /* best-effort — health must never fail on metadata read */ }
   res.json({
     status: 'ok',
     environment: QB_ENVIRONMENT,
@@ -778,6 +756,8 @@ app.get('/qb/health', (req, res) => {
     tokenExpiresAt: storedTokens?.expires_at || null,
     refreshExpiresAt: storedTokens?.refresh_expires_at || null,
     reconnectRequired: !storedTokens || refreshExpired,
+    credential_last_used_at: credentialLastUsedAt,
+    credential_last_error_at: credentialLastErrorAt,
   });
 });
 
@@ -1113,8 +1093,20 @@ app.post('/internal/email/send', requireProxySecret, async (req, res) => {
   } catch (e) { res.status(/credentials/i.test(e.message) ? 503 : 500).json({ error: e.message }); }
 });
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`[proxy] QuickBooks Proxy running on port ${PORT}`);
-  console.log(`[proxy] Environment: ${QB_ENVIRONMENT}`);
-  console.log(`[proxy] API Base: ${QB_API_BASE}`);
-});
+(async () => {
+  try {
+    storedTokens = await tokenStore.loadPersistedTokens(QB_ENVIRONMENT);
+    tokenStorageMethod = process.env.DATABASE_URL ? 'postgres'
+      : (tokenStore.canUseFilesystemFallback() ? 'filesystem' : 'none');
+    console.log(`[proxy] QB token state loaded — realm:${storedTokens?.realm_id || 'none'} storage:${tokenStorageMethod}`);
+  } catch (e) {
+    console.error('[proxy] QB token load failed on startup:', e.message);
+    storedTokens = null;
+    tokenStorageMethod = 'error';
+  }
+  app.listen(PORT, () => {
+    console.log(`[proxy] QuickBooks Proxy running on port ${PORT}`);
+    console.log(`[proxy] Environment: ${QB_ENVIRONMENT}`);
+    console.log(`[proxy] API Base: ${QB_API_BASE}`);
+  });
+})();
