@@ -117,6 +117,9 @@ async function qbFetch(path, options = {}) {
     const detail = json?.Fault?.Error?.[0]?.Detail || json?.Fault?.Error?.[0]?.Message || text.slice(0, 300);
     throw Object.assign(new Error(`QB ${res.status}: ${detail}`), { status: res.status, qbError: json });
   }
+  // Record credential use (last_used_at) after a successful authenticated QB API call.
+  // Best-effort: never let metadata tracking break a successful QB response.
+  try { await tokenStore.markUsed(QB_ENVIRONMENT, tokens.realm_id); } catch (_) { /* best-effort */ }
   return json;
 }
 
@@ -340,6 +343,7 @@ app.get('/estimates/:id/pdf', requireProxySecret, async (req, res) => {
       headers: { Authorization: `Bearer ${tokens.access_token}`, Accept: 'application/pdf' },
     });
     if (!pdfRes.ok) return res.status(pdfRes.status).json({ error: `PDF fetch failed: ${pdfRes.status}` });
+    try { await tokenStore.markUsed(QB_ENVIRONMENT, tokens.realm_id); } catch (_) { /* best-effort */ }
     const buffer = await pdfRes.arrayBuffer();
     res.setHeader('Content-Type', 'application/pdf');
     res.send(Buffer.from(buffer));
@@ -398,6 +402,7 @@ app.get('/invoices/:id/pdf', requireProxySecret, async (req, res) => {
       headers: { Authorization: `Bearer ${tokens.access_token}`, Accept: 'application/pdf' },
     });
     if (!pdfRes.ok) return res.status(pdfRes.status).json({ error: `PDF fetch failed: ${pdfRes.status}` });
+    try { await tokenStore.markUsed(QB_ENVIRONMENT, tokens.realm_id); } catch (_) { /* best-effort */ }
     const buffer = await pdfRes.arrayBuffer();
     res.setHeader('Content-Type', 'application/pdf');
     res.send(Buffer.from(buffer));
@@ -868,6 +873,7 @@ app.post('/sync/qb-estimate-pdfs', requireProxySecret, async (req, res) => {
           continue;
         }
 
+        try { await tokenStore.markUsed(QB_ENVIRONMENT, tokens.realm_id); } catch (_) { /* best-effort */ }
         const contentType = pdfRes.headers.get('content-type') || '';
         await b44.update('HandoffEstimate', recordId, {
           pdf_status: contentType.includes('pdf') ? 'available' : 'downloaded',
