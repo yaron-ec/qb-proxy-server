@@ -6,9 +6,10 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
+    "migrate": "node db/migrate.js",
     "reminders:worker": "node reminderWorker.js",
     "reminders:watchdog": "node reminderWatchdog.js",
-    "reminders:migrate": "node -e \"require('./db/client').ensureSchema().then(()=>{console.log('schema ok');process.exit(0)}).catch(e=>{console.error(e);process.exit(1)})\"",
+    "reminders:migrate": "node -e \"require('./db/client').ensureSchema().then(()=>{console.log('schema ok');process.exit(0)}).catch(e=>{console.error(e);process.exit(1)})\",
     "reminders:seed": "node db/seedTestLeads.js",
     "reminders:import": "node db/importLeads.js",
     "validate:email-migration": "node validateEmailMigration.js"
