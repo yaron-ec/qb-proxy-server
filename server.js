@@ -1110,7 +1110,10 @@ const PORT = process.env.PORT || 3000;
     storedTokens = null;
     tokenStorageMethod = 'error';
   }
-  app.listen(PORT, () => {
+  // === Email migration (minimal, additive) — Railway Gmail read (server-side token; auth via rbac) ===
+app.use('/api/v1/gmail', require('./routes/gmail'));
+
+app.listen(PORT, () => {
     console.log(`[proxy] QuickBooks Proxy running on port ${PORT}`);
     console.log(`[proxy] Environment: ${QB_ENVIRONMENT}`);
     console.log(`[proxy] API Base: ${QB_API_BASE}`);

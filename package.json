@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "migrate": "node db/migrate.js"
+    "migrate": "node db/migrate.js",
+    "test": "node --test test/",
+    "validate:email-migration": "node validateEmailMigration.js",
+    "reminders:worker": "node reminderWorker.js"
   },
   "dependencies": {
     "express": "^4.18.2",
