@@ -22,8 +22,18 @@ const { requireAuth } = require('../lib/rbac');
 const emailService = require('../lib/emailService');
 const templates = require('../lib/emailTemplates');
 const data = require('../lib/dataAccess');
+const transport = require('../lib/transportControl');
+const { canAccessLead } = require('../lib/authorization');
 
 const router = express.Router();
+
+// No browser delegation (Approach A): when a flow is owned by Base44 the Railway
+// route is NOT the executor for that action and returns 421 Misdirected (sends
+// nothing). The frontend calls the Base44 function directly for Base44-owned
+// flows per FLOW_OWNERSHIP in src/lib/emailTransport.js.
+function base44Owned(res, flow) {
+  return res.status(421).json({ error: `${flow} is owned by Base44; call the Base44 function directly`, transport: 'base44' });
+}
 
 const INTERNAL_TEST_RECIPIENTS = new Set([
   'michelle@ecconstructiongroup.com',
@@ -34,16 +44,77 @@ function isInternal(email) {
   return !!email && INTERNAL_TEST_RECIPIENTS.has(String(email).toLowerCase().trim());
 }
 
+// ── /api/v1/emails/send hardening (Phase 3) ─────────────────────────────────
+const APPROVED_SENDER = 'yaron@ecconstructiongroup.com';
+const APPROVED_FROM_NAME = process.env.GMAIL_FROM_NAME || 'EC Construction Group';
+const ALLOWED_MIME = new Set([
+  'application/pdf', 'image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp',
+  'text/plain', 'text/csv', 'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+]);
+const MAX_FILE_BYTES = 10 * 1024 * 1024;     // 10 MB per attachment
+const MAX_TOTAL_BYTES = 25 * 1024 * 1024;    // 25 MB total request
+
+function normalizeAddrs(v) {
+  if (!v) return [];
+  const arr = Array.isArray(v) ? v : [v];
+  return arr.map(x => String(x || '').trim()).filter(Boolean).map(a => a.toLowerCase());
+}
+function validEmail(a) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a); }
+
 // ── Generic authenticated send (raw HTML provided by caller) ────────────────
 router.post('/emails/send', requireAuth, async (req, res) => {
   try {
-    const { to, cc, replyTo, subject, htmlBody, idempotencyKey } = req.body || {};
-    if (!to || !subject || !htmlBody) return res.status(400).json({ error: 'to, subject, htmlBody required' });
-    if (!idempotencyKey) return res.status(400).json({ error: 'idempotencyKey required' });
+    const selected = transport.flowTransport('GENERIC');
+    transport.logDecision('GENERIC', selected, req.user);
+    if (selected === 'base44') return base44Owned(res, 'GENERIC');
+    const { to, cc, replyTo, subject, htmlBody, attachments, idempotencyKey, metadata, fromAddress, fromName } = req.body || {};
+    // Required fields
+    if (!to) return res.status(400).json({ error: 'to is required' });
+    if (!subject) return res.status(400).json({ error: 'subject is required' });
+    if (!htmlBody) return res.status(400).json({ error: 'htmlBody is required' });
+    if (!idempotencyKey || typeof idempotencyKey !== 'string') return res.status(400).json({ error: 'idempotencyKey (string) is required' });
+    // Reject any caller-supplied sender that differs from the approved sender
+    if (fromAddress && String(fromAddress).toLowerCase() !== APPROVED_SENDER) return res.status(400).json({ error: 'sender is fixed; fromAddress must not be supplied' });
+    // Normalize + validate recipients
+    const toList = normalizeAddrs(to);
+    if (!toList.length) return res.status(400).json({ error: 'no valid recipients' });
+    const badTo = toList.find(a => !validEmail(a));
+    if (badTo) return res.status(400).json({ error: `invalid recipient: ${badTo}` });
+    const ccList = normalizeAddrs(cc).filter(validEmail);
+    if (replyTo && !validEmail(String(replyTo).toLowerCase())) return res.status(400).json({ error: 'invalid replyTo' });
+    // Validate attachments (filename, MIME, base64, per-file + total size)
+    let totalBytes = 0;
+    if (Array.isArray(attachments)) {
+      for (const a of attachments) {
+        if (!a || !a.filename) return res.status(400).json({ error: 'attachment.filename required' });
+        const ct = String(a.contentType || '').toLowerCase();
+        if (!ALLOWED_MIME.has(ct)) return res.status(400).json({ error: `unsupported attachment MIME: ${ct}` });
+        const b64 = String(a.contentBase64 || '').replace(/\s/g, '');
+        if (!b64) return res.status(400).json({ error: 'attachment.contentBase64 required' });
+        if (!/^[A-Za-z0-9+/=_-]+$/.test(b64)) return res.status(400).json({ error: 'invalid base64' });
+        const bytes = Math.floor(b64.length * 3 / 4);
+        if (bytes > MAX_FILE_BYTES) return res.status(400).json({ error: `attachment too large: ${a.filename}` });
+        totalBytes += bytes;
+      }
+    }
+    if (totalBytes > MAX_TOTAL_BYTES) return res.status(413).json({ error: 'total request too large' });
+    // Send ONLY through EmailService; sender forced to the approved address.
     const result = await emailService.send({
-      to, cc, replyTo, subject, htmlBody, idempotencyKey, role: 'api',
+      to: toList.length === 1 ? toList[0] : toList,
+      cc: ccList, replyTo: replyTo || undefined, subject, htmlBody,
+      attachments: Array.isArray(attachments) ? attachments : undefined,
+      idempotencyKey, fromName: APPROVED_FROM_NAME, fromAddress: APPROVED_SENDER,
+      role: (metadata && metadata.template_key) || 'api', metadata,
     });
-    res.json(result);
+    res.json({
+      ok: !!result.ok,
+      gmailMessageId: result.gmailMessageId || null,
+      idempotent: !!result.idempotent,
+      claimId: result.claimId || null,
+      deliveryStatus: result.ok ? 'sent' : 'failed',
+    });
   } catch (e) {
     res.status(e instanceof Error && /credentials/i.test(e.message) ? 503 : 500).json({ error: e.message });
   }
@@ -52,6 +123,9 @@ router.post('/emails/send', requireAuth, async (req, res) => {
 // ── Internal test send (NO customer, internal recipients only, one message) ─
 router.post('/emails/test', requireAuth, async (req, res) => {
   try {
+    const selected = transport.flowTransport('GENERIC');
+    transport.logDecision('GENERIC', selected, req.user);
+    if (selected === 'base44') return base44Owned(res, 'GENERIC');
     const { to } = req.body || {};
     if (!isInternal(to)) return res.status(400).json({ error: 'test recipients must be internal (michelle@/yaron@)' });
     const idempotencyKey = `test:${req.user.sub}:${Date.now()}`;
@@ -70,8 +144,12 @@ router.post('/emails/test', requireAuth, async (req, res) => {
 // dataAccess.getLead; replaced by Railway Postgres `leads` in Stage 7.
 router.post('/leads/:id/remind', requireAuth, async (req, res) => {
   try {
+    const selected = transport.flowTransport('MANUAL_REMINDER');
+    transport.logDecision('MANUAL_REMINDER', selected, req.user);
+    if (selected === 'base44') return base44Owned(res, 'MANUAL_REMINDER');
     const lead = await data.getLead(req.params.id);
     if (!lead) return res.status(404).json({ error: 'lead not found' });
+    if (!canAccessLead(req.user, lead)) return res.status(403).json({ error: 'forbidden: not assigned to this lead' });
 
     const hasFollowUp = lead.follow_up_date && lead.follow_up_type;
     const apptDate = hasFollowUp ? lead.follow_up_date : lead.appointment_date;
@@ -124,10 +202,14 @@ router.post('/leads/:id/remind', requireAuth, async (req, res) => {
 // then sends through EmailService with the PDF attached.
 router.post('/invoices/:id/email', requireAuth, async (req, res) => {
   try {
+    const selected = transport.flowTransport('INVOICE');
+    transport.logDecision('INVOICE', selected, req.user);
+    if (selected === 'base44') return base44Owned(res, 'INVOICE');
     const invoice = await data.getInvoice(req.params.id);
     if (!invoice) return res.status(404).json({ error: 'invoice not found' });
     const lead = invoice.lead_id ? await data.getLead(invoice.lead_id) : null;
     if (!lead) return res.status(404).json({ error: 'lead not found for invoice' });
+    if (!canAccessLead(req.user, lead)) return res.status(403).json({ error: 'forbidden: not assigned to this lead' });
 
     const recipients = [];
     if (lead.email) recipients.push(lead.email);

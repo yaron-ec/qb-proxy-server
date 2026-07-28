@@ -74,33 +74,37 @@ router.post('/migrate', async (req, res) => {
   try {
     const { base44_token } = req.body || {};
     if (!base44_token) return res.status(400).json({ error: 'base44_token required' });
-    if (!b44.isConfigured()) return res.status(503).json({ error: 'Base44 bridge not configured (temporary)' });
 
-    // Resolve the Base44 user from their token via the Base44 auth endpoint.
-    // This is the ONLY Base44 call in the auth path and exists solely to seed
-    // the Railway users table once.
-    const meRes = await fetch(`${process.env.BASE44_API_URL || 'https://api.base44.com'}/auth/me`, {
-      headers: { Authorization: `Bearer ${base44_token}`, 'X-App-ID': process.env.BASE44_APP_ID },
-    });
-    if (!meRes.ok) return res.status(401).json({ error: 'Base44 token invalid' });
-    const bUser = await meRes.json().catch(() => ({}));
-    const email = bUser.email;
-    if (!email) return res.status(400).json({ error: 'Base44 user has no email' });
+    // Authoritative verification: email + role come ONLY from Base44's verified
+    // /auth/me response, never from the browser. See lib/base44TokenVerify.js.
+    const verified = await require('../lib/base44TokenVerify').verifyBase44Token(base44_token);
 
-    let user = await auth.getUserByEmail(email);
-    if (!user) {
-      const role = ['admin', 'manager', 'sales_rep', 'office'].includes(bUser.role) ? bUser.role : 'user';
+    let user = await auth.getUserByEmail(verified.email);
+    if (user) {
+      // EXISTING Railway user: their stored Railway role ALWAYS wins. A Base44
+      // sales_rep can never exchange into admin, and an admin demoted in
+      // Railway keeps the Railway role. Disabled users are rejected.
+      if (user.status !== 'active') return res.status(403).json({ error: 'account disabled' });
+    } else {
+      // NEW user: role from the verified Base44 token only (never browser-supplied),
+      // defaulting to 'user' if Base44 reported an unrecognized role.
+      const role = verified.role || 'user';
       const ins = await require('../db/client').query(
         `INSERT INTO users (email, full_name, role) VALUES ($1, $2, $3)
          ON CONFLICT (lower(email)) DO UPDATE SET full_name = EXCLUDED.full_name, updated_at = NOW()
          RETURNING *`,
-        [email, bUser.full_name || bUser.name || null, role]
+        [verified.email, verified.full_name, role]
       );
       user = ins.rows[0];
     }
     const session = await auth.issueSession(user);
     res.json({ ...session, migrated: true });
   } catch (e) {
+    const code = e && e.code;
+    if (code === 'missing_token') return res.status(400).json({ error: 'base44_token required' });
+    if (code === 'bridge_unavailable' || code === 'base44_unavailable') return res.status(503).json({ error: 'authentication bridge unavailable' });
+    if (code === 'invalid_token') return res.status(401).json({ error: 'Base44 token invalid' });
+    if (code === 'no_email') return res.status(400).json({ error: 'verified user has no email' });
     res.status(500).json({ error: e.message });
   }
 });
