@@ -7,5 +7,6 @@ COPY reminderWorker.js validateEmailMigration.js ./
 COPY lib ./lib
 COPY routes ./routes
 COPY db ./db
+COPY test ./test
 EXPOSE 3000
 CMD ["node", "server.js"]
