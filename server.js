@@ -1,6 +1,3 @@
-// TEMPORARY DIAGNOSTIC (remove after validation) — logs ONLY boolean presence, never values.
-console.log('[diag] DATABASE_URL present:', !!process.env.DATABASE_URL);
-console.log('[diag] PGHOST present:', !!process.env.PGHOST);
 /* eslint-disable no-undef */
 /**
  * QuickBooks Proxy Server
