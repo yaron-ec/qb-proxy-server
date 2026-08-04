@@ -1098,6 +1098,12 @@ app.post('/internal/email/send', requireProxySecret, async (req, res) => {
     res.json(result);
   } catch (e) { res.status(/credentials/i.test(e.message) ? 503 : 500).json({ error: e.message }); }
 });
+
+// ── Gmail OAuth one-time connection flow (Phase 1A) ──────────────────────────
+// Internal routes for authorizing Gmail sending through Railway. Protected by
+// X-Proxy-Secret or a short-lived setup_token. No email is sent here.
+app.use('/internal/gmail/oauth', require('./lib/gmailOAuthRouter'));
+
 const PORT = process.env.PORT || 3000;
 (async () => {
   try {
