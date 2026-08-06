@@ -44,7 +44,20 @@
 const db = require('./db/client');
 const time = require('./lib/reminderTime');
 const emails = require('./lib/reminderEmails');
-const emailService = require('./lib/emailService');
+const gmailSender = require('./lib/gmailSender');
+// emailService.js is not in the repository; the production reminder engine
+// (lib/reminderEngine.js) uses lib/gmailSender.js directly. Adapt gmailSender
+// to the emailService.send() signature used below so the rest of the script
+// is unchanged. The deterministic idempotency key is still generated and
+// logged below; the Postgres email_send_claims gate lived in emailService.js
+// which is not present in this repo.
+const emailService = {
+  send: async ({ to, subject, htmlBody, fromName, fromAddress }) => {
+    const accessToken = await gmailSender.refreshAccessToken();
+    const result = await gmailSender.sendEmail(accessToken, { to, subject, htmlBody, fromName, fromAddress });
+    return { ok: true, idempotent: false, gmailMessageId: result.id, claimId: null };
+  },
+};
 
 const COMPANY_NAME = 'EC Construction Group';
 const COMPANY_FROM_NAME = 'EC Construction Group';
