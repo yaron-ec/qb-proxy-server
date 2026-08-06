@@ -45,6 +45,7 @@ const db = require('./db/client');
 const time = require('./lib/reminderTime');
 const emails = require('./lib/reminderEmails');
 const gmailSender = require('./lib/gmailSender');
+const gmailCredStore = require('./lib/gmailCredentialStore');
 // emailService.js is not in the repository; the production reminder engine
 // (lib/reminderEngine.js) uses lib/gmailSender.js directly. Adapt gmailSender
 // to the emailService.send() signature used below so the rest of the script
@@ -115,6 +116,73 @@ function redactEmail(email) {
 
   try {
     await db.ensureSchema();
+
+    // ── Gmail credential store pre-flight (no env-var fallback). ──────────
+    // Explicitly resolve the Gmail credential from the Postgres
+    // integration_credentials store — the same path gmailSender uses
+    // internally via resolveGmailCreds(). This one-time test script does NOT
+    // fall back to GMAIL_* environment variables; if the store lookup returns
+    // null or an incomplete object, exit before sending so the failure is
+    // diagnosable without a duplicate send.
+    const gmailEnv = process.env.QB_ENVIRONMENT || process.env.NODE_ENV || 'production';
+    let gmailCred = null;
+    try {
+      gmailCred = await gmailCredStore.loadGmailCredential(gmailEnv);
+    } catch (e) {
+      console.error(JSON.stringify({
+        event: 'single_test_gmail_preflight',
+        environment: gmailEnv,
+        credentialFound: false,
+        account_identifier: null,
+        status: 'store_error',
+        key_version: null,
+        has_refresh_token: false,
+        has_client_id: false,
+        has_client_secret: false,
+        error: e.message,
+        errorType: 'credential_store_missing',
+      }));
+      process.exit(1);
+    }
+
+    const credFound = !!gmailCred;
+    const hasRefresh = !!(gmailCred && gmailCred.refresh_token);
+    const hasClientId = !!(gmailCred && gmailCred.client_id);
+    const hasClientSecret = !!(gmailCred && gmailCred.client_secret);
+    const credComplete = credFound && hasRefresh && hasClientId && hasClientSecret;
+
+    console.log(JSON.stringify({
+      event: 'single_test_gmail_preflight',
+      environment: gmailEnv,
+      credentialFound: credFound,
+      account_identifier: gmailCred ? gmailCred.account_identifier : null,
+      status: gmailCred ? gmailCred.status : 'not_found',
+      key_version: gmailCred ? gmailCred.key_version : null,
+      has_refresh_token: hasRefresh,
+      has_client_id: hasClientId,
+      has_client_secret: hasClientSecret,
+    }));
+
+    if (!credFound) {
+      console.error(JSON.stringify({
+        event: 'single_test_gmail_preflight_failed',
+        environment: gmailEnv,
+        errorType: 'credential_store_missing',
+      }));
+      process.exit(1);
+    }
+    if (!credComplete) {
+      console.error(JSON.stringify({
+        event: 'single_test_gmail_preflight_failed',
+        environment: gmailEnv,
+        account_identifier: gmailCred.account_identifier,
+        errorType: 'credential_store_incomplete',
+        has_refresh_token: hasRefresh,
+        has_client_id: hasClientId,
+        has_client_secret: hasClientSecret,
+      }));
+      process.exit(1);
+    }
 
     // ── Load ONLY the specified lead. No other lead is processed. ─────────
     const { rows } = await db.query(
