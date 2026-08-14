@@ -20,6 +20,13 @@
  *   J. Deal field cross-contamination guard → lead field changes do NOT overwrite
  *      any Deal's amount/project_type/sold_date (pure-JS guard logic test)
  *
+ * ISOLATION:
+ *   Each test runs inside its own SAVEPOINT and rolls back to it, so invoices
+ *   and mappings from one test NEVER leak into another. The migration (DDL) is
+ *   applied once before any savepoint and persists across tests. This fixes the
+ *   cross-test accumulation bug where getInvoicesForSale returned invoices seeded
+ *   by earlier tests.
+ *
  * SAFETY:
  *   - Requires TEST_DATABASE_URL. Refuses without it.
  *   - NEVER falls back to DATABASE_URL or any production variable.
@@ -124,13 +131,22 @@ async function run() {
   const client = await pool.connect();
   const db = { query: (t, p) => client.query(t, p) };
 
+  // Per-test SAVEPOINT isolation. Each test seeds + asserts inside a savepoint,
+  // then rolls back to it so its data never leaks into the next test. The
+  // migration (applied before any savepoint) persists across all tests.
+  async function withTest(name, fn) {
+    await client.query(`SAVEPOINT ${name}`);
+    try { await fn(); }
+    finally { await client.query(`ROLLBACK TO SAVEPOINT ${name}`); }
+  }
+
   try {
     const v = await client.query('SHOW server_version');
     report.pgVersion = v.rows[0].server_version;
 
     await client.query('BEGIN');
 
-    // ── Apply migration ──
+    // ── Apply migration (persists across all test savepoints) ──
     const migrationPath = path.join(__dirname, '..', 'db', 'migrations', '2026-10-qb-invoice-sale-map.sql');
     const statements = splitSql(fs.readFileSync(migrationPath, 'utf8'));
     for (let i = 0; i < statements.length; i++) {
@@ -174,7 +190,7 @@ async function run() {
     }
 
     // ── Test A: 1 Sale, 1 invoice, fully paid ──
-    {
+    await withTest('A', async () => {
       await seedInvoice('INV-A1', 4724, 4724);
       await mapInv('INV-A1', saleA);
       const f = await fin(4724, saleA);
@@ -183,10 +199,10 @@ async function run() {
         result: f,
         pass: f.invoiced === 4724 && f.paid === 4724 && f.balance === 0 && f.payment_status === 'paid',
       };
-    }
+    });
 
     // ── Test B: 3 Sales, 1 invoice each, independent ──
-    {
+    await withTest('B', async () => {
       await seedInvoice('INV-BA', 4724, 0);
       await mapInv('INV-BA', saleA);
       await seedInvoice('INV-BB', 4869, 0);
@@ -204,10 +220,10 @@ async function run() {
            && fC.invoiced === 16500 && fC.paid === 1500 && fC.payment_status === 'partial'
            && fA.balance === 4724 && fB.balance === 4869 && fC.balance === 15000,
       };
-    }
+    });
 
     // ── Test C: 2 Sales with IDENTICAL amounts, invoice on one only ──
-    {
+    await withTest('C', async () => {
       const saleX = '6a7ce04c43500beb8e533401'; // 4869
       const saleY = '6a7ce04c43500beb8e533402'; // 4869 (identical)
       await seedInvoice('INV-CX', 4869, 4869);
@@ -222,10 +238,10 @@ async function run() {
            && fY.invoiced === 0 && fY.paid === 0 && fY.payment_status === 'unpaid'
            && fY.balance === 4869,
       };
-    }
+    });
 
     // ── Test D: 1 Sale (C) with 3 invoices, aggregate ──
-    {
+    await withTest('D', async () => {
       await seedInvoice('INV-DC1', 5000, 0);
       await mapInv('INV-DC1', saleC);
       await seedInvoice('INV-DC2', 5000, 0);
@@ -233,35 +249,43 @@ async function run() {
       await seedInvoice('INV-DC3', 6500, 1500);
       await mapInv('INV-DC3', saleC);
       const fC = await fin(16500, saleC);
-      // Note: INV-BC from test B also mapped to saleC; total saleC invoices = BC(16500,1500)+DC1+DC2+DC3
       const allC = await map.getInvoicesForSale(db, saleC);
       const expectedInvoiced = allC.reduce((s, i) => s + Number(i.total_amt), 0);
       const expectedPaid = allC.reduce((s, i) => s + Number(i.paid), 0);
       report.tests.D = {
-        scenario: 'Sale C with multiple invoices, all aggregate to C only',
+        scenario: 'Sale C with 3 invoices, all aggregate to C only',
         saleC: fC, invoiceCount: allC.length, expectedInvoiced, expectedPaid,
-        pass: fC.invoiced === Math.round(expectedInvoiced * 100) / 100 && fC.paid === 1500 && allC.length >= 4,
+        pass: fC.invoiced === Math.round(expectedInvoiced * 100) / 100
+           && fC.invoiced === 16500 && fC.paid === 1500 && allC.length === 3,
       };
-    }
+    });
 
     // ── Test E: partial payment on only Sale C (Joann critical) ──
-    {
+    await withTest('E', async () => {
+      await seedInvoice('INV-EA', 4724, 0);
+      await mapInv('INV-EA', saleA);
+      await seedInvoice('INV-EB', 4869, 0);
+      await mapInv('INV-EB', saleB);
+      await seedInvoice('INV-EC', 16500, 1500);
+      await mapInv('INV-EC', saleC);
       const fA = await fin(4724, saleA);
       const fB = await fin(4869, saleB);
       const fC = await fin(16500, saleC);
       report.tests.E = {
         scenario: 'Joann critical: A=4724 B=4869 C=16500, $1500 paid only on C',
         saleA: fA, saleB: fB, saleC: fC,
-        pass: fA.paid === 0 && fB.paid === 0 && fC.paid >= 1500
-           && fA.payment_status === 'unpaid' && fB.payment_status === 'unpaid',
+        pass: fA.paid === 0 && fB.paid === 0 && fC.paid === 1500
+           && fA.payment_status === 'unpaid' && fB.payment_status === 'unpaid'
+           && fC.payment_status === 'partial',
       };
-    }
+    });
 
     // ── Test F: Sale A fully paid, Sale B unpaid (same Lead) ──
-    {
-      // Make a fully-paid invoice for A and confirm B stays unpaid
+    await withTest('F', async () => {
       await seedInvoice('INV-FA', 4724, 4724);
       await mapInv('INV-FA', saleA);
+      await seedInvoice('INV-FB', 4869, 0);
+      await mapInv('INV-FB', saleB);
       const fA = await fin(4724, saleA);
       const fB = await fin(4869, saleB);
       report.tests.F = {
@@ -269,10 +293,10 @@ async function run() {
         saleA: fA, saleB: fB,
         pass: fA.payment_status === 'paid' && fB.payment_status === 'unpaid' && fB.paid === 0,
       };
-    }
+    });
 
     // ── Test G: voided invoice mapped to a Sale → excluded ──
-    {
+    await withTest('G', async () => {
       const saleG = '6a7ce04c43500beb8e533403';
       await seedInvoice('INV-GV', 1000, 1000, { voided: true });
       await mapInv('INV-GV', saleG);
@@ -283,33 +307,37 @@ async function run() {
         invoiceCount: invs.length, saleG: fG,
         pass: invs.length === 0 && fG.invoiced === 0 && fG.paid === 0 && fG.payment_status === 'unpaid',
       };
-    }
+    });
 
-    // ── Test H: legacy invoice with NO mapping → UNMAPPED, contributes to no Sale ──
-    {
-      await seedInvoice('INV-LEGACY', 9999, 0);
-      // no mapInv call → unmapped
+    // ── Test H: legacy invoice whose customer has NO lead → UNMAPPED, contributes to no Sale ──
+    await withTest('H', async () => {
+      // CUST-UNKNOWN has no CRM lead → classifyExisting must return UNMAPPED.
+      await seedInvoice('INV-LEGACY', 9999, 0, { customer: 'CUST-UNKNOWN' });
+      // no mapInv call → no ownership row → contributes to no Sale
       const resolvers = {
-        leadIdForCustomer: (c) => (c === cust ? leadId : null),
-        dealCountForLead: () => 3, // multi-deal lead → AMBIGUOUS for any mapped; legacy is UNMAPPED
+        leadIdForCustomer: (c) => (c === 'CUST-UNKNOWN' ? null : leadId),
+        dealCountForLead: () => 3,
       };
       const classified = await map.classifyExisting(db, resolvers);
       const legacy = classified.find((r) => r.qb_invoice_id === 'INV-LEGACY');
       // Assert it contributes to no sale: getInvoicesForSale for A/B/C must not include it
       const fA = await fin(4724, saleA);
+      const fB = await fin(4869, saleB);
+      const fC = await fin(16500, saleC);
       report.tests.H = {
-        scenario: 'Legacy invoice with no crm_sale_id → UNMAPPED, no Sale contribution',
+        scenario: 'Legacy invoice (no lead) → UNMAPPED, no Sale contribution',
         legacyClassification: legacy ? legacy.classification : 'NOT_FOUND',
-        saleA: fA,
-        pass: legacy && legacy.classification === 'UNMAPPED' && fA.invoiced < 9999,
+        saleA: fA, saleB: fB, saleC: fC,
+        pass: legacy && legacy.classification === 'UNMAPPED'
+           && fA.invoiced === 0 && fB.invoiced === 0 && fC.invoiced === 0,
       };
-    }
+    });
 
     // ── Test I: duplicate mapping upsert → idempotent, no reassign ──
-    {
+    await withTest('I', async () => {
       await seedInvoice('INV-IDEM', 3000, 0);
       await mapInv('INV-IDEM', saleA, { doc: '#IDEM' });
-      // Attempt to reassign to saleB — must NOT take effect
+      // Attempt to reassign to saleB — must NOT take effect (ON CONFLICT DO NOTHING)
       await map.upsertMapping(db, {
         qb_invoice_id: 'INV-IDEM', qb_doc_number: '#IDEM', crm_sale_id: saleB,
         crm_lead_id: leadId, qb_customer_id: cust, mapping_method: 'crm_created',
@@ -321,12 +349,12 @@ async function run() {
         scenario: 'Duplicate upsert with different crm_sale_id → original retained',
         mappingCrmSaleId: m ? m.crm_sale_id : null,
         saleA: fA, saleB: fB,
-        pass: m && m.crm_sale_id === saleA && fA.invoiced >= 3000 && fB.invoiced === 0,
+        pass: m && m.crm_sale_id === saleA && fA.invoiced === 3000 && fB.invoiced === 0,
       };
-    }
+    });
 
     // ── Test J: Deal field cross-contamination guard (pure JS) ──
-    {
+    await withTest('J', async () => {
       const lead = { first_name: 'Joann', last_name: 'Gregg', assigned_rep: 'Yaron', estimated_value: 999999, project_type: 'BOGUS', property_address: '999 Changed', sold_date: '2099-01-01' };
       const deals = [
         { id: saleA, amount: 4724, project_type: 'Exterior Painting', sold_date: '2026-08-11' },
@@ -347,7 +375,7 @@ async function run() {
         pass: !touchesJobOwned && !touchesJobOwned2 && Object.keys(updates).every((k) => !JOB_OWNED_FIELDS.includes(k))
            && u2.assigned_rep === 'Yaron' && Object.keys(u2).every((k) => !JOB_OWNED_FIELDS.includes(k)),
       };
-    }
+    });
 
     // ── Idempotency: re-run migration, expect zero errors ──
     let idemErrors = 0; const idemDetails = [];
