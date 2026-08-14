@@ -15,32 +15,55 @@
  *   PORT                 - (optional) defaults to 3000
  */
 
-// NOTE: This file is a standalone Node.js server â not a browser or Deno module.
+// NOTE: This file is a standalone Node.js server — not a browser or Deno module.
 // Run with: node server.js  (requires Node.js 18+)
 const express = require('express');
+const cors = require('cors');
 const fs = require('fs');
 const crypto = require('crypto');
 const path = require('path');
 const multer = require('multer');
 const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, HeadObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+
+// QB estimate sync (replaces Base44 scheduled syncEstimatesFromQBDirect)
 const qbMatch = require('./lib/qbMatch');
 const b44 = require('./lib/base44');
-const base44EntityGateway = require('./lib/base44EntityGateway');
-const tokenStore = require('./lib/qbTokenStore'); // QB credential persistence (encrypted Postgres)
+const tokenStore = require('./lib/qbTokenStore'); // credential lifecycle metadata for /health
+const saleDb = require('./db/client'); // Railway Postgres pool (for sale-scoped invoice ownership)
+const saleMap = require('./lib/qbInvoiceSaleMap'); // qb_invoice_sale_map + qb_invoices_cache helpers
+
 const app = express();
+
+// ── CORS — allow requests from any Base44 app domain ────────────────────────
+app.use(cors({
+  origin: true, // reflect request origin (all Base44 app origins are valid)
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'X-Proxy-Secret', 'Authorization'],
+  credentials: false,
+}));
+
 app.use(express.json());
 
-// ââ Config ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Config ──────────────────────────────────────────────────────────────────
 
 const QB_CLIENT_ID     = process.env.QB_CLIENT_ID;
 const QB_CLIENT_SECRET = process.env.QB_CLIENT_SECRET;
 const QB_REDIRECT_URI  = process.env.QB_REDIRECT_URI;
 const QB_ENVIRONMENT   = process.env.QB_ENVIRONMENT || 'sandbox';
 const PROXY_SECRET     = process.env.PROXY_SECRET;
-const WORKER_SECRET = process.env.WORKER_SECRET || '';
-const BASE44_REMINDER_URL = process.env.BASE44_REMINDER_URL || '';
-const ENCRYPTION_KEY   = process.env.ENCRYPTION_KEY || 'default-key-change-in-production';
+const ENCRYPTION_KEY   = process.env.ENCRYPTION_KEY;
+const BASE44_APP_ID    = process.env.BASE44_APP_ID;
+const BASE44_API_KEY   = process.env.BASE44_API_KEY;
+const BASE44_API_URL   = process.env.BASE44_API_URL || 'https://api.base44.com';
+
+if (!ENCRYPTION_KEY) {
+  console.error('[proxy] FATAL: ENCRYPTION_KEY not set in environment. Exiting.');
+  process.exit(1);
+}
+
+const PROXY_SERVICE_NAME = process.env.RAILWAY_SERVICE_NAME || process.env.RAILWAY_ENVIRONMENT_NAME || 'QB Proxy (Unknown Service)';
+const USE_BASE44_STORAGE = BASE44_APP_ID && BASE44_API_KEY;
 
 const QB_TOKEN_URL = 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer';
 const QB_AUTH_URL  = 'https://appcenter.intuit.com/connect/oauth2';
@@ -50,29 +73,141 @@ const QB_API_BASE = QB_ENVIRONMENT === 'production'
   ? 'https://quickbooks.api.intuit.com/v3/company'
   : 'https://sandbox-quickbooks.api.intuit.com/v3/company';
 
-// ââ Persistent QB Token Storage (generic encrypted credential store) ââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Persistent Token Storage ────────────────────────────────────────────────
 
-let storedTokens = null;
-let tokenStorageMethod = 'pending';
+const TOKEN_FILE = path.join(__dirname, '.qb-tokens.encrypted');
 
-// ââ Auth middleware ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+function encryptToken(data) {
+  const key = crypto.scryptSync(ENCRYPTION_KEY, 'salt', 32);
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+  let encrypted = cipher.update(JSON.stringify(data), 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  return iv.toString('hex') + ':' + encrypted;
+}
+
+function decryptToken(encryptedData) {
+  const key = crypto.scryptSync(ENCRYPTION_KEY, 'salt', 32);
+  const [ivHex, encrypted] = encryptedData.split(':');
+  const iv = Buffer.from(ivHex, 'hex');
+  const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+  let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
+  return JSON.parse(decrypted);
+}
+
+// ── Base44 Persistent Storage (Primary) ──────────────────────────────────────
+async function loadTokensFromBase44(realmId) {
+  if (!USE_BASE44_STORAGE) return null;
+  try {
+    const key = `qb_tokens_${QB_ENVIRONMENT}_${realmId}`;
+    const url = `${BASE44_API_URL}/entities/QBConnection?filter={"key":"${encodeURIComponent(key)}"}`;
+    const res = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${BASE44_API_KEY}`, 'X-App-ID': BASE44_APP_ID }
+    });
+    const data = await res.json();
+    if (data && data.length > 0) {
+      const encrypted = data[0].encrypted_tokens;
+      console.log('[proxy] Tokens loaded from Base44 database');
+      return decryptToken(encrypted);
+    }
+  } catch (e) {
+    console.warn('[proxy] Base44 token load failed (will fall back to filesystem):', e.message);
+  }
+  return null;
+}
+
+async function saveTokensToBase44(tokens, realmId) {
+  if (!USE_BASE44_STORAGE) return false;
+  try {
+    const key = `qb_tokens_${QB_ENVIRONMENT}_${realmId}`;
+    const encrypted = encryptToken(tokens);
+    const url = `${BASE44_API_URL}/entities/QBConnection`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${BASE44_API_KEY}`, 'X-App-ID': BASE44_APP_ID, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, encrypted_tokens: encrypted, realm_id: realmId, environment: QB_ENVIRONMENT })
+    });
+    if (res.ok) {
+      console.log('[proxy] Tokens saved to Base44 database');
+      return true;
+    }
+  } catch (e) {
+    console.warn('[proxy] Base44 token save failed (will fall back to filesystem):', e.message);
+  }
+  return false;
+}
+
+// ── Filesystem Fallback ──────────────────────────────────────────────────────
+function loadTokensFromFile() {
+  try {
+    if (fs.existsSync(TOKEN_FILE)) {
+      const encrypted = fs.readFileSync(TOKEN_FILE, 'utf8');
+      console.log('[proxy] Tokens loaded from filesystem (.qb-tokens.encrypted)');
+      return decryptToken(encrypted);
+    }
+  } catch (e) {
+    console.error('[proxy] Failed to load tokens from file:', e.message);
+  }
+  return null;
+}
+
+function saveTokensToFile(tokens) {
+  try {
+    const encrypted = encryptToken(tokens);
+    fs.writeFileSync(TOKEN_FILE, encrypted, 'utf8');
+    console.log('[proxy] Tokens saved to filesystem (.qb-tokens.encrypted)');
+  } catch (e) {
+    console.error('[proxy] Failed to save tokens to file:', e.message);
+  }
+}
+
+// Load tokens on startup (try Base44 first, fallback to filesystem)
+let storedTokens = loadTokensFromFile();
+let tokenStorageMethod = 'filesystem';
+
+// ── Auth middleware ──────────────────────────────────────────────────────────
 
 function requireProxySecret(req, res, next) {
   const secret = req.headers['x-proxy-secret'];
   if (!PROXY_SECRET || secret !== PROXY_SECRET) {
-    return res.status(401).json({ error: 'Unauthorized â missing or invalid X-Proxy-Secret' });
+    return res.status(401).json({ error: 'Unauthorized — missing or invalid X-Proxy-Secret' });
   }
   next();
 }
 
-// ââ Token helpers ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Token helpers ────────────────────────────────────────────────────────────
 
-async function refreshTokenIfNeeded() {
-  if (!storedTokens) throw new Error('Not connected to QuickBooks. Call /auth/connect first.');
-  const expiresAt = new Date(storedTokens.expires_at).getTime();
-  if (Date.now() < expiresAt - 5 * 60 * 1000) return storedTokens; // still valid
+// Custom error class to signal reconnect required to Base44
+class ReconnectRequiredError extends Error {
+  constructor(reason) {
+    super(`QUICKBOOKS_RECONNECT_REQUIRED: ${reason}`);
+    this.code = 'QUICKBOOKS_RECONNECT_REQUIRED';
+    this.reconnectRequired = true;
+  }
+}
 
-  console.log('[proxy] Access token expiring, refreshing...');
+function isTokenExpiredOrClose(tokens) {
+  if (!tokens || !tokens.expires_at) return true;
+  // Refresh 5 minutes before expiry
+  return Date.now() >= new Date(tokens.expires_at).getTime() - 5 * 60 * 1000;
+}
+
+function isRefreshTokenExpired(tokens) {
+  if (!tokens || !tokens.refresh_expires_at) return false;
+  return Date.now() >= new Date(tokens.refresh_expires_at).getTime();
+}
+
+async function doRefreshToken() {
+  if (!storedTokens || !storedTokens.refresh_token) {
+    throw new ReconnectRequiredError('No refresh token stored');
+  }
+  if (isRefreshTokenExpired(storedTokens)) {
+    console.error('[proxy] Refresh token is expired — reconnect required');
+    throw new ReconnectRequiredError('Refresh token expired');
+  }
+
+  console.log('[proxy] Access token expired or close to expiry — refreshing...');
   const creds = Buffer.from(`${QB_CLIENT_ID}:${QB_CLIENT_SECRET}`).toString('base64');
   const res = await fetch(QB_TOKEN_URL, {
     method: 'POST',
@@ -84,22 +219,50 @@ async function refreshTokenIfNeeded() {
     body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: storedTokens.refresh_token }).toString(),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(`Token refresh failed: ${data.error_description || data.error}`);
+
+  if (!res.ok) {
+    const errCode = data.error || '';
+    const errDesc = data.error_description || errCode;
+    // Intuit returns these codes when the refresh token is invalid/revoked
+    if (['invalid_grant', 'token_revoked', 'AuthenticationFailed'].includes(errCode)) {
+      console.error(`[proxy] Refresh token invalid/revoked (${errCode}) — reconnect required`);
+      throw new ReconnectRequiredError(`Refresh failed: ${errDesc}`);
+    }
+    console.error(`[proxy] Token refresh failed: ${errDesc}`);
+    throw new Error(`Token refresh failed: ${errDesc}`);
+  }
 
   storedTokens = {
     ...storedTokens,
     access_token: data.access_token,
     refresh_token: data.refresh_token || storedTokens.refresh_token,
     expires_at: new Date(Date.now() + (data.expires_in || 3600) * 1000).toISOString(),
+    // Intuit rotates refresh token expiry on each use
+    refresh_expires_at: data.x_refresh_token_expires_in
+      ? new Date(Date.now() + data.x_refresh_token_expires_in * 1000).toISOString()
+      : storedTokens.refresh_expires_at,
     last_refresh_at: new Date().toISOString(),
   };
-  tokenStorageMethod = await tokenStore.savePersistedTokens(QB_ENVIRONMENT, storedTokens);
-  console.log('[proxy] Token refreshed successfully');
+
+  const savedToBase44 = await saveTokensToBase44(storedTokens, storedTokens.realm_id);
+  if (!savedToBase44) saveTokensToFile(storedTokens);
+  console.log(`[proxy] Token refreshed successfully — expires ${storedTokens.expires_at}`);
   return storedTokens;
 }
 
-async function qbFetch(path, options = {}) {
-  const tokens = await refreshTokenIfNeeded();
+async function getValidTokens() {
+  if (!storedTokens) {
+    throw new ReconnectRequiredError('No tokens stored — QB has never been connected');
+  }
+  if (isTokenExpiredOrClose(storedTokens)) {
+    return await doRefreshToken();
+  }
+  console.log(`[proxy] Token valid — expires ${storedTokens.expires_at}`);
+  return storedTokens;
+}
+
+async function qbFetch(path, options = {}, retried = false) {
+  const tokens = await getValidTokens();
   const url = `${QB_API_BASE}/${tokens.realm_id}${path}`;
   const res = await fetch(url, {
     ...options,
@@ -113,13 +276,18 @@ async function qbFetch(path, options = {}) {
   const text = await res.text();
   let json;
   try { json = JSON.parse(text); } catch { json = { raw: text }; }
+
+  // If QB returns 401 and we haven't retried yet, force-refresh and retry once
+  if (res.status === 401 && !retried) {
+    console.warn('[proxy] QB returned 401 — forcing token refresh and retrying once');
+    storedTokens = { ...storedTokens, expires_at: new Date(0).toISOString() }; // force expiry
+    return qbFetch(path, options, true);
+  }
+
   if (!res.ok) {
     const detail = json?.Fault?.Error?.[0]?.Detail || json?.Fault?.Error?.[0]?.Message || text.slice(0, 300);
     throw Object.assign(new Error(`QB ${res.status}: ${detail}`), { status: res.status, qbError: json });
   }
-  // Record credential use (last_used_at) after a successful authenticated QB API call.
-  // Best-effort: never let metadata tracking break a successful QB response.
-  try { await tokenStore.markUsed(QB_ENVIRONMENT, tokens.realm_id); } catch (_) { /* best-effort */ }
   return json;
 }
 
@@ -127,9 +295,31 @@ async function qbQuery(query) {
   return qbFetch(`/query?query=${encodeURIComponent(query)}&minorversion=65`);
 }
 
-// ââ Health âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// Shared error handler — converts ReconnectRequiredError into a standard response
+function handleQBError(e, res) {
+  if (e.reconnectRequired) {
+    console.error(`[proxy] Reconnect required: ${e.message}`);
+    return res.status(401).json({
+      error: 'QUICKBOOKS_RECONNECT_REQUIRED',
+      message: e.message,
+      reconnectRequired: true,
+    });
+  }
+  return res.status(e.status || 500).json({ error: e.message, qbError: e.qbError });
+}
 
-app.get('/health', async (req, res) => {
+// ── Health & Diagnostics ───────────────────────────────────────────────────
+
+async function buildHealthPayload() {
+  const now = Date.now();
+  const tokenExpired = isTokenExpiredOrClose(storedTokens);
+  const refreshExpired = isRefreshTokenExpired(storedTokens);
+  const reconnectRequired = !storedTokens || refreshExpired;
+  const connected = !!(storedTokens && !refreshExpired);
+
+  // Best-effort credential lifecycle metadata from the integration credential
+  // store (last_used_at / last_error_at). Never exposes last_error_message or
+  // any secret. Returns nulls if the store is unavailable or unwired.
   let credentialLastUsedAt = null;
   let credentialLastErrorAt = null;
   try {
@@ -137,42 +327,69 @@ app.get('/health', async (req, res) => {
     credentialLastUsedAt = cred?.last_used_at || null;
     credentialLastErrorAt = cred?.last_error_at || null;
   } catch (e) { /* best-effort — health must never fail on metadata read */ }
-  res.json({
+
+  return {
     status: 'ok',
+    service_name: PROXY_SERVICE_NAME,
     environment: QB_ENVIRONMENT,
-    connected: !!storedTokens,
-    realm_id: storedTokens?.realm_id || null,
-    token_expires_at: storedTokens?.expires_at || null,
+    connected,
+    realmId: storedTokens?.realm_id || null,
+    tokenExpiresAt: storedTokens?.expires_at || null,
+    tokenExpired,
+    refreshExpiresAt: storedTokens?.refresh_expires_at || null,
+    reconnectRequired,
+    lastRefreshedAt: storedTokens?.last_refresh_at || null,
+    connectedAt: storedTokens?.connected_at || null,
+    storageMethod: USE_BASE44_STORAGE ? 'base44_database+filesystem_fallback' : 'filesystem',
     credential_last_used_at: credentialLastUsedAt,
     credential_last_error_at: credentialLastErrorAt,
-  });
+  };
+}
+
+// General health (no auth required)
+app.get('/health', async (req, res) => {
+  res.json(await buildHealthPayload());
 });
 
-// ââ Auth routes ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// QB-specific health endpoint (matches requirement: GET /qb/health)
+app.get('/qb/health', async (req, res) => {
+  res.json(await buildHealthPayload());
+});
 
-// GET /auth/connect â returns the Intuit OAuth URL
+// ── Auth routes ──────────────────────────────────────────────────────────────
+
+// GET /auth/connect — returns the Intuit OAuth URL
+// Accepts optional ?redirect_uri= override so the CRM can pass its production URL
 app.get('/auth/connect', requireProxySecret, (req, res) => {
   if (!QB_CLIENT_ID) return res.status(500).json({ error: 'QB_CLIENT_ID not configured on proxy' });
+  const redirectUri = req.query.redirect_uri || QB_REDIRECT_URI;
+  if (!redirectUri) return res.status(500).json({ error: 'QB_REDIRECT_URI not configured on proxy and no redirect_uri param provided' });
   const params = new URLSearchParams({
     client_id: QB_CLIENT_ID,
     response_type: 'code',
     scope: QB_SCOPES,
-    redirect_uri: QB_REDIRECT_URI,
+    redirect_uri: redirectUri,
     state: 'qb_oauth',
   });
-  res.json({ auth_url: `${QB_AUTH_URL}?${params}`, environment: QB_ENVIRONMENT });
+  console.log('[proxy] /auth/connect — using redirect_uri:', redirectUri);
+  res.json({ auth_url: `${QB_AUTH_URL}?${params}`, environment: QB_ENVIRONMENT, redirect_uri: redirectUri });
 });
 
-// POST /auth/callback â exchange code for tokens (called from your OAuth callback page)
+// POST /auth/callback — exchange code for tokens (called from your OAuth callback page)
+// Accepts optional redirect_uri in body to match what was used in /auth/connect
 app.post('/auth/callback', requireProxySecret, async (req, res) => {
-  const { code, realmId } = req.body;
+  const { code, realmId, redirect_uri } = req.body;
   if (!code || !realmId) return res.status(400).json({ error: 'Missing code or realmId' });
+
+  const redirectUri = redirect_uri || QB_REDIRECT_URI;
+  if (!redirectUri) return res.status(500).json({ error: 'QB_REDIRECT_URI not configured and no redirect_uri in request body' });
+  console.log('[proxy] /auth/callback — using redirect_uri:', redirectUri);
 
   const creds = Buffer.from(`${QB_CLIENT_ID}:${QB_CLIENT_SECRET}`).toString('base64');
   const tokenRes = await fetch(QB_TOKEN_URL, {
     method: 'POST',
     headers: { Authorization: `Basic ${creds}`, 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
-    body: new URLSearchParams({ grant_type: 'authorization_code', code, redirect_uri: QB_REDIRECT_URI }).toString(),
+    body: new URLSearchParams({ grant_type: 'authorization_code', code, redirect_uri: redirectUri }).toString(),
   });
   const tokenData = await tokenRes.json();
   if (!tokenRes.ok) return res.status(400).json({ error: tokenData.error_description || 'Token exchange failed' });
@@ -187,24 +404,22 @@ app.post('/auth/callback', requireProxySecret, async (req, res) => {
     connected_at: new Date().toISOString(),
   };
 
-  try {
-    tokenStorageMethod = await tokenStore.savePersistedTokens(QB_ENVIRONMENT, storedTokens);
-  } catch (e) {
-    storedTokens = null;
-    return res.status(500).json({ error: 'Token persistence failed: ' + e.message });
-  }
-  console.log('[proxy] OAuth complete â realm_id:', realmId, 'env:', QB_ENVIRONMENT);
-  res.json({ success: true, realm_id: realmId, environment: QB_ENVIRONMENT });
+  // Save to Base44 if available, fallback to filesystem
+  const savedToBase44 = await saveTokensToBase44(storedTokens, realmId);
+  if (!savedToBase44) saveTokensToFile(storedTokens);
+  tokenStorageMethod = savedToBase44 ? 'base44_database' : 'filesystem';
+  
+  console.log('[proxy] OAuth complete — realm_id:', realmId, 'env:', QB_ENVIRONMENT, 'storage:', tokenStorageMethod);
+  res.json({ success: true, realm_id: realmId, environment: QB_ENVIRONMENT, storage_method: tokenStorageMethod });
 });
 
-// GET /auth/status â connection status
+// GET /auth/status — connection status
 app.get('/auth/status', requireProxySecret, (req, res) => {
-  if (!storedTokens) return res.json({ connected: false });
-  const refreshExpired = storedTokens.refresh_expires_at
-    ? new Date(storedTokens.refresh_expires_at) < new Date()
-    : false;
+  if (!storedTokens) return res.json({ connected: false, reconnectRequired: true });
+  const refreshExpired = isRefreshTokenExpired(storedTokens);
   res.json({
     connected: !refreshExpired,
+    reconnectRequired: refreshExpired,
     realm_id: storedTokens.realm_id,
     environment: QB_ENVIRONMENT,
     connected_at: storedTokens.connected_at,
@@ -214,32 +429,33 @@ app.get('/auth/status', requireProxySecret, (req, res) => {
 });
 
 // POST /auth/disconnect
-app.post('/auth/disconnect', requireProxySecret, async (req, res) => {
-  const realmId = storedTokens?.realm_id;
+app.post('/auth/disconnect', requireProxySecret, (req, res) => {
   storedTokens = null;
   try {
-    tokenStorageMethod = await tokenStore.deletePersistedTokens(QB_ENVIRONMENT, realmId);
+    if (fs.existsSync(TOKEN_FILE)) {
+      fs.unlinkSync(TOKEN_FILE);
+    }
   } catch (e) {
-    console.error('[proxy] Failed to delete persisted tokens:', e.message);
+    console.error('[proxy] Failed to delete token file:', e.message);
   }
   res.json({ success: true });
 });
 
-// ââ Company Info âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Company Info ─────────────────────────────────────────────────────────────
 
 app.get('/company', requireProxySecret, async (req, res) => {
   try {
-    const tokens = await refreshTokenIfNeeded();
+    const tokens = await getValidTokens();
     const data = await qbFetch(`/companyinfo/${tokens.realm_id}?minorversion=65`);
     res.json({ company: data.CompanyInfo });
   } catch (e) {
-    res.status(e.status || 500).json({ error: e.message });
+    return handleQBError(e, res);
   }
 });
 
-// ââ Customers âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Customers ─────────────────────────────────────────────────────────────────
 
-// GET /customers?since=ISO_DATE   â paginated fetch of all customers (optional incremental)
+// GET /customers?since=ISO_DATE   — paginated fetch of all customers (optional incremental)
 app.get('/customers', requireProxySecret, async (req, res) => {
   try {
     const { since } = req.query;
@@ -255,11 +471,21 @@ app.get('/customers', requireProxySecret, async (req, res) => {
     }
     res.json({ customers: all, total: all.length, environment: QB_ENVIRONMENT });
   } catch (e) {
-    res.status(e.status || 500).json({ error: e.message });
+    return handleQBError(e, res);
   }
 });
 
-// POST /customers â create or update a customer
+// GET /customers/:id — fetch a single customer by QB ID
+app.get('/customers/:id', requireProxySecret, async (req, res) => {
+  try {
+    const data = await qbFetch(`/customer/${req.params.id}?minorversion=65`);
+    res.json({ customer: data.Customer });
+  } catch (e) {
+    return handleQBError(e, res);
+  }
+});
+
+// POST /customers — create or update a customer
 app.post('/customers', requireProxySecret, async (req, res) => {
   try {
     const data = await qbFetch('/customer?minorversion=65', {
@@ -268,7 +494,7 @@ app.post('/customers', requireProxySecret, async (req, res) => {
     });
     res.json(data);
   } catch (e) {
-    res.status(e.status || 500).json({ error: e.message, qbError: e.qbError });
+    return handleQBError(e, res);
   }
 });
 
@@ -286,30 +512,75 @@ app.get('/customers/search', requireProxySecret, async (req, res) => {
       const qr = await qbQuery(`SELECT * FROM Customer WHERE DisplayName = '${displayName.replace(/'/g, "\\'")}' MAXRESULTS 1`);
       customer = qr?.QueryResponse?.Customer?.[0] || null;
     }
+    if (!customer && displayName) {
+      const qr = await qbQuery(`SELECT * FROM Customer WHERE DisplayName LIKE '${displayName.replace(/'/g, "\\'")}' MAXRESULTS 5`);
+      const candidates = qr?.QueryResponse?.Customer || [];
+      const nameLower = displayName.toLowerCase();
+      customer = candidates.find(c => (c.DisplayName || '').toLowerCase() === nameLower) || candidates[0] || null;
+    }
 
     res.json({ customer });
   } catch (e) {
-    res.status(e.status || 500).json({ error: e.message });
+    return handleQBError(e, res);
   }
 });
 
-// ââ Estimates âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Estimates ─────────────────────────────────────────────────────────────────
 
-// GET /estimates?since=ISO_DATE&customerId=X   â paginated
+// GET /estimates?since=ISO_DATE&customerId=X   — paginated
+// NOTE: QB's Estimate query WITHOUT a status filter only returns "Pending" estimates.
+// To get ALL estimates (including Accepted, Closed, Converted), we query each status separately.
 app.get('/estimates', requireProxySecret, async (req, res) => {
   try {
     const { since, customerId } = req.query;
-    let whereClause = '';
-    if (customerId) {
-      whereClause = ` WHERE CustomerRef = '${customerId}'`;
-    } else if (since) {
-      whereClause = ` WHERE MetaData.LastUpdatedTime > '${since}'`;
+
+    if (customerId || since) {
+      let whereClause = customerId
+        ? ` WHERE CustomerRef = '${customerId}'`
+        : ` WHERE MetaData.LastUpdatedTime > '${since}'`;
+      const all = [];
+      let pos = 1;
+      while (true) {
+        const qr = await qbQuery(`SELECT * FROM Estimate${whereClause} STARTPOSITION ${pos} MAXRESULTS 1000`);
+        const batch = qr?.QueryResponse?.Estimate || [];
+        all.push(...batch);
+        if (batch.length < 1000) break;
+        pos += 1000;
+      }
+      return res.json({ estimates: all, total: all.length, environment: QB_ENVIRONMENT });
     }
 
+    const allStatuses = ['Pending', 'Accepted', 'Closed'];
+    const all = [];
+    const seenIds = new Set();
+    for (const status of allStatuses) {
+      let pos = 1;
+      while (true) {
+        const qr = await qbQuery(`SELECT * FROM Estimate WHERE TxnStatus = '${status}' STARTPOSITION ${pos} MAXRESULTS 1000`);
+        const batch = qr?.QueryResponse?.Estimate || [];
+        for (const est of batch) {
+          if (!seenIds.has(est.Id)) { seenIds.add(est.Id); all.push(est); }
+        }
+        if (batch.length < 1000) break;
+        pos += 1000;
+      }
+    }
+    res.json({ estimates: all, total: all.length, environment: QB_ENVIRONMENT });
+  } catch (e) {
+    return handleQBError(e, res);
+  }
+});
+
+// GET /estimates/by-customer/:customerId — fetch ALL estimates for a specific customer (all statuses)
+// This is the reliable way to find estimates that may have been converted to invoices.
+app.get('/estimates/by-customer/:customerId', requireProxySecret, async (req, res) => {
+  try {
+    const customerId = req.params.customerId;
+    if (!customerId) return res.status(400).json({ error: 'customerId required' });
     const all = [];
     let pos = 1;
     while (true) {
-      const qr = await qbQuery(`SELECT * FROM Estimate${whereClause} STARTPOSITION ${pos} MAXRESULTS 1000`);
+      const qr = await qbQuery(`SELECT * FROM Estimate WHERE CustomerRef = '${customerId}' STARTPOSITION ${pos} MAXRESULTS 1000`);
       const batch = qr?.QueryResponse?.Estimate || [];
       all.push(...batch);
       if (batch.length < 1000) break;
@@ -317,11 +588,23 @@ app.get('/estimates', requireProxySecret, async (req, res) => {
     }
     res.json({ estimates: all, total: all.length, environment: QB_ENVIRONMENT });
   } catch (e) {
-    res.status(e.status || 500).json({ error: e.message });
+    return handleQBError(e, res);
   }
 });
 
-// POST /estimates â create estimate
+// GET /estimates/:id — fetch a single estimate with full details
+app.get('/estimates/:id', requireProxySecret, async (req, res) => {
+  const id = req.params.id;
+  if (!id || id === 'by-customer') return res.status(400).json({ error: 'estimateId required' });
+  try {
+    const data = await qbFetch(`/estimate/${id}?minorversion=65`);
+    res.json({ estimate: data.Estimate });
+  } catch (e) {
+    return handleQBError(e, res);
+  }
+});
+
+// POST /estimates — create estimate
 app.post('/estimates', requireProxySecret, async (req, res) => {
   try {
     const data = await qbFetch('/estimate?minorversion=65', {
@@ -330,29 +613,28 @@ app.post('/estimates', requireProxySecret, async (req, res) => {
     });
     res.json(data);
   } catch (e) {
-    res.status(e.status || 500).json({ error: e.message, qbError: e.qbError });
+    return handleQBError(e, res);
   }
 });
 
 // GET /estimates/:id/pdf
 app.get('/estimates/:id/pdf', requireProxySecret, async (req, res) => {
   try {
-    const tokens = await refreshTokenIfNeeded();
+    const tokens = await getValidTokens();
     const url = `${QB_API_BASE}/${tokens.realm_id}/estimate/${req.params.id}/pdf?minorversion=65`;
     const pdfRes = await fetch(url, {
       headers: { Authorization: `Bearer ${tokens.access_token}`, Accept: 'application/pdf' },
     });
     if (!pdfRes.ok) return res.status(pdfRes.status).json({ error: `PDF fetch failed: ${pdfRes.status}` });
-    try { await tokenStore.markUsed(QB_ENVIRONMENT, tokens.realm_id); } catch (_) { /* best-effort */ }
     const buffer = await pdfRes.arrayBuffer();
     res.setHeader('Content-Type', 'application/pdf');
     res.send(Buffer.from(buffer));
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    return handleQBError(e, res);
   }
 });
 
-// ââ Invoices ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Invoices ──────────────────────────────────────────────────────────────────
 
 // GET /invoices?since=ISO_DATE&customerId=X
 app.get('/invoices', requireProxySecret, async (req, res) => {
@@ -376,113 +658,146 @@ app.get('/invoices', requireProxySecret, async (req, res) => {
     }
     res.json({ invoices: all, total: all.length, environment: QB_ENVIRONMENT });
   } catch (e) {
-    res.status(e.status || 500).json({ error: e.message });
+    return handleQBError(e, res);
   }
 });
 
-// POST /invoices â create invoice
+// POST /invoices — create invoice OR void invoice
+// If body contains { operation: 'void', Id, SyncToken }, voids the invoice instead.
+// This serves as a fallback for deployments where /invoices/:id/void is not yet available.
+//
+// SALE-SCOPED OWNERSHIP: when the caller supplies crm_sale_id (a side-channel
+// field stripped before forwarding to QB), a successful creation persists:
+//   - qb_invoice_sale_map (crm_sale_id → qb_invoice_id, ON CONFLICT DO NOTHING)
+//   - qb_invoices_cache  (authoritative QB financials)
+// crm_sale_id is the ONLY ownership boundary. Amount NEVER determines ownership.
+// An existing qb_invoice_id mapping is never reassigned. Persistence failure
+// does NOT alter the QB response (the invoice is already created in QuickBooks).
 app.post('/invoices', requireProxySecret, async (req, res) => {
   try {
+    if (req.body.operation === 'void' && req.body.Id && req.body.SyncToken !== undefined) {
+      console.log(`[proxy] Voiding invoice ${req.body.Id} via POST /invoices fallback`);
+      const data = await qbFetch('/invoice?operation=void&minorversion=65', {
+        method: 'POST',
+        body: JSON.stringify({ Id: req.body.Id, SyncToken: req.body.SyncToken }),
+      });
+      try { await saleMap.markVoided(saleDb, String(req.body.Id)); }
+      catch (e) { console.warn('[proxy] voided-flag update failed (fallback):', e.message); }
+      return res.json({ success: true, invoice: data.Invoice || data });
+    }
+    // Strip CRM side-channel fields before forwarding the payload to QuickBooks.
+    const { crm_sale_id, crm_lead_id, mapping_method, ...qbPayload } = req.body;
     const data = await qbFetch('/invoice?minorversion=65', {
       method: 'POST',
-      body: JSON.stringify(req.body),
+      body: JSON.stringify(qbPayload),
     });
+    const inv = data?.Invoice;
+    if (inv) {
+      // Refresh the cache from authoritative QB data for every created invoice.
+      try { await saleMap.upsertInvoiceCacheFromQb(saleDb, inv); }
+      catch (e) { console.warn('[proxy] invoice cache upsert failed:', e.message); }
+      // Persist sale→invoice ownership ONLY when a Sale is specified.
+      if (crm_sale_id) {
+        try {
+          await saleMap.upsertMapping(saleDb, {
+            qb_invoice_id: String(inv.Id),
+            qb_doc_number: inv.DocNumber || null,
+            crm_sale_id,
+            crm_lead_id: crm_lead_id || '',
+            qb_customer_id: String((inv.CustomerRef && inv.CustomerRef.value) || (qbPayload.CustomerRef && qbPayload.CustomerRef.value) || ''),
+            mapping_method: mapping_method || 'crm_created',
+          });
+        } catch (e) {
+          console.error('[proxy] sale-map persist failed (invoice already created in QB):', e.message);
+          return res.json({ ...data, _saleMapPersistError: e.message });
+        }
+      }
+    }
     res.json(data);
   } catch (e) {
-    res.status(e.status || 500).json({ error: e.message, qbError: e.qbError });
+    return handleQBError(e, res);
   }
 });
 
-// GET /invoices/:id/pdf
+app.get('/invoices/:id', requireProxySecret, async (req, res) => {
+  try {
+    const data = await qbFetch(`/invoice/${req.params.id}?minorversion=65`);
+    const inv = data?.Invoice;
+    // Refresh the cache from authoritative QB data on every single-invoice fetch.
+    if (inv) {
+      try { await saleMap.upsertInvoiceCacheFromQb(saleDb, inv); }
+      catch (e) { console.warn('[proxy] invoice cache refresh failed:', e.message); }
+    }
+    res.json({ invoice: inv });
+  } catch (e) {
+    return handleQBError(e, res);
+  }
+});
+
+// POST /invoices/:id/void — void an invoice in QuickBooks
+// QB void requires fetching current SyncToken, then POST with operation=void
+app.post('/invoices/:id/void', requireProxySecret, async (req, res) => {
+  try {
+    // First fetch the invoice to get SyncToken
+    const current = await qbFetch(`/invoice/${req.params.id}?minorversion=65`);
+    const inv = current?.Invoice;
+    if (!inv) return res.status(404).json({ error: 'Invoice not found in QuickBooks' });
+    // QB void: POST to /invoice with operation=void query param
+    const data = await qbFetch(`/invoice?operation=void&minorversion=65`, {
+      method: 'POST',
+      body: JSON.stringify({ Id: inv.Id, SyncToken: inv.SyncToken }),
+    });
+    try { await saleMap.markVoided(saleDb, String(inv.Id)); }
+    catch (e) { console.warn('[proxy] voided-flag update failed:', e.message); }
+    res.json({ success: true, invoice: data.Invoice });
+  } catch (e) {
+    return handleQBError(e, res);
+  }
+});
+
 app.get('/invoices/:id/pdf', requireProxySecret, async (req, res) => {
   try {
-    const tokens = await refreshTokenIfNeeded();
+    const tokens = await getValidTokens();
     const url = `${QB_API_BASE}/${tokens.realm_id}/invoice/${req.params.id}/pdf?minorversion=65`;
     const pdfRes = await fetch(url, {
       headers: { Authorization: `Bearer ${tokens.access_token}`, Accept: 'application/pdf' },
     });
     if (!pdfRes.ok) return res.status(pdfRes.status).json({ error: `PDF fetch failed: ${pdfRes.status}` });
-    try { await tokenStore.markUsed(QB_ENVIRONMENT, tokens.realm_id); } catch (_) { /* best-effort */ }
     const buffer = await pdfRes.arrayBuffer();
     res.setHeader('Content-Type', 'application/pdf');
     res.send(Buffer.from(buffer));
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    return handleQBError(e, res);
   }
 });
 
-// ââ Start âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-// âââ Appointment Reminders ââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── File Upload to Cloudflare R2 / S3-compatible storage ──────────────────────
+//
+// Required env vars (set in Railway):
+//   R2_ACCOUNT_ID        — Cloudflare Account ID (for R2 endpoint)
+//   R2_ACCESS_KEY_ID     — R2 API token Access Key ID
+//   R2_SECRET_ACCESS_KEY — R2 API token Secret Access Key
+//   R2_BUCKET_NAME       — R2 bucket name
+//   R2_PUBLIC_URL        — Public base URL for served files, e.g. https://files.ecconstructiongroup.com
+//                          (or Cloudflare R2 public URL like https://pub-xxxx.r2.dev)
+//
+// Alternatively, use plain S3:
+//   S3_REGION, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, S3_BUCKET_NAME, S3_PUBLIC_URL
 
-async function runAppointmentReminders() {
-  if (!BASE44_REMINDER_URL) {
-    console.log('[reminders] BASE44_REMINDER_URL not configured â skipping');
-    return { skipped: true };
-  }
-
-  console.log('[reminders] Triggering at', new Date().toISOString());
-
-  const res = await fetch(BASE44_REMINDER_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-worker-secret': WORKER_SECRET,
-    },
-    body: JSON.stringify({}),
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Reminder API ${res.status}: ${text.slice(0, 300)}`);
-  }
-
-  const result = await res.json();
-  console.log('[reminders] Complete:', JSON.stringify(result));
-  return result;
-}
-
-app.post('/remind', (req, res) => {
-  const provided = req.headers['x-worker-secret'] || '';
-
-  if (WORKER_SECRET && provided !== WORKER_SECRET) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
-  runAppointmentReminders()
-    .then(result => res.json({ success: true, result }))
-    .catch(e => {
-      console.error('[reminders] Failed:', e.message);
-      res.status(500).json({ success: false, error: e.message });
-    });
-});
-
-// Start reminder cron: first run 60s after boot, then every 30 minutes
-setTimeout(() => {
-  console.log('[reminders] Cron started â every 30 minutes');
-
-  runAppointmentReminders().catch(e =>
-    console.error('[reminders] Initial run failed:', e.message)
-  );
-
-  setInterval(() => {
-    runAppointmentReminders().catch(e =>
-      console.error('[reminders] Cron run failed:', e.message)
-    );
-  }, 30 * 60 * 1000);
-}, 60 * 1000);
-// ââ File Upload to Cloudflare R2 / S3 âââââââââââââââââââââââââââââââââââââââ
-const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID;
-const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
+const R2_ACCOUNT_ID        = process.env.R2_ACCOUNT_ID;
+const R2_ACCESS_KEY_ID     = process.env.R2_ACCESS_KEY_ID;
 const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
-const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME;
-const R2_PUBLIC_URL = (process.env.R2_PUBLIC_URL || '').replace(/\/$/, '');
+const R2_BUCKET_NAME       = process.env.R2_BUCKET_NAME;
+const R2_PUBLIC_URL        = (process.env.R2_PUBLIC_URL || '').replace(/\/$/, '');
 
-const S3_REGION = process.env.S3_REGION || 'us-east-1';
-const S3_ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID;
+// S3 fallback config
+const S3_REGION            = process.env.S3_REGION || 'us-east-1';
+const S3_ACCESS_KEY_ID     = process.env.S3_ACCESS_KEY_ID;
 const S3_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY;
-const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
-const S3_PUBLIC_URL = (process.env.S3_PUBLIC_URL || '').replace(/\/$/, '');
+const S3_BUCKET_NAME       = process.env.S3_BUCKET_NAME;
+const S3_PUBLIC_URL        = (process.env.S3_PUBLIC_URL || '').replace(/\/$/, '');
 
+// Build S3 client (R2 is S3-compatible — just uses a different endpoint)
 let s3Client = null;
 let activeBucket = null;
 let activePublicUrl = null;
@@ -491,46 +806,36 @@ if (R2_ACCOUNT_ID && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY && R2_BUCKET_NAME)
   s3Client = new S3Client({
     region: 'auto',
     endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-    credentials: {
-      accessKeyId: R2_ACCESS_KEY_ID,
-      secretAccessKey: R2_SECRET_ACCESS_KEY,
-    },
+    credentials: { accessKeyId: R2_ACCESS_KEY_ID, secretAccessKey: R2_SECRET_ACCESS_KEY },
   });
   activeBucket = R2_BUCKET_NAME;
   activePublicUrl = R2_PUBLIC_URL;
-  console.log('[upload] Cloudflare R2 configured â bucket:', R2_BUCKET_NAME);
+  console.log('[upload] Cloudflare R2 configured — bucket:', R2_BUCKET_NAME);
 } else if (S3_ACCESS_KEY_ID && S3_SECRET_ACCESS_KEY && S3_BUCKET_NAME) {
   s3Client = new S3Client({
     region: S3_REGION,
-    credentials: {
-      accessKeyId: S3_ACCESS_KEY_ID,
-      secretAccessKey: S3_SECRET_ACCESS_KEY,
-    },
+    credentials: { accessKeyId: S3_ACCESS_KEY_ID, secretAccessKey: S3_SECRET_ACCESS_KEY },
   });
   activeBucket = S3_BUCKET_NAME;
   activePublicUrl = S3_PUBLIC_URL || `https://${S3_BUCKET_NAME}.s3.${S3_REGION}.amazonaws.com`;
-  console.log('[upload] AWS S3 configured â bucket:', S3_BUCKET_NAME);
+  console.log('[upload] AWS S3 configured — bucket:', S3_BUCKET_NAME);
 } else {
-  console.warn('[upload] No R2/S3 credentials configured â file uploads will be disabled');
+  console.warn('[upload] No R2/S3 credentials configured — file uploads will be disabled');
 }
 
+// multer: memory storage (we stream directly to R2/S3, no temp disk needed)
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 50 * 1024 * 1024 },
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB max
   fileFilter: (req, file, cb) => {
     const allowed = [
-      'image/jpeg',
-      'image/jpg',
-      'image/png',
-      'image/gif',
-      'image/webp',
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
       'application/pdf',
       'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'application/vnd.ms-excel',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     ];
-
     if (allowed.includes(file.mimetype)) {
       cb(null, true);
     } else {
@@ -539,23 +844,21 @@ const upload = multer({
   },
 });
 
+// POST /api/files/upload
+// Accepts: multipart/form-data with field "file"
+// Returns: { success, url, key, fileName, contentType, size }
 app.post('/api/files/upload', requireProxySecret, upload.single('file'), async (req, res) => {
   if (!s3Client) {
-    return res.status(503).json({
-      success: false,
-      error: 'File storage not configured. Set R2_* or S3_* environment variables.',
-    });
+    return res.status(503).json({ success: false, error: 'File storage not configured on server. Set R2_* or S3_* environment variables.' });
   }
 
   if (!req.file) {
-    return res.status(400).json({
-      success: false,
-      error: 'No file provided. Use multipart/form-data with field name "file".',
-    });
+    return res.status(400).json({ success: false, error: 'No file provided. Use multipart/form-data with field name "file".' });
   }
 
   try {
     const file = req.file;
+    // Build a unique key: uploads/<year>/<month>/<timestamp>-<sanitized-filename>
     const now = new Date();
     const year = now.getUTCFullYear();
     const month = String(now.getUTCMonth() + 1).padStart(2, '0');
@@ -563,13 +866,15 @@ app.post('/api/files/upload', requireProxySecret, upload.single('file'), async (
     const sanitized = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
     const key = `uploads/${year}/${month}/${ts}-${sanitized}`;
 
-    await s3Client.send(new PutObjectCommand({
+    const command = new PutObjectCommand({
       Bucket: activeBucket,
       Key: key,
       Body: file.buffer,
       ContentType: file.mimetype,
       ContentDisposition: `inline; filename="${sanitized}"`,
-    }));
+    });
+
+    await s3Client.send(command);
 
     const url = activePublicUrl ? `${activePublicUrl}/${key}` : `https://${activeBucket}/${key}`;
 
@@ -585,13 +890,11 @@ app.post('/api/files/upload', requireProxySecret, upload.single('file'), async (
     });
   } catch (err) {
     console.error('[upload] Upload failed:', err.message);
-    res.status(500).json({
-      success: false,
-      error: err.message,
-    });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
+// GET /api/files/status — check if file uploads are configured
 app.get('/api/files/status', requireProxySecret, (req, res) => {
   res.json({
     configured: !!s3Client,
@@ -702,12 +1005,479 @@ app.delete('/api/files/delete', requireProxySecret, async (req, res) => {
   // ── END TEMPORARY TRACE ──
 });
 
-// ââ Manual QB estimate sync âââââââââââââââââââââââââââââââââââââââââââââââ
-async function getAllQuickBooksEstimates() {
+// ── /qb/* alias routes (thin POST wrappers over existing QB logic) ────────────
+// These match the paths the CRM frontend calls via railwayClient.js
+
+app.post('/qb/auth-status', requireProxySecret, (req, res) => {
+  if (!storedTokens) return res.json({ connected: false, reconnectRequired: true });
+  const refreshExpired = isRefreshTokenExpired(storedTokens);
+  res.json({
+    connected: !refreshExpired,
+    reconnectRequired: refreshExpired,
+    realm_id: storedTokens.realm_id,
+    environment: QB_ENVIRONMENT,
+    connected_at: storedTokens.connected_at,
+    refresh_expires_at: storedTokens.refresh_expires_at,
+    token_expires_at: storedTokens.expires_at,
+  });
+});
+
+app.post('/qb/auth-connect', requireProxySecret, (req, res) => {
+  if (!QB_CLIENT_ID) return res.status(500).json({ error: 'QB_CLIENT_ID not configured on proxy' });
+  const redirectUri = req.body.redirect_uri || QB_REDIRECT_URI;
+  if (!redirectUri) return res.status(500).json({ error: 'QB_REDIRECT_URI not configured' });
+  const params = new URLSearchParams({
+    client_id: QB_CLIENT_ID, response_type: 'code', scope: QB_SCOPES,
+    redirect_uri: redirectUri, state: 'qb_oauth',
+  });
+  res.json({ auth_url: `${QB_AUTH_URL}?${params}`, environment: QB_ENVIRONMENT, redirect_uri: redirectUri });
+});
+
+app.post('/qb/auth-callback', requireProxySecret, async (req, res) => {
+  const { code, realmId, redirect_uri } = req.body;
+  if (!code || !realmId) return res.status(400).json({ error: 'Missing code or realmId' });
+  const redirectUri = redirect_uri || QB_REDIRECT_URI;
+  const creds = Buffer.from(`${QB_CLIENT_ID}:${QB_CLIENT_SECRET}`).toString('base64');
+  const tokenRes = await fetch(QB_TOKEN_URL, {
+    method: 'POST',
+    headers: { Authorization: `Basic ${creds}`, 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
+    body: new URLSearchParams({ grant_type: 'authorization_code', code, redirect_uri: redirectUri }).toString(),
+  });
+  const tokenData = await tokenRes.json();
+  if (!tokenRes.ok) return res.status(400).json({ error: tokenData.error_description || 'Token exchange failed' });
+  storedTokens = {
+    access_token: tokenData.access_token, refresh_token: tokenData.refresh_token, realm_id: realmId,
+    environment: QB_ENVIRONMENT,
+    expires_at: new Date(Date.now() + (tokenData.expires_in || 3600) * 1000).toISOString(),
+    refresh_expires_at: new Date(Date.now() + (tokenData.x_refresh_token_expires_in || 8726400) * 1000).toISOString(),
+    connected_at: new Date().toISOString(),
+  };
+  const savedToBase44 = await saveTokensToBase44(storedTokens, realmId);
+  if (!savedToBase44) saveTokensToFile(storedTokens);
+  res.json({ success: true, realm_id: realmId, environment: QB_ENVIRONMENT });
+});
+
+app.post('/qb/auth-disconnect', requireProxySecret, (req, res) => {
+  storedTokens = null;
+  try { if (fs.existsSync(TOKEN_FILE)) fs.unlinkSync(TOKEN_FILE); } catch (e) {}
+  res.json({ success: true });
+});
+
+app.post('/qb/get-company', requireProxySecret, async (req, res) => {
+  try {
+    const tokens = await getValidTokens();
+    const data = await qbFetch(`/companyinfo/${tokens.realm_id}?minorversion=65`);
+    res.json({ company: data.CompanyInfo });
+  } catch (e) { return handleQBError(e, res); }
+});
+
+// QB lead-level operations — these require business logic that lives in CRM context.
+// The proxy handles raw QB API calls; orchestration (matching leads, syncing fields) 
+// requires the caller to pass data and the proxy to execute QB API calls.
+
+app.post('/qb/lead-status', requireProxySecret, async (req, res) => {
+  // Returns QB customer + invoice data for a lead given qb_customer_id or name/email
+  const { qb_customer_id, name, email } = req.body;
+  try {
+    let customer = null;
+    if (qb_customer_id) {
+      const data = await qbFetch(`/customer/${qb_customer_id}?minorversion=65`);
+      customer = data.Customer;
+    } else if (email || name) {
+      const q = email
+        ? `SELECT * FROM Customer WHERE PrimaryEmailAddr = '${(email||'').replace(/'/g,"\\'")}' MAXRESULTS 1`
+        : `SELECT * FROM Customer WHERE DisplayName LIKE '${(name||'').replace(/'/g,"\\'")}' MAXRESULTS 1`;
+      const qr = await qbQuery(q);
+      customer = qr?.QueryResponse?.Customer?.[0] || null;
+    }
+    if (!customer) return res.json({ found: false });
+    const invoiceQr = await qbQuery(`SELECT * FROM Invoice WHERE CustomerRef = '${customer.Id}' MAXRESULTS 100`);
+    const invoices = invoiceQr?.QueryResponse?.Invoice || [];
+    res.json({ found: true, customer, invoices });
+  } catch (e) { return handleQBError(e, res); }
+});
+
+app.post('/qb/sync-lead', requireProxySecret, async (req, res) => {
+  // Creates or updates a QB customer from lead data, creates invoice if amount provided
+  const { lead } = req.body;
+  if (!lead) return res.status(400).json({ error: 'lead required in body' });
+  try {
+    const displayName = `${lead.first_name || ''} ${lead.last_name || ''}`.trim();
+    // Find or create customer
+    let customer = null;
+    if (lead.qb_customer_id) {
+      const data = await qbFetch(`/customer/${lead.qb_customer_id}?minorversion=65`);
+      customer = data.Customer;
+    } else {
+      const qr = await qbQuery(`SELECT * FROM Customer WHERE DisplayName = '${displayName.replace(/'/g,"\\'")}' MAXRESULTS 1`);
+      customer = qr?.QueryResponse?.Customer?.[0] || null;
+    }
+    if (!customer) {
+      const payload = { DisplayName: displayName };
+      if (lead.email) payload.PrimaryEmailAddr = { Address: lead.email };
+      if (lead.phone) payload.PrimaryPhone = { FreeFormNumber: lead.phone };
+      if (lead.property_address) payload.BillAddr = { Line1: lead.property_address, City: lead.city || '' };
+      const created = await qbFetch('/customer?minorversion=65', { method: 'POST', body: JSON.stringify(payload) });
+      customer = created.Customer;
+    }
+    res.json({ success: true, customer_id: customer.Id, customer });
+  } catch (e) { return handleQBError(e, res); }
+});
+
+app.post('/qb/clear-stale', requireProxySecret, (req, res) => {
+  // Stale QB data clearing is a CRM-side operation (updating Lead entity fields).
+  // This endpoint acknowledges the request — actual field clearing done by caller.
+  res.json({ success: true, message: 'Stale QB fields should be cleared on the CRM entity directly.' });
+});
+
+app.post('/qb/diagnose-customer', requireProxySecret, async (req, res) => {
+  const { name, email, qb_customer_id } = req.body;
+  try {
+    const results = {};
+    if (qb_customer_id) {
+      const data = await qbFetch(`/customer/${qb_customer_id}?minorversion=65`).catch(e => ({ error: e.message }));
+      results.by_id = data;
+    }
+    if (email) {
+      const qr = await qbQuery(`SELECT * FROM Customer WHERE PrimaryEmailAddr = '${(email||'').replace(/'/g,"\\'")}' MAXRESULTS 5`);
+      results.by_email = qr?.QueryResponse?.Customer || [];
+    }
+    if (name) {
+      const qr = await qbQuery(`SELECT * FROM Customer WHERE DisplayName LIKE '${(name||'').replace(/'/g,"\\'")}' MAXRESULTS 5`);
+      results.by_name = qr?.QueryResponse?.Customer || [];
+    }
+    res.json({ success: true, results });
+  } catch (e) { return handleQBError(e, res); }
+});
+
+app.post('/qb/report-match-failures', requireProxySecret, (req, res) => {
+  // Match failure reporting is a CRM-side logging operation.
+  res.json({ success: true, message: 'Match failure logged. Review CRM QBSyncLog entity for details.' });
+});
+
+app.post('/qb/resync-all', requireProxySecret, async (req, res) => {
+  // Returns all QB customers + estimates for full CRM re-sync. Caller does the matching.
+  try {
+    const customersQr = await qbQuery('SELECT * FROM Customer MAXRESULTS 1000');
+    const customers = customersQr?.QueryResponse?.Customer || [];
+    res.json({ success: true, customers, total: customers.length });
+  } catch (e) { return handleQBError(e, res); }
+});
+
+app.post('/qb/import-estimates', requireProxySecret, async (req, res) => {
+  try {
+    const { since, customer_id } = req.body;
+    let whereClause = since ? ` WHERE MetaData.LastUpdatedTime > '${since}'` : '';
+    if (customer_id) whereClause = ` WHERE CustomerRef = '${customer_id}'`;
+    const all = [];
+    let pos = 1;
+    while (true) {
+      const qr = await qbQuery(`SELECT * FROM Estimate${whereClause} STARTPOSITION ${pos} MAXRESULTS 1000`);
+      const batch = qr?.QueryResponse?.Estimate || [];
+      all.push(...batch);
+      if (batch.length < 1000) break;
+      pos += 1000;
+    }
+    res.json({ success: true, estimates: all, total: all.length });
+  } catch (e) { return handleQBError(e, res); }
+});
+
+app.post('/qb/sync-lead-estimates', requireProxySecret, async (req, res) => {
+  const { qb_customer_id, lead_name } = req.body;
+  if (!qb_customer_id && !lead_name) return res.status(400).json({ error: 'qb_customer_id or lead_name required' });
+  try {
+    let customerId = qb_customer_id;
+    if (!customerId && lead_name) {
+      const qr = await qbQuery(`SELECT * FROM Customer WHERE DisplayName LIKE '${lead_name.replace(/'/g,"\\'")}' MAXRESULTS 1`);
+      customerId = qr?.QueryResponse?.Customer?.[0]?.Id;
+    }
+    if (!customerId) return res.json({ success: false, error: 'Customer not found in QB' });
+    const qr = await qbQuery(`SELECT * FROM Estimate WHERE CustomerRef = '${customerId}' MAXRESULTS 100`);
+    const estimates = qr?.QueryResponse?.Estimate || [];
+    res.json({ success: true, estimates, total: estimates.length, customer_id: customerId });
+  } catch (e) { return handleQBError(e, res); }
+});
+
+app.post('/qb/diagnose-lead-estimates', requireProxySecret, async (req, res) => {
+  const { qb_customer_id, lead_name, lead_email } = req.body;
+  try {
+    const results = {};
+    if (qb_customer_id) {
+      const qr = await qbQuery(`SELECT * FROM Estimate WHERE CustomerRef = '${qb_customer_id}' MAXRESULTS 100`);
+      results.by_customer_id = qr?.QueryResponse?.Estimate || [];
+    }
+    if (lead_name) {
+      const cqr = await qbQuery(`SELECT * FROM Customer WHERE DisplayName LIKE '${lead_name.replace(/'/g,"\\'")}' MAXRESULTS 5`);
+      results.customer_name_matches = cqr?.QueryResponse?.Customer || [];
+    }
+    res.json({ success: true, results });
+  } catch (e) { return handleQBError(e, res); }
+});
+
+app.post('/qb/fetch-estimate-pdf', requireProxySecret, async (req, res) => {
+  const { estimate_id } = req.body;
+  if (!estimate_id) return res.status(400).json({ error: 'estimate_id required' });
+  try {
+    const tokens = await getValidTokens();
+    const url = `${QB_API_BASE}/${tokens.realm_id}/estimate/${estimate_id}/pdf?minorversion=65`;
+    const pdfRes = await fetch(url, { headers: { Authorization: `Bearer ${tokens.access_token}`, Accept: 'application/pdf' } });
+    if (!pdfRes.ok) return res.status(pdfRes.status).json({ error: `PDF fetch failed: ${pdfRes.status}` });
+    const buffer = await pdfRes.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString('base64');
+    res.json({ success: true, pdf_base64: base64, content_type: 'application/pdf' });
+  } catch (e) { return handleQBError(e, res); }
+});
+
+// ── /calendar/* routes ────────────────────────────────────────────────────────
+// Phase 1 Booking API lives in routes/bookings.js (mounted at /api/v1 below).
+// Google Calendar projection (Phase 2) will add internal calendar outbox routes.
+
+// ── /contacts/* routes ────────────────────────────────────────────────────────
+
+app.post('/contacts/sync-lead', requireProxySecret, (req, res) => {
+  res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — needs GOOGLE_SERVICE_ACCOUNT_JSON' });
+});
+
+// ── /reminders/* routes ───────────────────────────────────────────────────────
+// Requires: GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN_YARON,
+//           BASE44_APP_ID, BASE44_API_KEY (to read leads), COMPANY_PHONE, COMPANY_NAME
+
+app.post('/reminders/send-lead', requireProxySecret, (req, res) => {
+  res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — needs Gmail OAuth tokens and lead data access' });
+});
+
+// ── Reminder system (Railway-owned) ─────────────────────────────────────────
+// Atomic per-reminder claims live in Railway Postgres; Base44 is used only to
+// read CRM leads and to write the post-success REMINDER_SENT Activity.
+// Phase 2: REMINDER_DRY_RUN=true forces dry-run (no emails, no claim writes).
+app.use('/reminders', require('./lib/reminderRouter'));
+
+// Public, unauthenticated customer-action pages (confirm / reschedule / contact).
+// Token-gated by HMAC-signed expiring tokens — no proxy secret, no login.
+app.use('/r', require('./lib/actionRouter'));
+
+// ── Lead ingestion (CRM → Railway Postgres) ────────────────────────────────
+// Protected by a DEDICATED secret (X-Ingest-Secret / REMINDER_INGEST_SECRET),
+// separate from the proxy's X-Proxy-Secret. Creates/updates rows in the
+// reminder_leads table only — no Base44, no Gmail, no reminder claims.
+app.use('/api/reminders', require('./lib/leadIngestRouter'));
+
+// ── Phase 1: Railway Email Service + permanent auth (public /api/v1 + internal) ──
+// Public, JWT-authenticated API surface (no PROXY_SECRET, no Gmail tokens in browser).
+app.use('/api/v1/auth', require('./routes/auth'));
+app.use('/api/v1', require('./routes/emails'));
+app.use('/api/v1', require('./routes/bookings'));
+app.use('/api/v1/gmail', require('./routes/gmail'));
+// R1A: Railway CRM Lead + Owner API (read-only foundation; writes arrive in R1B)
+app.use('/api/v1/leads', require('./routes/leads'));
+app.use('/api/v1/owners', require('./routes/owners'));
+// Sale-scoped QuickBooks invoice ownership (read-only financials + mapping contract)
+app.use('/api/v1/deals', require('./routes/dealFinancials'));
+app.use('/api/v1/sale-invoices', require('./routes/saleInvoices'));
+
+// Internal single-send primitive (X-Proxy-Secret guarded) — the one server-side
+// entry point to EmailService. The reminder/notification paths will be migrated
+// to call this in a later phase; until then production sending is unchanged.
+app.post('/internal/email/send', requireProxySecret, async (req, res) => {
+  try {
+    const { to, cc, replyTo, subject, htmlBody, attachments, idempotencyKey, fromName, fromAddress, role } = req.body || {};
+    if (!to || !subject || !htmlBody || !idempotencyKey) {
+      return res.status(400).json({ error: 'to, subject, htmlBody, idempotencyKey required' });
+    }
+    const result = await require('./lib/emailService').send({ to, cc, replyTo, subject, htmlBody, attachments, idempotencyKey, fromName, fromAddress, role });
+    res.json(result);
+  } catch (e) {
+    res.status(/credentials/i.test(e.message) ? 503 : 500).json({ error: e.message });
+  }
+});
+
+// ── Gmail OAuth one-time connection flow (Phase 1A) ──────────────────────────
+// Internal routes for authorizing Gmail sending through Railway. Protected by
+// X-Proxy-Secret or a short-lived setup_token. No email is sent here.
+app.use('/internal/gmail/oauth', require('./lib/gmailOAuthRouter'));
+
+// ── /gmail/* routes ───────────────────────────────────────────────────────────
+
+app.post('/gmail/check-connection', requireProxySecret, (req, res) => {
+  res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — needs GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN_*' });
+});
+
+app.post('/gmail/fetch-emails', requireProxySecret, (req, res) => {
+  res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — needs Gmail OAuth tokens' });
+});
+
+app.post('/gmail/send-email', requireProxySecret, (req, res) => {
+  res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — needs Gmail OAuth tokens' });
+});
+
+app.post('/gmail/send-email-via-account', requireProxySecret, (req, res) => {
+  res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — needs per-owner Gmail OAuth tokens' });
+});
+
+app.post('/gmail/sync-emails', requireProxySecret, (req, res) => {
+  res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — needs Gmail OAuth tokens' });
+});
+
+// ── /signnow/* routes ─────────────────────────────────────────────────────────
+// Requires: SIGNNOW_CLIENT_ID, SIGNNOW_CLIENT_SECRET, SIGNNOW_USERNAME, SIGNNOW_PASSWORD
+
+app.post('/signnow/list-templates', requireProxySecret, (req, res) => {
+  res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — needs SIGNNOW_CLIENT_ID, SIGNNOW_CLIENT_SECRET' });
+});
+
+app.post('/signnow/prepare', requireProxySecret, (req, res) => {
+  res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — needs SignNow credentials' });
+});
+
+app.post('/signnow/upload', requireProxySecret, (req, res) => {
+  res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — needs SignNow credentials' });
+});
+
+app.post('/signnow/check-status', requireProxySecret, (req, res) => {
+  res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — needs SignNow credentials' });
+});
+
+app.post('/signnow/download-pdf', requireProxySecret, (req, res) => {
+  res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — needs SignNow credentials' });
+});
+
+// ── /leads/* routes ───────────────────────────────────────────────────────────
+// Requires: BASE44_APP_ID, BASE44_API_KEY (to read/write Lead entity for duplicate check)
+
+app.post('/leads/submit-capture', requireProxySecret, (req, res) => {
+  res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — needs BASE44_APP_ID and BASE44_API_KEY for duplicate check and lead creation' });
+});
+
+// ── /handoff/* routes ─────────────────────────────────────────────────────────
+
+app.post('/handoff/sync-estimates-for-lead', requireProxySecret, (req, res) => {
+  res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — Handoff estimate sync runs via the Handoff RPA worker service' });
+});
+
+// POST /handoff/import-estimate
+// Called by the Handoff RPA worker instead of BASE44_IMPORT_URL.
+// Receives a single estimate payload and writes it to Base44 via the entity API.
+// Requires env vars: BASE44_APP_ID, BASE44_API_KEY, BASE44_API_URL (optional, defaults to api.base44.com)
+app.post('/handoff/import-estimate', requireProxySecret, async (req, res) => {
+  if (!BASE44_APP_ID || !BASE44_API_KEY) {
+    return res.status(503).json({ success: false, error: 'BASE44_APP_ID and BASE44_API_KEY not configured on proxy' });
+  }
+
+  const { source, estimateId, estimateNumber, exportData } = req.body;
+
+  if (!estimateId && !exportData) {
+    return res.status(400).json({ success: false, error: 'estimateId or exportData required' });
+  }
+
+  let parsed = {};
+  try {
+    parsed = exportData ? JSON.parse(exportData) : req.body;
+  } catch {
+    parsed = req.body;
+  }
+
+  // Normalise fields from Handoff RPA payload
+  const customerName = parsed.customerName || parsed.customer_name || parsed.client_name || parsed.name || '';
+  const customerPhone = parsed.phone || parsed.customerPhone || parsed.client_phone || '';
+  const customerEmail = parsed.email || parsed.customerEmail || parsed.client_email || '';
+  const estimateAmount = parseFloat(parsed.amount || parsed.total || parsed.estimateAmount || 0) || 0;
+  const estimateStatus = parsed.status || parsed.txnStatus || 'Pending';
+  const estimateDate = parsed.date || parsed.txnDate || new Date().toISOString().slice(0, 10);
+  const handoffEstimateId = String(estimateId || parsed.id || '');
+  const handoffEstimateNumber = String(estimateNumber || parsed.number || parsed.estimateNumber || handoffEstimateId);
+
+  if (!customerName) {
+    return res.status(400).json({ success: false, error: 'customerName is required in estimate payload' });
+  }
+
+  const apiBase = BASE44_API_URL;
+  const headers = {
+    'Authorization': `Bearer ${BASE44_API_KEY}`,
+    'X-App-ID': BASE44_APP_ID,
+    'Content-Type': 'application/json',
+  };
+
+  try {
+    // Check if this estimate already exists
+    const checkUrl = `${apiBase}/entities/HandoffEstimate?filter=${encodeURIComponent(JSON.stringify({ handoff_estimate_id: handoffEstimateId }))}`;
+    const checkRes = await fetch(checkUrl, { headers });
+    const existing = await checkRes.json().catch(() => []);
+    const existingRecord = Array.isArray(existing) ? existing[0] : null;
+
+    const payload = {
+      handoff_estimate_id: handoffEstimateId,
+      handoff_estimate_number: handoffEstimateNumber,
+      customer_name: customerName,
+      customer_phone: customerPhone,
+      customer_email: customerEmail,
+      estimate_amount: estimateAmount,
+      estimate_status: estimateStatus,
+      estimate_date: estimateDate,
+      source: 'Handoff',
+      sync_source: 'Handoff',
+      match_status: 'unmatched',
+      last_synced_at: new Date().toISOString(),
+      raw_payload: JSON.stringify(parsed).slice(0, 2000),
+    };
+
+    if (existingRecord) {
+      // Update existing
+      const updateRes = await fetch(`${apiBase}/entities/HandoffEstimate/${existingRecord.id}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(payload),
+      });
+      if (!updateRes.ok) {
+        const err = await updateRes.text();
+        return res.status(500).json({ success: false, error: `Base44 update failed: ${err.slice(0, 200)}` });
+      }
+      console.log(`[handoff] Updated estimate ${handoffEstimateId} (${customerName})`);
+      return res.json({ success: true, updated: true, id: existingRecord.id });
+    } else {
+      // Create new
+      const createRes = await fetch(`${apiBase}/entities/HandoffEstimate`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload),
+      });
+      if (!createRes.ok) {
+        const err = await createRes.text();
+        return res.status(500).json({ success: false, error: `Base44 create failed: ${err.slice(0, 200)}` });
+      }
+      const created = await createRes.json();
+      console.log(`[handoff] Imported estimate ${handoffEstimateId} (${customerName}) → id ${created.id}`);
+      return res.json({ success: true, imported: true, id: created.id });
+    }
+  } catch (e) {
+    console.error('[handoff] import-estimate error:', e.message);
+    return res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// ── QB Estimate Sync (replaces Base44 scheduled syncEstimatesFromQBDirect) ────
+// Fully ported from base44/functions/syncEstimatesFromQBDirect/entry.ts (sync mode).
+// QB fetch uses internal qbQuery (static IP, managed tokens). CRM reads/writes use
+// the Base44 REST API via ./lib/base44.js (service-role key, no Base44 credits).
+// Matching engine is the verbatim port in ./lib/qbMatch.js.
+// Run manually: POST /sync/qb-estimates | POST /sync/qb-estimate-pdfs (X-Proxy-Secret).
+// Auto-run: set QB_SYNC_CRON_ENABLED=true (every 15 min) — off by default so the
+// Base44 scheduler stays the source of truth until parity is verified.
+
+const SANDBOX = process.env.QB_SANDBOX === 'true';
+
+function toDateStr(v) {
+  if (!v) return undefined;
+  try { return new Date(isNaN(Number(v)) ? v : Number(v)).toISOString().split('T')[0]; } catch { return undefined; }
+}
+
+// Fetch ALL QB estimates — same query as proxy GET /estimates?since=1970-01-01
+// (WHERE MetaData.LastUpdatedTime > '1970-01-01...', paginated).
+async function fetchAllQbEstimates() {
   const all = [];
   let pos = 1;
+  const whereClause = ` WHERE MetaData.LastUpdatedTime > '1970-01-01T00:00:00Z'`;
   while (true) {
-    const qr = await qbQuery(`SELECT * FROM Estimate STARTPOSITION ${pos} MAXRESULTS 1000`);
+    const qr = await qbQuery(`SELECT * FROM Estimate${whereClause} STARTPOSITION ${pos} MAXRESULTS 1000`);
     const batch = qr?.QueryResponse?.Estimate || [];
     all.push(...batch);
     if (batch.length < 1000) break;
@@ -716,409 +1486,279 @@ async function getAllQuickBooksEstimates() {
   return all;
 }
 
-async function getQuickBooksCustomer(customerRef) {
-  if (!customerRef?.value) return null;
+async function fetchQbCustomer(customerId, cache) {
+  if (cache[customerId] !== undefined) return cache[customerId];
   try {
-    const data = await qbFetch(`/customer/${customerRef.value}?minorversion=65`);
-    return data.Customer || null;
+    const data = await qbFetch(`/customer/${customerId}?minorversion=65`);
+    cache[customerId] = data.Customer || null;
   } catch (e) {
-    console.warn('[sync] Unable to fetch QB customer:', e.message);
-    return null;
+    console.warn(`[qb-sync] Failed to fetch customer ${customerId}:`, e.message);
+    cache[customerId] = null;
   }
+  return cache[customerId];
 }
 
-async function updateQuickBooksEstimateSyncCursor(syncTime) {
-  try {
-    const existing = await b44.filter('SyncCursor', { entity: 'qb_estimates' });
-    const cursor = Array.isArray(existing) ? existing[0] : null;
-    const payload = { entity: 'qb_estimates', last_synced_at: syncTime, updated_at: syncTime };
-    if (cursor?.id) {
-      await b44.update('SyncCursor', cursor.id, payload);
-    } else {
-      await b44.create('SyncCursor', payload);
-    }
-  } catch (e) {
-    console.warn('[sync] Unable to update SyncCursor:', e.message);
-  }
-}
+// Full estimate sync — replicate syncEstimatesFromQBDirect sync mode exactly.
+async function runQbEstimateSync() {
+  if (!b44.isConfigured()) throw new Error('BASE44_APP_ID and BASE44_API_KEY not configured on proxy');
 
-app.get('/qb/health', async (req, res) => {
-  const refreshExpired = storedTokens?.refresh_expires_at
-    ? new Date(storedTokens.refresh_expires_at) < new Date()
-    : false;
-  let credentialLastUsedAt = null;
-  let credentialLastErrorAt = null;
-  try {
-    const cred = await tokenStore.loadPersistedTokens(QB_ENVIRONMENT);
-    credentialLastUsedAt = cred?.last_used_at || null;
-    credentialLastErrorAt = cred?.last_error_at || null;
-  } catch (e) { /* best-effort — health must never fail on metadata read */ }
-  res.json({
-    status: 'ok',
-    environment: QB_ENVIRONMENT,
-    connected: !!storedTokens && !refreshExpired,
-    realmId: storedTokens?.realm_id || null,
-    tokenExpiresAt: storedTokens?.expires_at || null,
-    refreshExpiresAt: storedTokens?.refresh_expires_at || null,
-    reconnectRequired: !storedTokens || refreshExpired,
-    credential_last_used_at: credentialLastUsedAt,
-    credential_last_error_at: credentialLastErrorAt,
-  });
-});
+  const stats = { found: 0, fetched: 0, imported: 0, updated: 0, matched: 0, unmatched: 0, skipped: 0, unchanged: 0, failed: 0, errors: [] };
 
-app.post('/sync/qb-estimates', requireProxySecret, async (req, res) => {
-  try {
-    if (!b44.isConfigured()) {
-      return res.status(503).json({ ok: false, error: 'Base44 is not configured for sync' });
-    }
+  const qbEstimates = await fetchAllQbEstimates();
+  stats.found = qbEstimates.length;
+  stats.fetched = qbEstimates.length;
+  console.log(`[qb-sync] Estimates fetched: ${stats.found}`);
 
-    const estimates = await getAllQuickBooksEstimates();
-    const leads = await b44.filter('Lead', {});
-    const existingRecords = await b44.filter('HandoffEstimate', {});
-    const existingByQbId = new Map((existingRecords || []).filter(Boolean).map(record => [String(record.qb_estimate_id || ''), record]));
+  const [leads, existingEstimates] = await Promise.all([
+    b44.list('Lead', '-created_date', 2000, 0),
+    b44.list('HandoffEstimate', '-created_date', 1000, 0),
+  ]);
+  console.log(`[qb-sync] Loaded ${leads.length} leads, ${existingEstimates.length} existing estimates`);
 
-    let created = 0;
-    let updated = 0;
-    let matchedLeads = 0;
-    let unmatchedLeads = 0;
+  const customerCache = {};
 
-    for (const estimate of estimates) {
-      const qbEstimateId = estimate.Id || estimate.id;
-      if (!qbEstimateId) continue;
+  for (const qbEst of qbEstimates) {
+    try {
+      const qbId = qbEst.Id;
+      const qbNumber = qbEst.DocNumber;
+      const totalAmt = qbEst.TotalAmt || 0;
+      const status = qbEst.TxnStatus || qbEst.EmailStatus || 'Draft';
+      const qbAppUrl = `${SANDBOX ? 'https://sandbox.qbo.intuit.com' : 'https://app.qbo.intuit.com'}/app/estimate?txnId=${qbId}`;
 
-      const customer = await getQuickBooksCustomer(estimate.CustomerRef);
-      const matchedLead = customer ? qbMatch.findMatchingLead(customer, leads || []) : null;
-      if (matchedLead) matchedLeads += 1;
-      else unmatchedLeads += 1;
+      const customerId = qbEst.CustomerRef?.value;
+      const customerRefName = qbEst.CustomerRef?.name || '(Unknown)';
 
-      const payload = {
-        qb_estimate_id: String(qbEstimateId),
-        qb_customer_id: estimate.CustomerRef?.value || null,
-        qb_customer_name: customer?.DisplayName || estimate.CustomerRef?.name || null,
-        qb_doc_number: estimate.DocNumber || null,
-        qb_total_amount: estimate.TotalAmt || null,
-        qb_balance: estimate.Balance || null,
-        qb_status: estimate.Balance === 0 ? 'paid' : 'open',
-        lead_id: matchedLead?.id || matchedLead?._id || null,
-        lead_name: matchedLead ? `${matchedLead.first_name || ''} ${matchedLead.last_name || ''}`.trim() : null,
-        lead_email: matchedLead?.email || null,
-        lead_phone: matchedLead?.phone || null,
-        synced_at: new Date().toISOString(),
-        source: 'qb_proxy_sync',
-        qb_last_updated_at: estimate.MetaData?.LastUpdatedTime || null,
+      const fullCustomer = (await fetchQbCustomer(customerId, customerCache)) || {};
+      const qbCustomer = {
+        ...fullCustomer,
+        DisplayName: fullCustomer.DisplayName || customerRefName,
+        name: customerRefName,
       };
 
-      const existing = existingByQbId.get(String(qbEstimateId));
-      if (existing?.id || existing?._id) {
-        await b44.update('HandoffEstimate', existing.id || existing._id, payload);
-        updated += 1;
+      const existing = existingEstimates.find(e => e.qb_estimate_id === qbId);
+      const matchedLead = qbMatch.findMatchingLead(qbCustomer, leads);
+
+      const sharedBase = {
+        qb_estimate_id: qbId,
+        qb_estimate_number: qbNumber,
+        customer_name: customerRefName,
+        customer_email: fullCustomer.PrimaryEmailAddr?.Address || '',
+        customer_phone: fullCustomer.PrimaryPhone?.FreeFormNumber || '',
+        estimate_amount: totalAmt,
+        estimate_status: status,
+        estimate_date: qbEst.TxnDate,
+        last_synced_at: new Date().toISOString(),
+        sync_source: 'QuickBooks',
+        qb_app_url: qbAppUrl,
+      };
+
+      const qbUpdatedAt = qbEst.MetaData?.LastUpdatedTime;
+      const isNewer = !existing?.last_synced_at || !qbUpdatedAt || new Date(qbUpdatedAt) > new Date(existing.last_synced_at);
+
+      if (matchedLead) {
+        stats.matched++;
+        const matchedFields = { ...sharedBase, lead_id: matchedLead.id, match_status: 'matched', match_method: 'qb_direct' };
+
+        if (existing) {
+          if (!isNewer) {
+            stats.unchanged++;
+          } else {
+            const pdfReset = existing.pdf_status === 'failed' ? { pdf_status: 'pending', pdf_retry_count: 0 } : {};
+            await b44.update('HandoffEstimate', existing.id, { ...matchedFields, ...pdfReset });
+            stats.updated++;
+          }
+        } else {
+          await b44.create('HandoffEstimate', { ...matchedFields, pdf_status: 'pending', pdf_retry_count: 0, source: 'QB Direct Sync' });
+          stats.imported++;
+          leads.push(matchedLead);
+          const amtStr = totalAmt > 0 ? ` — $${Number(totalAmt).toLocaleString('en-US', { minimumFractionDigits: 0 })}` : '';
+          await b44.create('Activity', {
+            lead_id: matchedLead.id,
+            type: 'note',
+            timestamp: new Date().toISOString(),
+            content: `📋 QB estimate #${qbNumber}${amtStr} synced automatically. Status: ${status}.`,
+            author: 'QB Direct Sync',
+            source: 'manual',
+          }).catch(() => {});
+          if (matchedLead.handoff_estimate_status === 'awaiting_qb') {
+            await b44.update('Lead', matchedLead.id, { handoff_estimate_status: 'synced' }).catch(() => {});
+          }
+        }
+
+        const leadUpdate = {};
+        if (qbEst.TxnDate && !matchedLead.appointment_date) leadUpdate.appointment_date = toDateStr(qbEst.TxnDate);
+        if (qbEst.TxnDate && !matchedLead.follow_up_date) leadUpdate.follow_up_date = toDateStr(qbEst.TxnDate);
+        if (Object.keys(leadUpdate).length > 0) {
+          await b44.update('Lead', matchedLead.id, leadUpdate).catch(() => {});
+        }
+
       } else {
-        await b44.create('HandoffEstimate', payload);
-        created += 1;
+        stats.unmatched++;
+        if (existing) {
+          if (!isNewer) {
+            stats.unchanged++;
+          } else {
+            await b44.update('HandoffEstimate', existing.id, { ...sharedBase, match_status: 'unmatched', match_method: 'none' });
+            stats.updated++;
+          }
+        } else {
+          await b44.create('HandoffEstimate', { ...sharedBase, match_status: 'unmatched', match_method: 'none', pdf_status: 'pending', pdf_retry_count: 0, source: 'QB Direct Sync - Unmatched' });
+          stats.imported++;
+        }
       }
+
+    } catch (e) {
+      console.error(`[qb-sync] Error on estimate ${qbEst.DocNumber}:`, e.message);
+      stats.errors.push(`${qbEst.DocNumber}: ${e.message}`);
     }
+  }
 
-    const syncTime = new Date().toISOString();
-    await updateQuickBooksEstimateSyncCursor(syncTime);
-
-    res.json({
-      ok: true,
-      stats: {
-        estimatesSeen: estimates.length,
-        created,
-        updated,
-        matchedLeads,
-        unmatchedLeads,
-        cursorUpdated: true,
-        syncedAt: syncTime,
-      },
-    });
+  // Save cursor (mirrors saveCursor('quickbooks_estimates', ...))
+  try {
+    const rows = await b44.filter('SyncCursor', { integration: 'quickbooks_estimates' });
+    const summary = { fetched: stats.fetched, imported: stats.imported, updated: stats.updated, skipped: stats.skipped, unchanged: stats.unchanged, failed: stats.failed };
+    if (rows[0]) await b44.update('SyncCursor', rows[0].id, { last_successful_sync_at: new Date().toISOString(), last_sync_summary: summary });
+    else await b44.create('SyncCursor', { integration: 'quickbooks_estimates', last_successful_sync_at: new Date().toISOString(), last_sync_summary: summary });
   } catch (e) {
-    res.status(500).json({ ok: false, error: e.message });
+    console.warn('[qb-sync] cursor save failed:', e.message);
+  }
+
+  console.log(`[qb-sync] done — fetched ${stats.fetched} matched ${stats.matched} imported ${stats.imported} updated ${stats.updated} unchanged ${stats.unchanged} unmatched ${stats.unmatched} errors ${stats.errors.length}`);
+  return { ok: true, stats };
+}
+
+// Ported from base44/functions/fetchEstimatePdfs/entry.ts (batch path).
+// Fetches each pending estimate's PDF from QB, marks the record ready, and stores
+// the proxy PDF link. No Base44 function invoked — zero Base44 credits.
+async function runQbEstimatePdfSync() {
+  if (!b44.isConfigured()) throw new Error('BASE44_APP_ID and BASE44_API_KEY not configured on proxy');
+
+  const all = await b44.list('HandoffEstimate', '-created_date', 500, 0);
+  const needsPdf = all.filter(e => e.qb_estimate_id && e.pdf_status !== 'ready' && (e.pdf_retry_count || 0) < 5);
+  console.log(`[qb-pdf] ${needsPdf.length} estimates need PDF fetch`);
+
+  const results = { success: 0, failed: 0 };
+  // Public base for the stored proxy PDF link. Set QB_PROXY_URL on the Railway
+  // service to its own public URL (same value as the Base44 secret) for resolvable links.
+  const proxyBaseUrl = process.env.QB_PROXY_URL || '';
+
+  for (const estimate of needsPdf) {
+    const id = estimate.id;
+    const qbId = estimate.qb_estimate_id;
+    const qbNumber = estimate.qb_estimate_number;
+    try {
+      await b44.update('HandoffEstimate', id, { pdf_status: 'syncing' }).catch(() => {});
+      const tokens = await getValidTokens();
+      const pdfRes = await fetch(`${QB_API_BASE}/${tokens.realm_id}/estimate/${qbId}/pdf?minorversion=65`, {
+        headers: { Authorization: `Bearer ${tokens.access_token}`, Accept: 'application/pdf' },
+      });
+      if (!pdfRes.ok) {
+        const errText = await pdfRes.text().catch(() => '');
+        console.warn(`[qb-pdf] PDF fetch failed (${pdfRes.status}) for ${qbNumber}: ${errText.slice(0, 150)}`);
+        await b44.update('HandoffEstimate', id, { pdf_status: 'failed', pdf_retry_count: (estimate.pdf_retry_count || 0) + 1 });
+        results.failed++;
+        continue;
+      }
+      // Confirm a real PDF came back (consume bytes — UI uses the proxy link, not the bytes)
+      await pdfRes.arrayBuffer();
+      const pdfUrl = proxyBaseUrl ? `${proxyBaseUrl}/estimates/${qbId}/pdf` : `/estimates/${qbId}/pdf`;
+      await b44.update('HandoffEstimate', id, {
+        pdf_url: pdfUrl,
+        document_url: pdfUrl,
+        pdf_status: 'ready',
+        pdf_fetched_at: new Date().toISOString(),
+        qb_app_url: `https://qbo.intuit.com/app/estimate?txnId=${qbId}`,
+        pdf_retry_count: (estimate.pdf_retry_count || 0) + 1,
+      });
+      results.success++;
+    } catch (e) {
+      console.error(`[qb-pdf] Error on estimate ${qbNumber}:`, e.message);
+      await b44.update('HandoffEstimate', id, { pdf_status: 'failed', pdf_retry_count: (estimate.pdf_retry_count || 0) + 1 }).catch(() => {});
+      results.failed++;
+    }
+  }
+
+  console.log(`[qb-pdf] done — success ${results.success} failed ${results.failed}`);
+  return { ok: true, results, processed: needsPdf.length };
+}
+
+// Manual triggers (guarded by X-Proxy-Secret, same as all /qb/* routes)
+app.post('/sync/qb-estimates', requireProxySecret, async (req, res) => {
+  try {
+    const result = await runQbEstimateSync();
+    return res.json(result);
+  } catch (e) {
+    if (e.reconnectRequired) return handleQBError(e, res);
+    console.error('[qb-sync] fatal:', e.message);
+    return res.status(500).json({ ok: false, error: e.message });
   }
 });
 
 app.post('/sync/qb-estimate-pdfs', requireProxySecret, async (req, res) => {
   try {
-    if (!b44.isConfigured()) {
-      return res.status(503).json({ ok: false, error: 'Base44 is not configured for PDF sync' });
-    }
-
-    const records = await b44.filter('HandoffEstimate', {});
-    const tokens = await refreshTokenIfNeeded();
-    const results = { updated: 0, skipped: 0, failed: 0, errors: [] };
-
-    for (const record of records || []) {
-      const recordId = record.id || record._id;
-      const qbEstimateId = record.qb_estimate_id;
-      if (!recordId || !qbEstimateId) {
-        results.skipped += 1;
-        continue;
-      }
-
-      try {
-        const pdfUrl = `${QB_API_BASE}/${tokens.realm_id}/estimate/${qbEstimateId}/pdf?minorversion=65`;
-        const pdfRes = await fetch(pdfUrl, {
-          headers: { Authorization: `Bearer ${tokens.access_token}`, Accept: 'application/pdf' },
-        });
-
-        const now = new Date().toISOString();
-        if (!pdfRes.ok) {
-          await b44.update('HandoffEstimate', recordId, {
-            pdf_status: 'error',
-            pdf_error: `PDF fetch failed: ${pdfRes.status}`,
-            pdf_last_checked_at: now,
-          });
-          results.failed += 1;
-          continue;
-        }
-
-        try { await tokenStore.markUsed(QB_ENVIRONMENT, tokens.realm_id); } catch (_) { /* best-effort */ }
-        const contentType = pdfRes.headers.get('content-type') || '';
-        await b44.update('HandoffEstimate', recordId, {
-          pdf_status: contentType.includes('pdf') ? 'available' : 'downloaded',
-          pdf_content_type: contentType,
-          pdf_error: '',
-          pdf_last_checked_at: now,
-        });
-        results.updated += 1;
-      } catch (e) {
-        results.failed += 1;
-        results.errors.push(e.message);
-      }
-    }
-
-    res.json({
-      ok: true,
-      results,
-      processed: results.updated + results.failed + results.skipped,
-    });
+    const result = await runQbEstimatePdfSync();
+    return res.json(result);
   } catch (e) {
-    res.status(500).json({ ok: false, error: e.message });
+    if (e.reconnectRequired) return handleQBError(e, res);
+    console.error('[qb-pdf] fatal:', e.message);
+    return res.status(500).json({ ok: false, error: e.message });
   }
 });
 
-const scopedSync = require('./lib/scopedSync');
-scopedSync.register(app, {
-  requireProxySecret: requireProxySecret,
-  qbQuery: qbQuery,
-  refreshTokenIfNeeded: refreshTokenIfNeeded,
-  QB_API_BASE: QB_API_BASE,
-  QB_ENVIRONMENT: QB_ENVIRONMENT,
-  s3Client: s3Client,
-  activeBucket: activeBucket,
-  activePublicUrl: activePublicUrl,
-  getAllQuickBooksEstimates: getAllQuickBooksEstimates,
-  getQuickBooksCustomer: getQuickBooksCustomer,
-});
-
-// ââ Base44 Config Diagnostic (masked, read-only) ââââââââââââââââââââââââââââââ
-// Reports masked env values + self-test so we can confirm Base44 connectivity.
-app.post('/diag/base44-config', requireProxySecret, async (req, res) => {
-  function mask(v) {
-    if (!v) return { present: false };
-    const s = String(v);
-    return { present: true, length: s.length, preview: s.slice(0, 4) + '...' + s.slice(-4), hasApiBase44Com: s.includes('api.base44.com'), hasBase44App: s.includes('base44.app') };
-  }
-  const b44 = require('./lib/base44');
-  const rawUrl = process.env.BASE44_API_URL || '';
-  const effectiveUrl = (!rawUrl || rawUrl.includes('api.base44.com')) ? 'https://base44.app' : rawUrl.replace(/\/$/, '');
-  const config = {
-    raw_BASE44_API_URL: mask(rawUrl),
-    effective_API_URL: effectiveUrl,
-    BASE44_APP_ID: mask(process.env.BASE44_APP_ID),
-    BASE44_API_KEY: mask(process.env.BASE44_API_KEY),
-    PROXY_SECRET: mask(process.env.PROXY_SECRET),
-    QB_ENVIRONMENT: process.env.QB_ENVIRONMENT || null,
-    QB_SANDBOX: process.env.QB_SANDBOX || null,
-    R2_configured: !!(process.env.R2_ACCOUNT_ID && process.env.R2_ACCESS_KEY_ID),
-    b44_isConfigured: b44.isConfigured(),
-  };
-  // Self-test: try a lightweight entity read
-  try {
-    const test = await b44.filter('SyncCursor', {});
-    config.selfTest = { ok: true, count: Array.isArray(test) ? test.length : 'unknown', responseType: typeof test };
-  } catch (e) {
-    config.selfTest = { ok: false, error: (e.message || '').slice(0, 200) };
-  }
-  res.json(config);
-});
-
-// === SDK Auth Diagnostic (read-only, temporary - Phase 3 test) ===
-// Tests the official Base44 SDK external-backend auth path.
-// Does NOT use asServiceRole. Does NOT create/update/delete.
-app.post('/diag/sdk-test', requireProxySecret, async (req, res) => {
-  const appId = process.env.BASE44_APP_ID;
-  const serverUrl = 'https://base44.app';
-  const apiKey = process.env.BASE44_API_KEY || '';
-  const adminEmail = process.env.ADMIN_EMAIL || '';
-  const testLeadId = '6a24f481aed1c5c0a65a5d66';
-
-  const result = {
-    sdkVersion: null,
-    clientInitialized: false,
-    noAuthRead: null,
-    apiKeyAsBearerRead: null,
-    loginProbe: null,
-    testLeadRead: null,
-    classification: null
-  };
-
-  try {
-    const sdk = await import('@base44/sdk');
-    result.sdkVersion = '0.8.37';
-    const makeClient = sdk.createClient;
-
-    // Test 1: SDK init + read with NO auth
-    try {
-      const client = makeClient({ appId, serverUrl, requiresAuth: false });
-      result.clientInitialized = true;
-      const leads = await client.entities.Lead.list('-created_date', 1);
-      result.noAuthRead = { status: 'SUCCESS', count: leads.length };
-    } catch (e) {
-      result.noAuthRead = {
-        status: 'ERROR',
-        message: (e.message || '').slice(0, 150),
-        httpStatus: e.response?.status || null
-      };
-    }
-
-    // Test 2: Read with BASE44_API_KEY as Bearer token (current approach)
-    try {
-      const client = makeClient({ appId, serverUrl, token: apiKey, requiresAuth: false });
-      const leads = await client.entities.Lead.list('-created_date', 1);
-      result.apiKeyAsBearerRead = { status: 'SUCCESS', count: leads.length };
-    } catch (e) {
-      result.apiKeyAsBearerRead = {
-        status: 'ERROR',
-        message: (e.message || '').slice(0, 150),
-        httpStatus: e.response?.status || null
-      };
-    }
-
-    // Test 3: Login endpoint probe (confirms server-side login is viable)
-    try {
-      const loginRes = await fetch(serverUrl + '/api/apps/' + appId + '/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: adminEmail || 'probe@test.invalid', password: 'probe_fake_password_only' })
-      });
-      const loginBody = await loginRes.text();
-      result.loginProbe = {
-        status: loginRes.status,
-        isCaptchaRequired: loginBody.toLowerCase().includes('captcha') || loginBody.toLowerCase().includes('turnstile'),
-        isAuthError: loginBody.toLowerCase().includes('invalid') || loginBody.toLowerCase().includes('incorrect'),
-        bodyPreview: loginBody.slice(0, 200)
-      };
-    } catch (e) {
-      result.loginProbe = { status: 'FETCH_ERROR', message: (e.message || '').slice(0, 150) };
-    }
-
-    // Test 4: Read the dedicated test lead with no auth (expect 403)
-    try {
-      const client = makeClient({ appId, serverUrl, requiresAuth: false });
-      const lead = await client.entities.Lead.get(testLeadId);
-      result.testLeadRead = { status: 'SUCCESS', leadId: lead.id };
-    } catch (e) {
-      result.testLeadRead = {
-        status: 'ERROR',
-        message: (e.message || '').slice(0, 150),
-        httpStatus: e.response?.status || null
-      };
-    }
-
-    // Classify
-    const noAuthFailed = result.noAuthRead.status === 'ERROR';
-    const apiKeyFailed = result.apiKeyAsBearerRead.status === 'ERROR';
-    const loginAccessible = result.loginProbe && !result.loginProbe.isCaptchaRequired;
-    if (noAuthFailed && apiKeyFailed && loginAccessible) {
-      result.classification = 'USER_TOKEN_REQUIRED';
-    } else if (!noAuthFailed) {
-      result.classification = 'SUPPORTED_AND_WORKING';
-    } else if (!apiKeyFailed) {
-      result.classification = 'SUPPORTED_AND_WORKING';
-    } else {
-      result.classification = 'EXTERNAL_ENTITY_ACCESS_NOT_SUPPORTED';
-    }
-  } catch (e) {
-    result.initError = (e.message || '').slice(0, 200);
-    result.classification = 'UNDETERMINED';
-  }
-
-  res.json(result);
-});
-
-// ── Diagnostic: Base44 Entity Gateway connection check (read-only) ─────────────
-// Insert before `const PORT = process.env.PORT || 3000;` in server.js
-app.post('/diag/base44-gateway', requireProxySecret, async (req, res) => {
-  const leadId = req.body && req.body.leadId;
-  if (!leadId || typeof leadId !== 'string') {
-    return res.status(400).json({ error: 'leadId is required' });
-  }
-  const start = Date.now();
-  try {
-    const result = await base44EntityGateway.callGateway('get_lead', { leadId });
-    const durationMs = Date.now() - start;
-    if (!result.success) {
-      return res.status(result.status || 502).json({
-        success: false,
-        error: result.error,
-        gatewayRequestId: result.requestId,
-        durationMs,
-      });
-    }
-    // Safe summary only — never return the full lead record
-    return res.json({
-      success: true,
-      gatewayRequestId: result.requestId,
-      leadFound: !!(result.data && result.data.lead),
-      leadId,
-      durationMs,
-    });
-  } catch (e) {
-    return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Diagnostic failed' }, durationMs: Date.now() - start });
-  }
-});
-
-
-// ── Phase 1: Railway Email Service + permanent auth (public /api/v1) ──
-// Public, JWT-authenticated API surface (no PROXY_SECRET, no Gmail tokens in browser).
-// Schema is applied separately via 'npm run migrate' (node db/migrate.js); the
-// server assumes the Phase 1 tables already exist.
-app.use('/api/v1', require('cors')({ origin: true, allowedHeaders: ['Content-Type', 'Authorization'], credentials: false }));
-app.use('/api/v1/auth', require('./routes/auth'));
-app.use('/api/v1', require('./routes/emails'));
-
-// Internal single-send primitive (X-Proxy-Secret guarded) — server-to-server only.
-app.post('/internal/email/send', requireProxySecret, async (req, res) => {
-  try {
-    const { to, cc, replyTo, subject, htmlBody, attachments, idempotencyKey, fromName, fromAddress, role } = req.body || {};
-    if (!to || !subject || !htmlBody || !idempotencyKey) return res.status(400).json({ error: 'to, subject, htmlBody, idempotencyKey required' });
-    const result = await require('./lib/emailService').send({ to, cc, replyTo, subject, htmlBody, attachments, idempotencyKey, fromName, fromAddress, role });
-    res.json(result);
-  } catch (e) { res.status(/credentials/i.test(e.message) ? 503 : 500).json({ error: e.message }); }
-});
-
-// ── Gmail OAuth one-time connection flow (Phase 1A) ──────────────────────────
-// Internal routes for authorizing Gmail sending through Railway. Protected by
-// X-Proxy-Secret or a short-lived setup_token. No email is sent here.
-app.use('/internal/gmail/oauth', require('./lib/gmailOAuthRouter'));
+// ── Start ─────────────────────────────────────────────────────────────────────
 
 const PORT = process.env.PORT || 3000;
-(async () => {
-  try {
-    storedTokens = await tokenStore.loadPersistedTokens(QB_ENVIRONMENT);
-    tokenStorageMethod = process.env.DATABASE_URL ? 'postgres'
-      : (tokenStore.canUseFilesystemFallback() ? 'filesystem' : 'none');
-    console.log(`[proxy] QB token state loaded — realm:${storedTokens?.realm_id || 'none'} storage:${tokenStorageMethod}`);
-  } catch (e) {
-    console.error('[proxy] QB token load failed on startup:', e.message);
-    storedTokens = null;
-    tokenStorageMethod = 'error';
-  }
-  app.listen(PORT, () => {
-    console.log(`[proxy] QuickBooks Proxy running on port ${PORT}`);
-    console.log(`[proxy] Environment: ${QB_ENVIRONMENT}`);
-    console.log(`[proxy] API Base: ${QB_API_BASE}`);
+app.listen(PORT, () => {
+  console.log(`[proxy] QuickBooks Proxy running on port ${PORT}`);
+  console.log(`[proxy] Environment: ${QB_ENVIRONMENT}`);
+  console.log(`[proxy] API Base: ${QB_API_BASE}`);
+
+  // ── TEMPORARY DIAGNOSTIC: print all registered routes at startup ──────────
+  // This confirms whether the deployed server.js includes the upload endpoints.
+  const routes = [];
+  (app._router?.stack || []).forEach(layer => {
+    if (layer.route) {
+      const methods = Object.keys(layer.route.methods).map(m => m.toUpperCase()).join(',');
+      routes.push(`${methods} ${layer.route.path}`);
+    }
   });
-})();
+  console.log(`[proxy] === REGISTERED ROUTES (${routes.length} total) ===`);
+  routes.forEach(r => console.log(`[proxy]   ${r}`));
+  const apiRoutes = routes.filter(r => r.includes('/api/'));
+  console.log(`[proxy] === /api/* routes (${apiRoutes.length}) ===`);
+  apiRoutes.forEach(r => console.log(`[proxy]   ${r}`));
+  console.log(`[proxy] Upload endpoint registered: ${routes.some(r => r.includes('/api/files/upload')) ? 'YES ✅' : 'NO ❌'}`);
+  console.log(`[proxy] Status endpoint registered: ${routes.some(r => r.includes('/api/files/status')) ? 'YES ✅' : 'NO ❌'}`);
+  // ── END DIAGNOSTIC ────────────────────────────────────────────────────────
+
+  // ── QB Estimate Sync Cron ─────────────────────────────────────────────────
+  // Off by default. Set QB_SYNC_CRON_ENABLED=true on Railway to start the 15-min
+  // loop (estimates sync + PDF fetch). Keeps the Base44 scheduler as fallback until
+  // parity is verified, then disable the Base44 automation and leave this running.
+  let cronLib = null;
+  try { cronLib = require('node-cron'); } catch (e) {
+    console.warn('[proxy] node-cron not installed — QB sync cron disabled (npm install will add it)');
+  }
+  if (cronLib) {
+    if (process.env.QB_SYNC_CRON_ENABLED !== 'true') {
+      console.log('[proxy] QB sync cron disabled (set QB_SYNC_CRON_ENABLED=true to enable every-15-min sync)');
+    } else {
+      cronLib.schedule('*/15 * * * *', async () => {
+        const t = new Date().toISOString();
+        console.log(`[qb-cron] tick ${t}`);
+        try {
+          const r = await runQbEstimateSync();
+          console.log(`[qb-cron] sync ok — matched ${r.stats?.matched} imported ${r.stats?.imported} updated ${r.stats?.updated}`);
+        } catch (e) {
+          console.error('[qb-cron] sync failed:', e.message);
+        }
+        try {
+          await runQbEstimatePdfSync();
+        } catch (e) {
+          console.error('[qb-cron] pdf sync failed:', e.message);
+        }
+      });
+      console.log('[proxy] QB sync cron scheduled every 15 minutes (QB_SYNC_CRON_ENABLED=true)');
+    }
+  }
+});
