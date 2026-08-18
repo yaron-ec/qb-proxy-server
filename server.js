@@ -1088,6 +1088,7 @@ app.post('/diag/base44-gateway', requireProxySecret, async (req, res) => {
 app.use('/api/v1', require('cors')({ origin: true, allowedHeaders: ['Content-Type', 'Authorization'], credentials: false }));
 app.use('/api/v1/auth', require('./routes/auth'));
 app.use('/api/v1', require('./routes/emails'));
+app.use('/api/v1/public-capture', require('./routes/publicCapture'));
 
 // Internal single-send primitive (X-Proxy-Secret guarded) — server-to-server only.
 app.post('/internal/email/send', requireProxySecret, async (req, res) => {
