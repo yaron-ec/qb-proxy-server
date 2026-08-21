@@ -1,26 +1,26 @@
 /* eslint-disable no-undef */
 /**
- * routes/publicCapture.js ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â PUBLIC Railway endpoints for the Lead Capture form.
+ * routes/publicCapture.js — PUBLIC Railway endpoints for the Lead Capture form.
  *
- *   GET  /api/public/capture/availability   ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â blocked slots for an owner/date
- *   POST /api/public/capture                ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â atomic lead + appointment create
+ *   GET  /api/public/capture/availability   — blocked slots for an owner/date
+ *   POST /api/public/capture                — atomic lead + appointment create
  *
  * NO CRM JWT. NO PROXY_SECRET. These are intentionally narrow, public, rate-
  * limited endpoints for the unauthenticated Philippines-team intake form.
  * They do NOT expose general CRM read/write APIs.
  *
  * Availability uses the corrected single-buffer logic (lib/booking/slotBlocking).
- * Submission uses bookingService.createBooking ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â one PostgreSQL transaction
+ * Submission uses bookingService.createBooking — one PostgreSQL transaction
  * with the appointments.busy_range EXCLUDE constraint for atomic slot
  * reservation (409 on conflict, zero leads/appointments/side-effects on 409).
  *
  * Side effects ported from base44/functions/submitLeadCapture:
- *   - lead create (Railway leads) + projection_outbox ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Base44  [bookingService]
- *   - appointment create + calendar_outbox ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Google Calendar   [bookingService]
+ *   - lead create (Railway leads) + projection_outbox → Base44  [bookingService]
+ *   - appointment create + calendar_outbox → Google Calendar   [bookingService]
  *   - activity note (Railway activities)                       [post-commit]
  *   - reminder ingestion (Railway reminder_leads)             [post-commit]
  *   - new-lead alert email (Railway emailService)             [post-commit]
- * GAPS (not invented here ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â reported):
+ * GAPS (not invented here — reported):
  *   - Google Contacts sync (no Railway service-account module exists yet)
  */
 'use strict';
@@ -37,10 +37,11 @@ const {
 const { validateAndNormalizeLead, upsertLead } = require('../lib/leadIngest');
 const { rateLimit } = require('../lib/rateLimit');
 const { sendNewLeadAlert } = require('../lib/captureAlerts');
+const { authorizeOverride } = require('../lib/captureOverrideAuth');
 
 const router = express.Router();
 
-// ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ CORS ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â restricted to configured EC frontend origins ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
+// ── CORS — restricted to configured EC frontend origins ────────────────────
 const ALLOWED_ORIGINS = (process.env.CAPTURE_ALLOWED_ORIGINS || process.env.CRM_PUBLIC_URL || '')
   .split(',').map(s => s.trim()).filter(Boolean);
 const DEV_ORIGINS = ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'];
@@ -64,7 +65,7 @@ router.use(corsCapture);
 const availLimiter = rateLimit({ windowMs: 60 * 1000, max: 30 });
 const submitLimiter = rateLimit({ windowMs: 60 * 1000, max: 8 });
 
-// ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ GET /availability?owner=...&date=YYYY-MM-DD&duration=60 ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
+// ── GET /availability?owner=...&date=YYYY-MM-DD&duration=60 ────────────────
 router.get('/availability', availLimiter, async (req, res) => {
   try {
     const owner = (req.query.owner || 'Yaron Drilevich').trim();
@@ -90,6 +91,9 @@ router.get('/availability', availLimiter, async (req, res) => {
     });
   } catch (e) {
     if (e && (e.code === 'calendar_unavailable' || e instanceof CalendarUnavailableError)) {
+      // Google Calendar could not be read — do NOT silently report the day as
+      // free. Return a service-unavailable so reps cannot book into an unknown
+      // calendar state.
       console.error('[public-capture] google calendar unavailable:', e.message);
       return res.status(503).json({
         error: 'calendar_unavailable',
@@ -101,7 +105,7 @@ router.get('/availability', availLimiter, async (req, res) => {
   }
 });
 
-// ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ POST / ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â atomic lead + appointment create ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
+// ── POST / — atomic lead + appointment create ──────────────────────────────
 router.post('/', submitLimiter, async (req, res) => {
   try {
     const v = validateCapturePayload(req.body || {});
@@ -118,7 +122,25 @@ router.post('/', submitLimiter, async (req, res) => {
       owner_email: c.owner_email, first_name: c.first_name, last_name: c.last_name,
       email: c.email, phone: c.phone, property_address: c.property_address,
       appointment_type_id, start_at,
+      appointment_override: c.appointment_override,
     });
+
+    // Admin conflict-override gate. The public capture route is unauthenticated
+    // for normal submissions; an override is ONLY honored when a valid Railway
+    // admin JWT + server-side email allowlist check passes (lib/captureOverrideAuth).
+    // The frontend toggle is never trusted.
+    let override_conflict = false;
+    let override_actor = null;
+    let actor = 'capture-form';
+    if (c.appointment_override) {
+      const auth = authorizeOverride(req.headers.authorization);
+      if (!auth.ok) {
+        return res.status(403).json({ error: auth.code, message: auth.message });
+      }
+      override_conflict = true;
+      override_actor = auth.user.email;
+      actor = auth.user.email;
+    }
 
     const booking = await createBooking({
       idempotency_key,
@@ -139,12 +161,14 @@ router.post('/', submitLimiter, async (req, res) => {
       appointment_type_id,
       start_at,
       timezone: 'America/Los_Angeles',
-      actor: 'capture-form',
+      actor,
+      override_conflict,
+      override_actor,
     });
 
     const leadId = booking.lead && booking.lead.id;
 
-    // Idempotent retry ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ return the original result, do NOT re-run side effects.
+    // Idempotent retry → return the original result, do NOT re-run side effects.
     if (booking.idempotent) {
       return res.status(200).json({
         success: true, idempotent: true,
@@ -153,7 +177,7 @@ router.post('/', submitLimiter, async (req, res) => {
       });
     }
 
-    // ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Post-commit side effects (NEW bookings only; best-effort, non-fatal) ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
+    // ── Post-commit side effects (NEW bookings only; best-effort, non-fatal) ──
     // These run AFTER the booking tx committed. A 409 above never reaches here.
     if (leadId) {
       // 1. Capture-specific lead fields not inserted by bookingService.
@@ -180,7 +204,7 @@ router.post('/', submitLimiter, async (req, res) => {
         } catch (e) { console.warn('[public-capture] activity insert failed:', e.message); }
       }
 
-      // 3. Reminder ingestion ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â upsert into reminder_leads so the reminder engine
+      // 3. Reminder ingestion — upsert into reminder_leads so the reminder engine
       //    can schedule appointment reminders from the REAL appointment time.
       try {
         const rl = validateAndNormalizeLead({
@@ -200,7 +224,7 @@ router.post('/', submitLimiter, async (req, res) => {
         if (rl.ok) await upsertLead(db, rl.lead);
       } catch (e) { console.warn('[public-capture] reminder_leads upsert failed:', e.message); }
 
-      // 4. New-lead alert email (Railway emailService ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â best-effort, non-fatal).
+      // 4. New-lead alert email (Railway emailService — best-effort, non-fatal).
       //    Mirrors notifyYaronNewWebsiteLead: Yaron + Michelle. Never rolls back.
       try {
         const leadRow = (await query('SELECT * FROM leads WHERE id = $1', [leadId])).rows[0];
