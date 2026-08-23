@@ -17,13 +17,11 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 
--- Ensure email is unique and not null
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'users_email_key') THEN
-    ALTER TABLE users ADD CONSTRAINT users_email_key UNIQUE (lower(email));
-  END IF;
-END $$;
+-- Ensure email is unique (case-insensitive). Uses a unique INDEX on the
+-- expression lower(email) — PostgreSQL does NOT allow function expressions
+-- inside a table-level UNIQUE constraint. schema.sql already creates
+-- users_email_uidx; this is a no-op if that index already exists.
+CREATE UNIQUE INDEX IF NOT EXISTS users_email_lower_key ON users (lower(email));
 
 -- ── Refresh tokens table — ensure all required columns exist ────────────────
 ALTER TABLE refresh_tokens ADD COLUMN IF NOT EXISTS token_hash TEXT NOT NULL;
@@ -33,13 +31,9 @@ ALTER TABLE refresh_tokens ADD COLUMN IF NOT EXISTS revoked_at TIMESTAMPTZ;
 ALTER TABLE refresh_tokens ADD COLUMN IF NOT EXISTS rotated_from TEXT;
 ALTER TABLE refresh_tokens ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 
--- Ensure token_hash is unique
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'refresh_tokens_token_hash_key') THEN
-    ALTER TABLE refresh_tokens ADD CONSTRAINT refresh_tokens_token_hash_key UNIQUE (token_hash);
-  END IF;
-END $$;
+-- Ensure token_hash is unique. schema.sql already creates refresh_tokens_hash_uidx;
+-- this is a no-op if that index already exists.
+CREATE UNIQUE INDEX IF NOT EXISTS refresh_tokens_token_hash_key ON refresh_tokens (token_hash);
 
 -- ── Indexes for auth performance ────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_users_email_lower ON users (lower(email));
