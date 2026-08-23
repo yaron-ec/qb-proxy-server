@@ -158,11 +158,16 @@ router.post('/migrate', async (req, res) => {
 // The frontend passes ?redirect=<origin> so the callback knows where to send
 // the user back. This is carried through Google's `state` parameter.
 router.get('/google', (req, res) => {
-  const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
+  // Fallback: reuse the existing Gmail OAuth client when dedicated CRM auth
+  // credentials are absent. Both flows use the same Google OAuth client but
+  // request DIFFERENT scopes (Gmail: gmail.send; CRM auth: openid email profile)
+  // and DIFFERENT redirect URIs. No conflict — Google clients support multiple
+  // scopes + redirect URIs.
+  const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID || process.env.GMAIL_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET || process.env.GMAIL_CLIENT_SECRET;
   if (!clientId || !clientSecret) {
     return res.status(500).json({
-      error: 'Google OAuth not configured. Set GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET on Railway.',
+      error: 'Google OAuth not configured. Set GOOGLE_OAUTH_CLIENT_ID/SECRET or GMAIL_CLIENT_ID/SECRET on Railway.',
     });
   }
 
@@ -192,8 +197,9 @@ router.get('/google', (req, res) => {
 });
 
 router.get('/google/callback', async (req, res) => {
-  const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
+  // Fallback: reuse the existing Gmail OAuth client (same as GET /google).
+  const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID || process.env.GMAIL_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET || process.env.GMAIL_CLIENT_SECRET;
   if (!clientId || !clientSecret) {
     return res.status(500).send('Google OAuth not configured on the server.');
   }
