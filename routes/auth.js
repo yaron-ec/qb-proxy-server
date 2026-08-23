@@ -171,7 +171,10 @@ router.get('/google', (req, res) => {
     });
   }
 
-  const apiBase = `${req.protocol}://${req.get('host')}`;
+  // Railway terminates TLS — req.protocol is 'http' behind the proxy.
+  // Use x-forwarded-proto to construct the correct HTTPS redirect URI.
+  const proto = req.headers['x-forwarded-proto'] || req.protocol;
+  const apiBase = `${proto}://${req.get('host')}`;
   const redirectUri = `${apiBase}/api/v1/auth/google/callback`;
 
   // Frontend origin to return the user to after callback (carry through state).
@@ -217,7 +220,9 @@ router.get('/google/callback', async (req, res) => {
     }
   } catch (_) { /* use default */ }
 
-  const apiBase = `${req.protocol}://${req.get('host')}`;
+  // Railway terminates TLS — use x-forwarded-proto for HTTPS redirect URI.
+  const proto = req.headers['x-forwarded-proto'] || req.protocol;
+  const apiBase = `${proto}://${req.get('host')}`;
   const redirectUri = `${apiBase}/api/v1/auth/google/callback`;
 
   try {
