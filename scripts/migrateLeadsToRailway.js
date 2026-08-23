@@ -1,0 +1,221 @@
+/* eslint-disable no-undef */
+/**
+ * migrateLeadsToRailway.js — Idempotent lead migration from Base44 to Railway.
+ *
+ * Run on Railway: node scripts/migrateLeadsToRailway.js
+ *
+ * Reads ALL leads from Base44 (via REST API) and upserts them into the
+ * Railway `leads` table with external_ref = Base44 lead ID.
+ *
+ * Maps Base44 `assigned_rep` (display name) → owners.display_name → owner_id.
+ *
+ * IDEMPOTENT: uses ON CONFLICT (external_ref) DO UPDATE. Safe to run multiple times.
+ * PRESERVES: existing Railway lead IDs (external_ref is the stable key).
+ * DOES NOT: delete leads that exist in Railway but not Base44 (one-way sync).
+ *
+ * Environment:
+ *   BASE44_APP_ID, BASE44_API_KEY, BASE44_API_URL (optional)
+ *   DATABASE_URL (Railway Postgres)
+ */
+'use strict';
+
+const { query } = require('../db/client');
+
+const BASE44_API_URL = process.env.BASE44_API_URL || 'https://api.base44.com';
+const BASE44_APP_ID = process.env.BASE44_APP_ID;
+const BASE44_API_KEY = process.env.BASE44_API_KEY;
+
+if (!BASE44_APP_ID || !BASE44_API_KEY) {
+  console.error('[migrate-leads] BASE44_APP_ID and BASE44_API_KEY required');
+  process.exit(1);
+}
+
+// ── Owner name → owner_id cache ──────────────────────────────────────────────
+let ownerCache = null;
+
+async function loadOwnerCache() {
+  if (ownerCache) return ownerCache;
+  const { rows } = await query('SELECT id, display_name, email FROM owners WHERE is_active = true');
+  ownerCache = {};
+  for (const r of rows) {
+    // Map by display_name (case-insensitive, whitespace-normalized)
+    const nameKey = (r.display_name || '').toLowerCase().replace(/\s+/g, ' ').trim();
+    if (nameKey) ownerCache[nameKey] = r.id;
+    // Also map by email
+    if (r.email) ownerCache[r.email.toLowerCase()] = r.id;
+  }
+  return ownerCache;
+}
+
+function resolveOwnerId(assignedRep, ownersByEmail) {
+  if (!assignedRep) return null;
+  const cache = ownersByEmail || ownerCache;
+  const key = String(assignedRep).toLowerCase().replace(/\s+/g, ' ').trim();
+  return cache[key] || null;
+}
+
+// ── Fetch all leads from Base44 ──────────────────────────────────────────────
+async function fetchAllBase44Leads() {
+  const all = [];
+  let offset = 0;
+  const limit = 500;
+
+  while (true) {
+    const url = `${BASE44_API_URL}/entities/Lead?limit=${limit}&offset=${offset}&sort=-created_date`;
+    console.log(`[migrate-leads] Fetching Base44 leads offset=${offset}...`);
+    const res = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${BASE44_API_KEY}`, 'X-App-ID': BASE44_APP_ID },
+    });
+    if (!res.ok) {
+      console.error(`[migrate-leads] Base44 API error: ${res.status} ${res.statusText}`);
+      break;
+    }
+    const data = await res.json();
+    const batch = Array.isArray(data) ? data : (data.items || []);
+    if (batch.length === 0) break;
+    all.push(...batch);
+    console.log(`[migrate-leads] Got ${batch.length} leads (total: ${all.length})`);
+    if (batch.length < limit) break;
+    offset += limit;
+  }
+
+  return all;
+}
+
+// ── Upsert a single lead into Railway ────────────────────────────────────────
+async function upsertLead(lead, ownerId) {
+  const externalRef = lead.id; // Base44 lead ID becomes external_ref
+  if (!externalRef) return { action: 'skipped', reason: 'no_id' };
+
+  const firstName = lead.first_name || 'Unknown';
+  const lastName = lead.last_name || 'Lead';
+
+  const sql = `
+    INSERT INTO leads (
+      external_ref, first_name, last_name, phone, email,
+      property_address, city, state, zip, project_type, budget_range,
+      start_timeframe, source, referral_name, owner_id, status, notes,
+      message, lead_score, is_new_intake_lead, customer_reminders_disabled,
+      photo_urls, record_type, follow_up_date, follow_up_time, follow_up_type,
+      meeting_stage, crm_created_date, reviewed_at
+    ) VALUES (
+      $1, $2, $3, $4, $5,
+      $6, $7, $8, $9, $10, $11,
+      $12, $13, $14, $15, $16, $17,
+      $18, $19, $20, $21,
+      $22, $23, $24, $25, $26,
+      $27, $28
+    )
+    ON CONFLICT (external_ref) DO UPDATE SET
+      first_name = EXCLUDED.first_name,
+      last_name = EXCLUDED.last_name,
+      phone = COALESCE(EXCLUDED.phone, leads.phone),
+      email = COALESCE(EXCLUDED.email, leads.email),
+      property_address = COALESCE(EXCLUDED.property_address, leads.property_address),
+      city = COALESCE(EXCLUDED.city, leads.city),
+      state = COALESCE(EXCLUDED.state, leads.state),
+      zip = COALESCE(EXCLUDED.zip, leads.zip),
+      project_type = COALESCE(EXCLUDED.project_type, leads.project_type),
+      budget_range = COALESCE(EXCLUDED.budget_range, leads.budget_range),
+      start_timeframe = COALESCE(EXCLUDED.start_timeframe, leads.start_timeframe),
+      source = COALESCE(EXCLUDED.source, leads.source),
+      referral_name = COALESCE(EXCLUDED.referral_name, leads.referral_name),
+      owner_id = COALESCE(EXCLUDED.owner_id, leads.owner_id),
+      status = EXCLUDED.status,
+      notes = EXCLUDED.notes,
+      message = EXCLUDED.message,
+      lead_score = EXCLUDED.lead_score,
+      is_new_intake_lead = EXCLUDED.is_new_intake_lead,
+      customer_reminders_disabled = EXCLUDED.customer_reminders_disabled,
+      photo_urls = EXCLUDED.photo_urls,
+      record_type = EXCLUDED.record_type,
+      follow_up_date = EXCLUDED.follow_up_date,
+      follow_up_time = EXCLUDED.follow_up_time,
+      follow_up_type = EXCLUDED.follow_up_type,
+      meeting_stage = EXCLUDED.meeting_stage,
+      crm_created_date = COALESCE(EXCLUDED.crm_created_date, leads.crm_created_date),
+      reviewed_at = EXCLUDED.reviewed_at,
+      updated_at = NOW()
+    RETURNING (xmax = 0) AS inserted, id
+  `;
+
+  const photoUrls = Array.isArray(lead.photo_urls) ? JSON.stringify(lead.photo_urls) : null;
+
+  const params = [
+    String(externalRef),
+    firstName, lastName,
+    lead.phone || null, lead.email || null,
+    lead.property_address || null, lead.city || null, lead.state || null, lead.zip || null,
+    lead.project_type || null, lead.budget_range || null,
+    lead.start_timeframe || null, lead.source || null, lead.referral_name || null,
+    ownerId, lead.status || 'New', lead.notes || null,
+    lead.message || null, lead.lead_score || 0,
+    lead.is_new_intake_lead === true, lead.customer_reminders_disabled === true,
+    photoUrls, lead.record_type || 'Lead',
+    lead.follow_up_date || null, lead.follow_up_time || null, lead.follow_up_type || null,
+    lead.meeting_stage || null,
+    lead.crm_created_date || lead.created_date || null,
+    lead.reviewed_at || null,
+  ];
+
+  const { rows } = await query(sql, params);
+  const inserted = !!(rows[0] && rows[0].inserted);
+  return { action: inserted ? 'created' : 'updated', id: rows[0]?.id };
+}
+
+// ── Main ────────────────────────────────────────────────────────────────────
+async function main() {
+  console.log('[migrate-leads] Starting idempotent lead migration...');
+  console.log('[migrate-leads] Base44 API:', BASE44_API_URL);
+
+  // Load owner cache
+  await loadOwnerCache();
+  console.log(`[migrate-leads] Loaded ${Object.keys(ownerCache).length} owner mappings`);
+
+  // Fetch all Base44 leads
+  const base44Leads = await fetchAllBase44Leads();
+  console.log(`[migrate-leads] Fetched ${base44Leads.length} leads from Base44`);
+
+  // Upsert each lead
+  let created = 0, updated = 0, skipped = 0, errors = 0;
+  let noOwner = 0;
+
+  for (let i = 0; i < base44Leads.length; i++) {
+    const lead = base44Leads[i];
+    try {
+      const ownerId = resolveOwnerId(lead.assigned_rep);
+      if (lead.assigned_rep && !ownerId) noOwner++;
+
+      const result = await upsertLead(lead, ownerId);
+      if (result.action === 'created') created++;
+      else if (result.action === 'updated') updated++;
+      else skipped++;
+
+      if ((i + 1) % 100 === 0) {
+        console.log(`[migrate-leads] Progress: ${i + 1}/${base44Leads.length} (created=${created} updated=${updated})`);
+      }
+    } catch (e) {
+      errors++;
+      console.error(`[migrate-leads] Error on lead ${lead.id}: ${e.message}`);
+    }
+  }
+
+  console.log('\n=== MIGRATION COMPLETE ===');
+  console.log(`Total Base44 leads: ${base44Leads.length}`);
+  console.log(`Created in Railway: ${created}`);
+  console.log(`Updated in Railway: ${updated}`);
+  console.log(`Skipped: ${skipped}`);
+  console.log(`Errors: ${errors}`);
+  console.log(`Leads without owner mapping: ${noOwner}`);
+
+  // Verify
+  const { rows } = await query('SELECT COUNT(*) as cnt FROM leads');
+  console.log(`Railway leads table now has: ${rows[0].cnt} rows`);
+
+  process.exit(0);
+}
+
+main().catch(e => {
+  console.error('[migrate-leads] fatal:', e);
+  process.exit(1);
+});
