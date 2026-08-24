@@ -174,23 +174,35 @@ async function main() {
   await loadOwnerCache();
   console.log(`[migrate-leads] Loaded ${Object.keys(ownerCache).length} owner mappings`);
 
-  // Ensure fallback "Unassigned" owner exists (leads.owner_id is NOT NULL)
-  let fallbackOwnerId = ownerCache['unassigned'];
-  if (!fallbackOwnerId) {
+  // Load the canonical "Unassigned" owner ID — used ONLY for leads where Base44
+  // assigned_rep is genuinely null/empty. NEVER used as a fallback for a named
+  // owner that cannot be resolved. Named owners that can't be resolved cause
+  // the migration to FAIL CLOSED to preserve ownership integrity.
+  let unassignedOwnerId = ownerCache['unassigned'];
+  if (!unassignedOwnerId) {
+    const { rows: existing } = await query(
+      `SELECT id FROM owners WHERE lower(display_name) = 'unassigned' AND is_active = true LIMIT 1`
+    );
+    unassignedOwnerId = existing[0]?.id || null;
+  }
+  if (!unassignedOwnerId) {
+    // Create the canonical Unassigned owner (for genuinely null assigned_rep only)
     const { rows } = await query(`
       INSERT INTO owners (display_name, email, is_active)
       VALUES ('Unassigned', null, true)
       ON CONFLICT DO NOTHING
       RETURNING id
     `);
-    if (rows[0]) {
-      fallbackOwnerId = rows[0].id;
-    } else {
-      const { rows: existing } = await query(`SELECT id FROM owners WHERE lower(display_name) = 'unassigned' AND is_active = true LIMIT 1`);
-      fallbackOwnerId = existing[0]?.id || null;
+    unassignedOwnerId = rows[0]?.id || null;
+    if (!unassignedOwnerId) {
+      const { rows: existing } = await query(
+        `SELECT id FROM owners WHERE lower(display_name) = 'unassigned' AND is_active = true LIMIT 1`
+      );
+      unassignedOwnerId = existing[0]?.id || null;
     }
   }
-  console.log(`[migrate-leads] Fallback owner ID: ${fallbackOwnerId || 'NONE — unmapped leads will fail'}`);
+  console.log(`[migrate-leads] Canonical Unassigned owner ID: ${unassignedOwnerId || 'NONE'}`);
+  console.log('[migrate-leads] Named owners without mapping will FAIL the migration (no silent fallback)');
 
   // Fetch all Base44 leads
   const base44Leads = await fetchAllBase44Leads();
@@ -198,14 +210,30 @@ async function main() {
 
   // Upsert each lead
   let created = 0, updated = 0, skipped = 0, errors = 0;
-  let noOwner = 0;
+  let genuinelyUnassigned = 0;
+  const unresolvedNamedOwners = new Map(); // assigned_rep → count
 
   for (let i = 0; i < base44Leads.length; i++) {
     const lead = base44Leads[i];
     try {
-      const mappedOwnerId = resolveOwnerId(lead.assigned_rep);
-      const ownerId = mappedOwnerId || fallbackOwnerId;
-      if (lead.assigned_rep && !mappedOwnerId) noOwner++;
+      const rep = lead.assigned_rep;
+      const isGenuinelyUnassigned = !rep || !String(rep).trim();
+
+      let ownerId;
+      if (isGenuinelyUnassigned) {
+        // Genuinely null/empty assigned_rep → canonical Unassigned owner
+        ownerId = unassignedOwnerId;
+        genuinelyUnassigned++;
+      } else {
+        // Named owner — must resolve or FAIL (no silent fallback)
+        ownerId = resolveOwnerId(rep);
+        if (!ownerId) {
+          const repKey = String(rep).trim();
+          unresolvedNamedOwners.set(repKey, (unresolvedNamedOwners.get(repKey) || 0) + 1);
+          skipped++;
+          continue;
+        }
+      }
 
       const result = await upsertLead(lead, ownerId);
       if (result.action === 'created') created++;
@@ -213,12 +241,29 @@ async function main() {
       else skipped++;
 
       if ((i + 1) % 100 === 0) {
-        console.log(`[migrate-leads] Progress: ${i + 1}/${base44Leads.length} (created=${created} updated=${updated})`);
+        console.log(`[migrate-leads] Progress: ${i + 1}/${base44Leads.length} (created=${created} updated=${updated} skipped=${skipped})`);
       }
     } catch (e) {
       errors++;
       console.error(`[migrate-leads] Error on lead ${lead.id}: ${e.message}`);
     }
+  }
+
+  // FAIL CLOSED: if any named owner could not be resolved, abort the migration
+  if (unresolvedNamedOwners.size > 0) {
+    console.error('\n=== MIGRATION FAILED — UNRESOLVED NAMED OWNERS ===');
+    console.error(`Found ${unresolvedNamedOwners.size} distinct assigned_rep value(s) with no Railway owner mapping:`);
+    console.error('These leads were SKIPPED to preserve ownership integrity. No silent fallback was applied.');
+    console.error('');
+    console.error('SOURCE VALUE                        LEADS AFFECTED');
+    console.error('──────────────────────────────────  ──────────────');
+    for (const [rep, count] of [...unresolvedNamedOwners.entries()].sort((a, b) => b[1] - a[1])) {
+      console.error(`  ${rep.padEnd(34)}  ${count}`);
+    }
+    console.error('');
+    console.error('To fix: run migrateOwnersToRailway.js first to create owners for all assigned_rep values,');
+    console.error('then re-run this migration. Do NOT use a fallback — ownership must be preserved exactly.');
+    process.exit(1);
   }
 
   console.log('\n=== MIGRATION COMPLETE ===');
@@ -227,7 +272,8 @@ async function main() {
   console.log(`Updated in Railway: ${updated}`);
   console.log(`Skipped: ${skipped}`);
   console.log(`Errors: ${errors}`);
-  console.log(`Leads without owner mapping: ${noOwner}`);
+  console.log(`Genuinely unassigned (null assigned_rep → Unassigned owner): ${genuinelyUnassigned}`);
+  console.log(`Unresolved named owners: 0 (all resolved ✅)`);
 
   // Verify
   const { rows } = await query('SELECT COUNT(*) as cnt FROM leads');

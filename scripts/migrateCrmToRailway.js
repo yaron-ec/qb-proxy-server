@@ -209,31 +209,80 @@ async function runPreflight() {
     console.log(`Railway users: ${rows[0].cnt}`);
   } catch (e) { console.log(`Railway users: TABLE_MISSING`); }
 
-  // 3. Owner mapping completeness (if Base44 creds available)
+  // 3. Owner mapping completeness — enumerate EVERY distinct assigned_rep
+  let unresolvedOwnerCount = 0;
+  let totalLeadsWithNamedOwner = 0;
+  let totalLeadsGenuinelyUnassigned = 0;
+
   if (hasCreds) {
-    console.log('\n=== OWNER MAPPING COMPLETENESS ===\n');
+    console.log('\n=== OWNER MAPPING — EVERY DISTINCT assigned_rep ===\n');
     try {
       const base44Leads = await helpers.fetchBase44Entity('Lead');
-      const assignedReps = new Set();
-      for (const lead of base44Leads) {
-        if (lead.assigned_rep) assignedReps.add(lead.assigned_rep);
-      }
-      console.log(`Distinct assigned_rep values in Base44 leads: ${assignedReps.size}`);
-
       const ownerCache = await helpers.buildOwnerCache();
+
+      // Build: assigned_rep → { count, resolvedOwnerId }
+      const repStats = new Map();
+      for (const lead of base44Leads) {
+        const rep = lead.assigned_rep;
+        const isGenuinelyUnassigned = !rep || !String(rep).trim();
+        if (isGenuinelyUnassigned) {
+          totalLeadsGenuinelyUnassigned++;
+          continue;
+        }
+        totalLeadsWithNamedOwner++;
+        const repKey = String(rep).trim();
+        if (!repStats.has(repKey)) {
+          const resolvedId = ownerCache[String(repKey).toLowerCase().replace(/\s+/g, ' ').trim()] || null;
+          repStats.set(repKey, { count: 0, resolvedOwnerId: resolvedId });
+        }
+        repStats.get(repKey).count++;
+      }
+
+      console.log(`Total Base44 leads: ${base44Leads.length}`);
+      console.log(`Leads with named assigned_rep: ${totalLeadsWithNamedOwner}`);
+      console.log(`Leads genuinely unassigned (null/empty): ${totalLeadsGenuinelyUnassigned}`);
+      console.log(`Distinct named assigned_rep values: ${repStats.size}`);
+      console.log('');
+
+      const sortedReps = [...repStats.entries()].sort((a, b) => b[1].count - a[1].count);
       let mapped = 0, unmapped = 0;
       const unmappedReps = [];
-      for (const rep of assignedReps) {
-        const key = String(rep).toLowerCase().replace(/\s+/g, ' ').trim();
-        if (ownerCache[key]) { mapped++; } else { unmapped++; unmappedReps.push(rep); }
+
+      console.log('SOURCE VALUE                        LEADS  RESOLVED OWNER ID                        STATUS');
+      console.log('──────────────────────────────────  ─────  ──────────────────────────────────────  ────────────');
+      for (const [rep, stats] of sortedReps) {
+        const status = stats.resolvedOwnerId ? 'RESOLVED' : 'UNRESOLVED';
+        if (stats.resolvedOwnerId) {
+          mapped++;
+        } else {
+          unmapped++;
+          unresolvedOwnerCount++;
+          unmappedReps.push(rep);
+        }
+        console.log(
+          `${rep.slice(0, 34).padEnd(34)}  ${String(stats.count).padStart(5)}  ${String(stats.resolvedOwnerId || '—').slice(0, 38).padEnd(38)}  ${status}`
+        );
       }
-      console.log(`Mapped to existing owners: ${mapped}`);
-      console.log(`Unmapped (will be created by migrateOwners): ${unmapped}`);
-      if (unmappedReps.length > 0 && unmappedReps.length <= 20) {
-        console.log(`Unmapped reps: ${unmappedReps.join(', ')}`);
+
+      console.log('');
+      console.log(`Summary: ${mapped} resolved, ${unmapped} UNRESOLVED`);
+
+      if (unmapped > 0) {
+        console.log('');
+        console.log('⚠️  UNRESOLVED OWNERS DETECTED — PREFLIGHT FAILS CLOSED');
+        console.log('');
+        console.log('The following assigned_rep values have no Railway owner mapping.');
+        console.log('No silent fallback will be applied. Ownership must be preserved exactly.');
+        console.log('');
+        console.log('To fix: run "node scripts/migrateOwnersToRailway.js" to create owners for');
+        console.log('all assigned_rep values, then re-run this preflight.');
+        console.log('');
+        console.log('If migrateOwners has already run and these remain unresolved, the assigned_rep');
+        console.log('value may need manual owner creation or alias mapping in the Railway owners table.');
       }
     } catch (e) {
       console.log(`Owner mapping check failed: ${e.message}`);
+      unresolvedOwnerCount = 1; // Fail closed on error
     }
   }
 
@@ -273,18 +322,29 @@ async function runPreflight() {
   console.log(`Base44 credentials: ${hasCreds ? 'YES' : 'NO'}`);
   console.log(`Railway database: ${await tableExists('leads') ? 'CONNECTED' : 'NOT CONNECTED'}`);
   console.log(`Missing tables: ${missingTables.length > 0 ? missingTables.join(', ') : 'NONE ✅'}`);
+  console.log(`Unresolved named owners: ${unresolvedOwnerCount}`);
   console.log(`Total Base44 records to import: ${totalB44}`);
   console.log(`Total Railway records currently: ${totalRW}`);
   console.log(`Datasets to migrate: ${ALL_DATASETS.length}`);
   console.log(`Datasets intentionally excluded: ${EXCLUDED_DATASETS.length}`);
 
-  if (missingTables.length > 0) {
-    console.log(`\n⚠️  Missing tables detected. Run 'node db/migrate.js' first.`);
-  }
-  if (!hasCreds) {
-    console.log(`\n⚠️  Base44 credentials not set. Set BASE44_APP_ID and BASE44_API_KEY in Railway.`);
+  // FAIL CLOSED conditions
+  const failReasons = [];
+  if (!hasCreds) failReasons.push('Base44 credentials not set (BASE44_APP_ID, BASE44_API_KEY)');
+  if (missingTables.length > 0) failReasons.push(`Missing tables: ${missingTables.join(', ')}. Run 'node db/migrate.js' first.`);
+  if (unresolvedOwnerCount > 0) failReasons.push(`${unresolvedOwnerCount} unresolved named owner(s) — ownership must be preserved exactly, no silent fallback`);
+
+  if (failReasons.length > 0) {
+    console.log('\n⚠️  PREFLIGHT FAILED — DO NOT PROCEED WITH FULL MIGRATION');
+    for (const r of failReasons) console.log(`  ❌ ${r}`);
+    console.log('\nFix the issues above, then re-run: node scripts/migrateCrmToRailway.js --preflight');
+    console.log('Only proceed with full migration after preflight passes AND you explicitly approve.');
+    process.exit(1);
   }
 
+  console.log('\n✅ ALL CHECKS PASSED — preflight is clean.');
+  console.log('Review the 22 intentionally excluded datasets above to verify none contain live state required by production.');
+  console.log('When ready, explicitly approve the full migration: node scripts/migrateCrmToRailway.js');
   console.log('\n=== PREFLIGHT COMPLETE — NO WRITES PERFORMED ===');
   process.exit(0);
 }
