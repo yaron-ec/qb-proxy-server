@@ -139,7 +139,9 @@ async function upsertLead(lead, ownerId) {
     RETURNING (xmax = 0) AS inserted, id
   `;
 
-  const photoUrls = Array.isArray(lead.photo_urls) ? JSON.stringify(lead.photo_urls) : null;
+  // TEXT[] column — pass JS array directly; pg converts to PostgreSQL array.
+  // Never JSON.stringify — that produces a JSON string, not a TEXT[] array.
+  const photoUrls = Array.isArray(lead.photo_urls) ? lead.photo_urls : [];
 
   const params = [
     String(externalRef),
@@ -172,6 +174,24 @@ async function main() {
   await loadOwnerCache();
   console.log(`[migrate-leads] Loaded ${Object.keys(ownerCache).length} owner mappings`);
 
+  // Ensure fallback "Unassigned" owner exists (leads.owner_id is NOT NULL)
+  let fallbackOwnerId = ownerCache['unassigned'];
+  if (!fallbackOwnerId) {
+    const { rows } = await query(`
+      INSERT INTO owners (display_name, email, is_active)
+      VALUES ('Unassigned', null, true)
+      ON CONFLICT DO NOTHING
+      RETURNING id
+    `);
+    if (rows[0]) {
+      fallbackOwnerId = rows[0].id;
+    } else {
+      const { rows: existing } = await query(`SELECT id FROM owners WHERE lower(display_name) = 'unassigned' AND is_active = true LIMIT 1`);
+      fallbackOwnerId = existing[0]?.id || null;
+    }
+  }
+  console.log(`[migrate-leads] Fallback owner ID: ${fallbackOwnerId || 'NONE — unmapped leads will fail'}`);
+
   // Fetch all Base44 leads
   const base44Leads = await fetchAllBase44Leads();
   console.log(`[migrate-leads] Fetched ${base44Leads.length} leads from Base44`);
@@ -183,8 +203,9 @@ async function main() {
   for (let i = 0; i < base44Leads.length; i++) {
     const lead = base44Leads[i];
     try {
-      const ownerId = resolveOwnerId(lead.assigned_rep);
-      if (lead.assigned_rep && !ownerId) noOwner++;
+      const mappedOwnerId = resolveOwnerId(lead.assigned_rep);
+      const ownerId = mappedOwnerId || fallbackOwnerId;
+      if (lead.assigned_rep && !mappedOwnerId) noOwner++;
 
       const result = await upsertLead(lead, ownerId);
       if (result.action === 'created') created++;
