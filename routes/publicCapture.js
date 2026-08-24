@@ -28,7 +28,7 @@
 const express = require('express');
 const { getAvailability, CalendarUnavailableError } = require('../lib/booking/availabilityService');
 const { createBooking, BookingError } = require('../lib/booking/bookingService');
-const { query } = require('../db/client');
+const { query, ensureSchema } = require('../db/client');
 const db = require('../db/client');
 const {
   validateCapturePayload, computeIdempotencyKey, laToUtcStart,
@@ -68,6 +68,11 @@ const submitLimiter = rateLimit({ windowMs: 60 * 1000, max: 8 });
 // ── GET /availability?owner=...&date=YYYY-MM-DD&duration=60 ────────────────
 router.get('/availability', availLimiter, async (req, res) => {
   try {
+    // Ensure the booking-core schema (owners, appointments, appointment_types)
+    // exists before querying. ensureSchema() is idempotent (CREATE IF NOT EXISTS)
+    // and runs once per process. Without this, a fresh database where no booking
+    // has been created yet (bookingService.ensureSchema is lazy) returns 500.
+    await ensureSchema();
     const owner = (req.query.owner || 'Yaron Drilevich').trim();
     const date = req.query.date ? String(req.query.date) : '';
     const duration = req.query.duration ? parseInt(req.query.duration, 10) : 60;

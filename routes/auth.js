@@ -101,7 +101,7 @@ router.post('/admin-set-password', async (req, res) => {
 // The /migrate endpoint has been removed. Railway auth is now the permanent
 // auth layer (Google SSO + email/password via /login + /admin-set-password).
 // All users must be provisioned via admin-set-password or Google SSO.
-// lib/base44TokenVerify.js is now dead code (retained for reference only).
+// lib/base44TokenVerify.js has been deleted (Base44 fully decommissioned).
 
 // ── Google OAuth SSO (Railway-native, PERMANENT) ─────────────────────────────
 //   GET  /google          → redirect to Google consent screen

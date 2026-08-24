@@ -1,0 +1,9 @@
+# SHA-256 hashes for the reminder-action handoff package
+# Verify with: sha256sum <file>  (from src/proxy-server/reminder-action-handoff/)
+# Baseline: 96af70b  Target: 8ef9aef6bf18011ba96d11c21b780560c099819b
+# Patch applies with default `git apply` (no -p flag) to a tree matching baseline 96af70b.
+
+e8cb39f0c01236254463356ad8dc054377069f10966d0107f4126d72ede1b2d1  reminder-action-changes.patch
+16384398a68914a602ee0d98a22a24ad42b0cd2ecee34a5b3e3438380b063255  MANIFEST.md
+f5e9c9c3d995af7ecb1c7e470754605c59b1180834db32a4174e1a527db39229  APPLY_INSTRUCTIONS.md
+978e493c6a2d8ca7a153ebf983c5c85ef78c03f9d4869d4233b479c90e03c1f8  FILE_HASHES.txt

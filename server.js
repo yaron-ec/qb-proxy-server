@@ -53,9 +53,6 @@ const QB_REDIRECT_URI  = process.env.QB_REDIRECT_URI;
 const QB_ENVIRONMENT   = process.env.QB_ENVIRONMENT || 'sandbox';
 const PROXY_SECRET     = process.env.PROXY_SECRET;
 const ENCRYPTION_KEY   = process.env.ENCRYPTION_KEY;
-const BASE44_APP_ID    = process.env.BASE44_APP_ID;
-const BASE44_API_KEY   = process.env.BASE44_API_KEY;
-const BASE44_API_URL   = process.env.BASE44_API_URL || 'https://api.base44.com';
 
 if (!ENCRYPTION_KEY) {
   console.error('[proxy] FATAL: ENCRYPTION_KEY not set in environment. Exiting.');
@@ -63,7 +60,6 @@ if (!ENCRYPTION_KEY) {
 }
 
 const PROXY_SERVICE_NAME = process.env.RAILWAY_SERVICE_NAME || process.env.RAILWAY_ENVIRONMENT_NAME || 'QB Proxy (Unknown Service)';
-const USE_BASE44_STORAGE = BASE44_APP_ID && BASE44_API_KEY;
 
 const QB_TOKEN_URL = 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer';
 const QB_AUTH_URL  = 'https://appcenter.intuit.com/connect/oauth2';
@@ -96,49 +92,7 @@ function decryptToken(encryptedData) {
   return JSON.parse(decrypted);
 }
 
-// ── Base44 Persistent Storage (Primary) ──────────────────────────────────────
-async function loadTokensFromBase44(realmId) {
-  if (!USE_BASE44_STORAGE) return null;
-  try {
-    const key = `qb_tokens_${QB_ENVIRONMENT}_${realmId}`;
-    const url = `${BASE44_API_URL}/entities/QBConnection?filter={"key":"${encodeURIComponent(key)}"}`;
-    const res = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${BASE44_API_KEY}`, 'X-App-ID': BASE44_APP_ID }
-    });
-    const data = await res.json();
-    if (data && data.length > 0) {
-      const encrypted = data[0].encrypted_tokens;
-      console.log('[proxy] Tokens loaded from Base44 database');
-      return decryptToken(encrypted);
-    }
-  } catch (e) {
-    console.warn('[proxy] Base44 token load failed (will fall back to filesystem):', e.message);
-  }
-  return null;
-}
-
-async function saveTokensToBase44(tokens, realmId) {
-  if (!USE_BASE44_STORAGE) return false;
-  try {
-    const key = `qb_tokens_${QB_ENVIRONMENT}_${realmId}`;
-    const encrypted = encryptToken(tokens);
-    const url = `${BASE44_API_URL}/entities/QBConnection`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${BASE44_API_KEY}`, 'X-App-ID': BASE44_APP_ID, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key, encrypted_tokens: encrypted, realm_id: realmId, environment: QB_ENVIRONMENT })
-    });
-    if (res.ok) {
-      console.log('[proxy] Tokens saved to Base44 database');
-      return true;
-    }
-  } catch (e) {
-    console.warn('[proxy] Base44 token save failed (will fall back to filesystem):', e.message);
-  }
-  return false;
-}
-
-// ── Filesystem Fallback ──────────────────────────────────────────────────────
+// ── Filesystem Token Storage ─────────────────────────────────────────────────
 function loadTokensFromFile() {
   try {
     if (fs.existsSync(TOKEN_FILE)) {
@@ -244,8 +198,7 @@ async function doRefreshToken() {
     last_refresh_at: new Date().toISOString(),
   };
 
-  const savedToBase44 = await saveTokensToBase44(storedTokens, storedTokens.realm_id);
-  if (!savedToBase44) saveTokensToFile(storedTokens);
+  saveTokensToFile(storedTokens);
   console.log(`[proxy] Token refreshed successfully — expires ${storedTokens.expires_at}`);
   return storedTokens;
 }
@@ -340,7 +293,7 @@ async function buildHealthPayload() {
     reconnectRequired,
     lastRefreshedAt: storedTokens?.last_refresh_at || null,
     connectedAt: storedTokens?.connected_at || null,
-    storageMethod: USE_BASE44_STORAGE ? 'base44_database+filesystem_fallback' : 'filesystem',
+    storageMethod: 'filesystem',
     credential_last_used_at: credentialLastUsedAt,
     credential_last_error_at: credentialLastErrorAt,
   };
@@ -404,10 +357,8 @@ app.post('/auth/callback', requireProxySecret, async (req, res) => {
     connected_at: new Date().toISOString(),
   };
 
-  // Save to Base44 if available, fallback to filesystem
-  const savedToBase44 = await saveTokensToBase44(storedTokens, realmId);
-  if (!savedToBase44) saveTokensToFile(storedTokens);
-  tokenStorageMethod = savedToBase44 ? 'base44_database' : 'filesystem';
+  saveTokensToFile(storedTokens);
+  tokenStorageMethod = 'filesystem';
   
   console.log('[proxy] OAuth complete — realm_id:', realmId, 'env:', QB_ENVIRONMENT, 'storage:', tokenStorageMethod);
   res.json({ success: true, realm_id: realmId, environment: QB_ENVIRONMENT, storage_method: tokenStorageMethod });
@@ -1052,8 +1003,7 @@ app.post('/qb/auth-callback', requireProxySecret, async (req, res) => {
     refresh_expires_at: new Date(Date.now() + (tokenData.x_refresh_token_expires_in || 8726400) * 1000).toISOString(),
     connected_at: new Date().toISOString(),
   };
-  const savedToBase44 = await saveTokensToBase44(storedTokens, realmId);
-  if (!savedToBase44) saveTokensToFile(storedTokens);
+  saveTokensToFile(storedTokens);
   res.json({ success: true, realm_id: realmId, environment: QB_ENVIRONMENT });
 });
 
@@ -1372,7 +1322,7 @@ app.post('/signnow/download-pdf', requireProxySecret, (req, res) => {
 // Requires: BASE44_APP_ID, BASE44_API_KEY (to read/write Lead entity for duplicate check)
 
 app.post('/leads/submit-capture', requireProxySecret, (req, res) => {
-  res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — needs BASE44_APP_ID and BASE44_API_KEY for duplicate check and lead creation' });
+  res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — lead capture is handled by /api/public/capture' });
 });
 
 // ── /handoff/* routes ─────────────────────────────────────────────────────────
@@ -1382,11 +1332,10 @@ app.post('/handoff/sync-estimates-for-lead', requireProxySecret, (req, res) => {
 });
 
 // POST /handoff/import-estimate
-// Called by the Handoff RPA worker instead of BASE44_IMPORT_URL.
-// Receives a single estimate payload and writes it to Base44 via the entity API.
-// Requires env vars: BASE44_APP_ID, BASE44_API_KEY, BASE44_API_URL (optional, defaults to api.base44.com)
+// Called by the Handoff RPA worker. Writes directly to the Railway
+// handoff_estimates table via railwayDataAccess (no Base44).
 app.post('/handoff/import-estimate', requireProxySecret, async (req, res) => {
-  if (!BASE44_APP_ID || !BASE44_API_KEY) {
+  if (!rda.isConfigured()) {
     return res.status(503).json({ success: false, error: 'DATABASE_URL not configured on Railway' });
   }
 
@@ -1417,20 +1366,7 @@ app.post('/handoff/import-estimate', requireProxySecret, async (req, res) => {
     return res.status(400).json({ success: false, error: 'customerName is required in estimate payload' });
   }
 
-  const apiBase = BASE44_API_URL;
-  const headers = {
-    'Authorization': `Bearer ${BASE44_API_KEY}`,
-    'X-App-ID': BASE44_APP_ID,
-    'Content-Type': 'application/json',
-  };
-
   try {
-    // Check if this estimate already exists
-    const checkUrl = `${apiBase}/entities/HandoffEstimate?filter=${encodeURIComponent(JSON.stringify({ handoff_estimate_id: handoffEstimateId }))}`;
-    const checkRes = await fetch(checkUrl, { headers });
-    const existing = await checkRes.json().catch(() => []);
-    const existingRecord = Array.isArray(existing) ? existing[0] : null;
-
     const payload = {
       handoff_estimate_id: handoffEstimateId,
       handoff_estimate_number: handoffEstimateNumber,
@@ -1447,31 +1383,16 @@ app.post('/handoff/import-estimate', requireProxySecret, async (req, res) => {
       raw_payload: JSON.stringify(parsed).slice(0, 2000),
     };
 
+    // Check if this estimate already exists by handoff_estimate_id
+    const existing = await rda.filter('HandoffEstimate', { handoff_estimate_id: handoffEstimateId });
+    const existingRecord = (existing && existing[0]) || null;
+
     if (existingRecord) {
-      // Update existing
-      const updateRes = await fetch(`${apiBase}/entities/HandoffEstimate/${existingRecord.id}`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify(payload),
-      });
-      if (!updateRes.ok) {
-        const err = await updateRes.text();
-        return res.status(500).json({ success: false, error: `Base44 update failed: ${err.slice(0, 200)}` });
-      }
+      await rda.update('HandoffEstimate', existingRecord.id, payload);
       console.log(`[handoff] Updated estimate ${handoffEstimateId} (${customerName})`);
       return res.json({ success: true, updated: true, id: existingRecord.id });
     } else {
-      // Create new
-      const createRes = await fetch(`${apiBase}/entities/HandoffEstimate`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(payload),
-      });
-      if (!createRes.ok) {
-        const err = await createRes.text();
-        return res.status(500).json({ success: false, error: `Base44 create failed: ${err.slice(0, 200)}` });
-      }
-      const created = await createRes.json();
+      const created = await rda.create('HandoffEstimate', Object.assign({}, payload, { pdf_status: 'pending', pdf_retry_count: 0 }));
       console.log(`[handoff] Imported estimate ${handoffEstimateId} (${customerName}) → id ${created.id}`);
       return res.json({ success: true, imported: true, id: created.id });
     }
