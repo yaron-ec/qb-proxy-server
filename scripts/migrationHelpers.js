@@ -34,12 +34,41 @@ function hasBase44Creds() {
 }
 
 /**
+ * Normalize the Base44 API URL to prevent double /api and trailing slash issues.
+ *
+ * The SDK uses baseURL: ${serverUrl}/api. Migration scripts build:
+ *   ${BASE44_API_URL}/api/apps/${appId}/entities/${entityName}
+ *
+ * If BASE44_API_URL is set to "https://base44.app/api" (with /api already),
+ * the URL would become "https://base44.app/api/api/apps/..." → 404 (double /api).
+ * This function strips any trailing /api or / to produce a clean base URL.
+ *
+ * Examples:
+ *   https://base44.app       → https://base44.app
+ *   https://base44.app/      → https://base44.app
+ *   https://base44.app/api    → https://base44.app
+ *   https://base44.app/api/  → https://base44.app
+ */
+function normalizeBase44Url(url) {
+  if (!url) return 'https://base44.app';
+  let cleaned = String(url).trim().replace(/\/+$/, ''); // strip trailing slashes
+  // Strip trailing /api if present (prevents double /api when we append /api below)
+  if (cleaned.endsWith('/api')) {
+    cleaned = cleaned.slice(0, -4);
+  }
+  return cleaned;
+}
+
+const NORMALIZED_API_URL = normalizeBase44Url(BASE44_API_URL);
+
+/**
  * Build the correct Base44 REST API URL for an entity.
  * Format: https://base44.app/api/apps/${appId}/entities/${entityName}
  * The /api prefix is REQUIRED — the SDK's axios client uses baseURL: ${serverUrl}/api.
+ * NORMALIZED_API_URL handles BASE44_API_URL values that already include /api.
  */
 function buildEntityUrl(entityName) {
-  return `${BASE44_API_URL}/api/apps/${BASE44_APP_ID}/entities/${entityName}`;
+  return `${NORMALIZED_API_URL}/api/apps/${BASE44_APP_ID}/entities/${entityName}`;
 }
 
 /**
@@ -214,8 +243,8 @@ function resolveOwnerId(assignedRep, ownerCache) {
 }
 
 module.exports = {
-  BASE44_API_URL, BASE44_APP_ID, BASE44_API_KEY,
-  hasBase44Creds, buildEntityUrl, base44Headers,
+  BASE44_API_URL, NORMALIZED_API_URL, BASE44_APP_ID, BASE44_API_KEY,
+  hasBase44Creds, normalizeBase44Url, buildEntityUrl, base44Headers,
   fetchBase44Entity, countBase44Entity, probeBase44Entity,
   buildLeadIdCache, buildDealIdCache, buildExpenseIdCache, buildOwnerCache,
   resolveOwnerId, OWNER_ALIASES,

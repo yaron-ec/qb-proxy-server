@@ -156,8 +156,12 @@ async function runPreflight() {
 
   const hasCreds = helpers.hasBase44Creds();
   console.log(`Base44 credentials: ${hasCreds ? 'YES' : 'NO — migration will fail without them'}`);
-  console.log(`Base44 API URL: ${BASE44_API_URL}`);
-  console.log(`Base44 App ID: ${BASE44_APP_ID ? 'SET' : 'NOT SET'}`);
+  console.log(`Base44 API URL (raw env): ${BASE44_API_URL}`);
+  console.log(`Base44 API URL (normalized): ${helpers.NORMALIZED_API_URL}`);
+  console.log(`Base44 App ID: ${BASE44_APP_ID ? `${BASE44_APP_ID.slice(0, 8)}...${BASE44_APP_ID.slice(-4)}` : 'NOT SET'}`);
+  console.log(`Base44 API Key: ${process.env.BASE44_API_KEY ? 'SET ✅' : 'NOT SET ❌'}`);
+  console.log(`Exact entity URL: ${helpers.buildEntityUrl('Lead')}`);
+  console.log(`Expected: https://base44.app/api/apps/<APP_ID>/entities/<EntityName>`);
   console.log('');
 
   // 0. Base44 API connectivity probe — verify the REST endpoint is reachable
@@ -253,7 +257,12 @@ async function runPreflight() {
   } catch (e) { console.log(`Railway users: TABLE_MISSING`); }
 
   // 3. Owner mapping completeness — enumerate EVERY distinct assigned_rep
+  //    ONLY runs if the Lead source read succeeds. A source-read failure is
+  //    reported separately as 'NOT CHECKED' — it must NOT manufacture unresolved
+  //    owners. The fail-closed for source-read failure is handled by the
+  //    b44Reachable and failedReads checks, not by this section.
   let unresolvedOwnerCount = 0;
+  let ownerCheckStatus = 'not_checked'; // 'ok' | 'not_checked' | 'source_read_failed'
   let totalLeadsWithNamedOwner = 0;
   let totalLeadsGenuinelyUnassigned = 0;
 
@@ -262,6 +271,7 @@ async function runPreflight() {
     try {
       const base44Leads = await helpers.fetchBase44Entity('Lead');
       const ownerCache = await helpers.buildOwnerCache();
+      ownerCheckStatus = 'ok'; // Source read succeeded — owner check is valid
 
       // Build: assigned_rep → { count, resolvedOwnerId }
       const repStats = new Map();
@@ -324,8 +334,11 @@ async function runPreflight() {
         console.log('value may need manual owner creation or alias mapping in the Railway owners table.');
       }
     } catch (e) {
-      console.log(`Owner mapping check failed: ${e.message}`);
-      unresolvedOwnerCount = 1; // Fail closed on error
+      // Source-read failure — do NOT manufacture unresolved owners.
+      // The fail-closed for source-read failure is handled by b44Reachable
+      // and failedReads checks in the summary. This section reports NOT CHECKED.
+      console.log(`Owner mapping check: NOT CHECKED — Lead source read failed: ${e.message}`);
+      ownerCheckStatus = 'source_read_failed';
     }
   }
 
@@ -367,7 +380,7 @@ async function runPreflight() {
   if (b44ProbeError) console.log(`Base44 API error: ${b44ProbeError}`);
   console.log(`Railway database: ${await tableExists('leads') ? 'CONNECTED' : 'NOT CONNECTED'}`);
   console.log(`Missing tables: ${missingTables.length > 0 ? missingTables.join(', ') : 'NONE ✅'}`);
-  console.log(`Unresolved named owners: ${unresolvedOwnerCount}`);
+  console.log(`Owner check: ${ownerCheckStatus === 'ok' ? `COMPLETED (${unresolvedOwnerCount} unresolved)` : ownerCheckStatus === 'source_read_failed' ? 'NOT CHECKED (source read failed)' : 'NOT CHECKED (no credentials)'}`);
   console.log(`Failed Base44 source reads: ${failedReads}`);
   console.log(`Total Base44 records to import: ${totalB44}`);
   console.log(`Total Railway records currently: ${totalRW}`);
@@ -379,7 +392,7 @@ async function runPreflight() {
   if (!hasCreds) failReasons.push('Base44 credentials not set (BASE44_APP_ID, BASE44_API_KEY)');
   if (!b44Reachable) failReasons.push(`Base44 API not reachable — ${b44ProbeError || 'unknown error'}. Check BASE44_API_URL (should be https://base44.app), BASE44_APP_ID, and BASE44_API_KEY (must be a valid user access token).`);
   if (missingTables.length > 0) failReasons.push(`Missing tables: ${missingTables.join(', ')}. Run 'node db/migrate.js' first.`);
-  if (unresolvedOwnerCount > 0) failReasons.push(`${unresolvedOwnerCount} unresolved named owner(s) — ownership must be preserved exactly, no silent fallback`);
+  if (ownerCheckStatus === 'ok' && unresolvedOwnerCount > 0) failReasons.push(`${unresolvedOwnerCount} unresolved named owner(s) — ownership must be preserved exactly, no silent fallback`);
   if (failedReads > 0) failReasons.push(`${failedReads} Base44 source read(s) FAILED — a failed read must NEVER be counted as zero. Check API URL, credentials, and app ID. The correct endpoint is https://base44.app/api/apps/${BASE44_APP_ID || '<APP_ID>'}/entities/<EntityName> (the /api prefix is REQUIRED). Also ensure X-App-Id header is sent (handled by migrationHelpers.js).`);
 
   if (failReasons.length > 0) {
