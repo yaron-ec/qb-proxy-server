@@ -3,17 +3,29 @@
 /**
  * migrationHelpers.js — Shared utilities for all Base44→Railway migration scripts.
  *
+ * CRITICAL FIX: The Base44 REST API endpoint is:
+ *   https://base44.app/apps/${appId}/entities/${entityName}
+ * NOT https://api.base44.com/entities/... (previous wrong URL — all reads returned 0).
+ *
+ * The SDK (@base44/sdk) uses:
+ *   - Base URL: https://base44.app
+ *   - Entity path: /apps/${appId}/entities/${entityName}
+ *   - Pagination: ?limit=N&skip=N&sort=-created_date  (NOT "offset")
+ *   - Auth: Authorization: Bearer ${token}
+ *
+ * countBase44Entity now returns a structured result { count, status, error, httpStatus }
+ * so the preflight can distinguish TRUE ZERO from FAILED/UNAUTHORIZED/WRONG APP.
+ *
  * Provides:
- *   - fetchBase44Entity: paginated Base44 REST API reader
- *   - countBase44Entity: count-only fetch for preflight
- *   - buildLeadIdCache: Base44 Lead ObjectId → Railway leads.id (via external_ref)
- *   - buildDealIdCache: Base44 Deal ObjectId → Railway deals.id (via legacy_base44_id)
- *   - buildExpenseIdCache: Base44 DealExpense ObjectId → Railway deal_expenses.id (via external_ref)
- *   - resolveOwnerId: assigned_rep string → Railway owners.id
+ *   - fetchBase44Entity: paginated Base44 REST API reader (throws on error)
+ *   - countBase44Entity: structured count result for preflight (never throws)
+ *   - probeBase44Entity: detailed probe for preflight diagnostics
+ *   - buildLeadIdCache, buildDealIdCache, buildExpenseIdCache, buildOwnerCache
+ *   - resolveOwnerId
  */
 const { query } = require('../db/client');
 
-const BASE44_API_URL = process.env.BASE44_API_URL || 'https://api.base44.com';
+const BASE44_API_URL = process.env.BASE44_API_URL || 'https://base44.app';
 const BASE44_APP_ID = process.env.BASE44_APP_ID;
 const BASE44_API_KEY = process.env.BASE44_API_KEY;
 
@@ -21,32 +33,120 @@ function hasBase44Creds() {
   return !!(BASE44_APP_ID && BASE44_API_KEY);
 }
 
+/**
+ * Build the correct Base44 REST API URL for an entity.
+ * Format: https://base44.app/apps/${appId}/entities/${entityName}
+ */
+function buildEntityUrl(entityName) {
+  return `${BASE44_API_URL}/apps/${BASE44_APP_ID}/entities/${entityName}`;
+}
+
+/**
+ * Fetch all records for an entity from Base44 via REST API.
+ * Uses correct pagination (skip, not offset).
+ * THROWS on any error — callers must handle.
+ */
 async function fetchBase44Entity(entityName, limit = 500) {
   if (!hasBase44Creds()) throw new Error('BASE44_APP_ID and BASE44_API_KEY required');
   const all = [];
-  let offset = 0;
+  let skip = 0;
+  let page = 0;
   while (true) {
-    const url = `${BASE44_API_URL}/entities/${entityName}?limit=${limit}&offset=${offset}&sort=-created_date`;
+    page++;
+    const url = `${buildEntityUrl(entityName)}?limit=${limit}&skip=${skip}&sort=-created_date`;
     const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${BASE44_API_KEY}`, 'X-App-ID': BASE44_APP_ID },
+      headers: { Authorization: `Bearer ${BASE44_API_KEY}` },
     });
-    if (!res.ok) throw new Error(`Base44 API ${res.status} for ${entityName}`);
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      throw new Error(`Base44 API ${res.status} ${res.statusText} for ${entityName} (page ${page}, skip ${skip}): ${body.slice(0, 200)}`);
+    }
     const data = await res.json();
     const batch = Array.isArray(data) ? data : (data.items || []);
     if (batch.length === 0) break;
     all.push(...batch);
     if (batch.length < limit) break;
-    offset += limit;
+    skip += limit;
   }
   return all;
 }
 
+/**
+ * Structured count result for preflight.
+ * Returns { count, status, error, httpStatus } where:
+ *   status = 'ok' (read succeeded, count is real)
+ *   status = 'zero' (read succeeded, count is genuinely 0)
+ *   status = 'error' (read failed — count is NOT real, must fail closed)
+ *   status = 'no_creds' (credentials missing)
+ * NEVER throws — always returns a structured result.
+ */
 async function countBase44Entity(entityName) {
-  if (!hasBase44Creds()) return null;
+  if (!hasBase44Creds()) {
+    return { count: null, status: 'no_creds', error: 'BASE44_APP_ID and BASE44_API_KEY not set', httpStatus: null };
+  }
   try {
-    const items = await fetchBase44Entity(entityName);
-    return items.length;
-  } catch { return null; }
+    // Fetch with limit=1 to probe — then fetch full to get accurate count
+    const url = `${buildEntityUrl(entityName)}?limit=1&skip=0&sort=-created_date`;
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${BASE44_API_KEY}` },
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      return {
+        count: null,
+        status: 'error',
+        error: `HTTP ${res.status} ${res.statusText}: ${body.slice(0, 150)}`,
+        httpStatus: res.status,
+      };
+    }
+    const data = await res.json();
+    const batch = Array.isArray(data) ? data : (data.items || []);
+    if (batch.length === 0) {
+      return { count: 0, status: 'zero', error: null, httpStatus: res.status };
+    }
+    // There's at least 1 record — fetch all to get accurate count
+    const all = await fetchBase44Entity(entityName);
+    return { count: all.length, status: 'ok', error: null, httpStatus: res.status };
+  } catch (e) {
+    return { count: null, status: 'error', error: e.message, httpStatus: null };
+  }
+}
+
+/**
+ * Detailed probe for preflight diagnostics.
+ * Returns { reachable, httpStatus, firstRecordId, error, url } without fetching all records.
+ */
+async function probeBase44Entity(entityName) {
+  if (!hasBase44Creds()) {
+    return { reachable: false, httpStatus: null, firstRecordId: null, error: 'no credentials', url: null };
+  }
+  const url = `${buildEntityUrl(entityName)}?limit=1&skip=0&sort=-created_date`;
+  try {
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${BASE44_API_KEY}` },
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      return {
+        reachable: false,
+        httpStatus: res.status,
+        firstRecordId: null,
+        error: `${res.status} ${res.statusText}: ${body.slice(0, 100)}`,
+        url,
+      };
+    }
+    const data = await res.json();
+    const batch = Array.isArray(data) ? data : (data.items || []);
+    return {
+      reachable: true,
+      httpStatus: res.status,
+      firstRecordId: batch[0]?.id || null,
+      error: null,
+      url,
+    };
+  } catch (e) {
+    return { reachable: false, httpStatus: null, firstRecordId: null, error: e.message, url };
+  }
 }
 
 async function buildLeadIdCache() {
@@ -89,8 +189,8 @@ function resolveOwnerId(assignedRep, ownerCache) {
 
 module.exports = {
   BASE44_API_URL, BASE44_APP_ID, BASE44_API_KEY,
-  hasBase44Creds,
-  fetchBase44Entity, countBase44Entity,
+  hasBase44Creds, buildEntityUrl,
+  fetchBase44Entity, countBase44Entity, probeBase44Entity,
   buildLeadIdCache, buildDealIdCache, buildExpenseIdCache, buildOwnerCache,
   resolveOwnerId,
 };

@@ -56,19 +56,22 @@ function resolveOwnerId(assignedRep, ownersByEmail) {
 
 // ── Fetch all leads from Base44 ──────────────────────────────────────────────
 async function fetchAllBase44Leads() {
+  // CRITICAL FIX: Base44 REST API URL is https://base44.app/apps/${appId}/entities/Lead
+  // NOT https://api.base44.com/entities/Lead (wrong URL caused all reads to return 0).
+  // Pagination uses "skip" not "offset" per the @base44/sdk.
   const all = [];
-  let offset = 0;
+  let skip = 0;
   const limit = 500;
 
   while (true) {
-    const url = `${BASE44_API_URL}/entities/Lead?limit=${limit}&offset=${offset}&sort=-created_date`;
-    console.log(`[migrate-leads] Fetching Base44 leads offset=${offset}...`);
+    const url = `${BASE44_API_URL}/apps/${BASE44_APP_ID}/entities/Lead?limit=${limit}&skip=${skip}&sort=-created_date`;
+    console.log(`[migrate-leads] Fetching Base44 leads skip=${skip}...`);
     const res = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${BASE44_API_KEY}`, 'X-App-ID': BASE44_APP_ID },
+      headers: { 'Authorization': `Bearer ${BASE44_API_KEY}` },
     });
     if (!res.ok) {
-      console.error(`[migrate-leads] Base44 API error: ${res.status} ${res.statusText}`);
-      break;
+      const body = await res.text().catch(() => '');
+      throw new Error(`[migrate-leads] Base44 API error: ${res.status} ${res.statusText} (skip=${skip}): ${body.slice(0, 200)}`);
     }
     const data = await res.json();
     const batch = Array.isArray(data) ? data : (data.items || []);
@@ -76,7 +79,7 @@ async function fetchAllBase44Leads() {
     all.push(...batch);
     console.log(`[migrate-leads] Got ${batch.length} leads (total: ${all.length})`);
     if (batch.length < limit) break;
-    offset += limit;
+    skip += limit;
   }
 
   return all;
