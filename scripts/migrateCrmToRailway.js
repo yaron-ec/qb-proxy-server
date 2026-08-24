@@ -65,7 +65,7 @@ const { execSync } = require('child_process');
 const { query, pool } = require('../db/client');
 const helpers = require('./migrationHelpers');
 
-const BASE44_API_URL = process.env.BASE44_API_URL || 'https://api.base44.com';
+const BASE44_API_URL = process.env.BASE44_API_URL || 'https://base44.app';
 const BASE44_APP_ID = process.env.BASE44_APP_ID;
 const BASE44_API_KEY = process.env.BASE44_API_KEY;
 
@@ -380,7 +380,7 @@ async function runPreflight() {
   if (!b44Reachable) failReasons.push(`Base44 API not reachable — ${b44ProbeError || 'unknown error'}. Check BASE44_API_URL (should be https://base44.app), BASE44_APP_ID, and BASE44_API_KEY (must be a valid user access token).`);
   if (missingTables.length > 0) failReasons.push(`Missing tables: ${missingTables.join(', ')}. Run 'node db/migrate.js' first.`);
   if (unresolvedOwnerCount > 0) failReasons.push(`${unresolvedOwnerCount} unresolved named owner(s) — ownership must be preserved exactly, no silent fallback`);
-  if (failedReads > 0) failReasons.push(`${failedReads} Base44 source read(s) FAILED — a failed read must NEVER be counted as zero. Check API URL, credentials, and app ID. The correct endpoint is https://base44.app/apps/${BASE44_APP_ID || '<APP_ID>'}/entities/<EntityName>`);
+  if (failedReads > 0) failReasons.push(`${failedReads} Base44 source read(s) FAILED — a failed read must NEVER be counted as zero. Check API URL, credentials, and app ID. The correct endpoint is https://base44.app/api/apps/${BASE44_APP_ID || '<APP_ID>'}/entities/<EntityName> (the /api prefix is REQUIRED). Also ensure X-App-Id header is sent (handled by migrationHelpers.js).`);
 
   if (failReasons.length > 0) {
     console.log('\n⚠️  PREFLIGHT FAILED — DO NOT PROCEED WITH FULL MIGRATION');

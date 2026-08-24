@@ -17,33 +17,11 @@
 'use strict';
 
 const { query } = require('../db/client');
+const { fetchBase44Entity, hasBase44Creds } = require('./migrationHelpers');
 
-const BASE44_API_URL = process.env.BASE44_API_URL || 'https://api.base44.com';
-const BASE44_APP_ID = process.env.BASE44_APP_ID;
-const BASE44_API_KEY = process.env.BASE44_API_KEY;
-
-if (!BASE44_APP_ID || !BASE44_API_KEY) {
+if (!hasBase44Creds()) {
   console.error('[migrate-small] BASE44_APP_ID and BASE44_API_KEY required');
   process.exit(1);
-}
-
-async function fetchBase44Entity(entityName, limit = 500) {
-  const all = [];
-  let offset = 0;
-  while (true) {
-    const url = `${BASE44_API_URL}/entities/${entityName}?limit=${limit}&offset=${offset}&sort=-created_date`;
-    const res = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${BASE44_API_KEY}`, 'X-App-ID': BASE44_APP_ID },
-    });
-    if (!res.ok) { console.error(`[migrate-small] ${entityName} API error: ${res.status}`); return all; }
-    const data = await res.json();
-    const batch = Array.isArray(data) ? data : (data.items || []);
-    if (batch.length === 0) break;
-    all.push(...batch);
-    if (batch.length < limit) break;
-    offset += limit;
-  }
-  return all;
 }
 
 // ── UserAllowlist (uses email as natural key, no external_ref needed) ─────────

@@ -18,47 +18,11 @@
 'use strict';
 
 const { query } = require('../db/client');
+const { fetchBase44Entity, hasBase44Creds, buildLeadIdCache } = require('./migrationHelpers');
 
-const BASE44_API_URL = process.env.BASE44_API_URL || 'https://api.base44.com';
-const BASE44_APP_ID = process.env.BASE44_APP_ID;
-const BASE44_API_KEY = process.env.BASE44_API_KEY;
-
-if (!BASE44_APP_ID || !BASE44_API_KEY) {
+if (!hasBase44Creds()) {
   console.error('[migrate-handoff] BASE44_APP_ID and BASE44_API_KEY required');
   process.exit(1);
-}
-
-let leadIdCache = null;
-
-async function loadLeadIdCache() {
-  if (leadIdCache) return leadIdCache;
-  const { rows } = await query('SELECT id, external_ref FROM leads WHERE external_ref IS NOT NULL');
-  leadIdCache = {};
-  for (const r of rows) leadIdCache[String(r.external_ref)] = r.id;
-  console.log(`[migrate-handoff] Loaded ${Object.keys(leadIdCache).length} lead ID mappings`);
-  return leadIdCache;
-}
-
-async function fetchAllBase44HandoffEstimates() {
-  const all = [];
-  let offset = 0;
-  const limit = 500;
-  while (true) {
-    const url = `${BASE44_API_URL}/entities/HandoffEstimate?limit=${limit}&offset=${offset}&sort=-created_date`;
-    console.log(`[migrate-handoff] Fetching offset=${offset}...`);
-    const res = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${BASE44_API_KEY}`, 'X-App-ID': BASE44_APP_ID },
-    });
-    if (!res.ok) { console.error(`[migrate-handoff] API error: ${res.status}`); break; }
-    const data = await res.json();
-    const batch = Array.isArray(data) ? data : (data.items || []);
-    if (batch.length === 0) break;
-    all.push(...batch);
-    console.log(`[migrate-handoff] Got ${batch.length} (total: ${all.length})`);
-    if (batch.length < limit) break;
-    offset += limit;
-  }
-  return all;
 }
 
 async function upsertHandoffEstimate(est, railwayLeadId) {
@@ -141,9 +105,10 @@ async function upsertHandoffEstimate(est, railwayLeadId) {
 
 async function main() {
   console.log('[migrate-handoff] Starting idempotent handoff estimate migration...');
-  await loadLeadIdCache();
+  const leadIdCache = await buildLeadIdCache();
+  console.log(`[migrate-handoff] Loaded ${Object.keys(leadIdCache).length} lead ID mappings`);
 
-  const base44Estimates = await fetchAllBase44HandoffEstimates();
+  const base44Estimates = await fetchBase44Entity('HandoffEstimate');
   console.log(`[migrate-handoff] Fetched ${base44Estimates.length} estimates from Base44`);
 
   let created = 0, updated = 0, skipped = 0, errors = 0;

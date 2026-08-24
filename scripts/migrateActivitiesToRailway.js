@@ -26,12 +26,9 @@
 'use strict';
 
 const { query } = require('../db/client');
+const { fetchBase44Entity, hasBase44Creds, buildLeadIdCache } = require('./migrationHelpers');
 
-const BASE44_API_URL = process.env.BASE44_API_URL || 'https://api.base44.com';
-const BASE44_APP_ID = process.env.BASE44_APP_ID;
-const BASE44_API_KEY = process.env.BASE44_API_KEY;
-
-if (!BASE44_APP_ID || !BASE44_API_KEY) {
+if (!hasBase44Creds()) {
   console.error('[migrate-activities] BASE44_APP_ID and BASE44_API_KEY required');
   process.exit(1);
 }
@@ -47,46 +44,7 @@ async function ensureExternalRefColumn() {
 }
 
 // ── Build lead_id resolution cache: Base44 Lead ID → Railway leads.id ─────────
-let leadIdCache = null;
-
-async function loadLeadIdCache() {
-  if (leadIdCache) return leadIdCache;
-  const { rows } = await query('SELECT id, external_ref FROM leads WHERE external_ref IS NOT NULL');
-  leadIdCache = {};
-  for (const r of rows) {
-    leadIdCache[String(r.external_ref)] = r.id;
-  }
-  console.log(`[migrate-activities] Loaded ${Object.keys(leadIdCache).length} lead ID mappings`);
-  return leadIdCache;
-}
-
-// ── Fetch all activities from Base44 ──────────────────────────────────────────
-async function fetchAllBase44Activities() {
-  const all = [];
-  let offset = 0;
-  const limit = 500;
-
-  while (true) {
-    const url = `${BASE44_API_URL}/entities/Activity?limit=${limit}&offset=${offset}&sort=-created_date`;
-    console.log(`[migrate-activities] Fetching offset=${offset}...`);
-    const res = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${BASE44_API_KEY}`, 'X-App-ID': BASE44_APP_ID },
-    });
-    if (!res.ok) {
-      console.error(`[migrate-activities] Base44 API error: ${res.status} ${res.statusText}`);
-      break;
-    }
-    const data = await res.json();
-    const batch = Array.isArray(data) ? data : (data.items || []);
-    if (batch.length === 0) break;
-    all.push(...batch);
-    console.log(`[migrate-activities] Got ${batch.length} (total: ${all.length})`);
-    if (batch.length < limit) break;
-    offset += limit;
-  }
-
-  return all;
-}
+// Uses shared helper from migrationHelpers.js
 
 // ── Upsert a single activity ─────────────────────────────────────────────────
 async function upsertActivity(activity, railwayLeadId) {
@@ -133,9 +91,10 @@ async function main() {
   console.log('[migrate-activities] Starting idempotent activity migration...');
 
   await ensureExternalRefColumn();
-  await loadLeadIdCache();
+  const leadIdCache = await buildLeadIdCache();
+  console.log(`[migrate-activities] Loaded ${Object.keys(leadIdCache).length} lead ID mappings`);
 
-  const base44Activities = await fetchAllBase44Activities();
+  const base44Activities = await fetchBase44Entity('Activity');
   console.log(`[migrate-activities] Fetched ${base44Activities.length} activities from Base44`);
 
   let created = 0, updated = 0, skipped = 0, errors = 0, leadNotFound = 0;

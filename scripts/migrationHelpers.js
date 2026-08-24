@@ -4,14 +4,14 @@
  * migrationHelpers.js — Shared utilities for all Base44→Railway migration scripts.
  *
  * CRITICAL FIX: The Base44 REST API endpoint is:
- *   https://base44.app/apps/${appId}/entities/${entityName}
- * NOT https://api.base44.com/entities/... (previous wrong URL — all reads returned 0).
+ *   https://base44.app/api/apps/${appId}/entities/${entityName}
  *
  * The SDK (@base44/sdk) uses:
- *   - Base URL: https://base44.app
- *   - Entity path: /apps/${appId}/entities/${entityName}
+ *   - Axios baseURL: https://base44.app/api  (the /api prefix is REQUIRED)
+ *   - Entity path: /apps/${appId}/entities/${entityName}  (relative to /api)
  *   - Pagination: ?limit=N&skip=N&sort=-created_date  (NOT "offset")
  *   - Auth: Authorization: Bearer ${token}
+ *   - App ID header: X-App-Id: ${appId}  (REQUIRED — SDK sets this on every request)
  *
  * countBase44Entity now returns a structured result { count, status, error, httpStatus }
  * so the preflight can distinguish TRUE ZERO from FAILED/UNAUTHORIZED/WRONG APP.
@@ -35,10 +35,22 @@ function hasBase44Creds() {
 
 /**
  * Build the correct Base44 REST API URL for an entity.
- * Format: https://base44.app/apps/${appId}/entities/${entityName}
+ * Format: https://base44.app/api/apps/${appId}/entities/${entityName}
+ * The /api prefix is REQUIRED — the SDK's axios client uses baseURL: ${serverUrl}/api.
  */
 function buildEntityUrl(entityName) {
-  return `${BASE44_API_URL}/apps/${BASE44_APP_ID}/entities/${entityName}`;
+  return `${BASE44_API_URL}/api/apps/${BASE44_APP_ID}/entities/${entityName}`;
+}
+
+/**
+ * Standard auth headers for all Base44 REST API requests.
+ * The SDK sets X-App-Id on every request — the API requires it.
+ */
+function base44Headers() {
+  return {
+    'Authorization': `Bearer ${BASE44_API_KEY}`,
+    'X-App-Id': String(BASE44_APP_ID),
+  };
 }
 
 /**
@@ -55,7 +67,7 @@ async function fetchBase44Entity(entityName, limit = 500) {
     page++;
     const url = `${buildEntityUrl(entityName)}?limit=${limit}&skip=${skip}&sort=-created_date`;
     const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${BASE44_API_KEY}` },
+      headers: base44Headers(),
     });
     if (!res.ok) {
       const body = await res.text().catch(() => '');
@@ -88,7 +100,7 @@ async function countBase44Entity(entityName) {
     // Fetch with limit=1 to probe — then fetch full to get accurate count
     const url = `${buildEntityUrl(entityName)}?limit=1&skip=0&sort=-created_date`;
     const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${BASE44_API_KEY}` },
+      headers: base44Headers(),
     });
     if (!res.ok) {
       const body = await res.text().catch(() => '');
@@ -123,7 +135,7 @@ async function probeBase44Entity(entityName) {
   const url = `${buildEntityUrl(entityName)}?limit=1&skip=0&sort=-created_date`;
   try {
     const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${BASE44_API_KEY}` },
+      headers: base44Headers(),
     });
     if (!res.ok) {
       const body = await res.text().catch(() => '');
@@ -181,16 +193,30 @@ async function buildOwnerCache() {
   return cache;
 }
 
+// ── Legacy owner alias mapping ──────────────────────────────────────────────
+// Some Base44 leads may have short-form assigned_rep values (e.g. "Yaron" instead
+// of "Yaron Drilevich"). This deterministic map ensures they resolve correctly
+// to the full-name owner in the Railway owners table. No silent fallback —
+// only explicit, deterministic aliases defined here.
+const OWNER_ALIASES = {
+  'yaron': 'yaron drilevich',
+  'michelle': 'michelle roitman drilevich',
+};
+
 function resolveOwnerId(assignedRep, ownerCache) {
   if (!assignedRep) return null;
   const key = String(assignedRep).toLowerCase().replace(/\s+/g, ' ').trim();
-  return ownerCache[key] || null;
+  // Check direct match first, then alias mapping
+  if (ownerCache[key]) return ownerCache[key];
+  const alias = OWNER_ALIASES[key];
+  if (alias && ownerCache[alias]) return ownerCache[alias];
+  return null;
 }
 
 module.exports = {
   BASE44_API_URL, BASE44_APP_ID, BASE44_API_KEY,
-  hasBase44Creds, buildEntityUrl,
+  hasBase44Creds, buildEntityUrl, base44Headers,
   fetchBase44Entity, countBase44Entity, probeBase44Entity,
   buildLeadIdCache, buildDealIdCache, buildExpenseIdCache, buildOwnerCache,
-  resolveOwnerId,
+  resolveOwnerId, OWNER_ALIASES,
 };

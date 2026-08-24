@@ -20,69 +20,11 @@
 'use strict';
 
 const { query } = require('../db/client');
+const { fetchBase44Entity, hasBase44Creds, buildOwnerCache, resolveOwnerId, BASE44_API_URL } = require('./migrationHelpers');
 
-const BASE44_API_URL = process.env.BASE44_API_URL || 'https://api.base44.com';
-const BASE44_APP_ID = process.env.BASE44_APP_ID;
-const BASE44_API_KEY = process.env.BASE44_API_KEY;
-
-if (!BASE44_APP_ID || !BASE44_API_KEY) {
+if (!hasBase44Creds()) {
   console.error('[migrate-leads] BASE44_APP_ID and BASE44_API_KEY required');
   process.exit(1);
-}
-
-// ── Owner name → owner_id cache ──────────────────────────────────────────────
-let ownerCache = null;
-
-async function loadOwnerCache() {
-  if (ownerCache) return ownerCache;
-  const { rows } = await query('SELECT id, display_name, email FROM owners WHERE is_active = true');
-  ownerCache = {};
-  for (const r of rows) {
-    // Map by display_name (case-insensitive, whitespace-normalized)
-    const nameKey = (r.display_name || '').toLowerCase().replace(/\s+/g, ' ').trim();
-    if (nameKey) ownerCache[nameKey] = r.id;
-    // Also map by email
-    if (r.email) ownerCache[r.email.toLowerCase()] = r.id;
-  }
-  return ownerCache;
-}
-
-function resolveOwnerId(assignedRep, ownersByEmail) {
-  if (!assignedRep) return null;
-  const cache = ownersByEmail || ownerCache;
-  const key = String(assignedRep).toLowerCase().replace(/\s+/g, ' ').trim();
-  return cache[key] || null;
-}
-
-// ── Fetch all leads from Base44 ──────────────────────────────────────────────
-async function fetchAllBase44Leads() {
-  // CRITICAL FIX: Base44 REST API URL is https://base44.app/apps/${appId}/entities/Lead
-  // NOT https://api.base44.com/entities/Lead (wrong URL caused all reads to return 0).
-  // Pagination uses "skip" not "offset" per the @base44/sdk.
-  const all = [];
-  let skip = 0;
-  const limit = 500;
-
-  while (true) {
-    const url = `${BASE44_API_URL}/apps/${BASE44_APP_ID}/entities/Lead?limit=${limit}&skip=${skip}&sort=-created_date`;
-    console.log(`[migrate-leads] Fetching Base44 leads skip=${skip}...`);
-    const res = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${BASE44_API_KEY}` },
-    });
-    if (!res.ok) {
-      const body = await res.text().catch(() => '');
-      throw new Error(`[migrate-leads] Base44 API error: ${res.status} ${res.statusText} (skip=${skip}): ${body.slice(0, 200)}`);
-    }
-    const data = await res.json();
-    const batch = Array.isArray(data) ? data : (data.items || []);
-    if (batch.length === 0) break;
-    all.push(...batch);
-    console.log(`[migrate-leads] Got ${batch.length} leads (total: ${all.length})`);
-    if (batch.length < limit) break;
-    skip += limit;
-  }
-
-  return all;
 }
 
 // ── Upsert a single lead into Railway ────────────────────────────────────────
@@ -173,8 +115,8 @@ async function main() {
   console.log('[migrate-leads] Starting idempotent lead migration...');
   console.log('[migrate-leads] Base44 API:', BASE44_API_URL);
 
-  // Load owner cache
-  await loadOwnerCache();
+  // Load owner cache (shared helper — includes alias mapping)
+  const ownerCache = await buildOwnerCache();
   console.log(`[migrate-leads] Loaded ${Object.keys(ownerCache).length} owner mappings`);
 
   // Load the canonical "Unassigned" owner ID — used ONLY for leads where Base44
@@ -207,8 +149,8 @@ async function main() {
   console.log(`[migrate-leads] Canonical Unassigned owner ID: ${unassignedOwnerId || 'NONE'}`);
   console.log('[migrate-leads] Named owners without mapping will FAIL the migration (no silent fallback)');
 
-  // Fetch all Base44 leads
-  const base44Leads = await fetchAllBase44Leads();
+  // Fetch all Base44 leads (shared reader — correct URL with /api prefix + X-App-Id header)
+  const base44Leads = await fetchBase44Entity('Lead');
   console.log(`[migrate-leads] Fetched ${base44Leads.length} leads from Base44`);
 
   // Upsert each lead
