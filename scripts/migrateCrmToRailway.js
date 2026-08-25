@@ -61,7 +61,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execSync, spawnSync } = require('child_process');
 const { query, pool } = require('../db/client');
 const helpers = require('./migrationHelpers');
 
@@ -362,6 +362,24 @@ async function runPreflight() {
     }
   } catch (e) { console.log(`Duplicate check failed: ${e.message}`); }
 
+  // 4b. Migration script SQL shape validation (non-destructive static analysis)
+  console.log('\n=== MIGRATION SCRIPT SHAPE VALIDATION ===\n');
+  try {
+    const validatePath = path.join(__dirname, 'validateMigrationShapes.js');
+    if (fs.existsSync(validatePath)) {
+      execSync(`node "${validatePath}"`, {
+        stdio: 'inherit',
+        cwd: path.join(__dirname, '..'),
+        env: process.env,
+        timeout: 30000,
+      });
+    } else {
+      console.log('⚠️  validateMigrationShapes.js not found — skipping shape validation');
+    }
+  } catch (e) {
+    failReasons.push(`Migration script shape validation FAILED — ${e.message}. Fix SQL/variable defects before proceeding.`);
+  }
+
   // 5. Migration files on disk
   console.log('\n=== MIGRATION SCRIPTS ON DISK ===\n');
   const scriptsDir = path.join(__dirname);
@@ -437,11 +455,37 @@ function runImportScript(scriptName) {
     throw new Error(`Import script not found: ${scriptPath}`);
   }
   log(`  Running: node scripts/${scriptName}`);
-  execSync(`node "${scriptPath}"`, {
-    stdio: 'inherit',
+  const result = spawnSync('node', [scriptPath], {
     cwd: path.join(__dirname, '..'),
     env: process.env,
+    encoding: 'utf8',
+    stdio: ['inherit', 'pipe', 'pipe'],
+    timeout: 600000,
   });
+
+  // Print captured output
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+
+  // Check exit code (scripts that call process.exit(1) on fatal errors)
+  if (result.status !== 0) {
+    throw new Error(`Script exited with code ${result.status}`);
+  }
+
+  // FAIL CLOSED: check for write-error patterns in output
+  const allOutput = (result.stdout || '') + (result.stderr || '');
+
+  // Pattern 1: "Errors: N" where N > 0 (most migration scripts)
+  const errorMatch = allOutput.match(/Errors:\s*([1-9]\d*)/);
+  if (errorMatch) {
+    throw new Error(`Script reported ${errorMatch[1]} write error(s) — step FAILS (fail-closed)`);
+  }
+
+  // Pattern 2: "N errors" where N > 0 (migrateSmallDatasetsToRailway.js per-dataset output)
+  const smallDsErrorMatch = allOutput.match(/([1-9]\d*)\s+errors\b/);
+  if (smallDsErrorMatch) {
+    throw new Error(`Script reported ${smallDsErrorMatch[1]} error(s) — step FAILS (fail-closed)`);
+  }
 }
 
 async function verifyTables() {

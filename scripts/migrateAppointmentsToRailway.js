@@ -58,7 +58,7 @@ async function main() {
   // Get default appointment type IDs
   const consultationTypeId = await getAppointmentTypeId('Consultation');
   const meetingTypeId = await getAppointmentTypeId('General Meeting');
-  if (!consultulationTypeId || !meetingTypeId) {
+  if (!consultationTypeId || !meetingTypeId) {
     console.error('[migrate-appts] Required appointment types not found. Run schema migrations first.');
     process.exit(1);
   }
