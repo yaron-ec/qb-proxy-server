@@ -19,16 +19,11 @@
  */
 'use strict';
 
-const { query } = require('../db/client');
+const { query: defaultQuery } = require('../db/client');
 const { fetchBase44Entity, hasBase44Creds, buildOwnerCache, resolveOwnerId, BASE44_API_URL } = require('./migrationHelpers');
 
-if (!hasBase44Creds()) {
-  console.error('[migrate-leads] BASE44_APP_ID and BASE44_API_KEY required');
-  process.exit(1);
-}
-
 // ── Upsert a single lead into Railway ────────────────────────────────────────
-async function upsertLead(lead, ownerId) {
+async function upsertLead(lead, ownerId, queryFn) {
   const externalRef = lead.id; // Base44 lead ID becomes external_ref
   if (!externalRef) return { action: 'skipped', reason: 'no_id' };
 
@@ -105,18 +100,18 @@ async function upsertLead(lead, ownerId) {
     lead.reviewed_at || null,
   ];
 
-  const { rows } = await query(sql, params);
+  const { rows } = await queryFn(sql, params);
   const inserted = !!(rows[0] && rows[0].inserted);
   return { action: inserted ? 'created' : 'updated', id: rows[0]?.id };
 }
 
 // ── Main ────────────────────────────────────────────────────────────────────
-async function main() {
+async function runLeadMigration(queryFn = defaultQuery) {
   console.log('[migrate-leads] Starting idempotent lead migration...');
   console.log('[migrate-leads] Base44 API:', BASE44_API_URL);
 
   // Load owner cache (shared helper — includes alias mapping)
-  const ownerCache = await buildOwnerCache();
+  const ownerCache = await buildOwnerCache(queryFn);
   console.log(`[migrate-leads] Loaded ${Object.keys(ownerCache).length} owner mappings`);
 
   // Load the canonical "Unassigned" owner ID — used ONLY for leads where Base44
@@ -125,14 +120,14 @@ async function main() {
   // the migration to FAIL CLOSED to preserve ownership integrity.
   let unassignedOwnerId = ownerCache['unassigned'];
   if (!unassignedOwnerId) {
-    const { rows: existing } = await query(
+    const { rows: existing } = await queryFn(
       `SELECT id FROM owners WHERE lower(display_name) = 'unassigned' AND is_active = true LIMIT 1`
     );
     unassignedOwnerId = existing[0]?.id || null;
   }
   if (!unassignedOwnerId) {
     // Create the canonical Unassigned owner (for genuinely null assigned_rep only)
-    const { rows } = await query(`
+    const { rows } = await queryFn(`
       INSERT INTO owners (display_name, email, is_active)
       VALUES ('Unassigned', null, true)
       ON CONFLICT DO NOTHING
@@ -140,7 +135,7 @@ async function main() {
     `);
     unassignedOwnerId = rows[0]?.id || null;
     if (!unassignedOwnerId) {
-      const { rows: existing } = await query(
+      const { rows: existing } = await queryFn(
         `SELECT id FROM owners WHERE lower(display_name) = 'unassigned' AND is_active = true LIMIT 1`
       );
       unassignedOwnerId = existing[0]?.id || null;
@@ -208,7 +203,7 @@ async function main() {
     console.error('');
     console.error('To fix: run migrateOwnersToRailway.js first to create owners for all assigned_rep values,');
     console.error('then re-run this migration. Do NOT use a fallback — ownership must be preserved exactly.');
-    process.exit(1);
+    throw new Error(`Migration failed: ${unresolvedNamedOwners.size} unresolved named owner(s)`);
   }
 
   console.log('\n=== MIGRATION COMPLETE ===');
@@ -221,13 +216,21 @@ async function main() {
   console.log(`Unresolved named owners: 0 (all resolved ✅)`);
 
   // Verify
-  const { rows } = await query('SELECT COUNT(*) as cnt FROM leads');
+  const { rows } = await queryFn('SELECT COUNT(*) as cnt FROM leads');
   console.log(`Railway leads table now has: ${rows[0].cnt} rows`);
 
-  process.exit(0);
+  return { created, updated, skipped, errors, genuinelyUnassigned, unresolvedNamedOwners: [...unresolvedNamedOwners.keys()], total: base44Leads.length };
 }
 
-main().catch(e => {
-  console.error('[migrate-leads] fatal:', e);
-  process.exit(1);
-});
+module.exports = { runLeadMigration };
+
+if (require.main === module) {
+  if (!hasBase44Creds()) {
+    console.error('[migrate-leads] WORKER_SECRET required');
+    process.exit(1);
+  }
+  runLeadMigration().then(() => process.exit(0)).catch(e => {
+    console.error('[migrate-leads] fatal:', e);
+    process.exit(1);
+  });
+}
