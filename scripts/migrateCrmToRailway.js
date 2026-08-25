@@ -230,9 +230,11 @@ async function runPreflight() {
   } catch (e) { console.log(`Leads with external_ref: TABLE_MISSING`); }
 
   // Active owners
+  let activeOwnersCount = 0;
   try {
     const { rows } = await query('SELECT COUNT(*) as cnt FROM owners WHERE is_active = true');
-    console.log(`Active owners: ${rows[0].cnt}`);
+    activeOwnersCount = parseInt(rows[0].cnt, 10) || 0;
+    console.log(`Active owners: ${activeOwnersCount}`);
   } catch (e) { console.log(`Active owners: TABLE_MISSING`); }
 
   // Deals with legacy_base44_id
@@ -265,6 +267,14 @@ async function runPreflight() {
 
   if (hasCreds) {
     console.log('\n=== OWNER MAPPING — EVERY DISTINCT assigned_rep ===\n');
+    if (activeOwnersCount === 0) {
+      console.log('Owners table is EMPTY — migrateOwnersToRailway.js (Step 3 of full migration) will populate it.');
+      console.log('Owner resolution validation SKIPPED in preflight. It will be enforced by:');
+      console.log('  - migrateLeadsToRailway.js (fail-closed on unresolved named owners)');
+      console.log('  - migrateAppointmentsToRailway.js (uses resolveOwnerId)');
+      console.log('Both run AFTER migrateOwnersToRailway.js in the full migration order.');
+      ownerCheckStatus = 'owners_table_empty';
+    } else {
     try {
       const base44Leads = await helpers.fetchBase44Entity('Lead');
       const ownerCache = await helpers.buildOwnerCache();
@@ -337,6 +347,7 @@ async function runPreflight() {
       console.log(`Owner mapping check: NOT CHECKED — Lead source read failed: ${e.message}`);
       ownerCheckStatus = 'source_read_failed';
     }
+    } // end else (owners table not empty)
   }
 
   // 4. Duplicate-key conflict check
@@ -377,7 +388,7 @@ async function runPreflight() {
   if (b44ProbeError) console.log(`Base44 API error: ${b44ProbeError}`);
   console.log(`Railway database: ${await tableExists('leads') ? 'CONNECTED' : 'NOT CONNECTED'}`);
   console.log(`Missing tables: ${missingTables.length > 0 ? missingTables.join(', ') : 'NONE ✅'}`);
-  console.log(`Owner check: ${ownerCheckStatus === 'ok' ? `COMPLETED (${unresolvedOwnerCount} unresolved)` : ownerCheckStatus === 'source_read_failed' ? 'NOT CHECKED (source read failed)' : 'NOT CHECKED (no credentials)'}`);
+  console.log(`Owner check: ${ownerCheckStatus === 'ok' ? `COMPLETED (${unresolvedOwnerCount} unresolved)` : ownerCheckStatus === 'owners_table_empty' ? 'SKIPPED (owners table empty — will be populated by Step 3)' : ownerCheckStatus === 'source_read_failed' ? 'NOT CHECKED (source read failed)' : 'NOT CHECKED (no credentials)'}`);
   console.log(`Failed Base44 source reads: ${failedReads}`);
   console.log(`Total Base44 records to import: ${totalB44}`);
   console.log(`Total Railway records currently: ${totalRW}`);
