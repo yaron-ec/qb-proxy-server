@@ -171,7 +171,7 @@ async function main() {
         genuinelyUnassigned++;
       } else {
         // Named owner — must resolve or FAIL (no silent fallback)
-        ownerId = resolveOwnerId(rep);
+        ownerId = resolveOwnerId(rep, ownerCache);
         if (!ownerId) {
           const repKey = String(rep).trim();
           unresolvedNamedOwners.set(repKey, (unresolvedNamedOwners.get(repKey) || 0) + 1);
