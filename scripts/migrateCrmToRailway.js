@@ -65,9 +65,10 @@ const { execSync } = require('child_process');
 const { query, pool } = require('../db/client');
 const helpers = require('./migrationHelpers');
 
-const BASE44_API_URL = process.env.BASE44_API_URL || 'https://base44.app';
-const BASE44_APP_ID = process.env.BASE44_APP_ID;
-const BASE44_API_KEY = process.env.BASE44_API_KEY;
+// Migration reads use the migrationReader backend function (asServiceRole + WORKER_SECRET).
+// No BASE44_API_URL, BASE44_APP_ID, or BASE44_API_KEY needed — the function handles auth internally.
+const BASE44_FUNCTIONS_URL = process.env.BASE44_FUNCTIONS_URL ||
+  'https://crm-ec-construction-group.base44.app/functions/migrationReader';
 
 const IS_PREFLIGHT = process.argv.includes('--preflight');
 
@@ -155,13 +156,9 @@ async function runPreflight() {
   log('=== PREFLIGHT MODE (READ-ONLY — NO WRITES) ===\n');
 
   const hasCreds = helpers.hasBase44Creds();
-  console.log(`Base44 credentials: ${hasCreds ? 'YES' : 'NO — migration will fail without them'}`);
-  console.log(`Base44 API URL (raw env): ${BASE44_API_URL}`);
-  console.log(`Base44 API URL (normalized): ${helpers.NORMALIZED_API_URL}`);
-  console.log(`Base44 App ID: ${BASE44_APP_ID ? `${BASE44_APP_ID.slice(0, 8)}...${BASE44_APP_ID.slice(-4)}` : 'NOT SET'}`);
-  console.log(`Base44 API Key: ${process.env.BASE44_API_KEY ? 'SET ✅' : 'NOT SET ❌'}`);
-  console.log(`Exact entity URL: ${helpers.buildEntityUrl('Lead')}`);
-  console.log(`Expected: https://base44.app/api/apps/<APP_ID>/entities/<EntityName>`);
+  console.log(`Base44 credentials (WORKER_SECRET): ${hasCreds ? 'SET ✅' : 'NOT SET ❌ — migration will fail'}`);
+  console.log(`Migration reader endpoint: ${BASE44_FUNCTIONS_URL}`);
+  console.log(`Auth mechanism: base44.asServiceRole (bypasses RLS, no user password/SSO needed)`);
   console.log('');
 
   // 0. Base44 API connectivity probe — verify the REST endpoint is reachable
@@ -389,11 +386,11 @@ async function runPreflight() {
 
   // FAIL CLOSED conditions
   const failReasons = [];
-  if (!hasCreds) failReasons.push('Base44 credentials not set (BASE44_APP_ID, BASE44_API_KEY)');
-  if (!b44Reachable) failReasons.push(`Base44 API not reachable — ${b44ProbeError || 'unknown error'}. Check BASE44_API_URL (should be https://base44.app), BASE44_APP_ID, and BASE44_API_KEY (must be a valid user access token).`);
+  if (!hasCreds) failReasons.push('WORKER_SECRET not set — required to authenticate with the migrationReader backend function');
+  if (!b44Reachable) failReasons.push(`Migration reader not reachable — ${b44ProbeError || 'unknown error'}. Check WORKER_SECRET is set in Railway and the migrationReader function is deployed.`);
   if (missingTables.length > 0) failReasons.push(`Missing tables: ${missingTables.join(', ')}. Run 'node db/migrate.js' first.`);
   if (ownerCheckStatus === 'ok' && unresolvedOwnerCount > 0) failReasons.push(`${unresolvedOwnerCount} unresolved named owner(s) — ownership must be preserved exactly, no silent fallback`);
-  if (failedReads > 0) failReasons.push(`${failedReads} Base44 source read(s) FAILED — a failed read must NEVER be counted as zero. Check API URL, credentials, and app ID. The correct endpoint is https://base44.app/api/apps/${BASE44_APP_ID || '<APP_ID>'}/entities/<EntityName> (the /api prefix is REQUIRED). Also ensure X-App-Id header is sent (handled by migrationHelpers.js).`);
+  if (failedReads > 0) failReasons.push(`${failedReads} Base44 source read(s) FAILED — a failed read must NEVER be counted as zero. Check WORKER_SECRET is set correctly and the migrationReader function is deployed at ${BASE44_FUNCTIONS_URL}.`);
 
   if (failReasons.length > 0) {
     console.log('\n⚠️  PREFLIGHT FAILED — DO NOT PROCEED WITH FULL MIGRATION');
@@ -464,11 +461,11 @@ async function reconciliationCounts() {
 async function runFullMigration() {
   log('=== FULL CRM DATA MIGRATION (WRITE MODE) ===');
   log(`Started: ${new Date().toISOString()}`);
-  log(`Base44 API: ${BASE44_API_URL}`);
+  log(`Migration reader: ${BASE44_FUNCTIONS_URL}`);
   log(`Datasets: ${ALL_DATASETS.length}`);
 
   if (!helpers.hasBase44Creds()) {
-    logErr('BASE44_APP_ID and BASE44_API_KEY required for migration');
+    logErr('WORKER_SECRET required for migration (set in Railway Variables)');
     process.exit(1);
   }
 

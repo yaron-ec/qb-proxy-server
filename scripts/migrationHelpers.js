@@ -3,21 +3,35 @@
 /**
  * migrationHelpers.js — Shared utilities for all Base44→Railway migration scripts.
  *
- * CRITICAL FIX: The Base44 REST API endpoint is:
- *   https://base44.app/api/apps/${appId}/entities/${entityName}
+ * ARCHITECTURE
+ *   Railway migration script → HTTP POST → Base44 backend function (migrationReader)
+ *   → base44.asServiceRole (bypasses RLS) → entity records → Railway Postgres.
  *
- * The SDK (@base44/sdk) uses:
- *   - Axios baseURL: https://base44.app/api  (the /api prefix is REQUIRED)
- *   - Entity path: /apps/${appId}/entities/${entityName}  (relative to /api)
- *   - Pagination: ?limit=N&skip=N&sort=-created_date  (NOT "offset")
- *   - Auth: Authorization: Bearer ${token}
- *   - App ID header: X-App-Id: ${appId}  (REQUIRED — SDK sets this on every request)
+ * AUTH MECHANISM
+ *   The Base44 REST API requires a user access_token (obtained via email/password
+ *   login or Google SSO). Yaron's canonical account uses Google SSO exclusively
+ *   and has no password. Creating a password just for migration is not acceptable.
  *
- * countBase44Entity now returns a structured result { count, status, error, httpStatus }
- * so the preflight can distinguish TRUE ZERO from FAILED/UNAUTHORIZED/WRONG APP.
+ *   Instead, we use the platform's official service-role mechanism:
+ *   - The `migrationReader` backend function runs inside Base44's hosted environment.
+ *   - It uses `base44.asServiceRole` which bypasses ALL RLS — no user token needed.
+ *   - It authenticates external callers via WORKER_SECRET (shared secret header).
+ *   - WORKER_SECRET is already set in both Base44 (Deno.env.get) and Railway
+ *     (process.env), since the existing cronJobs route already uses it.
+ *
+ *   This means:
+ *   - No user password required (Google SSO is irrelevant)
+ *   - No Google OAuth token exchange required
+ *   - No operator authorization required (WORKER_SECRET already exists)
+ *   - Read-only by design (the function only supports read_entity)
+ *   - Temporary (delete the function after migration)
+ *
+ * ENDPOINT
+ *   https://crm-ec-construction-group.base44.app/functions/migrationReader
+ *   (configurable via BASE44_FUNCTIONS_URL env var)
  *
  * Provides:
- *   - fetchBase44Entity: paginated Base44 REST API reader (throws on error)
+ *   - fetchBase44Entity: paginated reader (throws on error)
  *   - countBase44Entity: structured count result for preflight (never throws)
  *   - probeBase44Entity: detailed probe for preflight diagnostics
  *   - buildLeadIdCache, buildDealIdCache, buildExpenseIdCache, buildOwnerCache
@@ -25,89 +39,85 @@
  */
 const { query } = require('../db/client');
 
-const BASE44_API_URL = process.env.BASE44_API_URL || 'https://base44.app';
-const BASE44_APP_ID = process.env.BASE44_APP_ID;
-const BASE44_API_KEY = process.env.BASE44_API_KEY;
+const BASE44_FUNCTIONS_URL = process.env.BASE44_FUNCTIONS_URL ||
+  'https://crm-ec-construction-group.base44.app/functions/migrationReader';
+const WORKER_SECRET = process.env.WORKER_SECRET;
 
 function hasBase44Creds() {
-  return !!(BASE44_APP_ID && BASE44_API_KEY);
+  // Auth is via WORKER_SECRET (shared secret with the migrationReader backend function).
+  // No user password, no Google SSO, no BASE44_API_KEY needed.
+  return !!WORKER_SECRET;
 }
 
 /**
- * Normalize the Base44 API URL to prevent double /api and trailing slash issues.
- *
- * The SDK uses baseURL: ${serverUrl}/api. Migration scripts build:
- *   ${BASE44_API_URL}/api/apps/${appId}/entities/${entityName}
- *
- * If BASE44_API_URL is set to "https://base44.app/api" (with /api already),
- * the URL would become "https://base44.app/api/api/apps/..." → 404 (double /api).
- * This function strips any trailing /api or / to produce a clean base URL.
- *
- * Examples:
- *   https://base44.app       → https://base44.app
- *   https://base44.app/      → https://base44.app
- *   https://base44.app/api    → https://base44.app
- *   https://base44.app/api/  → https://base44.app
+ * Call the migrationReader backend function to read a page of entity records.
+ * The function uses base44.asServiceRole which bypasses all RLS.
+ * @param {string} entity - Entity name (e.g. 'Lead', 'Estimate')
+ * @param {number} skip - Pagination skip
+ * @param {number} limit - Page size (max 5000)
+ * @param {object|null} filter - Optional MongoDB-style filter
+ * @returns {Promise<{records: array, count: number, hasMore: boolean}>}
  */
-function normalizeBase44Url(url) {
-  if (!url) return 'https://base44.app';
-  let cleaned = String(url).trim().replace(/\/+$/, ''); // strip trailing slashes
-  // Strip trailing /api if present (prevents double /api when we append /api below)
-  if (cleaned.endsWith('/api')) {
-    cleaned = cleaned.slice(0, -4);
+async function callMigrationReader(entity, skip = 0, limit = 500, filter = null) {
+  if (!hasBase44Creds()) {
+    throw new Error('WORKER_SECRET required for migration reader (set in Railway Variables)');
   }
-  return cleaned;
-}
 
-const NORMALIZED_API_URL = normalizeBase44Url(BASE44_API_URL);
+  const res = await fetch(BASE44_FUNCTIONS_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-worker-secret': WORKER_SECRET,
+    },
+    body: JSON.stringify({
+      action: 'read_entity',
+      entity,
+      skip,
+      limit,
+      sort: '-created_date',
+      ...(filter ? { filter } : {}),
+    }),
+  });
 
-/**
- * Build the correct Base44 REST API URL for an entity.
- * Format: https://base44.app/api/apps/${appId}/entities/${entityName}
- * The /api prefix is REQUIRED — the SDK's axios client uses baseURL: ${serverUrl}/api.
- * NORMALIZED_API_URL handles BASE44_API_URL values that already include /api.
- */
-function buildEntityUrl(entityName) {
-  return `${NORMALIZED_API_URL}/api/apps/${BASE44_APP_ID}/entities/${entityName}`;
-}
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`Migration reader HTTP ${res.status} ${res.statusText} for ${entity} (skip ${skip}): ${body.slice(0, 200)}`);
+  }
 
-/**
- * Standard auth headers for all Base44 REST API requests.
- * The SDK sets X-App-Id on every request — the API requires it.
- */
-function base44Headers() {
+  const data = await res.json();
+  if (!data.success) {
+    const errMsg = data.error?.message || data.error?.code || 'unknown error';
+    throw new Error(`Migration reader error for ${entity}: ${errMsg}`);
+  }
+
+  // okResponse wraps payload in data.data — extract from there
+  const payload = data.data || {};
   return {
-    'Authorization': `Bearer ${BASE44_API_KEY}`,
-    'X-App-Id': String(BASE44_APP_ID),
+    records: payload.records || [],
+    count: payload.count || 0,
+    hasMore: !!payload.hasMore,
   };
 }
 
 /**
- * Fetch all records for an entity from Base44 via REST API.
- * Uses correct pagination (skip, not offset).
+ * Fetch all records for an entity from Base44 via the migrationReader function.
+ * Paginates automatically (skip-based, up to 5000 per page).
  * THROWS on any error — callers must handle.
  */
 async function fetchBase44Entity(entityName, limit = 500) {
-  if (!hasBase44Creds()) throw new Error('BASE44_APP_ID and BASE44_API_KEY required');
+  if (!hasBase44Creds()) {
+    throw new Error('WORKER_SECRET required for migration reader');
+  }
   const all = [];
   let skip = 0;
   let page = 0;
   while (true) {
     page++;
-    const url = `${buildEntityUrl(entityName)}?limit=${limit}&skip=${skip}&sort=-created_date`;
-    const res = await fetch(url, {
-      headers: base44Headers(),
-    });
-    if (!res.ok) {
-      const body = await res.text().catch(() => '');
-      throw new Error(`Base44 API ${res.status} ${res.statusText} for ${entityName} (page ${page}, skip ${skip}): ${body.slice(0, 200)}`);
-    }
-    const data = await res.json();
-    const batch = Array.isArray(data) ? data : (data.items || []);
-    if (batch.length === 0) break;
-    all.push(...batch);
-    if (batch.length < limit) break;
+    const result = await callMigrationReader(entityName, skip, limit);
+    all.push(...result.records);
+    if (!result.hasMore) break;
     skip += limit;
+    if (page > 1000) throw new Error(`Pagination safety limit exceeded for ${entityName}`);
   }
   return all;
 }
@@ -118,36 +128,22 @@ async function fetchBase44Entity(entityName, limit = 500) {
  *   status = 'ok' (read succeeded, count is real)
  *   status = 'zero' (read succeeded, count is genuinely 0)
  *   status = 'error' (read failed — count is NOT real, must fail closed)
- *   status = 'no_creds' (credentials missing)
+ *   status = 'no_creds' (WORKER_SECRET missing)
  * NEVER throws — always returns a structured result.
  */
 async function countBase44Entity(entityName) {
   if (!hasBase44Creds()) {
-    return { count: null, status: 'no_creds', error: 'BASE44_APP_ID and BASE44_API_KEY not set', httpStatus: null };
+    return { count: null, status: 'no_creds', error: 'WORKER_SECRET not set', httpStatus: null };
   }
   try {
-    // Fetch with limit=1 to probe — then fetch full to get accurate count
-    const url = `${buildEntityUrl(entityName)}?limit=1&skip=0&sort=-created_date`;
-    const res = await fetch(url, {
-      headers: base44Headers(),
-    });
-    if (!res.ok) {
-      const body = await res.text().catch(() => '');
-      return {
-        count: null,
-        status: 'error',
-        error: `HTTP ${res.status} ${res.statusText}: ${body.slice(0, 150)}`,
-        httpStatus: res.status,
-      };
+    // Probe with limit=1 to check if any records exist
+    const probe = await callMigrationReader(entityName, 0, 1);
+    if (probe.records.length === 0) {
+      return { count: 0, status: 'zero', error: null, httpStatus: 200 };
     }
-    const data = await res.json();
-    const batch = Array.isArray(data) ? data : (data.items || []);
-    if (batch.length === 0) {
-      return { count: 0, status: 'zero', error: null, httpStatus: res.status };
-    }
-    // There's at least 1 record — fetch all to get accurate count
+    // At least 1 record — fetch all to get accurate count
     const all = await fetchBase44Entity(entityName);
-    return { count: all.length, status: 'ok', error: null, httpStatus: res.status };
+    return { count: all.length, status: 'ok', error: null, httpStatus: 200 };
   } catch (e) {
     return { count: null, status: 'error', error: e.message, httpStatus: null };
   }
@@ -159,34 +155,19 @@ async function countBase44Entity(entityName) {
  */
 async function probeBase44Entity(entityName) {
   if (!hasBase44Creds()) {
-    return { reachable: false, httpStatus: null, firstRecordId: null, error: 'no credentials', url: null };
+    return { reachable: false, httpStatus: null, firstRecordId: null, error: 'WORKER_SECRET not set', url: BASE44_FUNCTIONS_URL };
   }
-  const url = `${buildEntityUrl(entityName)}?limit=1&skip=0&sort=-created_date`;
   try {
-    const res = await fetch(url, {
-      headers: base44Headers(),
-    });
-    if (!res.ok) {
-      const body = await res.text().catch(() => '');
-      return {
-        reachable: false,
-        httpStatus: res.status,
-        firstRecordId: null,
-        error: `${res.status} ${res.statusText}: ${body.slice(0, 100)}`,
-        url,
-      };
-    }
-    const data = await res.json();
-    const batch = Array.isArray(data) ? data : (data.items || []);
+    const result = await callMigrationReader(entityName, 0, 1);
     return {
       reachable: true,
-      httpStatus: res.status,
-      firstRecordId: batch[0]?.id || null,
+      httpStatus: 200,
+      firstRecordId: result.records[0]?.id || null,
       error: null,
-      url,
+      url: BASE44_FUNCTIONS_URL,
     };
   } catch (e) {
-    return { reachable: false, httpStatus: null, firstRecordId: null, error: e.message, url };
+    return { reachable: false, httpStatus: null, firstRecordId: null, error: e.message, url: BASE44_FUNCTIONS_URL };
   }
 }
 
@@ -243,8 +224,8 @@ function resolveOwnerId(assignedRep, ownerCache) {
 }
 
 module.exports = {
-  BASE44_API_URL, NORMALIZED_API_URL, BASE44_APP_ID, BASE44_API_KEY,
-  hasBase44Creds, normalizeBase44Url, buildEntityUrl, base44Headers,
+  BASE44_FUNCTIONS_URL, WORKER_SECRET,
+  hasBase44Creds, callMigrationReader,
   fetchBase44Entity, countBase44Entity, probeBase44Entity,
   buildLeadIdCache, buildDealIdCache, buildExpenseIdCache, buildOwnerCache,
   resolveOwnerId, OWNER_ALIASES,
