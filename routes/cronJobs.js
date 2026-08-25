@@ -422,4 +422,43 @@ router.post('/audit-owner-resolution', async (req, res) => {
   }
 });
 
+// ── POST /rollback-validate-leads-appts ──────────────────────────────────────
+// Production-path rollback validation: runs the EXACT same runLeadMigration()
+// and runAppointmentMigration() functions used by the production scripts,
+// inside a transaction that is ALWAYS ROLLED BACK. No parallel dry-run —
+// it requires() the production modules and calls their exported functions.
+router.post('/rollback-validate-leads-appts', async (req, res) => {
+  const { execFile } = require('child_process');
+  const path = require('path');
+  const fs = require('fs');
+
+  const scriptPath = path.resolve(__dirname, '..', 'scripts', 'rollbackValidateLeadsAppts.js');
+  if (!fs.existsSync(scriptPath)) {
+    return res.status(404).json({ error: 'rollbackValidateLeadsAppts.js not found', path: scriptPath });
+  }
+
+  try {
+    execFile('node', [scriptPath], {
+      timeout: 180000,
+      maxBuffer: 20 * 1024 * 1024,
+      env: { ...process.env },
+      cwd: path.resolve(__dirname, '..'),
+    }, (err, stdout, stderr) => {
+      if (err && err.code !== 0) {
+        console.error('[cron] rollback-validate-leads-appts process error:', err.message);
+      }
+      res.json({
+        ok: !err || err.code === 0,
+        exitCode: err ? err.code : 0,
+        stdout,
+        stderr: stderr || '',
+        job: 'rollback-validate-leads-appts',
+      });
+    });
+  } catch (e) {
+    console.error('[cron] rollback-validate-leads-appts error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
