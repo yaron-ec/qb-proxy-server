@@ -22,6 +22,16 @@
 const { query: defaultQuery } = require('../db/client');
 const { fetchBase44Entity, hasBase44Creds, buildOwnerCache, resolveOwnerId, BASE44_API_URL } = require('./migrationHelpers');
 
+// Railway leads.record_type CHECK constraint allows only these values.
+// Base44 may contain legacy values not in the constraint — normalize them.
+const ALLOWED_RECORD_TYPES = new Set(['Lead', 'Vendor', 'Subcontractor', 'Supplier', 'Employee', 'Applicant', 'Contact']);
+const RECORD_TYPE_MAP = { 'Business Contact': 'Contact' };
+function normalizeRecordType(rt) {
+  if (RECORD_TYPE_MAP[rt]) return RECORD_TYPE_MAP[rt];
+  if (ALLOWED_RECORD_TYPES.has(rt)) return rt;
+  return 'Lead';
+}
+
 // ── Upsert a single lead into Railway ────────────────────────────────────────
 async function upsertLead(lead, ownerId, queryFn) {
   const externalRef = lead.id; // Base44 lead ID becomes external_ref
@@ -93,7 +103,7 @@ async function upsertLead(lead, ownerId, queryFn) {
     ownerId, lead.status || 'New', lead.notes || null,
     lead.message || null, lead.lead_score || 0,
     lead.is_new_intake_lead === true, lead.customer_reminders_disabled === true,
-    photoUrls, lead.record_type || 'Lead',
+    photoUrls, normalizeRecordType(lead.record_type),
     lead.follow_up_date || null, lead.follow_up_time || null, lead.follow_up_type || null,
     lead.meeting_stage || null,
     lead.crm_created_date || lead.created_date || null,
