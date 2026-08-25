@@ -171,8 +171,8 @@ async function probeBase44Entity(entityName) {
   }
 }
 
-async function buildLeadIdCache() {
-  const { rows } = await query('SELECT id, external_ref FROM leads WHERE external_ref IS NOT NULL');
+async function buildLeadIdCache(queryFn = query) {
+  const { rows } = await queryFn('SELECT id, external_ref FROM leads WHERE external_ref IS NOT NULL');
   const cache = {};
   for (const r of rows) cache[String(r.external_ref)] = r.id;
   return cache;
@@ -192,8 +192,8 @@ async function buildExpenseIdCache() {
   return cache;
 }
 
-async function buildOwnerCache() {
-  const { rows } = await query('SELECT id, display_name, email FROM owners WHERE is_active = true');
+async function buildOwnerCache(queryFn = query) {
+  const { rows } = await queryFn('SELECT id, display_name, email FROM owners WHERE is_active = true');
   const cache = {};
   for (const r of rows) {
     const nameKey = (r.display_name || '').toLowerCase().replace(/\s+/g, ' ').trim();
