@@ -310,4 +310,42 @@ router.post('/send-project-status-email', async (req, res) => {
   }
 });
 
+// ── POST /dry-run-migration ──────────────────────────────────────────────────
+// Runs the migration dry-run script (dryRunMigrationWritePaths.js) which exercises
+// all 24 dataset write-paths inside a transaction that ALWAYS rolls back.
+// Returns the script's stdout output as JSON.
+router.post('/dry-run-migration', async (req, res) => {
+  const { execFile } = require('child_process');
+  const path = require('path');
+
+  const scriptPath = path.resolve(__dirname, '..', 'scripts', 'dryRunMigrationWritePaths.js');
+  const fs = require('fs');
+  if (!fs.existsSync(scriptPath)) {
+    return res.status(404).json({ error: 'dryRunMigrationWritePaths.js not found', path: scriptPath });
+  }
+
+  try {
+    execFile('node', [scriptPath], {
+      timeout: 120000,
+      maxBuffer: 10 * 1024 * 1024,
+      env: { ...process.env },
+      cwd: path.resolve(__dirname, '..'),
+    }, (err, stdout, stderr) => {
+      if (err && err.code !== 0) {
+        console.error('[cron] dry-run-migration process error:', err.message);
+      }
+      res.json({
+        ok: !err || err.code === 0,
+        exitCode: err ? err.code : 0,
+        stdout,
+        stderr: stderr || '',
+        job: 'dry-run-migration',
+      });
+    });
+  } catch (e) {
+    console.error('[cron] dry-run-migration error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
