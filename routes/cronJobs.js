@@ -310,6 +310,43 @@ router.post('/send-project-status-email', async (req, res) => {
   }
 });
 
+// ── POST /apply-migrations ─────────────────────────────────────────────────
+// Runs node db/migrate.js to apply all pending schema migrations.
+// Returns the script's stdout/stderr as JSON.
+router.post('/apply-migrations', async (req, res) => {
+  const { execFile } = require('child_process');
+  const path = require('path');
+  const fs = require('fs');
+
+  const migratePath = path.resolve(__dirname, '..', 'db', 'migrate.js');
+  if (!fs.existsSync(migratePath)) {
+    return res.status(404).json({ error: 'db/migrate.js not found', path: migratePath });
+  }
+
+  try {
+    execFile('node', [migratePath], {
+      timeout: 120000,
+      maxBuffer: 10 * 1024 * 1024,
+      env: { ...process.env },
+      cwd: path.resolve(__dirname, '..'),
+    }, (err, stdout, stderr) => {
+      if (err && err.code !== 0) {
+        console.error('[cron] apply-migrations process error:', err.message);
+      }
+      res.json({
+        ok: !err || err.code === 0,
+        exitCode: err ? err.code : 0,
+        stdout,
+        stderr: stderr || '',
+        job: 'apply-migrations',
+      });
+    });
+  } catch (e) {
+    console.error('[cron] apply-migrations error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── POST /dry-run-migration ──────────────────────────────────────────────────
 // Runs the migration dry-run script (dryRunMigrationWritePaths.js) which exercises
 // all 24 dataset write-paths inside a transaction that ALWAYS rolls back.
