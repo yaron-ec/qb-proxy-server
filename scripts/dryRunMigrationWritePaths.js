@@ -96,6 +96,65 @@ async function main() {
     console.log(`${entity}: ${samples[entity].total} total records${samples[entity].error ? ` (ERROR: ${samples[entity].error})` : ''}`);
   }
 
+  // ── Phase 1.5: Owner Resolution Validation (ALL Base44 leads) ────────────
+  // This is the critical check the previous dry-run was missing. It exercises
+  // the EXACT same code path as migrateLeadsToRailway.js (buildOwnerCache() +
+  // resolveOwnerId(rep, ownerCache)) against EVERY Base44 lead — not just one
+  // sample. If any named-owner lead fails to resolve, the dry-run FAILS here
+  // before any SQL is executed.
+  console.log('\n=== PHASE 1.5: OWNER RESOLUTION VALIDATION (ALL LEADS) ===\n');
+
+  const ownerCacheValidation = await buildOwnerCache();
+  console.log(`Railway owners (active): ${Object.keys(ownerCacheValidation).length} keys`);
+
+  let valNamedResolved = 0;
+  let valNamedUnresolved = 0;
+  let valGenuinelyUnassigned = 0;
+  const valUnresolvedReps = new Map();
+
+  for (const lead of leadSamples.all) {
+    const rep = lead.assigned_rep;
+    const isGenuinelyUnassigned = !rep || !String(rep).trim();
+
+    if (isGenuinelyUnassigned) {
+      valGenuinelyUnassigned++;
+      continue;
+    }
+
+    // EXACT same call as migrateLeadsToRailway.js line 174 (after fix)
+    const ownerId = resolveOwnerId(rep, ownerCacheValidation);
+
+    if (ownerId) {
+      valNamedResolved++;
+    } else {
+      valNamedUnresolved++;
+      const repKey = String(rep).trim();
+      valUnresolvedReps.set(repKey, (valUnresolvedReps.get(repKey) || 0) + 1);
+    }
+  }
+
+  console.log(`Total Base44 leads:                ${leadSamples.all.length}`);
+  console.log(`Named-owner leads (resolved):      ${valNamedResolved}`);
+  console.log(`Named-owner leads (UNRESOLVED):    ${valNamedUnresolved}`);
+  console.log(`Genuinely unassigned (null/empty): ${valGenuinelyUnassigned}`);
+
+  if (valNamedUnresolved > 0) {
+    console.error('\n❌ OWNER RESOLUTION VALIDATION FAILED');
+    console.error(`   ${valNamedUnresolved} named-owner lead(s) have NO Railway owner mapping.`);
+    console.error('   The production migration would throw "Cannot read properties of undefined"');
+    console.error('   or fail closed. No silent fallback will be applied.');
+    console.error('');
+    console.error('   UNRESOLVED assigned_rep values:');
+    for (const [rep, count] of [...valUnresolvedReps.entries()].sort((a, b) => b[1] - a[1])) {
+      console.error(`     ${rep}  (${count} leads)`);
+    }
+    console.error('');
+    console.error('   Fix: ensure every assigned_rep has a Railway owner (run migrateOwnersToRailway.js).');
+    process.exit(1);
+  } else {
+    console.log('✅ All named-owner leads resolve to a Railway owner.');
+  }
+
   // ── Phase 2: Execute real SQL inside a transaction with ALWAYS ROLLBACK ────
   console.log('\n=== PHASE 2: EXECUTE REAL SQL (TRANSACTION → ROLLBACK) ===\n');
 
@@ -129,8 +188,15 @@ async function main() {
     await client.query('ALTER TABLE signnow_documents ADD COLUMN IF NOT EXISTS external_ref TEXT');
     await client.query(`CREATE UNIQUE INDEX IF NOT EXISTS signnow_documents_external_ref_idx ON signnow_documents (external_ref) WHERE external_ref IS NOT NULL`);
 
-    // ── Build owner cache from existing Railway owners ──────────────────────
+    // ── Build owner cache ──────────────────────────────────────────────────
+    // CRITICAL: use buildOwnerCache() (the shared helper) — the SAME function
+    // used by migrateLeadsToRailway.js. This ensures the dry-run exercises the
+    // identical owner-resolution code path as production.
     const ownerCache = await buildOwnerCache();
+
+    // Transaction-local cache for Unassigned owner lookup (may be inserted
+    // inside this transaction). NOT used for resolveOwnerId — that uses
+    // ownerCache to match production exactly.
     const { rows: existingOwnersRows } = await client.query('SELECT id, display_name, email FROM owners WHERE is_active = true');
     const ownerCacheTx = {};
     for (const o of existingOwnersRows) {
@@ -418,7 +484,7 @@ async function main() {
     if (leadSamples.withRep) {
       const lead = leadSamples.withRep;
       try {
-        const ownerId = resolveOwnerId(lead.assigned_rep, ownerCacheTx);
+        const ownerId = resolveOwnerId(lead.assigned_rep, ownerCache);
         if (!ownerId) {
           addResult('Leads (withRep)', { status: 'FAIL', sourceRecord: lead.id, sql: 'INSERT', fk: `owner_id unresolved for "${lead.assigned_rep}"`, before: beforeCounts.leads, error: 'Unresolved owner' });
         } else {
@@ -548,7 +614,7 @@ async function main() {
           let apptTime = lead.appointment_time || lead.follow_up_time || '09:00';
           if (!apptDate) apptDate = '2026-09-01';
 
-          const ownerId = resolveOwnerId(lead.assigned_rep, ownerCacheTx) || Object.values(ownerCacheTx)[0];
+          const ownerId = resolveOwnerId(lead.assigned_rep, ownerCache);
           const startAt = `${apptDate}T09:00:00-07:00`;
           const endAtStr = `${apptDate}T10:00:00-07:00`;
           const apptTypeId = (lead.follow_up_type === 'Phone Call') ? consultationTypeId : meetingTypeId;
