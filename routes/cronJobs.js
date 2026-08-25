@@ -385,4 +385,41 @@ router.post('/dry-run-migration', async (req, res) => {
   }
 });
 
+// ── POST /audit-owner-resolution ────────────────────────────────────────────
+// READ-ONLY validation: verifies every Base44 lead's assigned_rep resolves to
+// a Railway owner. No writes. Safe to run at any time.
+router.post('/audit-owner-resolution', async (req, res) => {
+  const { execFile } = require('child_process');
+  const path = require('path');
+  const fs = require('fs');
+
+  const scriptPath = path.resolve(__dirname, '..', 'scripts', 'auditOwnerResolution.js');
+  if (!fs.existsSync(scriptPath)) {
+    return res.status(404).json({ error: 'auditOwnerResolution.js not found', path: scriptPath });
+  }
+
+  try {
+    execFile('node', [scriptPath], {
+      timeout: 120000,
+      maxBuffer: 10 * 1024 * 1024,
+      env: { ...process.env },
+      cwd: path.resolve(__dirname, '..'),
+    }, (err, stdout, stderr) => {
+      if (err && err.code !== 0) {
+        console.error('[cron] audit-owner-resolution process error:', err.message);
+      }
+      res.json({
+        ok: !err || err.code === 0,
+        exitCode: err ? err.code : 0,
+        stdout,
+        stderr: stderr || '',
+        job: 'audit-owner-resolution',
+      });
+    });
+  } catch (e) {
+    console.error('[cron] audit-owner-resolution error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
