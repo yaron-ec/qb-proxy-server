@@ -94,12 +94,10 @@ async function runAppointmentMigration(queryFn = defaultQuery) {
       const startAt = toTimestamp(apptDate, apptTime);
       if (!startAt) { noDate++; continue; }
 
-      // Default 60 min duration
-      const startDate = new Date(startAt);
-      const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
-      const endAt = endDate.toISOString().replace(/\.000Z$/, '-07:00');
-      // Actually, just construct from the date components
-      const endAtStr = `${apptDate}T${String(endDate.getUTCHours() + 7).padStart(2, '0')}:${String(endDate.getUTCMinutes()).padStart(2, '0')}:00-07:00`;
+      // Default 60 min duration — add 1 hour to start time (same-day, -07:00)
+      const [startH, startM] = parseTimeToHHMM(apptTime).split(':').map(Number);
+      const endH = (startH + 1) % 24;
+      const endAtStr = `${apptDate}T${String(endH).padStart(2, '0')}:${String(startM).padStart(2, '0')}:00-07:00`;
 
       const apptTypeId = apptType === 'General Meeting' ? meetingTypeId : consultationTypeId;
       const idempotencyKey = `migration:appt:${externalRef}`;
