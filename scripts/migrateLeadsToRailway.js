@@ -175,7 +175,7 @@ async function runLeadMigration(queryFn = defaultQuery) {
         }
       }
 
-      const result = await upsertLead(lead, ownerId);
+      const result = await upsertLead(lead, ownerId, queryFn);
       if (result.action === 'created') created++;
       else if (result.action === 'updated') updated++;
       else skipped++;
