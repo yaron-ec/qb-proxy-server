@@ -3,39 +3,26 @@
 /**
  * migrateEstimatesToRailway.js — Idempotent estimate migration from Base44 to Railway.
  *
- * Run on Railway: node scripts/migrateEstimatesToRailway.js
+ * PREREQUISITE: migrateLeadsToRailway.js (estimates.lead_id FK → leads, nullable).
  *
- * Reads ALL estimates from Base44 (via REST API) and upserts them into the
- * Railway `estimates` table with external_ref = Base44 estimate ID.
+ * Railway estimates table has NO CHECK constraints on any column.
+ * lead_id is nullable (ON DELETE SET NULL) — estimates with unresolvable
+ * lead_id are preserved with NULL lead_id (schema-consistent for orphaned records).
  *
- * Maps Base44 `lead_id` (Base44 Lead ObjectId) → Railway leads.id (via external_ref).
- *
- * IDEMPOTENT: uses ON CONFLICT (external_ref) DO UPDATE. Safe to run multiple times.
- * PRESERVES: existing Railway estimate IDs (external_ref is the stable key).
- *
- * Environment:
- *   BASE44_APP_ID, BASE44_API_KEY, BASE44_API_URL (optional)
- *   DATABASE_URL (Railway Postgres)
+ * IDEMPOTENT: ON CONFLICT (external_ref) DO UPDATE.
  */
-const { query } = require('../db/client');
+const { query: defaultQuery } = require('../db/client');
 const { fetchBase44Entity, hasBase44Creds, buildLeadIdCache } = require('./migrationHelpers');
 
-async function main() {
+async function runEstimateMigration(queryFn = defaultQuery) {
   console.log('[migrate-estimates] Starting idempotent estimate migration...');
-  if (!hasBase44Creds()) {
-    console.error('[migrate-estimates] BASE44_APP_ID and BASE44_API_KEY required');
-    process.exit(1);
-  }
 
-  // Build lead ID cache: Base44 Lead ObjectId → Railway leads.id
-  const leadIdCache = await buildLeadIdCache();
+  const leadIdCache = await buildLeadIdCache(queryFn);
   console.log(`[migrate-estimates] Loaded ${Object.keys(leadIdCache).length} lead ID mappings`);
 
-  // Fetch all Base44 estimates
   const base44Estimates = await fetchBase44Entity('Estimate');
   console.log(`[migrate-estimates] Fetched ${base44Estimates.length} estimates from Base44`);
 
-  // Upsert each estimate
   let created = 0, updated = 0, skipped = 0, errors = 0, unresolvedLeadFk = 0;
 
   for (let i = 0; i < base44Estimates.length; i++) {
@@ -46,7 +33,6 @@ async function main() {
 
       const title = est.title || 'Untitled Estimate';
 
-      // Resolve lead_id: Base44 Lead ObjectId → Railway leads.id
       let railwayLeadId = null;
       if (est.lead_id) {
         railwayLeadId = leadIdCache[String(est.lead_id)] || null;
@@ -56,7 +42,6 @@ async function main() {
         }
       }
 
-      // line_items: pass as JSONB
       const lineItems = Array.isArray(est.line_items) ? JSON.stringify(est.line_items) : '[]';
 
       const sql = `
@@ -112,7 +97,7 @@ async function main() {
         est.qb_last_sync_at || null,
       ];
 
-      const { rows } = await query(sql, params);
+      const { rows } = await queryFn(sql, params);
       const inserted = !!(rows[0] && rows[0].inserted);
       if (inserted) created++; else updated++;
 
@@ -133,13 +118,15 @@ async function main() {
   console.log(`Errors: ${errors}`);
   console.log(`Unresolved lead FKs (set to NULL): ${unresolvedLeadFk}`);
 
-  const { rows } = await query('SELECT COUNT(*) as cnt FROM estimates');
+  const { rows } = await queryFn('SELECT COUNT(*) as cnt FROM estimates');
   console.log(`Railway estimates table now has: ${rows[0].cnt} rows`);
 
-  process.exit(0);
+  return { created, updated, skipped, errors, unresolvedLeadFk, total: base44Estimates.length };
 }
 
-main().catch(e => {
-  console.error('[migrate-estimates] fatal:', e);
-  process.exit(1);
-});
+module.exports = { runEstimateMigration };
+
+if (require.main === module) {
+  if (!hasBase44Creds()) { console.error('[migrate-estimates] WORKER_SECRET required'); process.exit(1); }
+  runEstimateMigration().then(() => process.exit(0)).catch(e => { console.error('[migrate-estimates] fatal:', e); process.exit(1); });
+}
