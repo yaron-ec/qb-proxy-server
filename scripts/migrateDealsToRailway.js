@@ -51,11 +51,10 @@ const STAGE_MAP = {
 };
 
 function normalizeStage(stage) {
-  if (!stage) return 'Sold / Estimate Approved';
+  if (!stage) return null; // unknown — fail closed, do not default
   if (STAGE_MAP[stage]) return STAGE_MAP[stage];
   if (ALLOWED_STAGES.has(stage)) return stage;
-  // Unknown stage — default to the first pipeline stage
-  return 'Sold / Estimate Approved';
+  return null; // unknown — fail closed, do not default
 }
 
 // ── Upsert a single deal ─────────────────────────────────────────────────────
@@ -63,6 +62,11 @@ async function upsertDeal(deal, railwayLeadId, queryFn) {
   const legacyBase44Id = deal.id;
   if (!legacyBase44Id) return { action: 'skipped', reason: 'no_id' };
   if (!railwayLeadId) return { action: 'skipped', reason: 'lead_not_found' };
+
+  const normalizedStage = normalizeStage(deal.stage);
+  if (!normalizedStage) {
+    return { action: 'skipped', reason: 'unresolved_stage', originalStage: deal.stage || '(null)' };
+  }
 
   const sql = `
     INSERT INTO deals (
@@ -149,7 +153,7 @@ async function upsertDeal(deal, railwayLeadId, queryFn) {
     String(deal.lead_id || ''),                               // $3 legacy_base44_lead_id
     deal.name || 'Unnamed Deal',                              // $4 name
     deal.amount !== undefined ? num(deal.amount) : null,      // $5 amount
-    normalizeStage(deal.stage),                               // $6 stage (NORMALIZED)
+    normalizedStage,                                          // $6 stage (NORMALIZED, fail-closed)
     deal.pipeline || 'Default Pipeline',                     // $7 pipeline
     date(deal.close_date),                                     // $8 close_date
     ts(deal.sold_date),                                        // $9 sold_date
@@ -205,7 +209,9 @@ async function runDealMigration(queryFn = defaultQuery) {
   console.log(`[migrate-deals] Fetched ${base44Deals.length} deals from Base44`);
 
   let created = 0, updated = 0, skipped = 0, errors = 0, leadNotFound = 0;
+  let unresolvedStageCount = 0;
   const stageNormalizations = {};
+  const unresolvedStages = {};
 
   for (let i = 0; i < base44Deals.length; i++) {
     const deal = base44Deals[i];
@@ -213,10 +219,10 @@ async function runDealMigration(queryFn = defaultQuery) {
       const railwayLeadId = leadIdCache[String(deal.lead_id)] || null;
       if (!railwayLeadId) leadNotFound++;
 
-      // Track stage normalizations
+      // Track stage normalizations (only for resolvable stages)
       const originalStage = deal.stage || '(null)';
       const normalizedStageValue = normalizeStage(deal.stage);
-      if (originalStage !== normalizedStageValue) {
+      if (normalizedStageValue && originalStage !== normalizedStageValue) {
         stageNormalizations[`${originalStage} → ${normalizedStageValue}`] =
           (stageNormalizations[`${originalStage} → ${normalizedStageValue}`] || 0) + 1;
       }
@@ -224,7 +230,10 @@ async function runDealMigration(queryFn = defaultQuery) {
       const result = await upsertDeal(deal, railwayLeadId, queryFn);
       if (result.action === 'created') created++;
       else if (result.action === 'updated') updated++;
-      else skipped++;
+      else if (result.action === 'skipped' && result.reason === 'unresolved_stage') {
+        unresolvedStageCount++;
+        unresolvedStages[result.originalStage] = (unresolvedStages[result.originalStage] || 0) + 1;
+      } else skipped++;
 
       if ((i + 1) % 50 === 0) {
         console.log(`[migrate-deals] Progress: ${i + 1}/${base44Deals.length} (created=${created} updated=${updated})`);
@@ -249,10 +258,20 @@ async function runDealMigration(queryFn = defaultQuery) {
     }
   }
 
+  if (unresolvedStageCount > 0) {
+    console.error(`\n❌ ${unresolvedStageCount} deal(s) have UNKNOWN stage values — FAILING CLOSED`);
+    console.error('   Unresolved stage values:');
+    for (const [stage, count] of Object.entries(unresolvedStages)) {
+      console.error(`     '${stage}': ${count} record(s)`);
+    }
+    console.error('   No deals were inserted with unknown stages. Fix the source data or extend STAGE_MAP.');
+    throw new Error(`${unresolvedStageCount} deal(s) with unknown stage values — migration failed closed`);
+  }
+
   const { rows } = await queryFn('SELECT COUNT(*) as cnt FROM deals');
   console.log(`Railway deals table now has: ${rows[0].cnt} rows`);
 
-  return { created, updated, skipped, errors, leadNotFound, stageNormalizations, total: base44Deals.length };
+  return { created, updated, skipped, errors, leadNotFound, unresolvedStageCount, unresolvedStages, stageNormalizations, total: base44Deals.length };
 }
 
 module.exports = { runDealMigration, normalizeStage };
