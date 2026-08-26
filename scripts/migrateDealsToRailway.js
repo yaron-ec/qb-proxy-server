@@ -17,6 +17,13 @@
  *   Base44 Deal.lead_id      → resolved to Railway leads.id via external_ref
  *   Base44 Deal.*             → deals.* (direct column mapping)
  *
+ * STAGE NORMALIZATION:
+ *   Base44 contains legacy stage values not in the Railway CHECK constraint:
+ *     'Contract Signed' → 'Sold / Estimate Approved'
+ *     'Completed'       → 'Job Completed'
+ *     'Closed Won'      → 'Sold / Estimate Approved'
+ *   Unknown stages default to 'Sold / Estimate Approved'.
+ *
  * IDEMPOTENT: YES (ON CONFLICT (legacy_base44_id) DO UPDATE).
  * SAFE TO RE-RUN: YES. CAN CREATE DUPLICATES: NO.
  *
@@ -26,16 +33,33 @@
  */
 'use strict';
 
-const { query } = require('../db/client');
+const { query: defaultQuery } = require('../db/client');
 const { fetchBase44Entity, hasBase44Creds, buildLeadIdCache } = require('./migrationHelpers');
 
-if (!hasBase44Creds()) {
-  console.error('[migrate-deals] BASE44_APP_ID and BASE44_API_KEY required');
-  process.exit(1);
+// Railway deals.stage CHECK constraint allows only these values.
+const ALLOWED_STAGES = new Set([
+  'Sold / Estimate Approved', 'Deposit Due', 'Deposit Paid', 'Work Scheduled',
+  'Work Started', 'Progress Payment Due', 'Progress Payment Paid',
+  'Final Payment Due', 'Final Payment Paid', 'Job Completed',
+]);
+
+// Legacy Base44 stage values → Railway-canonical stage values.
+const STAGE_MAP = {
+  'Contract Signed': 'Sold / Estimate Approved',
+  'Completed': 'Job Completed',
+  'Closed Won': 'Sold / Estimate Approved',
+};
+
+function normalizeStage(stage) {
+  if (!stage) return 'Sold / Estimate Approved';
+  if (STAGE_MAP[stage]) return STAGE_MAP[stage];
+  if (ALLOWED_STAGES.has(stage)) return stage;
+  // Unknown stage — default to the first pipeline stage
+  return 'Sold / Estimate Approved';
 }
 
 // ── Upsert a single deal ─────────────────────────────────────────────────────
-async function upsertDeal(deal, railwayLeadId) {
+async function upsertDeal(deal, railwayLeadId, queryFn) {
   const legacyBase44Id = deal.id;
   if (!legacyBase44Id) return { action: 'skipped', reason: 'no_id' };
   if (!railwayLeadId) return { action: 'skipped', reason: 'lead_not_found' };
@@ -125,7 +149,7 @@ async function upsertDeal(deal, railwayLeadId) {
     String(deal.lead_id || ''),                               // $3 legacy_base44_lead_id
     deal.name || 'Unnamed Deal',                              // $4 name
     deal.amount !== undefined ? num(deal.amount) : null,      // $5 amount
-    deal.stage || 'Sold / Estimate Approved',                 // $6 stage
+    normalizeStage(deal.stage),                               // $6 stage (NORMALIZED)
     deal.pipeline || 'Default Pipeline',                     // $7 pipeline
     date(deal.close_date),                                     // $8 close_date
     ts(deal.sold_date),                                        // $9 sold_date
@@ -165,22 +189,23 @@ async function upsertDeal(deal, railwayLeadId) {
     num(deal.company_share_amount),                            // $43 company_share_amount
   ];
 
-  const { rows } = await query(sql, params);
+  const { rows } = await queryFn(sql, params);
   const inserted = !!(rows[0] && rows[0].inserted);
   return { action: inserted ? 'created' : 'updated', id: rows[0]?.id };
 }
 
-// ── Main ────────────────────────────────────────────────────────────────────
-async function main() {
+// ── Main migration (exported for rollback validation) ──────────────────────
+async function runDealMigration(queryFn = defaultQuery) {
   console.log('[migrate-deals] Starting idempotent deal migration...');
 
-  const leadIdCache = await buildLeadIdCache();
+  const leadIdCache = await buildLeadIdCache(queryFn);
   console.log(`[migrate-deals] Loaded ${Object.keys(leadIdCache).length} lead ID mappings`);
 
   const base44Deals = await fetchBase44Entity('Deal');
   console.log(`[migrate-deals] Fetched ${base44Deals.length} deals from Base44`);
 
   let created = 0, updated = 0, skipped = 0, errors = 0, leadNotFound = 0;
+  const stageNormalizations = {};
 
   for (let i = 0; i < base44Deals.length; i++) {
     const deal = base44Deals[i];
@@ -188,7 +213,15 @@ async function main() {
       const railwayLeadId = leadIdCache[String(deal.lead_id)] || null;
       if (!railwayLeadId) leadNotFound++;
 
-      const result = await upsertDeal(deal, railwayLeadId);
+      // Track stage normalizations
+      const originalStage = deal.stage || '(null)';
+      const normalizedStageValue = normalizeStage(deal.stage);
+      if (originalStage !== normalizedStageValue) {
+        stageNormalizations[`${originalStage} → ${normalizedStageValue}`] =
+          (stageNormalizations[`${originalStage} → ${normalizedStageValue}`] || 0) + 1;
+      }
+
+      const result = await upsertDeal(deal, railwayLeadId, queryFn);
       if (result.action === 'created') created++;
       else if (result.action === 'updated') updated++;
       else skipped++;
@@ -209,14 +242,28 @@ async function main() {
   console.log(`Skipped: ${skipped}`);
   console.log(`Errors: ${errors}`);
   console.log(`Deals with unresolvable lead_id: ${leadNotFound}`);
+  if (Object.keys(stageNormalizations).length > 0) {
+    console.log('Stage normalizations:');
+    for (const [mapping, count] of Object.entries(stageNormalizations)) {
+      console.log(`  ${mapping}: ${count} record(s)`);
+    }
+  }
 
-  const { rows } = await query('SELECT COUNT(*) as cnt FROM deals');
+  const { rows } = await queryFn('SELECT COUNT(*) as cnt FROM deals');
   console.log(`Railway deals table now has: ${rows[0].cnt} rows`);
 
-  process.exit(0);
+  return { created, updated, skipped, errors, leadNotFound, stageNormalizations, total: base44Deals.length };
 }
 
-main().catch(e => {
-  console.error('[migrate-deals] fatal:', e);
-  process.exit(1);
-});
+module.exports = { runDealMigration, normalizeStage };
+
+if (require.main === module) {
+  if (!hasBase44Creds()) {
+    console.error('[migrate-deals] BASE44_APP_ID and BASE44_API_KEY required');
+    process.exit(1);
+  }
+  runDealMigration().then(() => process.exit(0)).catch(e => {
+    console.error('[migrate-deals] fatal:', e);
+    process.exit(1);
+  });
+}
