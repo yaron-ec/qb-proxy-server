@@ -4,26 +4,25 @@
  * rollbackValidateQbIdentity.js — Production-path rollback validation for
  * the leads.qb_customer_id backfill.
  *
- * PRODUCTION BASELINE: 56 mappings (the accidental write from the buggy
- * validator is treated as the completed backfill). This validator does NOT
- * expect 0 — it expects 56 and proves the migration reproduces exactly 56.
+ * PRODUCTION BASELINE: 56 mappings (the accidental write from the missing-BEGIN
+ * bug already produced the correct canonical state). This validator does NOT
+ * expect 0 — it expects 56 and proves the migration reproduces exactly 56
+ * inside a transaction that is ALWAYS ROLLED BACK.
  *
- * PATTERN: clear-then-rebuild inside a transaction
- *   1. BEFORE: verify withQbCustomerId = 56 (production baseline)
+ * Flow:
+ *   1. BEFORE: audit current production state (56 mappings, all identities)
  *   2. BEGIN
- *   3. Transaction-locally clear ALL qb_customer_id values → verify 0
- *   4. Run the EXACT production runQbCustomerIdMigration() → restores 56
- *   5. Verify all identity assertions (Michael→49, Hannah→61, etc.)
- *   6. Verify all ambiguity/fail-closed assertions
- *   7. ROLLBACK
- *   8. Fresh connection: verify withQbCustomerId = 56 (unchanged)
+ *   3. Transaction-locally CLEAR all qb_customer_id to NULL
+ *   4. Run the EXACT production runQbCustomerIdMigration() — restores 56
+ *   5. IN-TX: verify 56 restored, all identity assertions, fail-closed tests
+ *   6. ROLLBACK
+ *   7. AFTER ROLLBACK (fresh connection): verify original 56 unchanged
  *
  * CRITICAL FIX (2026-08-26):
- *   - Added explicit `BEGIN` before any test write (root cause of the leak).
- *   - Moved `before` to function scope (was const-in-try, invisible to finally).
+ *   - Added explicit BEGIN before any writes (root cause of the original leak).
+ *   - `before` declared in function scope (was const-in-try, invisible to finally).
  *   - Post-rollback verification uses a FRESH pool connection.
- *   - Precondition: before.withQbCustomerId must be 56 (production baseline).
- *   - Postcondition: after-rollback withQbCustomerId must be 56.
+ *   - Baseline is 56, NOT 0 — the accidental write IS the completed backfill.
  */
 const { pool } = require('../db/client');
 const { runQbCustomerIdMigration } = require('./migrateQbCustomerIdToRailway');
@@ -38,7 +37,7 @@ async function rollbackValidate() {
   let before = null; // function-scoped so `finally` can access it
 
   try {
-    // ── 1. Capture baseline counts (BEFORE) ──────────────────────────────
+    // ── 1. BEFORE: audit current production state ────────────────────────
     const { rows: beforeRows } = await client.query(`
       SELECT COUNT(*) as total_leads,
              COUNT(qb_customer_id) as with_qb_customer_id,
@@ -52,41 +51,75 @@ async function rollbackValidate() {
     };
     console.log('[rollback-validate-qb-identity] BEFORE:', before);
 
-    // Precondition: before.withQbCustomerId MUST be 56 (production baseline)
+    // Precondition: before.withQbCustomerId must be 56 (accidental backfill)
     if (before.withQbCustomerId !== EXPECTED_BASELINE) {
-      failures.push(`PRECONDITION FAILED: before.withQbCustomerId should be ${EXPECTED_BASELINE}, got ${before.withQbCustomerId}`);
-    } else {
-      console.log(`[rollback-validate-qb-identity] ✅ BEFORE withQbCustomerId = ${EXPECTED_BASELINE} (production baseline confirmed)`);
+      failures.push(`PRECONDITION: before.withQbCustomerId should be ${EXPECTED_BASELINE}, got ${before.withQbCustomerId}`);
+    }
+    if (before.distinctQbIds !== EXPECTED_BASELINE) {
+      failures.push(`PRECONDITION: before.distinctQbIds should be ${EXPECTED_BASELINE}, got ${before.distinctQbIds}`);
     }
 
-    // ── 2. START TRANSACTION (CRITICAL — without BEGIN, UPDATEs auto-commit) ──
+    // BEFORE identity assertions
+    const { rows: beforeMichael } = await client.query(`SELECT qb_customer_id FROM leads WHERE external_ref = '69f937ee6a0dbf5bfc7ae49b'`);
+    const { rows: beforeHannah } = await client.query(`SELECT qb_customer_id FROM leads WHERE external_ref = '69f937cd99ff3ef2652dc88e'`);
+    const { rows: beforeDavid } = await client.query(`SELECT qb_customer_id FROM leads WHERE external_ref = '69fac331a97f1babcf4a5375'`);
+    const { rows: beforeDesire } = await client.query(`SELECT qb_customer_id FROM leads WHERE external_ref = '69fac33595ee04a5e0fca791'`);
+    const { rows: beforeKunCanon } = await client.query(`SELECT qb_customer_id FROM leads WHERE external_ref = '69f9219281e1d336233e8b1d'`);
+    const { rows: beforeKunDup } = await client.query(`SELECT qb_customer_id FROM leads WHERE external_ref = '69f921b331dad328146ca5ba'`);
+    const { rows: beforeDupes } = await client.query(`
+      SELECT qb_customer_id, COUNT(*) as cnt FROM leads
+      WHERE qb_customer_id IS NOT NULL AND qb_customer_id != ''
+      GROUP BY qb_customer_id HAVING COUNT(*) > 1
+    `);
+
+    if (beforeMichael[0]?.qb_customer_id !== '49') failures.push(`BEFORE Michael Caughey should be QB 49, got ${beforeMichael[0]?.qb_customer_id}`);
+    else console.log('[rollback-validate-qb-identity] ✅ BEFORE Michael Caughey → QB 49');
+    if (beforeHannah[0]?.qb_customer_id !== '61') failures.push(`BEFORE Hannah should be QB 61, got ${beforeHannah[0]?.qb_customer_id}`);
+    else console.log('[rollback-validate-qb-identity] ✅ BEFORE Hannah → QB 61');
+    if (beforeDavid[0]?.qb_customer_id !== '59') failures.push(`BEFORE David should be QB 59, got ${beforeDavid[0]?.qb_customer_id}`);
+    else console.log('[rollback-validate-qb-identity] ✅ BEFORE David → QB 59');
+    if (beforeDesire[0]?.qb_customer_id !== '58') failures.push(`BEFORE Desire should be QB 58, got ${beforeDesire[0]?.qb_customer_id}`);
+    else console.log('[rollback-validate-qb-identity] ✅ BEFORE Desire → QB 58');
+    if (beforeKunCanon[0]?.qb_customer_id !== '46') failures.push(`BEFORE Kun canonical should be QB 46, got ${beforeKunCanon[0]?.qb_customer_id}`);
+    else console.log('[rollback-validate-qb-identity] ✅ BEFORE Kun canonical → QB 46');
+    if (beforeKunDup[0]?.qb_customer_id !== null && beforeKunDup[0]?.qb_customer_id !== '') failures.push(`BEFORE Kun duplicate should be NULL, got ${beforeKunDup[0]?.qb_customer_id}`);
+    else console.log('[rollback-validate-qb-identity] ✅ BEFORE Kun duplicate → NULL');
+    if (beforeDupes.length > 0) failures.push(`BEFORE has ${beforeDupes.length} duplicate qb_customer_id values`);
+    else console.log('[rollback-validate-qb-identity] ✅ BEFORE zero duplicate qb_customer_id values');
+
+    // If BEFORE audit failed, don't proceed to transaction
+    if (failures.length > 0) {
+      console.error('[rollback-validate-qb-identity] BEFORE audit FAILED — aborting before transaction');
+      throw new Error('BEFORE audit failed');
+    }
+
+    // ── 2. BEGIN TRANSACTION (CRITICAL — without BEGIN, UPDATEs auto-commit) ──
     await client.query('BEGIN');
     console.log('[rollback-validate-qb-identity] Transaction started (BEGIN)');
 
-    // ── 3. Transaction-locally clear ALL qb_customer_id values ──────────────
+    // ── 3. Transaction-locally CLEAR all qb_customer_id to NULL ──────────────
+    // This creates a reversible transaction-only state (0 mappings) so the
+    // migration can be proven to restore exactly 56 from scratch.
     const { rowCount: clearedCount } = await client.query(`
       UPDATE leads SET qb_customer_id = NULL, updated_at = NOW()
       WHERE qb_customer_id IS NOT NULL AND qb_customer_id != ''
     `);
-    console.log(`[rollback-validate-qb-identity] In-tx cleared ${clearedCount} qb_customer_id values`);
+    console.log(`[rollback-validate-qb-identity] IN-TX cleared ${clearedCount} qb_customer_id values to NULL`);
 
-    // Verify cleared state inside transaction
-    const { rows: clearedRows } = await client.query(`
-      SELECT COUNT(qb_customer_id) as with_qb_customer_id
-      FROM leads
+    const { rows: afterClearRows } = await client.query(`
+      SELECT COUNT(qb_customer_id) as with_qb_customer_id FROM leads
     `);
-    const clearedCount2 = parseInt(clearedRows[0].with_qb_customer_id, 10);
-    if (clearedCount2 !== 0) {
-      failures.push(`In-tx clear failed: expected 0, got ${clearedCount2}`);
-    } else {
-      console.log('[rollback-validate-qb-identity] ✅ IN-TX after clear: withQbCustomerId = 0');
+    const afterClear = parseInt(afterClearRows[0].with_qb_customer_id, 10);
+    console.log(`[rollback-validate-qb-identity] IN-TX after clear: withQbCustomerId = ${afterClear}`);
+    if (afterClear !== 0) {
+      failures.push(`IN-TX after clear should be 0, got ${afterClear}`);
     }
 
-    // ── 4. Run the EXACT production migration inside transaction ───────────
+    // ── 4. Run the EXACT production migration inside the transaction ──────────
     console.log('[rollback-validate-qb-identity] Running production migration inside transaction...');
     result = await runQbCustomerIdMigration(client.query.bind(client));
 
-    // ── 5. Verify in-transaction state (migration restored 56) ─────────────
+    // ── 5. IN-TX: verify migration restored exactly 56 ───────────────────────
     const { rows: afterRows } = await client.query(`
       SELECT COUNT(*) as total_leads,
              COUNT(qb_customer_id) as with_qb_customer_id,
@@ -98,114 +131,80 @@ async function rollbackValidate() {
       withQbCustomerId: parseInt(afterRows[0].with_qb_customer_id, 10),
       distinctQbIds: parseInt(afterRows[0].distinct_qb_ids, 10),
     };
-    console.log('[rollback-validate-qb-identity] IN-TX after migration:', after);
+    console.log('[rollback-validate-qb-identity] IN-TX (after migration):', after);
 
-    // Check 1: Migration restored exactly 56 mappings
     if (after.withQbCustomerId !== EXPECTED_BASELINE) {
       failures.push(`IN-TX withQbCustomerId should be ${EXPECTED_BASELINE}, got ${after.withQbCustomerId}`);
     } else {
-      console.log(`[rollback-validate-qb-identity] ✅ IN-TX withQbCustomerId = ${EXPECTED_BASELINE} (migration restored all mappings)`);
+      console.log(`[rollback-validate-qb-identity] ✅ IN-TX withQbCustomerId = ${EXPECTED_BASELINE}`);
     }
-
-    // Check 1b: 56 distinct qb_customer_id values (no duplicates)
     if (after.distinctQbIds !== EXPECTED_BASELINE) {
-      failures.push(`IN-TX distinctQbIds should be ${EXPECTED_BASELINE}, got ${after.distinctQbIds} — duplicates exist`);
-    } else {
-      console.log(`[rollback-validate-qb-identity] ✅ IN-TX distinctQbIds = ${EXPECTED_BASELINE} (zero duplicates)`);
+      failures.push(`IN-TX distinctQbIds should be ${EXPECTED_BASELINE}, got ${after.distinctQbIds}`);
     }
 
-    // Check 2: Michael Caughey → QB 49 (NOT 62)
-    const { rows: michaelRows } = await client.query(`
-      SELECT qb_customer_id FROM leads WHERE external_ref = '69f937ee6a0dbf5bfc7ae49b'
-    `);
-    if (michaelRows[0]?.qb_customer_id !== '49') {
-      failures.push(`Michael Caughey should be QB 49, got ${michaelRows[0]?.qb_customer_id}`);
-    } else {
-      console.log('[rollback-validate-qb-identity] ✅ Michael Caughey → QB 49 (correct, NOT 62)');
-    }
+    // IN-TX identity assertions
+    const { rows: michaelRows } = await client.query(`SELECT qb_customer_id FROM leads WHERE external_ref = '69f937ee6a0dbf5bfc7ae49b'`);
+    if (michaelRows[0]?.qb_customer_id !== '49') failures.push(`IN-TX Michael should be QB 49, got ${michaelRows[0]?.qb_customer_id}`);
+    else console.log('[rollback-validate-qb-identity] ✅ IN-TX Michael Caughey → QB 49');
 
-    // Check 3: Hannah → 61
-    const { rows: hannahRows } = await client.query(`
-      SELECT qb_customer_id FROM leads WHERE external_ref = '69f937cd99ff3ef2652dc88e'
-    `);
-    if (hannahRows[0]?.qb_customer_id !== '61') {
-      failures.push(`Hannah should be QB 61, got ${hannahRows[0]?.qb_customer_id}`);
-    } else {
-      console.log('[rollback-validate-qb-identity] ✅ Hannah → QB 61');
-    }
+    const { rows: hannahRows } = await client.query(`SELECT qb_customer_id FROM leads WHERE external_ref = '69f937cd99ff3ef2652dc88e'`);
+    if (hannahRows[0]?.qb_customer_id !== '61') failures.push(`IN-TX Hannah should be QB 61, got ${hannahRows[0]?.qb_customer_id}`);
+    else console.log('[rollback-validate-qb-identity] ✅ IN-TX Hannah → QB 61');
 
-    // Check 4: David → 59
-    const { rows: davidRows } = await client.query(`
-      SELECT qb_customer_id FROM leads WHERE external_ref = '69fac331a97f1babcf4a5375'
-    `);
-    if (davidRows[0]?.qb_customer_id !== '59') {
-      failures.push(`David should be QB 59, got ${davidRows[0]?.qb_customer_id}`);
-    } else {
-      console.log('[rollback-validate-qb-identity] ✅ David → QB 59');
-    }
+    const { rows: davidRows } = await client.query(`SELECT qb_customer_id FROM leads WHERE external_ref = '69fac331a97f1babcf4a5375'`);
+    if (davidRows[0]?.qb_customer_id !== '59') failures.push(`IN-TX David should be QB 59, got ${davidRows[0]?.qb_customer_id}`);
+    else console.log('[rollback-validate-qb-identity] ✅ IN-TX David → QB 59');
 
-    // Check 5: Desire → 58
-    const { rows: desireRows } = await client.query(`
-      SELECT qb_customer_id FROM leads WHERE external_ref = '69fac33595ee04a5e0fca791'
-    `);
-    if (desireRows[0]?.qb_customer_id !== '58') {
-      failures.push(`Desire should be QB 58, got ${desireRows[0]?.qb_customer_id}`);
-    } else {
-      console.log('[rollback-validate-qb-identity] ✅ Desire → QB 58');
-    }
+    const { rows: desireRows } = await client.query(`SELECT qb_customer_id FROM leads WHERE external_ref = '69fac33595ee04a5e0fca791'`);
+    if (desireRows[0]?.qb_customer_id !== '58') failures.push(`IN-TX Desire should be QB 58, got ${desireRows[0]?.qb_customer_id}`);
+    else console.log('[rollback-validate-qb-identity] ✅ IN-TX Desire → QB 58');
 
-    // Check 6: Kun Katsumata duplicate — ONLY canonical lead gets QB 46
-    const { rows: kunCanonical } = await client.query(`
-      SELECT qb_customer_id FROM leads WHERE external_ref = '69f9219281e1d336233e8b1d'
-    `);
-    const { rows: kunDuplicate } = await client.query(`
-      SELECT qb_customer_id FROM leads WHERE external_ref = '69f921b331dad328146ca5ba'
-    `);
-    if (kunCanonical[0]?.qb_customer_id !== '46') {
-      failures.push(`Kun Katsumata canonical should be QB 46, got ${kunCanonical[0]?.qb_customer_id}`);
-    } else {
-      console.log('[rollback-validate-qb-identity] ✅ Kun Katsumata canonical → QB 46');
-    }
-    if (kunDuplicate[0]?.qb_customer_id !== null && kunDuplicate[0]?.qb_customer_id !== undefined && kunDuplicate[0]?.qb_customer_id !== '') {
-      failures.push(`Kun Katsumata duplicate should have NULL qb_customer_id, got ${kunDuplicate[0]?.qb_customer_id}`);
-    } else {
-      console.log('[rollback-validate-qb-identity] ✅ Kun Katsumata duplicate → NULL (excluded, correct)');
-    }
+    const { rows: kunCanonical } = await client.query(`SELECT qb_customer_id FROM leads WHERE external_ref = '69f9219281e1d336233e8b1d'`);
+    if (kunCanonical[0]?.qb_customer_id !== '46') failures.push(`IN-TX Kun canonical should be QB 46, got ${kunCanonical[0]?.qb_customer_id}`);
+    else console.log('[rollback-validate-qb-identity] ✅ IN-TX Kun canonical → QB 46');
 
-    // Check 7: Zero duplicate qb_customer_id values
+    const { rows: kunDuplicate } = await client.query(`SELECT qb_customer_id FROM leads WHERE external_ref = '69f921b331dad328146ca5ba'`);
+    if (kunDuplicate[0]?.qb_customer_id !== null && kunDuplicate[0]?.qb_customer_id !== '') failures.push(`IN-TX Kun duplicate should be NULL, got ${kunDuplicate[0]?.qb_customer_id}`);
+    else console.log('[rollback-validate-qb-identity] ✅ IN-TX Kun duplicate → NULL');
+
+    // IN-TX duplicate check
     const { rows: dupes } = await client.query(`
-      SELECT qb_customer_id, COUNT(*) as cnt, array_agg(external_ref) as refs
-      FROM leads
+      SELECT qb_customer_id, COUNT(*) as cnt FROM leads
       WHERE qb_customer_id IS NOT NULL AND qb_customer_id != ''
-      GROUP BY qb_customer_id
-      HAVING COUNT(*) > 1
+      GROUP BY qb_customer_id HAVING COUNT(*) > 1
     `);
-    if (dupes.length > 0) {
-      failures.push(`Duplicate qb_customer_id values exist: ${JSON.stringify(dupes)}`);
-    } else {
-      console.log('[rollback-validate-qb-identity] ✅ Zero duplicate qb_customer_id values (including QB 46 — Kun duplicate excluded)');
-    }
+    if (dupes.length > 0) failures.push(`IN-TX has ${dupes.length} duplicate qb_customer_id values: ${JSON.stringify(dupes)}`);
+    else console.log('[rollback-validate-qb-identity] ✅ IN-TX zero duplicate qb_customer_id values');
+
+    // IN-TX: no lead with qb_customer_id=62
+    const { rows: noLeadWith62 } = await client.query(`SELECT COUNT(*) as cnt FROM leads WHERE qb_customer_id = '62'`);
+    if (parseInt(noLeadWith62[0].cnt, 10) !== 0) failures.push(`IN-TX a lead has qb_customer_id=62`);
+    else console.log('[rollback-validate-qb-identity] ✅ IN-TX no lead has qb_customer_id=62');
+
+    // IN-TX: QB 46 maps to exactly 1 lead
+    const { rows: qb46Count } = await client.query(`SELECT COUNT(*) as cnt FROM leads WHERE qb_customer_id = '46'`);
+    if (parseInt(qb46Count[0].cnt, 10) !== 1) failures.push(`IN-TX QB 46 should map to 1 lead, got ${qb46Count[0].cnt}`);
+    else console.log('[rollback-validate-qb-identity] ✅ IN-TX QB 46 maps to exactly 1 lead');
 
     // ── findMatchingLead() production-path tests ─────────────────────────
     const { rows: leadsWithQb } = await client.query(`
       SELECT id, external_ref, first_name, last_name, email, phone, property_address, qb_customer_id
-      FROM leads
-      WHERE qb_customer_id IS NOT NULL AND qb_customer_id != ''
+      FROM leads WHERE qb_customer_id IS NOT NULL AND qb_customer_id != ''
     `);
 
-    // Check 8: Priority 0 — exact lookup returns correct lead (Michael Caughey / QB 49)
+    // Priority 0: exact lookup returns correct lead
     const michaelLead = leadsWithQb.find(l => l.external_ref === '69f937ee6a0dbf5bfc7ae49b');
     if (michaelLead) {
       const qbCustomer49 = { Id: '49', DisplayName: 'Some Other Name', PrimaryPhone: { FreeFormNumber: '555-0000' } };
       const match = findMatchingLead(qbCustomer49, leadsWithQb);
       if (match && match.external_ref === '69f937ee6a0dbf5bfc7ae49b') {
-        console.log('[rollback-validate-qb-identity] ✅ Priority 0: QB customer 49 → Michael Caughey (exact persisted match)');
+        console.log('[rollback-validate-qb-identity] ✅ Priority 0: QB 49 → Michael Caughey (exact persisted match)');
       } else {
-        failures.push(`Priority 0 matching failed: QB customer 49 should match Michael Caughey, got ${match?.external_ref || 'null'}`);
+        failures.push(`Priority 0: QB 49 should match Michael, got ${match?.external_ref || 'null'}`);
       }
     }
 
-    // Check 9: Priority 0 — AMBIGUOUS match FAILS CLOSED
+    // Priority 0: AMBIGUOUS match FAILS CLOSED
     {
       const fakeLeads = [
         { id: 'lead-a', external_ref: 'dup-a', first_name: 'Kun', last_name: 'Katsumata', email: 'a@test.com', phone: '', property_address: '', qb_customer_id: '46' },
@@ -214,30 +213,10 @@ async function rollbackValidate() {
       const qbCustomer46 = { Id: '46', DisplayName: 'Kun Katsumata', PrimaryPhone: { FreeFormNumber: '408-515-3991' }, PrimaryEmailAddr: { Address: 'b@test.com' } };
       const match = findMatchingLead(qbCustomer46, fakeLeads);
       if (match === null) {
-        console.log('[rollback-validate-qb-identity] ✅ Priority 0 AMBIGUOUS: QB customer 46 → null (fail closed, NOT first match)');
+        console.log('[rollback-validate-qb-identity] ✅ Priority 0 AMBIGUOUS: QB 46 → null (fail closed)');
       } else {
-        failures.push(`Priority 0 ambiguous match should return null (fail closed), got ${match.id}`);
+        failures.push(`Priority 0 ambiguous should return null, got ${match.id}`);
       }
-    }
-
-    // Check 10: No lead has qb_customer_id=62 (Property value discarded)
-    const { rows: noLeadWith62 } = await client.query(`
-      SELECT COUNT(*) as cnt FROM leads WHERE qb_customer_id = '62'
-    `);
-    if (parseInt(noLeadWith62[0].cnt, 10) === 0) {
-      console.log('[rollback-validate-qb-identity] ✅ No lead has qb_customer_id=62 (Property value discarded — correct)');
-    } else {
-      failures.push(`A lead has qb_customer_id=62 — Property value was incorrectly migrated`);
-    }
-
-    // Check 11: QB 46 maps to exactly 1 lead (Kun duplicate excluded)
-    const { rows: kun46Count } = await client.query(`
-      SELECT COUNT(*) as cnt FROM leads WHERE qb_customer_id = '46'
-    `);
-    if (parseInt(kun46Count[0].cnt, 10) === 1) {
-      console.log('[rollback-validate-qb-identity] ✅ QB 46 maps to exactly 1 lead (Kun duplicate excluded)');
-    } else {
-      failures.push(`QB 46 should map to exactly 1 lead, got ${kun46Count[0].cnt}`);
     }
 
   } catch (e) {
@@ -255,7 +234,7 @@ async function rollbackValidate() {
     }
     client.release();
 
-    // ── 7. Verify rollback on a FRESH connection ──────────────────────────
+    // ── 7. Verify rollback on a FRESH connection ───────────────────────────
     const freshClient = await pool.connect();
     try {
       const { rows: afterRollback } = await freshClient.query(`
@@ -274,21 +253,48 @@ async function rollbackValidate() {
       if (!before) {
         failures.push('before was never captured (unexpected early failure)');
       } else {
-        // Check 12: before-count == after-rollback-count
         if (afterRb.totalLeads !== before.totalLeads) {
           failures.push(`total_leads changed: ${before.totalLeads} → ${afterRb.totalLeads}`);
         }
         if (afterRb.withQbCustomerId !== before.withQbCustomerId) {
-          failures.push(`with_qb_customer_id changed: ${before.withQbCustomerId} → ${afterRb.withQbCustomerId}`);
+          failures.push(`with_qb_customer_id changed: ${before.withQbCustomerId} → ${afterRb.withQbCustomerId} — ROLLBACK LEAK`);
         }
-        // Postcondition: AFTER ROLLBACK withQbCustomerId MUST be 56
         if (afterRb.withQbCustomerId !== EXPECTED_BASELINE) {
-          failures.push(`POST-ROLLBACK LEAK: with_qb_customer_id should be ${EXPECTED_BASELINE} after rollback, got ${afterRb.withQbCustomerId}`);
+          failures.push(`POST-ROLLBACK withQbCustomerId should be ${EXPECTED_BASELINE}, got ${afterRb.withQbCustomerId}`);
         } else {
-          console.log(`[rollback-validate-qb-identity] ✅ AFTER ROLLBACK withQbCustomerId = ${EXPECTED_BASELINE} (original mappings unchanged)`);
+          console.log(`[rollback-validate-qb-identity] ✅ AFTER ROLLBACK withQbCustomerId = ${EXPECTED_BASELINE} (original 56 preserved)`);
         }
-        if (afterRb.totalLeads === before.totalLeads && afterRb.withQbCustomerId === before.withQbCustomerId && afterRb.withQbCustomerId === EXPECTED_BASELINE) {
-          console.log('[rollback-validate-qb-identity] ✅ Rollback verified — production 56 mappings unchanged');
+        if (afterRb.distinctQbIds !== EXPECTED_BASELINE) {
+          failures.push(`POST-ROLLBACK distinctQbIds should be ${EXPECTED_BASELINE}, got ${afterRb.distinctQbIds}`);
+        }
+
+        // Post-rollback identity spot-checks
+        const { rows: rbMichael } = await freshClient.query(`SELECT qb_customer_id FROM leads WHERE external_ref = '69f937ee6a0dbf5bfc7ae49b'`);
+        if (rbMichael[0]?.qb_customer_id !== '49') failures.push(`POST-ROLLBACK Michael should be QB 49, got ${rbMichael[0]?.qb_customer_id}`);
+        else console.log('[rollback-validate-qb-identity] ✅ POST-ROLLBACK Michael Caughey → QB 49');
+
+        const { rows: rbKunCanon } = await freshClient.query(`SELECT qb_customer_id FROM leads WHERE external_ref = '69f9219281e1d336233e8b1d'`);
+        if (rbKunCanon[0]?.qb_customer_id !== '46') failures.push(`POST-ROLLBACK Kun canonical should be QB 46, got ${rbKunCanon[0]?.qb_customer_id}`);
+        else console.log('[rollback-validate-qb-identity] ✅ POST-ROLLBACK Kun canonical → QB 46');
+
+        const { rows: rbKunDup } = await freshClient.query(`SELECT qb_customer_id FROM leads WHERE external_ref = '69f921b331dad328146ca5ba'`);
+        if (rbKunDup[0]?.qb_customer_id !== null && rbKunDup[0]?.qb_customer_id !== '') failures.push(`POST-ROLLBACK Kun duplicate should be NULL, got ${rbKunDup[0]?.qb_customer_id}`);
+        else console.log('[rollback-validate-qb-identity] ✅ POST-ROLLBACK Kun duplicate → NULL');
+
+        const { rows: rbDupes } = await freshClient.query(`
+          SELECT COUNT(*) as cnt FROM (
+            SELECT qb_customer_id FROM leads WHERE qb_customer_id IS NOT NULL AND qb_customer_id != ''
+            GROUP BY qb_customer_id HAVING COUNT(*) > 1
+          ) d
+        `);
+        if (parseInt(rbDupes[0].cnt, 10) > 0) failures.push(`POST-ROLLBACK has duplicate qb_customer_id values`);
+        else console.log('[rollback-validate-qb-identity] ✅ POST-ROLLBACK zero duplicate qb_customer_id values');
+
+        if (afterRb.totalLeads === before.totalLeads
+            && afterRb.withQbCustomerId === before.withQbCustomerId
+            && afterRb.withQbCustomerId === EXPECTED_BASELINE
+            && afterRb.distinctQbIds === EXPECTED_BASELINE) {
+          console.log('[rollback-validate-qb-identity] ✅ Rollback verified — original 56 mappings unchanged in production');
         }
       }
     } finally {
@@ -299,8 +305,9 @@ async function rollbackValidate() {
   // ── Final report ────────────────────────────────────────────────────────
   console.log('\n=== QB IDENTITY ROLLBACK VALIDATION COMPLETE ===');
   console.log(`BEFORE:       withQbCustomerId = ${before ? before.withQbCustomerId : 'N/A'}`);
-  console.log(`IN-TX:        withQbCustomerId = ${result ? result.updated + (before ? before.withQbCustomerId : 0) : 'N/A'} (migration result: ${JSON.stringify(result)})`);
-  console.log(`AFTER ROLLBACK: withQbCustomerId = 56 (verified via fresh connection)`);
+  console.log(`IN-TX:        withQbCustomerId = ${result ? result.updated + (before ? before.withQbCustomerId - before.withQbCustomerId : 0) : 'N/A'} (migration updated ${result ? result.updated : 'N/A'})`);
+  console.log(`AFTER ROLLBACK: withQbCustomerId = (see fresh connection output above)`);
+  console.log(`Migration result: ${JSON.stringify(result)}`);
   console.log(`Validation failures: ${failures.length}`);
 
   if (failures.length > 0) {
@@ -309,7 +316,7 @@ async function rollbackValidate() {
     process.exit(1);
   }
 
-  console.log('\n✅ ALL VALIDATION CHECKS PASSED — production backfill verified, rollback clean');
+  console.log('\n✅ ALL VALIDATION CHECKS PASSED — production backfill verified, rollback is clean');
   process.exit(0);
 }
 
