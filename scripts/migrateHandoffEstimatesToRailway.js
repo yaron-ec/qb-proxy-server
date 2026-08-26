@@ -1,4 +1,5 @@
 /* eslint-disable no-undef */
+'use strict';
 /**
  * migrateHandoffEstimatesToRailway.js — Idempotent handoff estimate migration.
  *
@@ -14,18 +15,15 @@
  * Only resolves lead_id for estimates with match_status='matched'.
  *
  * IDEMPOTENT: YES. SAFE TO RE-RUN: YES.
+ *
+ * Exports runHandoffEstimateMigration(queryFn) for rollback validation.
  */
 'use strict';
 
-const { query } = require('../db/client');
+const { query: defaultQuery } = require('../db/client');
 const { fetchBase44Entity, hasBase44Creds, buildLeadIdCache } = require('./migrationHelpers');
 
-if (!hasBase44Creds()) {
-  console.error('[migrate-handoff] BASE44_APP_ID and BASE44_API_KEY required');
-  process.exit(1);
-}
-
-async function upsertHandoffEstimate(est, railwayLeadId) {
+async function upsertHandoffEstimate(est, railwayLeadId, queryFn) {
   const externalRef = est.id;
   if (!externalRef) return { action: 'skipped', reason: 'no_id' };
 
@@ -99,38 +97,63 @@ async function upsertHandoffEstimate(est, railwayLeadId) {
     est.raw_payload ? String(est.raw_payload).slice(0, 2000) : null,
   ];
 
-  const { rows } = await query(sql, params);
+  const { rows } = await queryFn(sql, params);
   return { action: rows[0]?.inserted ? 'created' : 'updated', id: rows[0]?.id };
 }
 
-async function main() {
+async function runHandoffEstimateMigration(queryFn = defaultQuery) {
   console.log('[migrate-handoff] Starting idempotent handoff estimate migration...');
-  const leadIdCache = await buildLeadIdCache();
+  const leadIdCache = await buildLeadIdCache(queryFn);
   console.log(`[migrate-handoff] Loaded ${Object.keys(leadIdCache).length} lead ID mappings`);
 
   const base44Estimates = await fetchBase44Entity('HandoffEstimate');
   console.log(`[migrate-handoff] Fetched ${base44Estimates.length} estimates from Base44`);
 
-  let created = 0, updated = 0, skipped = 0, errors = 0;
+  let created = 0, updated = 0, skipped = 0, errors = 0, unresolvedLeadFk = 0;
+  const errorDetails = [];
+
   for (let i = 0; i < base44Estimates.length; i++) {
     const est = base44Estimates[i];
     try {
-      const railwayLeadId = est.lead_id ? (leadIdCache[String(est.lead_id)] || null) : null;
-      const result = await upsertHandoffEstimate(est, railwayLeadId);
+      let railwayLeadId = null;
+      if (est.lead_id) {
+        railwayLeadId = leadIdCache[String(est.lead_id)] || null;
+        if (!railwayLeadId) {
+          unresolvedLeadFk++;
+          console.warn(`[migrate-handoff] Estimate ${est.id} has lead_id ${est.lead_id} with no Railway mapping — lead_id set to NULL`);
+        }
+      }
+      const result = await upsertHandoffEstimate(est, railwayLeadId, queryFn);
       if (result.action === 'created') created++;
       else if (result.action === 'updated') updated++;
       else skipped++;
     } catch (e) {
       errors++;
+      errorDetails.push({ id: est.id, error: e.message });
       if (errors <= 5) console.error(`[migrate-handoff] Error on ${est.id}: ${e.message}`);
     }
   }
 
   console.log('\n=== HANDOFF ESTIMATE MIGRATION COMPLETE ===');
-  console.log(`Total: ${base44Estimates.length}, Created: ${created}, Updated: ${updated}, Skipped: ${skipped}, Errors: ${errors}`);
-  const { rows } = await query('SELECT COUNT(*) as cnt FROM handoff_estimates');
+  console.log(`Total Base44 estimates: ${base44Estimates.length}`);
+  console.log(`Created in Railway: ${created}`);
+  console.log(`Updated in Railway: ${updated}`);
+  console.log(`Skipped: ${skipped}`);
+  console.log(`Errors: ${errors}`);
+  console.log(`Unresolved lead FKs (set to NULL): ${unresolvedLeadFk}`);
+
+  const { rows } = await queryFn('SELECT COUNT(*) as cnt FROM handoff_estimates');
   console.log(`Railway handoff_estimates table now has: ${rows[0].cnt} rows`);
-  process.exit(0);
+
+  return { created, updated, skipped, errors, unresolvedLeadFk, total: base44Estimates.length, errorDetails };
 }
 
-main().catch(e => { console.error('[migrate-handoff] fatal:', e); process.exit(1); });
+module.exports = { runHandoffEstimateMigration, upsertHandoffEstimate };
+
+if (require.main === module) {
+  if (!hasBase44Creds()) {
+    console.error('[migrate-handoff] BASE44_APP_ID and BASE44_API_KEY required');
+    process.exit(1);
+  }
+  runHandoffEstimateMigration().then(() => process.exit(0)).catch(e => { console.error('[migrate-handoff] fatal:', e); process.exit(1); });
+}
