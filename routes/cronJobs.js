@@ -500,6 +500,45 @@ router.post('/rollback-validate-deals', async (req, res) => {
   }
 });
 
+// ── POST /rollback-validate-estimates ─────────────────────────────────────────
+// Production-path rollback validation for Estimates: runs the EXACT same
+// runEstimateMigration() function used by the production script, inside a
+// transaction that is ALWAYS ROLLED BACK. Validates FK resolution (lead_id,
+// nullable for orphans), field constraints, and all 191 Base44 estimates.
+router.post('/rollback-validate-estimates', async (req, res) => {
+  const { execFile } = require('child_process');
+  const path = require('path');
+  const fs = require('fs');
+
+  const scriptPath = path.resolve(__dirname, '..', 'scripts', 'rollbackValidateEstimates.js');
+  if (!fs.existsSync(scriptPath)) {
+    return res.status(404).json({ error: 'rollbackValidateEstimates.js not found', path: scriptPath });
+  }
+
+  try {
+    execFile('node', [scriptPath], {
+      timeout: 180000,
+      maxBuffer: 20 * 1024 * 1024,
+      env: { ...process.env },
+      cwd: path.resolve(__dirname, '..'),
+    }, (err, stdout, stderr) => {
+      if (err && err.code !== 0) {
+        console.error('[cron] rollback-validate-estimates process error:', err.message);
+      }
+      res.json({
+        ok: !err || err.code === 0,
+        exitCode: err ? err.code : 0,
+        stdout,
+        stderr: stderr || '',
+        job: 'rollback-validate-estimates',
+      });
+    });
+  } catch (e) {
+    console.error('[cron] rollback-validate-estimates error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── POST /rollback-validate-invoices ──────────────────────────────────────────
 // Production-path rollback validation for Invoices: runs the EXACT same
 // runInvoiceMigration() function used by the production script, inside a
