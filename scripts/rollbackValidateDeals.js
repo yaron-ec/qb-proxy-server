@@ -43,30 +43,44 @@ async function main() {
   const base44Deals = await fetchBase44Entity('Deal');
   console.log(`Total Base44 deals: ${base44Deals.length}`);
 
-  // Stage audit
+  // Stage audit — classify each stage as ALLOWED, MAPPED (via STAGE_MAP), or UNKNOWN (fail-closed)
   const stageCounts = {};
-  const unsupportedStages = {};
+  const mappedStages = {};
+  const unknownStages = {};
   for (const d of base44Deals) {
     const stage = d.stage || '(null)';
     stageCounts[stage] = (stageCounts[stage] || 0) + 1;
-    if (!ALLOWED_STAGES.has(stage) && stage !== '(null)') {
-      unsupportedStages[stage] = (unsupportedStages[stage] || 0) + 1;
+    const normalized = normalizeStage(stage);
+    if (normalized === null) {
+      unknownStages[stage] = (unknownStages[stage] || 0) + 1;
+    } else if (stage !== normalized) {
+      mappedStages[`${stage} → ${normalized}`] = (mappedStages[`${stage} → ${normalized}`] || 0) + 1;
     }
   }
 
   console.log('Stage value distribution:');
   for (const [stage, cnt] of Object.entries(stageCounts).sort((a, b) => b[1] - a[1])) {
-    const allowed = ALLOWED_STAGES.has(stage) ? 'ALLOWED' : `UNSUPPORTED → will normalize to "${normalizeStage(stage)}"`;
-    console.log(`  ${stage.padEnd(30)} ${String(cnt).padStart(4)}  ${allowed}`);
+    const normalized = normalizeStage(stage);
+    const label = normalized === null ? 'UNKNOWN → will FAIL CLOSED'
+      : normalized !== stage ? `MAPPED → "${normalized}"`
+      : 'ALLOWED';
+    console.log(`  ${stage.padEnd(30)} ${String(cnt).padStart(4)}  ${label}`);
   }
 
-  if (Object.keys(unsupportedStages).length > 0) {
-    console.log('\n⚠️  UNSUPPORTED STAGE VALUES DETECTED — migration will normalize:');
-    for (const [stage, cnt] of Object.entries(unsupportedStages)) {
-      console.log(`  '${stage}' → '${normalizeStage(stage)}': ${cnt} record(s)`);
+  if (Object.keys(mappedStages).length > 0) {
+    console.log('\nStage normalizations (explicit deterministic mappings):');
+    for (const [mapping, count] of Object.entries(mappedStages)) {
+      console.log(`  ${mapping}: ${count} record(s)`);
+    }
+  }
+
+  if (Object.keys(unknownStages).length > 0) {
+    console.log('\n❌ UNKNOWN STAGE VALUES — migration will FAIL CLOSED on these:');
+    for (const [stage, cnt] of Object.entries(unknownStages)) {
+      console.log(`  '${stage}': ${cnt} record(s)`);
     }
   } else {
-    console.log('✅ All stage values are allowed by the Railway constraint');
+    console.log('\n✅ No unknown stage values — all stages are allowed or have explicit mappings');
   }
 
   // FK audit — check lead_id resolution against Base44 leads
@@ -141,6 +155,7 @@ async function main() {
       { name: 'Total deals processed',              actual: result.total,           expected: result.total,           pass: true },
       { name: 'Write errors',                        actual: result.errors,          expected: 0,                      pass: result.errors === 0 },
       { name: 'FK resolved (lead_id found)',         actual: result.total - result.leadNotFound, expected: result.total, pass: result.leadNotFound === 0 },
+      { name: 'Unknown stages (fail-closed)',         actual: result.unresolvedStageCount || 0, expected: 0, pass: (result.unresolvedStageCount || 0) === 0 },
       { name: 'Stage normalizations applied',         actual: expectedNormalizations, expected: expectedNormalizations, pass: true },
       { name: 'In-tx deals count',                   actual: inTxDeals,              expected: expectedInTxDeals,      pass: inTxDeals === expectedInTxDeals },
       { name: 'In-tx deals with legacy_base44_id',   actual: inTxDealsWithLegacy,   expected: beforeDealsWithLegacy + result.created, pass: inTxDealsWithLegacy === beforeDealsWithLegacy + result.created },
