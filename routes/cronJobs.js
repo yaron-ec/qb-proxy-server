@@ -422,6 +422,45 @@ router.post('/audit-owner-resolution', async (req, res) => {
   }
 });
 
+// ── POST /rollback-validate-activities ────────────────────────────────────────
+// Production-path rollback validation for Activities: runs the EXACT same
+// runActivityMigration() function used by the production script, inside a
+// transaction that is ALWAYS ROLLED BACK. Validates source normalization,
+// orphan handling, and all 5916 activities.
+router.post('/rollback-validate-activities', async (req, res) => {
+  const { execFile } = require('child_process');
+  const path = require('path');
+  const fs = require('fs');
+
+  const scriptPath = path.resolve(__dirname, '..', 'scripts', 'rollbackValidateActivities.js');
+  if (!fs.existsSync(scriptPath)) {
+    return res.status(404).json({ error: 'rollbackValidateActivities.js not found', path: scriptPath });
+  }
+
+  try {
+    execFile('node', [scriptPath], {
+      timeout: 180000,
+      maxBuffer: 20 * 1024 * 1024,
+      env: { ...process.env },
+      cwd: path.resolve(__dirname, '..'),
+    }, (err, stdout, stderr) => {
+      if (err && err.code !== 0) {
+        console.error('[cron] rollback-validate-activities process error:', err.message);
+      }
+      res.json({
+        ok: !err || err.code === 0,
+        exitCode: err ? err.code : 0,
+        stdout,
+        stderr: stderr || '',
+        job: 'rollback-validate-activities',
+      });
+    });
+  } catch (e) {
+    console.error('[cron] rollback-validate-activities error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── POST /rollback-validate-leads-appts ──────────────────────────────────────
 // Production-path rollback validation: runs the EXACT same runLeadMigration()
 // and runAppointmentMigration() functions used by the production scripts,
