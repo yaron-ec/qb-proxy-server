@@ -96,6 +96,101 @@ async function main() {
     console.log(`${entity}: ${samples[entity].total} total records${samples[entity].error ? ` (ERROR: ${samples[entity].error})` : ''}`);
   }
 
+  // ── Phase 1.4: Activity Source Audit (ALL Base44 activities) ────────────
+  // Catches unsupported source values BEFORE the full migration runs.
+  console.log('\n=== PHASE 1.4: ACTIVITY SOURCE AUDIT (ALL ACTIVITIES) ===\n');
+
+  const ALLOWED_SOURCES = new Set(['hubspot', 'gmail', 'calendar', 'manual']);
+  const allActivitiesForSourceAudit = await fetchBase44Entity('Activity', 10000);
+  const activitySourceCounts = {};
+  const unsupportedSources = {};
+
+  for (const a of allActivitiesForSourceAudit) {
+    const src = a.source || '(null)';
+    activitySourceCounts[src] = (activitySourceCounts[src] || 0) + 1;
+    if (!ALLOWED_SOURCES.has(src) && src !== '(null)') {
+      unsupportedSources[src] = (unsupportedSources[src] || 0) + 1;
+    }
+  }
+
+  console.log(`Total activities: ${allActivitiesForSourceAudit.length}`);
+  console.log('Source distribution:');
+  for (const [src, cnt] of Object.entries(activitySourceCounts).sort((a, b) => b[1] - a[1])) {
+    const allowed = ALLOWED_SOURCES.has(src) ? 'ALLOWED' : 'UNSUPPORTED → will normalize to manual';
+    console.log(`  ${src.padEnd(20)} ${String(cnt).padStart(5)}  ${allowed}`);
+  }
+
+  if (Object.keys(unsupportedSources).length > 0) {
+    console.log('\n⚠️  UNSUPPORTED SOURCE VALUES DETECTED — migration will normalize to "manual":');
+    for (const [src, cnt] of Object.entries(unsupportedSources)) {
+      console.log(`  '${src}': ${cnt} record(s)`);
+    }
+    console.log('   These will be normalized to "manual" by migrateActivitiesToRailway.js');
+  } else {
+    console.log('✅ All activity source values are allowed by the Railway constraint');
+  }
+
+  // ── Phase 1.4b: Horizontal FK Audit (ALL datasets) ──────────────────────
+  // Checks FK resolution for every dataset BEFORE execution, so orphan-FK
+  // problems are visible upfront, not discovered one dataset at a time.
+  console.log('\n=== PHASE 1.4b: HORIZONTAL FK AUDIT (ALL DATASETS) ===\n');
+
+  const allLeadsForFkAudit = await fetchBase44Entity('Lead', 10000);
+  const allDealsForFkAudit = await fetchBase44Entity('Deal', 10000);
+  const base44LeadIdsFk = new Set(allLeadsForFkAudit.map(l => l.id));
+  const base44DealIdsFk = new Set(allDealsForFkAudit.map(d => d.id));
+
+  const fkEntities = [
+    { name: 'Activity', entity: 'Activity', fkField: 'lead_id' },
+    { name: 'Estimate', entity: 'Estimate', fkField: 'lead_id' },
+    { name: 'HandoffEstimate', entity: 'HandoffEstimate', fkField: 'lead_id' },
+    { name: 'SignNowDocument', entity: 'SignNowDocument', fkField: 'lead_id' },
+    { name: 'Task', entity: 'Task', fkField: 'lead_id' },
+    { name: 'Invoice', entity: 'Invoice', fkField: 'lead_id' },
+    { name: 'LeadSubmission', entity: 'LeadSubmission', fkField: 'lead_id' },
+    { name: 'LeadAttachment', entity: 'LeadAttachment', fkField: 'lead_id' },
+    { name: 'DealExpense', entity: 'DealExpense', fkField: 'lead_id' },
+    { name: 'DealExpense', entity: 'DealExpense', fkField: 'deal_id', isDeal: true },
+    { name: 'DealExpensePayment', entity: 'DealExpensePayment', fkField: 'deal_id', isDeal: true },
+    { name: 'DealCommission', entity: 'DealCommission', fkField: 'deal_id', isDeal: true },
+    { name: 'DealLoanPayment', entity: 'DealLoanPayment', fkField: 'deal_id', isDeal: true },
+  ];
+
+  console.log('DATASET               TOTAL   FK FIELD    WITH_FK   RESOLVED  UNRESOLVED  DISTINCT_UNRESOLVED');
+  console.log('──────────────────    ──────  ──────────  ────────  ────────  ──────────  ───────────────────');
+
+  let totalUnresolvedFk = 0;
+
+  for (const { name, entity, fkField, isDeal } of fkEntities) {
+    try {
+      const records = await fetchBase44Entity(entity, 10000);
+      let withFk = 0, resolved = 0, unresolved = 0;
+      const unresolvedIds = new Set();
+      const idSet = isDeal ? base44DealIdsFk : base44LeadIdsFk;
+
+      for (const r of records) {
+        if (r[fkField]) {
+          withFk++;
+          if (idSet.has(r[fkField])) resolved++;
+          else { unresolved++; unresolvedIds.add(r[fkField]); }
+        }
+      }
+
+      totalUnresolvedFk += unresolved;
+      console.log(`${name.padEnd(20)}  ${String(records.length).padStart(6)}  ${fkField.padEnd(10)}  ${String(withFk).padStart(8)}  ${String(resolved).padStart(8)}  ${String(unresolved).padStart(10)}  ${String(unresolvedIds.size).padStart(19)}`);
+    } catch (e) {
+      console.log(`${name.padEnd(20)}  ERROR: ${e.message}`);
+    }
+  }
+
+  if (totalUnresolvedFk > 0) {
+    console.log(`\n⚠️  TOTAL UNRESOLVED FK REFERENCES: ${totalUnresolvedFk}`);
+    console.log('   Activities: orphaned (lead_id NULL + original_lead_ref preserved)');
+    console.log('   Other datasets: will be skipped or handled per migration script logic');
+  } else {
+    console.log('\n✅ All FK references resolve — no orphan data');
+  }
+
   // ── Phase 1.5: Owner Resolution Validation (ALL Base44 leads) ────────────
   // This is the critical check the previous dry-run was missing. It exercises
   // the EXACT same code path as migrateLeadsToRailway.js (buildOwnerCache() +
