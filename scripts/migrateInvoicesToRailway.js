@@ -5,15 +5,24 @@
  *
  * PREREQUISITE: migrateLeadsToRailway.js AND migrateDealsToRailway.js.
  * (invoices.lead_id FK → leads, invoices.deal_id FK → deals)
+ *
+ * Railway invoices table has NO CHECK constraints on any column — all text
+ * fields accept any value. The Base44 enum defaults (status='draft',
+ * payment_status='unpaid', etc.) are preserved via null-coalescing, but
+ * since Base44 enforces these enums, null/empty should never occur.
+ *
+ * IDEMPOTENT: ON CONFLICT (external_ref) DO UPDATE.
  */
-const { query } = require('../db/client');
+const { query: defaultQuery } = require('../db/client');
 const { fetchBase44Entity, buildLeadIdCache, buildDealIdCache, hasBase44Creds } = require('./migrationHelpers');
 
-async function main() {
+async function runInvoiceMigration(queryFn = defaultQuery) {
   console.log('[migrate-invoices] Starting invoice migration...');
-  if (!hasBase44Creds()) { console.error('[migrate-invoices] BASE44_APP_ID and BASE44_API_KEY required'); process.exit(1); }
 
-  const [leadIdCache, dealIdCache] = await Promise.all([buildLeadIdCache(), buildDealIdCache()]);
+  const [leadIdCache, dealIdCache] = await Promise.all([
+    buildLeadIdCache(queryFn),
+    buildDealIdCache(queryFn),
+  ]);
   console.log(`[migrate-invoices] Loaded ${Object.keys(leadIdCache).length} lead, ${Object.keys(dealIdCache).length} deal mappings`);
 
   const base44Invoices = await fetchBase44Entity('Invoice');
@@ -33,7 +42,7 @@ async function main() {
       const num = (v) => (v !== null && v !== undefined && !isNaN(Number(v))) ? Number(v) : 0;
       const emailRecipients = Array.isArray(inv.email_recipients) ? JSON.stringify(inv.email_recipients) : '[]';
 
-      const { rows } = await query(`
+      const { rows } = await queryFn(`
         INSERT INTO invoices (
           external_ref, lead_id, deal_id, invoice_number, amount, description,
           payment_stage, due_date, status, qb_invoice_id, qb_invoice_number,
@@ -94,9 +103,15 @@ async function main() {
   console.log(`\n=== INVOICE MIGRATION COMPLETE ===`);
   console.log(`Total: ${base44Invoices.length}, Created: ${created}, Updated: ${updated}, Skipped: ${skipped}, Errors: ${errors}`);
   console.log(`Unresolvable lead_id: ${leadNotFound}, Unresolvable deal_id: ${dealNotFound}`);
-  const { rows } = await query('SELECT COUNT(*) as cnt FROM invoices');
+  const { rows } = await queryFn('SELECT COUNT(*) as cnt FROM invoices');
   console.log(`Railway invoices table now has: ${rows[0].cnt} rows`);
-  process.exit(0);
+
+  return { created, updated, skipped, errors, leadNotFound, dealNotFound, total: base44Invoices.length };
 }
 
-main().catch(e => { console.error('[migrate-invoices] fatal:', e); process.exit(1); });
+module.exports = { runInvoiceMigration };
+
+if (require.main === module) {
+  if (!hasBase44Creds()) { console.error('[migrate-invoices] WORKER_SECRET required'); process.exit(1); }
+  runInvoiceMigration().then(() => process.exit(0)).catch(e => { console.error('[migrate-invoices] fatal:', e); process.exit(1); });
+}
