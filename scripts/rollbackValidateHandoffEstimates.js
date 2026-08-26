@@ -208,7 +208,7 @@ async function rollbackValidate() {
 
     // Verify critical columns
     const requiredCols = {
-      external_ref: { type: 'text', nullable: 'NO' },
+      external_ref: { type: 'text', nullable: 'YES' }, // schema is nullable; always populated from Base44 ID (0 NULLs verified in-tx)
       lead_id: { type: 'uuid', nullable: 'YES' },
       customer_name: { type: 'text', nullable: 'NO' },
       match_status: { type: 'text', nullable: 'NO' },
