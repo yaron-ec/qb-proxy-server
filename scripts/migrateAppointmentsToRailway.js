@@ -54,6 +54,32 @@ async function runAppointmentMigration(queryFn = defaultQuery) {
   const [leadIdCache, ownerCache] = await Promise.all([buildLeadIdCache(queryFn), buildOwnerCache(queryFn)]);
   console.log(`[migrate-appts] Loaded ${Object.keys(leadIdCache).length} lead, ${Object.keys(ownerCache).length} owner mappings`);
 
+  // Resolve canonical Unassigned owner — same logic as migrateLeadsToRailway.js.
+  // Genuinely null/empty assigned_rep → Unassigned owner (never a fallback for named owners).
+  let unassignedOwnerId = ownerCache['unassigned'];
+  if (!unassignedOwnerId) {
+    const { rows: existing } = await queryFn(
+      `SELECT id FROM owners WHERE lower(display_name) = 'unassigned' AND is_active = true LIMIT 1`
+    );
+    unassignedOwnerId = existing[0]?.id || null;
+  }
+  if (!unassignedOwnerId) {
+    const { rows } = await queryFn(`
+      INSERT INTO owners (display_name, email, is_active)
+      VALUES ('Unassigned', null, true)
+      ON CONFLICT DO NOTHING
+      RETURNING id
+    `);
+    unassignedOwnerId = rows[0]?.id || null;
+    if (!unassignedOwnerId) {
+      const { rows: existing } = await queryFn(
+        `SELECT id FROM owners WHERE lower(display_name) = 'unassigned' AND is_active = true LIMIT 1`
+      );
+      unassignedOwnerId = existing[0]?.id || null;
+    }
+  }
+  console.log(`[migrate-appts] Canonical Unassigned owner ID: ${unassignedOwnerId || 'NONE'}`);
+
   // Get default appointment type IDs
   const consultationTypeId = await getAppointmentTypeId('Consultation', queryFn);
   const meetingTypeId = await getAppointmentTypeId('General Meeting', queryFn);
@@ -87,17 +113,25 @@ async function runAppointmentMigration(queryFn = defaultQuery) {
 
       if (!apptDate) { noDate++; continue; }
 
-      // Resolve owner
-      const ownerId = resolveOwnerId(lead.assigned_rep, ownerCache);
+      // Resolve owner — genuinely unassigned leads use the canonical Unassigned owner
+      // (same logic as migrateLeadsToRailway.js). Named owners must resolve or skip.
+      const rep = lead.assigned_rep;
+      const isGenuinelyUnassigned = !rep || !String(rep).trim();
+      let ownerId;
+      if (isGenuinelyUnassigned) {
+        ownerId = unassignedOwnerId;
+      } else {
+        ownerId = resolveOwnerId(rep, ownerCache);
+      }
       if (!ownerId) { ownerNotFound++; continue; }
 
       const startAt = toTimestamp(apptDate, apptTime);
       if (!startAt) { noDate++; continue; }
 
-      // Default 60 min duration — add 1 hour to start time (same-day, -07:00)
-      const [startH, startM] = parseTimeToHHMM(apptTime).split(':').map(Number);
-      const endH = (startH + 1) % 24;
-      const endAtStr = `${apptDate}T${String(endH).padStart(2, '0')}:${String(startM).padStart(2, '0')}:00-07:00`;
+      // Default 60 min duration — use Date objects to handle midnight crossover correctly.
+      // Adding 60 min to a 23:30 start produces 00:30 next day; Date arithmetic handles this.
+      const startDate = new Date(startAt);
+      const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
 
       const apptTypeId = apptType === 'General Meeting' ? meetingTypeId : consultationTypeId;
       const idempotencyKey = `migration:appt:${externalRef}`;
@@ -128,7 +162,7 @@ async function runAppointmentMigration(queryFn = defaultQuery) {
         RETURNING (xmax = 0) AS inserted
       `, [
         railwayLeadId, ownerId, apptTypeId,
-        startAt, endAtStr,
+        startDate, endDate,
         status, idempotencyKey,
       ]);
       if (rows[0]?.inserted) created++; else updated++;
