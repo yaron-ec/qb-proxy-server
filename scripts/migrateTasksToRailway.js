@@ -5,18 +5,26 @@
  *
  * PREREQUISITE: migrateLeadsToRailway.js (tasks.lead_id FK → leads).
  *
- * Maps: Base44 Task.completed (boolean) → Railway tasks.status ('completed'/'pending').
- * Maps: Base44 Task.notes → Railway tasks.description.
- * Maps: Base44 Task.due_date + due_time → Railway tasks.due_date (date only).
+ * Maps:
+ *   Base44 Task.completed (boolean) → Railway tasks.status ('completed'/'pending')
+ *   Base44 Task.notes              → Railway tasks.description
+ *   Base44 Task.due_date           → Railway tasks.due_date (DATE)
+ *   Base44 Task.created_by_id      → Railway tasks.created_by (TEXT)
+ *
+ * Railway tasks table has NO CHECK constraints on status/priority — any text
+ * value is accepted. The boolean→status mapping is deterministic (no unknown
+ * values possible). priority is hardcoded to 'medium' (Base44 Task has no
+ * priority field).
+ *
+ * IDEMPOTENT: ON CONFLICT (external_ref) DO UPDATE.
  */
-const { query } = require('../db/client');
+const { query: defaultQuery } = require('../db/client');
 const { fetchBase44Entity, buildLeadIdCache, hasBase44Creds } = require('./migrationHelpers');
 
-async function main() {
+async function runTaskMigration(queryFn = defaultQuery) {
   console.log('[migrate-tasks] Starting task migration...');
-  if (!hasBase44Creds()) { console.error('[migrate-tasks] BASE44_APP_ID and BASE44_API_KEY required'); process.exit(1); }
 
-  const leadIdCache = await buildLeadIdCache();
+  const leadIdCache = await buildLeadIdCache(queryFn);
   console.log(`[migrate-tasks] Loaded ${Object.keys(leadIdCache).length} lead ID mappings`);
 
   const base44Tasks = await fetchBase44Entity('Task');
@@ -34,7 +42,7 @@ async function main() {
       const status = task.completed === true ? 'completed' : 'pending';
       const priority = 'medium'; // Base44 Task has no priority field
 
-      const { rows } = await query(`
+      const { rows } = await queryFn(`
         INSERT INTO tasks (external_ref, lead_id, title, description, status, priority, assigned_to, due_date, completed_at, created_by)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         ON CONFLICT (external_ref) DO UPDATE SET
@@ -70,9 +78,15 @@ async function main() {
   console.log(`\n=== TASK MIGRATION COMPLETE ===`);
   console.log(`Total: ${base44Tasks.length}, Created: ${created}, Updated: ${updated}, Skipped: ${skipped}, Errors: ${errors}`);
   console.log(`Tasks with unresolvable lead_id: ${leadNotFound}`);
-  const { rows } = await query('SELECT COUNT(*) as cnt FROM tasks');
+  const { rows } = await queryFn('SELECT COUNT(*) as cnt FROM tasks');
   console.log(`Railway tasks table now has: ${rows[0].cnt} rows`);
-  process.exit(0);
+
+  return { created, updated, skipped, errors, leadNotFound, total: base44Tasks.length };
 }
 
-main().catch(e => { console.error('[migrate-tasks] fatal:', e); process.exit(1); });
+module.exports = { runTaskMigration };
+
+if (require.main === module) {
+  if (!hasBase44Creds()) { console.error('[migrate-tasks] WORKER_SECRET required'); process.exit(1); }
+  runTaskMigration().then(() => process.exit(0)).catch(e => { console.error('[migrate-tasks] fatal:', e); process.exit(1); });
+}
