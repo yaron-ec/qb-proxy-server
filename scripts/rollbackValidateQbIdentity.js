@@ -18,6 +18,16 @@
  *   8. findMatchingLead() Priority 0: AMBIGUOUS match FAILS CLOSED (returns null)
  *   9. findMatchingLead() fuzzy fallback CANNOT override authoritative mapping
  *  10. before-count == after-rollback-count (no permanent writes)
+ *
+ * CRITICAL FIX (2026-08-26):
+ *   - Added explicit `BEGIN` before the migration. Without it, the pg client
+ *     is in autocommit mode — every UPDATE commits immediately and ROLLBACK
+ *     has nothing to undo (root cause of the withQbCustomerId=56 leak).
+ *   - Moved `before` to function scope (was const-in-try, invisible to finally).
+ *   - Post-rollback verification uses a FRESH pool connection, not the
+ *     transaction client, to guarantee we read committed state.
+ *   - Added precondition: before.withQbCustomerId must be 0.
+ *   - Added postcondition: after-rollback withQbCustomerId must be 0.
  */
 const { pool } = require('../db/client');
 const { runQbCustomerIdMigration } = require('./migrateQbCustomerIdToRailway');
@@ -26,27 +36,36 @@ const { findMatchingLead } = require('../lib/qbMatch');
 async function rollbackValidate() {
   const client = await pool.connect();
   let result = null;
-  let validationPassed = true;
   const failures = [];
+  let before = null; // function-scoped so `finally` can access it
 
   try {
-    // ── 1. Capture baseline counts ──────────────────────────────────────
+    // ── 1. Capture baseline counts (BEFORE) ──────────────────────────────
     const { rows: beforeRows } = await client.query(`
       SELECT COUNT(*) as total_leads,
              COUNT(qb_customer_id) as with_qb_customer_id
       FROM leads
     `);
-    const before = {
+    before = {
       totalLeads: parseInt(beforeRows[0].total_leads, 10),
       withQbCustomerId: parseInt(beforeRows[0].with_qb_customer_id, 10),
     };
     console.log('[rollback-validate-qb-identity] BEFORE:', before);
 
-    // ── 2. Run migration inside transaction ──────────────────────────────
+    // Precondition: before.withQbCustomerId MUST be 0 (no prior backfill)
+    if (before.withQbCustomerId !== 0) {
+      failures.push(`PRECONDITION FAILED: before.withQbCustomerId should be 0, got ${before.withQbCustomerId} — production may already have leaked writes`);
+    }
+
+    // ── 2. START TRANSACTION (CRITICAL — without BEGIN, UPDATEs auto-commit) ──
+    await client.query('BEGIN');
+    console.log('[rollback-validate-qb-identity] Transaction started (BEGIN)');
+
+    // ── 3. Run migration inside transaction ─────────────────────────────────
     console.log('[rollback-validate-qb-identity] Running migration inside transaction...');
     result = await runQbCustomerIdMigration(client.query.bind(client));
 
-    // ── 3. Validate in-transaction state ─────────────────────────────────
+    // ── 4. Validate in-transaction state ─────────────────────────────────────
     const { rows: afterRows } = await client.query(`
       SELECT COUNT(*) as total_leads,
              COUNT(qb_customer_id) as with_qb_customer_id
@@ -56,12 +75,14 @@ async function rollbackValidate() {
       totalLeads: parseInt(afterRows[0].total_leads, 10),
       withQbCustomerId: parseInt(afterRows[0].with_qb_customer_id, 10),
     };
-    console.log('[rollback-validate-qb-identity] AFTER (in-transaction):', after);
+    console.log('[rollback-validate-qb-identity] IN-TX (inside transaction):', after);
 
     // Check 1: Migration wrote the expected number of mappings (56 = 53 Lead + 3 Property-only)
     const expectedMappings = 56;
     if (after.withQbCustomerId - before.withQbCustomerId < 50) {
       failures.push(`Expected ~${expectedMappings} new mappings, got ${after.withQbCustomerId - before.withQbCustomerId}`);
+    } else {
+      console.log(`[rollback-validate-qb-identity] ✅ IN-TX withQbCustomerId = ${after.withQbCustomerId} (expected ~${expectedMappings})`);
     }
 
     // Check 2: Michael Caughey → QB 49 (NOT 62)
@@ -123,7 +144,6 @@ async function rollbackValidate() {
     }
 
     // Check 7: Zero unexpected duplicate qb_customer_id values
-    // After excluding the Kun duplicate, QB 46 should map to exactly 1 lead.
     const { rows: dupes } = await client.query(`
       SELECT qb_customer_id, COUNT(*) as cnt, array_agg(external_ref) as refs
       FROM leads
@@ -138,7 +158,6 @@ async function rollbackValidate() {
     }
 
     // ── findMatchingLead() production-path tests ─────────────────────────
-    // Fetch all leads with qb_customer_id for matching tests
     const { rows: leadsWithQb } = await client.query(`
       SELECT id, external_ref, first_name, last_name, email, phone, property_address, qb_customer_id
       FROM leads
@@ -158,8 +177,6 @@ async function rollbackValidate() {
     }
 
     // Check 9: Priority 0 — AMBIGUOUS match FAILS CLOSED
-    // Simulate: two leads with qb_customer_id=46, QB customer with Id=46
-    // findMatchingLead must return null (fail closed), NOT the first match.
     {
       const fakeLeads = [
         { id: 'lead-a', external_ref: 'dup-a', first_name: 'Kun', last_name: 'Katsumata', email: 'a@test.com', phone: '', property_address: '', qb_customer_id: '46' },
@@ -175,11 +192,6 @@ async function rollbackValidate() {
     }
 
     // Check 10: Fuzzy fallback CANNOT override authoritative mapping
-    // Michael Caughey has qb_customer_id=49. A QB customer with Id=62 (old Property value)
-    // and matching phone/email should NOT match Michael via Priority 0 (his qb_customer_id is 49, not 62).
-    // Since no lead has qb_customer_id=62, Priority 0 returns nothing, and fuzzy matching
-    // would match Michael by phone. This is CORRECT — fuzzy is fallback only when no
-    // authoritative mapping exists for that QB customer ID.
     const { rows: noLeadWith62 } = await client.query(`
       SELECT COUNT(*) as cnt FROM leads WHERE qb_customer_id = '62'
     `);
@@ -203,39 +215,63 @@ async function rollbackValidate() {
     console.error('[rollback-validate-qb-identity] Error during validation:', e.message);
     failures.push(`Exception: ${e.message}`);
   } finally {
-    // ── 4. ALWAYS ROLLBACK ───────────────────────────────────────────────
+    // ── 5. ALWAYS ROLLBACK ───────────────────────────────────────────────
     console.log('[rollback-validate-qb-identity] Rolling back transaction...');
-    await client.query('ROLLBACK');
-
-    // ── 5. Verify rollback ────────────────────────────────────────────────
-    const { rows: afterRollback } = await client.query(`
-      SELECT COUNT(*) as total_leads,
-             COUNT(qb_customer_id) as with_qb_customer_id
-      FROM leads
-    `);
-    const afterRb = {
-      totalLeads: parseInt(afterRollback[0].total_leads, 10),
-      withQbCustomerId: parseInt(afterRollback[0].with_qb_customer_id, 10),
-    };
-    console.log('[rollback-validate-qb-identity] AFTER ROLLBACK:', afterRb);
-
-    // Check 12: before-count == after-rollback-count
-    if (afterRb.totalLeads !== before.totalLeads) {
-      failures.push(`total_leads changed: ${before.totalLeads} → ${afterRb.totalLeads}`);
+    try {
+      await client.query('ROLLBACK');
+      console.log('[rollback-validate-qb-identity] ROLLBACK executed');
+    } catch (rbErr) {
+      console.error('[rollback-validate-qb-identity] ROLLBACK failed:', rbErr.message);
+      failures.push(`ROLLBACK failed: ${rbErr.message}`);
     }
-    if (afterRb.withQbCustomerId !== before.withQbCustomerId) {
-      failures.push(`with_qb_customer_id changed: ${before.withQbCustomerId} → ${afterRb.withQbCustomerId}`);
-    }
-
-    if (afterRb.totalLeads === before.totalLeads && afterRb.withQbCustomerId === before.withQbCustomerId) {
-      console.log('[rollback-validate-qb-identity] ✅ Rollback verified — no permanent writes');
-    }
-
+    // Release the transaction client — do NOT reuse it for verification
     client.release();
+
+    // ── 6. Verify rollback on a FRESH connection ───────────────────────────
+    // A fresh pool client guarantees we read committed post-rollback state,
+    // not any transaction-local or cached state from the rolled-back client.
+    const freshClient = await pool.connect();
+    try {
+      const { rows: afterRollback } = await freshClient.query(`
+        SELECT COUNT(*) as total_leads,
+               COUNT(qb_customer_id) as with_qb_customer_id
+        FROM leads
+      `);
+      const afterRb = {
+        totalLeads: parseInt(afterRollback[0].total_leads, 10),
+        withQbCustomerId: parseInt(afterRollback[0].with_qb_customer_id, 10),
+      };
+      console.log('[rollback-validate-qb-identity] AFTER ROLLBACK (fresh connection):', afterRb);
+
+      if (!before) {
+        failures.push('before was never captured (unexpected early failure)');
+      } else {
+        // Check 12: before-count == after-rollback-count
+        if (afterRb.totalLeads !== before.totalLeads) {
+          failures.push(`total_leads changed: ${before.totalLeads} → ${afterRb.totalLeads}`);
+        }
+        if (afterRb.withQbCustomerId !== before.withQbCustomerId) {
+          failures.push(`with_qb_customer_id changed: ${before.withQbCustomerId} → ${afterRb.withQbCustomerId}`);
+        }
+        // Postcondition: AFTER ROLLBACK withQbCustomerId MUST be 0
+        if (afterRb.withQbCustomerId !== 0) {
+          failures.push(`POST-ROLLBACK LEAK: with_qb_customer_id should be 0 after rollback, got ${afterRb.withQbCustomerId} — writes were NOT rolled back`);
+        } else {
+          console.log('[rollback-validate-qb-identity] ✅ AFTER ROLLBACK withQbCustomerId = 0 (no permanent writes)');
+        }
+        if (afterRb.totalLeads === before.totalLeads && afterRb.withQbCustomerId === before.withQbCustomerId && afterRb.withQbCustomerId === 0) {
+          console.log('[rollback-validate-qb-identity] ✅ Rollback verified — no permanent writes remain in production');
+        }
+      }
+    } finally {
+      freshClient.release();
+    }
   }
 
   // ── Final report ────────────────────────────────────────────────────────
   console.log('\n=== QB IDENTITY ROLLBACK VALIDATION COMPLETE ===');
+  console.log(`BEFORE:       withQbCustomerId = ${before ? before.withQbCustomerId : 'N/A'}`);
+  console.log(`IN-TX:        withQbCustomerId = ${result ? (before ? (result.updated + before.withQbCustomerId) : result.updated) : 'N/A'}`);
   console.log(`Migration result: ${JSON.stringify(result)}`);
   console.log(`Validation failures: ${failures.length}`);
 
