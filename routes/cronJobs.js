@@ -806,6 +806,48 @@ router.post('/rollback-validate-handoff-estimates', async (req, res) => {
   }
 });
 
+// ── POST /rollback-validate-shlomi-merge ─────────────────────────────────────
+// Production-path rollback validation for the Shlomi→Simon identity merge:
+// runs the EXACT same runShlomiMerge() function used by the production merge
+// script, inside a transaction that is ALWAYS ROLLED BACK. Validates the
+// comprehensive audit, owner re-point (leads/appointments), text re-points
+// (deals/tasks/commissions), historical preservation (lead_submissions/
+// appointment_events), idempotency, and rollback integrity. Does NOT touch
+// Base44 (the UserAllowlist delete is a separate permanent step).
+router.post('/rollback-validate-shlomi-merge', async (req, res) => {
+  const { execFile } = require('child_process');
+  const path = require('path');
+  const fs = require('fs');
+
+  const scriptPath = path.resolve(__dirname, '..', 'scripts', 'rollbackValidateShlomiMerge.js');
+  if (!fs.existsSync(scriptPath)) {
+    return res.status(404).json({ error: 'rollbackValidateShlomiMerge.js not found', path: scriptPath });
+  }
+
+  try {
+    execFile('node', [scriptPath], {
+      timeout: 180000,
+      maxBuffer: 20 * 1024 * 1024,
+      env: { ...process.env },
+      cwd: path.resolve(__dirname, '..'),
+    }, (err, stdout, stderr) => {
+      if (err && err.code !== 0) {
+        console.error('[cron] rollback-validate-shlomi-merge process error:', err.message);
+      }
+      res.json({
+        ok: !err || err.code === 0,
+        exitCode: err ? err.code : 0,
+        stdout,
+        stderr: stderr || '',
+        job: 'rollback-validate-shlomi-merge',
+      });
+    });
+  } catch (e) {
+    console.error('[cron] rollback-validate-shlomi-merge error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── POST /rollback-validate-leads-appts ──────────────────────────────────────
 // Production-path rollback validation: runs the EXACT same runLeadMigration()
 // and runAppointmentMigration() functions used by the production scripts,
