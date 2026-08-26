@@ -500,6 +500,44 @@ router.post('/rollback-validate-deals', async (req, res) => {
   }
 });
 
+// ── POST /audit-property-coverage ─────────────────────────────────────────────
+// READ-ONLY audit: proves destination coverage for all 133 Base44 Property
+// records before excluding them. Queries integration_credentials, settings,
+// company_settings, and qb_lead_match_mappings. No secret values printed.
+router.post('/audit-property-coverage', async (req, res) => {
+  const { execFile } = require('child_process');
+  const path = require('path');
+  const fs = require('fs');
+
+  const scriptPath = path.resolve(__dirname, '..', 'scripts', 'auditPropertyCoverage.js');
+  if (!fs.existsSync(scriptPath)) {
+    return res.status(404).json({ error: 'auditPropertyCoverage.js not found', path: scriptPath });
+  }
+
+  try {
+    execFile('node', [scriptPath], {
+      timeout: 60000,
+      maxBuffer: 10 * 1024 * 1024,
+      env: { ...process.env },
+      cwd: path.resolve(__dirname, '..'),
+    }, (err, stdout, stderr) => {
+      if (err && err.code !== 0) {
+        console.error('[cron] audit-property-coverage process error:', err.message);
+      }
+      res.json({
+        ok: !err || err.code === 0,
+        exitCode: err ? err.code : 0,
+        stdout,
+        stderr: stderr || '',
+        job: 'audit-property-coverage',
+      });
+    });
+  } catch (e) {
+    console.error('[cron] audit-property-coverage error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── POST /rollback-validate-estimates ─────────────────────────────────────────
 // Production-path rollback validation for Estimates: runs the EXACT same
 // runEstimateMigration() function used by the production script, inside a
