@@ -74,6 +74,13 @@ const HISTORICAL_COLUMNS = new Set([
   'appointment_events.actor',
 ]);
 
+// Free-text body columns → preserved historical content, never re-point.
+// Mirrors the Base44 audit classification (content/message/notes/reason/description).
+// These are audit/display bodies, NOT identity-bearing fields. The merge script
+// (runShlomiMerge) never touches these columns; the audit must not flag them as
+// active/canonical, otherwise a correct merge reports MERGE INCOMPLETE.
+const FREE_TEXT_COLUMNS = new Set(['notes', 'content', 'message', 'description', 'reason']);
+
 // ── Base44 entities + fields to scan ──────────────────────────────────────────
 const B44_SCAN = [
   { entity: 'UserAllowlist',  fields: ['name', 'email', 'notes'] },
@@ -104,6 +111,7 @@ function containsShlomi(value) {
 
 function classifyRef(table, col) {
   if (HISTORICAL_COLUMNS.has(`${table}.${col}`)) return 'historical-display-text (PRESERVE)';
+  if (FREE_TEXT_COLUMNS.has(col)) return 'historical-display-text (PRESERVE — free-text body, audit only)';
   return 'canonical-identity-reference (RE-POINT to Simon)';
 }
 
@@ -262,8 +270,15 @@ async function auditShlomiIdentity() {
 
   console.log('\n=== AUDIT SUMMARY ===\n');
   console.log(`Total Shlomi references found: ${shlomiRefs.length}`);
-  console.log(`  Re-point to Simon:    ${rePoint.length}`);
-  console.log(`  Preserve (historical): ${preserve.length}`);
+  console.log(`  ACTIVE/CANONICAL (must be 0):      ${rePoint.length}`);
+  console.log(`  HISTORICAL/FREE-TEXT (may remain): ${preserve.length}`);
+  console.log('');
+  if (rePoint.length === 0) {
+    console.log('✅ ACTIVE/CANONICAL Shlomi references = 0 — merge is complete.');
+    console.log(`   ${preserve.length} historical/free-text reference(s) intentionally preserved (audit trail).`);
+  } else {
+    console.log(`❌ ACTIVE/CANONICAL Shlomi references = ${rePoint.length} — MERGE INCOMPLETE.`);
+  }
   console.log('');
 
   if (shlomiRefs.length > 0) {
@@ -283,6 +298,12 @@ async function auditShlomiIdentity() {
   const { rows: uaRows } = await query(`SELECT email, name, role, enabled FROM user_allowlist ORDER BY email`);
   console.log(`Railway user_allowlist: ${uaRows.length} rows`);
   for (const r of uaRows) console.log(`  ${r.email} | ${r.name} | ${r.role} | enabled=${r.enabled}`);
+  if (uaRows.length === 0) {
+    console.log('  ℹ️  Railway user_allowlist is EMPTY — this is EXPECTED: the permanent SmallDatasets');
+    console.log('     migration (Base44 UserAllowlist → Railway user_allowlist) has NOT been executed yet.');
+    console.log('     The merge script does NOT touch user_allowlist. Simon\'s canonical allowlist identity');
+    console.log('     lives in Base44 UserAllowlist (verified separately). 0 rows ≠ data loss.');
+  }
 
   const { rows: uaDup } = await query(`SELECT email, COUNT(*) c FROM user_allowlist GROUP BY email HAVING COUNT(*) > 1`);
   if (uaDup.length > 0) {

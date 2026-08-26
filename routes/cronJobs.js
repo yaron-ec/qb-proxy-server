@@ -848,6 +848,47 @@ router.post('/rollback-validate-shlomi-merge', async (req, res) => {
   }
 });
 
+// ── POST /rollback-validate-small-datasets ───────────────────────────────────
+// Production-path rollback validation for small datasets (UserAllowlist,
+// CompanySettings, SyncCursor, LeadAttachment, DealExpense): runs the EXACT
+// same runSmallDatasetsMigration() function used by the production script,
+// inside a transaction that is ALWAYS ROLLED BACK. Validates FK resolution,
+// NOT NULL, UNIQUE natural keys, value domains, idempotency, and detects
+// semantic defects (e.g. UserAllowlist duplicate email → data loss).
+router.post('/rollback-validate-small-datasets', async (req, res) => {
+  const { execFile } = require('child_process');
+  const path = require('path');
+  const fs = require('fs');
+
+  const scriptPath = path.resolve(__dirname, '..', 'scripts', 'rollbackValidateSmallDatasets.js');
+  if (!fs.existsSync(scriptPath)) {
+    return res.status(404).json({ error: 'rollbackValidateSmallDatasets.js not found', path: scriptPath });
+  }
+
+  try {
+    execFile('node', [scriptPath], {
+      timeout: 180000,
+      maxBuffer: 20 * 1024 * 1024,
+      env: { ...process.env },
+      cwd: path.resolve(__dirname, '..'),
+    }, (err, stdout, stderr) => {
+      if (err && err.code !== 0) {
+        console.error('[cron] rollback-validate-small-datasets process error:', err.message);
+      }
+      res.json({
+        ok: !err || err.code === 0,
+        exitCode: err ? err.code : 0,
+        stdout,
+        stderr: stderr || '',
+        job: 'rollback-validate-small-datasets',
+      });
+    });
+  } catch (e) {
+    console.error('[cron] rollback-validate-small-datasets error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── POST /rollback-validate-leads-appts ──────────────────────────────────────
 // Production-path rollback validation: runs the EXACT same runLeadMigration()
 // and runAppointmentMigration() functions used by the production scripts,
@@ -883,6 +924,45 @@ router.post('/rollback-validate-leads-appts', async (req, res) => {
     });
   } catch (e) {
     console.error('[cron] rollback-validate-leads-appts error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── POST /audit-shlomi-identity ─────────────────────────────────────────────
+// READ-ONLY audit: runs auditShlomiIdentity.js which ONLY executes SELECT
+// queries (no writes, no transactions). Reports active/canonical vs
+// historical/free-text Shlomi references + Railway user_allowlist state.
+// Safe to run at any time — zero side effects.
+router.post('/audit-shlomi-identity', async (req, res) => {
+  const { execFile } = require('child_process');
+  const path = require('path');
+  const fs = require('fs');
+
+  const scriptPath = path.resolve(__dirname, '..', 'scripts', 'auditShlomiIdentity.js');
+  if (!fs.existsSync(scriptPath)) {
+    return res.status(404).json({ error: 'auditShlomiIdentity.js not found', path: scriptPath });
+  }
+
+  try {
+    execFile('node', [scriptPath], {
+      timeout: 120000,
+      maxBuffer: 10 * 1024 * 1024,
+      env: { ...process.env },
+      cwd: path.resolve(__dirname, '..'),
+    }, (err, stdout, stderr) => {
+      if (err && err.code !== 0) {
+        console.error('[cron] audit-shlomi-identity process error:', err.message);
+      }
+      res.json({
+        ok: !err || err.code === 0,
+        exitCode: err ? err.code : 0,
+        stdout,
+        stderr: stderr || '',
+        job: 'audit-shlomi-identity',
+      });
+    });
+  } catch (e) {
+    console.error('[cron] audit-shlomi-identity error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
