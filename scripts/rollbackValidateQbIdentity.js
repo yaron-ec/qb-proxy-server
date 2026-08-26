@@ -176,10 +176,11 @@ async function rollbackValidate() {
     if (dupes.length > 0) failures.push(`IN-TX has ${dupes.length} duplicate qb_customer_id values: ${JSON.stringify(dupes)}`);
     else console.log('[rollback-validate-qb-identity] ✅ IN-TX zero duplicate qb_customer_id values');
 
-    // IN-TX: no lead with qb_customer_id=62
-    const { rows: noLeadWith62 } = await client.query(`SELECT COUNT(*) as cnt FROM leads WHERE qb_customer_id = '62'`);
-    if (parseInt(noLeadWith62[0].cnt, 10) !== 0) failures.push(`IN-TX a lead has qb_customer_id=62`);
-    else console.log('[rollback-validate-qb-identity] ✅ IN-TX no lead has qb_customer_id=62');
+    // IN-TX: Michael Caughey does NOT have qb_customer_id=62 (Property value discarded)
+    // Note: Ryan Ramos legitimately has qb_customer_id=62 — that's a different lead.
+    const { rows: michaelNot62 } = await client.query(`SELECT qb_customer_id FROM leads WHERE external_ref = '69f937ee6a0dbf5bfc7ae49b'`);
+    if (michaelNot62[0]?.qb_customer_id === '62') failures.push(`IN-TX Michael Caughey has qb_customer_id=62 (Property value not discarded)`);
+    else console.log('[rollback-validate-qb-identity] ✅ IN-TX Michael Caughey does NOT have qb_customer_id=62 (Property value discarded)');
 
     // IN-TX: QB 46 maps to exactly 1 lead
     const { rows: qb46Count } = await client.query(`SELECT COUNT(*) as cnt FROM leads WHERE qb_customer_id = '46'`);
