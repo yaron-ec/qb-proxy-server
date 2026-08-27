@@ -1083,6 +1083,55 @@ router.post('/cleanup-test-probe', async (req, res) => {
   }
 });
 
+// ── POST /run-leads-appts-migration ──────────────────────────────────────────
+// PERMANENT migration (auto-commit): runs the EXACT same runLeadMigration() and
+// runAppointmentMigration() functions that passed rollback validation, but with
+// the default auto-commit query (no transaction wrapper). Changes persist.
+// Halts on first stage error (unresolved owners throw; per-lead write errors
+// block the appointments stage). Idempotent (ON CONFLICT DO UPDATE).
+router.post('/run-leads-appts-migration', async (req, res) => {
+  const { runLeadMigration } = require('../scripts/migrateLeadsToRailway');
+  const { runAppointmentMigration } = require('../scripts/migrateAppointmentsToRailway');
+
+  try {
+    // ── Pre-flight: current Railway counts ────────────────────────────────
+    const beforeLeads = parseInt((await query('SELECT COUNT(*) as cnt FROM leads')).rows[0].cnt, 10);
+    const beforeAppts = parseInt((await query('SELECT COUNT(*) as cnt FROM appointments')).rows[0].cnt, 10);
+
+    // ── Step 1: Permanent Leads migration (auto-commit) ──────────────────
+    console.log('[cron] run-leads-appts-migration: starting permanent Leads migration');
+    const leadResult = await runLeadMigration(query);
+
+    // Halt on per-lead write errors (unresolved named owners already threw)
+    if (leadResult.errors > 0) {
+      return res.status(500).json({
+        ok: false,
+        error: `Leads migration completed with ${leadResult.errors} write error(s) — appointments NOT run`,
+        beforeLeads, leadResult,
+        job: 'run-leads-appts-migration',
+      });
+    }
+
+    // ── Step 2: Permanent Appointments migration (auto-commit) ───────────
+    console.log('[cron] run-leads-appts-migration: Leads complete, starting Appointments migration');
+    const apptResult = await runAppointmentMigration(query);
+
+    // ── Post counts ────────────────────────────────────────────────────────
+    const afterLeads = parseInt((await query('SELECT COUNT(*) as cnt FROM leads')).rows[0].cnt, 10);
+    const afterAppts = parseInt((await query('SELECT COUNT(*) as cnt FROM appointments')).rows[0].cnt, 10);
+
+    res.json({
+      ok: apptResult.errors === 0,
+      beforeLeads, afterLeads, beforeAppts, afterAppts,
+      leadResult, apptResult,
+      job: 'run-leads-appts-migration',
+    });
+  } catch (e) {
+    console.error('[cron] run-leads-appts-migration error:', e.message);
+    res.status(500).json({ error: e.message, job: 'run-leads-appts-migration' });
+  }
+});
+
 // ── POST /audit-test-probe-fk-references ─────────────────────────────────────
 // READ-ONLY horizontal FK audit: enumerates ALL foreign-key constraints that can
 // reference the Test Probe lead/appointment using PostgreSQL catalog metadata
