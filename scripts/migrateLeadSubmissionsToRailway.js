@@ -4,21 +4,36 @@
  * migrateLeadSubmissionsToRailway.js — Idempotent lead submission migration.
  *
  * PREREQUISITE: migrateLeadsToRailway.js (lead_submissions.lead_id FK → leads).
+ *
+ * IMPORT-SAFE: Exports runLeadSubmissionMigration(queryFn) for use by rollback
+ * validators. main() is guarded by require.main === module.
+ *
+ * Idempotent: ON CONFLICT (external_ref) DO UPDATE.
  */
-const { query } = require('../db/client');
+const { query: defaultQuery } = require('../db/client');
 const { fetchBase44Entity, buildLeadIdCache, hasBase44Creds } = require('./migrationHelpers');
 
-async function main() {
+/**
+ * Run the lead submission migration.
+ * @param {Function} queryFn - optional query function (defaults to direct query).
+ *        Pass a transaction-bound queryFn for rollback validation.
+ * @returns {Promise<{total, created, updated, skipped, errors, leadNotFound, finalCount}>}
+ */
+async function runLeadSubmissionMigration(queryFn) {
+  const query = queryFn || defaultQuery;
   console.log('[migrate-submissions] Starting lead submission migration...');
-  if (!hasBase44Creds()) { console.error('[migrate-submissions] BASE44_APP_ID and BASE44_API_KEY required'); process.exit(1); }
+  if (!hasBase44Creds()) {
+    throw new Error('[migrate-submissions] WORKER_SECRET required for migration reader');
+  }
 
-  const leadIdCache = await buildLeadIdCache();
+  const leadIdCache = await buildLeadIdCache(query);
   console.log(`[migrate-submissions] Loaded ${Object.keys(leadIdCache).length} lead ID mappings`);
 
   const base44Items = await fetchBase44Entity('LeadSubmission');
   console.log(`[migrate-submissions] Fetched ${base44Items.length} submissions from Base44`);
 
   let created = 0, updated = 0, skipped = 0, errors = 0, leadNotFound = 0;
+
   for (const item of base44Items) {
     try {
       const externalRef = item.id;
@@ -62,12 +77,28 @@ async function main() {
     }
   }
 
+  let finalCount = null;
+  try {
+    const { rows } = await query('SELECT COUNT(*) as cnt FROM lead_submissions');
+    finalCount = parseInt(rows[0].cnt, 10);
+  } catch (e) {
+    console.error('[migrate-submissions] Could not get final count:', e.message);
+  }
+
+  const result = {
+    total: base44Items.length, created, updated, skipped, errors, leadNotFound, finalCount,
+  };
   console.log(`\n=== LEAD SUBMISSION MIGRATION COMPLETE ===`);
-  console.log(`Total: ${base44Items.length}, Created: ${created}, Updated: ${updated}, Skipped: ${skipped}, Errors: ${errors}`);
+  console.log(`Total: ${result.total}, Created: ${created}, Updated: ${updated}, Skipped: ${skipped}, Errors: ${errors}`);
   console.log(`Unresolvable lead_id: ${leadNotFound}`);
-  const { rows } = await query('SELECT COUNT(*) as cnt FROM lead_submissions');
-  console.log(`Railway lead_submissions table now has: ${rows[0].cnt} rows`);
-  process.exit(0);
+  if (finalCount !== null) console.log(`Railway lead_submissions table now has: ${finalCount} rows`);
+  return result;
 }
 
-main().catch(e => { console.error('[migrate-submissions] fatal:', e); process.exit(1); });
+module.exports = { runLeadSubmissionMigration };
+
+if (require.main === module) {
+  runLeadSubmissionMigration()
+    .then(() => process.exit(0))
+    .catch(e => { console.error('[migrate-submissions] fatal:', e); process.exit(1); });
+}
