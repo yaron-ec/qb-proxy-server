@@ -2,87 +2,74 @@
 'use strict';
 /**
  * cleanupTestProbe.js — One-time FULL REMOVAL of the confirmed Railway-native
- * test record "Test Probe".
+ * test fixture "Test Probe", using the COMPLETE dependency order from the
+ * read-only FK audit (auditTestProbeFkReferences.js).
  *
  * Target: lead "Test Probe" (Railway id c7b3e041-f3fa-4507-8619-6e3c732b3ed4,
- * external_ref NULL, email test@example.com).
+ * external_ref NULL, email test@example.com). Appointment 0767cfe9-422a-4802-
+ * a533-f1cd24039b79.
  *
- * Why full removal (not just cancellation): appointments are immutable
- * (appointments_no_delete trigger blocks physical DELETE), so a cancelled
- * appointment row still references leads.id via appointments_lead_id_fkey,
- * which blocks deletion of the lead. To fully remove the test fixture we must
- * bypass the immutability trigger for THIS ONE confirmed test appointment only,
- * hard-delete it, then hard-delete the lead — all inside one transaction, with
- * the trigger re-enabled before COMMIT.
+ * Identity is verified by EXACT lead id + first_name + last_name + email +
+ * external_ref IS NULL. Email is NOT used alone (two other leads share it).
  *
- * Safety model (defense in depth):
- *   1. Re-read the lead by exact Railway id AND verify name/email/external_ref
- *      match the reconciliation report. Abort if any field differs.
- *   2. Re-count every dependency table. Abort if ANY table other than
- *      `appointments` has rows, or if `appointments` has a count != 1.
- *   3. Confirm external_ref IS NULL (never touch a Base44-mapped lead).
- *   4. Capture the single appointment id and verify it belongs to the target
- *      lead. Abort if 0 or >1.
- *   5. Inside a single transaction:
- *        a. ALTER TABLE appointments DISABLE TRIGGER appointments_no_delete
- *           (narrow bypass — affects only the appointments table for this tx).
- *        b. DELETE the single confirmed test appointment by id + lead_id.
- *        c. DELETE the test lead, guarded by external_ref IS NULL + name + email.
- *        d. ALTER TABLE appointments ENABLE TRIGGER appointments_no_delete
- *           (restore immutability protection BEFORE commit).
- *        e. COMMIT. Any error at any step → ROLLBACK (trigger auto-restored on
- *           rollback since the ALTER is inside the same tx).
- *   6. Post-cleanup verification: lead gone, appointment gone, trigger active,
- *      no unrelated records changed.
+ * Deletion order (FK-safe, all inside ONE transaction):
+ *   1. DELETE calendar_outbox WHERE appointment_id = <apptId>  — expect 2
+ *   2. DELETE appointment_events WHERE appointment_id = <apptId> — expect 1
+ *   3. DELETE booking_idempotency WHERE appointment_id=<apptId> AND lead_id=<leadId> — expect 1
+ *   4. DISABLE TRIGGER appointments_no_delete (this tx only)
+ *   5. DELETE appointments WHERE id=<apptId> AND lead_id=<leadId> — expect 1
+ *   6. ENABLE TRIGGER appointments_no_delete (before commit)
+ *   7. DELETE leads WHERE id=<leadId> AND external_ref IS NULL AND first/last/email guards — expect 1
+ *   8. DELETE reminder_leads WHERE id = <leadId> (text column, no FK) — expect 1
  *
- * READ-ONLY by default (DRY_RUN=1 env or no arg). Pass APPLY=1 (env) to execute.
+ * Pre-commit verification (all must pass or ROLLBACK):
+ *   - appointments_no_delete trigger is active
+ *   - Test Probe lead gone
+ *   - Test Probe appointment gone
+ *   - 0 rows for fixture in calendar_outbox, appointment_events, booking_idempotency, reminder_leads
+ *   - the two other test@example.com leads still exist unchanged
  *
+ * Any row-count mismatch → ROLLBACK immediately.
+ *
+ * READ-ONLY by default. Pass APPLY=1 (env) to execute.
  * Environment: DATABASE_URL.
  */
 const { pool, query } = require('../db/client');
 
 const TARGET_LEAD_ID = 'c7b3e041-f3fa-4507-8619-6e3c732b3ed4';
+const TARGET_APPT_ID = '0767cfe9-422a-4802-a533-f1cd24039b79';
 const TARGET_EMAIL = 'test@example.com';
 const TARGET_FIRST = 'Test';
 const TARGET_LAST = 'Probe';
 const TRIGGER_NAME = 'appointments_no_delete';
 
-// Dependency tables that reference leads.id. appointments is the ONLY allowed
-// non-zero dependency (exactly 1 row). All others MUST be 0.
-const DEP_TABLES = [
-  { table: 'appointments', col: 'lead_id', allowed: 1 },
-  { table: 'activities', col: 'lead_id', allowed: 0 },
-  { table: 'deals', col: 'lead_id', allowed: 0 },
-  { table: 'tasks', col: 'lead_id', allowed: 0 },
-  { table: 'estimates', col: 'lead_id', allowed: 0 },
-  { table: 'invoices', col: 'lead_id', allowed: 0 },
-  { table: 'lead_attachments', col: 'lead_id', allowed: 0 },
-  { table: 'deal_expenses', col: 'lead_id', allowed: 0 },
-  { table: 'lead_submissions', col: 'lead_id', allowed: 0 },
-  { table: 'handoff_estimates', col: 'lead_id', allowed: 0 },
-];
+// Expected counts from the read-only FK audit.
+const EXPECT = {
+  calendar_outbox: 2,
+  appointment_events: 1,
+  booking_idempotency: 1,
+  appointments: 1,
+  leads: 1,
+  reminder_leads: 1,
+};
 
-async function countDeps(queryFn, leadId) {
-  const counts = {};
-  for (const d of DEP_TABLES) {
-    const { rows } = await queryFn(
-      'SELECT COUNT(*)::int AS c FROM ' + d.table + ' WHERE ' + d.col + ' = $1',
-      [leadId]
-    );
-    counts[d.table] = rows[0].c;
+function assertCount(actual, expected, label) {
+  if (actual !== expected) {
+    throw new Error(`COUNT MISMATCH [${label}]: expected ${expected}, got ${actual} — ROLLBACK`);
   }
-  return counts;
+  console.log(`  ✓ ${label}: ${actual} (matches expected ${expected})`);
 }
 
-async function runCleanup(queryFn = query, apply = false) {
-  console.log('=== TEST PROBE FULL REMOVAL ===');
+async function runCleanup(queryFn, apply) {
+  console.log('=== TEST PROBE FULL REMOVAL (COMPLETE DEPENDENCY ORDER) ===');
   console.log('Mode: ' + (apply ? 'APPLY (writes enabled)' : 'DRY-RUN (read-only)'));
   console.log('Target lead id: ' + TARGET_LEAD_ID);
+  console.log('Target appt id: ' + TARGET_APPT_ID);
   console.log('');
 
-  // ── Phase 1: Re-read and verify identity ────────────────────────────────
+  // ── Re-read & re-verify lead identity immediately before mutation ─────────
   const { rows: leadRows } = await queryFn(
-    'SELECT id, external_ref, first_name, last_name, email, phone, status, owner_id, created_at ' +
+    'SELECT id, external_ref, first_name, last_name, email, phone, status, created_at ' +
     'FROM leads WHERE id = $1',
     [TARGET_LEAD_ID]
   );
@@ -92,130 +79,186 @@ async function runCleanup(queryFn = query, apply = false) {
   }
   const lead = leadRows[0];
   console.log('Re-read lead:');
+  console.log('  id:           ' + lead.id);
   console.log('  external_ref: ' + (lead.external_ref || 'NULL'));
   console.log('  name:         ' + lead.first_name + ' ' + lead.last_name);
   console.log('  email:        ' + (lead.email || 'NULL'));
   console.log('  status:       ' + lead.status);
-  console.log('  created_at:   ' + lead.created_at);
 
   const identityOk =
+    lead.id === TARGET_LEAD_ID &&
     lead.external_ref === null &&
     lead.first_name === TARGET_FIRST &&
     lead.last_name === TARGET_LAST &&
     (lead.email || '').toLowerCase() === TARGET_EMAIL;
   if (!identityOk) {
-    console.log('ABORT: identity mismatch — not the confirmed Test Probe record');
-    return { action: 'abort', reason: 'identity mismatch', lead };
+    throw new Error('IDENTITY MISMATCH — not the confirmed Test Probe record; ROLLBACK');
   }
-  console.log('Identity: CONFIRMED ✅');
-  console.log('');
+  console.log('Identity: CONFIRMED ✅\n');
 
-  // ── Phase 2: Re-count dependencies ──────────────────────────────────────
-  const counts = await countDeps(queryFn, TARGET_LEAD_ID);
-  console.log('Dependency re-count:');
-  for (const d of DEP_TABLES) {
-    const c = counts[d.table];
-    const ok = c === d.allowed;
-    console.log('  ' + d.table + ': ' + c + ' (allowed ' + d.allowed + ') ' + (ok ? '✅' : '❌'));
-  }
-  const depsOk = DEP_TABLES.every(d => counts[d.table] === d.allowed);
-  if (!depsOk) {
-    console.log('ABORT: dependency count mismatch — only the single appointment is allowed');
-    return { action: 'abort', reason: 'dependency mismatch', counts };
-  }
-  console.log('Dependencies: CONFIRMED ✅ (only 1 appointment, all others 0)');
-  console.log('');
-
-  // ── Phase 3: external_ref guard ─────────────────────────────────────────
-  console.log('external_ref IS NULL: ' + (lead.external_ref === null ? 'CONFIRMED ✅' : 'NO ❌'));
-  console.log('');
-
-  // ── Phase 4: Capture the single appointment id ──────────────────────────
+  // ── Re-read & re-verify appointment identity ──────────────────────────────
   const { rows: apptRows } = await queryFn(
-    'SELECT id, status, start_at FROM appointments WHERE lead_id = $1',
-    [TARGET_LEAD_ID]
+    'SELECT id, lead_id, status, start_at FROM appointments WHERE id = $1 AND lead_id = $2',
+    [TARGET_APPT_ID, TARGET_LEAD_ID]
   );
   if (apptRows.length !== 1) {
-    console.log('ABORT: expected exactly 1 appointment, found ' + apptRows.length);
-    return { action: 'abort', reason: 'appointment count != 1', apptRows };
+    throw new Error('APPOINTMENT MISMATCH: expected exactly 1 appointment for this lead, found ' + apptRows.length);
   }
-  const targetApptId = apptRows[0].id;
-  console.log('Target appointment id: ' + targetApptId + ' (status=' + apptRows[0].status + ')');
+  console.log('Re-read appointment: ' + apptRows[0].id + ' status=' + apptRows[0].status + ' lead_id=' + apptRows[0].lead_id);
+  console.log('Appointment identity: CONFIRMED ✅\n');
+
+  // ── Pre-mutation snapshot of the two other test@example.com leads ────────
+  const { rows: otherLeads } = await queryFn(
+    "SELECT id, external_ref, first_name, last_name, email, status FROM leads " +
+    "WHERE lower(email) = $1 AND id <> $2 ORDER BY id",
+    [TARGET_EMAIL, TARGET_LEAD_ID]
+  );
+  console.log('Other leads sharing test@example.com (must remain unchanged): ' + otherLeads.length);
+  for (const o of otherLeads) console.log('  ' + o.id + ' ' + o.first_name + ' ' + o.last_name + ' ext=' + (o.external_ref || 'NULL'));
   console.log('');
 
   if (!apply) {
-    console.log('DRY-RUN: no writes performed. Pass APPLY=1 to execute full removal.');
-    return { action: 'dryrun', lead, counts, targetApptId };
+    console.log('DRY-RUN: no writes performed. Pass APPLY=1 to execute.');
+    return { action: 'dryrun', lead, appt: apptRows[0], otherLeads };
   }
 
-  // ── Phase 5: Execute full removal inside the transaction ───────────────
-  // 5a. Narrowly disable the immutability trigger for this transaction only.
-  await queryFn('ALTER TABLE appointments DISABLE TRIGGER ' + TRIGGER_NAME);
-  console.log('Trigger disabled: ' + TRIGGER_NAME);
+  // ══════════════════════════════════════════════════════════════════════════
+  // STEP 1 — DELETE calendar_outbox rows for exact appointment_id (expect 2)
+  // ══════════════════════════════════════════════════════════════════════════
+  console.log('STEP 1: DELETE calendar_outbox WHERE appointment_id = <apptId>');
+  const co = await queryFn('DELETE FROM calendar_outbox WHERE appointment_id = $1 RETURNING id', [TARGET_APPT_ID]);
+  assertCount(co.rowCount, EXPECT.calendar_outbox, 'calendar_outbox');
 
-  // 5b. Hard-delete the single confirmed test appointment (guarded by id + lead_id).
-  const { rows: delApptRows } = await queryFn(
-    'DELETE FROM appointments WHERE id = $1 AND lead_id = $2 RETURNING id',
-    [targetApptId, TARGET_LEAD_ID]
+  // ══════════════════════════════════════════════════════════════════════════
+  // STEP 2 — DELETE appointment_events row for exact appointment_id (expect 1)
+  // ══════════════════════════════════════════════════════════════════════════
+  console.log('STEP 2: DELETE appointment_events WHERE appointment_id = <apptId>');
+  const ae = await queryFn('DELETE FROM appointment_events WHERE appointment_id = $1 RETURNING id', [TARGET_APPT_ID]);
+  assertCount(ae.rowCount, EXPECT.appointment_events, 'appointment_events');
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // STEP 3 — DELETE booking_idempotency matching BOTH appt_id AND lead_id (expect 1)
+  // ══════════════════════════════════════════════════════════════════════════
+  console.log('STEP 3: DELETE booking_idempotency WHERE appointment_id=<apptId> AND lead_id=<leadId>');
+  const bi = await queryFn(
+    'DELETE FROM booking_idempotency WHERE appointment_id = $1 AND lead_id = $2 RETURNING id',
+    [TARGET_APPT_ID, TARGET_LEAD_ID]
   );
-  if (delApptRows.length !== 1) {
-    throw new Error('appointment delete affected ' + delApptRows.length + ' rows — expected 1; rolling back');
-  }
-  console.log('Appointment deleted: ' + delApptRows.length);
+  assertCount(bi.rowCount, EXPECT.booking_idempotency, 'booking_idempotency');
 
-  // 5c. Hard-delete the test lead, guarded by external_ref IS NULL + name + email.
-  const { rows: delLeadRows } = await queryFn(
+  // ══════════════════════════════════════════════════════════════════════════
+  // STEP 4 — Temporarily disable appointments_no_delete (this tx only)
+  // ══════════════════════════════════════════════════════════════════════════
+  console.log('STEP 4: DISABLE TRIGGER appointments_no_delete');
+  await queryFn('ALTER TABLE appointments DISABLE TRIGGER ' + TRIGGER_NAME);
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // STEP 5 — DELETE exact appointment matching appt_id AND lead_id (expect 1)
+  // ══════════════════════════════════════════════════════════════════════════
+  console.log('STEP 5: DELETE appointments WHERE id=<apptId> AND lead_id=<leadId>');
+  const ap = await queryFn(
+    'DELETE FROM appointments WHERE id = $1 AND lead_id = $2 RETURNING id',
+    [TARGET_APPT_ID, TARGET_LEAD_ID]
+  );
+  assertCount(ap.rowCount, EXPECT.appointments, 'appointments');
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // STEP 6 — Re-enable appointments_no_delete BEFORE commit
+  // ══════════════════════════════════════════════════════════════════════════
+  console.log('STEP 6: ENABLE TRIGGER appointments_no_delete');
+  await queryFn('ALTER TABLE appointments ENABLE TRIGGER ' + TRIGGER_NAME);
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // STEP 7 — DELETE exact Test Probe lead with identity guards (expect 1)
+  // ══════════════════════════════════════════════════════════════════════════
+  console.log('STEP 7: DELETE leads WHERE id=<leadId> AND external_ref IS NULL AND name/email guards');
+  const ld = await queryFn(
     'DELETE FROM leads WHERE id = $1 AND external_ref IS NULL ' +
-    'AND first_name = $2 AND last_name = $3 AND lower(email) = $4 ' +
-    'RETURNING id',
+    'AND first_name = $2 AND last_name = $3 AND lower(email) = $4 RETURNING id',
     [TARGET_LEAD_ID, TARGET_FIRST, TARGET_LAST, TARGET_EMAIL]
   );
-  if (delLeadRows.length !== 1) {
-    throw new Error('lead delete affected ' + delLeadRows.length + ' rows — expected 1; rolling back');
+  assertCount(ld.rowCount, EXPECT.leads, 'leads');
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // STEP 8 — DELETE reminder_leads projection row (text id, no FK) (expect 1)
+  // ══════════════════════════════════════════════════════════════════════════
+  console.log('STEP 8: DELETE reminder_leads WHERE id = <leadId> (text column)');
+  const rl = await queryFn('DELETE FROM reminder_leads WHERE id = $1 RETURNING id', [TARGET_LEAD_ID]);
+  assertCount(rl.rowCount, EXPECT.reminder_leads, 'reminder_leads');
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // PRE-COMMIT VERIFICATION (any failure → ROLLBACK)
+  // ══════════════════════════════════════════════════════════════════════════
+  console.log('\n=== PRE-COMMIT VERIFICATION ===');
+
+  // trigger active?
+  const { rows: trigRows } = await queryFn(
+    "SELECT tgenabled FROM pg_trigger WHERE tgname = $1", [TRIGGER_NAME]
+  );
+  const triggerActive = trigRows.length > 0 && trigRows[0].tgenabled === 'O';
+  console.log('  appointments_no_delete active: ' + (triggerActive ? 'YES ✅' : 'NO ❌'));
+  if (!triggerActive) throw new Error('PRE-COMMIT FAIL: trigger not active — ROLLBACK');
+
+  // lead gone?
+  const { rows: leadCheck } = await queryFn('SELECT id FROM leads WHERE id = $1', [TARGET_LEAD_ID]);
+  console.log('  Test Probe lead gone: ' + (leadCheck.length === 0 ? 'YES ✅' : 'NO ❌'));
+  if (leadCheck.length !== 0) throw new Error('PRE-COMMIT FAIL: lead still exists — ROLLBACK');
+
+  // appt gone?
+  const { rows: apptCheck } = await queryFn('SELECT id FROM appointments WHERE id = $1', [TARGET_APPT_ID]);
+  console.log('  Test Probe appt gone: ' + (apptCheck.length === 0 ? 'YES ✅' : 'NO ❌'));
+  if (apptCheck.length !== 0) throw new Error('PRE-COMMIT FAIL: appointment still exists — ROLLBACK');
+
+  // no fixture rows remain in the 4 tables
+  const { rows: coRem } = await queryFn('SELECT COUNT(*)::int c FROM calendar_outbox WHERE appointment_id = $1', [TARGET_APPT_ID]);
+  const { rows: aeRem } = await queryFn('SELECT COUNT(*)::int c FROM appointment_events WHERE appointment_id = $1', [TARGET_APPT_ID]);
+  const { rows: biRem } = await queryFn('SELECT COUNT(*)::int c FROM booking_idempotency WHERE appointment_id = $1 OR lead_id = $2', [TARGET_APPT_ID, TARGET_LEAD_ID]);
+  const { rows: rlRem } = await queryFn('SELECT COUNT(*)::int c FROM reminder_leads WHERE id = $1', [TARGET_LEAD_ID]);
+  console.log('  calendar_outbox remaining: ' + coRem[0].c + (coRem[0].c === 0 ? ' ✅' : ' ❌'));
+  console.log('  appointment_events remaining: ' + aeRem[0].c + (aeRem[0].c === 0 ? ' ✅' : ' ❌'));
+  console.log('  booking_idempotency remaining: ' + biRem[0].c + (biRem[0].c === 0 ? ' ✅' : ' ❌'));
+  console.log('  reminder_leads remaining: ' + rlRem[0].c + (rlRem[0].c === 0 ? ' ✅' : ' ❌'));
+  if (coRem[0].c !== 0 || aeRem[0].c !== 0 || biRem[0].c !== 0 || rlRem[0].c !== 0) {
+    throw new Error('PRE-COMMIT FAIL: fixture rows remain — ROLLBACK');
   }
-  console.log('Lead deleted: ' + delLeadRows.length);
 
-  // 5d. Re-enable the immutability trigger BEFORE commit.
-  await queryFn('ALTER TABLE appointments ENABLE TRIGGER ' + TRIGGER_NAME);
-  console.log('Trigger re-enabled: ' + TRIGGER_NAME);
+  // two other test@example.com leads still exist unchanged
+  const { rows: otherCheck } = await queryFn(
+    "SELECT id, first_name, last_name, email, status FROM leads WHERE lower(email) = $1 AND id <> $2 ORDER BY id",
+    [TARGET_EMAIL, TARGET_LEAD_ID]
+  );
+  console.log('  other test@example.com leads still present: ' + otherCheck.length);
+  const othersUnchanged = otherCheck.length === otherLeads.length &&
+    otherCheck.every((o, i) => o.id === otherLeads[i].id && o.first_name === otherLeads[i].first_name &&
+      o.last_name === otherLeads[i].last_name && o.status === otherLeads[i].status);
+  console.log('  other leads unchanged: ' + (othersUnchanged ? 'YES ✅' : 'NO ❌'));
+  if (!othersUnchanged) throw new Error('PRE-COMMIT FAIL: other leads changed — ROLLBACK');
 
-  console.log('');
-  console.log('FULL REMOVAL APPLIED ✅ (pending COMMIT)');
-  return { action: 'applied', appointmentDeleted: delApptRows.length, leadDeleted: delLeadRows.length, lead, counts, targetApptId };
+  console.log('\nALL PRE-COMMIT CHECKS PASSED ✅ — ready for COMMIT');
+  return { action: 'applied', steps: { calendar_outbox: co.rowCount, appointment_events: ae.rowCount, booking_idempotency: bi.rowCount, appointments: ap.rowCount, leads: ld.rowCount, reminder_leads: rl.rowCount } };
 }
 
 async function postVerify(queryFn = query) {
-  console.log('\n=== POST-CLEANUP VERIFICATION (READ-ONLY) ===');
+  console.log('\n=== POST-COMMIT VERIFICATION (READ-ONLY) ===');
+  const out = {};
 
-  // Lead gone?
-  const { rows: leadRows } = await queryFn(
-    'SELECT id, external_ref, first_name, last_name, email FROM leads WHERE id = $1',
-    [TARGET_LEAD_ID]
-  );
-  console.log('Test Probe lead present: ' + (leadRows.length === 0 ? 'NO ✅ (deleted)' : 'YES ❌'));
-  if (leadRows.length > 0) console.log('  ' + JSON.stringify(leadRows[0]));
+  const { rows: leadRows } = await queryFn('SELECT id FROM leads WHERE id = $1', [TARGET_LEAD_ID]);
+  out.leadGone = leadRows.length === 0;
+  console.log('Test Probe lead gone: ' + (out.leadGone ? 'YES ✅' : 'NO ❌'));
 
-  // Appointment gone?
-  const { rows: apptRows } = await queryFn(
-    'SELECT id, status FROM appointments WHERE lead_id = $1',
-    [TARGET_LEAD_ID]
-  );
-  console.log('Test Probe appointment present: ' + (apptRows.length === 0 ? 'NO ✅ (deleted)' : 'YES ❌'));
-  for (const a of apptRows) console.log('  ' + a.id + ' status=' + a.status);
+  const { rows: apptRows } = await queryFn('SELECT id FROM appointments WHERE id = $1', [TARGET_APPT_ID]);
+  out.apptGone = apptRows.length === 0;
+  console.log('Test Probe appt gone: ' + (out.apptGone ? 'YES ✅' : 'NO ❌'));
 
-  // Trigger active?
-  const { rows: trigRows } = await queryFn(
-    "SELECT tgenabled FROM pg_trigger WHERE tgname = $1",
-    [TRIGGER_NAME]
-  );
-  const triggerActive = trigRows.length > 0 && trigRows[0].tgenabled === 'O';
-  console.log('appointments_no_delete trigger active: ' + (triggerActive ? 'YES ✅' : 'NO ❌'));
+  const { rows: trigRows } = await queryFn("SELECT tgenabled FROM pg_trigger WHERE tgname = $1", [TRIGGER_NAME]);
+  out.triggerActive = trigRows.length > 0 && trigRows[0].tgenabled === 'O';
+  console.log('appointments_no_delete active: ' + (out.triggerActive ? 'YES ✅' : 'NO ❌'));
 
-  // Total lead count (sanity)
-  const { rows: lc } = await queryFn('SELECT COUNT(*)::int AS c FROM leads');
-  console.log('Total Railway leads: ' + lc[0].c);
+  const { rows: lc } = await queryFn('SELECT COUNT(*)::int c FROM leads');
+  out.totalLeads = lc[0].c;
+  console.log('Total Railway leads: ' + out.totalLeads);
 
-  return { leadGone: leadRows.length === 0, apptGone: apptRows.length === 0, triggerActive };
+  return out;
 }
 
 async function main() {
@@ -225,9 +268,10 @@ async function main() {
     if (apply) {
       await client.query('BEGIN');
       const qFn = (text, params) => client.query(text, params);
-      await runCleanup(qFn, true);
+      const res = await runCleanup(qFn, true);
       await client.query('COMMIT');
       console.log('COMMIT successful ✅');
+      console.log('Cleanup result: ' + JSON.stringify(res.steps));
     } else {
       await runCleanup(query, false);
     }
@@ -245,7 +289,7 @@ async function main() {
   }
 }
 
-module.exports = { runCleanup, postVerify, countDeps, DEP_TABLES, TARGET_LEAD_ID, TRIGGER_NAME };
+module.exports = { runCleanup, postVerify, TARGET_LEAD_ID, TARGET_APPT_ID, TRIGGER_NAME, EXPECT };
 
 if (require.main === module) {
   main().catch(e => { console.error('FATAL:', e); process.exit(1); });
