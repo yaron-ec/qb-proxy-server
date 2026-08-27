@@ -1171,4 +1171,43 @@ router.post('/audit-test-probe-fk-references', async (req, res) => {
   }
 });
 
+// ── POST /rollback-validate-lead-submissions ─────────────────────────────────
+// Production-path rollback validation for lead_submissions: runs the EXACT same
+// runLeadSubmissionMigration() function used by the production script, inside a
+// transaction that is ALWAYS ROLLED BACK. Validates FK resolution (lead_id),
+// NOT NULL, UNIQUE (external_ref), field values, and all 3 Base44 records.
+router.post('/rollback-validate-lead-submissions', async (req, res) => {
+  const { execFile } = require('child_process');
+  const path = require('path');
+  const fs = require('fs');
+
+  const scriptPath = path.resolve(__dirname, '..', 'scripts', 'rollbackValidateLeadSubmissions.js');
+  if (!fs.existsSync(scriptPath)) {
+    return res.status(404).json({ error: 'rollbackValidateLeadSubmissions.js not found', path: scriptPath });
+  }
+
+  try {
+    execFile('node', [scriptPath], {
+      timeout: 180000,
+      maxBuffer: 20 * 1024 * 1024,
+      env: { ...process.env },
+      cwd: path.resolve(__dirname, '..'),
+    }, (err, stdout, stderr) => {
+      if (err && err.code !== 0) {
+        console.error('[cron] rollback-validate-lead-submissions process error:', err.message);
+      }
+      res.json({
+        ok: !err || err.code === 0,
+        exitCode: err ? err.code : 0,
+        stdout,
+        stderr: stderr || '',
+        job: 'rollback-validate-lead-submissions',
+      });
+    });
+  } catch (e) {
+    console.error('[cron] rollback-validate-lead-submissions error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
