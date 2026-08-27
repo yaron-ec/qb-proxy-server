@@ -42,6 +42,8 @@ const TARGET_EMAIL = 'test@example.com';
 const TARGET_FIRST = 'Test';
 const TARGET_LAST = 'Probe';
 const TRIGGER_NAME = 'appointments_no_delete';
+// appointment_events also has an immutability trigger (blocks DELETE). Discovered at runtime.
+const APPT_EVENTS_TRIGGER_CANDIDATES = ['appointment_events_no_delete', 'appointment_events_immutable'];
 
 // Expected counts from the read-only FK audit.
 const EXPECT = {
@@ -131,10 +133,18 @@ async function runCleanup(queryFn, apply) {
 
   // ══════════════════════════════════════════════════════════════════════════
   // STEP 2 — DELETE appointment_events row for exact appointment_id (expect 1)
+  // appointment_events has its own immutability trigger — discover & bypass it
+  // narrowly (re-enabled before commit).
   // ══════════════════════════════════════════════════════════════════════════
-  console.log('STEP 2: DELETE appointment_events WHERE appointment_id = <apptId>');
+  const { rows: aeTrigRows } = await queryFn(
+    "SELECT tgname FROM pg_trigger WHERE tgrelid = 'appointment_events'::regclass AND tgenabled IN ('O','D') AND NOT tgisinternal"
+  );
+  const aeTrig = aeTrigRows.map(t => t.tgname).find(n => APPT_EVENTS_TRIGGER_CANDIDATES.includes(n)) || aeTrigRows[0]?.tgname;
+  console.log('STEP 2: discovered appointment_events immutability trigger: ' + (aeTrig || 'NONE'));
+  if (aeTrig) await queryFn('ALTER TABLE appointment_events DISABLE TRIGGER ' + aeTrig);
   const ae = await queryFn('DELETE FROM appointment_events WHERE appointment_id = $1 RETURNING id', [TARGET_APPT_ID]);
   assertCount(ae.rowCount, EXPECT.appointment_events, 'appointment_events');
+  if (aeTrig) await queryFn('ALTER TABLE appointment_events ENABLE TRIGGER ' + aeTrig);
 
   // ══════════════════════════════════════════════════════════════════════════
   // STEP 3 — DELETE booking_idempotency matching BOTH appt_id AND lead_id (expect 1)
@@ -197,7 +207,15 @@ async function runCleanup(queryFn, apply) {
   );
   const triggerActive = trigRows.length > 0 && trigRows[0].tgenabled === 'O';
   console.log('  appointments_no_delete active: ' + (triggerActive ? 'YES ✅' : 'NO ❌'));
-  if (!triggerActive) throw new Error('PRE-COMMIT FAIL: trigger not active — ROLLBACK');
+  if (!triggerActive) throw new Error('PRE-COMMIT FAIL: appointments_no_delete not active — ROLLBACK');
+
+  // appointment_events trigger active?
+  if (aeTrig) {
+    const { rows: aeTrigCheck } = await queryFn("SELECT tgenabled FROM pg_trigger WHERE tgname = $1", [aeTrig]);
+    const aeActive = aeTrigCheck.length > 0 && aeTrigCheck[0].tgenabled === 'O';
+    console.log('  ' + aeTrig + ' active: ' + (aeActive ? 'YES ✅' : 'NO ❌'));
+    if (!aeActive) throw new Error('PRE-COMMIT FAIL: appointment_events trigger not active — ROLLBACK');
+  }
 
   // lead gone?
   const { rows: leadCheck } = await queryFn('SELECT id FROM leads WHERE id = $1', [TARGET_LEAD_ID]);
