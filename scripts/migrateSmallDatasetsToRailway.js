@@ -13,6 +13,12 @@
  *
  * Each dataset is imported with ON CONFLICT (external_ref) DO UPDATE for idempotency.
  * Tables that don't have external_ref use ON CONFLICT on their natural unique key.
+ *
+ * ARCHITECTURE (2026-08-26): Each migration function accepts an optional `queryFn`
+ * parameter so the rollback validator (rollbackValidateSmallDatasets.js) can run the
+ * EXACT production code path inside a BEGIN/ROLLBACK transaction. The CLI main()
+ * invokes them with the default pool query. This mirrors the
+ * migrateHandoffEstimatesToRailway.js → rollbackValidateHandoffEstimates.js pattern.
  */
 'use strict';
 
@@ -25,7 +31,7 @@ if (!hasBase44Creds()) {
 }
 
 // ── UserAllowlist (uses email as natural key, no external_ref needed) ─────────
-async function migrateUserAllowlist() {
+async function migrateUserAllowlist(queryFn = query) {
   console.log('\n[migrate-small] === UserAllowlist ===');
   const items = await fetchBase44Entity('UserAllowlist');
   console.log(`[migrate-small] Fetched ${items.length} user allowlist entries`);
@@ -33,7 +39,7 @@ async function migrateUserAllowlist() {
   let created = 0, updated = 0, errors = 0;
   for (const item of items) {
     try {
-      await query(`
+      await queryFn(`
         INSERT INTO user_allowlist (email, name, role, enabled, notes)
         VALUES ($1, $2, $3, $4, $5)
         ON CONFLICT (email) DO UPDATE SET
@@ -50,17 +56,19 @@ async function migrateUserAllowlist() {
     }
   }
   console.log(`[migrate-small] UserAllowlist: ${created} upserted, ${errors} errors`);
+  return { created, updated, errors, total: items.length };
 }
 
 // ── CompanySettings (singleton) ──────────────────────────────────────────────
-async function migrateCompanySettings() {
+async function migrateCompanySettings(queryFn = query) {
   console.log('\n[migrate-small] === CompanySettings ===');
   const items = await fetchBase44Entity('CompanySettings');
   console.log(`[migrate-small] Fetched ${items.length} company settings records`);
 
+  let created = 0, errors = 0;
   for (const item of items) {
     try {
-      await query(`
+      await queryFn(`
         INSERT INTO company_settings (
           company_name, company_logo_url, company_email, company_phone,
           company_address, company_city, company_state, company_zip,
@@ -93,23 +101,27 @@ async function migrateCompanySettings() {
         item.company_website || null,
         item.crm_activity_notifications_enabled === true,
       ]);
+      created++;
       console.log('[migrate-small] CompanySettings upserted');
     } catch (e) {
+      errors++;
       console.error(`[migrate-small] CompanySettings error: ${e.message}`);
     }
   }
+  return { created, errors, total: items.length };
 }
 
 // ── SyncCursor ──────────────────────────────────────────────────────────────
-async function migrateSyncCursors() {
+async function migrateSyncCursors(queryFn = query) {
   console.log('\n[migrate-small] === SyncCursor ===');
   const items = await fetchBase44Entity('SyncCursor');
   console.log(`[migrate-small] Fetched ${items.length} sync cursors`);
 
+  let created = 0, errors = 0;
   for (const item of items) {
     try {
       const summary = item.last_sync_summary ? JSON.stringify(item.last_sync_summary) : null;
-      await query(`
+      await queryFn(`
         INSERT INTO sync_cursors (
           integration, last_successful_sync_at, last_cursor, last_record_id,
           last_updated_timestamp, total_synced, last_sync_summary, is_full_sync_in_progress
@@ -133,31 +145,40 @@ async function migrateSyncCursors() {
         summary,
         item.is_full_sync_in_progress === true,
       ]);
+      created++;
       console.log(`[migrate-small] SyncCursor '${item.integration}' upserted`);
     } catch (e) {
+      errors++;
       console.error(`[migrate-small] SyncCursor error on ${item.integration}: ${e.message}`);
     }
   }
+  return { created, errors, total: items.length };
 }
 
 // ── LeadAttachment ──────────────────────────────────────────────────────────
-async function migrateLeadAttachments() {
+async function migrateLeadAttachments(queryFn = query) {
   console.log('\n[migrate-small] === LeadAttachment ===');
   const items = await fetchBase44Entity('LeadAttachment');
   console.log(`[migrate-small] Fetched ${items.length} lead attachments`);
 
   // Build lead ID cache
-  const { rows: leadRows } = await query('SELECT id, external_ref FROM leads WHERE external_ref IS NOT NULL');
+  const { rows: leadRows } = await queryFn('SELECT id, external_ref FROM leads WHERE external_ref IS NOT NULL');
   const leadCache = {};
   for (const r of leadRows) leadCache[String(r.external_ref)] = r.id;
 
-  let created = 0, errors = 0;
+  let created = 0, skipped = 0, errors = 0;
+  const unresolvedLeadFk = [];
   for (const item of items) {
     try {
       const railwayLeadId = item.lead_id ? (leadCache[String(item.lead_id)] || null) : null;
-      if (!railwayLeadId) { console.warn(`[migrate-small] Attachment ${item.id}: lead not found, skipping`); continue; }
+      if (!railwayLeadId) {
+        console.warn(`[migrate-small] Attachment ${item.id}: lead not found, skipping`);
+        unresolvedLeadFk.push({ id: item.id, lead_id: item.lead_id, file_name: item.file_name });
+        skipped++;
+        continue;
+      }
 
-      await query(`
+      await queryFn(`
         INSERT INTO lead_attachments (
           external_ref, lead_id, file_name, file_url, file_type, file_size,
           storage_key, uploaded_by, uploaded_at, qb_invoice_id, qb_invoice_number,
@@ -192,34 +213,42 @@ async function migrateLeadAttachments() {
       console.error(`[migrate-small] Attachment error on ${item.id}: ${e.message}`);
     }
   }
-  console.log(`[migrate-small] LeadAttachments: ${created} upserted, ${errors} errors`);
+  console.log(`[migrate-small] LeadAttachments: ${created} upserted, ${skipped} skipped, ${errors} errors`);
+  return { created, skipped, errors, total: items.length, unresolvedLeadFk };
 }
 
 // ── DealExpense ──────────────────────────────────────────────────────────────
-async function migrateDealExpenses() {
+async function migrateDealExpenses(queryFn = query) {
   console.log('\n[migrate-small] === DealExpense ===');
   const items = await fetchBase44Entity('DealExpense');
   console.log(`[migrate-small] Fetched ${items.length} deal expenses`);
 
   // Build deal ID cache: legacy_base44_id → deals.id
-  const { rows: dealRows } = await query('SELECT id, legacy_base44_id FROM deals WHERE legacy_base44_id IS NOT NULL');
+  const { rows: dealRows } = await queryFn('SELECT id, legacy_base44_id FROM deals WHERE legacy_base44_id IS NOT NULL');
   const dealCache = {};
   for (const r of dealRows) dealCache[String(r.legacy_base44_id)] = r.id;
 
   // Build lead ID cache
-  const { rows: leadRows } = await query('SELECT id, external_ref FROM leads WHERE external_ref IS NOT NULL');
+  const { rows: leadRows } = await queryFn('SELECT id, external_ref FROM leads WHERE external_ref IS NOT NULL');
   const leadCache = {};
   for (const r of leadRows) leadCache[String(r.external_ref)] = r.id;
 
-  let created = 0, errors = 0;
+  let created = 0, skipped = 0, errors = 0;
+  const unresolvedDealFk = [];
+  const unresolvedLeadFk = [];
   for (const item of items) {
     try {
       const railwayDealId = item.deal_id ? (dealCache[String(item.deal_id)] || null) : null;
       const railwayLeadId = item.lead_id ? (leadCache[String(item.lead_id)] || null) : null;
-      if (!railwayDealId) { console.warn(`[migrate-small] Expense ${item.id}: deal not found, skipping`); continue; }
+      if (!railwayDealId) {
+        console.warn(`[migrate-small] Expense ${item.id}: deal not found, skipping`);
+        unresolvedDealFk.push({ id: item.id, deal_id: item.deal_id, vendor_name: item.vendor_name });
+        skipped++;
+        continue;
+      }
 
       const num = (v) => (v !== null && v !== undefined && !isNaN(Number(v))) ? Number(v) : 0;
-      await query(`
+      await queryFn(`
         INSERT INTO deal_expenses (
           external_ref, deal_id, lead_id, expense_date, vendor_name, vendor_id,
           category, subcategory, description, amount, payment_status, payment_method,
@@ -250,22 +279,40 @@ async function migrateDealExpenses() {
       console.error(`[migrate-small] DealExpense error on ${item.id}: ${e.message}`);
     }
   }
-  console.log(`[migrate-small] DealExpenses: ${created} upserted, ${errors} errors`);
+  console.log(`[migrate-small] DealExpenses: ${created} upserted, ${skipped} skipped, ${errors} errors`);
+  return { created, skipped, errors, total: items.length, unresolvedDealFk, unresolvedLeadFk };
 }
 
-// ── Main ────────────────────────────────────────────────────────────────────
+// ── Aggregate runner (used by CLI and rollback validator) ────────────────────
+async function runSmallDatasetsMigration(queryFn = query) {
+  const userAllowlist = await migrateUserAllowlist(queryFn);
+  const companySettings = await migrateCompanySettings(queryFn);
+  const syncCursors = await migrateSyncCursors(queryFn);
+  const leadAttachments = await migrateLeadAttachments(queryFn);
+  const dealExpenses = await migrateDealExpenses(queryFn);
+  return { userAllowlist, companySettings, syncCursors, leadAttachments, dealExpenses };
+}
+
+// ── Main (CLI only — guarded so require() by the rollback validator does not auto-run) ──
 async function main() {
   console.log('[migrate-small] Starting small dataset migration...');
 
   // Order: no-dependency datasets first, then FK-dependent
-  await migrateUserAllowlist();
-  await migrateCompanySettings();
-  await migrateSyncCursors();
-  await migrateLeadAttachments();
-  await migrateDealExpenses();
+  await runSmallDatasetsMigration(query);
 
   console.log('\n=== SMALL DATASET MIGRATION COMPLETE ===');
   process.exit(0);
 }
 
-main().catch(e => { console.error('[migrate-small] fatal:', e); process.exit(1); });
+module.exports = {
+  migrateUserAllowlist,
+  migrateCompanySettings,
+  migrateSyncCursors,
+  migrateLeadAttachments,
+  migrateDealExpenses,
+  runSmallDatasetsMigration,
+};
+
+if (require.main === module) {
+  main().catch(e => { console.error('[migrate-small] fatal:', e); process.exit(1); });
+}

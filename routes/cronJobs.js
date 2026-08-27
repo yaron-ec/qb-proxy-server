@@ -967,4 +967,44 @@ router.post('/audit-shlomi-identity', async (req, res) => {
   }
 });
 
+// ── POST /reconcile-small-datasets ───────────────────────────────────────────
+// READ-ONLY production reconciliation: runs reconcileSmallDatasets.js which ONLY
+// executes SELECT queries (no writes, no transactions). Compares the permanently
+// written small-dataset state (user_allowlist, company_settings, sync_cursors,
+// lead_attachments, deal_expenses) against the Base44 source — counts, natural
+// keys, field-level values, FK resolution, identity checks. Safe to run any time.
+router.post('/reconcile-small-datasets', async (req, res) => {
+  const { execFile } = require('child_process');
+  const path = require('path');
+  const fs = require('fs');
+
+  const scriptPath = path.resolve(__dirname, '..', 'scripts', 'reconcileSmallDatasets.js');
+  if (!fs.existsSync(scriptPath)) {
+    return res.status(404).json({ error: 'reconcileSmallDatasets.js not found', path: scriptPath });
+  }
+
+  try {
+    execFile('node', [scriptPath], {
+      timeout: 180000,
+      maxBuffer: 20 * 1024 * 1024,
+      env: { ...process.env },
+      cwd: path.resolve(__dirname, '..'),
+    }, (err, stdout, stderr) => {
+      if (err && err.code !== 0) {
+        console.error('[cron] reconcile-small-datasets process error:', err.message);
+      }
+      res.json({
+        ok: !err || err.code === 0,
+        exitCode: err ? err.code : 0,
+        stdout,
+        stderr: stderr || '',
+        job: 'reconcile-small-datasets',
+      });
+    });
+  } catch (e) {
+    console.error('[cron] reconcile-small-datasets error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
