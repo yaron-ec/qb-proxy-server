@@ -50,8 +50,9 @@ async function reconcile() {
 
   // ── 2. Fetch all Railway leads ─────────────────────────────────────────
   const { rows: railLeads } = await pool.query(
-    'SELECT id, external_ref, first_name, last_name, email, phone, status, ' +
-    'assigned_rep, owner_id, created_at, updated_at FROM leads ORDER BY created_at DESC'
+    'SELECT l.id, l.external_ref, l.first_name, l.last_name, l.email, l.phone, ' +
+    'l.status, l.owner_id, o.display_name AS owner_name, l.created_at, l.updated_at ' +
+    'FROM leads l LEFT JOIN owners o ON o.id = l.owner_id ORDER BY l.created_at DESC'
   );
   console.log('Railway leads fetched: ' + railLeads.length + '\n');
 
@@ -131,7 +132,7 @@ async function reconcile() {
     console.log('  email:            ' + (extra.email || 'NULL'));
     console.log('  phone:            ' + (extra.phone || 'NULL'));
     console.log('  status:           ' + (extra.status || 'NULL'));
-    console.log('  assigned_rep:     ' + (extra.assigned_rep || 'NULL'));
+    console.log('  owner_name:       ' + (extra.owner_name || 'NULL'));
     console.log('  owner_id:         ' + (extra.owner_id || 'NULL'));
     console.log('  created_at:       ' + (extra.created_at || 'NULL'));
     console.log('  Base44 match by email: ' + (b44ByEmail ? b44ByEmail.id + ' (' + (b44ByEmail.first_name||'') + ' ' + (b44ByEmail.last_name||'') + ')' : 'NONE'));
