@@ -43,10 +43,26 @@ function dateOrNull(v) {
   const d = new Date(v);
   return isNaN(d.getTime()) ? null : d.toISOString();
 }
-// Compare two normalized values for equality (handles numbers, strings, booleans, null, dates-as-iso)
+// Deep key-order-independent sort for object comparison (JSONB columns)
+function sortKeys(o) {
+  if (o === null || typeof o !== 'object' || Array.isArray(o)) return o;
+  const sorted = {}; for (const k of Object.keys(o).sort()) sorted[k] = sortKeys(o[k]);
+  return sorted;
+}
+// Compare two normalized values for equality (numbers, strings, booleans, null, dates-as-iso, JSONB objects)
 function eq(a, b) {
   if (a === b) return true;
   if (a === null || b === null) return a === b;
+  // Objects/JSONB: deep-compare (key-order independent)
+  if (typeof a === 'object' || typeof b === 'object') {
+    let pa = a, pb = b;
+    try { if (typeof a === 'string') pa = JSON.parse(a); } catch (e) { pa = a; }
+    try { if (typeof b === 'string') pb = JSON.parse(b); } catch (e) { pb = b; }
+    if (typeof pa === 'object' && pa !== null && typeof pb === 'object' && pb !== null) {
+      return JSON.stringify(sortKeys(pa)) === JSON.stringify(sortKeys(pb));
+    }
+    return String(a) === String(b);
+  }
   if (typeof a === 'number' || typeof b === 'number') return Number(a) === Number(b);
   if (typeof a === 'boolean' || typeof b === 'boolean') return Boolean(a) === Boolean(b);
   return String(a) === String(b);
@@ -82,7 +98,7 @@ const SC_FIELDS = [
   ['last_record_id', (i) => norm(i.last_record_id)],
   ['last_updated_timestamp', (i) => dateOrNull(i.last_updated_timestamp)],
   ['total_synced', (i) => num(i.total_synced)],
-  ['last_sync_summary', (i) => i.last_sync_summary ? JSON.stringify(i.last_sync_summary) : null],
+  ['last_sync_summary', (i) => i.last_sync_summary || null],
   ['is_full_sync_in_progress', (i) => boolStrictTrue(i.is_full_sync_in_progress)],
 ];
 const LA_FIELDS = [
