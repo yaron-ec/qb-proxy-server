@@ -151,7 +151,7 @@ async function runCleanup(queryFn, apply) {
   // ══════════════════════════════════════════════════════════════════════════
   console.log('STEP 3: DELETE booking_idempotency WHERE appointment_id=<apptId> AND lead_id=<leadId>');
   const bi = await queryFn(
-    'DELETE FROM booking_idempotency WHERE appointment_id = $1 AND lead_id = $2 RETURNING id',
+    'DELETE FROM booking_idempotency WHERE appointment_id = $1 AND lead_id = $2 RETURNING idempotency_key',
     [TARGET_APPT_ID, TARGET_LEAD_ID]
   );
   assertCount(bi.rowCount, EXPECT.booking_idempotency, 'booking_idempotency');
