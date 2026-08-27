@@ -1007,4 +1007,80 @@ router.post('/reconcile-small-datasets', async (req, res) => {
   }
 });
 
+// ── POST /reconcile-leads-extra ───────────────────────────────────────────────
+// READ-ONLY reconciliation: identifies the Railway lead(s) with no Base44 counterpart
+// (the +1 diff). Reports identity, Base44 match by email/phone/name, dependency counts
+// across all migrated tables, and 1:1 mapping confirmation. SELECT queries only.
+router.post('/reconcile-leads-extra', async (req, res) => {
+  const { execFile } = require('child_process');
+  const path = require('path');
+  const fs = require('fs');
+
+  const scriptPath = path.resolve(__dirname, '..', 'scripts', 'reconcileLeadsExtra.js');
+  if (!fs.existsSync(scriptPath)) {
+    return res.status(404).json({ error: 'reconcileLeadsExtra.js not found', path: scriptPath });
+  }
+
+  try {
+    execFile('node', [scriptPath], {
+      timeout: 180000,
+      maxBuffer: 20 * 1024 * 1024,
+      env: { ...process.env },
+      cwd: path.resolve(__dirname, '..'),
+    }, (err, stdout, stderr) => {
+      if (err && err.code !== 0) {
+        console.error('[cron] reconcile-leads-extra process error:', err.message);
+      }
+      res.json({
+        ok: !err || err.code === 0,
+        exitCode: err ? err.code : 0,
+        stdout,
+        stderr: stderr || '',
+        job: 'reconcile-leads-extra',
+      });
+    });
+  } catch (e) {
+    console.error('[cron] reconcile-leads-extra error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── POST /reconcile-leads-extra ───────────────────────────────────────────────
+// READ-ONLY reconciliation: identifies the Railway lead(s) with no Base44 counterpart
+// (the +1 diff). Reports identity, Base44 match by email/phone/name, dependency counts
+// across all migrated tables, and 1:1 mapping confirmation. SELECT queries only.
+router.post('/reconcile-leads-extra', async (req, res) => {
+  const { execFile } = require('child_process');
+  const path = require('path');
+  const fs = require('fs');
+
+  const scriptPath = path.resolve(__dirname, '..', 'scripts', 'reconcileLeadsExtra.js');
+  if (!fs.existsSync(scriptPath)) {
+    return res.status(404).json({ error: 'reconcileLeadsExtra.js not found', path: scriptPath });
+  }
+
+  try {
+    execFile('node', [scriptPath], {
+      timeout: 180000,
+      maxBuffer: 20 * 1024 * 1024,
+      env: { ...process.env },
+      cwd: path.resolve(__dirname, '..'),
+    }, (err, stdout, stderr) => {
+      if (err && err.code !== 0) {
+        console.error('[cron] reconcile-leads-extra process error:', err.message);
+      }
+      res.json({
+        ok: !err || err.code === 0,
+        exitCode: err ? err.code : 0,
+        stdout,
+        stderr: stderr || '',
+        job: 'reconcile-leads-extra',
+      });
+    });
+  } catch (e) {
+    console.error('[cron] reconcile-leads-extra error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
