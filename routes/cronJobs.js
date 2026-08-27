@@ -1045,40 +1045,40 @@ router.post('/reconcile-leads-extra', async (req, res) => {
   }
 });
 
-// ── POST /reconcile-leads-extra ───────────────────────────────────────────────
-// READ-ONLY reconciliation: identifies the Railway lead(s) with no Base44 counterpart
-// (the +1 diff). Reports identity, Base44 match by email/phone/name, dependency counts
-// across all migrated tables, and 1:1 mapping confirmation. SELECT queries only.
-router.post('/reconcile-leads-extra', async (req, res) => {
+// ── POST /cleanup-test-probe ──────────────────────────────────────────────────
+// One-time guarded cleanup of the confirmed Railway-native "Test Probe" test record.
+// Re-verifies identity + dependencies, cancels the single appointment, deletes the
+// lead — all inside a single transaction that rolls back on any mismatch.
+router.post('/cleanup-test-probe', async (req, res) => {
   const { execFile } = require('child_process');
   const path = require('path');
   const fs = require('fs');
 
-  const scriptPath = path.resolve(__dirname, '..', 'scripts', 'reconcileLeadsExtra.js');
+  const scriptPath = path.resolve(__dirname, '..', 'scripts', 'cleanupTestProbe.js');
   if (!fs.existsSync(scriptPath)) {
-    return res.status(404).json({ error: 'reconcileLeadsExtra.js not found', path: scriptPath });
+    return res.status(404).json({ error: 'cleanupTestProbe.js not found', path: scriptPath });
   }
 
   try {
     execFile('node', [scriptPath], {
-      timeout: 180000,
-      maxBuffer: 20 * 1024 * 1024,
-      env: { ...process.env },
+      timeout: 120000,
+      maxBuffer: 10 * 1024 * 1024,
+      env: { ...process.env, APPLY: '1' },
       cwd: path.resolve(__dirname, '..'),
     }, (err, stdout, stderr) => {
       if (err && err.code !== 0) {
-        console.error('[cron] reconcile-leads-extra process error:', err.message);
+        console.error('[cron] cleanup-test-probe process error:', err.message);
       }
       res.json({
         ok: !err || err.code === 0,
         exitCode: err ? err.code : 0,
         stdout,
         stderr: stderr || '',
-        job: 'reconcile-leads-extra',
+        job: 'cleanup-test-probe',
       });
     });
   } catch (e) {
-    console.error('[cron] reconcile-leads-extra error:', e.message);
+    console.error('[cron] cleanup-test-probe error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
