@@ -1132,6 +1132,60 @@ router.post('/run-leads-appts-migration', async (req, res) => {
   }
 });
 
+// ── POST /run-delta-migration ──────────────────────────────────────────────────
+// PERMANENT delta migration: re-runs all idempotent migration scripts for datasets
+// with confirmed live deltas since the 2026-08-27 cutover. Auto-commit (no rollback).
+// Idempotent (ON CONFLICT DO UPDATE). Preserves Railway-native data (no deletes).
+// Order: Leads+Appointments → Activities → Deals → Small Datasets (DealExpenses, LeadAttachments)
+router.post('/run-delta-migration', async (req, res) => {
+  try {
+    const { runLeadMigration } = require('../scripts/migrateLeadsToRailway');
+    const { runAppointmentMigration } = require('../scripts/migrateAppointmentsToRailway');
+    const { runActivityMigration } = require('../scripts/migrateActivitiesToRailway');
+    const { runDealMigration } = require('../scripts/migrateDealsToRailway');
+    const { runSmallDatasetsMigration } = require('../scripts/migrateSmallDatasetsToRailway');
+
+    // ── Before counts ──────────────────────────────────────────────────────
+    const before = {};
+    for (const [key, table] of [['leads','leads'],['appointments','appointments'],['activities','activities'],['deals','deals'],['deal_expenses','deal_expenses'],['lead_attachments','lead_attachments']]) {
+      before[key] = parseInt((await query(`SELECT COUNT(*) as cnt FROM ${table}`)).rows[0].cnt, 10);
+    }
+
+    // ── 1. Leads + Appointments ─────────────────────────────────────────────
+    console.log('[delta-migration] Step 1: Leads + Appointments');
+    const leadResult = await runLeadMigration(query);
+    const apptResult = await runAppointmentMigration(query);
+
+    // ── 2. Activities ──────────────────────────────────────────────────────
+    console.log('[delta-migration] Step 2: Activities');
+    const activityResult = await runActivityMigration(query);
+
+    // ── 3. Deals ───────────────────────────────────────────────────────────
+    console.log('[delta-migration] Step 3: Deals');
+    const dealResult = await runDealMigration(query);
+
+    // ── 4. Small Datasets (DealExpenses, LeadAttachments, etc.) ────────────
+    console.log('[delta-migration] Step 4: Small Datasets');
+    const smallResult = await runSmallDatasetsMigration(query);
+
+    // ── After counts ───────────────────────────────────────────────────────
+    const after = {};
+    for (const [key, table] of [['leads','leads'],['appointments','appointments'],['activities','activities'],['deals','deals'],['deal_expenses','deal_expenses'],['lead_attachments','lead_attachments']]) {
+      after[key] = parseInt((await query(`SELECT COUNT(*) as cnt FROM ${table}`)).rows[0].cnt, 10);
+    }
+
+    res.json({
+      ok: true,
+      before, after,
+      leadResult, apptResult, activityResult, dealResult, smallResult,
+      job: 'run-delta-migration',
+    });
+  } catch (e) {
+    console.error('[cron] run-delta-migration error:', e.message);
+    res.status(500).json({ error: e.message, job: 'run-delta-migration' });
+  }
+});
+
 // ── POST /rollback-validate-lead-submissions ─────────────────────────────────
 // Production-path rollback validation for lead_submissions: runs the EXACT same
 // runLeadSubmissionMigration() function used by the production script, inside a
