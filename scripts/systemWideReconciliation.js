@@ -48,26 +48,41 @@ async function main() {
   }
   report.railway_counts = railCounts;
 
-  // ── 3. Admin verification ─────────────────────────────────────────────────
-  const { rows: admins } = await query(
-    `SELECT id, display_name, email, role, is_active FROM owners WHERE is_active = true ORDER BY display_name`
+  // ── 3. Admin verification (owners table + user_allowlist for roles) ────────
+  const { rows: owners } = await query(
+    `SELECT id, display_name, email, is_active FROM owners WHERE is_active = true ORDER BY display_name`
   );
-  report.owners = admins;
+  report.owners = owners;
 
-  const yaronAdmin = admins.find(a => a.display_name && a.display_name.toLowerCase().includes('yaron'));
-  const michelleAdmin = admins.find(a => a.display_name && a.display_name.toLowerCase().includes('michelle'));
+  const { rows: allowlistRoles } = await query(
+    `SELECT email, name, role, enabled FROM user_allowlist ORDER BY email`
+  );
+  const yaronOwner = owners.find(a => a.display_name && a.display_name.toLowerCase().includes('yaron'));
+  const michelleOwner = owners.find(a => a.display_name && a.display_name.toLowerCase().includes('michelle'));
+  const yaronAllow = allowlistRoles.find(a => a.email && a.email.toLowerCase().includes('yaron'));
+  const michelleAllow = allowlistRoles.find(a => a.email && a.email.toLowerCase().includes('michelle'));
   report.admin_verification = {
-    yaron_is_admin: yaronAdmin ? yaronAdmin.role === 'admin' : false,
-    yaron_record: yaronAdmin,
-    michelle_is_admin: michelleAdmin ? michelleAdmin.role === 'admin' : false,
-    michelle_record: michelleAdmin,
+    yaron_owner_exists: !!yaronOwner,
+    yaron_owner_record: yaronOwner,
+    yaron_allowlist_role: yaronAllow?.role,
+    yaron_allowlist_enabled: yaronAllow?.enabled,
+    yaron_is_admin: yaronAllow?.role === 'admin' && yaronAllow?.enabled !== false,
+    michelle_owner_exists: !!michelleOwner,
+    michelle_owner_record: michelleOwner,
+    michelle_allowlist_role: michelleAllow?.role,
+    michelle_allowlist_enabled: michelleAllow?.enabled,
+    michelle_is_admin: michelleAllow?.role === 'admin' && michelleAllow?.enabled !== false,
   };
 
   // ── 4. Simon / Shlomi identity ───────────────────────────────────────────
-  const { rows: simonShlomi } = await query(
-    `SELECT id, display_name, email, role, is_active FROM owners WHERE lower(display_name) LIKE '%simon%' OR lower(display_name) LIKE '%shlomi%'`
+  const { rows: simonShlomiOwners } = await query(
+    `SELECT id, display_name, email, is_active FROM owners WHERE lower(display_name) LIKE '%simon%' OR lower(display_name) LIKE '%shlomi%'`
   );
-  report.simon_shlomi_identity = simonShlomi;
+  const simonShlomiAllow = allowlistRoles.filter(a =>
+    (a.email && (a.email.toLowerCase().includes('simon') || a.email.toLowerCase().includes('shlomi'))) ||
+    (a.name && (a.name.toLowerCase().includes('simon') || a.name.toLowerCase().includes('shlomi')))
+  );
+  report.simon_shlomi_identity = { owners: simonShlomiOwners, allowlist: simonShlomiAllow };
 
   // ── 5. Owner mapping coverage ────────────────────────────────────────────
   const { rows: ownerStats } = await query(`
@@ -186,11 +201,8 @@ async function main() {
     railOnly.leads_without_external_ref = parseInt(noExtRefLeads[0].cnt, 10);
   } catch (e) { railOnly.leads_without_external_ref = `ERROR: ${e.message}`; }
 
-  // ── 11. User allowlist state ──────────────────────────────────────────────
-  const { rows: allowlist } = await query(
-    `SELECT email, name, role, enabled FROM user_allowlist ORDER BY email`
-  );
-  report.user_allowlist = allowlist;
+  // ── 11. User allowlist state (already fetched in section 3) ──────────────
+  report.user_allowlist = allowlistRoles;
 
   // ── Output ────────────────────────────────────────────────────────────────
   console.log(JSON.stringify(report, null, 2));
