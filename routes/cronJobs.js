@@ -1132,45 +1132,6 @@ router.post('/run-leads-appts-migration', async (req, res) => {
   }
 });
 
-// ── POST /audit-test-probe-fk-references ─────────────────────────────────────
-// READ-ONLY horizontal FK audit: enumerates ALL foreign-key constraints that can
-// reference the Test Probe lead/appointment using PostgreSQL catalog metadata
-// (no predefined list). Counts rows, scans non-FK text/uuid/jsonb references,
-// and derives the complete deletion order. BEGIN READ ONLY → ROLLBACK. No writes.
-router.post('/audit-test-probe-fk-references', async (req, res) => {
-  const { execFile } = require('child_process');
-  const path = require('path');
-  const fs = require('fs');
-
-  const scriptPath = path.resolve(__dirname, '..', 'scripts', 'auditTestProbeFkReferences.js');
-  if (!fs.existsSync(scriptPath)) {
-    return res.status(404).json({ error: 'auditTestProbeFkReferences.js not found', path: scriptPath });
-  }
-
-  try {
-    execFile('node', [scriptPath], {
-      timeout: 180000,
-      maxBuffer: 20 * 1024 * 1024,
-      env: { ...process.env },
-      cwd: path.resolve(__dirname, '..'),
-    }, (err, stdout, stderr) => {
-      if (err && err.code !== 0) {
-        console.error('[cron] audit-test-probe-fk-references process error:', err.message);
-      }
-      res.json({
-        ok: !err || err.code === 0,
-        exitCode: err ? err.code : 0,
-        stdout,
-        stderr: stderr || '',
-        job: 'audit-test-probe-fk-references',
-      });
-    });
-  } catch (e) {
-    console.error('[cron] audit-test-probe-fk-references error:', e.message);
-    res.status(500).json({ error: e.message });
-  }
-});
-
 // ── POST /rollback-validate-lead-submissions ─────────────────────────────────
 // Production-path rollback validation for lead_submissions: runs the EXACT same
 // runLeadSubmissionMigration() function used by the production script, inside a
@@ -1206,6 +1167,124 @@ router.post('/rollback-validate-lead-submissions', async (req, res) => {
     });
   } catch (e) {
     console.error('[cron] rollback-validate-lead-submissions error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── POST /rollback-validate-signnow-documents ────────────────────────────────
+// Production-path rollback validation for signnow_documents: runs the EXACT same
+// runSignNowDocumentMigration() function used by the production script, inside a
+// transaction that is ALWAYS ROLLED BACK. Validates FK resolution (lead_id),
+// NOT NULL, UNIQUE (external_ref), status domain, field values, idempotency,
+// and all 13 Base44 SignNowDocument records (10 resolvable + 3 orphan skipped).
+router.post('/rollback-validate-signnow-documents', async (req, res) => {
+  const { execFile } = require('child_process');
+  const path = require('path');
+  const fs = require('fs');
+
+  const scriptPath = path.resolve(__dirname, '..', 'scripts', 'rollbackValidateSignNowDocuments.js');
+  if (!fs.existsSync(scriptPath)) {
+    return res.status(404).json({ error: 'rollbackValidateSignNowDocuments.js not found', path: scriptPath });
+  }
+
+  try {
+    execFile('node', [scriptPath], {
+      timeout: 180000,
+      maxBuffer: 20 * 1024 * 1024,
+      env: { ...process.env },
+      cwd: path.resolve(__dirname, '..'),
+    }, (err, stdout, stderr) => {
+      if (err && err.code !== 0) {
+        console.error('[cron] rollback-validate-signnow-documents process error:', err.message);
+      }
+      res.json({
+        ok: !err || err.code === 0,
+        exitCode: err ? err.code : 0,
+        stdout,
+        stderr: stderr || '',
+        job: 'rollback-validate-signnow-documents',
+      });
+    });
+  } catch (e) {
+    console.error('[cron] rollback-validate-signnow-documents error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── POST /audit-deal-payment-datasets ────────────────────────────────────────
+// READ-ONLY audit for the three deal-payment datasets (DealExpensePayment,
+// DealCommission, DealLoanPayment) that have ZERO Base44 source records.
+// Verifies Base44 count=0, Railway table existence, Railway row count, schema,
+// FK constraints, UNIQUE(external_ref), and no inbound FK dependencies. No writes.
+router.post('/audit-deal-payment-datasets', async (req, res) => {
+  const { execFile } = require('child_process');
+  const path = require('path');
+  const fs = require('fs');
+
+  const scriptPath = path.resolve(__dirname, '..', 'scripts', 'auditDealPaymentDatasets.js');
+  if (!fs.existsSync(scriptPath)) {
+    return res.status(404).json({ error: 'auditDealPaymentDatasets.js not found', path: scriptPath });
+  }
+
+  try {
+    execFile('node', [scriptPath], {
+      timeout: 120000,
+      maxBuffer: 10 * 1024 * 1024,
+      env: { ...process.env },
+      cwd: path.resolve(__dirname, '..'),
+    }, (err, stdout, stderr) => {
+      if (err && err.code !== 0) {
+        console.error('[cron] audit-deal-payment-datasets process error:', err.message);
+      }
+      res.json({
+        ok: !err || err.code === 0,
+        exitCode: err ? err.code : 0,
+        stdout,
+        stderr: stderr || '',
+        job: 'audit-deal-payment-datasets',
+      });
+    });
+  } catch (e) {
+    console.error('[cron] audit-deal-payment-datasets error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── POST /audit-test-probe-fk-references ─────────────────────────────────────
+// READ-ONLY horizontal FK audit: enumerates ALL foreign-key constraints that can
+// reference the Test Probe lead/appointment using PostgreSQL catalog metadata
+// (no predefined list). Counts rows, scans non-FK text/uuid/jsonb references,
+// and derives the complete deletion order. BEGIN READ ONLY → ROLLBACK. No writes.
+router.post('/audit-test-probe-fk-references', async (req, res) => {
+  const { execFile } = require('child_process');
+  const path = require('path');
+  const fs = require('fs');
+
+  const scriptPath = path.resolve(__dirname, '..', 'scripts', 'auditTestProbeFkReferences.js');
+  if (!fs.existsSync(scriptPath)) {
+    return res.status(404).json({ error: 'auditTestProbeFkReferences.js not found', path: scriptPath });
+  }
+
+  try {
+    execFile('node', [scriptPath], {
+      timeout: 180000,
+      maxBuffer: 20 * 1024 * 1024,
+      env: { ...process.env },
+      cwd: path.resolve(__dirname, '..'),
+    }, (err, stdout, stderr) => {
+      if (err && err.code !== 0) {
+        console.error('[cron] audit-test-probe-fk-references process error:', err.message);
+      }
+      res.json({
+        ok: !err || err.code === 0,
+        exitCode: err ? err.code : 0,
+        stdout,
+        stderr: stderr || '',
+        job: 'audit-test-probe-fk-references',
+      });
+    });
+  } catch (e) {
+    console.error('[cron] audit-test-probe-fk-references error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
