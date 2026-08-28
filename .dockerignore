@@ -1,0 +1,10 @@
+node_modules
+dist
+.git
+ec-crm-frontend-export
+src/proxy-server
+base44
+.env
+.env.local
+.env.production
+*.md

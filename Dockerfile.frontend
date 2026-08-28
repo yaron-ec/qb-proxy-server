@@ -1,0 +1,22 @@
+# ---- Build stage ----
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm install --no-audit --no-fund
+COPY . .
+# VITE_* values are injected by Railway as build-time service variables.
+# ARG makes them available to the RUN (npm run build:exit) step.
+ARG VITE_RAILWAY_API_URL=https://qb-proxy-server-production.up.railway.app
+ENV VITE_RAILWAY_API_URL=$VITE_RAILWAY_API_URL
+ARG VITE_RAILWAY_CAPTURE_URL=https://qb-proxy-server-production.up.railway.app
+ENV VITE_RAILWAY_CAPTURE_URL=$VITE_RAILWAY_CAPTURE_URL
+RUN npm run build:exit
+
+# ---- Production SPA serve stage ----
+FROM nginx:alpine
+ENV PORT=80
+RUN rm -f /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/default.template
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD sh -c 'envsubst "\${PORT}" < /etc/nginx/conf.d/default.template > /etc/nginx/conf.d/default.conf && exec nginx -g "daemon off;"'
