@@ -1,1 +1,27 @@
-aW1wb3J0ICogYXMgUmVhY3QgZnJvbSAicmVhY3QiCmltcG9ydCAqIGFzIFBvcG92ZXJQcmltaXRpdmUgZnJvbSAiQHJhZGl4LXVpL3JlYWN0LXBvcG92ZXIiCgppbXBvcnQgeyBjbiB9IGZyb20gIkAvbGliL3V0aWxzIgoKY29uc3QgUG9wb3ZlciA9IFBvcG92ZXJQcmltaXRpdmUuUm9vdAoKY29uc3QgUG9wb3ZlclRyaWdnZXIgPSBQb3BvdmVyUHJpbWl0aXZlLlRyaWdnZXIKCmNvbnN0IFBvcG92ZXJBbmNob3IgPSBQb3BvdmVyUHJpbWl0aXZlLkFuY2hvcgoKY29uc3QgUG9wb3ZlckNvbnRlbnQgPSBSZWFjdC5mb3J3YXJkUmVmKCh7IGNsYXNzTmFtZSwgYWxpZ24gPSAiY2VudGVyIiwgc2lkZU9mZnNldCA9IDQsIC4uLnByb3BzIH0sIHJlZikgPT4gKAogIDxQb3BvdmVyUHJpbWl0aXZlLlBvcnRhbD4KICAgIDxQb3BvdmVyUHJpbWl0aXZlLkNvbnRlbnQKICAgICAgcmVmPXtyZWZ9CiAgICAgIGFsaWduPXthbGlnbn0KICAgICAgc2lkZU9mZnNldD17c2lkZU9mZnNldH0KICAgICAgY2xhc3NOYW1lPXtjbigKICAgICAgICAiei01MCB3LTcyIHJvdW5kZWQtbWQgYm9yZGVyIGJnLXBvcG92ZXIgcC00IHRleHQtcG9wb3Zlci1mb3JlZ3JvdW5kIHNoYWRvdy1tZCBvdXRsaW5lLW5vbmUgZGF0YS1bc3RhdGU9b3Blbl06YW5pbWF0ZS1pbiBkYXRhLVtzdGF0ZT1jbG9zZWRdOmFuaW1hdGUtb3V0IGRhdGEtW3N0YXRlPWNsb3NlZF06ZmFkZS1vdXQtMCBkYXRhLVtzdGF0ZT1vcGVuXTpmYWRlLWluLTAgZGF0YS1bc3RhdGU9Y2xvc2VkXTp6b29tLW91dC05NSBkYXRhLVtzdGF0ZT1vcGVuXTp6b29tLWluLTk1IGRhdGEtW3NpZGU9Ym90dG9tXTpzbGlkZS1pbi1mcm9tLXRvcC0yIGRhdGEtW3NpZGU9bGVmdF06c2xpZGUtaW4tZnJvbS1yaWdodC0yIGRhdGEtW3NpZGU9cmlnaHRdOnNsaWRlLWluLWZyb20tbGVmdC0yIGRhdGEtW3NpZGU9dG9wXTpzbGlkZS1pbi1mcm9tLWJvdHRvbS0yIiwKICAgICAgICBjbGFzc05hbWUKICAgICAgKX0KICAgICAgey4uLnByb3BzfSAvPgogIDwvUG9wb3ZlclByaW1pdGl2ZS5Qb3J0YWw+CikpClBvcG92ZXJDb250ZW50LmRpc3BsYXlOYW1lID0gUG9wb3ZlclByaW1pdGl2ZS5Db250ZW50LmRpc3BsYXlOYW1lCgpleHBvcnQgeyBQb3BvdmVyLCBQb3BvdmVyVHJpZ2dlciwgUG9wb3ZlckNvbnRlbnQsIFBvcG92ZXJBbmNob3IgfQo=
+import * as React from "react"
+import * as PopoverPrimitive from "@radix-ui/react-popover"
+
+import { cn } from "@/lib/utils"
+
+const Popover = PopoverPrimitive.Root
+
+const PopoverTrigger = PopoverPrimitive.Trigger
+
+const PopoverAnchor = PopoverPrimitive.Anchor
+
+const PopoverContent = React.forwardRef(({ className, align = "center", sideOffset = 4, ...props }, ref) => (
+  <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Content
+      ref={ref}
+      align={align}
+      sideOffset={sideOffset}
+      className={cn(
+        "z-50 w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        className
+      )}
+      {...props} />
+  </PopoverPrimitive.Portal>
+))
+PopoverContent.displayName = PopoverPrimitive.Content.displayName
+
+export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor }

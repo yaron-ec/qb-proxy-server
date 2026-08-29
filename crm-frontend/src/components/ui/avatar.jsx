@@ -1,1 +1,35 @@
-InVzZSBjbGllbnQiCgppbXBvcnQgKiBhcyBSZWFjdCBmcm9tICJyZWFjdCIKaW1wb3J0ICogYXMgQXZhdGFyUHJpbWl0aXZlIGZyb20gIkByYWRpeC11aS9yZWFjdC1hdmF0YXIiCgppbXBvcnQgeyBjbiB9IGZyb20gIkAvbGliL3V0aWxzIgoKY29uc3QgQXZhdGFyID0gUmVhY3QuZm9yd2FyZFJlZigoeyBjbGFzc05hbWUsIC4uLnByb3BzIH0sIHJlZikgPT4gKAogIDxBdmF0YXJQcmltaXRpdmUuUm9vdAogICAgcmVmPXtyZWZ9CiAgICBjbGFzc05hbWU9e2NuKCJyZWxhdGl2ZSBmbGV4IGgtMTAgdy0xMCBzaHJpbmstMCBvdmVyZmxvdy1oaWRkZW4gcm91bmRlZC1mdWxsIiwgY2xhc3NOYW1lKX0KICAgIHsuLi5wcm9wc30gLz4KKSkKQXZhdGFyLmRpc3BsYXlOYW1lID0gQXZhdGFyUHJpbWl0aXZlLlJvb3QuZGlzcGxheU5hbWUKCmNvbnN0IEF2YXRhckltYWdlID0gUmVhY3QuZm9yd2FyZFJlZigoeyBjbGFzc05hbWUsIC4uLnByb3BzIH0sIHJlZikgPT4gKAogIDxBdmF0YXJQcmltaXRpdmUuSW1hZ2UKICAgIHJlZj17cmVmfQogICAgY2xhc3NOYW1lPXtjbigiYXNwZWN0LXNxdWFyZSBoLWZ1bGwgdy1mdWxsIiwgY2xhc3NOYW1lKX0KICAgIHsuLi5wcm9wc30gLz4KKSkKQXZhdGFySW1hZ2UuZGlzcGxheU5hbWUgPSBBdmF0YXJQcmltaXRpdmUuSW1hZ2UuZGlzcGxheU5hbWUKCmNvbnN0IEF2YXRhckZhbGxiYWNrID0gUmVhY3QuZm9yd2FyZFJlZigoeyBjbGFzc05hbWUsIC4uLnByb3BzIH0sIHJlZikgPT4gKAogIDxBdmF0YXJQcmltaXRpdmUuRmFsbGJhY2sKICAgIHJlZj17cmVmfQogICAgY2xhc3NOYW1lPXtjbigKICAgICAgImZsZXggaC1mdWxsIHctZnVsbCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgcm91bmRlZC1mdWxsIGJnLW11dGVkIiwKICAgICAgY2xhc3NOYW1lCiAgICApfQogICAgey4uLnByb3BzfSAvPgopKQpBdmF0YXJGYWxsYmFjay5kaXNwbGF5TmFtZSA9IEF2YXRhclByaW1pdGl2ZS5GYWxsYmFjay5kaXNwbGF5TmFtZQoKZXhwb3J0IHsgQXZhdGFyLCBBdmF0YXJJbWFnZSwgQXZhdGFyRmFsbGJhY2sgfQo=
+"use client"
+
+import * as React from "react"
+import * as AvatarPrimitive from "@radix-ui/react-avatar"
+
+import { cn } from "@/lib/utils"
+
+const Avatar = React.forwardRef(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Root
+    ref={ref}
+    className={cn("relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full", className)}
+    {...props} />
+))
+Avatar.displayName = AvatarPrimitive.Root.displayName
+
+const AvatarImage = React.forwardRef(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Image
+    ref={ref}
+    className={cn("aspect-square h-full w-full", className)}
+    {...props} />
+))
+AvatarImage.displayName = AvatarPrimitive.Image.displayName
+
+const AvatarFallback = React.forwardRef(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Fallback
+    ref={ref}
+    className={cn(
+      "flex h-full w-full items-center justify-center rounded-full bg-muted",
+      className
+    )}
+    {...props} />
+))
+AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName
+
+export { Avatar, AvatarImage, AvatarFallback }

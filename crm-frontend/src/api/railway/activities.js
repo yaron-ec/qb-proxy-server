@@ -1,1 +1,35 @@
-LyoqCiAqIHJhaWx3YXkgYWN0aXZpdGllcyDigJQgQWN0aXZpdHkgQ1JVRCBjbGllbnQuCiAqICAgbGlzdCh7IGxlYWRfaWQsIHR5cGUsIHNvdXJjZSB9KSAgLT4geyBpdGVtcywgdG90YWwgfQogKiAgIGdldChpZCkgICAgICAgICAgICAgICAgICAgICAgICAgIC0+IHsgYWN0aXZpdHkgfQogKiAgIGNyZWF0ZShkYXRhKSAgICAgICAgICAgICAgICAgICAgIC0+IHsgYWN0aXZpdHkgfQogKiAgIHVwZGF0ZShpZCwgZGF0YSkgICAgICAgICAgICAgICAgIC0+IHsgYWN0aXZpdHkgfQogKiAgIHJlbW92ZShpZCkgICAgICAgICAgICAgICAgICAgICAgIC0+IHsgc3VjY2VzcywgaWQgfQogKi8KaW1wb3J0IHsgYXBpQ2FsbCB9IGZyb20gJy4vY2xpZW50JzsKCmV4cG9ydCBmdW5jdGlvbiBsaXN0KHBhcmFtcyA9IHt9KSB7CiAgY29uc3QgcXMgPSBuZXcgVVJMU2VhcmNoUGFyYW1zKCk7CiAgaWYgKHBhcmFtcy5sZWFkX2lkKSBxcy5zZXQoJ2xlYWRfaWQnLCBwYXJhbXMubGVhZF9pZCk7CiAgaWYgKHBhcmFtcy50eXBlICYmIHBhcmFtcy50eXBlICE9PSAnYWxsJykgcXMuc2V0KCd0eXBlJywgcGFyYW1zLnR5cGUpOwogIGlmIChwYXJhbXMuc291cmNlICYmIHBhcmFtcy5zb3VyY2UgIT09ICdhbGwnKSBxcy5zZXQoJ3NvdXJjZScsIHBhcmFtcy5zb3VyY2UpOwogIGlmIChwYXJhbXMubGltaXQpIHFzLnNldCgnbGltaXQnLCBTdHJpbmcocGFyYW1zLmxpbWl0KSk7CiAgY29uc3QgcSA9IHFzLnRvU3RyaW5nKCk7CiAgcmV0dXJuIGFwaUNhbGwoYC9hcGkvdjEvYWN0aXZpdGllcyR7cSA/IGA/JHtxfWAgOiAnJ31gLCB7IG1ldGhvZDogJ0dFVCcgfSk7Cn0KCmV4cG9ydCBmdW5jdGlvbiBnZXQoaWQpIHsKICByZXR1cm4gYXBpQ2FsbChgL2FwaS92MS9hY3Rpdml0aWVzLyR7aWR9YCwgeyBtZXRob2Q6ICdHRVQnIH0pOwp9CgpleHBvcnQgZnVuY3Rpb24gY3JlYXRlKGRhdGEpIHsKICByZXR1cm4gYXBpQ2FsbCgnL2FwaS92MS9hY3Rpdml0aWVzJywgeyBtZXRob2Q6ICdQT1NUJywgYm9keTogZGF0YSB9KTsKfQoKZXhwb3J0IGZ1bmN0aW9uIHVwZGF0ZShpZCwgZGF0YSkgewogIHJldHVybiBhcGlDYWxsKGAvYXBpL3YxL2FjdGl2aXRpZXMvJHtpZH1gLCB7IG1ldGhvZDogJ1BVVCcsIGJvZHk6IGRhdGEgfSk7Cn0KCmV4cG9ydCBmdW5jdGlvbiByZW1vdmUoaWQpIHsKICByZXR1cm4gYXBpQ2FsbChgL2FwaS92MS9hY3Rpdml0aWVzLyR7aWR9YCwgeyBtZXRob2Q6ICdERUxFVEUnIH0pOwp9
+/**
+ * railway activities — Activity CRUD client.
+ *   list({ lead_id, type, source })  -> { items, total }
+ *   get(id)                          -> { activity }
+ *   create(data)                     -> { activity }
+ *   update(id, data)                 -> { activity }
+ *   remove(id)                       -> { success, id }
+ */
+import { apiCall } from './client';
+
+export function list(params = {}) {
+  const qs = new URLSearchParams();
+  if (params.lead_id) qs.set('lead_id', params.lead_id);
+  if (params.type && params.type !== 'all') qs.set('type', params.type);
+  if (params.source && params.source !== 'all') qs.set('source', params.source);
+  if (params.limit) qs.set('limit', String(params.limit));
+  const q = qs.toString();
+  return apiCall(`/api/v1/activities${q ? `?${q}` : ''}`, { method: 'GET' });
+}
+
+export function get(id) {
+  return apiCall(`/api/v1/activities/${id}`, { method: 'GET' });
+}
+
+export function create(data) {
+  return apiCall('/api/v1/activities', { method: 'POST', body: data });
+}
+
+export function update(id, data) {
+  return apiCall(`/api/v1/activities/${id}`, { method: 'PUT', body: data });
+}
+
+export function remove(id) {
+  return apiCall(`/api/v1/activities/${id}`, { method: 'DELETE' });
+}

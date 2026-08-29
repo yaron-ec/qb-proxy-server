@@ -1,1 +1,100 @@
-aW1wb3J0ICogYXMgUmVhY3QgZnJvbSAicmVhY3QiCmltcG9ydCB7IENoZXZyb25MZWZ0LCBDaGV2cm9uUmlnaHQsIE1vcmVIb3Jpem9udGFsIH0gZnJvbSAibHVjaWRlLXJlYWN0IgoKaW1wb3J0IHsgY24gfSBmcm9tICJAL2xpYi91dGlscyIKaW1wb3J0IHsgYnV0dG9uVmFyaWFudHMgfSBmcm9tICJAL2NvbXBvbmVudHMvdWkvYnV0dG9uIjsKCmNvbnN0IFBhZ2luYXRpb24gPSAoewogIGNsYXNzTmFtZSwKICAuLi5wcm9wcwp9KSA9PiAoCiAgPG5hdgogICAgcm9sZT0ibmF2aWdhdGlvbiIKICAgIGFyaWEtbGFiZWw9InBhZ2luYXRpb24iCiAgICBjbGFzc05hbWU9e2NuKCJteC1hdXRvIGZsZXggdy1mdWxsIGp1c3RpZnktY2VudGVyIiwgY2xhc3NOYW1lKX0KICAgIHsuLi5wcm9wc30gLz4KKQpQYWdpbmF0aW9uLmRpc3BsYXlOYW1lID0gIlBhZ2luYXRpb24iCgpjb25zdCBQYWdpbmF0aW9uQ29udGVudCA9IFJlYWN0LmZvcndhcmRSZWYoKHsgY2xhc3NOYW1lLCAuLi5wcm9wcyB9LCByZWYpID0+ICgKICA8dWwKICAgIHJlZj17cmVmfQogICAgY2xhc3NOYW1lPXtjbigiZmxleCBmbGV4LXJvdyBpdGVtcy1jZW50ZXIgZ2FwLTEiLCBjbGFzc05hbWUpfQogICAgey4uLnByb3BzfSAvPgopKQpQYWdpbmF0aW9uQ29udGVudC5kaXNwbGF5TmFtZSA9ICJQYWdpbmF0aW9uQ29udGVudCIKCmNvbnN0IFBhZ2luYXRpb25JdGVtID0gUmVhY3QuZm9yd2FyZFJlZigoeyBjbGFzc05hbWUsIC4uLnByb3BzIH0sIHJlZikgPT4gKAogIDxsaSByZWY9e3JlZn0gY2xhc3NOYW1lPXtjbigiIiwgY2xhc3NOYW1lKX0gey4uLnByb3BzfSAvPgopKQpQYWdpbmF0aW9uSXRlbS5kaXNwbGF5TmFtZSA9ICJQYWdpbmF0aW9uSXRlbSIKCmNvbnN0IFBhZ2luYXRpb25MaW5rID0gKHsKICBjbGFzc05hbWUsCiAgaXNBY3RpdmUsCiAgc2l6ZSA9ICJpY29uIiwKICAuLi5wcm9wcwp9KSA9PiAoCiAgPGEKICAgIGFyaWEtY3VycmVudD17aXNBY3RpdmUgPyAicGFnZSIgOiB1bmRlZmluZWR9CiAgICBjbGFzc05hbWU9e2NuKGJ1dHRvblZhcmlhbnRzKHsKICAgICAgdmFyaWFudDogaXNBY3RpdmUgPyAib3V0bGluZSIgOiAiZ2hvc3QiLAogICAgICBzaXplLAogICAgfSksIGNsYXNzTmFtZSl9CiAgICB7Li4ucHJvcHN9IC8+CikKUGFnaW5hdGlvbkxpbmsuZGlzcGxheU5hbWUgPSAiUGFnaW5hdGlvbkxpbmsiCgpjb25zdCBQYWdpbmF0aW9uUHJldmlvdXMgPSAoewogIGNsYXNzTmFtZSwKICAuLi5wcm9wcwp9KSA9PiAoCiAgPFBhZ2luYXRpb25MaW5rCiAgICBhcmlhLWxhYmVsPSJHbyB0byBwcmV2aW91cyBwYWdlIgogICAgc2l6ZT0iZGVmYXVsdCIKICAgIGNsYXNzTmFtZT17Y24oImdhcC0xIHBsLTIuNSIsIGNsYXNzTmFtZSl9CiAgICB7Li4ucHJvcHN9PgogICAgPENoZXZyb25MZWZ0IGNsYXNzTmFtZT0iaC00IHctNCIgLz4KICAgIDxzcGFuPlByZXZpb3VzPC9zcGFuPgogIDwvUGFnaW5hdGlvbkxpbms+CikKUGFnaW5hdGlvblByZXZpb3VzLmRpc3BsYXlOYW1lID0gIlBhZ2luYXRpb25QcmV2aW91cyIKCmNvbnN0IFBhZ2luYXRpb25OZXh0ID0gKHsKICBjbGFzc05hbWUsCiAgLi4ucHJvcHMKfSkgPT4gKAogIDxQYWdpbmF0aW9uTGluawogICAgYXJpYS1sYWJlbD0iR28gdG8gbmV4dCBwYWdlIgogICAgc2l6ZT0iZGVmYXVsdCIKICAgIGNsYXNzTmFtZT17Y24oImdhcC0xIHByLTIuNSIsIGNsYXNzTmFtZSl9CiAgICB7Li4ucHJvcHN9PgogICAgPHNwYW4+TmV4dDwvc3Bhbj4KICAgIDxDaGV2cm9uUmlnaHQgY2xhc3NOYW1lPSJoLTQgdy00IiAvPgogIDwvUGFnaW5hdGlvbkxpbms+CikKUGFnaW5hdGlvbk5leHQuZGlzcGxheU5hbWUgPSAiUGFnaW5hdGlvbk5leHQiCgpjb25zdCBQYWdpbmF0aW9uRWxsaXBzaXMgPSAoewogIGNsYXNzTmFtZSwKICAuLi5wcm9wcwp9KSA9PiAoCiAgPHNwYW4KICAgIGFyaWEtaGlkZGVuCiAgICBjbGFzc05hbWU9e2NuKCJmbGV4IGgtOSB3LTkgaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIiwgY2xhc3NOYW1lKX0KICAgIHsuLi5wcm9wc30+CiAgICA8TW9yZUhvcml6b250YWwgY2xhc3NOYW1lPSJoLTQgdy00IiAvPgogICAgPHNwYW4gY2xhc3NOYW1lPSJzci1vbmx5Ij5Nb3JlIHBhZ2VzPC9zcGFuPgogIDwvc3Bhbj4KKQpQYWdpbmF0aW9uRWxsaXBzaXMuZGlzcGxheU5hbWUgPSAiUGFnaW5hdGlvbkVsbGlwc2lzIgoKZXhwb3J0IHsKICBQYWdpbmF0aW9uLAogIFBhZ2luYXRpb25Db250ZW50LAogIFBhZ2luYXRpb25MaW5rLAogIFBhZ2luYXRpb25JdGVtLAogIFBhZ2luYXRpb25QcmV2aW91cywKICBQYWdpbmF0aW9uTmV4dCwKICBQYWdpbmF0aW9uRWxsaXBzaXMsCn0K
+import * as React from "react"
+import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+import { buttonVariants } from "@/components/ui/button";
+
+const Pagination = ({
+  className,
+  ...props
+}) => (
+  <nav
+    role="navigation"
+    aria-label="pagination"
+    className={cn("mx-auto flex w-full justify-center", className)}
+    {...props} />
+)
+Pagination.displayName = "Pagination"
+
+const PaginationContent = React.forwardRef(({ className, ...props }, ref) => (
+  <ul
+    ref={ref}
+    className={cn("flex flex-row items-center gap-1", className)}
+    {...props} />
+))
+PaginationContent.displayName = "PaginationContent"
+
+const PaginationItem = React.forwardRef(({ className, ...props }, ref) => (
+  <li ref={ref} className={cn("", className)} {...props} />
+))
+PaginationItem.displayName = "PaginationItem"
+
+const PaginationLink = ({
+  className,
+  isActive,
+  size = "icon",
+  ...props
+}) => (
+  <a
+    aria-current={isActive ? "page" : undefined}
+    className={cn(buttonVariants({
+      variant: isActive ? "outline" : "ghost",
+      size,
+    }), className)}
+    {...props} />
+)
+PaginationLink.displayName = "PaginationLink"
+
+const PaginationPrevious = ({
+  className,
+  ...props
+}) => (
+  <PaginationLink
+    aria-label="Go to previous page"
+    size="default"
+    className={cn("gap-1 pl-2.5", className)}
+    {...props}>
+    <ChevronLeft className="h-4 w-4" />
+    <span>Previous</span>
+  </PaginationLink>
+)
+PaginationPrevious.displayName = "PaginationPrevious"
+
+const PaginationNext = ({
+  className,
+  ...props
+}) => (
+  <PaginationLink
+    aria-label="Go to next page"
+    size="default"
+    className={cn("gap-1 pr-2.5", className)}
+    {...props}>
+    <span>Next</span>
+    <ChevronRight className="h-4 w-4" />
+  </PaginationLink>
+)
+PaginationNext.displayName = "PaginationNext"
+
+const PaginationEllipsis = ({
+  className,
+  ...props
+}) => (
+  <span
+    aria-hidden
+    className={cn("flex h-9 w-9 items-center justify-center", className)}
+    {...props}>
+    <MoreHorizontal className="h-4 w-4" />
+    <span className="sr-only">More pages</span>
+  </span>
+)
+PaginationEllipsis.displayName = "PaginationEllipsis"
+
+export {
+  Pagination,
+  PaginationContent,
+  PaginationLink,
+  PaginationItem,
+  PaginationPrevious,
+  PaginationNext,
+  PaginationEllipsis,
+}

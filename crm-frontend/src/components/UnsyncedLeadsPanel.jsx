@@ -1,1 +1,325 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUNhbGxiYWNrLCB1c2VFZmZlY3QsIHVzZVJlZiB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsgcmFpbHdheVJlcXVlc3QgfSBmcm9tICJAL2xpYi9yYWlsd2F5Q2xpZW50IjsKaW1wb3J0IHsgc3RhcnRTeW5jIH0gZnJvbSAiQC9saWIvc3luY1N0b3JlIjsKaW1wb3J0IHsKICBBbGVydENpcmNsZSwgUmVmcmVzaEN3LCBDaGV2cm9uRG93biwgQ2hldnJvblJpZ2h0LAogIExvYWRlcjIsIEV4dGVybmFsTGluaywgWmFwLCBJbmZvLCBTZWFyY2gsIFgsIEZpbHRlcgp9IGZyb20gImx1Y2lkZS1yZWFjdCI7CgovLyDilIDilIAgUmVhc29uIGNvbmZpZyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKY29uc3QgUkVBU09OUyA9IHsKICAnTm90IHlldCBzeW5jZWQgdG8gQ1JNJzogICAgICAgeyBjb2xvcjogJ2JnLWJsdWUtNTAgdGV4dC1ibHVlLTcwMCBib3JkZXItYmx1ZS0yMDAnLCAgICBsYWJlbDogJ05vdCBzeW5jZWQnIH0sCiAgJ01pc3NpbmcgZW1haWwnOiAgICAgICAgICAgICAgIHsgY29sb3I6ICdiZy1hbWJlci01MCB0ZXh0LWFtYmVyLTcwMCBib3JkZXItYW1iZXItMjAwJywgbGFiZWw6ICdNaXNzaW5nIGVtYWlsJyB9LAogICdNaXNzaW5nIGVtYWlsIGFuZCBwaG9uZSc6ICAgICB7IGNvbG9yOiAnYmctcmVkLTUwIHRleHQtcmVkLTcwMCBib3JkZXItcmVkLTIwMCcsICAgICAgIGxhYmVsOiAnTm8gY29udGFjdCBpbmZvJyB9LAogICdJbnZhbGlkIHBob25lJzogICAgICAgICAgICAgICB7IGNvbG9yOiAnYmctb3JhbmdlLTUwIHRleHQtb3JhbmdlLTcwMCBib3JkZXItb3JhbmdlLTIwMCcsIGxhYmVsOiAnSW52YWxpZCBwaG9uZScgfSwKICAnTWlzc2luZyBuYW1lJzogICAgICAgICAgICAgICAgeyBjb2xvcjogJ2JnLXNsYXRlLTEwMCB0ZXh0LXNsYXRlLTUwMCBib3JkZXItc2xhdGUtMjAwJywgbGFiZWw6ICdNaXNzaW5nIG5hbWUnIH0sCiAgJ0R1cGxpY2F0ZSDigJQgbWF0Y2hlZCBieSBlbWFpbCc6eyBjb2xvcjogJ2JnLXB1cnBsZS01MCB0ZXh0LXB1cnBsZS03MDAgYm9yZGVyLXB1cnBsZS0yMDAnLCBsYWJlbDogJ0R1cGxpY2F0ZScgfSwKICAnQXJjaGl2ZWQgY29udGFjdCc6ICAgICAgICAgICAgeyBjb2xvcjogJ2JnLXNsYXRlLTEwMCB0ZXh0LXNsYXRlLTQwMCBib3JkZXItc2xhdGUtMjAwJywgbGFiZWw6ICdBcmNoaXZlZCcgfSwKICAnU3luYyBmYWlsdXJlJzogICAgICAgICAgICAgICAgeyBjb2xvcjogJ2JnLXJlZC01MCB0ZXh0LXJlZC03MDAgYm9yZGVyLXJlZC0yMDAnLCAgICAgICAgbGFiZWw6ICdTeW5jIGZhaWx1cmUnIH0sCiAgJ093bmVyIG1hcHBpbmcgZmFpbGVkJzogICAgICAgIHsgY29sb3I6ICdiZy15ZWxsb3ctNTAgdGV4dC15ZWxsb3ctNzAwIGJvcmRlci15ZWxsb3ctMjAwJywgbGFiZWw6ICdPd25lciBpc3N1ZScgfSwKICAnUGxhY2Vob2xkZXIgZW1haWwnOiAgICAgICAgICAgeyBjb2xvcjogJ2JnLXNsYXRlLTEwMCB0ZXh0LXNsYXRlLTQwMCBib3JkZXItc2xhdGUtMjAwJywgbGFiZWw6ICdQbGFjZWhvbGRlciBlbWFpbCcgfSwKfTsKCi8vIFJlYXNvbnMgdGhhdCBhcmUgcmV0cnlhYmxlIChxdWljayBzeW5jIG1heSByZXNvbHZlIHRoZW0pCmNvbnN0IFJFVFJZQUJMRV9SRUFTT05TID0gbmV3IFNldChbCiAgJ05vdCB5ZXQgc3luY2VkIHRvIENSTScsCiAgJ1N5bmMgZmFpbHVyZScsCiAgJ093bmVyIG1hcHBpbmcgZmFpbGVkJywKICAnTWlzc2luZyBlbWFpbCcsCl0pOwoKZnVuY3Rpb24gcmVhc29uQ2ZnKHJlYXNvbikgewogIHJldHVybiBSRUFTT05TW3JlYXNvbl0gfHwgeyBjb2xvcjogJ2JnLXNsYXRlLTEwMCB0ZXh0LXNsYXRlLTUwMCBib3JkZXItc2xhdGUtMjAwJywgbGFiZWw6IHJlYXNvbiB9Owp9CgovLyBBbGwgdW5pcXVlIGZpbHRlciBvcHRpb25zCmNvbnN0IEFMTF9GSUxURVIgPSAnQWxsIHJlYXNvbnMnOwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gVW5zeW5jZWRMZWFkc1BhbmVsKCkgewogIGNvbnN0IFtleHBhbmRlZCwgc2V0RXhwYW5kZWRdID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFtsb2FkaW5nLCBzZXRMb2FkaW5nXSA9IHVzZVN0YXRlKGZhbHNlKTsKICBjb25zdCBbZGF0YSwgc2V0RGF0YV0gPSB1c2VTdGF0ZShudWxsKTsKICBjb25zdCBbZXJyb3IsIHNldEVycm9yXSA9IHVzZVN0YXRlKG51bGwpOwogIGNvbnN0IFtyZXRyeWluZywgc2V0UmV0cnlpbmddID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFtzZWFyY2gsIHNldFNlYXJjaF0gPSB1c2VTdGF0ZSgnJyk7CiAgY29uc3QgW2ZpbHRlclJlYXNvbiwgc2V0RmlsdGVyUmVhc29uXSA9IHVzZVN0YXRlKEFMTF9GSUxURVIpOwogIGNvbnN0IHByZXZTeW5jaW5nUmVmID0gdXNlUmVmKGZhbHNlKTsKCiAgY29uc3QgbG9hZCA9IHVzZUNhbGxiYWNrKGFzeW5jICgpID0+IHsKICAgIHNldExvYWRpbmcodHJ1ZSk7CiAgICBzZXRFcnJvcihudWxsKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IHJlcyA9IGF3YWl0IHJhaWx3YXlSZXF1ZXN0KCcvbGVhZHMvdW5zeW5jZWQnLCB7fSk7CiAgICAgIHNldERhdGEocmVzKTsKICAgIH0gY2F0Y2ggKGUpIHsKICAgICAgc2V0RXJyb3IoZS5tZXNzYWdlIHx8ICdGYWlsZWQgdG8gbG9hZCcpOwogICAgfSBmaW5hbGx5IHsKICAgICAgc2V0TG9hZGluZyhmYWxzZSk7CiAgICB9CiAgfSwgW10pOwoKICBjb25zdCBoYW5kbGVFeHBhbmQgPSAoKSA9PiB7CiAgICBjb25zdCBuZXh0ID0gIWV4cGFuZGVkOwogICAgc2V0RXhwYW5kZWQobmV4dCk7CiAgICBpZiAobmV4dCAmJiAhZGF0YSAmJiAhbG9hZGluZykgbG9hZCgpOwogIH07CgogIC8vIEF1dG8tcmVmcmVzaCBhZnRlciBzeW5jIGNvbXBsZXRlcyDigJQgcG9sbCBzeW5jU3RvcmUgc3RhdGUKICB1c2VFZmZlY3QoKCkgPT4gewogICAgY29uc3QgaW50ZXJ2YWwgPSBzZXRJbnRlcnZhbCgoKSA9PiB7CiAgICAgIC8vIERldGVjdCBzeW5jIGNvbXBsZXRpb24gYnkgY2hlY2tpbmcgaWYgd2luZG93Ll9fc3luY0NvbXBsZXRlZCBmbGFnIGlzIHNldAogICAgICAvLyBXZSBzdWJzY3JpYmUgdmlhIGEgc2ltcGxlIERPTSBldmVudCBpbnN0ZWFkIG9mIGltcG9ydGluZyBzeW5jU3RvcmUKICAgICAgY29uc3QgZWwgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnX19zeW5jX2RvbmVfc2lnbmFsJyk7CiAgICAgIGlmIChlbCAmJiBlbC5kYXRhc2V0LmRvbmUgPT09ICcxJyAmJiBleHBhbmRlZCAmJiBkYXRhKSB7CiAgICAgICAgZWwuZGF0YXNldC5kb25lID0gJzAnOwogICAgICAgIGxvYWQoKTsKICAgICAgfQogICAgfSwgMjAwMCk7CiAgICByZXR1cm4gKCkgPT4gY2xlYXJJbnRlcnZhbChpbnRlcnZhbCk7CiAgfSwgW2V4cGFuZGVkLCBkYXRhLCBsb2FkXSk7CgogIGNvbnN0IGhhbmRsZVJldHJ5ID0gYXN5bmMgKCkgPT4gewogICAgc2V0UmV0cnlpbmcodHJ1ZSk7CiAgICBzdGFydFN5bmMoJ3F1aWNrJyk7CiAgICBzZXRUaW1lb3V0KCgpID0+IHNldFJldHJ5aW5nKGZhbHNlKSwgMjAwMCk7CiAgfTsKCiAgLy8gRGVyaXZlZCBkYXRhCiAgY29uc3QgYWxsUmVhc29ucyA9IGRhdGE/LnVuc3luY2VkCiAgICA/IFtBTExfRklMVEVSLCAuLi5BcnJheS5mcm9tKG5ldyBTZXQoZGF0YS51bnN5bmNlZC5tYXAociA9PiByLnJlYXNvbikpKV0KICAgIDogW0FMTF9GSUxURVJdOwoKICBjb25zdCBncm91cGVkID0gZGF0YT8udW5zeW5jZWQKICAgID8gT2JqZWN0LmVudHJpZXMoCiAgICAgICAgZGF0YS51bnN5bmNlZC5yZWR1Y2UoKGFjYywgcikgPT4gewogICAgICAgICAgYWNjW3IucmVhc29uXSA9IChhY2Nbci5yZWFzb25dIHx8IDApICsgMTsKICAgICAgICAgIHJldHVybiBhY2M7CiAgICAgICAgfSwge30pCiAgICAgICkuc29ydCgoYSwgYikgPT4gYlsxXSAtIGFbMV0pCiAgICA6IFtdOwoKICBjb25zdCBkaXNwbGF5TGlzdCA9IChkYXRhPy51bnN5bmNlZCB8fCBbXSkuZmlsdGVyKHIgPT4gewogICAgY29uc3QgbWF0Y2hSZWFzb24gPSBmaWx0ZXJSZWFzb24gPT09IEFMTF9GSUxURVIgfHwgci5yZWFzb24gPT09IGZpbHRlclJlYXNvbjsKICAgIGNvbnN0IHEgPSBzZWFyY2gudHJpbSgpLnRvTG93ZXJDYXNlKCk7CiAgICBjb25zdCBtYXRjaFNlYXJjaCA9ICFxIHx8IHIubmFtZS50b0xvd2VyQ2FzZSgpLmluY2x1ZGVzKHEpIHx8IHIuZW1haWwudG9Mb3dlckNhc2UoKS5pbmNsdWRlcyhxKSB8fCByLmh1YnNwb3RfaWQuaW5jbHVkZXMocSk7CiAgICByZXR1cm4gbWF0Y2hSZWFzb24gJiYgbWF0Y2hTZWFyY2g7CiAgfSk7CgogIGNvbnN0IHJldHJ5YWJsZUNvdW50ID0gKGRhdGE/LnVuc3luY2VkIHx8IFtdKS5maWx0ZXIociA9PiBSRVRSWUFCTEVfUkVBU09OUy5oYXMoci5yZWFzb24pKS5sZW5ndGg7CgogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT0iYmctd2hpdGUgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC14bCBvdmVyZmxvdy1oaWRkZW4iPgogICAgICB7Lyog4pSA4pSAIEhlYWRlciDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgKi99CiAgICAgIDxidXR0b24KICAgICAgICBvbkNsaWNrPXtoYW5kbGVFeHBhbmR9CiAgICAgICAgY2xhc3NOYW1lPSJ3LWZ1bGwgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIHB4LTUgcHktNCBob3ZlcjpiZy1zbGF0ZS01MCB0cmFuc2l0aW9uLWNvbG9ycyB0ZXh0LWxlZnQiCiAgICAgID4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIuNSI+CiAgICAgICAgICA8QWxlcnRDaXJjbGUgY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtYW1iZXItNTAwIiAvPgogICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS03MDAiPlVubWF0Y2hlZCBIdWJTcG90IENvbnRhY3RzPC9zcGFuPgogICAgICAgICAge2RhdGEgJiYgKAogICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9e2B0ZXh0LXhzIGZvbnQtYm9sZCBweC0yIHB5LTAuNSByb3VuZGVkLWZ1bGwgJHsKICAgICAgICAgICAgICBkYXRhLnVuc3luY2VkX2NvdW50ID4gMCA/ICdiZy1hbWJlci0xMDAgdGV4dC1hbWJlci03MDAnIDogJ2JnLWVtZXJhbGQtMTAwIHRleHQtZW1lcmFsZC03MDAnCiAgICAgICAgICAgIH1gfT4KICAgICAgICAgICAgICB7ZGF0YS51bnN5bmNlZF9jb3VudH0gdW5tYXRjaGVkCiAgICAgICAgICAgIDwvc3Bhbj4KICAgICAgICAgICl9CiAgICAgICAgPC9kaXY+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIj4KICAgICAgICAgIHtkYXRhICYmICgKICAgICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICAgIG9uQ2xpY2s9e2UgPT4geyBlLnN0b3BQcm9wYWdhdGlvbigpOyBsb2FkKCk7IH19CiAgICAgICAgICAgICAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNDAwIGhvdmVyOnRleHQtc2xhdGUtNjAwIGZvbnQtc2VtaWJvbGQgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEiCiAgICAgICAgICAgID4KICAgICAgICAgICAgICA8UmVmcmVzaEN3IGNsYXNzTmFtZT0idy0zIGgtMyIgLz4gUmVmcmVzaAogICAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICAgICl9CiAgICAgICAgICB7ZXhwYW5kZWQKICAgICAgICAgICAgPyA8Q2hldnJvbkRvd24gY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtc2xhdGUtNDAwIiAvPgogICAgICAgICAgICA6IDxDaGV2cm9uUmlnaHQgY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtc2xhdGUtNDAwIiAvPgogICAgICAgICAgfQogICAgICAgIDwvZGl2PgogICAgICA8L2J1dHRvbj4KCiAgICAgIHtleHBhbmRlZCAmJiAoCiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJvcmRlci10IGJvcmRlci1zbGF0ZS0xMDAiPgogICAgICAgICAgey8qIExvYWRpbmcgKi99CiAgICAgICAgICB7bG9hZGluZyAmJiAoCiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBweC01IHB5LTYgdGV4dC1zbGF0ZS00MDAgdGV4dC1zbSI+CiAgICAgICAgICAgICAgPExvYWRlcjIgY2xhc3NOYW1lPSJ3LTQgaC00IGFuaW1hdGUtc3BpbiIgLz4KICAgICAgICAgICAgICBDb21wYXJpbmcgYWxsIEh1YlNwb3QgY29udGFjdHMgYWdhaW5zdCBDUk0gbGVhZHPigKYKICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICApfQoKICAgICAgICAgIHsvKiBFcnJvciAqL30KICAgICAgICAgIHtlcnJvciAmJiAhbG9hZGluZyAmJiAoCiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJweC01IHB5LTQgYmctcmVkLTUwIGZsZXggaXRlbXMtY2VudGVyIGdhcC0yIHRleHQtc20gdGV4dC1yZWQtNzAwIj4KICAgICAgICAgICAgICA8QWxlcnRDaXJjbGUgY2xhc3NOYW1lPSJ3LTQgaC00IGZsZXgtc2hyaW5rLTAiIC8+CiAgICAgICAgICAgICAge2Vycm9yfQogICAgICAgICAgICAgIDxidXR0b24gb25DbGljaz17bG9hZH0gY2xhc3NOYW1lPSJtbC1hdXRvIHRleHQteHMgZm9udC1zZW1pYm9sZCBob3Zlcjp1bmRlcmxpbmUiPlJldHJ5PC9idXR0b24+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgKX0KCiAgICAgICAgICB7ZGF0YSAmJiAhbG9hZGluZyAmJiAoCiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJwLTUgc3BhY2UteS00Ij4KCiAgICAgICAgICAgICAgey8qIOKUgOKUgCBTdW1tYXJ5IGNhcmRzIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgCAqL30KICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZ3JpZCBncmlkLWNvbHMtMyBnYXAtMyI+CiAgICAgICAgICAgICAgICA8U3VtbWFyeUNhcmQgbGFiZWw9Ikh1YlNwb3QgY29udGFjdHMiIHZhbHVlPXtkYXRhLnRvdGFsX2hzX2NvbnRhY3RzfSBjb2xvcj0iYmx1ZSIgLz4KICAgICAgICAgICAgICAgIDxTdW1tYXJ5Q2FyZCBsYWJlbD0iTWF0Y2hlZCBpbiBDUk0iIHZhbHVlPXtkYXRhLnN5bmNlZF9jb3VudH0gY29sb3I9ImVtZXJhbGQiIC8+CiAgICAgICAgICAgICAgICA8U3VtbWFyeUNhcmQgbGFiZWw9IlVubWF0Y2hlZCIgdmFsdWU9e2RhdGEudW5zeW5jZWRfY291bnR9IGNvbG9yPXtkYXRhLnVuc3luY2VkX2NvdW50ID4gMCA/ICJhbWJlciIgOiAiZW1lcmFsZCJ9IC8+CiAgICAgICAgICAgICAgPC9kaXY+CgogICAgICAgICAgICAgIHsvKiDilIDilIAgTWF0Y2ggbG9naWMgbm90ZSDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgKi99CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLXNsYXRlLTUwIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgcHgtNCBweS0zIGZsZXggaXRlbXMtc3RhcnQgZ2FwLTIgdGV4dC14cyB0ZXh0LXNsYXRlLTYwMCI+CiAgICAgICAgICAgICAgICA8SW5mbyBjbGFzc05hbWU9InctNCBoLTQgdGV4dC1zbGF0ZS00MDAgZmxleC1zaHJpbmstMCBtdC0wLjUiIC8+CiAgICAgICAgICAgICAgICA8c3Bhbj5NYXRjaGVkIGJ5OiBIdWJTcG90IGNvbnRhY3QgSUQg4oaSIG5vcm1hbGl6ZWQgZW1haWwg4oaSIGxhc3QtMTAtZGlnaXQgcGhvbmUuIEEgY29udGFjdCBtYXRjaGVkIGJ5IGFueSBtZXRob2QgaXMgY29uc2lkZXJlZCBzeW5jZWQuPC9zcGFuPgogICAgICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgICAgICB7Lyog4pSA4pSAIEFsbCBtYXRjaGVkIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgCAqL30KICAgICAgICAgICAgICB7ZGF0YS51bnN5bmNlZF9jb3VudCA9PT0gMCAmJiAoCiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1jZW50ZXIgcHktNiB0ZXh0LXNtIHRleHQtZW1lcmFsZC03MDAgZm9udC1zZW1pYm9sZCI+CiAgICAgICAgICAgICAgICAgIOKchSBBbGwgSHViU3BvdCBjb250YWN0cyBhcmUgbWF0Y2hlZCBpbiB0aGUgQ1JNLgogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgKX0KCiAgICAgICAgICAgICAge2RhdGEudW5zeW5jZWRfY291bnQgPiAwICYmICgKICAgICAgICAgICAgICAgIDw+CiAgICAgICAgICAgICAgICAgIHsvKiDilIDilIAgUmVhc29uIGJyZWFrZG93biBiYWRnZXMg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAICovfQogICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ic3BhY2UteS0yIj4KICAgICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTUwMCI+QnJlYWtkb3duIGJ5IHJlYXNvbjwvcD4KICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBmbGV4LXdyYXAgZ2FwLTIiPgogICAgICAgICAgICAgICAgICAgICAge2dyb3VwZWQubWFwKChbcmVhc29uLCBjb3VudF0pID0+IHsKICAgICAgICAgICAgICAgICAgICAgICAgY29uc3QgY2ZnID0gcmVhc29uQ2ZnKHJlYXNvbik7CiAgICAgICAgICAgICAgICAgICAgICAgIGNvbnN0IGFjdGl2ZSA9IGZpbHRlclJlYXNvbiA9PT0gcmVhc29uOwogICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gKAogICAgICAgICAgICAgICAgICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgICAgICAgICAgICAgICAgIGtleT17cmVhc29ufQogICAgICAgICAgICAgICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0RmlsdGVyUmVhc29uKGFjdGl2ZSA/IEFMTF9GSUxURVIgOiByZWFzb24pfQogICAgICAgICAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPXtgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSBweC0yLjUgcHktMSByb3VuZGVkLWZ1bGwgdGV4dC14cyBmb250LXNlbWlib2xkIGJvcmRlciB0cmFuc2l0aW9uLWFsbCAke2NmZy5jb2xvcn0gJHthY3RpdmUgPyAncmluZy0yIHJpbmctb2Zmc2V0LTEgcmluZy1zbGF0ZS00MDAnIDogJ2hvdmVyOm9wYWNpdHktODAnfWB9CiAgICAgICAgICAgICAgICAgICAgICAgICAgPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPHNwYW4+e2NmZy5sYWJlbH08L3NwYW4+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9ImZvbnQtYmxhY2siPntjb3VudH08L3NwYW4+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICB7YWN0aXZlICYmIDxYIGNsYXNzTmFtZT0idy0zIGgtMyIgLz59CiAgICAgICAgICAgICAgICAgICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICAgICAgICAgICAgICAgICk7CiAgICAgICAgICAgICAgICAgICAgICB9KX0KICAgICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgPC9kaXY+CgogICAgICAgICAgICAgICAgICB7Lyog4pSA4pSAIEFjdGlvbnMgcm93IOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgCAqL30KICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0zIGZsZXgtd3JhcCI+CiAgICAgICAgICAgICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICAgICAgICAgICAgb25DbGljaz17aGFuZGxlUmV0cnl9CiAgICAgICAgICAgICAgICAgICAgICBkaXNhYmxlZD17cmV0cnlpbmcgfHwgcmV0cnlhYmxlQ291bnQgPT09IDB9CiAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIGJnLWFtYmVyLTYwMCB0ZXh0LXdoaXRlIHB4LTQgcHktMiB0ZXh0LXhzIGZvbnQtYm9sZCByb3VuZGVkLWxnIGhvdmVyOmJnLWFtYmVyLTcwMCB0cmFuc2l0aW9uLWNvbG9ycyBkaXNhYmxlZDpvcGFjaXR5LTUwIgogICAgICAgICAgICAgICAgICAgID4KICAgICAgICAgICAgICAgICAgICAgIHtyZXRyeWluZwogICAgICAgICAgICAgICAgICAgICAgICA/IDxMb2FkZXIyIGNsYXNzTmFtZT0idy0zLjUgaC0zLjUgYW5pbWF0ZS1zcGluIiAvPgogICAgICAgICAgICAgICAgICAgICAgICA6IDxaYXAgY2xhc3NOYW1lPSJ3LTMuNSBoLTMuNSIgLz4KICAgICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgICAgICAgIFJldHJ5IFN5bmMgKHtyZXRyeWFibGVDb3VudH0gcmV0cnlhYmxlKQogICAgICAgICAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTQwMCI+CiAgICAgICAgICAgICAgICAgICAgICBUcmlnZ2VycyBhIHF1aWNrIHN5bmMg4oCUIG9ubHkgZmV0Y2hlcyBjb250YWN0cyBtb2RpZmllZCBzaW5jZSBsYXN0IHN5bmMKICAgICAgICAgICAgICAgICAgICA8L3NwYW4+CiAgICAgICAgICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgICAgICAgICAgey8qIOKUgOKUgCBTZWFyY2ggKyBmaWx0ZXIgYmFyIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgCAqL30KICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZ2FwLTIiPgogICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJyZWxhdGl2ZSBmbGV4LTEiPgogICAgICAgICAgICAgICAgICAgICAgPFNlYXJjaCBjbGFzc05hbWU9ImFic29sdXRlIGxlZnQtMyB0b3AtMS8yIC10cmFuc2xhdGUteS0xLzIgdy0zLjUgaC0zLjUgdGV4dC1zbGF0ZS00MDAiIC8+CiAgICAgICAgICAgICAgICAgICAgICA8aW5wdXQKICAgICAgICAgICAgICAgICAgICAgICAgdHlwZT0idGV4dCIKICAgICAgICAgICAgICAgICAgICAgICAgcGxhY2Vob2xkZXI9IlNlYXJjaCBieSBuYW1lLCBlbWFpbCwgb3IgSHViU3BvdCBJROKApiIKICAgICAgICAgICAgICAgICAgICAgICAgdmFsdWU9e3NlYXJjaH0KICAgICAgICAgICAgICAgICAgICAgICAgb25DaGFuZ2U9e2UgPT4gc2V0U2VhcmNoKGUudGFyZ2V0LnZhbHVlKX0KICAgICAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJ3LWZ1bGwgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBwbC05IHByLTggcHktMiB0ZXh0LXNtIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpib3JkZXItYW1iZXItNTAwIHRyYW5zaXRpb24tY29sb3JzIgogICAgICAgICAgICAgICAgICAgICAgLz4KICAgICAgICAgICAgICAgICAgICAgIHtzZWFyY2ggJiYgKAogICAgICAgICAgICAgICAgICAgICAgICA8YnV0dG9uIG9uQ2xpY2s9eygpID0+IHNldFNlYXJjaCgnJyl9IGNsYXNzTmFtZT0iYWJzb2x1dGUgcmlnaHQtMi41IHRvcC0xLzIgLXRyYW5zbGF0ZS15LTEvMiB0ZXh0LXNsYXRlLTQwMCBob3Zlcjp0ZXh0LXNsYXRlLTYwMCI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgPFggY2xhc3NOYW1lPSJ3LTMuNSBoLTMuNSIgLz4KICAgICAgICAgICAgICAgICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICAgICAgICAgICAgICApfQogICAgICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgICAgIHtmaWx0ZXJSZWFzb24gIT09IEFMTF9GSUxURVIgJiYgKAogICAgICAgICAgICAgICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRGaWx0ZXJSZWFzb24oQUxMX0ZJTFRFUil9CiAgICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCB0ZXh0LXNsYXRlLTYwMCBweC0zIHB5LTIgdGV4dC14cyBmb250LXNlbWlib2xkIHJvdW5kZWQtbGcgaG92ZXI6Ymctc2xhdGUtNTAiCiAgICAgICAgICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICAgICAgICAgIDxGaWx0ZXIgY2xhc3NOYW1lPSJ3LTMgaC0zIiAvPiBDbGVhciBmaWx0ZXIKICAgICAgICAgICAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgICAgICAgICAgICl9CiAgICAgICAgICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgICAgICAgICAgey8qIOKUgOKUgCBUYWJsZSDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgKi99CiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIG92ZXJmbG93LWhpZGRlbiI+CiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImdyaWQgZ3JpZC1jb2xzLVsxZnJfMS4zZnJfMC45ZnJfMS41ZnJdIGJnLXNsYXRlLTUwIGJvcmRlci1iIGJvcmRlci1zbGF0ZS0yMDAgcHgtNCBweS0yLjUiPgogICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LVsxMXB4XSBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNDAwIj5OYW1lPC9zcGFuPgogICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LVsxMXB4XSBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNDAwIj5FbWFpbDwvc3Bhbj4KICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1bMTFweF0gZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTQwMCI+UGhvbmU8L3NwYW4+CiAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtWzExcHhdIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS00MDAiPlJlYXNvbjwvc3Bhbj4KICAgICAgICAgICAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImRpdmlkZS15IGRpdmlkZS1zbGF0ZS01MCBtYXgtaC05NiBvdmVyZmxvdy15LWF1dG8iPgogICAgICAgICAgICAgICAgICAgICAge2Rpc3BsYXlMaXN0Lmxlbmd0aCA9PT0gMCA/ICgKICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InB4LTQgcHktNiB0ZXh0LWNlbnRlciB0ZXh0LXNtIHRleHQtc2xhdGUtNDAwIj5ObyByZXN1bHRzPC9kaXY+CiAgICAgICAgICAgICAgICAgICAgICApIDogZGlzcGxheUxpc3QubWFwKHJlY29yZCA9PiB7CiAgICAgICAgICAgICAgICAgICAgICAgIGNvbnN0IGNmZyA9IHJlYXNvbkNmZyhyZWNvcmQucmVhc29uKTsKICAgICAgICAgICAgICAgICAgICAgICAgcmV0dXJuICgKICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2CiAgICAgICAgICAgICAgICAgICAgICAgICAgICBrZXk9e3JlY29yZC5odWJzcG90X2lkfQogICAgICAgICAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJncmlkIGdyaWQtY29scy1bMWZyXzEuM2ZyXzAuOWZyXzEuNWZyXSBweC00IHB5LTIuNSBob3ZlcjpiZy1zbGF0ZS01MCB0cmFuc2l0aW9uLWNvbG9ycyBpdGVtcy1jZW50ZXIiCiAgICAgICAgICAgICAgICAgICAgICAgICAgPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9Im1pbi13LTAgcHItMiI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS04MDAgdHJ1bmNhdGUiPntyZWNvcmQubmFtZX08L2Rpdj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtWzEwcHhdIHRleHQtc2xhdGUtNDAwIGZvbnQtbW9ubyI+SUQ6IHtyZWNvcmQuaHVic3BvdF9pZH08L2Rpdj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS02MDAgdHJ1bmNhdGUgcHItMiI+e3JlY29yZC5lbWFpbCB8fCAn4oCUJ308L2Rpdj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNjAwIHRydW5jYXRlIHByLTIiPntyZWNvcmQucGhvbmUgfHwgJ+KAlCd9PC9kaXY+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT17YHRleHQtWzEwcHhdIGZvbnQtc2VtaWJvbGQgcHgtMiBweS0wLjUgcm91bmRlZC1mdWxsIGJvcmRlciB3aGl0ZXNwYWNlLW5vd3JhcCAke2NmZy5jb2xvcn1gfT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7Y2ZnLmxhYmVsfQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3NwYW4+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxhCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaHJlZj17YGh0dHBzOi8vYXBwLmh1YnNwb3QuY29tL2NvbnRhY3RzLyR7cmVjb3JkLmh1YnNwb3RfaWR9YH0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB0YXJnZXQ9Il9ibGFuayIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICByZWw9Im5vcmVmZXJyZXIiCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJ0ZXh0LXNsYXRlLTMwMCBob3Zlcjp0ZXh0LWJsdWUtNTAwIHRyYW5zaXRpb24tY29sb3JzIGZsZXgtc2hyaW5rLTAiCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdGl0bGU9Ik9wZW4gaW4gSHViU3BvdCIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxFeHRlcm5hbExpbmsgY2xhc3NOYW1lPSJ3LTMgaC0zIiAvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2E+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgICAgICAgKTsKICAgICAgICAgICAgICAgICAgICAgIH0pfQogICAgICAgICAgICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0icHgtNCBweS0yIGJnLXNsYXRlLTUwIGJvcmRlci10IGJvcmRlci1zbGF0ZS0xMDAgdGV4dC1bMTBweF0gdGV4dC1zbGF0ZS00MDAgdGV4dC1yaWdodCI+CiAgICAgICAgICAgICAgICAgICAgICBTaG93aW5nIHtkaXNwbGF5TGlzdC5sZW5ndGh9IG9mIHtkYXRhLnVuc3luY2VkX2NvdW50fSB1bm1hdGNoZWQKICAgICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICA8Lz4KICAgICAgICAgICAgICApfQogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICl9CiAgICAgICAgPC9kaXY+CiAgICAgICl9CiAgICA8L2Rpdj4KICApOwp9CgpmdW5jdGlvbiBTdW1tYXJ5Q2FyZCh7IGxhYmVsLCB2YWx1ZSwgY29sb3IgfSkgewogIGNvbnN0IGNvbG9ycyA9IHsKICAgIGJsdWU6ICAgICdiZy1ibHVlLTUwIGJvcmRlci1ibHVlLTEwMCB0ZXh0LWJsdWUtNzAwJywKICAgIGVtZXJhbGQ6ICdiZy1lbWVyYWxkLTUwIGJvcmRlci1lbWVyYWxkLTEwMCB0ZXh0LWVtZXJhbGQtNzAwJywKICAgIGFtYmVyOiAgICdiZy1hbWJlci01MCBib3JkZXItYW1iZXItMTAwIHRleHQtYW1iZXItNzAwJywKICB9OwogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT17YHJvdW5kZWQtbGcgYm9yZGVyIHAtMyB0ZXh0LWNlbnRlciAke2NvbG9yc1tjb2xvcl19YH0+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LTJ4bCBmb250LWJsYWNrIj57dmFsdWUgPz8gJ+KAlCd9PC9kaXY+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LVsxMXB4XSBmb250LXNlbWlib2xkIG10LTAuNSI+e2xhYmVsfTwvZGl2PgogICAgPC9kaXY+CiAgKTsKfQ==
+import { useState, useCallback, useEffect, useRef } from "react";
+import { railwayRequest } from "@/lib/railwayClient";
+import { startSync } from "@/lib/syncStore";
+import {
+  AlertCircle, RefreshCw, ChevronDown, ChevronRight,
+  Loader2, ExternalLink, Zap, Info, Search, X, Filter
+} from "lucide-react";
+
+// ── Reason config ─────────────────────────────────────────────────
+const REASONS = {
+  'Not yet synced to CRM':       { color: 'bg-blue-50 text-blue-700 border-blue-200',    label: 'Not synced' },
+  'Missing email':               { color: 'bg-amber-50 text-amber-700 border-amber-200', label: 'Missing email' },
+  'Missing email and phone':     { color: 'bg-red-50 text-red-700 border-red-200',       label: 'No contact info' },
+  'Invalid phone':               { color: 'bg-orange-50 text-orange-700 border-orange-200', label: 'Invalid phone' },
+  'Missing name':                { color: 'bg-slate-100 text-slate-500 border-slate-200', label: 'Missing name' },
+  'Duplicate — matched by email':{ color: 'bg-purple-50 text-purple-700 border-purple-200', label: 'Duplicate' },
+  'Archived contact':            { color: 'bg-slate-100 text-slate-400 border-slate-200', label: 'Archived' },
+  'Sync failure':                { color: 'bg-red-50 text-red-700 border-red-200',        label: 'Sync failure' },
+  'Owner mapping failed':        { color: 'bg-yellow-50 text-yellow-700 border-yellow-200', label: 'Owner issue' },
+  'Placeholder email':           { color: 'bg-slate-100 text-slate-400 border-slate-200', label: 'Placeholder email' },
+};
+
+// Reasons that are retryable (quick sync may resolve them)
+const RETRYABLE_REASONS = new Set([
+  'Not yet synced to CRM',
+  'Sync failure',
+  'Owner mapping failed',
+  'Missing email',
+]);
+
+function reasonCfg(reason) {
+  return REASONS[reason] || { color: 'bg-slate-100 text-slate-500 border-slate-200', label: reason };
+}
+
+// All unique filter options
+const ALL_FILTER = 'All reasons';
+
+export default function UnsyncedLeadsPanel() {
+  const [expanded, setExpanded] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
+  const [retrying, setRetrying] = useState(false);
+  const [search, setSearch] = useState('');
+  const [filterReason, setFilterReason] = useState(ALL_FILTER);
+  const prevSyncingRef = useRef(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await railwayRequest('/leads/unsynced', {});
+      setData(res);
+    } catch (e) {
+      setError(e.message || 'Failed to load');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const handleExpand = () => {
+    const next = !expanded;
+    setExpanded(next);
+    if (next && !data && !loading) load();
+  };
+
+  // Auto-refresh after sync completes — poll syncStore state
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Detect sync completion by checking if window.__syncCompleted flag is set
+      // We subscribe via a simple DOM event instead of importing syncStore
+      const el = document.getElementById('__sync_done_signal');
+      if (el && el.dataset.done === '1' && expanded && data) {
+        el.dataset.done = '0';
+        load();
+      }
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [expanded, data, load]);
+
+  const handleRetry = async () => {
+    setRetrying(true);
+    startSync('quick');
+    setTimeout(() => setRetrying(false), 2000);
+  };
+
+  // Derived data
+  const allReasons = data?.unsynced
+    ? [ALL_FILTER, ...Array.from(new Set(data.unsynced.map(r => r.reason)))]
+    : [ALL_FILTER];
+
+  const grouped = data?.unsynced
+    ? Object.entries(
+        data.unsynced.reduce((acc, r) => {
+          acc[r.reason] = (acc[r.reason] || 0) + 1;
+          return acc;
+        }, {})
+      ).sort((a, b) => b[1] - a[1])
+    : [];
+
+  const displayList = (data?.unsynced || []).filter(r => {
+    const matchReason = filterReason === ALL_FILTER || r.reason === filterReason;
+    const q = search.trim().toLowerCase();
+    const matchSearch = !q || r.name.toLowerCase().includes(q) || r.email.toLowerCase().includes(q) || r.hubspot_id.includes(q);
+    return matchReason && matchSearch;
+  });
+
+  const retryableCount = (data?.unsynced || []).filter(r => RETRYABLE_REASONS.has(r.reason)).length;
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      {/* ── Header ────────────────────────────────────────────────── */}
+      <button
+        onClick={handleExpand}
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50 transition-colors text-left"
+      >
+        <div className="flex items-center gap-2.5">
+          <AlertCircle className="w-4 h-4 text-amber-500" />
+          <span className="text-sm font-semibold text-slate-700">Unmatched HubSpot Contacts</span>
+          {data && (
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+              data.unsynced_count > 0 ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+            }`}>
+              {data.unsynced_count} unmatched
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          {data && (
+            <button
+              onClick={e => { e.stopPropagation(); load(); }}
+              className="text-xs text-slate-400 hover:text-slate-600 font-semibold flex items-center gap-1"
+            >
+              <RefreshCw className="w-3 h-3" /> Refresh
+            </button>
+          )}
+          {expanded
+            ? <ChevronDown className="w-4 h-4 text-slate-400" />
+            : <ChevronRight className="w-4 h-4 text-slate-400" />
+          }
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="border-t border-slate-100">
+          {/* Loading */}
+          {loading && (
+            <div className="flex items-center gap-2 px-5 py-6 text-slate-400 text-sm">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Comparing all HubSpot contacts against CRM leads…
+            </div>
+          )}
+
+          {/* Error */}
+          {error && !loading && (
+            <div className="px-5 py-4 bg-red-50 flex items-center gap-2 text-sm text-red-700">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              {error}
+              <button onClick={load} className="ml-auto text-xs font-semibold hover:underline">Retry</button>
+            </div>
+          )}
+
+          {data && !loading && (
+            <div className="p-5 space-y-4">
+
+              {/* ── Summary cards ─────────────────────────────── */}
+              <div className="grid grid-cols-3 gap-3">
+                <SummaryCard label="HubSpot contacts" value={data.total_hs_contacts} color="blue" />
+                <SummaryCard label="Matched in CRM" value={data.synced_count} color="emerald" />
+                <SummaryCard label="Unmatched" value={data.unsynced_count} color={data.unsynced_count > 0 ? "amber" : "emerald"} />
+              </div>
+
+              {/* ── Match logic note ──────────────────────────── */}
+              <div className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 flex items-start gap-2 text-xs text-slate-600">
+                <Info className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
+                <span>Matched by: HubSpot contact ID → normalized email → last-10-digit phone. A contact matched by any method is considered synced.</span>
+              </div>
+
+              {/* ── All matched ───────────────────────────────── */}
+              {data.unsynced_count === 0 && (
+                <div className="text-center py-6 text-sm text-emerald-700 font-semibold">
+                  ✅ All HubSpot contacts are matched in the CRM.
+                </div>
+              )}
+
+              {data.unsynced_count > 0 && (
+                <>
+                  {/* ── Reason breakdown badges ───────────────── */}
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-slate-500">Breakdown by reason</p>
+                    <div className="flex flex-wrap gap-2">
+                      {grouped.map(([reason, count]) => {
+                        const cfg = reasonCfg(reason);
+                        const active = filterReason === reason;
+                        return (
+                          <button
+                            key={reason}
+                            onClick={() => setFilterReason(active ? ALL_FILTER : reason)}
+                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all ${cfg.color} ${active ? 'ring-2 ring-offset-1 ring-slate-400' : 'hover:opacity-80'}`}
+                          >
+                            <span>{cfg.label}</span>
+                            <span className="font-black">{count}</span>
+                            {active && <X className="w-3 h-3" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* ── Actions row ───────────────────────────── */}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <button
+                      onClick={handleRetry}
+                      disabled={retrying || retryableCount === 0}
+                      className="flex items-center gap-2 bg-amber-600 text-white px-4 py-2 text-xs font-bold rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
+                    >
+                      {retrying
+                        ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        : <Zap className="w-3.5 h-3.5" />
+                      }
+                      Retry Sync ({retryableCount} retryable)
+                    </button>
+                    <span className="text-xs text-slate-400">
+                      Triggers a quick sync — only fetches contacts modified since last sync
+                    </span>
+                  </div>
+
+                  {/* ── Search + filter bar ───────────────────── */}
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                      <input
+                        type="text"
+                        placeholder="Search by name, email, or HubSpot ID…"
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        className="w-full border border-slate-200 rounded-lg pl-9 pr-8 py-2 text-sm focus:outline-none focus:border-amber-500 transition-colors"
+                      />
+                      {search && (
+                        <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                    {filterReason !== ALL_FILTER && (
+                      <button
+                        onClick={() => setFilterReason(ALL_FILTER)}
+                        className="flex items-center gap-1.5 border border-slate-200 text-slate-600 px-3 py-2 text-xs font-semibold rounded-lg hover:bg-slate-50"
+                      >
+                        <Filter className="w-3 h-3" /> Clear filter
+                      </button>
+                    )}
+                  </div>
+
+                  {/* ── Table ─────────────────────────────────── */}
+                  <div className="border border-slate-200 rounded-lg overflow-hidden">
+                    <div className="grid grid-cols-[1fr_1.3fr_0.9fr_1.5fr] bg-slate-50 border-b border-slate-200 px-4 py-2.5">
+                      <span className="text-[11px] font-semibold text-slate-400">Name</span>
+                      <span className="text-[11px] font-semibold text-slate-400">Email</span>
+                      <span className="text-[11px] font-semibold text-slate-400">Phone</span>
+                      <span className="text-[11px] font-semibold text-slate-400">Reason</span>
+                    </div>
+
+                    <div className="divide-y divide-slate-50 max-h-96 overflow-y-auto">
+                      {displayList.length === 0 ? (
+                        <div className="px-4 py-6 text-center text-sm text-slate-400">No results</div>
+                      ) : displayList.map(record => {
+                        const cfg = reasonCfg(record.reason);
+                        return (
+                          <div
+                            key={record.hubspot_id}
+                            className="grid grid-cols-[1fr_1.3fr_0.9fr_1.5fr] px-4 py-2.5 hover:bg-slate-50 transition-colors items-center"
+                          >
+                            <div className="min-w-0 pr-2">
+                              <div className="text-xs font-semibold text-slate-800 truncate">{record.name}</div>
+                              <div className="text-[10px] text-slate-400 font-mono">ID: {record.hubspot_id}</div>
+                            </div>
+                            <div className="text-xs text-slate-600 truncate pr-2">{record.email || '—'}</div>
+                            <div className="text-xs text-slate-600 truncate pr-2">{record.phone || '—'}</div>
+                            <div className="flex items-center gap-1.5">
+                              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border whitespace-nowrap ${cfg.color}`}>
+                                {cfg.label}
+                              </span>
+                              <a
+                                href={`https://app.hubspot.com/contacts/${record.hubspot_id}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-slate-300 hover:text-blue-500 transition-colors flex-shrink-0"
+                                title="Open in HubSpot"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 text-[10px] text-slate-400 text-right">
+                      Showing {displayList.length} of {data.unsynced_count} unmatched
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SummaryCard({ label, value, color }) {
+  const colors = {
+    blue:    'bg-blue-50 border-blue-100 text-blue-700',
+    emerald: 'bg-emerald-50 border-emerald-100 text-emerald-700',
+    amber:   'bg-amber-50 border-amber-100 text-amber-700',
+  };
+  return (
+    <div className={`rounded-lg border p-3 text-center ${colors[color]}`}>
+      <div className="text-2xl font-black">{value ?? '—'}</div>
+      <div className="text-[11px] font-semibold mt-0.5">{label}</div>
+    </div>
+  );
+}

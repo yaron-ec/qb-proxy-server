@@ -1,1 +1,79 @@
-aW1wb3J0IHsgdXNlTG9jYXRpb24sIHVzZU5hdmlnYXRlIH0gZnJvbSAncmVhY3Qtcm91dGVyLWRvbSc7CmltcG9ydCB7IHVzZUlzTW9iaWxlIH0gZnJvbSAnQC9ob29rcy91c2UtbW9iaWxlJzsKaW1wb3J0IHsgTGF5b3V0RGFzaGJvYXJkLCBVc2VycywgQnJpZWZjYXNlLCBDYWxlbmRhckRheXMgfSBmcm9tICdsdWNpZGUtcmVhY3QnOwppbXBvcnQgeyB1c2VSZWYgfSBmcm9tICdyZWFjdCc7Cgpjb25zdCBNT0JJTEVfTkFWX0lURU1TID0gWwogIHsgcGF0aDogJy8nLCBpY29uOiBMYXlvdXREYXNoYm9hcmQsIGxhYmVsOiAnRGFzaGJvYXJkJyB9LAogIHsgcGF0aDogJy9sZWFkcycsIGljb246IFVzZXJzLCBsYWJlbDogJ0xlYWRzJyB9LAogIHsgcGF0aDogJy9teS1kYXknLCBpY29uOiBDYWxlbmRhckRheXMsIGxhYmVsOiAnTXkgRGF5JyB9LAogIHsgcGF0aDogJy9kZWFscycsIGljb246IEJyaWVmY2FzZSwgbGFiZWw6ICdEZWFscycgfSwKCl07CgovLyBQZXItdGFiIGhpc3Rvcnkgc3RhY2tzIOKAlCBwZXJzaXN0IGFjcm9zcyByZW5kZXJzIChtb2R1bGUtbGV2ZWwpCmNvbnN0IHRhYlN0YWNrcyA9IHt9OwpNT0JJTEVfTkFWX0lURU1TLmZvckVhY2goKHsgcGF0aCB9KSA9PiB7IHRhYlN0YWNrc1twYXRoXSA9IFtwYXRoXTsgfSk7CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBNb2JpbGVOYXYoKSB7CiAgY29uc3QgaXNNb2JpbGUgPSB1c2VJc01vYmlsZSgpOwogIGNvbnN0IGxvY2F0aW9uID0gdXNlTG9jYXRpb24oKTsKICBjb25zdCBuYXZpZ2F0ZSA9IHVzZU5hdmlnYXRlKCk7CgogIC8vIFRyYWNrIHdoaWNoIHJvb3QgdGFiIHRoZSBjdXJyZW50IHBhdGggYmVsb25ncyB0bwogIGNvbnN0IGFjdGl2ZVJvb3QgPSBNT0JJTEVfTkFWX0lURU1TLnNsaWNlKCkucmV2ZXJzZSgpLmZpbmQoCiAgICAoeyBwYXRoIH0pID0+IGxvY2F0aW9uLnBhdGhuYW1lID09PSBwYXRoIHx8IChwYXRoICE9PSAnLycgJiYgbG9jYXRpb24ucGF0aG5hbWUuc3RhcnRzV2l0aChwYXRoKSkKICApPy5wYXRoIHx8ICcvJzsKCiAgLy8gS2VlcCB0aGUgdGFiIHN0YWNrIHVwZGF0ZWQgYXMgdGhlIHVzZXIgbmF2aWdhdGVzCiAgY29uc3QgcHJldlBhdGhSZWYgPSB1c2VSZWYobG9jYXRpb24ucGF0aG5hbWUpOwogIGlmIChwcmV2UGF0aFJlZi5jdXJyZW50ICE9PSBsb2NhdGlvbi5wYXRobmFtZSkgewogICAgLy8gUHVzaCB0byB0aGUgY3VycmVudCB0YWIncyBzdGFjayAoYXZvaWQgZHVwbGljYXRlcyBhdCB0b3ApCiAgICBpZiAodGFiU3RhY2tzW2FjdGl2ZVJvb3RdLmF0KC0xKSAhPT0gbG9jYXRpb24ucGF0aG5hbWUpIHsKICAgICAgdGFiU3RhY2tzW2FjdGl2ZVJvb3RdLnB1c2gobG9jYXRpb24ucGF0aG5hbWUpOwogICAgfQogICAgcHJldlBhdGhSZWYuY3VycmVudCA9IGxvY2F0aW9uLnBhdGhuYW1lOwogIH0KCiAgaWYgKCFpc01vYmlsZSkgcmV0dXJuIG51bGw7CgogIGNvbnN0IGhhbmRsZVRhYlByZXNzID0gKHBhdGgpID0+IHsKICAgIGlmIChwYXRoID09PSBhY3RpdmVSb290KSB7CiAgICAgIC8vIFJlLXRhcHBpbmcgdGhlIGFjdGl2ZSB0YWIgcmVzZXRzIHRvIHJvb3QKICAgICAgdGFiU3RhY2tzW3BhdGhdID0gW3BhdGhdOwogICAgICBuYXZpZ2F0ZShwYXRoLCB7IHJlcGxhY2U6IHRydWUgfSk7CiAgICB9IGVsc2UgewogICAgICAvLyBTd2l0Y2ggdG8gdGhpcyB0YWIg4oCUIHJlc3RvcmUgbGFzdCBwb3NpdGlvbiBpbiBpdHMgc3RhY2sKICAgICAgY29uc3Qgc3RhY2sgPSB0YWJTdGFja3NbcGF0aF07CiAgICAgIGNvbnN0IGRlc3QgPSBzdGFjay5hdCgtMSkgfHwgcGF0aDsKICAgICAgbmF2aWdhdGUoZGVzdCk7CiAgICB9CiAgfTsKCiAgcmV0dXJuICgKICAgIDxuYXYKICAgICAgY2xhc3NOYW1lPSJmaXhlZCBib3R0b20tMCBsZWZ0LTAgcmlnaHQtMCBiZy1jYXJkIGJvcmRlci10IGJvcmRlci1ib3JkZXIgei00MCIKICAgICAgc3R5bGU9e3sgcGFkZGluZ0JvdHRvbTogJ2VudihzYWZlLWFyZWEtaW5zZXQtYm90dG9tKScsIHBhZGRpbmdMZWZ0OiAnZW52KHNhZmUtYXJlYS1pbnNldC1sZWZ0KScsIHBhZGRpbmdSaWdodDogJ2VudihzYWZlLWFyZWEtaW5zZXQtcmlnaHQpJyB9fQogICAgPgogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBqdXN0aWZ5LWFyb3VuZCBpdGVtcy1zdHJldGNoIGgtMTYiPgogICAgICAgIHtNT0JJTEVfTkFWX0lURU1TLm1hcCgoeyBwYXRoLCBpY29uOiBJY29uLCBsYWJlbCB9KSA9PiB7CiAgICAgICAgICBjb25zdCBpc0FjdGl2ZSA9IHBhdGggPT09IGFjdGl2ZVJvb3Q7CiAgICAgICAgICByZXR1cm4gKAogICAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgICAga2V5PXtwYXRofQogICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IGhhbmRsZVRhYlByZXNzKHBhdGgpfQogICAgICAgICAgICAgIGNsYXNzTmFtZT17YGZsZXgtMSBmbGV4IGZsZXgtY29sIGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBnYXAtMSB0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdHJhbnNpdGlvbi1jb2xvcnMgJHsKICAgICAgICAgICAgICAgIGlzQWN0aXZlCiAgICAgICAgICAgICAgICAgID8gJ3RleHQtYW1iZXItNjAwIGJnLWFtYmVyLTUwJwogICAgICAgICAgICAgICAgICA6ICd0ZXh0LXNsYXRlLTUwMCBob3Zlcjp0ZXh0LXNsYXRlLTcwMCcKICAgICAgICAgICAgICB9YH0KICAgICAgICAgICAgPgogICAgICAgICAgICAgIDxJY29uIGNsYXNzTmFtZT0idy01IGgtNSIgLz4KICAgICAgICAgICAgICA8c3Bhbj57bGFiZWx9PC9zcGFuPgogICAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICAgICk7CiAgICAgICAgfSl9CiAgICAgIDwvZGl2PgogICAgPC9uYXY+CiAgKTsKfQ==
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { LayoutDashboard, Users, Briefcase, CalendarDays } from 'lucide-react';
+import { useRef } from 'react';
+
+const MOBILE_NAV_ITEMS = [
+  { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
+  { path: '/leads', icon: Users, label: 'Leads' },
+  { path: '/my-day', icon: CalendarDays, label: 'My Day' },
+  { path: '/deals', icon: Briefcase, label: 'Deals' },
+
+];
+
+// Per-tab history stacks — persist across renders (module-level)
+const tabStacks = {};
+MOBILE_NAV_ITEMS.forEach(({ path }) => { tabStacks[path] = [path]; });
+
+export default function MobileNav() {
+  const isMobile = useIsMobile();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Track which root tab the current path belongs to
+  const activeRoot = MOBILE_NAV_ITEMS.slice().reverse().find(
+    ({ path }) => location.pathname === path || (path !== '/' && location.pathname.startsWith(path))
+  )?.path || '/';
+
+  // Keep the tab stack updated as the user navigates
+  const prevPathRef = useRef(location.pathname);
+  if (prevPathRef.current !== location.pathname) {
+    // Push to the current tab's stack (avoid duplicates at top)
+    if (tabStacks[activeRoot].at(-1) !== location.pathname) {
+      tabStacks[activeRoot].push(location.pathname);
+    }
+    prevPathRef.current = location.pathname;
+  }
+
+  if (!isMobile) return null;
+
+  const handleTabPress = (path) => {
+    if (path === activeRoot) {
+      // Re-tapping the active tab resets to root
+      tabStacks[path] = [path];
+      navigate(path, { replace: true });
+    } else {
+      // Switch to this tab — restore last position in its stack
+      const stack = tabStacks[path];
+      const dest = stack.at(-1) || path;
+      navigate(dest);
+    }
+  };
+
+  return (
+    <nav
+      className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-40"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)', paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' }}
+    >
+      <div className="flex justify-around items-stretch h-16">
+        {MOBILE_NAV_ITEMS.map(({ path, icon: Icon, label }) => {
+          const isActive = path === activeRoot;
+          return (
+            <button
+              key={path}
+              onClick={() => handleTabPress(path)}
+              className={`flex-1 flex flex-col items-center justify-center gap-1 text-xs font-semibold transition-colors ${
+                isActive
+                  ? 'text-amber-600 bg-amber-50'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <Icon className="w-5 h-5" />
+              <span>{label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}

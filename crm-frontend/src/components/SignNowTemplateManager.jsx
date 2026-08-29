@@ -1,1 +1,198 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gInJlYWN0IjsKaW1wb3J0ICogYXMgcmFpbHdheUFwaSBmcm9tICJAL2xpYi9yYWlsd2F5QXBpIjsKaW1wb3J0IHsgYXBpQ2FsbCB9IGZyb20gIkAvYXBpL3JhaWx3YXkvY2xpZW50IjsKaW1wb3J0IHsgUGx1cywgVHJhc2gyLCBFZGl0MiwgQ2hlY2ssIFggfSBmcm9tICJsdWNpZGUtcmVhY3QiOwoKY29uc3QgQ09OVFJBQ1RfVFlQRVMgPSBbCiAgJ01haW4gQ29udHJhY3QnLAogICdFc3RpbWF0ZSBBZ3JlZW1lbnQnLAogICdDaGFuZ2UgT3JkZXInLAogICdQYXltZW50IEFncmVlbWVudCcsCiAgJ05EQScsCiAgJ1NlcnZpY2UgQWdyZWVtZW50JywKICAnT3RoZXInLApdOwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gU2lnbk5vd1RlbXBsYXRlTWFuYWdlcigpIHsKICBjb25zdCBbdGVtcGxhdGVzLCBzZXRUZW1wbGF0ZXNdID0gdXNlU3RhdGUoW10pOwogIGNvbnN0IFtsb2FkaW5nLCBzZXRMb2FkaW5nXSA9IHVzZVN0YXRlKHRydWUpOwogIGNvbnN0IFtlZGl0aW5nLCBzZXRFZGl0aW5nXSA9IHVzZVN0YXRlKG51bGwpOwogIGNvbnN0IFthZGRpbmcsIHNldEFkZGluZ10gPSB1c2VTdGF0ZShmYWxzZSk7CiAgY29uc3QgW2Zvcm1EYXRhLCBzZXRGb3JtRGF0YV0gPSB1c2VTdGF0ZSh7CiAgICB0ZW1wbGF0ZV9pZDogJycsCiAgICB0ZW1wbGF0ZV9uYW1lOiAnJywKICAgIGNvbnRyYWN0X3R5cGU6ICdNYWluIENvbnRyYWN0JywKICAgIGRlc2NyaXB0aW9uOiAnJywKICB9KTsKCiAgdXNlRWZmZWN0KCgpID0+IHsKICAgIGxvYWRUZW1wbGF0ZXMoKTsKICB9LCBbXSk7CgogIGNvbnN0IGxvYWRUZW1wbGF0ZXMgPSBhc3luYyAoKSA9PiB7CiAgICB0cnkgewogICAgICBjb25zdCByZXMgPSBhd2FpdCBhcGlDYWxsKCcvYXBpL3YxL3NpZ25ub3cvdGVtcGxhdGUtbWFwcGluZ3M/c29ydD0tY3JlYXRlZF9kYXRlJmxpbWl0PTEwMCcsIHsgbWV0aG9kOiAnR0VUJyB9KS50aGVuKHIgPT4gci5pdGVtcyB8fCBbXSkuY2F0Y2goKCkgPT4gW10pOwogICAgICBzZXRUZW1wbGF0ZXMocmVzKTsKICAgIH0gY2F0Y2ggKGUpIHsKICAgICAgY29uc29sZS5lcnJvcignRXJyb3IgbG9hZGluZyB0ZW1wbGF0ZXM6JywgZSk7CiAgICB9IGZpbmFsbHkgewogICAgICBzZXRMb2FkaW5nKGZhbHNlKTsKICAgIH0KICB9OwoKICBjb25zdCBoYW5kbGVBZGQgPSBhc3luYyAoKSA9PiB7CiAgICBpZiAoIWZvcm1EYXRhLnRlbXBsYXRlX2lkIHx8ICFmb3JtRGF0YS50ZW1wbGF0ZV9uYW1lKSB7CiAgICAgIGFsZXJ0KCdUZW1wbGF0ZSBJRCBhbmQgTmFtZSBhcmUgcmVxdWlyZWQnKTsKICAgICAgcmV0dXJuOwogICAgfQoKICAgIHRyeSB7CiAgICAgIGNvbnN0IG1lUmVzcCA9IGF3YWl0IHJhaWx3YXlBcGkubWUoKTsKICAgICAgYXdhaXQgYXBpQ2FsbCgnL2FwaS92MS9zaWdubm93L3RlbXBsYXRlLW1hcHBpbmdzJywgewogICAgICAgIG1ldGhvZDogJ1BPU1QnLAogICAgICAgIGJvZHk6IHsgLi4uZm9ybURhdGEsIGNyZWF0ZWRfYnk6IG1lUmVzcC51c2VyPy5lbWFpbCB8fCAnYWRtaW4nIH0sCiAgICAgIH0pOwogICAgICBzZXRUZW1wbGF0ZXMoYXdhaXQgYXBpQ2FsbCgnL2FwaS92MS9zaWdubm93L3RlbXBsYXRlLW1hcHBpbmdzP3NvcnQ9LWNyZWF0ZWRfZGF0ZSZsaW1pdD0xMDAnLCB7IG1ldGhvZDogJ0dFVCcgfSkudGhlbihyID0+IHIuaXRlbXMgfHwgW10pLmNhdGNoKCgpID0+IFtdKSk7CiAgICAgIHNldEFkZGluZyhmYWxzZSk7CiAgICAgIHNldEZvcm1EYXRhKHsKICAgICAgICB0ZW1wbGF0ZV9pZDogJycsCiAgICAgICAgdGVtcGxhdGVfbmFtZTogJycsCiAgICAgICAgY29udHJhY3RfdHlwZTogJ01haW4gQ29udHJhY3QnLAogICAgICAgIGRlc2NyaXB0aW9uOiAnJywKICAgICAgfSk7CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIGNvbnNvbGUuZXJyb3IoJ0Vycm9yIGFkZGluZyB0ZW1wbGF0ZTonLCBlKTsKICAgICAgYWxlcnQoJ0ZhaWxlZCB0byBhZGQgdGVtcGxhdGUnKTsKICAgIH0KICB9OwoKICBjb25zdCBoYW5kbGVEZWxldGUgPSBhc3luYyAoaWQpID0+IHsKICAgIGlmICghY29uZmlybSgnRGVsZXRlIHRoaXMgdGVtcGxhdGUgbWFwcGluZz8nKSkgcmV0dXJuOwogICAgdHJ5IHsKICAgICAgYXdhaXQgYXBpQ2FsbChgL2FwaS92MS9zaWdubm93L3RlbXBsYXRlLW1hcHBpbmdzLyR7aWR9YCwgeyBtZXRob2Q6ICdERUxFVEUnIH0pOwogICAgICBzZXRUZW1wbGF0ZXModGVtcGxhdGVzLmZpbHRlcih0ID0+IHQuaWQgIT09IGlkKSk7CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIGNvbnNvbGUuZXJyb3IoJ0Vycm9yIGRlbGV0aW5nIHRlbXBsYXRlOicsIGUpOwogICAgfQogIH07CgogIGlmIChsb2FkaW5nKSB7CiAgICByZXR1cm4gPGRpdiBjbGFzc05hbWU9InAtNCB0ZXh0LWNlbnRlciB0ZXh0LXNsYXRlLTUwMCI+TG9hZGluZyB0ZW1wbGF0ZXMuLi48L2Rpdj47CiAgfQoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktNCI+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gbWItNCI+CiAgICAgICAgPGgzIGNsYXNzTmFtZT0idGV4dC1sZyBmb250LWJvbGQgdGV4dC1zbGF0ZS05MDAiPlNpZ25Ob3cgVGVtcGxhdGUgTWFwcGluZzwvaDM+CiAgICAgICAgPGJ1dHRvbgogICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0QWRkaW5nKCFhZGRpbmcpfQogICAgICAgICAgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBweC0zIHB5LTEuNSBiZy1hbWJlci02MDAgaG92ZXI6YmctYW1iZXItNzAwIHRleHQtd2hpdGUgdGV4dC1zbSBmb250LXNlbWlib2xkIHJvdW5kZWQtbGcgdHJhbnNpdGlvbi1jb2xvcnMiCiAgICAgICAgPgogICAgICAgICAgPFBsdXMgY2xhc3NOYW1lPSJ3LTQgaC00IiAvPiBBZGQgVGVtcGxhdGUKICAgICAgICA8L2J1dHRvbj4KICAgICAgPC9kaXY+CgogICAgICB7LyogQWRkIEZvcm0gKi99CiAgICAgIHthZGRpbmcgJiYgKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1zbGF0ZS01MCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHAtNCBzcGFjZS15LTMiPgogICAgICAgICAgPGRpdj4KICAgICAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT0iYmxvY2sgdGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNzAwIG1iLTEiPlRlbXBsYXRlIElEICo8L2xhYmVsPgogICAgICAgICAgICA8aW5wdXQKICAgICAgICAgICAgICB0eXBlPSJ0ZXh0IgogICAgICAgICAgICAgIHZhbHVlPXtmb3JtRGF0YS50ZW1wbGF0ZV9pZH0KICAgICAgICAgICAgICBvbkNoYW5nZT17ZSA9PiBzZXRGb3JtRGF0YSh7IC4uLmZvcm1EYXRhLCB0ZW1wbGF0ZV9pZDogZS50YXJnZXQudmFsdWUgfSl9CiAgICAgICAgICAgICAgcGxhY2Vob2xkZXI9IkZyb20gU2lnbk5vdyAoZS5nLiwgdGVtcGxhdGVfMTIzNDUpIgogICAgICAgICAgICAgIGNsYXNzTmFtZT0idy1mdWxsIHB4LTMgcHktMiBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHRleHQtc20gZm9jdXM6b3V0bGluZS1ub25lIGZvY3VzOnJpbmctMiBmb2N1czpyaW5nLWFtYmVyLTUwMC8yMCIKICAgICAgICAgICAgLz4KICAgICAgICAgIDwvZGl2PgogICAgICAgICAgPGRpdj4KICAgICAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT0iYmxvY2sgdGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNzAwIG1iLTEiPlRlbXBsYXRlIE5hbWUgKjwvbGFiZWw+CiAgICAgICAgICAgIDxpbnB1dAogICAgICAgICAgICAgIHR5cGU9InRleHQiCiAgICAgICAgICAgICAgdmFsdWU9e2Zvcm1EYXRhLnRlbXBsYXRlX25hbWV9CiAgICAgICAgICAgICAgb25DaGFuZ2U9e2UgPT4gc2V0Rm9ybURhdGEoeyAuLi5mb3JtRGF0YSwgdGVtcGxhdGVfbmFtZTogZS50YXJnZXQudmFsdWUgfSl9CiAgICAgICAgICAgICAgcGxhY2Vob2xkZXI9Ikh1bWFuLXJlYWRhYmxlIG5hbWUiCiAgICAgICAgICAgICAgY2xhc3NOYW1lPSJ3LWZ1bGwgcHgtMyBweS0yIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgdGV4dC1zbSBmb2N1czpvdXRsaW5lLW5vbmUgZm9jdXM6cmluZy0yIGZvY3VzOnJpbmctYW1iZXItNTAwLzIwIgogICAgICAgICAgICAvPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8ZGl2PgogICAgICAgICAgICA8bGFiZWwgY2xhc3NOYW1lPSJibG9jayB0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS03MDAgbWItMSI+Q29udHJhY3QgVHlwZTwvbGFiZWw+CiAgICAgICAgICAgIDxzZWxlY3QKICAgICAgICAgICAgICB2YWx1ZT17Zm9ybURhdGEuY29udHJhY3RfdHlwZX0KICAgICAgICAgICAgICBvbkNoYW5nZT17ZSA9PiBzZXRGb3JtRGF0YSh7IC4uLmZvcm1EYXRhLCBjb250cmFjdF90eXBlOiBlLnRhcmdldC52YWx1ZSB9KX0KICAgICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBweC0zIHB5LTIgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyB0ZXh0LXNtIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1hbWJlci01MDAvMjAiCiAgICAgICAgICAgID4KICAgICAgICAgICAgICB7Q09OVFJBQ1RfVFlQRVMubWFwKHR5cGUgPT4gKAogICAgICAgICAgICAgICAgPG9wdGlvbiBrZXk9e3R5cGV9IHZhbHVlPXt0eXBlfT57dHlwZX08L29wdGlvbj4KICAgICAgICAgICAgICApKX0KICAgICAgICAgICAgPC9zZWxlY3Q+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDxkaXY+CiAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9ImJsb2NrIHRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTcwMCBtYi0xIj5EZXNjcmlwdGlvbjwvbGFiZWw+CiAgICAgICAgICAgIDx0ZXh0YXJlYQogICAgICAgICAgICAgIHZhbHVlPXtmb3JtRGF0YS5kZXNjcmlwdGlvbn0KICAgICAgICAgICAgICBvbkNoYW5nZT17ZSA9PiBzZXRGb3JtRGF0YSh7IC4uLmZvcm1EYXRhLCBkZXNjcmlwdGlvbjogZS50YXJnZXQudmFsdWUgfSl9CiAgICAgICAgICAgICAgcGxhY2Vob2xkZXI9IldoYXQgdGhpcyB0ZW1wbGF0ZSBpcyB1c2VkIGZvciIKICAgICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBweC0zIHB5LTIgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyB0ZXh0LXNtIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1hbWJlci01MDAvMjAiCiAgICAgICAgICAgICAgcm93cz17Mn0KICAgICAgICAgICAgLz4KICAgICAgICAgIDwvZGl2PgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZ2FwLTIganVzdGlmeS1lbmQiPgogICAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0QWRkaW5nKGZhbHNlKX0KICAgICAgICAgICAgICBjbGFzc05hbWU9InB4LTMgcHktMS41IHRleHQtc2xhdGUtNzAwIGhvdmVyOmJnLXNsYXRlLTIwMCByb3VuZGVkLWxnIHRyYW5zaXRpb24tY29sb3JzIHRleHQtc20gZm9udC1tZWRpdW0iCiAgICAgICAgICAgID4KICAgICAgICAgICAgICBDYW5jZWwKICAgICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgICBvbkNsaWNrPXtoYW5kbGVBZGR9CiAgICAgICAgICAgICAgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMSBweC0zIHB5LTEuNSBiZy1hbWJlci02MDAgaG92ZXI6YmctYW1iZXItNzAwIHRleHQtd2hpdGUgcm91bmRlZC1sZyB0cmFuc2l0aW9uLWNvbG9ycyB0ZXh0LXNtIGZvbnQtbWVkaXVtIgogICAgICAgICAgICA+CiAgICAgICAgICAgICAgPENoZWNrIGNsYXNzTmFtZT0idy00IGgtNCIgLz4gU2F2ZQogICAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICApfQoKICAgICAgey8qIFRlbXBsYXRlIExpc3QgKi99CiAgICAgIHt0ZW1wbGF0ZXMubGVuZ3RoID09PSAwID8gKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJwLTYgdGV4dC1jZW50ZXIgdGV4dC1zbGF0ZS00MDAgYmctc2xhdGUtNTAgcm91bmRlZC1sZyBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCI+CiAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20iPk5vIHRlbXBsYXRlcyBjb25maWd1cmVkIHlldDwvcD4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyBtdC0xIj5BZGQgdGVtcGxhdGVzIHRvIHByZXZlbnQgaW5jb3JyZWN0IHRlbXBsYXRlIGFzc2lnbm1lbnQ8L3A+CiAgICAgICAgPC9kaXY+CiAgICAgICkgOiAoCiAgICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMiI+CiAgICAgICAgICB7dGVtcGxhdGVzLm1hcCh0ZW1wbGF0ZSA9PiAoCiAgICAgICAgICAgIDxkaXYga2V5PXt0ZW1wbGF0ZS5pZH0gY2xhc3NOYW1lPSJiZy13aGl0ZSBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHAtNCBmbGV4IGl0ZW1zLXN0YXJ0IGp1c3RpZnktYmV0d2VlbiBob3ZlcjpzaGFkb3ctc20gdHJhbnNpdGlvbi1zaGFkb3ciPgogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4LTEiPgogICAgICAgICAgICAgICAgPGg0IGNsYXNzTmFtZT0iZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTkwMCI+e3RlbXBsYXRlLnRlbXBsYXRlX25hbWV9PC9oND4KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMyBtdC0xIHRleHQteHMgdGV4dC1zbGF0ZS01MDAiPgogICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9ImZvbnQtbW9ubyBiZy1zbGF0ZS0xMDAgcHgtMiBweS0wLjUgcm91bmRlZCI+e3RlbXBsYXRlLnRlbXBsYXRlX2lkfTwvc3Bhbj4KICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJweC0yIHB5LTAuNSBiZy1hbWJlci01MCB0ZXh0LWFtYmVyLTcwMCByb3VuZGVkIGZvbnQtbWVkaXVtIj57dGVtcGxhdGUuY29udHJhY3RfdHlwZX08L3NwYW4+CiAgICAgICAgICAgICAgICAgIHt0ZW1wbGF0ZS51c2FnZV9jb3VudCA+IDAgJiYgKAogICAgICAgICAgICAgICAgICAgIDxzcGFuPlVzZWQge3RlbXBsYXRlLnVzYWdlX2NvdW50fXh7dGVtcGxhdGUubGFzdF91c2VkX2F0ICYmIGAgKCR7bmV3IERhdGUodGVtcGxhdGUubGFzdF91c2VkX2F0KS50b0xvY2FsZURhdGVTdHJpbmcoKX0pYH08L3NwYW4+CiAgICAgICAgICAgICAgICAgICl9CiAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgIHt0ZW1wbGF0ZS5kZXNjcmlwdGlvbiAmJiAoCiAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTYwMCBtdC0yIj57dGVtcGxhdGUuZGVzY3JpcHRpb259PC9wPgogICAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBoYW5kbGVEZWxldGUodGVtcGxhdGUuaWQpfQogICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJwLTEuNSB0ZXh0LXNsYXRlLTQwMCBob3Zlcjp0ZXh0LXJlZC02MDAgaG92ZXI6YmctcmVkLTUwIHJvdW5kZWQgdHJhbnNpdGlvbi1jb2xvcnMgZmxleC1zaHJpbmstMCIKICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICA8VHJhc2gyIGNsYXNzTmFtZT0idy00IGgtNCIgLz4KICAgICAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICApKX0KICAgICAgICA8L2Rpdj4KICAgICAgKX0KCiAgICAgIHsvKiBJbmZvIEJveCAqL30KICAgICAgPGRpdiBjbGFzc05hbWU9InAtNCBiZy1ibHVlLTUwIGJvcmRlciBib3JkZXItYmx1ZS0yMDAgcm91bmRlZC1sZyB0ZXh0LXhzIHRleHQtYmx1ZS03MDAiPgogICAgICAgIDxwIGNsYXNzTmFtZT0iZm9udC1tZWRpdW0gbWItMSI+4oS577iPIFRlbXBsYXRlIE1hbmFnZW1lbnQ8L3A+CiAgICAgICAgPHA+TWFwIHlvdXIgU2lnbk5vdyB0ZW1wbGF0ZXMgdG8gY29udHJhY3QgdHlwZXMuIFRoaXMgcHJldmVudHMgaW5jb3JyZWN0IHRlbXBsYXRlIGFzc2lnbm1lbnQgYW5kIHRyYWNrcyB1c2FnZSBhY3Jvc3MgdGhlIHNhbGVzIHBpcGVsaW5lLjwvcD4KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KICApOwp9
+import { useState, useEffect } from "react";
+import * as railwayApi from "@/lib/railwayApi";
+import { apiCall } from "@/api/railway/client";
+import { Plus, Trash2, Edit2, Check, X } from "lucide-react";
+
+const CONTRACT_TYPES = [
+  'Main Contract',
+  'Estimate Agreement',
+  'Change Order',
+  'Payment Agreement',
+  'NDA',
+  'Service Agreement',
+  'Other',
+];
+
+export default function SignNowTemplateManager() {
+  const [templates, setTemplates] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(null);
+  const [adding, setAdding] = useState(false);
+  const [formData, setFormData] = useState({
+    template_id: '',
+    template_name: '',
+    contract_type: 'Main Contract',
+    description: '',
+  });
+
+  useEffect(() => {
+    loadTemplates();
+  }, []);
+
+  const loadTemplates = async () => {
+    try {
+      const res = await apiCall('/api/v1/signnow/template-mappings?sort=-created_date&limit=100', { method: 'GET' }).then(r => r.items || []).catch(() => []);
+      setTemplates(res);
+    } catch (e) {
+      console.error('Error loading templates:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAdd = async () => {
+    if (!formData.template_id || !formData.template_name) {
+      alert('Template ID and Name are required');
+      return;
+    }
+
+    try {
+      const meResp = await railwayApi.me();
+      await apiCall('/api/v1/signnow/template-mappings', {
+        method: 'POST',
+        body: { ...formData, created_by: meResp.user?.email || 'admin' },
+      });
+      setTemplates(await apiCall('/api/v1/signnow/template-mappings?sort=-created_date&limit=100', { method: 'GET' }).then(r => r.items || []).catch(() => []));
+      setAdding(false);
+      setFormData({
+        template_id: '',
+        template_name: '',
+        contract_type: 'Main Contract',
+        description: '',
+      });
+    } catch (e) {
+      console.error('Error adding template:', e);
+      alert('Failed to add template');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('Delete this template mapping?')) return;
+    try {
+      await apiCall(`/api/v1/signnow/template-mappings/${id}`, { method: 'DELETE' });
+      setTemplates(templates.filter(t => t.id !== id));
+    } catch (e) {
+      console.error('Error deleting template:', e);
+    }
+  };
+
+  if (loading) {
+    return <div className="p-4 text-center text-slate-500">Loading templates...</div>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-bold text-slate-900">SignNow Template Mapping</h3>
+        <button
+          onClick={() => setAdding(!adding)}
+          className="flex items-center gap-2 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold rounded-lg transition-colors"
+        >
+          <Plus className="w-4 h-4" /> Add Template
+        </button>
+      </div>
+
+      {/* Add Form */}
+      {adding && (
+        <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-3">
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">Template ID *</label>
+            <input
+              type="text"
+              value={formData.template_id}
+              onChange={e => setFormData({ ...formData, template_id: e.target.value })}
+              placeholder="From SignNow (e.g., template_12345)"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">Template Name *</label>
+            <input
+              type="text"
+              value={formData.template_name}
+              onChange={e => setFormData({ ...formData, template_name: e.target.value })}
+              placeholder="Human-readable name"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">Contract Type</label>
+            <select
+              value={formData.contract_type}
+              onChange={e => setFormData({ ...formData, contract_type: e.target.value })}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+            >
+              {CONTRACT_TYPES.map(type => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">Description</label>
+            <textarea
+              value={formData.description}
+              onChange={e => setFormData({ ...formData, description: e.target.value })}
+              placeholder="What this template is used for"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+              rows={2}
+            />
+          </div>
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={() => setAdding(false)}
+              className="px-3 py-1.5 text-slate-700 hover:bg-slate-200 rounded-lg transition-colors text-sm font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleAdd}
+              className="flex items-center gap-1 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors text-sm font-medium"
+            >
+              <Check className="w-4 h-4" /> Save
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Template List */}
+      {templates.length === 0 ? (
+        <div className="p-6 text-center text-slate-400 bg-slate-50 rounded-lg border border-slate-200">
+          <p className="text-sm">No templates configured yet</p>
+          <p className="text-xs mt-1">Add templates to prevent incorrect template assignment</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {templates.map(template => (
+            <div key={template.id} className="bg-white border border-slate-200 rounded-lg p-4 flex items-start justify-between hover:shadow-sm transition-shadow">
+              <div className="flex-1">
+                <h4 className="font-semibold text-slate-900">{template.template_name}</h4>
+                <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
+                  <span className="font-mono bg-slate-100 px-2 py-0.5 rounded">{template.template_id}</span>
+                  <span className="px-2 py-0.5 bg-amber-50 text-amber-700 rounded font-medium">{template.contract_type}</span>
+                  {template.usage_count > 0 && (
+                    <span>Used {template.usage_count}x{template.last_used_at && ` (${new Date(template.last_used_at).toLocaleDateString()})`}</span>
+                  )}
+                </div>
+                {template.description && (
+                  <p className="text-xs text-slate-600 mt-2">{template.description}</p>
+                )}
+              </div>
+              <button
+                onClick={() => handleDelete(template.id)}
+                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors flex-shrink-0"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Info Box */}
+      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">
+        <p className="font-medium mb-1">ℹ️ Template Management</p>
+        <p>Map your SignNow templates to contract types. This prevents incorrect template assignment and tracks usage across the sales pipeline.</p>
+      </div>
+    </div>
+  );
+}

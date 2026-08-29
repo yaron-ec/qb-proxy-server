@@ -1,1 +1,189 @@
-LyoqCiAqIEludGVncmF0aW9uU3luY1N0YXR1cyDigJQgUmVhbC10aW1lIHN5bmMgc3RhdHVzIGRpc3BsYXkgZm9yIGFsbCBpbnRlZ3JhdGlvbnMKICoKICogU2hvd3M6CiAqIC0gQ3VycmVudCBzeW5jIHN0YXR1cyAoc3luY2luZyAvIGNvbXBsZXRlZCAvIGZhaWxlZCkKICogLSBMYXN0IHN5bmNlZCB0aW1lc3RhbXAKICogLSBSZWNvcmRzIGNyZWF0ZWQvdXBkYXRlZC9za2lwcGVkIGluIGxhc3Qgc3luYwogKiAtIFJldHJ5IGluZGljYXRvcnMKICovCgppbXBvcnQgeyB1c2VTdGF0ZSwgdXNlRWZmZWN0IH0gZnJvbSAicmVhY3QiOwppbXBvcnQgeyBhcGlDYWxsIH0gZnJvbSAiQC9hcGkvcmFpbHdheS9jbGllbnQiOwppbXBvcnQgewogIExvYWRlcjIsIENoZWNrQ2lyY2xlLCBBbGVydFRyaWFuZ2xlLCBDbG9jaywgUm90YXRlQ2N3LAogIENoZXZyb25Eb3duLCBDaGV2cm9uUmlnaHQKfSBmcm9tICJsdWNpZGUtcmVhY3QiOwoKY29uc3QgSU5URUdSQVRJT05TID0gWyJIdWJTcG90IiwgIlF1aWNrQm9va3MiLCAiR29vZ2xlIENvbnRhY3RzIiwgIkdvb2dsZSBDYWxlbmRhciJdOwoKY29uc3QgZm10VGltZSA9IChpc28pID0+IHsKICBpZiAoIWlzbykgcmV0dXJuICLigJQiOwogIHJldHVybiBuZXcgRGF0ZShpc28pLnRvTG9jYWxlU3RyaW5nKCJlbi1VUyIsIHsgCiAgICBtb250aDogInNob3J0IiwgCiAgICBkYXk6ICJudW1lcmljIiwgCiAgICBob3VyOiAiMi1kaWdpdCIsIAogICAgbWludXRlOiAiMi1kaWdpdCIgCiAgfSk7Cn07CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBJbnRlZ3JhdGlvblN5bmNTdGF0dXMoKSB7CiAgY29uc3QgW3N5bmNMb2dzLCBzZXRTeW5jTG9nc10gPSB1c2VTdGF0ZSh7fSk7CiAgY29uc3QgW2xvYWRpbmcsIHNldExvYWRpbmddID0gdXNlU3RhdGUodHJ1ZSk7CiAgY29uc3QgW2NvbGxhcHNlZCwgc2V0Q29sbGFwc2VkXSA9IHVzZVN0YXRlKHt9KTsKICBjb25zdCBbc3luY1N0YXRlcywgc2V0U3luY1N0YXRlc10gPSB1c2VTdGF0ZSh7fSk7CgogIHVzZUVmZmVjdCgoKSA9PiB7CiAgICBsb2FkU3luY0xvZ3MoKTsKICAgIAogICAgLy8gUG9sbCBldmVyeSAzMCBzZWNvbmRzIGZvciBsYXRlc3Qgc3luYyBzdGF0dXMKICAgIGNvbnN0IHRpbWVyID0gc2V0SW50ZXJ2YWwobG9hZFN5bmNMb2dzLCAzMDAwMCk7CiAgICAKICAgIHJldHVybiAoKSA9PiB7CiAgICAgIGNsZWFySW50ZXJ2YWwodGltZXIpOwogICAgfTsKICB9LCBbXSk7CgogIGNvbnN0IGxvYWRTeW5jTG9ncyA9IGFzeW5jICgpID0+IHsKICAgIHRyeSB7CiAgICAgIGNvbnN0IGRhdGEgPSBhd2FpdCBhcGlDYWxsKCcvYXBpL3YxL3N5bmMtY3Vyc29ycycsIHsgbWV0aG9kOiAnR0VUJyB9KTsKICAgICAgY29uc3QgbG9ncyA9IGRhdGEuaXRlbXMgfHwgZGF0YSB8fCBbXTsKICAgICAgCiAgICAgIC8vIEdyb3VwIGJ5IGludGVncmF0aW9uLCBnZXQgbGF0ZXN0IG9mIGVhY2gKICAgICAgY29uc3QgZ3JvdXBlZCA9IHt9OwogICAgICBmb3IgKGNvbnN0IGxvZyBvZiBsb2dzKSB7CiAgICAgICAgaWYgKCFncm91cGVkW2xvZy5pbnRlZ3JhdGlvbl9uYW1lXSB8fCBuZXcgRGF0ZShsb2cuc3RhcnRfdGltZSkgPiBuZXcgRGF0ZShncm91cGVkW2xvZy5pbnRlZ3JhdGlvbl9uYW1lXS5zdGFydF90aW1lKSkgewogICAgICAgICAgZ3JvdXBlZFtsb2cuaW50ZWdyYXRpb25fbmFtZV0gPSBsb2c7CiAgICAgICAgfQogICAgICB9CiAgICAgIAogICAgICBzZXRTeW5jTG9ncyhncm91cGVkKTsKICAgICAgc2V0TG9hZGluZyhmYWxzZSk7CiAgICAgIAogICAgICAvLyBDaGVjayBpZiBhbnkgYXJlIGN1cnJlbnRseSBzeW5jaW5nCiAgICAgIGNvbnN0IHN5bmNpbmcgPSB7fTsKICAgICAgZm9yIChjb25zdCBuYW1lIG9mIElOVEVHUkFUSU9OUykgewogICAgICAgIGNvbnN0IGxvZyA9IGdyb3VwZWRbbmFtZV07CiAgICAgICAgY29uc3Qgbm93ID0gRGF0ZS5ub3coKTsKICAgICAgICBjb25zdCBzdGFydFRpbWUgPSBsb2cgPyBuZXcgRGF0ZShsb2cuc3RhcnRfdGltZSkuZ2V0VGltZSgpIDogMDsKICAgICAgICBjb25zdCBkdXJhdGlvbiA9IGxvZz8uZHVyYXRpb25fbXMgfHwgMDsKICAgICAgICAKICAgICAgICAvLyBDb25zaWRlciAic3luY2luZyIgaWYgc3RhcnRlZCBpbiBsYXN0IDIgbWludXRlcyBhbmQgZHVyYXRpb24gPCA5MCBzZWNvbmRzCiAgICAgICAgc3luY2luZ1tuYW1lXSA9IChub3cgLSBzdGFydFRpbWUgPCAxMjAwMDApICYmIGR1cmF0aW9uIDwgOTAwMDAgJiYgIWxvZz8uZW5kX3RpbWU7CiAgICAgIH0KICAgICAgc2V0U3luY1N0YXRlcyhzeW5jaW5nKTsKICAgIH0gY2F0Y2ggKGUpIHsKICAgICAgY29uc29sZS5lcnJvcignW1N5bmNTdGF0dXNdIEVycm9yIGxvYWRpbmcgbG9nczonLCBlKTsKICAgIH0KICB9OwoKICBjb25zdCBnZXRMYXRlc3RMb2cgPSAoaW50ZWdyYXRpb25OYW1lKSA9PiB7CiAgICByZXR1cm4gc3luY0xvZ3NbaW50ZWdyYXRpb25OYW1lXTsKICB9OwoKICBjb25zdCB0b2dnbGVDb2xsYXBzZWQgPSAobmFtZSkgPT4gewogICAgc2V0Q29sbGFwc2VkKHByZXYgPT4gKHsgLi4ucHJldiwgW25hbWVdOiAhcHJldltuYW1lXSB9KSk7CiAgfTsKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJiZy13aGl0ZSByb3VuZGVkIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIG92ZXJmbG93LWhpZGRlbiI+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1zbGF0ZS01MCBib3JkZXItYiBib3JkZXItc2xhdGUtMjAwIHB4LTQgcHktMyI+CiAgICAgICAgPGgzIGNsYXNzTmFtZT0idGV4dC1zbSBmb250LWJvbGQgdGV4dC1zbGF0ZS04MDAiPuKaoSBBdXRvLVN5bmMgU3RhdHVzIChFdmVyeSAxNSBNaW4pPC9oMz4KICAgICAgPC9kaXY+CgogICAgICB7bG9hZGluZyA/ICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgcC00IHRleHQtc2xhdGUtNTAwIHRleHQtc20iPgogICAgICAgICAgPExvYWRlcjIgY2xhc3NOYW1lPSJ3LTQgaC00IGFuaW1hdGUtc3BpbiIgLz4gTG9hZGluZyBzeW5jIHN0YXR1cy4uLgogICAgICAgIDwvZGl2PgogICAgICApIDogKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJkaXZpZGUteSBkaXZpZGUtc2xhdGUtMTAwIj4KICAgICAgICAgIHtJTlRFR1JBVElPTlMubWFwKG5hbWUgPT4gewogICAgICAgICAgICBjb25zdCBsb2cgPSBnZXRMYXRlc3RMb2cobmFtZSk7CiAgICAgICAgICAgIGNvbnN0IGlzU3luY2luZyA9IHN5bmNTdGF0ZXNbbmFtZV07CiAgICAgICAgICAgIGNvbnN0IGlzRG9uZSA9IGxvZz8uc3RhdHVzID09PSAnc3VjY2Vzcyc7CiAgICAgICAgICAgIGNvbnN0IGlzRmFpbGVkID0gbG9nPy5zdGF0dXMgPT09ICdmYWlsZWQnOwogICAgICAgICAgICAKICAgICAgICAgICAgcmV0dXJuICgKICAgICAgICAgICAgICA8ZGl2IGtleT17bmFtZX0gY2xhc3NOYW1lPSJwLTMiPgogICAgICAgICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiB0b2dnbGVDb2xsYXBzZWQobmFtZSl9CiAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0idy1mdWxsIGZsZXggaXRlbXMtY2VudGVyIGdhcC0zIGhvdmVyOmJnLXNsYXRlLTUwIHRyYW5zaXRpb24tY29sb3JzIHJvdW5kZWQgcHgtMSBweS0wLjUiCiAgICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICAgIHtjb2xsYXBzZWRbbmFtZV0gPyAoCiAgICAgICAgICAgICAgICAgICAgPENoZXZyb25SaWdodCBjbGFzc05hbWU9InctMyBoLTMgdGV4dC1zbGF0ZS00MDAgZmxleC1zaHJpbmstMCIgLz4KICAgICAgICAgICAgICAgICAgKSA6ICgKICAgICAgICAgICAgICAgICAgICA8Q2hldnJvbkRvd24gY2xhc3NOYW1lPSJ3LTMgaC0zIHRleHQtc2xhdGUtNDAwIGZsZXgtc2hyaW5rLTAiIC8+CiAgICAgICAgICAgICAgICAgICl9CiAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleC0xIHRleHQtbGVmdCI+CiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIj4KICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1zbSBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtODAwIj57bmFtZX08L3NwYW4+CiAgICAgICAgICAgICAgICAgICAgICB7aXNTeW5jaW5nICYmICgKICAgICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMSB0ZXh0LVsxMHB4XSB0ZXh0LWJsdWUtNjAwIGZvbnQtYm9sZCI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgPExvYWRlcjIgY2xhc3NOYW1lPSJ3LTIuNSBoLTIuNSBhbmltYXRlLXNwaW4iIC8+IFN5bmNpbmcuLi4KICAgICAgICAgICAgICAgICAgICAgICAgPC9zcGFuPgogICAgICAgICAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgICAgICAgICAgIHtpc0RvbmUgJiYgKAogICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0xIHRleHQtWzEwcHhdIHRleHQtZW1lcmFsZC02MDAgZm9udC1ib2xkIj4KICAgICAgICAgICAgICAgICAgICAgICAgICA8Q2hlY2tDaXJjbGUgY2xhc3NOYW1lPSJ3LTIuNSBoLTIuNSIgLz4gT0sKICAgICAgICAgICAgICAgICAgICAgICAgPC9zcGFuPgogICAgICAgICAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgICAgICAgICAgIHtpc0ZhaWxlZCAmJiAoCiAgICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEgdGV4dC1bMTBweF0gdGV4dC1yZWQtNjAwIGZvbnQtYm9sZCI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgPEFsZXJ0VHJpYW5nbGUgY2xhc3NOYW1lPSJ3LTIuNSBoLTIuNSIgLz4gRmFpbGVkCiAgICAgICAgICAgICAgICAgICAgICAgIDwvc3Bhbj4KICAgICAgICAgICAgICAgICAgICAgICl9CiAgICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAge2xvZyAmJiAoCiAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1bMTBweF0gdGV4dC1zbGF0ZS01MDAgbXQtMC41Ij4KICAgICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMSI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgPENsb2NrIGNsYXNzTmFtZT0idy0yLjUgaC0yLjUiIC8+CiAgICAgICAgICAgICAgICAgICAgICAgICAge2ZtdFRpbWUobG9nLnN0YXJ0X3RpbWUpfQogICAgICAgICAgICAgICAgICAgICAgICA8L3NwYW4+CiAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgICApfQogICAgICAgICAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICAgICAgICAgIHtsb2cgJiYgIWlzU3luY2luZyAmJiAoCiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtcmlnaHQgdGV4dC1bMTBweF0gdGV4dC1zbGF0ZS02MDAgZm9udC1zZW1pYm9sZCBmbGV4LXNocmluay0wIj4KICAgICAgICAgICAgICAgICAgICAgIDxkaXY+K3tsb2cuY3JlYXRlZF9jb3VudCB8fCAwfSDCtyDinI57bG9nLnVwZGF0ZWRfY291bnQgfHwgMH08L2Rpdj4KICAgICAgICAgICAgICAgICAgICAgIHtsb2cuZHVyYXRpb25fbXMgJiYgPGRpdiBjbGFzc05hbWU9InRleHQtc2xhdGUtNDAwIj57KGxvZy5kdXJhdGlvbl9tcyAvIDEwMDApLnRvRml4ZWQoMSl9czwvZGl2Pn0KICAgICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgICAgIDwvYnV0dG9uPgoKICAgICAgICAgICAgICAgIHshY29sbGFwc2VkW25hbWVdICYmIGxvZyAmJiAoCiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtdC0yIG1sLTYgc3BhY2UteS0xIHRleHQteHMgdGV4dC1zbGF0ZS02MDAiPgogICAgICAgICAgICAgICAgICAgIDxkaXY+U3RhdHVzOiA8c3BhbiBjbGFzc05hbWU9ImZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS04MDAiPntsb2cuc3RhdHVzfTwvc3Bhbj48L2Rpdj4KICAgICAgICAgICAgICAgICAgICA8ZGl2PkNyZWF0ZWQ6IDxzcGFuIGNsYXNzTmFtZT0iZm9udC1zZW1pYm9sZCB0ZXh0LWVtZXJhbGQtNjAwIj57bG9nLmNyZWF0ZWRfY291bnQgfHwgMH08L3NwYW4+PC9kaXY+CiAgICAgICAgICAgICAgICAgICAgPGRpdj5VcGRhdGVkOiA8c3BhbiBjbGFzc05hbWU9ImZvbnQtc2VtaWJvbGQgdGV4dC1ibHVlLTYwMCI+e2xvZy51cGRhdGVkX2NvdW50IHx8IDB9PC9zcGFuPjwvZGl2PgogICAgICAgICAgICAgICAgICAgIDxkaXY+U2tpcHBlZDogPHNwYW4gY2xhc3NOYW1lPSJmb250LXNlbWlib2xkIHRleHQtYW1iZXItNjAwIj57bG9nLnNraXBwZWRfY291bnQgfHwgMH08L3NwYW4+PC9kaXY+CiAgICAgICAgICAgICAgICAgICAgPGRpdj5EdXJhdGlvbjogPHNwYW4gY2xhc3NOYW1lPSJmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNzAwIj57KGxvZy5kdXJhdGlvbl9tcyAvIDEwMDApLnRvRml4ZWQoMSl9czwvc3Bhbj48L2Rpdj4KICAgICAgICAgICAgICAgICAgICA8ZGl2PkF0dGVtcHQ6IDxzcGFuIGNsYXNzTmFtZT0iZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTcwMCI+e2xvZy5yZXRyeV9hdHRlbXB0IHx8IDF9PC9zcGFuPjwvZGl2PgogICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgIHtsb2cuZXJyb3JfbWVzc2FnZSAmJiAoCiAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibXQtMSBwLTEuNSBiZy1yZWQtNTAgYm9yZGVyIGJvcmRlci1yZWQtMjAwIHJvdW5kZWQiPgogICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1yZWQtNzAwIGZvbnQtc2VtaWJvbGQiPuKaoO+4jyBFcnJvcjwvZGl2PgogICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1yZWQtNjAwIGJyZWFrLWFsbCB0ZXh0LVs5cHhdIG10LTAuNSI+e2xvZy5lcnJvcl9tZXNzYWdlfTwvZGl2PgogICAgICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICApfQogICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICApOwogICAgICAgICAgfSl9CiAgICAgICAgPC9kaXY+CiAgICAgICl9CgogICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctc2xhdGUtNTAgYm9yZGVyLXQgYm9yZGVyLXNsYXRlLTIwMCBweC00IHB5LTIiPgogICAgICAgIDxidXR0b24KICAgICAgICAgIG9uQ2xpY2s9e2xvYWRTeW5jTG9nc30KICAgICAgICAgIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LWJsdWUtNjAwIGhvdmVyOnVuZGVybGluZSBmb250LXNlbWlib2xkIGZsZXggaXRlbXMtY2VudGVyIGdhcC0xIgogICAgICAgID4KICAgICAgICAgIDxSb3RhdGVDY3cgY2xhc3NOYW1lPSJ3LTMgaC0zIiAvPiBSZWZyZXNoCiAgICAgICAgPC9idXR0b24+CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CiAgKTsKfQ==
+/**
+ * IntegrationSyncStatus — Real-time sync status display for all integrations
+ *
+ * Shows:
+ * - Current sync status (syncing / completed / failed)
+ * - Last synced timestamp
+ * - Records created/updated/skipped in last sync
+ * - Retry indicators
+ */
+
+import { useState, useEffect } from "react";
+import { apiCall } from "@/api/railway/client";
+import {
+  Loader2, CheckCircle, AlertTriangle, Clock, RotateCcw,
+  ChevronDown, ChevronRight
+} from "lucide-react";
+
+const INTEGRATIONS = ["HubSpot", "QuickBooks", "Google Contacts", "Google Calendar"];
+
+const fmtTime = (iso) => {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString("en-US", { 
+    month: "short", 
+    day: "numeric", 
+    hour: "2-digit", 
+    minute: "2-digit" 
+  });
+};
+
+export default function IntegrationSyncStatus() {
+  const [syncLogs, setSyncLogs] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [collapsed, setCollapsed] = useState({});
+  const [syncStates, setSyncStates] = useState({});
+
+  useEffect(() => {
+    loadSyncLogs();
+    
+    // Poll every 30 seconds for latest sync status
+    const timer = setInterval(loadSyncLogs, 30000);
+    
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
+
+  const loadSyncLogs = async () => {
+    try {
+      const data = await apiCall('/api/v1/sync-cursors', { method: 'GET' });
+      const logs = data.items || data || [];
+      
+      // Group by integration, get latest of each
+      const grouped = {};
+      for (const log of logs) {
+        if (!grouped[log.integration_name] || new Date(log.start_time) > new Date(grouped[log.integration_name].start_time)) {
+          grouped[log.integration_name] = log;
+        }
+      }
+      
+      setSyncLogs(grouped);
+      setLoading(false);
+      
+      // Check if any are currently syncing
+      const syncing = {};
+      for (const name of INTEGRATIONS) {
+        const log = grouped[name];
+        const now = Date.now();
+        const startTime = log ? new Date(log.start_time).getTime() : 0;
+        const duration = log?.duration_ms || 0;
+        
+        // Consider "syncing" if started in last 2 minutes and duration < 90 seconds
+        syncing[name] = (now - startTime < 120000) && duration < 90000 && !log?.end_time;
+      }
+      setSyncStates(syncing);
+    } catch (e) {
+      console.error('[SyncStatus] Error loading logs:', e);
+    }
+  };
+
+  const getLatestLog = (integrationName) => {
+    return syncLogs[integrationName];
+  };
+
+  const toggleCollapsed = (name) => {
+    setCollapsed(prev => ({ ...prev, [name]: !prev[name] }));
+  };
+
+  return (
+    <div className="bg-white rounded border border-slate-200 overflow-hidden">
+      <div className="bg-slate-50 border-b border-slate-200 px-4 py-3">
+        <h3 className="text-sm font-bold text-slate-800">⚡ Auto-Sync Status (Every 15 Min)</h3>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center gap-2 p-4 text-slate-500 text-sm">
+          <Loader2 className="w-4 h-4 animate-spin" /> Loading sync status...
+        </div>
+      ) : (
+        <div className="divide-y divide-slate-100">
+          {INTEGRATIONS.map(name => {
+            const log = getLatestLog(name);
+            const isSyncing = syncStates[name];
+            const isDone = log?.status === 'success';
+            const isFailed = log?.status === 'failed';
+            
+            return (
+              <div key={name} className="p-3">
+                <button
+                  onClick={() => toggleCollapsed(name)}
+                  className="w-full flex items-center gap-3 hover:bg-slate-50 transition-colors rounded px-1 py-0.5"
+                >
+                  {collapsed[name] ? (
+                    <ChevronRight className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                  ) : (
+                    <ChevronDown className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                  )}
+                  
+                  <div className="flex-1 text-left">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-slate-800">{name}</span>
+                      {isSyncing && (
+                        <span className="flex items-center gap-1 text-[10px] text-blue-600 font-bold">
+                          <Loader2 className="w-2.5 h-2.5 animate-spin" /> Syncing...
+                        </span>
+                      )}
+                      {isDone && (
+                        <span className="flex items-center gap-1 text-[10px] text-emerald-600 font-bold">
+                          <CheckCircle className="w-2.5 h-2.5" /> OK
+                        </span>
+                      )}
+                      {isFailed && (
+                        <span className="flex items-center gap-1 text-[10px] text-red-600 font-bold">
+                          <AlertTriangle className="w-2.5 h-2.5" /> Failed
+                        </span>
+                      )}
+                    </div>
+                    
+                    {log && (
+                      <div className="text-[10px] text-slate-500 mt-0.5">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-2.5 h-2.5" />
+                          {fmtTime(log.start_time)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {log && !isSyncing && (
+                    <div className="text-right text-[10px] text-slate-600 font-semibold flex-shrink-0">
+                      <div>+{log.created_count || 0} · ✎{log.updated_count || 0}</div>
+                      {log.duration_ms && <div className="text-slate-400">{(log.duration_ms / 1000).toFixed(1)}s</div>}
+                    </div>
+                  )}
+                </button>
+
+                {!collapsed[name] && log && (
+                  <div className="mt-2 ml-6 space-y-1 text-xs text-slate-600">
+                    <div>Status: <span className="font-semibold text-slate-800">{log.status}</span></div>
+                    <div>Created: <span className="font-semibold text-emerald-600">{log.created_count || 0}</span></div>
+                    <div>Updated: <span className="font-semibold text-blue-600">{log.updated_count || 0}</span></div>
+                    <div>Skipped: <span className="font-semibold text-amber-600">{log.skipped_count || 0}</span></div>
+                    <div>Duration: <span className="font-semibold text-slate-700">{(log.duration_ms / 1000).toFixed(1)}s</span></div>
+                    <div>Attempt: <span className="font-semibold text-slate-700">{log.retry_attempt || 1}</span></div>
+                    
+                    {log.error_message && (
+                      <div className="mt-1 p-1.5 bg-red-50 border border-red-200 rounded">
+                        <div className="text-red-700 font-semibold">⚠️ Error</div>
+                        <div className="text-red-600 break-all text-[9px] mt-0.5">{log.error_message}</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="bg-slate-50 border-t border-slate-200 px-4 py-2">
+        <button
+          onClick={loadSyncLogs}
+          className="text-xs text-blue-600 hover:underline font-semibold flex items-center gap-1"
+        >
+          <RotateCcw className="w-3 h-3" /> Refresh
+        </button>
+      </div>
+    </div>
+  );
+}

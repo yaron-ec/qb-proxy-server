@@ -1,1 +1,39 @@
-LyoqCiAqIHJhaWx3YXlBcGkg4oCUIGJhY2t3YXJkLWNvbXBhdCBzaGltLiBSZS1leHBvcnRzIHRoZSBwZXJtYW5lbnQgUmFpbHdheSBBUEkKICogbW9kdWxlcyBmcm9tIEAvYXBpL3JhaWx3YXkgc28gZXhpc3RpbmcgaW1wb3J0ZXJzIGtlZXAgd29ya2luZy4KICoKICogTmV3L21pZ3JhdGVkIGNvZGUgc2hvdWxkIGltcG9ydCBmcm9tIEAvYXBpL3JhaWx3YXkgZGlyZWN0bHkuCiAqIFRoaXMgZmlsZSB3aWxsIGJlIGRlbGV0ZWQgaW4gdGhlIGZpbmFsIGNsZWFudXAgcGhhc2Ugb25jZSBhbGwgaW1wb3J0ZXJzCiAqIGhhdmUgYmVlbiBtaWdyYXRlZCB0byBAL2FwaS9yYWlsd2F5LgogKi8KCmltcG9ydCB7IGFwaUNhbGwsIGlzTG9nZ2VkSW4sIGNsZWFyVG9rZW5zLCBzZXRUb2tlbnMsIEFQSV9VUkwgfSBmcm9tICdAL2FwaS9yYWlsd2F5L2NsaWVudCc7CmltcG9ydCB7IGxvZ2luLCBsb2dvdXQsIG1lLCBtaWdyYXRlRnJvbUJhc2U0NCB9IGZyb20gJ0AvYXBpL3JhaWx3YXkvYXV0aCc7CgovLyBSZS1leHBvcnQgdHJhbnNwb3J0ICsgYXV0aApleHBvcnQgeyBhcGlDYWxsLCBpc0xvZ2dlZEluLCBjbGVhclRva2Vucywgc2V0VG9rZW5zLCBsb2dpbiwgbG9nb3V0LCBtZSwgbWlncmF0ZUZyb21CYXNlNDQsIEFQSV9VUkwgfTsKCi8vIOKUgOKUgCBFbWFpbCBlbmRwb2ludHMgKHJlbWFpbiBoZXJlIHVudGlsIHRoZSBlbWFpbCBzZXJ2aWNlIHBoYXNlKSDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKZXhwb3J0IGNvbnN0IHNlbmRFbWFpbCA9ICh0bywgc3ViamVjdCwgaHRtbEJvZHksIG9wdHMgPSB7fSkgPT4gewogIGlmICghb3B0cyB8fCAhb3B0cy5pZGVtcG90ZW5jeUtleSkgewogICAgdGhyb3cgbmV3IEVycm9yKCdyYWlsd2F5QXBpLnNlbmRFbWFpbDogaWRlbXBvdGVuY3lLZXkgaXMgcmVxdWlyZWQgKGRldGVybWluaXN0aWMsIGNhbGxlci1zdXBwbGllZCDigJQgbm8gcmFuZG9tIGZhbGxiYWNrKScpOwogIH0KICByZXR1cm4gYXBpQ2FsbCgnL2FwaS92MS9lbWFpbHMvc2VuZCcsIHsgYm9keTogeyB0bywgc3ViamVjdCwgaHRtbEJvZHksIC4uLm9wdHMgfSB9KTsKfTsKCmV4cG9ydCBjb25zdCBzZW5kVGVzdEVtYWlsID0gKHRvLCBub25jZSkgPT4KICBhcGlDYWxsKCcvYXBpL3YxL2VtYWlscy90ZXN0JywgeyBib2R5OiB7IHRvLCBub25jZSB9IH0pOwoKZXhwb3J0IGNvbnN0IHNlbmRMZWFkUmVtaW5kZXIgPSAobGVhZElkKSA9PgogIGFwaUNhbGwoYC9hcGkvdjEvbGVhZHMvJHtsZWFkSWR9L3JlbWluZGAsIHsgYm9keToge30gfSk7CgpleHBvcnQgY29uc3Qgc2VuZEludm9pY2VFbWFpbCA9IChpbnZvaWNlSWQpID0+CiAgYXBpQ2FsbChgL2FwaS92MS9pbnZvaWNlcy8ke2ludm9pY2VJZH0vZW1haWxgLCB7IGJvZHk6IHt9IH0pOwoKLy8g4pSA4pSAIEdtYWlsIFJFQUQgZW5kcG9pbnRzIChzZXJ2ZXItc2lkZSB0b2tlbjsgbm8gYnJvd3NlciBHbWFpbCB0b2tlbikg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACmV4cG9ydCBjb25zdCBnbWFpbFByb2ZpbGUgPSAoKSA9PiBhcGlDYWxsKCcvYXBpL3YxL2dtYWlsL3Byb2ZpbGUnLCB7IG1ldGhvZDogJ0dFVCcgfSk7CmV4cG9ydCBjb25zdCBnbWFpbE1lc3NhZ2VzID0gKG1heFJlc3VsdHMgPSAyMCwgcSA9ICdpczppbmJveCcpID0+CiAgYXBpQ2FsbChgL2FwaS92MS9nbWFpbC9tZXNzYWdlcz9tYXhSZXN1bHRzPSR7bWF4UmVzdWx0c30mcT0ke2VuY29kZVVSSUNvbXBvbmVudChxKX1gLCB7IG1ldGhvZDogJ0dFVCcgfSk7CmV4cG9ydCBjb25zdCBnbWFpbE1lc3NhZ2UgPSAoaWQpID0+IGFwaUNhbGwoYC9hcGkvdjEvZ21haWwvbWVzc2FnZXMvJHtpZH1gLCB7IG1ldGhvZDogJ0dFVCcgfSk7CgpleHBvcnQgZGVmYXVsdCB7IGxvZ2luLCBsb2dvdXQsIG1lLCBtaWdyYXRlRnJvbUJhc2U0NCwgc2VuZEVtYWlsLCBzZW5kVGVzdEVtYWlsLCBzZW5kTGVhZFJlbWluZGVyLCBzZW5kSW52b2ljZUVtYWlsLCBnbWFpbFByb2ZpbGUsIGdtYWlsTWVzc2FnZXMsIGdtYWlsTWVzc2FnZSwgYXBpQ2FsbCwgaXNMb2dnZWRJbiwgY2xlYXJUb2tlbnMgfTs=
+/**
+ * railwayApi — backward-compat shim. Re-exports the permanent Railway API
+ * modules from @/api/railway so existing importers keep working.
+ *
+ * New/migrated code should import from @/api/railway directly.
+ * This file will be deleted in the final cleanup phase once all importers
+ * have been migrated to @/api/railway.
+ */
+
+import { apiCall, isLoggedIn, clearTokens, setTokens, API_URL } from '@/api/railway/client';
+import { login, logout, me, migrateFromBase44 } from '@/api/railway/auth';
+
+// Re-export transport + auth
+export { apiCall, isLoggedIn, clearTokens, setTokens, login, logout, me, migrateFromBase44, API_URL };
+
+// ── Email endpoints (remain here until the email service phase) ──────────────
+export const sendEmail = (to, subject, htmlBody, opts = {}) => {
+  if (!opts || !opts.idempotencyKey) {
+    throw new Error('railwayApi.sendEmail: idempotencyKey is required (deterministic, caller-supplied — no random fallback)');
+  }
+  return apiCall('/api/v1/emails/send', { body: { to, subject, htmlBody, ...opts } });
+};
+
+export const sendTestEmail = (to, nonce) =>
+  apiCall('/api/v1/emails/test', { body: { to, nonce } });
+
+export const sendLeadReminder = (leadId) =>
+  apiCall(`/api/v1/leads/${leadId}/remind`, { body: {} });
+
+export const sendInvoiceEmail = (invoiceId) =>
+  apiCall(`/api/v1/invoices/${invoiceId}/email`, { body: {} });
+
+// ── Gmail READ endpoints (server-side token; no browser Gmail token) ────────
+export const gmailProfile = () => apiCall('/api/v1/gmail/profile', { method: 'GET' });
+export const gmailMessages = (maxResults = 20, q = 'is:inbox') =>
+  apiCall(`/api/v1/gmail/messages?maxResults=${maxResults}&q=${encodeURIComponent(q)}`, { method: 'GET' });
+export const gmailMessage = (id) => apiCall(`/api/v1/gmail/messages/${id}`, { method: 'GET' });
+
+export default { login, logout, me, migrateFromBase44, sendEmail, sendTestEmail, sendLeadReminder, sendInvoiceEmail, gmailProfile, gmailMessages, gmailMessage, apiCall, isLoggedIn, clearTokens };

@@ -1,1 +1,19 @@
-LyoqCiAqIEF1dG9tYXRpb25CbG9ja2VkQmFubmVyCiAqIFNob3dzIGEgcmVkIHdhcm5pbmcgYmFubmVyIHdoZW4gd29ya3NwYWNlIGF1dG9tYXRpb24gY3JlZGl0cyBhcmUgZXhoYXVzdGVkLgogKiBUaGlzIGlzIGEgcHVyZSBVSSBjb21wb25lbnQg4oCUIG5vIEFQSSBjYWxscywgbm8gY3JlZGl0cyBjb25zdW1lZC4KICogVGhlIGJhbm5lciBpcyBhbHdheXMgc2hvd24gKHRoZSBwbGF0Zm9ybSBjb25maXJtcyBjcmVkaXRzIGFyZSBleGhhdXN0ZWQpLgogKi8KaW1wb3J0IHsgQWxlcnRUcmlhbmdsZSB9IGZyb20gJ2x1Y2lkZS1yZWFjdCc7CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBBdXRvbWF0aW9uQmxvY2tlZEJhbm5lcih7IGNsYXNzTmFtZSA9ICcnIH0pIHsKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9e2BmbGV4IGl0ZW1zLXN0YXJ0IGdhcC0zIGJnLXJlZC02MDAgdGV4dC13aGl0ZSByb3VuZGVkLWxnIHB4LTQgcHktMyAke2NsYXNzTmFtZX1gfT4KICAgICAgPEFsZXJ0VHJpYW5nbGUgY2xhc3NOYW1lPSJ3LTQgaC00IGZsZXgtc2hyaW5rLTAgbXQtMC41IiAvPgogICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgZm9udC1zZW1pYm9sZCBsZWFkaW5nLXJlbGF4ZWQiPgogICAgICAgIDxzcGFuIGNsYXNzTmFtZT0iZm9udC1ibGFjayI+4pqgIEF1dG9tYXRpb24gd29ya2Zsb3dzIGFyZSBjdXJyZW50bHkgYmxvY2tlZDwvc3Bhbj4gZHVlIHRvIEludGVncmF0aW9uIENyZWRpdHMgYmVpbmcgZXhoYXVzdGVkLgogICAgICAgIENhbGVuZGFyIHN5bmMsIGFwcG9pbnRtZW50IHJlbWluZGVycywgY29udGFjdCBzeW5jLCBhbmQgYWxsIHNjaGVkdWxlZCBzeW5jcyB3aWxsIG5vdCBydW4gdW50aWwgY3JlZGl0cyByZXNldCBvbiA8c3BhbiBjbGFzc05hbWU9ImZvbnQtYmxhY2siPkp1bmUgMzAsIDIwMjY8L3NwYW4+LgogICAgICA8L3A+CiAgICA8L2Rpdj4KICApOwp9
+/**
+ * AutomationBlockedBanner
+ * Shows a red warning banner when workspace automation credits are exhausted.
+ * This is a pure UI component — no API calls, no credits consumed.
+ * The banner is always shown (the platform confirms credits are exhausted).
+ */
+import { AlertTriangle } from 'lucide-react';
+
+export default function AutomationBlockedBanner({ className = '' }) {
+  return (
+    <div className={`flex items-start gap-3 bg-red-600 text-white rounded-lg px-4 py-3 ${className}`}>
+      <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+      <p className="text-xs font-semibold leading-relaxed">
+        <span className="font-black">⚠ Automation workflows are currently blocked</span> due to Integration Credits being exhausted.
+        Calendar sync, appointment reminders, contact sync, and all scheduled syncs will not run until credits reset on <span className="font-black">June 30, 2026</span>.
+      </p>
+    </div>
+  );
+}

@@ -1,1 +1,38 @@
-aW1wb3J0ICogYXMgUmVhY3QgZnJvbSAicmVhY3QiCmltcG9ydCAqIGFzIFNjcm9sbEFyZWFQcmltaXRpdmUgZnJvbSAiQHJhZGl4LXVpL3JlYWN0LXNjcm9sbC1hcmVhIgoKaW1wb3J0IHsgY24gfSBmcm9tICJAL2xpYi91dGlscyIKCmNvbnN0IFNjcm9sbEFyZWEgPSBSZWFjdC5mb3J3YXJkUmVmKCh7IGNsYXNzTmFtZSwgY2hpbGRyZW4sIC4uLnByb3BzIH0sIHJlZikgPT4gKAogIDxTY3JvbGxBcmVhUHJpbWl0aXZlLlJvb3QKICAgIHJlZj17cmVmfQogICAgY2xhc3NOYW1lPXtjbigicmVsYXRpdmUgb3ZlcmZsb3ctaGlkZGVuIiwgY2xhc3NOYW1lKX0KICAgIHsuLi5wcm9wc30+CiAgICA8U2Nyb2xsQXJlYVByaW1pdGl2ZS5WaWV3cG9ydCBjbGFzc05hbWU9ImgtZnVsbCB3LWZ1bGwgcm91bmRlZC1baW5oZXJpdF0iPgogICAgICB7Y2hpbGRyZW59CiAgICA8L1Njcm9sbEFyZWFQcmltaXRpdmUuVmlld3BvcnQ+CiAgICA8U2Nyb2xsQmFyIC8+CiAgICA8U2Nyb2xsQXJlYVByaW1pdGl2ZS5Db3JuZXIgLz4KICA8L1Njcm9sbEFyZWFQcmltaXRpdmUuUm9vdD4KKSkKU2Nyb2xsQXJlYS5kaXNwbGF5TmFtZSA9IFNjcm9sbEFyZWFQcmltaXRpdmUuUm9vdC5kaXNwbGF5TmFtZQoKY29uc3QgU2Nyb2xsQmFyID0gUmVhY3QuZm9yd2FyZFJlZigoeyBjbGFzc05hbWUsIG9yaWVudGF0aW9uID0gInZlcnRpY2FsIiwgLi4ucHJvcHMgfSwgcmVmKSA9PiAoCiAgPFNjcm9sbEFyZWFQcmltaXRpdmUuU2Nyb2xsQXJlYVNjcm9sbGJhcgogICAgcmVmPXtyZWZ9CiAgICBvcmllbnRhdGlvbj17b3JpZW50YXRpb259CiAgICBjbGFzc05hbWU9e2NuKAogICAgICAiZmxleCB0b3VjaC1ub25lIHNlbGVjdC1ub25lIHRyYW5zaXRpb24tY29sb3JzIiwKICAgICAgb3JpZW50YXRpb24gPT09ICJ2ZXJ0aWNhbCIgJiYKICAgICAgICAiaC1mdWxsIHctMi41IGJvcmRlci1sIGJvcmRlci1sLXRyYW5zcGFyZW50IHAtWzFweF0iLAogICAgICBvcmllbnRhdGlvbiA9PT0gImhvcml6b250YWwiICYmCiAgICAgICAgImgtMi41IGZsZXgtY29sIGJvcmRlci10IGJvcmRlci10LXRyYW5zcGFyZW50IHAtWzFweF0iLAogICAgICBjbGFzc05hbWUKICAgICl9CiAgICB7Li4ucHJvcHN9PgogICAgPFNjcm9sbEFyZWFQcmltaXRpdmUuU2Nyb2xsQXJlYVRodW1iIGNsYXNzTmFtZT0icmVsYXRpdmUgZmxleC0xIHJvdW5kZWQtZnVsbCBiZy1ib3JkZXIiIC8+CiAgPC9TY3JvbGxBcmVhUHJpbWl0aXZlLlNjcm9sbEFyZWFTY3JvbGxiYXI+CikpClNjcm9sbEJhci5kaXNwbGF5TmFtZSA9IFNjcm9sbEFyZWFQcmltaXRpdmUuU2Nyb2xsQXJlYVNjcm9sbGJhci5kaXNwbGF5TmFtZQoKZXhwb3J0IHsgU2Nyb2xsQXJlYSwgU2Nyb2xsQmFyIH0K
+import * as React from "react"
+import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area"
+
+import { cn } from "@/lib/utils"
+
+const ScrollArea = React.forwardRef(({ className, children, ...props }, ref) => (
+  <ScrollAreaPrimitive.Root
+    ref={ref}
+    className={cn("relative overflow-hidden", className)}
+    {...props}>
+    <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit]">
+      {children}
+    </ScrollAreaPrimitive.Viewport>
+    <ScrollBar />
+    <ScrollAreaPrimitive.Corner />
+  </ScrollAreaPrimitive.Root>
+))
+ScrollArea.displayName = ScrollAreaPrimitive.Root.displayName
+
+const ScrollBar = React.forwardRef(({ className, orientation = "vertical", ...props }, ref) => (
+  <ScrollAreaPrimitive.ScrollAreaScrollbar
+    ref={ref}
+    orientation={orientation}
+    className={cn(
+      "flex touch-none select-none transition-colors",
+      orientation === "vertical" &&
+        "h-full w-2.5 border-l border-l-transparent p-[1px]",
+      orientation === "horizontal" &&
+        "h-2.5 flex-col border-t border-t-transparent p-[1px]",
+      className
+    )}
+    {...props}>
+    <ScrollAreaPrimitive.ScrollAreaThumb className="relative flex-1 rounded-full bg-border" />
+  </ScrollAreaPrimitive.ScrollAreaScrollbar>
+))
+ScrollBar.displayName = ScrollAreaPrimitive.ScrollAreaScrollbar.displayName
+
+export { ScrollArea, ScrollBar }

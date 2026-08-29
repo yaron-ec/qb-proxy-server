@@ -1,1 +1,40 @@
-LyoqCiAqIFVzZXIgU3luYyBVdGlsaXRpZXMKICogRW5zdXJlcyBhcHAtd2lkZSBzeW5jaHJvbml6YXRpb24gd2hlbiB1c2VyIGRldGFpbHMgY2hhbmdlCiAqLwoKaW1wb3J0ICogYXMgcmFpbHdheUxlYWRzIGZyb20gJ0AvYXBpL3JhaWx3YXkvbGVhZHMnOwppbXBvcnQgKiBhcyByYWlsd2F5QXBpIGZyb20gJ0AvbGliL3JhaWx3YXlBcGknOwoKZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIHN5bmNBZG1pbkVtYWlsQ2hhbmdlKG9sZEVtYWlsLCBuZXdFbWFpbCkgewogIHRyeSB7CiAgICBjb25zb2xlLmxvZyhgW3VzZXJTeW5jXSBTeW5jaW5nIGFkbWluIGVtYWlsIGNoYW5nZTogJHtvbGRFbWFpbH0g4oaSICR7bmV3RW1haWx9YCk7CiAgICAKICAgIC8vIFVwZGF0ZSBhbGwgY3JlYXRlZEJ5IHJlZmVyZW5jZXMKICAgIGNvbnN0IGxlYWRzID0gYXdhaXQgcmFpbHdheUxlYWRzLmxpc3Qoe30pLnRoZW4ociA9PiByLml0ZW1zIHx8IFtdKTsKICAgIGNvbnN0IGxlYWRzVG9VcGRhdGUgPSBsZWFkcy5maWx0ZXIobCA9PiBsLmNyZWF0ZWRfYnkgPT09IG9sZEVtYWlsKTsKICAgIAogICAgZm9yIChjb25zdCBsZWFkIG9mIGxlYWRzVG9VcGRhdGUpIHsKICAgICAgdHJ5IHsKICAgICAgICBhd2FpdCByYWlsd2F5TGVhZHMudXBkYXRlKGxlYWQuaWQsIHsgY3JlYXRlZF9ieTogbmV3RW1haWwgfSk7CiAgICAgIH0gY2F0Y2ggKGVycikgewogICAgICAgIGNvbnNvbGUud2FybihgRmFpbGVkIHRvIHVwZGF0ZSBsZWFkICR7bGVhZC5pZH06YCwgZXJyLm1lc3NhZ2UpOwogICAgICB9CiAgICB9CiAgICAKICAgIGNvbnNvbGUubG9nKGBbdXNlclN5bmNdIFVwZGF0ZWQgJHtsZWFkc1RvVXBkYXRlLmxlbmd0aH0gbGVhZCBvd25lcnNoaXAgcmVjb3Jkc2ApOwogICAgcmV0dXJuIHsgc3VjY2VzczogdHJ1ZSwgdXBkYXRlZExlYWRzOiBsZWFkc1RvVXBkYXRlLmxlbmd0aCB9OwogIH0gY2F0Y2ggKGVycikgewogICAgY29uc29sZS5lcnJvcignW3VzZXJTeW5jXSBTeW5jIGZhaWxlZDonLCBlcnIubWVzc2FnZSk7CiAgICByZXR1cm4geyBzdWNjZXNzOiBmYWxzZSwgZXJyb3I6IGVyci5tZXNzYWdlIH07CiAgfQp9CgpleHBvcnQgYXN5bmMgZnVuY3Rpb24gZ2V0Q3VycmVudEFkbWluRW1haWwoKSB7CiAgdHJ5IHsKICAgIGNvbnN0IG1lUmVzcCA9IGF3YWl0IHJhaWx3YXlBcGkubWUoKTsKICAgIHJldHVybiBtZVJlc3A/LnVzZXI/LmVtYWlsOwogIH0gY2F0Y2ggewogICAgcmV0dXJuIG51bGw7CiAgfQp9
+/**
+ * User Sync Utilities
+ * Ensures app-wide synchronization when user details change
+ */
+
+import * as railwayLeads from '@/api/railway/leads';
+import * as railwayApi from '@/lib/railwayApi';
+
+export async function syncAdminEmailChange(oldEmail, newEmail) {
+  try {
+    console.log(`[userSync] Syncing admin email change: ${oldEmail} → ${newEmail}`);
+    
+    // Update all createdBy references
+    const leads = await railwayLeads.list({}).then(r => r.items || []);
+    const leadsToUpdate = leads.filter(l => l.created_by === oldEmail);
+    
+    for (const lead of leadsToUpdate) {
+      try {
+        await railwayLeads.update(lead.id, { created_by: newEmail });
+      } catch (err) {
+        console.warn(`Failed to update lead ${lead.id}:`, err.message);
+      }
+    }
+    
+    console.log(`[userSync] Updated ${leadsToUpdate.length} lead ownership records`);
+    return { success: true, updatedLeads: leadsToUpdate.length };
+  } catch (err) {
+    console.error('[userSync] Sync failed:', err.message);
+    return { success: false, error: err.message };
+  }
+}
+
+export async function getCurrentAdminEmail() {
+  try {
+    const meResp = await railwayApi.me();
+    return meResp?.user?.email;
+  } catch {
+    return null;
+  }
+}

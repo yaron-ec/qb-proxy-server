@@ -1,1 +1,14 @@
-bm9kZV9tb2R1bGVzCmRpc3QKLmdpdAplYy1jcm0tZnJvbnRlbmQtZXhwb3J0CmNybS1mcm9udGVuZC9ub2RlX21vZHVsZXMKY3JtLWZyb250ZW5kL2Rpc3QKLmVudgouZW52LmxvY2FsCi5lbnYucHJvZHVjdGlvbgoqLm1kCioucHMxCiouY3N2CioudHh0CioucGF0Y2gK
+node_modules
+dist
+.git
+ec-crm-frontend-export
+crm-frontend/node_modules
+crm-frontend/dist
+.env
+.env.local
+.env.production
+*.md
+*.ps1
+*.csv
+*.txt
+*.patch

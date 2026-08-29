@@ -1,1 +1,49 @@
-LyoqCiAqIEZyaWVuZGx5RXJyb3Ig4oCUIG5vcm1hbGl6ZXMgcmF3IGVycm9ycyAoNDA0LCBIVE1MLCBwcm94eSwgc3RhY2sgdHJhY2VzKQogKiBpbnRvIHVzZXItZnJpZW5kbHkgbWVzc2FnZXMsIGRpc3BsYXllZCB2aWEgQWxlcnQuCiAqLwppbXBvcnQgeyBBbGVydCB9IGZyb20gIi4vQWxlcnQiOwoKZXhwb3J0IGZ1bmN0aW9uIG5vcm1hbGl6ZUVycm9yKHJhdykgewogIGlmICghcmF3KSByZXR1cm4gbnVsbDsKICBjb25zdCBtc2cgPSBTdHJpbmcodHlwZW9mIHJhdyA9PT0gInN0cmluZyIgPyByYXcgOiAocmF3Lm1lc3NhZ2UgfHwgcmF3KSkudHJpbSgpOwoKICBpZiAobXNnLmluY2x1ZGVzKCI8IURPQ1RZUEUiKSB8fCBtc2cuaW5jbHVkZXMoIjxodG1sIikpIHsKICAgIGlmIChtc2cuaW5jbHVkZXMoIkNhbm5vdCBQT1NUIikgfHwgbXNnLmluY2x1ZGVzKCJDYW5ub3QgR0VUIikgfHwgbXNnLmluY2x1ZGVzKCI0MDQiKSkgewogICAgICByZXR1cm4geyBmcmllbmRseTogIlNlcnZpY2UgaXMgc3RhcnRpbmcgdXAuIFBsZWFzZSB0cnkgYWdhaW4gaW4gYSBtb21lbnQuIiwgdGVjaG5pY2FsOiBtc2cuc2xpY2UoMCwgMjAwKSB9OwogICAgfQogICAgcmV0dXJuIHsgZnJpZW5kbHk6ICJTb21ldGhpbmcgd2VudCB3cm9uZy4gUGxlYXNlIHRyeSBhZ2Fpbi4iLCB0ZWNobmljYWw6IG1zZy5zbGljZSgwLCAyMDApIH07CiAgfQogIGlmIChtc2cuaW5jbHVkZXMoIlFVSUNLQk9PS1NfUkVDT05ORUNUX1JFUVVJUkVEIikgfHwgbXNnLmluY2x1ZGVzKCJyZWNvbm5lY3RSZXF1aXJlZCIpKSB7CiAgICByZXR1cm4geyBmcmllbmRseTogIkNvbm5lY3Rpb24gZXhwaXJlZC4gUmVjb25uZWN0IGluIFNldHRpbmdzLiIsIHRlY2huaWNhbDogbXNnIH07CiAgfQogIGlmIChtc2cuaW5jbHVkZXMoIkVOT1RGT1VORCIpIHx8IG1zZy5pbmNsdWRlcygiZmV0Y2ggZmFpbGVkIikgfHwgbXNnLmluY2x1ZGVzKCJOZXR3b3JrRXJyb3IiKSkgewogICAgcmV0dXJuIHsgZnJpZW5kbHk6ICJDYW5ub3QgcmVhY2ggdGhlIHNlcnZpY2UuIENoZWNrIHlvdXIgY29ubmVjdGlvbiBhbmQgdHJ5IGFnYWluLiIsIHRlY2huaWNhbDogbXNnIH07CiAgfQogIGlmIChtc2cuaW5jbHVkZXMoIkJ1aWxkZXIrIikgfHwgbXNnLmluY2x1ZGVzKCJjdXJyZW50IHBsYW4iKSB8fCBtc2cuaW5jbHVkZXMoIjQwMiIpKSB7CiAgICByZXR1cm4geyBmcmllbmRseTogIlRoaXMgZmVhdHVyZSBpcyB0ZW1wb3JhcmlseSB1bmF2YWlsYWJsZS4iLCB0ZWNobmljYWw6IG1zZyB9OwogIH0KCiAgY29uc3QgY2xlYW4gPSBtc2cucmVwbGFjZSgvXlByb3h5IFxkKzpccyovLCAiIikucmVwbGFjZSgvXlFCIFxkKzpccyovLCAiIik7CiAgcmV0dXJuIHsKICAgIGZyaWVuZGx5OiBjbGVhbi5sZW5ndGggPiAxMjAgPyBjbGVhbi5zbGljZSgwLCAxMjApICsgIuKApiIgOiBjbGVhbiwKICAgIHRlY2huaWNhbDogbXNnLAogIH07Cn0KCmV4cG9ydCBmdW5jdGlvbiBGcmllbmRseUVycm9yKHsgZXJyb3IsIHRpdGxlID0gIlNvbWV0aGluZyB3ZW50IHdyb25nIiwgYWN0aW9uID0gbnVsbCwgY2xhc3NOYW1lID0gIiIgfSkgewogIGNvbnN0IG5vcm1hbGl6ZWQgPSBub3JtYWxpemVFcnJvcihlcnJvcik7CiAgaWYgKCFub3JtYWxpemVkKSByZXR1cm4gbnVsbDsKCiAgcmV0dXJuICgKICAgIDxBbGVydAogICAgICB2YXJpYW50PSJ3YXJuaW5nIgogICAgICB0aXRsZT17dGl0bGV9CiAgICAgIGRldGFpbHM9e25vcm1hbGl6ZWQudGVjaG5pY2FsfQogICAgICBhY3Rpb249e2FjdGlvbn0KICAgICAgY2xhc3NOYW1lPXtjbGFzc05hbWV9CiAgICA+CiAgICAgIHtub3JtYWxpemVkLmZyaWVuZGx5fQogICAgPC9BbGVydD4KICApOwp9
+/**
+ * FriendlyError — normalizes raw errors (404, HTML, proxy, stack traces)
+ * into user-friendly messages, displayed via Alert.
+ */
+import { Alert } from "./Alert";
+
+export function normalizeError(raw) {
+  if (!raw) return null;
+  const msg = String(typeof raw === "string" ? raw : (raw.message || raw)).trim();
+
+  if (msg.includes("<!DOCTYPE") || msg.includes("<html")) {
+    if (msg.includes("Cannot POST") || msg.includes("Cannot GET") || msg.includes("404")) {
+      return { friendly: "Service is starting up. Please try again in a moment.", technical: msg.slice(0, 200) };
+    }
+    return { friendly: "Something went wrong. Please try again.", technical: msg.slice(0, 200) };
+  }
+  if (msg.includes("QUICKBOOKS_RECONNECT_REQUIRED") || msg.includes("reconnectRequired")) {
+    return { friendly: "Connection expired. Reconnect in Settings.", technical: msg };
+  }
+  if (msg.includes("ENOTFOUND") || msg.includes("fetch failed") || msg.includes("NetworkError")) {
+    return { friendly: "Cannot reach the service. Check your connection and try again.", technical: msg };
+  }
+  if (msg.includes("Builder+") || msg.includes("current plan") || msg.includes("402")) {
+    return { friendly: "This feature is temporarily unavailable.", technical: msg };
+  }
+
+  const clean = msg.replace(/^Proxy \d+:\s*/, "").replace(/^QB \d+:\s*/, "");
+  return {
+    friendly: clean.length > 120 ? clean.slice(0, 120) + "…" : clean,
+    technical: msg,
+  };
+}
+
+export function FriendlyError({ error, title = "Something went wrong", action = null, className = "" }) {
+  const normalized = normalizeError(error);
+  if (!normalized) return null;
+
+  return (
+    <Alert
+      variant="warning"
+      title={title}
+      details={normalized.technical}
+      action={action}
+      className={className}
+    >
+      {normalized.friendly}
+    </Alert>
+  );
+}

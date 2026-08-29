@@ -1,1 +1,65 @@
-aW1wb3J0IHsgTGluayB9IGZyb20gInJlYWN0LXJvdXRlci1kb20iOwppbXBvcnQgeyBGaWxlVGV4dCwgRXllLCBDbG9jayB9IGZyb20gImx1Y2lkZS1yZWFjdCI7Cgpjb25zdCBFU1RJTUFURV9TVEFUVVNfQ09MT1JTID0gewogICdEcmFmdCc6ICdiZy1zbGF0ZS0xMDAgdGV4dC1zbGF0ZS03MDAnLAogICdTZW50JzogJ2JnLWJsdWUtMTAwIHRleHQtYmx1ZS03MDAnLAogICdWaWV3ZWQnOiAnYmctcHVycGxlLTEwMCB0ZXh0LXB1cnBsZS03MDAnLAogICdBY2NlcHRlZCc6ICdiZy1lbWVyYWxkLTEwMCB0ZXh0LWVtZXJhbGQtNzAwJywKICAnRGVjbGluZWQnOiAnYmctcmVkLTEwMCB0ZXh0LXJlZC03MDAnLAp9OwoKY29uc3QgU09VUkNFX0JBREdFID0gewogICdIYW5kb2ZmJzogICAgJ2JnLXZpb2xldC0xMDAgdGV4dC12aW9sZXQtNzAwJywKICAnUXVpY2tCb29rcyc6ICdiZy1ncmVlbi0xMDAgdGV4dC1ncmVlbi03MDAnLAogICdNYW51YWwnOiAgICAgJ2JnLXNsYXRlLTEwMCB0ZXh0LXNsYXRlLTYwMCcsCn07CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBFc3RpbWF0ZUNhcmQoeyBlc3RpbWF0ZSwgbGVhZCwgc291cmNlID0gJ01hbnVhbCcgfSkgewogIGNvbnN0IHN0YXR1c0NvbG9yID0gRVNUSU1BVEVfU1RBVFVTX0NPTE9SU1tlc3RpbWF0ZS5zdGF0dXNdIHx8ICdiZy1zbGF0ZS0xMDAgdGV4dC1zbGF0ZS03MDAnOwogIGNvbnN0IHNvdXJjZUJhZGdlID0gU09VUkNFX0JBREdFW3NvdXJjZV0gfHwgU09VUkNFX0JBREdFWydNYW51YWwnXTsKCiAgcmV0dXJuICgKICAgIDxMaW5rCiAgICAgIHRvPXtgL2VzdGltYXRlcy8ke2VzdGltYXRlLmlkfWB9CiAgICAgIGNsYXNzTmFtZT0iY2FyZC1wcmVtaXVtIHAtNSBncm91cCBob3ZlcjpzaGFkb3ctbGcgdHJhbnNpdGlvbi1hbGwgZHVyYXRpb24tMjAwIGN1cnNvci1wb2ludGVyIgogICAgPgogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1zdGFydCBqdXN0aWZ5LWJldHdlZW4gZ2FwLTQgbWItNCI+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtc3RhcnQgZ2FwLTMgZmxleC0xIj4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ3LTEwIGgtMTAgYmctZ3JhZGllbnQtdG8tYnIgZnJvbS1zbGF0ZS05MDAgdG8tc2xhdGUtNzAwIHJvdW5kZWQtbGcgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgdGV4dC13aGl0ZSBmbGV4LXNocmluay0wIj4KICAgICAgICAgICAgPEZpbGVUZXh0IGNsYXNzTmFtZT0idy01IGgtNSIgLz4KICAgICAgICAgIDwvZGl2PgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXgtMSI+CiAgICAgICAgICAgIDxoMyBjbGFzc05hbWU9ImZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS05MDAiPntlc3RpbWF0ZS50aXRsZX08L2gzPgogICAgICAgICAgICB7bGVhZCAmJiA8cCBjbGFzc05hbWU9InRleHQtc20gdGV4dC1zbGF0ZS02MDAiPntsZWFkLmZpcnN0X25hbWV9IHtsZWFkLmxhc3RfbmFtZX08L3A+fQogICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9e2BpbmxpbmUtYmxvY2sgbXQtMSB0ZXh0LVsxMXB4XSBmb250LXNlbWlib2xkIHB4LTIgcHktMC41IHJvdW5kZWQtZnVsbCAke3NvdXJjZUJhZGdlfWB9PgogICAgICAgICAgICAgIHtzb3VyY2V9CiAgICAgICAgICAgIDwvc3Bhbj4KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICAgIDxzcGFuIGNsYXNzTmFtZT17YHRleHQteHMgZm9udC1zZW1pYm9sZCBweC0zIHB5LTEgcm91bmRlZC1mdWxsIHdoaXRlc3BhY2Utbm93cmFwICR7c3RhdHVzQ29sb3J9YH0+CiAgICAgICAgICB7ZXN0aW1hdGUuc3RhdHVzfQogICAgICAgIDwvc3Bhbj4KICAgICAgPC9kaXY+CgogICAgICA8ZGl2IGNsYXNzTmFtZT0iZ3JpZCBncmlkLWNvbHMtMiBnYXAtNCBtYi00IHBiLTQgYm9yZGVyLWIgYm9yZGVyLXNsYXRlLTEwMCI+CiAgICAgICAgPGRpdj4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTYwMCBtYi0xIj5Ub3RhbCBBbW91bnQ8L3A+CiAgICAgICAgICA8cCBjbGFzc05hbWU9ImZvbnQtYm9sZCB0ZXh0LXNsYXRlLTkwMCI+JHsoZXN0aW1hdGUudG90YWwgfHwgMCkudG9Mb2NhbGVTdHJpbmcoKX08L3A+CiAgICAgICAgPC9kaXY+CiAgICAgICAgPGRpdj4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTYwMCBtYi0xIj5EZXBvc2l0PC9wPgogICAgICAgICAgPHAgY2xhc3NOYW1lPSJmb250LXNlbWlib2xkIHRleHQtc2xhdGUtOTAwIj4keyhlc3RpbWF0ZS5kZXBvc2l0X2Ftb3VudCB8fCAwKS50b0xvY2FsZVN0cmluZygpfTwvcD4KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CgogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSB0ZXh0LXhzIHRleHQtc2xhdGUtNjAwIj4KICAgICAgICAgIDxDbG9jayBjbGFzc05hbWU9InctMy41IGgtMy41IiAvPgogICAgICAgICAgPHNwYW4+VmFsaWQgdW50aWwge2VzdGltYXRlLnZhbGlkX3VudGlsID8gbmV3IERhdGUoZXN0aW1hdGUudmFsaWRfdW50aWwpLnRvTG9jYWxlRGF0ZVN0cmluZygpIDogJ+KAlCd9PC9zcGFuPgogICAgICAgIDwvZGl2PgogICAgICAgIDxFeWUgY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtc2xhdGUtNDAwIG9wYWNpdHktMCBncm91cC1ob3ZlcjpvcGFjaXR5LTEwMCB0cmFuc2l0aW9uLW9wYWNpdHkiIC8+CiAgICAgIDwvZGl2PgogICAgPC9MaW5rPgogICk7Cn0=
+import { Link } from "react-router-dom";
+import { FileText, Eye, Clock } from "lucide-react";
+
+const ESTIMATE_STATUS_COLORS = {
+  'Draft': 'bg-slate-100 text-slate-700',
+  'Sent': 'bg-blue-100 text-blue-700',
+  'Viewed': 'bg-purple-100 text-purple-700',
+  'Accepted': 'bg-emerald-100 text-emerald-700',
+  'Declined': 'bg-red-100 text-red-700',
+};
+
+const SOURCE_BADGE = {
+  'Handoff':    'bg-violet-100 text-violet-700',
+  'QuickBooks': 'bg-green-100 text-green-700',
+  'Manual':     'bg-slate-100 text-slate-600',
+};
+
+export default function EstimateCard({ estimate, lead, source = 'Manual' }) {
+  const statusColor = ESTIMATE_STATUS_COLORS[estimate.status] || 'bg-slate-100 text-slate-700';
+  const sourceBadge = SOURCE_BADGE[source] || SOURCE_BADGE['Manual'];
+
+  return (
+    <Link
+      to={`/estimates/${estimate.id}`}
+      className="card-premium p-5 group hover:shadow-lg transition-all duration-200 cursor-pointer"
+    >
+      <div className="flex items-start justify-between gap-4 mb-4">
+        <div className="flex items-start gap-3 flex-1">
+          <div className="w-10 h-10 bg-gradient-to-br from-slate-900 to-slate-700 rounded-lg flex items-center justify-center text-white flex-shrink-0">
+            <FileText className="w-5 h-5" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-slate-900">{estimate.title}</h3>
+            {lead && <p className="text-sm text-slate-600">{lead.first_name} {lead.last_name}</p>}
+            <span className={`inline-block mt-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ${sourceBadge}`}>
+              {source}
+            </span>
+          </div>
+        </div>
+        <span className={`text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap ${statusColor}`}>
+          {estimate.status}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 mb-4 pb-4 border-b border-slate-100">
+        <div>
+          <p className="text-xs text-slate-600 mb-1">Total Amount</p>
+          <p className="font-bold text-slate-900">${(estimate.total || 0).toLocaleString()}</p>
+        </div>
+        <div>
+          <p className="text-xs text-slate-600 mb-1">Deposit</p>
+          <p className="font-semibold text-slate-900">${(estimate.deposit_amount || 0).toLocaleString()}</p>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5 text-xs text-slate-600">
+          <Clock className="w-3.5 h-3.5" />
+          <span>Valid until {estimate.valid_until ? new Date(estimate.valid_until).toLocaleDateString() : '—'}</span>
+        </div>
+        <Eye className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+      </div>
+    </Link>
+  );
+}

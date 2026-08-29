@@ -1,1 +1,64 @@
-LyoqCiAqIHJhaWx3YXkgYXV0aCDigJQgUEVSTUFORU5UIFJhaWx3YXkgYXV0aGVudGljYXRpb24gY2xpZW50LgogKgogKiAgIGxvZ2luKGVtYWlsLCBwYXNzd29yZCkgICAgICAgIC0+IHsgYWNjZXNzLCByZWZyZXNoLCB1c2VyIH0KICogICBsb2dvdXQoKSAgICAgICAgICAgICAgICAgICAgICAgIC0+IGNsZWFycyB0b2tlbnMgKyByZXZva2VzIHJlZnJlc2gKICogICBtZSgpICAgICAgICAgICAgICAgICAgICAgICAgICAgLT4geyB1c2VyIH0gIChyZXF1aXJlcyBleGlzdGluZyBzZXNzaW9uKQogKiAgIG1pZ3JhdGVGcm9tQmFzZTQ0KGJhc2U0NFRva2VuKSAtPiB7IGFjY2VzcywgcmVmcmVzaCwgdXNlciB9ICBbVEVNUE9SQVJZIGJyaWRnZV0KICoKICogbWlncmF0ZUZyb21CYXNlNDQgaXMgdGhlIE9OTFkgQmFzZTQ0LWRlcGVuZGVudCBmdW5jdGlvbiBhbmQgaXMgZXhwbGljaXRseQogKiB0ZW1wb3Jhcnk6IGl0IGV4Y2hhbmdlcyBhIEJhc2U0NCB0b2tlbiBmb3IgYSBSYWlsd2F5IHNlc3Npb24gb25jZSBwZXIgdXNlcgogKiBkdXJpbmcgdGhlIHRyYW5zaXRpb24uIEl0IHdpbGwgYmUgZGVsZXRlZCBpbiB0aGUgZmluYWwgY2xlYW51cCBwaGFzZS4KICovCgppbXBvcnQgeyBhcGlDYWxsLCBzZXRUb2tlbnMsIGNsZWFyVG9rZW5zLCBnZXRSZWZyZXNoVG9rZW4sIEFQSV9VUkwgfSBmcm9tICcuL2NsaWVudCc7CgpleHBvcnQgYXN5bmMgZnVuY3Rpb24gbG9naW4oZW1haWwsIHBhc3N3b3JkKSB7CiAgY29uc3QgcmVzID0gYXdhaXQgZmV0Y2goYCR7QVBJX1VSTH0vYXBpL3YxL2F1dGgvbG9naW5gLCB7CiAgICBtZXRob2Q6ICdQT1NUJywgaGVhZGVyczogeyAnQ29udGVudC1UeXBlJzogJ2FwcGxpY2F0aW9uL2pzb24nIH0sCiAgICBib2R5OiBKU09OLnN0cmluZ2lmeSh7IGVtYWlsLCBwYXNzd29yZCB9KSwKICB9KTsKICBjb25zdCBkYXRhID0gYXdhaXQgKGFzeW5jICgpID0+IHsKICAgIGNvbnN0IGogPSBhd2FpdCByZXMuanNvbigpLmNhdGNoKCgpID0+ICh7fSkpOwogICAgaWYgKCFyZXMub2spIHRocm93IE9iamVjdC5hc3NpZ24obmV3IEVycm9yKGo/LmVycm9yIHx8IGBSYWlsd2F5IEFQSSAke3Jlcy5zdGF0dXN9YCksIHsgc3RhdHVzOiByZXMuc3RhdHVzLCBkYXRhOiBqIH0pOwogICAgcmV0dXJuIGo7CiAgfSkoKTsKICBzZXRUb2tlbnMoZGF0YS5hY2Nlc3MsIGRhdGEucmVmcmVzaCk7CiAgcmV0dXJuIGRhdGE7Cn0KCmV4cG9ydCBhc3luYyBmdW5jdGlvbiBsb2dvdXQoKSB7CiAgdHJ5IHsKICAgIGF3YWl0IGZldGNoKGAke0FQSV9VUkx9L2FwaS92MS9hdXRoL2xvZ291dGAsIHsKICAgICAgbWV0aG9kOiAnUE9TVCcsCiAgICAgIGhlYWRlcnM6IHsgJ0NvbnRlbnQtVHlwZSc6ICdhcHBsaWNhdGlvbi9qc29uJyB9LAogICAgICBib2R5OiBKU09OLnN0cmluZ2lmeSh7IHJlZnJlc2g6IGdldFJlZnJlc2hUb2tlbigpIH0pLAogICAgfSk7CiAgfSBjYXRjaCB7IC8qIGJlc3QtZWZmb3J0ICovIH0KICBjbGVhclRva2VucygpOwp9CgpleHBvcnQgYXN5bmMgZnVuY3Rpb24gbWUoKSB7IHJldHVybiBhcGlDYWxsKCcvYXBpL3YxL2F1dGgvbWUnLCB7IG1ldGhvZDogJ0dFVCcgfSk7IH0KCi8vIOKUgOKUgCBHb29nbGUgT0F1dGggU1NPIOKAlCByZWRpcmVjdCB0byBSYWlsd2F5IC9hcGkvdjEvYXV0aC9nb29nbGUg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACi8vIFRoZSBiYWNrZW5kIHJlZGlyZWN0cyB0byBHb29nbGUncyBjb25zZW50IHNjcmVlbi4gQWZ0ZXIgYXV0aGVudGljYXRpb24sCi8vIEdvb2dsZSBjYWxscyBiYWNrIHRvIHRoZSBSYWlsd2F5IGJhY2tlbmQsIHdoaWNoIGlzc3VlcyBhIFJhaWx3YXkgc2Vzc2lvbgovLyBhbmQgcmVkaXJlY3RzIHRvIHRoZSBmcm9udGVuZCAvbG9naW4gd2l0aCB0b2tlbnMgaW4gdGhlIFVSTCBoYXNoLgovLyBUaGUgTG9naW4gcGFnZSBkZXRlY3RzIHRoZSBoYXNoIGFuZCBzdG9yZXMgdGhlIHRva2VucyDigJQgbm8gY2xpZW50LXNpZGUKLy8gdG9rZW4gZXhjaGFuZ2UgbmVlZGVkLgpleHBvcnQgZnVuY3Rpb24gZ2V0R29vZ2xlTG9naW5VcmwocmVkaXJlY3RPcmlnaW4pIHsKICBjb25zdCByZWRpcmVjdCA9IGVuY29kZVVSSUNvbXBvbmVudChyZWRpcmVjdE9yaWdpbiB8fCB3aW5kb3cubG9jYXRpb24ub3JpZ2luKTsKICByZXR1cm4gYCR7QVBJX1VSTH0vYXBpL3YxL2F1dGgvZ29vZ2xlP3JlZGlyZWN0PSR7cmVkaXJlY3R9YDsKfQoKLy8g4pSA4pSAIFtSRU1PVkVEXSBCYXNlNDQg4oaSIFJhaWx3YXkgbWlncmF0aW9uIGJyaWRnZSDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKLy8gVGhlIC9hcGkvdjEvYXV0aC9taWdyYXRlIGVuZHBvaW50IGhhcyBiZWVuIHJlbW92ZWQuIFJhaWx3YXkgYXV0aCBpcyBub3cgdGhlCi8vIHBlcm1hbmVudCBhdXRoIGxheWVyLiBUaGlzIGZ1bmN0aW9uIGlzIHJldGFpbmVkIGZvciBiYWNrd2FyZCBjb21wYXRpYmlsaXR5Ci8vIGJ1dCB3aWxsIHRocm93IGEgY2xlYXIgZXJyb3IgaWYgY2FsbGVkICh0aGUgZW5kcG9pbnQgcmV0dXJucyA0MDQpLgovLyBBbGwgdXNlcnMgbXVzdCBhdXRoZW50aWNhdGUgdmlhIC9sb2dpbiAoR29vZ2xlIFNTTyBvciBlbWFpbC9wYXNzd29yZCkuCmV4cG9ydCBhc3luYyBmdW5jdGlvbiBtaWdyYXRlRnJvbUJhc2U0NChfYmFzZTQ0VG9rZW4pIHsKICB0aHJvdyBPYmplY3QuYXNzaWduKAogICAgbmV3IEVycm9yKCdNaWdyYXRpb24gYnJpZGdlIHJlbW92ZWQuIFVzZSBsb2dpbigpIG9yIEdvb2dsZSBTU08gaW5zdGVhZC4nKSwKICAgIHsgc3RhdHVzOiA0MDQsIGNvZGU6ICdtaWdyYXRlX3JlbW92ZWQnIH0KICApOwp9
+/**
+ * railway auth — PERMANENT Railway authentication client.
+ *
+ *   login(email, password)        -> { access, refresh, user }
+ *   logout()                        -> clears tokens + revokes refresh
+ *   me()                           -> { user }  (requires existing session)
+ *   migrateFromBase44(base44Token) -> { access, refresh, user }  [TEMPORARY bridge]
+ *
+ * migrateFromBase44 is the ONLY Base44-dependent function and is explicitly
+ * temporary: it exchanges a Base44 token for a Railway session once per user
+ * during the transition. It will be deleted in the final cleanup phase.
+ */
+
+import { apiCall, setTokens, clearTokens, getRefreshToken, API_URL } from './client';
+
+export async function login(email, password) {
+  const res = await fetch(`${API_URL}/api/v1/auth/login`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  const data = await (async () => {
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok) throw Object.assign(new Error(j?.error || `Railway API ${res.status}`), { status: res.status, data: j });
+    return j;
+  })();
+  setTokens(data.access, data.refresh);
+  return data;
+}
+
+export async function logout() {
+  try {
+    await fetch(`${API_URL}/api/v1/auth/logout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh: getRefreshToken() }),
+    });
+  } catch { /* best-effort */ }
+  clearTokens();
+}
+
+export async function me() { return apiCall('/api/v1/auth/me', { method: 'GET' }); }
+
+// ── Google OAuth SSO — redirect to Railway /api/v1/auth/google ─────────────
+// The backend redirects to Google's consent screen. After authentication,
+// Google calls back to the Railway backend, which issues a Railway session
+// and redirects to the frontend /login with tokens in the URL hash.
+// The Login page detects the hash and stores the tokens — no client-side
+// token exchange needed.
+export function getGoogleLoginUrl(redirectOrigin) {
+  const redirect = encodeURIComponent(redirectOrigin || window.location.origin);
+  return `${API_URL}/api/v1/auth/google?redirect=${redirect}`;
+}
+
+// ── [REMOVED] Base44 → Railway migration bridge ─────────────────────────────
+// The /api/v1/auth/migrate endpoint has been removed. Railway auth is now the
+// permanent auth layer. This function is retained for backward compatibility
+// but will throw a clear error if called (the endpoint returns 404).
+// All users must authenticate via /login (Google SSO or email/password).
+export async function migrateFromBase44(_base44Token) {
+  throw Object.assign(
+    new Error('Migration bridge removed. Use login() or Google SSO instead.'),
+    { status: 404, code: 'migrate_removed' }
+  );
+}

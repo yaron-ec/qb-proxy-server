@@ -1,1 +1,9 @@
-aW1wb3J0IHsgbm9ybWFsaXplSW50ZWdyYXRpb25FcnJvciB9IGZyb20gJ0AvbGliL3JhaWx3YXlDbGllbnQnOwoKLyoqCiAqIE5vcm1hbGl6ZXMgaW50ZWdyYXRpb24gZXJyb3JzIGludG8gdXNlci1mcmllbmRseSBtZXNzYWdlcy4KICogTmV2ZXIgc3VyZmFjZXMgQmFzZTQ0IHBsYW4vc3Vic2NyaXB0aW9uIGVycm9ycyB0byB1c2Vycy4KICovCmV4cG9ydCBmdW5jdGlvbiBmcmllbmRseUZuRXJyb3IoZSkgewogIHJldHVybiBub3JtYWxpemVJbnRlZ3JhdGlvbkVycm9yKGUpOwp9
+import { normalizeIntegrationError } from '@/lib/railwayClient';
+
+/**
+ * Normalizes integration errors into user-friendly messages.
+ * Never surfaces Base44 plan/subscription errors to users.
+ */
+export function friendlyFnError(e) {
+  return normalizeIntegrationError(e);
+}

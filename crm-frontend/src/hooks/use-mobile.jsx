@@ -1,1 +1,21 @@
-aW1wb3J0ICogYXMgUmVhY3QgZnJvbSAicmVhY3QiCgpjb25zdCBNT0JJTEVfQlJFQUtQT0lOVCA9IDc2OAoKZXhwb3J0IGZ1bmN0aW9uIHVzZUlzTW9iaWxlKCkgewogIGNvbnN0IFtpc01vYmlsZSwgc2V0SXNNb2JpbGVdID0gUmVhY3QudXNlU3RhdGUoZmFsc2UpCgogIFJlYWN0LnVzZUVmZmVjdCgoKSA9PiB7CiAgICAvLyBTZXQgaW5pdGlhbCB2YWx1ZSBvbiBtb3VudAogICAgc2V0SXNNb2JpbGUod2luZG93LmlubmVyV2lkdGggPCBNT0JJTEVfQlJFQUtQT0lOVCkKICAgIAogICAgY29uc3QgbXFsID0gd2luZG93Lm1hdGNoTWVkaWEoYChtYXgtd2lkdGg6ICR7TU9CSUxFX0JSRUFLUE9JTlQgLSAxfXB4KWApCiAgICBjb25zdCBvbkNoYW5nZSA9ICgpID0+IHsKICAgICAgc2V0SXNNb2JpbGUod2luZG93LmlubmVyV2lkdGggPCBNT0JJTEVfQlJFQUtQT0lOVCkKICAgIH0KICAgIG1xbC5hZGRFdmVudExpc3RlbmVyKCJjaGFuZ2UiLCBvbkNoYW5nZSkKICAgIHJldHVybiAoKSA9PiBtcWwucmVtb3ZlRXZlbnRMaXN0ZW5lcigiY2hhbmdlIiwgb25DaGFuZ2UpOwogIH0sIFtdKQoKICByZXR1cm4gaXNNb2JpbGUKfQ==
+import * as React from "react"
+
+const MOBILE_BREAKPOINT = 768
+
+export function useIsMobile() {
+  const [isMobile, setIsMobile] = React.useState(false)
+
+  React.useEffect(() => {
+    // Set initial value on mount
+    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+    
+    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
+    const onChange = () => {
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+    }
+    mql.addEventListener("change", onChange)
+    return () => mql.removeEventListener("change", onChange);
+  }, [])
+
+  return isMobile
+}

@@ -1,1 +1,159 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gJ3JlYWN0JzsKaW1wb3J0IHsgYXBpQ2FsbCB9IGZyb20gJ0AvYXBpL3JhaWx3YXkvY2xpZW50JzsKaW1wb3J0IHsgUGx1cywgVHJhc2gyLCBYIH0gZnJvbSAnbHVjaWRlLXJlYWN0JzsKCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIFVzZXJBbGxvd2xpc3RUYWIoKSB7CiAgY29uc3QgW2FsbG93bGlzdCwgc2V0QWxsb3dsaXN0XSA9IHVzZVN0YXRlKFtdKTsKICBjb25zdCBbbmV3RW1haWwsIHNldE5ld0VtYWlsXSA9IHVzZVN0YXRlKCcnKTsKICBjb25zdCBbbmV3TmFtZSwgc2V0TmV3TmFtZV0gPSB1c2VTdGF0ZSgnJyk7CiAgY29uc3QgW25ld1JvbGUsIHNldE5ld1JvbGVdID0gdXNlU3RhdGUoJ3NhbGVzX3JlcCcpOwogIGNvbnN0IFtsb2FkaW5nLCBzZXRMb2FkaW5nXSA9IHVzZVN0YXRlKHRydWUpOwogIGNvbnN0IFtzYXZpbmcsIHNldFNhdmluZ10gPSB1c2VTdGF0ZShmYWxzZSk7CgogIHVzZUVmZmVjdCgoKSA9PiB7CiAgICBsb2FkQWxsb3dsaXN0KCk7CiAgfSwgW10pOwoKICBjb25zdCBsb2FkQWxsb3dsaXN0ID0gYXN5bmMgKCkgPT4gewogICAgdHJ5IHsKICAgICAgY29uc3QgZGF0YSA9IGF3YWl0IGFwaUNhbGwoJy9hcGkvdjEvdXNlci1hbGxvd2xpc3QnLCB7IG1ldGhvZDogJ0dFVCcgfSkudGhlbihyID0+IHIuaXRlbXMgfHwgW10pOwogICAgICBzZXRBbGxvd2xpc3QoZGF0YSk7CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIGNvbnNvbGUuZXJyb3IoJ0ZhaWxlZCB0byBsb2FkIGFsbG93bGlzdDonLCBlKTsKICAgIH0gZmluYWxseSB7CiAgICAgIHNldExvYWRpbmcoZmFsc2UpOwogICAgfQogIH07CgogIGNvbnN0IGhhbmRsZUFkZCA9IGFzeW5jICgpID0+IHsKICAgIGlmICghbmV3RW1haWwudHJpbSgpKSByZXR1cm47CiAgICBzZXRTYXZpbmcodHJ1ZSk7CiAgICB0cnkgewogICAgICBjb25zdCBlbnRyeSA9IGF3YWl0IGFwaUNhbGwoJy9hcGkvdjEvdXNlci1hbGxvd2xpc3QnLCB7CiAgICAgICAgbWV0aG9kOiAnUE9TVCcsCiAgICAgICAgYm9keTogewogICAgICAgICAgZW1haWw6IG5ld0VtYWlsLnRvTG93ZXJDYXNlKCksCiAgICAgICAgICBuYW1lOiBuZXdOYW1lLnRyaW0oKSB8fCBuZXdFbWFpbC5zcGxpdCgnQCcpWzBdLAogICAgICAgICAgcm9sZTogbmV3Um9sZSwKICAgICAgICAgIGVuYWJsZWQ6IHRydWUsCiAgICAgICAgfSwKICAgICAgfSk7CiAgICAgIHNldEFsbG93bGlzdChbLi4uYWxsb3dsaXN0LCBlbnRyeV0pOwogICAgICBzZXROZXdFbWFpbCgnJyk7CiAgICAgIHNldE5ld05hbWUoJycpOwogICAgICBzZXROZXdSb2xlKCdzYWxlc19yZXAnKTsKICAgIH0gY2F0Y2ggKGUpIHsKICAgICAgYWxlcnQoJ0Vycm9yIGFkZGluZyB1c2VyOiAnICsgZS5tZXNzYWdlKTsKICAgIH0gZmluYWxseSB7CiAgICAgIHNldFNhdmluZyhmYWxzZSk7CiAgICB9CiAgfTsKCiAgY29uc3QgaGFuZGxlRGVsZXRlID0gYXN5bmMgKGlkKSA9PiB7CiAgICBpZiAoIWNvbmZpcm0oJ1JlbW92ZSB0aGlzIHVzZXIgZnJvbSBhbGxvd2xpc3Q/JykpIHJldHVybjsKICAgIHRyeSB7CiAgICAgIGF3YWl0IGFwaUNhbGwoYC9hcGkvdjEvdXNlci1hbGxvd2xpc3QvJHtpZH1gLCB7IG1ldGhvZDogJ0RFTEVURScgfSk7CiAgICAgIHNldEFsbG93bGlzdChhbGxvd2xpc3QuZmlsdGVyKHUgPT4gdS5pZCAhPT0gaWQpKTsKICAgIH0gY2F0Y2ggKGUpIHsKICAgICAgYWxlcnQoJ0Vycm9yIHJlbW92aW5nIHVzZXI6ICcgKyBlLm1lc3NhZ2UpOwogICAgfQogIH07CgogIGNvbnN0IGhhbmRsZVRvZ2dsZSA9IGFzeW5jIChpZCwgZW5hYmxlZCkgPT4gewogICAgdHJ5IHsKICAgICAgY29uc3QgdXBkYXRlZCA9IGF3YWl0IGFwaUNhbGwoYC9hcGkvdjEvdXNlci1hbGxvd2xpc3QvJHtpZH1gLCB7IG1ldGhvZDogJ1BVVCcsIGJvZHk6IHsgZW5hYmxlZDogIWVuYWJsZWQgfSB9KTsKICAgICAgc2V0QWxsb3dsaXN0KGFsbG93bGlzdC5tYXAodSA9PiB1LmlkID09PSBpZCA/IHVwZGF0ZWQgOiB1KSk7CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIGFsZXJ0KCdFcnJvciB1cGRhdGluZyB1c2VyOiAnICsgZS5tZXNzYWdlKTsKICAgIH0KICB9OwoKICBpZiAobG9hZGluZykgewogICAgcmV0dXJuIDxkaXYgY2xhc3NOYW1lPSJwLTYgdGV4dC1zbGF0ZS01MDAiPkxvYWRpbmcuLi48L2Rpdj47CiAgfQoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9Im1heC13LTR4bCI+CiAgICAgIHsvKiBJbmZvICovfQogICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctYmx1ZS01MCBib3JkZXIgYm9yZGVyLWJsdWUtMjAwIHJvdW5kZWQtbGcgcC00IG1iLTYiPgogICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1zbSBmb250LXNlbWlib2xkIHRleHQtYmx1ZS05MDAgbWItMSI+8J+UkCBBY2Nlc3MgQ29udHJvbCBFbmFibGVkPC9wPgogICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LWJsdWUtODAwIj5Pbmx5IHVzZXJzIGluIHRoaXMgYWxsb3dsaXN0IGNhbiBzaWduIGluIHRvIHRoZSBhcHBsaWNhdGlvbi4gVXNlcnMgbm90IGxpc3RlZCB3aWxsIGJlIGRlbmllZCBhY2Nlc3MuPC9wPgogICAgICA8L2Rpdj4KCiAgICAgIHsvKiBBZGQgbmV3IHVzZXIgKi99CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJjYXJkLXByZW1pdW0gcC01IG1iLTYiPgogICAgICAgIDxoMyBjbGFzc05hbWU9InRleHQtc20gZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTcwMCBtYi00Ij5BZGQgYXV0aG9yaXplZCB1c2VyPC9oMz4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ic3BhY2UteS0zIj4KICAgICAgICAgIDxpbnB1dAogICAgICAgICAgICB0eXBlPSJlbWFpbCIKICAgICAgICAgICAgcGxhY2Vob2xkZXI9InVzZXJAZXhhbXBsZS5jb20iCiAgICAgICAgICAgIGNsYXNzTmFtZT0idy1mdWxsIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgcHgtMyBweS0yIHRleHQtc20gZm9jdXM6b3V0bGluZS1ub25lIGZvY3VzOnJpbmctMiBmb2N1czpyaW5nLWFtYmVyLTUwMC8yMCBmb2N1czpib3JkZXItYW1iZXItNTAwIgogICAgICAgICAgICB2YWx1ZT17bmV3RW1haWx9CiAgICAgICAgICAgIG9uQ2hhbmdlPXtlID0+IHNldE5ld0VtYWlsKGUudGFyZ2V0LnZhbHVlKX0KICAgICAgICAgIC8+CiAgICAgICAgICA8aW5wdXQKICAgICAgICAgICAgdHlwZT0idGV4dCIKICAgICAgICAgICAgcGxhY2Vob2xkZXI9IkZ1bGwgbmFtZSAob3B0aW9uYWwpIgogICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHB4LTMgcHktMiB0ZXh0LXNtIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1hbWJlci01MDAvMjAgZm9jdXM6Ym9yZGVyLWFtYmVyLTUwMCIKICAgICAgICAgICAgdmFsdWU9e25ld05hbWV9CiAgICAgICAgICAgIG9uQ2hhbmdlPXtlID0+IHNldE5ld05hbWUoZS50YXJnZXQudmFsdWUpfQogICAgICAgICAgLz4KICAgICAgICAgIDxzZWxlY3QKICAgICAgICAgICAgY2xhc3NOYW1lPSJ3LWZ1bGwgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBweC0zIHB5LTIgdGV4dC1zbSBmb2N1czpvdXRsaW5lLW5vbmUgZm9jdXM6cmluZy0yIGZvY3VzOnJpbmctYW1iZXItNTAwLzIwIGZvY3VzOmJvcmRlci1hbWJlci01MDAiCiAgICAgICAgICAgIHZhbHVlPXtuZXdSb2xlfQogICAgICAgICAgICBvbkNoYW5nZT17ZSA9PiBzZXROZXdSb2xlKGUudGFyZ2V0LnZhbHVlKX0KICAgICAgICAgID4KICAgICAgICAgICAgPG9wdGlvbiB2YWx1ZT0iYWRtaW4iPkFkbWluPC9vcHRpb24+CiAgICAgICAgICAgIDxvcHRpb24gdmFsdWU9Im1hbmFnZXIiPk1hbmFnZXI8L29wdGlvbj4KICAgICAgICAgICAgPG9wdGlvbiB2YWx1ZT0ic2FsZXNfcmVwIj5TYWxlcyBSZXA8L29wdGlvbj4KICAgICAgICAgICAgPG9wdGlvbiB2YWx1ZT0ib2ZmaWNlIj5PZmZpY2U8L29wdGlvbj4KICAgICAgICAgIDwvc2VsZWN0PgogICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICBvbkNsaWNrPXtoYW5kbGVBZGR9CiAgICAgICAgICAgIGRpc2FibGVkPXshbmV3RW1haWwudHJpbSgpIHx8IHNhdmluZ30KICAgICAgICAgICAgY2xhc3NOYW1lPSJ3LWZ1bGwgcHgtNCBweS0yIGJnLWFtYmVyLTYwMCB0ZXh0LXdoaXRlIHRleHQtc20gZm9udC1zZW1pYm9sZCByb3VuZGVkLWxnIGhvdmVyOmJnLWFtYmVyLTcwMCB0cmFuc2l0aW9uLWNvbG9ycyBkaXNhYmxlZDpvcGFjaXR5LTUwIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGdhcC0yIgogICAgICAgICAgPgogICAgICAgICAgICA8UGx1cyBjbGFzc05hbWU9InctNCBoLTQiIC8+IEFkZCBVc2VyCiAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CgogICAgICB7LyogQWxsb3dsaXN0ICovfQogICAgICA8ZGl2IGNsYXNzTmFtZT0ic3BhY2UteS0yIj4KICAgICAgICA8aDMgY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS03MDAgbWItMyI+QXV0aG9yaXplZCB1c2VycyAoe2FsbG93bGlzdC5sZW5ndGh9KTwvaDM+CiAgICAgICAge2FsbG93bGlzdC5sZW5ndGggPT09IDAgPyAoCiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iY2FyZC1wcmVtaXVtIHAtOCB0ZXh0LWNlbnRlciB0ZXh0LXNsYXRlLTQwMCB0ZXh0LXNtIj5ObyB1c2VycyBhdXRob3JpemVkIHlldDwvZGl2PgogICAgICAgICkgOiAoCiAgICAgICAgICBhbGxvd2xpc3QubWFwKHVzZXIgPT4gKAogICAgICAgICAgICA8ZGl2IGtleT17dXNlci5pZH0gY2xhc3NOYW1lPSJjYXJkLXByZW1pdW0gcC00IGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBnYXAtMyI+CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXgtMSBtaW4tdy0wIj4KICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1zbSBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtOTAwIj57dXNlci5lbWFpbH08L3A+CiAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS01MDAgbXQtMSI+CiAgICAgICAgICAgICAgICAgIHt1c2VyLm5hbWV9IOKAoiBSb2xlOiB7dXNlci5yb2xlfQogICAgICAgICAgICAgICAgPC9wPgogICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiI+CiAgICAgICAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IGhhbmRsZVRvZ2dsZSh1c2VyLmlkLCB1c2VyLmVuYWJsZWQpfQogICAgICAgICAgICAgICAgICBjbGFzc05hbWU9e2BweC0zIHB5LTEuNSB0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgcm91bmRlZC1sZyB0cmFuc2l0aW9uLWNvbG9ycyAkewogICAgICAgICAgICAgICAgICAgIHVzZXIuZW5hYmxlZAogICAgICAgICAgICAgICAgICAgICAgPyAnYmctZW1lcmFsZC0xMDAgdGV4dC1lbWVyYWxkLTcwMCBob3ZlcjpiZy1lbWVyYWxkLTIwMCcKICAgICAgICAgICAgICAgICAgICAgIDogJ2JnLXNsYXRlLTEwMCB0ZXh0LXNsYXRlLTYwMCBob3ZlcjpiZy1zbGF0ZS0yMDAnCiAgICAgICAgICAgICAgICAgIH1gfQogICAgICAgICAgICAgICAgPgogICAgICAgICAgICAgICAgICB7dXNlci5lbmFibGVkID8gJ0VuYWJsZWQnIDogJ0Rpc2FibGVkJ30KICAgICAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBoYW5kbGVEZWxldGUodXNlci5pZCl9CiAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0icC0xLjUgdGV4dC1zbGF0ZS00MDAgaG92ZXI6dGV4dC1yZWQtNjAwIHRyYW5zaXRpb24tY29sb3JzIgogICAgICAgICAgICAgICAgPgogICAgICAgICAgICAgICAgICA8VHJhc2gyIGNsYXNzTmFtZT0idy00IGgtNCIgLz4KICAgICAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICkpCiAgICAgICAgKX0KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KICApOwp9
+import { useState, useEffect } from 'react';
+import { apiCall } from '@/api/railway/client';
+import { Plus, Trash2, X } from 'lucide-react';
+
+export default function UserAllowlistTab() {
+  const [allowlist, setAllowlist] = useState([]);
+  const [newEmail, setNewEmail] = useState('');
+  const [newName, setNewName] = useState('');
+  const [newRole, setNewRole] = useState('sales_rep');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    loadAllowlist();
+  }, []);
+
+  const loadAllowlist = async () => {
+    try {
+      const data = await apiCall('/api/v1/user-allowlist', { method: 'GET' }).then(r => r.items || []);
+      setAllowlist(data);
+    } catch (e) {
+      console.error('Failed to load allowlist:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAdd = async () => {
+    if (!newEmail.trim()) return;
+    setSaving(true);
+    try {
+      const entry = await apiCall('/api/v1/user-allowlist', {
+        method: 'POST',
+        body: {
+          email: newEmail.toLowerCase(),
+          name: newName.trim() || newEmail.split('@')[0],
+          role: newRole,
+          enabled: true,
+        },
+      });
+      setAllowlist([...allowlist, entry]);
+      setNewEmail('');
+      setNewName('');
+      setNewRole('sales_rep');
+    } catch (e) {
+      alert('Error adding user: ' + e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('Remove this user from allowlist?')) return;
+    try {
+      await apiCall(`/api/v1/user-allowlist/${id}`, { method: 'DELETE' });
+      setAllowlist(allowlist.filter(u => u.id !== id));
+    } catch (e) {
+      alert('Error removing user: ' + e.message);
+    }
+  };
+
+  const handleToggle = async (id, enabled) => {
+    try {
+      const updated = await apiCall(`/api/v1/user-allowlist/${id}`, { method: 'PUT', body: { enabled: !enabled } });
+      setAllowlist(allowlist.map(u => u.id === id ? updated : u));
+    } catch (e) {
+      alert('Error updating user: ' + e.message);
+    }
+  };
+
+  if (loading) {
+    return <div className="p-6 text-slate-500">Loading...</div>;
+  }
+
+  return (
+    <div className="max-w-4xl">
+      {/* Info */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <p className="text-sm font-semibold text-blue-900 mb-1">🔐 Access Control Enabled</p>
+        <p className="text-xs text-blue-800">Only users in this allowlist can sign in to the application. Users not listed will be denied access.</p>
+      </div>
+
+      {/* Add new user */}
+      <div className="card-premium p-5 mb-6">
+        <h3 className="text-sm font-semibold text-slate-700 mb-4">Add authorized user</h3>
+        <div className="space-y-3">
+          <input
+            type="email"
+            placeholder="user@example.com"
+            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+            value={newEmail}
+            onChange={e => setNewEmail(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Full name (optional)"
+            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+            value={newName}
+            onChange={e => setNewName(e.target.value)}
+          />
+          <select
+            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+            value={newRole}
+            onChange={e => setNewRole(e.target.value)}
+          >
+            <option value="admin">Admin</option>
+            <option value="manager">Manager</option>
+            <option value="sales_rep">Sales Rep</option>
+            <option value="office">Office</option>
+          </select>
+          <button
+            onClick={handleAdd}
+            disabled={!newEmail.trim() || saving}
+            className="w-full px-4 py-2 bg-amber-600 text-white text-sm font-semibold rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            <Plus className="w-4 h-4" /> Add User
+          </button>
+        </div>
+      </div>
+
+      {/* Allowlist */}
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold text-slate-700 mb-3">Authorized users ({allowlist.length})</h3>
+        {allowlist.length === 0 ? (
+          <div className="card-premium p-8 text-center text-slate-400 text-sm">No users authorized yet</div>
+        ) : (
+          allowlist.map(user => (
+            <div key={user.id} className="card-premium p-4 flex items-center justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-slate-900">{user.email}</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  {user.name} • Role: {user.role}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleToggle(user.id, user.enabled)}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                    user.enabled
+                      ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {user.enabled ? 'Enabled' : 'Disabled'}
+                </button>
+                <button
+                  onClick={() => handleDelete(user.id)}
+                  className="p-1.5 text-slate-400 hover:text-red-600 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}

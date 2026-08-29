@@ -1,1 +1,48 @@
-LyoqCiAqIFVuaWZpZWQgQWNjb3JkaW9uIENvbXBvbmVudAogKiBQcmVtaXVtIFNhYVMgc3R5bGUgd2l0aCBpY29uIHN1cHBvcnQgYW5kIGl0ZW0gY291bnRlcnMKICovCgppbXBvcnQgeyBDaGV2cm9uRG93biB9IGZyb20gImx1Y2lkZS1yZWFjdCI7CgpleHBvcnQgZnVuY3Rpb24gQWNjb3JkaW9uSXRlbSh7IAogIHRpdGxlLCAKICBpY29uOiBJY29uLCAKICBiYWRnZSA9IG51bGwsIAogIGlzT3BlbiwgCiAgb25Ub2dnbGUsIAogIGNoaWxkcmVuLAogIGNvbG9yID0gImFtYmVyIgp9KSB7CiAgY29uc3QgY29sb3JNYXAgPSB7CiAgICBhbWJlcjogInRleHQtYW1iZXItNjAwIGJnLWFtYmVyLTUwIiwKICAgIGJsdWU6ICJ0ZXh0LWJsdWUtNjAwIGJnLWJsdWUtNTAiLAogICAgZW1lcmFsZDogInRleHQtZW1lcmFsZC02MDAgYmctZW1lcmFsZC01MCIsCiAgICBwdXJwbGU6ICJ0ZXh0LXB1cnBsZS02MDAgYmctcHVycGxlLTUwIiwKICB9OwoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9ImJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgb3ZlcmZsb3ctaGlkZGVuIj4KICAgICAgPGJ1dHRvbgogICAgICAgIG9uQ2xpY2s9e29uVG9nZ2xlfQogICAgICAgIGNsYXNzTmFtZT0idy1mdWxsIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBweC00IHB5LTMgYmctd2hpdGUgaG92ZXI6Ymctc2xhdGUtNTAgdHJhbnNpdGlvbi1jb2xvcnMgdGV4dC1sZWZ0IgogICAgICA+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0zIGZsZXgtMSBtaW4tdy0wIj4KICAgICAgICAgIHtJY29uICYmIDxJY29uIGNsYXNzTmFtZT17YHctNCBoLTQgZmxleC1zaHJpbmstMCAke2NvbG9yTWFwW2NvbG9yXX1gfSAvPn0KICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1zbSBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtODAwIj57dGl0bGV9PC9zcGFuPgogICAgICAgICAge2JhZGdlICE9PSBudWxsICYmICgKICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXhzIGZvbnQtYm9sZCBiZy1zbGF0ZS0yMDAgdGV4dC1zbGF0ZS03MDAgcHgtMiBweS0wLjUgcm91bmRlZC1mdWxsIGZsZXgtc2hyaW5rLTAiPgogICAgICAgICAgICAgIHtiYWRnZX0KICAgICAgICAgICAgPC9zcGFuPgogICAgICAgICAgKX0KICAgICAgICA8L2Rpdj4KICAgICAgICA8Q2hldnJvbkRvd24gY2xhc3NOYW1lPXtgdy00IGgtNCB0ZXh0LXNsYXRlLTQwMCB0cmFuc2l0aW9uLXRyYW5zZm9ybSBmbGV4LXNocmluay0wICR7aXNPcGVuID8gJ3JvdGF0ZS0xODAnIDogJyd9YH0gLz4KICAgICAgPC9idXR0b24+CiAgICAgIHtpc09wZW4gJiYgPGRpdiBjbGFzc05hbWU9InB4LTAgcHktMCBib3JkZXItdCBib3JkZXItc2xhdGUtMTAwIGJnLXdoaXRlIj57Y2hpbGRyZW59PC9kaXY+fQogICAgPC9kaXY+CiAgKTsKfQoKZXhwb3J0IGZ1bmN0aW9uIEFjY29yZGlvbkNvbnRlbnQoeyBjaGlsZHJlbiB9KSB7CiAgcmV0dXJuIDxkaXYgY2xhc3NOYW1lPSJwLTQiPntjaGlsZHJlbn08L2Rpdj47Cn0=
+/**
+ * Unified Accordion Component
+ * Premium SaaS style with icon support and item counters
+ */
+
+import { ChevronDown } from "lucide-react";
+
+export function AccordionItem({ 
+  title, 
+  icon: Icon, 
+  badge = null, 
+  isOpen, 
+  onToggle, 
+  children,
+  color = "amber"
+}) {
+  const colorMap = {
+    amber: "text-amber-600 bg-amber-50",
+    blue: "text-blue-600 bg-blue-50",
+    emerald: "text-emerald-600 bg-emerald-50",
+    purple: "text-purple-600 bg-purple-50",
+  };
+
+  return (
+    <div className="border border-slate-200 rounded-lg overflow-hidden">
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between px-4 py-3 bg-white hover:bg-slate-50 transition-colors text-left"
+      >
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          {Icon && <Icon className={`w-4 h-4 flex-shrink-0 ${colorMap[color]}`} />}
+          <span className="text-sm font-semibold text-slate-800">{title}</span>
+          {badge !== null && (
+            <span className="text-xs font-bold bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full flex-shrink-0">
+              {badge}
+            </span>
+          )}
+        </div>
+        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+      {isOpen && <div className="px-0 py-0 border-t border-slate-100 bg-white">{children}</div>}
+    </div>
+  );
+}
+
+export function AccordionContent({ children }) {
+  return <div className="p-4">{children}</div>;
+}

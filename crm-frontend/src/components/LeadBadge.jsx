@@ -1,1 +1,20 @@
-Y29uc3QgU1RBVFVTX01BUCA9IHsKICAiTmV3IjogImJnLWJsdWVwcmludCB0ZXh0LXdoaXRlIiwKICAiQ29udGFjdGVkIjogImJnLW11dGVkIHRleHQtZm9yZWdyb3VuZCIsCiAgIlF1YWxpZmllZCI6ICJiZy1lbWVyYWxkLTYwMCB0ZXh0LXdoaXRlIiwKICAiQ29uc3VsdGF0aW9uIFNjaGVkdWxlZCI6ICJiZy1ibHVlcHJpbnQvODAgdGV4dC13aGl0ZSIsCiAgIkVzdGltYXRlIFNlbnQiOiAiYmctb3JhbmdlLzIwIHRleHQtb3JhbmdlIGJvcmRlciBib3JkZXItb3JhbmdlIiwKICAiUHJvcG9zYWwgU2VudCI6ICJiZy1vcmFuZ2UgdGV4dC13aGl0ZSIsCiAgIldvbiI6ICJiZy1lbWVyYWxkLTcwMCB0ZXh0LXdoaXRlIiwKICAiTG9zdCI6ICJiZy1kZXN0cnVjdGl2ZSB0ZXh0LXdoaXRlIiwKICAiVW5xdWFsaWZpZWQiOiAiYmctbXV0ZWQgdGV4dC1tdXRlZC1mb3JlZ3JvdW5kIiwKfTsKCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIExlYWRCYWRnZSh7IHN0YXR1cyB9KSB7CiAgY29uc3QgY2xzID0gU1RBVFVTX01BUFtzdGF0dXNdIHx8ICJiZy1tdXRlZCB0ZXh0LWZvcmVncm91bmQiOwogIHJldHVybiAoCiAgICA8c3BhbiBjbGFzc05hbWU9e2BpbmxpbmUtYmxvY2sgcHgtMiBweS0wLjUgdGV4dC1bMTBweF0gZm9udC1ib2xkIHRyYWNraW5nLXdpZGVzdCB1cHBlcmNhc2UgZm9udC1tb25vIHJvdW5kZWQtc20gJHtjbHN9YH0+CiAgICAgIHtzdGF0dXN9CiAgICA8L3NwYW4+CiAgKTsKfQ==
+const STATUS_MAP = {
+  "New": "bg-blueprint text-white",
+  "Contacted": "bg-muted text-foreground",
+  "Qualified": "bg-emerald-600 text-white",
+  "Consultation Scheduled": "bg-blueprint/80 text-white",
+  "Estimate Sent": "bg-orange/20 text-orange border border-orange",
+  "Proposal Sent": "bg-orange text-white",
+  "Won": "bg-emerald-700 text-white",
+  "Lost": "bg-destructive text-white",
+  "Unqualified": "bg-muted text-muted-foreground",
+};
+
+export default function LeadBadge({ status }) {
+  const cls = STATUS_MAP[status] || "bg-muted text-foreground";
+  return (
+    <span className={`inline-block px-2 py-0.5 text-[10px] font-bold tracking-widest uppercase font-mono rounded-sm ${cls}`}>
+      {status}
+    </span>
+  );
+}

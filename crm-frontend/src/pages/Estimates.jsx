@@ -1,1 +1,115 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsgYXBpQ2FsbCB9IGZyb20gIkAvYXBpL3JhaWx3YXkvY2xpZW50IjsKaW1wb3J0IHsgTGluayB9IGZyb20gInJlYWN0LXJvdXRlci1kb20iOwppbXBvcnQgeyBQbHVzLCBBcnJvd1JpZ2h0LCBGaWxlVGV4dCB9IGZyb20gImx1Y2lkZS1yZWFjdCI7Cgpjb25zdCBTVEFUVVNfQ09MT1IgPSB7CiAgIkRyYWZ0IjogImJnLW11dGVkIHRleHQtbXV0ZWQtZm9yZWdyb3VuZCIsCiAgIlNlbnQiOiAiYmctYmx1ZXByaW50IHRleHQtd2hpdGUiLAogICJWaWV3ZWQiOiAiYmctYmx1ZXByaW50LzYwIHRleHQtd2hpdGUiLAogICJBY2NlcHRlZCI6ICJiZy1lbWVyYWxkLTYwMCB0ZXh0LXdoaXRlIiwKICAiRGVjbGluZWQiOiAiYmctZGVzdHJ1Y3RpdmUgdGV4dC13aGl0ZSIsCn07CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBFc3RpbWF0ZXMoKSB7CiAgY29uc3QgW2VzdGltYXRlcywgc2V0RXN0aW1hdGVzXSA9IHVzZVN0YXRlKFtdKTsKICBjb25zdCBbbG9hZGluZywgc2V0TG9hZGluZ10gPSB1c2VTdGF0ZSh0cnVlKTsKCiAgdXNlRWZmZWN0KCgpID0+IHsKICAgIGFwaUNhbGwoJy9hcGkvdjEvaGFuZG9mZi1lc3RpbWF0ZXMnLCB7IG1ldGhvZDogJ0dFVCcgfSkudGhlbihyZXMgPT4gewogICAgICBjb25zdCBkYXRhID0gQXJyYXkuaXNBcnJheShyZXMpID8gcmVzIDogKHJlcz8uaXRlbXMgfHwgW10pOwogICAgICBzZXRFc3RpbWF0ZXMoZGF0YSk7CiAgICAgIHNldExvYWRpbmcoZmFsc2UpOwogICAgfSk7CiAgfSwgW10pOwoKICBjb25zdCB0b3RhbEFjY2VwdGVkID0gZXN0aW1hdGVzCiAgICAuZmlsdGVyKGUgPT4gZS5zdGF0dXMgPT09ICJBY2NlcHRlZCIpCiAgICAucmVkdWNlKChzLCBlKSA9PiBzICsgKGUudG90YWwgfHwgMCksIDApOwoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9InAtOCBtaW4taC1mdWxsIj4KICAgICAgPGRpdiBjbGFzc05hbWU9Im1iLTggYm9yZGVyLWIgYm9yZGVyLWJvcmRlciBwYi02IGZsZXggaXRlbXMtZW5kIGp1c3RpZnktYmV0d2VlbiI+CiAgICAgICAgPGRpdj4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSBmb250LW1vbm8gZm9udC1ib2xkIHRyYWNraW5nLXdpZGVzdCB0ZXh0LW11dGVkLWZvcmVncm91bmQgdXBwZXJjYXNlIG1iLTEiPkNSTSDigJQgRVNUSU1BVElPTiBFTkdJTkU8L2Rpdj4KICAgICAgICAgIDxoMSBjbGFzc05hbWU9InRleHQtNHhsIGZvbnQtYmxhY2sgdGV4dC1taWRuaWdodCB0cmFja2luZy10aWdodCB1cHBlcmNhc2UiPkVzdGltYXRlczwvaDE+CiAgICAgICAgPC9kaXY+CiAgICAgICAgPExpbmsKICAgICAgICAgIHRvPSIvZXN0aW1hdGVzL25ldyIKICAgICAgICAgIGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgYmctb3JhbmdlIHRleHQtd2hpdGUgcHgtNSBweS0zIHRleHQteHMgZm9udC1ib2xkIHRyYWNraW5nLXdpZGVzdCB1cHBlcmNhc2UgaG92ZXI6Ymctb3JhbmdlLzkwIHRyYW5zaXRpb24tY29sb3JzIgogICAgICAgID4KICAgICAgICAgIDxQbHVzIGNsYXNzTmFtZT0idy0zIGgtMyIgLz4gTmV3IEVzdGltYXRlCiAgICAgICAgPC9MaW5rPgogICAgICA8L2Rpdj4KCiAgICAgIHsvKiBRdWljayBTdGF0cyAqL30KICAgICAgPGRpdiBjbGFzc05hbWU9ImdyaWQgZ3JpZC1jb2xzLTMgZ2FwLTQgbWItOCI+CiAgICAgICAge1sKICAgICAgICAgIHsgbGFiZWw6ICJUb3RhbCBFc3RpbWF0ZXMiLCB2YWx1ZTogZXN0aW1hdGVzLmxlbmd0aCB9LAogICAgICAgICAgeyBsYWJlbDogIkFjY2VwdGVkIiwgdmFsdWU6IGVzdGltYXRlcy5maWx0ZXIoZSA9PiBlLnN0YXR1cyA9PT0gIkFjY2VwdGVkIikubGVuZ3RoIH0sCiAgICAgICAgICB7IGxhYmVsOiAiQWNjZXB0ZWQgVmFsdWUiLCB2YWx1ZTogYCQkeyh0b3RhbEFjY2VwdGVkIC8gMTAwMCkudG9GaXhlZCgwKX1LYCB9LAogICAgICAgIF0ubWFwKHMgPT4gKAogICAgICAgICAgPGRpdiBrZXk9e3MubGFiZWx9IGNsYXNzTmFtZT0iYmctd2hpdGUgYm9yZGVyIGJvcmRlci1ib3JkZXIgcC01Ij4KICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtWzEwcHhdIGZvbnQtbW9ubyBmb250LWJvbGQgdHJhY2tpbmctd2lkZXN0IHVwcGVyY2FzZSB0ZXh0LW11dGVkLWZvcmVncm91bmQgbWItMSI+e3MubGFiZWx9PC9kaXY+CiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LTJ4bCBmb250LWJsYWNrIHRleHQtbWlkbmlnaHQiPntzLnZhbHVlfTwvZGl2PgogICAgICAgICAgPC9kaXY+CiAgICAgICAgKSl9CiAgICAgIDwvZGl2PgoKICAgICAge2xvYWRpbmcgPyAoCiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHB5LTIwIj4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ3LTggaC04IGJvcmRlci00IGJvcmRlci1tdXRlZCBib3JkZXItdC1vcmFuZ2Ugcm91bmRlZC1mdWxsIGFuaW1hdGUtc3BpbiIgLz4KICAgICAgICA8L2Rpdj4KICAgICAgKSA6ICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctd2hpdGUgYm9yZGVyIGJvcmRlci1ib3JkZXIgb3ZlcmZsb3ctaGlkZGVuIj4KICAgICAgICAgIDx0YWJsZSBjbGFzc05hbWU9InctZnVsbCI+CiAgICAgICAgICAgIDx0aGVhZD4KICAgICAgICAgICAgICA8dHIgY2xhc3NOYW1lPSJiZy1jb25jcmV0ZSBib3JkZXItYiBib3JkZXItYm9yZGVyIj4KICAgICAgICAgICAgICAgIHtbIlRpdGxlIiwgIlN0YXR1cyIsICJUb3RhbCIsICJEZXBvc2l0IiwgIlZhbGlkIFVudGlsIiwgIiJdLm1hcChoID0+ICgKICAgICAgICAgICAgICAgICAgPHRoIGtleT17aH0gY2xhc3NOYW1lPSJ0ZXh0LWxlZnQgcHgtNCBweS0zIHRleHQtWzEwcHhdIGZvbnQtYm9sZCB0cmFja2luZy13aWRlc3QgdXBwZXJjYXNlIGZvbnQtbW9ubyB0ZXh0LW11dGVkLWZvcmVncm91bmQiPntofTwvdGg+CiAgICAgICAgICAgICAgICApKX0KICAgICAgICAgICAgICA8L3RyPgogICAgICAgICAgICA8L3RoZWFkPgogICAgICAgICAgICA8dGJvZHk+CiAgICAgICAgICAgICAge2VzdGltYXRlcy5sZW5ndGggPT09IDAgPyAoCiAgICAgICAgICAgICAgICA8dHI+CiAgICAgICAgICAgICAgICAgIDx0ZCBjb2xTcGFuPXs2fSBjbGFzc05hbWU9InRleHQtY2VudGVyIHB5LTE2IHRleHQtWzEwcHhdIGZvbnQtbW9ubyB0ZXh0LW11dGVkLWZvcmVncm91bmQgdXBwZXJjYXNlIHRyYWNraW5nLXdpZGVzdCI+CiAgICAgICAgICAgICAgICAgICAgTm8gZXN0aW1hdGVzIHlldAogICAgICAgICAgICAgICAgICA8L3RkPgogICAgICAgICAgICAgICAgPC90cj4KICAgICAgICAgICAgICApIDogZXN0aW1hdGVzLm1hcCgoZSwgaSkgPT4gKAogICAgICAgICAgICAgICAgPHRyIGtleT17ZS5pZH0gY2xhc3NOYW1lPXtgYm9yZGVyLWIgYm9yZGVyLWJvcmRlciBsYXN0OmJvcmRlci0wIGhvdmVyOmJnLWNvbmNyZXRlLzYwIHRyYW5zaXRpb24tY29sb3JzICR7aSAlIDIgPT09IDAgPyAnJyA6ICdiZy1jb25jcmV0ZS8yMCd9YH0+CiAgICAgICAgICAgICAgICAgIDx0ZCBjbGFzc05hbWU9InB4LTQgcHktMyI+CiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIj4KICAgICAgICAgICAgICAgICAgICAgIDxGaWxlVGV4dCBjbGFzc05hbWU9InctMyBoLTMgdGV4dC1tdXRlZC1mb3JlZ3JvdW5kIGZsZXgtc2hyaW5rLTAiIC8+CiAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9ImZvbnQtYm9sZCB0ZXh0LXNtIHRleHQtbWlkbmlnaHQiPntlLnRpdGxlfTwvc3Bhbj4KICAgICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgPC90ZD4KICAgICAgICAgICAgICAgICAgPHRkIGNsYXNzTmFtZT0icHgtNCBweS0zIj4KICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9e2BweC0yIHB5LTAuNSB0ZXh0LVsxMHB4XSBmb250LWJvbGQgdHJhY2tpbmctd2lkZXN0IHVwcGVyY2FzZSBmb250LW1vbm8gcm91bmRlZC1zbSAke1NUQVRVU19DT0xPUltlLnN0YXR1c10gfHwgImJnLW11dGVkIHRleHQtbXV0ZWQtZm9yZWdyb3VuZCJ9YH0+CiAgICAgICAgICAgICAgICAgICAgICB7ZS5zdGF0dXN9CiAgICAgICAgICAgICAgICAgICAgPC9zcGFuPgogICAgICAgICAgICAgICAgICA8L3RkPgogICAgICAgICAgICAgICAgICA8dGQgY2xhc3NOYW1lPSJweC00IHB5LTMgdGV4dC1zbSBmb250LWJsYWNrIHRleHQtbWlkbmlnaHQiPgogICAgICAgICAgICAgICAgICAgIHtlLnRvdGFsID8gYCQke2UudG90YWwudG9Mb2NhbGVTdHJpbmcoKX1gIDogIuKAlCJ9CiAgICAgICAgICAgICAgICAgIDwvdGQ+CiAgICAgICAgICAgICAgICAgIDx0ZCBjbGFzc05hbWU9InB4LTQgcHktMyB0ZXh0LXhzIGZvbnQtbW9ubyB0ZXh0LW11dGVkLWZvcmVncm91bmQiPgogICAgICAgICAgICAgICAgICAgIHtlLmRlcG9zaXRfYW1vdW50ID8gYCQke2UuZGVwb3NpdF9hbW91bnQudG9Mb2NhbGVTdHJpbmcoKX1gIDogIuKAlCJ9CiAgICAgICAgICAgICAgICAgIDwvdGQ+CiAgICAgICAgICAgICAgICAgIDx0ZCBjbGFzc05hbWU9InB4LTQgcHktMyB0ZXh0LXhzIGZvbnQtbW9ubyB0ZXh0LW11dGVkLWZvcmVncm91bmQiPgogICAgICAgICAgICAgICAgICAgIHtlLnZhbGlkX3VudGlsIHx8ICLigJQifQogICAgICAgICAgICAgICAgICA8L3RkPgogICAgICAgICAgICAgICAgICA8dGQgY2xhc3NOYW1lPSJweC00IHB5LTMiPgogICAgICAgICAgICAgICAgICAgIDxMaW5rIHRvPXtgL2VzdGltYXRlcy8ke2UuaWR9YH0gY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMSB0ZXh0LW9yYW5nZSB0ZXh0LXhzIGZvbnQtYm9sZCB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZXIgaG92ZXI6dW5kZXJsaW5lIj4KICAgICAgICAgICAgICAgICAgICAgIFZpZXcgPEFycm93UmlnaHQgY2xhc3NOYW1lPSJ3LTMgaC0zIiAvPgogICAgICAgICAgICAgICAgICAgIDwvTGluaz4KICAgICAgICAgICAgICAgICAgPC90ZD4KICAgICAgICAgICAgICAgIDwvdHI+CiAgICAgICAgICAgICAgKSl9CiAgICAgICAgICAgIDwvdGJvZHk+CiAgICAgICAgICA8L3RhYmxlPgogICAgICAgIDwvZGl2PgogICAgICApfQogICAgPC9kaXY+CiAgKTsKfQ==
+import { useState, useEffect } from "react";
+import { apiCall } from "@/api/railway/client";
+import { Link } from "react-router-dom";
+import { Plus, ArrowRight, FileText } from "lucide-react";
+
+const STATUS_COLOR = {
+  "Draft": "bg-muted text-muted-foreground",
+  "Sent": "bg-blueprint text-white",
+  "Viewed": "bg-blueprint/60 text-white",
+  "Accepted": "bg-emerald-600 text-white",
+  "Declined": "bg-destructive text-white",
+};
+
+export default function Estimates() {
+  const [estimates, setEstimates] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiCall('/api/v1/handoff-estimates', { method: 'GET' }).then(res => {
+      const data = Array.isArray(res) ? res : (res?.items || []);
+      setEstimates(data);
+      setLoading(false);
+    });
+  }, []);
+
+  const totalAccepted = estimates
+    .filter(e => e.status === "Accepted")
+    .reduce((s, e) => s + (e.total || 0), 0);
+
+  return (
+    <div className="p-8 min-h-full">
+      <div className="mb-8 border-b border-border pb-6 flex items-end justify-between">
+        <div>
+          <div className="text-[10px] font-mono font-bold tracking-widest text-muted-foreground uppercase mb-1">CRM — ESTIMATION ENGINE</div>
+          <h1 className="text-4xl font-black text-midnight tracking-tight uppercase">Estimates</h1>
+        </div>
+        <Link
+          to="/estimates/new"
+          className="flex items-center gap-2 bg-orange text-white px-5 py-3 text-xs font-bold tracking-widest uppercase hover:bg-orange/90 transition-colors"
+        >
+          <Plus className="w-3 h-3" /> New Estimate
+        </Link>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-3 gap-4 mb-8">
+        {[
+          { label: "Total Estimates", value: estimates.length },
+          { label: "Accepted", value: estimates.filter(e => e.status === "Accepted").length },
+          { label: "Accepted Value", value: `$${(totalAccepted / 1000).toFixed(0)}K` },
+        ].map(s => (
+          <div key={s.label} className="bg-white border border-border p-5">
+            <div className="text-[10px] font-mono font-bold tracking-widest uppercase text-muted-foreground mb-1">{s.label}</div>
+            <div className="text-2xl font-black text-midnight">{s.value}</div>
+          </div>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="w-8 h-8 border-4 border-muted border-t-orange rounded-full animate-spin" />
+        </div>
+      ) : (
+        <div className="bg-white border border-border overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-concrete border-b border-border">
+                {["Title", "Status", "Total", "Deposit", "Valid Until", ""].map(h => (
+                  <th key={h} className="text-left px-4 py-3 text-[10px] font-bold tracking-widest uppercase font-mono text-muted-foreground">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {estimates.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-16 text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
+                    No estimates yet
+                  </td>
+                </tr>
+              ) : estimates.map((e, i) => (
+                <tr key={e.id} className={`border-b border-border last:border-0 hover:bg-concrete/60 transition-colors ${i % 2 === 0 ? '' : 'bg-concrete/20'}`}>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                      <span className="font-bold text-sm text-midnight">{e.title}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`px-2 py-0.5 text-[10px] font-bold tracking-widest uppercase font-mono rounded-sm ${STATUS_COLOR[e.status] || "bg-muted text-muted-foreground"}`}>
+                      {e.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-sm font-black text-midnight">
+                    {e.total ? `$${e.total.toLocaleString()}` : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-xs font-mono text-muted-foreground">
+                    {e.deposit_amount ? `$${e.deposit_amount.toLocaleString()}` : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-xs font-mono text-muted-foreground">
+                    {e.valid_until || "—"}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Link to={`/estimates/${e.id}`} className="flex items-center gap-1 text-orange text-xs font-bold uppercase tracking-wider hover:underline">
+                      View <ArrowRight className="w-3 h-3" />
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}

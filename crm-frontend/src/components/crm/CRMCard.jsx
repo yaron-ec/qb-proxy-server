@@ -1,1 +1,9 @@
-aW1wb3J0IHsgY2FyZCB9IGZyb20gIkAvbGliL2NybURlc2lnblN5c3RlbSI7CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBDUk1DYXJkKHsgY2hpbGRyZW4sIGNsYXNzTmFtZSA9ICIiIH0pIHsKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9e2Ake2NhcmQuYmFzZX0gJHtjYXJkLnBhZGRpbmd9ICR7Y2xhc3NOYW1lfWB9PgogICAgICB7Y2hpbGRyZW59CiAgICA8L2Rpdj4KICApOwp9
+import { card } from "@/lib/crmDesignSystem";
+
+export default function CRMCard({ children, className = "" }) {
+  return (
+    <div className={`${card.base} ${card.padding} ${className}`}>
+      {children}
+    </div>
+  );
+}

@@ -1,1 +1,171 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gJ3JlYWN0JzsKaW1wb3J0ICogYXMgcmFpbHdheUFwaSBmcm9tICdAL2xpYi9yYWlsd2F5QXBpJzsKaW1wb3J0ICogYXMgcmFpbHdheUxlYWRzIGZyb20gJ0AvYXBpL3JhaWx3YXkvbGVhZHMnOwppbXBvcnQgKiBhcyByYWlsd2F5QWN0aXZpdGllcyBmcm9tICdAL2FwaS9yYWlsd2F5L2FjdGl2aXRpZXMnOwppbXBvcnQgeyBNYWlsLCBMb2FkZXIyLCBDaGVja0NpcmNsZSwgQWxlcnRUcmlhbmdsZSwgUmVmcmVzaEN3IH0gZnJvbSAnbHVjaWRlLXJlYWN0JzsKaW1wb3J0IHsgU3luY1NlY3Rpb24sIFN5bmNTZWN0aW9uSGVhZGVyIH0gZnJvbSAnLi9TeW5jQ2FyZCc7CgovKioKICogR21haWwgLyBFbWFpbCBTeW5jIOKAlCBSYWlsd2F5LW93bmVkIEdtYWlsIFJFQUQuCiAqCiAqIEFsbCBHbWFpbCBBUEkgY2FsbHMgYXJlIG1hZGUgU0VSVkVSLVNJREUgdmlhIC9hcGkvdjEvZ21haWwvKiAoUmFpbHdheSBob2xkcwogKiB0aGUgR21haWwgT0F1dGggdG9rZW47IGl0IGlzIG5ldmVyIHJldHVybmVkIHRvIHRoZSBicm93c2VyKS4gVGhpcyBjb21wb25lbnQKICogbm8gbG9uZ2VyIGNvbnN0cnVjdHMgYEF1dGhvcml6YXRpb246IEJlYXJlciA8Z21haWwgdG9rZW4+YCBoZWFkZXJzLgogKi8KZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gRW1haWxTeW5jUGFuZWwoKSB7CiAgY29uc3QgW3N0YXR1cywgc2V0U3RhdHVzXSA9IHVzZVN0YXRlKG51bGwpOwogIGNvbnN0IFtzeW5jaW5nLCBzZXRTeW5jaW5nXSA9IHVzZVN0YXRlKGZhbHNlKTsKICBjb25zdCBbc3luY1Jlc3VsdCwgc2V0U3luY1Jlc3VsdF0gPSB1c2VTdGF0ZShudWxsKTsKCiAgdXNlRWZmZWN0KCgpID0+IHsKICAgIGNoZWNrQ29ubmVjdGlvbigpOwogIH0sIFtdKTsKCiAgY29uc3QgY2hlY2tDb25uZWN0aW9uID0gYXN5bmMgKCkgPT4gewogICAgc2V0U3RhdHVzKG51bGwpOwogICAgdHJ5IHsKICAgICAgaWYgKCFyYWlsd2F5QXBpLmlzTG9nZ2VkSW4oKSkgewogICAgICAgIHNldFN0YXR1cyh7IGNvbm5lY3RlZDogZmFsc2UsIHJlYXNvbjogJ1JhaWx3YXkgc2Vzc2lvbiBub3QgYWN0aXZlLiBTaWduIGluIHRvIHN5bmMgR21haWwuJyB9KTsKICAgICAgICByZXR1cm47CiAgICAgIH0KICAgICAgY29uc3QgcHJvZmlsZSA9IGF3YWl0IHJhaWx3YXlBcGkuZ21haWxQcm9maWxlKCk7CiAgICAgIHNldFN0YXR1cyh7IGNvbm5lY3RlZDogdHJ1ZSwgZW1haWw6IHByb2ZpbGUuZW1haWxBZGRyZXNzIH0pOwogICAgfSBjYXRjaCAoZSkgewogICAgICBjb25zdCBtc2cgPSBlPy5tZXNzYWdlIHx8ICdDb3VsZCBub3QgY2hlY2sgR21haWwgY29ubmVjdGlvbi4nOwogICAgICBzZXRTdGF0dXMoeyBjb25uZWN0ZWQ6IGZhbHNlLCByZWFzb246IC80MDF8Y3JlZGVudGlhbHN8dG9rZW4vaS50ZXN0KG1zZykgPyAnR21haWwgdG9rZW4gZXhwaXJlZCBvbiB0aGUgc2VydmVyLiBSZWNvbm5lY3QgdGhlIEdtYWlsIGludGVncmF0aW9uLicgOiBtc2cgfSk7CiAgICB9CiAgfTsKCiAgY29uc3QgaGFuZGxlU3luYyA9IGFzeW5jICgpID0+IHsKICAgIHNldFN5bmNpbmcodHJ1ZSk7CiAgICBzZXRTeW5jUmVzdWx0KG51bGwpOwogICAgdHJ5IHsKICAgICAgaWYgKCFyYWlsd2F5QXBpLmlzTG9nZ2VkSW4oKSkgdGhyb3cgbmV3IEVycm9yKCdSYWlsd2F5IHNlc3Npb24gbm90IGFjdGl2ZScpOwoKICAgICAgY29uc3QgbGlzdCA9IGF3YWl0IHJhaWx3YXlBcGkuZ21haWxNZXNzYWdlcyg1MCwgJ2lzOmluYm94Jyk7CiAgICAgIGNvbnN0IG1lc3NhZ2VzID0gbGlzdC5tZXNzYWdlcyB8fCBbXTsKCiAgICAgIGNvbnN0IGxlYWRzID0gYXdhaXQgcmFpbHdheUxlYWRzLmxpc3QoeyBzb3J0OiAnLWNyZWF0ZWRfZGF0ZScsIGxpbWl0OiA1MDAgfSkudGhlbihyID0+IHIuaXRlbXMgfHwgW10pLmNhdGNoKCgpID0+IFtdKTsKICAgICAgY29uc3QgZW1haWxUb0xlYWQgPSB7fTsKICAgICAgZm9yIChjb25zdCBsZWFkIG9mIGxlYWRzKSB7CiAgICAgICAgaWYgKGxlYWQuZW1haWwpIGVtYWlsVG9MZWFkW2xlYWQuZW1haWwudG9Mb3dlckNhc2UoKV0gPSBsZWFkOwogICAgICB9CgogICAgICBsZXQgbWF0Y2hlZCA9IDA7CiAgICAgIGNvbnN0IGV4dHJhY3RFbWFpbCA9IChzdHIpID0+IHsgY29uc3QgbSA9IFN0cmluZyhzdHIgfHwgJycpLm1hdGNoKC9bXHcuKy1dK0BbXHctXStcLlx3Ky8pOyByZXR1cm4gbSA/IG1bMF0udG9Mb3dlckNhc2UoKSA6IG51bGw7IH07CgogICAgICBmb3IgKGNvbnN0IG1zZyBvZiBtZXNzYWdlcy5zbGljZSgwLCAyMCkpIHsKICAgICAgICBjb25zdCBmcm9tRW1haWwgPSBleHRyYWN0RW1haWwobXNnLmZyb20pOwogICAgICAgIGNvbnN0IHRvRW1haWwgPSBleHRyYWN0RW1haWwobXNnLnRvKTsKICAgICAgICBjb25zdCBtYXRjaGVkTGVhZCA9IChmcm9tRW1haWwgJiYgZW1haWxUb0xlYWRbZnJvbUVtYWlsXSkgfHwgKHRvRW1haWwgJiYgZW1haWxUb0xlYWRbdG9FbWFpbF0pOwogICAgICAgIGlmICghbWF0Y2hlZExlYWQpIGNvbnRpbnVlOwoKICAgICAgICBjb25zdCBleGlzdGluZyA9IGF3YWl0IHJhaWx3YXlBY3Rpdml0aWVzLmxpc3QoeyBsZWFkX2lkOiBtYXRjaGVkTGVhZC5pZCwgc291cmNlOiAnZ21haWwnIH0pLnRoZW4ociA9PiByLml0ZW1zIHx8IFtdKS5jYXRjaCgoKSA9PiBbXSk7CiAgICAgICAgY29uc3QgYWxyZWFkeVN5bmNlZCA9IGV4aXN0aW5nLnNvbWUoYSA9PiBhLm1ldGFkYXRhPy5nbWFpbF9tZXNzYWdlX2lkID09PSBtc2cuaWQpOwogICAgICAgIGlmIChhbHJlYWR5U3luY2VkKSBjb250aW51ZTsKCiAgICAgICAgYXdhaXQgcmFpbHdheUFjdGl2aXRpZXMuY3JlYXRlKHsKICAgICAgICAgIGxlYWRfaWQ6IG1hdGNoZWRMZWFkLmlkLAogICAgICAgICAgdHlwZTogJ2VtYWlsJywKICAgICAgICAgIHRpbWVzdGFtcDogbXNnLmRhdGUgPyBuZXcgRGF0ZShtc2cuZGF0ZSkudG9JU09TdHJpbmcoKSA6IG5ldyBEYXRlKCkudG9JU09TdHJpbmcoKSwKICAgICAgICAgIGNvbnRlbnQ6IG1zZy5zdWJqZWN0IHx8ICcobm8gc3ViamVjdCknLAogICAgICAgICAgYXV0aG9yOiBtc2cuZnJvbSB8fCAnJywKICAgICAgICAgIHNvdXJjZTogJ2dtYWlsJywKICAgICAgICAgIG1ldGFkYXRhOiB7IGVtYWlsX3N1YmplY3Q6IG1zZy5zdWJqZWN0IHx8ICcobm8gc3ViamVjdCknLCBnbWFpbF9tZXNzYWdlX2lkOiBtc2cuaWQgfSwKICAgICAgICB9KS5jYXRjaCgoKSA9PiB7fSk7CiAgICAgICAgbWF0Y2hlZCsrOwogICAgICB9CgogICAgICBzZXRTeW5jUmVzdWx0KHsgc3VjY2VzczogdHJ1ZSwgc3luY2VkOiBtZXNzYWdlcy5sZW5ndGgsIG1hdGNoZWQgfSk7CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIHNldFN5bmNSZXN1bHQoeyBzdWNjZXNzOiBmYWxzZSwgZXJyb3I6IGU/Lm1lc3NhZ2UgfHwgJ1N5bmMgZmFpbGVkJyB9KTsKICAgIH0gZmluYWxseSB7CiAgICAgIHNldFN5bmNpbmcoZmFsc2UpOwogICAgfQogIH07CgogIHJldHVybiAoCiAgICA8U3luY1NlY3Rpb24+CiAgICAgIDxTeW5jU2VjdGlvbkhlYWRlcgogICAgICAgIGljb249e01haWx9CiAgICAgICAgdGl0bGU9IkdtYWlsIC8gRW1haWwgU3luYyIKICAgICAgICBpY29uQ29sb3I9InRleHQtYmx1ZS01MDAiCiAgICAgICAgYmFkZ2U9e3sgbGFiZWw6ICJSYWlsd2F5IEdtYWlsIEFQSSIsIGNsYXNzTmFtZTogImJnLWJsdWUtMTAwIHRleHQtYmx1ZS03MDAiIH19CiAgICAgIC8+CiAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTUwMCBtYi0zIj4KICAgICAgICBHbWFpbCBpcyByZWFkIHNlcnZlci1zaWRlIHZpYSBSYWlsd2F5LiBObyBHbWFpbCB0b2tlbiByZWFjaGVzIHRoZSBicm93c2VyLgogICAgICA8L3A+CgogICAgICB7c3RhdHVzID09PSBudWxsID8gKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBwLTMgYmctc2xhdGUtNTAgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyB0ZXh0LXhzIHRleHQtc2xhdGUtNTAwIj4KICAgICAgICAgIDxMb2FkZXIyIGNsYXNzTmFtZT0idy0zLjUgaC0zLjUgYW5pbWF0ZS1zcGluIiAvPiBDaGVja2luZyBHbWFpbCBjb25uZWN0aW9u4oCmCiAgICAgICAgPC9kaXY+CiAgICAgICkgOiBzdGF0dXMuY29ubmVjdGVkID8gKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMyBwLTMgYmctZW1lcmFsZC01MCBib3JkZXIgYm9yZGVyLWVtZXJhbGQtMjAwIHJvdW5kZWQtbGciPgogICAgICAgICAgPENoZWNrQ2lyY2xlIGNsYXNzTmFtZT0idy00IGgtNCB0ZXh0LWVtZXJhbGQtNjAwIGZsZXgtc2hyaW5rLTAiIC8+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleC0xIj4KICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1lbWVyYWxkLTkwMCI+R21haWwgQ29ubmVjdGVkPC9wPgogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzExcHhdIHRleHQtZW1lcmFsZC03MDAgbXQtMC41Ij57c3RhdHVzLmVtYWlsfTwvcD4KICAgICAgICAgIDwvZGl2PgogICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICBvbkNsaWNrPXtoYW5kbGVTeW5jfQogICAgICAgICAgICBkaXNhYmxlZD17c3luY2luZ30KICAgICAgICAgICAgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMS41IHB4LTMgcHktMS41IGJnLWJsdWUtNjAwIHRleHQtd2hpdGUgdGV4dC14cyBmb250LWJvbGQgcm91bmRlZCBob3ZlcjpiZy1ibHVlLTcwMCBkaXNhYmxlZDpvcGFjaXR5LTUwIHRyYW5zaXRpb24tY29sb3JzIgogICAgICAgICAgICBzdHlsZT17eyBtaW5IZWlnaHQ6ICd1bnNldCcsIG1pbldpZHRoOiAndW5zZXQnIH19CiAgICAgICAgICA+CiAgICAgICAgICAgIDxSZWZyZXNoQ3cgY2xhc3NOYW1lPXtgdy0zIGgtMyAke3N5bmNpbmcgPyAnYW5pbWF0ZS1zcGluJyA6ICcnfWB9IC8+CiAgICAgICAgICAgIHtzeW5jaW5nID8gJ1N5bmNpbmfigKYnIDogJ1N5bmMgTm93J30KICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgIDwvZGl2PgogICAgICApIDogKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLXN0YXJ0IGdhcC0zIHAtMyBiZy1hbWJlci01MCBib3JkZXIgYm9yZGVyLWFtYmVyLTIwMCByb3VuZGVkLWxnIj4KICAgICAgICAgIDxBbGVydFRyaWFuZ2xlIGNsYXNzTmFtZT0idy00IGgtNCB0ZXh0LWFtYmVyLTUwMCBmbGV4LXNocmluay0wIG10LTAuNSIgLz4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4LTEiPgogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTgwMCI+R21haWwgTm90IEF2YWlsYWJsZTwvcD4KICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LVsxMXB4XSB0ZXh0LXNsYXRlLTYwMCBtdC0xIj4KICAgICAgICAgICAgICBHbWFpbCBpcyByZWFkIHRocm91Z2ggdGhlIFJhaWx3YXkgc2VydmljZS4gRW5zdXJlIHlvdXIgUmFpbHdheSBzZXNzaW9uIGlzIGFjdGl2ZSBhbmQgR21haWwgaXMgY29ubmVjdGVkIHRoZXJlLgogICAgICAgICAgICA8L3A+CiAgICAgICAgICAgIHtzdGF0dXMucmVhc29uICYmICgKICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzExcHhdIHRleHQtYW1iZXItNzAwIG10LTEiPntzdGF0dXMucmVhc29ufTwvcD4KICAgICAgICAgICAgKX0KICAgICAgICAgIDwvZGl2PgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZmxleC1jb2wgZ2FwLTEuNSBmbGV4LXNocmluay0wIj4KICAgICAgICAgICAgPGEKICAgICAgICAgICAgICBocmVmPSIvaW50ZWdyYXRpb25zIgogICAgICAgICAgICAgIGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSBweC0zIHB5LTEuNSB0ZXh0LXhzIGZvbnQtYm9sZCBiZy1ibHVlLTYwMCB0ZXh0LXdoaXRlIHJvdW5kZWQgaG92ZXI6YmctYmx1ZS03MDAgdHJhbnNpdGlvbi1jb2xvcnMgd2hpdGVzcGFjZS1ub3dyYXAiCiAgICAgICAgICAgICAgc3R5bGU9e3sgbWluSGVpZ2h0OiAndW5zZXQnLCBtaW5XaWR0aDogJ3Vuc2V0JyB9fQogICAgICAgICAgICA+CiAgICAgICAgICAgICAgQ29ubmVjdCBHbWFpbAogICAgICAgICAgICA8L2E+CiAgICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgICBvbkNsaWNrPXtjaGVja0Nvbm5lY3Rpb259CiAgICAgICAgICAgICAgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMS41IHB4LTMgcHktMS41IHRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTYwMCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkIGhvdmVyOmJnLXNsYXRlLTUwIHRyYW5zaXRpb24tY29sb3JzIgogICAgICAgICAgICAgIHN0eWxlPXt7IG1pbkhlaWdodDogJ3Vuc2V0JywgbWluV2lkdGg6ICd1bnNldCcgfX0KICAgICAgICAgICAgPgogICAgICAgICAgICAgIDxSZWZyZXNoQ3cgY2xhc3NOYW1lPSJ3LTMgaC0zIiAvPiBSZXRyeQogICAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICApfQoKICAgICAge3N5bmNSZXN1bHQgJiYgKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPXtgbXQtMyByb3VuZGVkLWxnIGJvcmRlciBwLTMgdGV4dC14cyAkewogICAgICAgICAgc3luY1Jlc3VsdC5zdWNjZXNzID8gJ2JnLWVtZXJhbGQtNTAgYm9yZGVyLWVtZXJhbGQtMjAwIHRleHQtZW1lcmFsZC04MDAnIDogJ2JnLXJlZC01MCBib3JkZXItcmVkLTIwMCB0ZXh0LXJlZC04MDAnCiAgICAgICAgfWB9PgogICAgICAgICAge3N5bmNSZXN1bHQuc3VjY2VzcwogICAgICAgICAgICA/IGDinJMgQ2hlY2tlZCAke3N5bmNSZXN1bHQuc3luY2VkfSBlbWFpbHMg4oCUICR7c3luY1Jlc3VsdC5tYXRjaGVkfSBuZXcgbWF0Y2hlZCB0byBsZWFkc2AKICAgICAgICAgICAgOiBg4pyXICR7c3luY1Jlc3VsdC5lcnJvcn1gfQogICAgICAgIDwvZGl2PgogICAgICApfQoKICAgICAgPGRpdiBjbGFzc05hbWU9Im10LTQgcHQtNCBib3JkZXItdCBib3JkZXItc2xhdGUtMTAwIHRleHQteHMgdGV4dC1zbGF0ZS02MDAgc3BhY2UteS0xIj4KICAgICAgICA8cCBjbGFzc05hbWU9ImZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS03MDAgbWItMiI+SG93IGl0IHdvcmtzOjwvcD4KICAgICAgICA8dWwgY2xhc3NOYW1lPSJsaXN0LWRpc2MgbGlzdC1pbnNpZGUgc3BhY2UteS0xIj4KICAgICAgICAgIDxsaT5HbWFpbCBpbmJveCBpcyByZWFkIHNlcnZlci1zaWRlIHZpYSBSYWlsd2F5IChubyBicm93c2VyIEdtYWlsIHRva2VuKTwvbGk+CiAgICAgICAgICA8bGk+RW1haWxzIG1hdGNoZWQgdG8gbGVhZHMgYnkgc2VuZGVyL3JlY2lwaWVudCBlbWFpbCBhZGRyZXNzPC9saT4KICAgICAgICAgIDxsaT5NYXRjaGVkIGVtYWlsIGFjdGl2aXR5IGFwcGVhcnMgaW4gdGhlIGxlYWQncyBhY3Rpdml0eSB0aW1lbGluZTwvbGk+CiAgICAgICAgPC91bD4KICAgICAgPC9kaXY+CiAgICA8L1N5bmNTZWN0aW9uPgogICk7Cn0=
+import { useState, useEffect } from 'react';
+import * as railwayApi from '@/lib/railwayApi';
+import * as railwayLeads from '@/api/railway/leads';
+import * as railwayActivities from '@/api/railway/activities';
+import { Mail, Loader2, CheckCircle, AlertTriangle, RefreshCw } from 'lucide-react';
+import { SyncSection, SyncSectionHeader } from './SyncCard';
+
+/**
+ * Gmail / Email Sync — Railway-owned Gmail READ.
+ *
+ * All Gmail API calls are made SERVER-SIDE via /api/v1/gmail/* (Railway holds
+ * the Gmail OAuth token; it is never returned to the browser). This component
+ * no longer constructs `Authorization: Bearer <gmail token>` headers.
+ */
+export default function EmailSyncPanel() {
+  const [status, setStatus] = useState(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState(null);
+
+  useEffect(() => {
+    checkConnection();
+  }, []);
+
+  const checkConnection = async () => {
+    setStatus(null);
+    try {
+      if (!railwayApi.isLoggedIn()) {
+        setStatus({ connected: false, reason: 'Railway session not active. Sign in to sync Gmail.' });
+        return;
+      }
+      const profile = await railwayApi.gmailProfile();
+      setStatus({ connected: true, email: profile.emailAddress });
+    } catch (e) {
+      const msg = e?.message || 'Could not check Gmail connection.';
+      setStatus({ connected: false, reason: /401|credentials|token/i.test(msg) ? 'Gmail token expired on the server. Reconnect the Gmail integration.' : msg });
+    }
+  };
+
+  const handleSync = async () => {
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+      if (!railwayApi.isLoggedIn()) throw new Error('Railway session not active');
+
+      const list = await railwayApi.gmailMessages(50, 'is:inbox');
+      const messages = list.messages || [];
+
+      const leads = await railwayLeads.list({ sort: '-created_date', limit: 500 }).then(r => r.items || []).catch(() => []);
+      const emailToLead = {};
+      for (const lead of leads) {
+        if (lead.email) emailToLead[lead.email.toLowerCase()] = lead;
+      }
+
+      let matched = 0;
+      const extractEmail = (str) => { const m = String(str || '').match(/[\w.+-]+@[\w-]+\.\w+/); return m ? m[0].toLowerCase() : null; };
+
+      for (const msg of messages.slice(0, 20)) {
+        const fromEmail = extractEmail(msg.from);
+        const toEmail = extractEmail(msg.to);
+        const matchedLead = (fromEmail && emailToLead[fromEmail]) || (toEmail && emailToLead[toEmail]);
+        if (!matchedLead) continue;
+
+        const existing = await railwayActivities.list({ lead_id: matchedLead.id, source: 'gmail' }).then(r => r.items || []).catch(() => []);
+        const alreadySynced = existing.some(a => a.metadata?.gmail_message_id === msg.id);
+        if (alreadySynced) continue;
+
+        await railwayActivities.create({
+          lead_id: matchedLead.id,
+          type: 'email',
+          timestamp: msg.date ? new Date(msg.date).toISOString() : new Date().toISOString(),
+          content: msg.subject || '(no subject)',
+          author: msg.from || '',
+          source: 'gmail',
+          metadata: { email_subject: msg.subject || '(no subject)', gmail_message_id: msg.id },
+        }).catch(() => {});
+        matched++;
+      }
+
+      setSyncResult({ success: true, synced: messages.length, matched });
+    } catch (e) {
+      setSyncResult({ success: false, error: e?.message || 'Sync failed' });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  return (
+    <SyncSection>
+      <SyncSectionHeader
+        icon={Mail}
+        title="Gmail / Email Sync"
+        iconColor="text-blue-500"
+        badge={{ label: "Railway Gmail API", className: "bg-blue-100 text-blue-700" }}
+      />
+      <p className="text-xs text-slate-500 mb-3">
+        Gmail is read server-side via Railway. No Gmail token reaches the browser.
+      </p>
+
+      {status === null ? (
+        <div className="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-500">
+          <Loader2 className="w-3.5 h-3.5 animate-spin" /> Checking Gmail connection…
+        </div>
+      ) : status.connected ? (
+        <div className="flex items-center gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+          <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-xs font-semibold text-emerald-900">Gmail Connected</p>
+            <p className="text-[11px] text-emerald-700 mt-0.5">{status.email}</p>
+          </div>
+          <button
+            onClick={handleSync}
+            disabled={syncing}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            style={{ minHeight: 'unset', minWidth: 'unset' }}
+          >
+            <RefreshCw className={`w-3 h-3 ${syncing ? 'animate-spin' : ''}`} />
+            {syncing ? 'Syncing…' : 'Sync Now'}
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-xs font-semibold text-slate-800">Gmail Not Available</p>
+            <p className="text-[11px] text-slate-600 mt-1">
+              Gmail is read through the Railway service. Ensure your Railway session is active and Gmail is connected there.
+            </p>
+            {status.reason && (
+              <p className="text-[11px] text-amber-700 mt-1">{status.reason}</p>
+            )}
+          </div>
+          <div className="flex flex-col gap-1.5 flex-shrink-0">
+            <a
+              href="/integrations"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors whitespace-nowrap"
+              style={{ minHeight: 'unset', minWidth: 'unset' }}
+            >
+              Connect Gmail
+            </a>
+            <button
+              onClick={checkConnection}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 border border-slate-200 rounded hover:bg-slate-50 transition-colors"
+              style={{ minHeight: 'unset', minWidth: 'unset' }}
+            >
+              <RefreshCw className="w-3 h-3" /> Retry
+            </button>
+          </div>
+        </div>
+      )}
+
+      {syncResult && (
+        <div className={`mt-3 rounded-lg border p-3 text-xs ${
+          syncResult.success ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'
+        }`}>
+          {syncResult.success
+            ? `✓ Checked ${syncResult.synced} emails — ${syncResult.matched} new matched to leads`
+            : `✗ ${syncResult.error}`}
+        </div>
+      )}
+
+      <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-600 space-y-1">
+        <p className="font-semibold text-slate-700 mb-2">How it works:</p>
+        <ul className="list-disc list-inside space-y-1">
+          <li>Gmail inbox is read server-side via Railway (no browser Gmail token)</li>
+          <li>Emails matched to leads by sender/recipient email address</li>
+          <li>Matched email activity appears in the lead's activity timeline</li>
+        </ul>
+      </div>
+    </SyncSection>
+  );
+}

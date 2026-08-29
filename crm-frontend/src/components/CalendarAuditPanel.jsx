@@ -1,1 +1,202 @@
-aW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IHJhaWx3YXlSZXF1ZXN0LCBub3JtYWxpemVJbnRlZ3JhdGlvbkVycm9yIH0gZnJvbSAiQC9saWIvcmFpbHdheUNsaWVudCI7CmltcG9ydCB7IENoZWNrQ2lyY2xlLCBBbGVydFRyaWFuZ2xlLCBYQ2lyY2xlLCBSZWZyZXNoQ3csIENsaXBib2FyZExpc3QsIENoZXZyb25Eb3duLCBDaGV2cm9uUmlnaHQsIFdyZW5jaCB9IGZyb20gImx1Y2lkZS1yZWFjdCI7Cgpjb25zdCBTVEFUVVNfQ09MT1JTID0gewogIG9rOiAgICAgICAidGV4dC1ncmVlbi02MDAgYmctZ3JlZW4tNTAgYm9yZGVyLWdyZWVuLTIwMCIsCiAgcmVwYWlyZWQ6ICJ0ZXh0LWJsdWUtNjAwIGJnLWJsdWUtNTAgYm9yZGVyLWJsdWUtMjAwIiwKICBpc3N1ZXM6ICAgInRleHQtcmVkLTYwMCBiZy1yZWQtNTAgYm9yZGVyLXJlZC0yMDAiLAp9OwoKY29uc3QgU1RBVFVTX0lDT05TID0gewogIG9rOiAgICAgICA8Q2hlY2tDaXJjbGUgY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtZ3JlZW4tNTAwIiAvPiwKICByZXBhaXJlZDogPFdyZW5jaCBjbGFzc05hbWU9InctNCBoLTQgdGV4dC1ibHVlLTUwMCIgLz4sCiAgaXNzdWVzOiAgIDxYQ2lyY2xlIGNsYXNzTmFtZT0idy00IGgtNCB0ZXh0LXJlZC01MDAiIC8+LAp9OwoKZnVuY3Rpb24gU3RhdENhcmQoeyBsYWJlbCwgdmFsdWUsIGNvbG9yID0gInNsYXRlIiB9KSB7CiAgY29uc3QgY29sb3JzID0gewogICAgZ3JlZW46ICAiYmctZ3JlZW4tNTAgYm9yZGVyLWdyZWVuLTIwMCB0ZXh0LWdyZWVuLTcwMCIsCiAgICByZWQ6ICAgICJiZy1yZWQtNTAgYm9yZGVyLXJlZC0yMDAgdGV4dC1yZWQtNzAwIiwKICAgIGFtYmVyOiAgImJnLWFtYmVyLTUwIGJvcmRlci1hbWJlci0yMDAgdGV4dC1hbWJlci03MDAiLAogICAgYmx1ZTogICAiYmctYmx1ZS01MCBib3JkZXItYmx1ZS0yMDAgdGV4dC1ibHVlLTcwMCIsCiAgICBzbGF0ZTogICJiZy1zbGF0ZS01MCBib3JkZXItc2xhdGUtMjAwIHRleHQtc2xhdGUtNzAwIiwKICB9OwogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT17YGJvcmRlciByb3VuZGVkLWxnIHB4LTMgcHktMiB0ZXh0LWNlbnRlciAke2NvbG9yc1tjb2xvcl19YH0+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LTJ4bCBmb250LWJvbGQiPnt2YWx1ZX08L2Rpdj4KICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQteHMgZm9udC1zZW1pYm9sZCBtdC0wLjUgd2hpdGVzcGFjZS1ub3dyYXAiPntsYWJlbH08L2Rpdj4KICAgIDwvZGl2PgogICk7Cn0KCmZ1bmN0aW9uIFJlY29yZFJvdyh7IHJlYyB9KSB7CiAgY29uc3QgW29wZW4sIHNldE9wZW5dID0gdXNlU3RhdGUoZmFsc2UpOwogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT17YGJvcmRlciByb3VuZGVkLWxnIG1iLTIgdGV4dC14cyAke1NUQVRVU19DT0xPUlNbcmVjLnN0YXR1c10gfHwgU1RBVFVTX0NPTE9SUy5pc3N1ZXN9YH0+CiAgICAgIDxidXR0b24KICAgICAgICBjbGFzc05hbWU9InctZnVsbCBmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBweC0zIHB5LTIgdGV4dC1sZWZ0IgogICAgICAgIG9uQ2xpY2s9eygpID0+IHNldE9wZW4obyA9PiAhbyl9CiAgICAgID4KICAgICAgICB7U1RBVFVTX0lDT05TW3JlYy5zdGF0dXNdIHx8IFNUQVRVU19JQ09OUy5pc3N1ZXN9CiAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJmb250LXNlbWlib2xkIGZsZXgtMSI+e3JlYy5uYW1lfTwvc3Bhbj4KICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtc2xhdGUtNTAwIj57cmVjLmRhdGV9IHtyZWMuY3JtX3RpbWV9PC9zcGFuPgogICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1zbGF0ZS00MDAgbWwtMSI+e3JlYy5vd25lciB8fCAi4oCUIn08L3NwYW4+CiAgICAgICAge29wZW4gPyA8Q2hldnJvbkRvd24gY2xhc3NOYW1lPSJ3LTMgaC0zIG1sLTEiIC8+IDogPENoZXZyb25SaWdodCBjbGFzc05hbWU9InctMyBoLTMgbWwtMSIgLz59CiAgICAgIDwvYnV0dG9uPgogICAgICB7b3BlbiAmJiAoCiAgICAgICAgPGRpdiBjbGFzc05hbWU9InB4LTMgcGItMyBzcGFjZS15LTEiPgogICAgICAgICAge3JlYy5pc3N1ZXMubGVuZ3RoID4gMCAmJiAoCiAgICAgICAgICAgIDxkaXY+CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZvbnQtc2VtaWJvbGQgdGV4dC1yZWQtNjAwIG1iLTAuNSI+SXNzdWVzOjwvZGl2PgogICAgICAgICAgICAgIHtyZWMuaXNzdWVzLm1hcCgoaXNzdWUsIGkpID0+IDxkaXYga2V5PXtpfSBjbGFzc05hbWU9InRleHQtcmVkLTcwMCBtbC0yIj7igKIge2lzc3VlfTwvZGl2Pil9CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgKX0KICAgICAgICAgIHtyZWMucmVwYWlycy5sZW5ndGggPiAwICYmICgKICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZm9udC1zZW1pYm9sZCB0ZXh0LWJsdWUtNjAwIG1iLTAuNSI+UmVwYWlyczo8L2Rpdj4KICAgICAgICAgICAgICB7cmVjLnJlcGFpcnMubWFwKChyLCBpKSA9PiA8ZGl2IGtleT17aX0gY2xhc3NOYW1lPSJ0ZXh0LWJsdWUtNzAwIG1sLTIiPuKAoiB7cn08L2Rpdj4pfQogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICl9CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1zbGF0ZS01MDAgbXQtMSI+TGVhZCBJRDoge3JlYy5sZWFkX2lkfSB8IE93bmVyIEVtYWlsOiB7cmVjLm93bmVyX2VtYWlsIHx8ICLigJQifTwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICApfQogICAgPC9kaXY+CiAgKTsKfQoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gQ2FsZW5kYXJBdWRpdFBhbmVsKCkgewogIGNvbnN0IFtydW5uaW5nLCBzZXRSdW5uaW5nXSA9IHVzZVN0YXRlKGZhbHNlKTsKICBjb25zdCBbcmVwb3J0LCBzZXRSZXBvcnRdID0gdXNlU3RhdGUobnVsbCk7CiAgY29uc3QgW2Vycm9yLCBzZXRFcnJvcl0gPSB1c2VTdGF0ZShudWxsKTsKICBjb25zdCBbZmlsdGVyLCBzZXRGaWx0ZXJdID0gdXNlU3RhdGUoImFsbCIpOwogIGNvbnN0IFtkcnlSdW4sIHNldERyeVJ1bl0gPSB1c2VTdGF0ZShmYWxzZSk7CgogIGNvbnN0IHJ1bkF1ZGl0ID0gYXN5bmMgKCkgPT4gewogICAgc2V0UnVubmluZyh0cnVlKTsKICAgIHNldEVycm9yKG51bGwpOwogICAgc2V0UmVwb3J0KG51bGwpOwogICAgdHJ5IHsKICAgICAgY29uc3QgZGF0YSA9IGF3YWl0IHJhaWx3YXlSZXF1ZXN0KCcvY2FsZW5kYXIvZnVsbC1hdWRpdCcsIHsgZHJ5X3J1bjogZHJ5UnVuIH0pOwogICAgICBzZXRSZXBvcnQoZGF0YS5yZXBvcnQpOwogICAgfSBjYXRjaCAoZSkgewogICAgICBzZXRFcnJvcihub3JtYWxpemVJbnRlZ3JhdGlvbkVycm9yKGUpIHx8ICJBdWRpdCBmYWlsZWQiKTsKICAgIH0gZmluYWxseSB7CiAgICAgIHNldFJ1bm5pbmcoZmFsc2UpOwogICAgfQogIH07CgogIGNvbnN0IGZpbHRlcmVkUmVjb3JkcyA9IHJlcG9ydD8ucmVjb3Jkcz8uZmlsdGVyKHIgPT4gewogICAgaWYgKGZpbHRlciA9PT0gImFsbCIpIHJldHVybiB0cnVlOwogICAgaWYgKGZpbHRlciA9PT0gIm9rIikgcmV0dXJuIHIuc3RhdHVzID09PSAib2siOwogICAgaWYgKGZpbHRlciA9PT0gInJlcGFpcmVkIikgcmV0dXJuIHIuc3RhdHVzID09PSAicmVwYWlyZWQiOwogICAgaWYgKGZpbHRlciA9PT0gImlzc3VlcyIpIHJldHVybiByLnN0YXR1cyA9PT0gImlzc3VlcyI7CiAgICByZXR1cm4gdHJ1ZTsKICB9KSB8fCBbXTsKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJiZy13aGl0ZSByb3VuZGVkLXhsIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHNoYWRvdy1zbSBwLTUiPgogICAgICB7LyogSGVhZGVyICovfQogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIG1iLTQiPgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiI+CiAgICAgICAgICA8Q2xpcGJvYXJkTGlzdCBjbGFzc05hbWU9InctNSBoLTUgdGV4dC1hbWJlci02MDAiIC8+CiAgICAgICAgICA8aDIgY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtYm9sZCB0ZXh0LXNsYXRlLTkwMCI+RnVsbCBDYWxlbmRhciBBdWRpdDwvaDI+CiAgICAgICAgPC9kaXY+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0zIj4KICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0xLjUgdGV4dC14cyB0ZXh0LXNsYXRlLTYwMCBjdXJzb3ItcG9pbnRlciBzZWxlY3Qtbm9uZSI+CiAgICAgICAgICAgIDxpbnB1dAogICAgICAgICAgICAgIHR5cGU9ImNoZWNrYm94IgogICAgICAgICAgICAgIGNoZWNrZWQ9e2RyeVJ1bn0KICAgICAgICAgICAgICBvbkNoYW5nZT17ZSA9PiBzZXREcnlSdW4oZS50YXJnZXQuY2hlY2tlZCl9CiAgICAgICAgICAgICAgY2xhc3NOYW1lPSJyb3VuZGVkIgogICAgICAgICAgICAvPgogICAgICAgICAgICBEcnkgUnVuIChubyByZXBhaXJzKQogICAgICAgICAgPC9sYWJlbD4KICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgb25DbGljaz17cnVuQXVkaXR9CiAgICAgICAgICAgIGRpc2FibGVkPXtydW5uaW5nfQogICAgICAgICAgICBjbGFzc05hbWU9ImlubGluZS1mbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBweC00IHB5LTIgYmctYW1iZXItNjAwIGhvdmVyOmJnLWFtYmVyLTcwMCB0ZXh0LXdoaXRlIHRleHQteHMgZm9udC1zZW1pYm9sZCByb3VuZGVkLWxnIHRyYW5zaXRpb24tY29sb3JzIGRpc2FibGVkOm9wYWNpdHktNTAiCiAgICAgICAgICA+CiAgICAgICAgICAgIDxSZWZyZXNoQ3cgY2xhc3NOYW1lPXtgdy0zLjUgaC0zLjUgJHtydW5uaW5nID8gImFuaW1hdGUtc3BpbiIgOiAiIn1gfSAvPgogICAgICAgICAgICB7cnVubmluZyA/ICJBdWRpdGluZ+KApiIgOiAiUnVuIEF1ZGl0In0KICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KCiAgICAgIHtydW5uaW5nICYmICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1jZW50ZXIgcHktOCI+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idy04IGgtOCBib3JkZXItNCBib3JkZXItc2xhdGUtMjAwIGJvcmRlci10LWFtYmVyLTYwMCByb3VuZGVkLWZ1bGwgYW5pbWF0ZS1zcGluIG14LWF1dG8gbWItMyIgLz4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1zbSB0ZXh0LXNsYXRlLTUwMCI+Q2hlY2tpbmcgYWxsIGZ1dHVyZSBtZWV0aW5ncyBhZ2FpbnN0IEdvb2dsZSBDYWxlbmRhcuKApjwvcD4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTQwMCBtdC0xIj5UaGlzIG1heSB0YWtlIDHigJMzIG1pbnV0ZXMgZGVwZW5kaW5nIG9uIG1lZXRpbmcgY291bnQuPC9wPgogICAgICAgIDwvZGl2PgogICAgICApfQoKICAgICAge2Vycm9yICYmICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgYmctcmVkLTUwIGJvcmRlciBib3JkZXItcmVkLTIwMCByb3VuZGVkLWxnIHB4LTQgcHktMyB0ZXh0LXNtIHRleHQtcmVkLTcwMCI+CiAgICAgICAgICA8QWxlcnRUcmlhbmdsZSBjbGFzc05hbWU9InctNCBoLTQgZmxleC1zaHJpbmstMCIgLz4KICAgICAgICAgIHtlcnJvcn0KICAgICAgICA8L2Rpdj4KICAgICAgKX0KCiAgICAgIHtyZXBvcnQgJiYgIXJ1bm5pbmcgJiYgKAogICAgICAgIDw+CiAgICAgICAgICB7LyogU3RhdHMgR3JpZCAqL30KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJncmlkIGdyaWQtY29scy00IHNtOmdyaWQtY29scy02IGdhcC0yIG1iLTQiPgogICAgICAgICAgICA8U3RhdENhcmQgbGFiZWw9IlRvdGFsIiB2YWx1ZT17cmVwb3J0LnRvdGFsX2Z1dHVyZV9tZWV0aW5nc30gY29sb3I9InNsYXRlIiAvPgogICAgICAgICAgICA8U3RhdENhcmQgbGFiZWw9IuKckyBTeW5jZWQiIHZhbHVlPXtyZXBvcnQuY29ycmVjdGx5X3N5bmNlZH0gY29sb3I9ImdyZWVuIiAvPgogICAgICAgICAgICA8U3RhdENhcmQgbGFiZWw9IlJlcGFpcmVkIiB2YWx1ZT17cmVwb3J0LnJlcGFpcmVkfSBjb2xvcj0iYmx1ZSIgLz4KICAgICAgICAgICAgPFN0YXRDYXJkIGxhYmVsPSJGYWlsZWQiIHZhbHVlPXtyZXBvcnQuZmFpbGVkfSBjb2xvcj17cmVwb3J0LmZhaWxlZCA+IDAgPyAicmVkIiA6ICJzbGF0ZSJ9IC8+CiAgICAgICAgICAgIDxTdGF0Q2FyZCBsYWJlbD0iTm8gT3duZXIiIHZhbHVlPXtyZXBvcnQubWlzc2luZ19vd25lcn0gY29sb3I9e3JlcG9ydC5taXNzaW5nX293bmVyID4gMCA/ICJhbWJlciIgOiAic2xhdGUifSAvPgogICAgICAgICAgICA8U3RhdENhcmQgbGFiZWw9Ik5vIE93bmVyIENhbCIgdmFsdWU9e3JlcG9ydC5taXNzaW5nX293bmVyX2NhbGVuZGFyfSBjb2xvcj17cmVwb3J0Lm1pc3Npbmdfb3duZXJfY2FsZW5kYXIgPiAwID8gInJlZCIgOiAic2xhdGUifSAvPgogICAgICAgICAgICA8U3RhdENhcmQgbGFiZWw9Ik5vIE1pY2hlbGxlIiB2YWx1ZT17cmVwb3J0Lm1pc3NpbmdfbWljaGVsbGVfY2FsZW5kYXJ9IGNvbG9yPXtyZXBvcnQubWlzc2luZ19taWNoZWxsZV9jYWxlbmRhciA+IDAgPyAiYW1iZXIiIDogInNsYXRlIn0gLz4KICAgICAgICAgICAgPFN0YXRDYXJkIGxhYmVsPSJObyBCdWZmZXIiIHZhbHVlPXtyZXBvcnQubWlzc2luZ190cmF2ZWxfYnVmZmVyfSBjb2xvcj17cmVwb3J0Lm1pc3NpbmdfdHJhdmVsX2J1ZmZlciA+IDAgPyAicmVkIiA6ICJzbGF0ZSJ9IC8+CiAgICAgICAgICAgIDxTdGF0Q2FyZCBsYWJlbD0iV3JvbmcgVGltZSIgdmFsdWU9e3JlcG9ydC53cm9uZ190aW1lfSBjb2xvcj17cmVwb3J0Lndyb25nX3RpbWUgPiAwID8gInJlZCIgOiAic2xhdGUifSAvPgogICAgICAgICAgICA8U3RhdENhcmQgbGFiZWw9IkR1cGxpY2F0ZXMiIHZhbHVlPXtyZXBvcnQuZHVwbGljYXRlc19mb3VuZH0gY29sb3I9e3JlcG9ydC5kdXBsaWNhdGVzX2ZvdW5kID4gMCA/ICJhbWJlciIgOiAic2xhdGUifSAvPgogICAgICAgICAgPC9kaXY+CgogICAgICAgICAge3JlcG9ydC5xdW90YV9oaXQgJiYgKAogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctYW1iZXItNTAgYm9yZGVyIGJvcmRlci1hbWJlci0yMDAgcm91bmRlZC1sZyBweC00IHB5LTIgdGV4dC14cyB0ZXh0LWFtYmVyLTcwMCBtYi0zIGZsZXggaXRlbXMtY2VudGVyIGdhcC0yIj4KICAgICAgICAgICAgICA8QWxlcnRUcmlhbmdsZSBjbGFzc05hbWU9InctNCBoLTQiIC8+CiAgICAgICAgICAgICAgR29vZ2xlIENhbGVuZGFyIHF1b3RhIHdhcyBoaXQg4oCUIHNvbWUgbWVldGluZ3Mgd2VyZSBub3QgZnVsbHkgY2hlY2tlZC4gUnVuIGFnYWluIHRvIGNvbnRpbnVlLgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICl9CgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS00MDAgbWItMyI+CiAgICAgICAgICAgIEdlbmVyYXRlZDoge25ldyBEYXRlKHJlcG9ydC5nZW5lcmF0ZWRfYXQpLnRvTG9jYWxlU3RyaW5nKCl9IHtyZXBvcnQuZHJ5X3J1biA/ICLCtyBEUlkgUlVOIiA6ICLCtyBSZXBhaXJzIGFwcGxpZWQifQogICAgICAgICAgPC9kaXY+CgogICAgICAgICAgey8qIEZpbHRlciBUYWJzICovfQogICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZ2FwLTEgYm9yZGVyLWIgYm9yZGVyLXNsYXRlLTIwMCBtYi0zIj4KICAgICAgICAgICAge1siYWxsIiwgImlzc3VlcyIsICJyZXBhaXJlZCIsICJvayJdLm1hcChmID0+ICgKICAgICAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgICAgICBrZXk9e2Z9CiAgICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRGaWx0ZXIoZil9CiAgICAgICAgICAgICAgICBjbGFzc05hbWU9e2BweC0zIHB5LTEuNSB0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgYm9yZGVyLWItMiBjYXBpdGFsaXplIHRyYW5zaXRpb24tY29sb3JzICR7CiAgICAgICAgICAgICAgICAgIGZpbHRlciA9PT0gZiA/ICJib3JkZXItYW1iZXItNjAwIHRleHQtYW1iZXItNzAwIiA6ICJib3JkZXItdHJhbnNwYXJlbnQgdGV4dC1zbGF0ZS01MDAgaG92ZXI6dGV4dC1zbGF0ZS03MDAiCiAgICAgICAgICAgICAgICB9YH0KICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICB7ZiA9PT0gImFsbCIgPyBgQWxsICgke3JlcG9ydC5yZWNvcmRzLmxlbmd0aH0pYCA6IGYgPT09ICJpc3N1ZXMiID8gYElzc3VlcyAoJHtyZXBvcnQucmVjb3Jkcy5maWx0ZXIociA9PiByLnN0YXR1cyA9PT0gImlzc3VlcyIpLmxlbmd0aH0pYCA6IGYgPT09ICJyZXBhaXJlZCIgPyBgUmVwYWlyZWQgKCR7cmVwb3J0LnJlY29yZHMuZmlsdGVyKHIgPT4gci5zdGF0dXMgPT09ICJyZXBhaXJlZCIpLmxlbmd0aH0pYCA6IGBPSyAoJHtyZXBvcnQucmVjb3Jkcy5maWx0ZXIociA9PiByLnN0YXR1cyA9PT0gIm9rIikubGVuZ3RofSlgfQogICAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgICApKX0KICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgIHsvKiBSZWNvcmRzICovfQogICAgICAgICAgPGRpdiBjbGFzc05hbWU9Im1heC1oLVs1MDBweF0gb3ZlcmZsb3cteS1hdXRvIHByLTEiPgogICAgICAgICAgICB7ZmlsdGVyZWRSZWNvcmRzLmxlbmd0aCA9PT0gMCA/ICgKICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1jZW50ZXIgcHktOCB0ZXh0LXNtIHRleHQtc2xhdGUtNDAwIj5ObyByZWNvcmRzIG1hdGNoIHRoaXMgZmlsdGVyLjwvZGl2PgogICAgICAgICAgICApIDogKAogICAgICAgICAgICAgIGZpbHRlcmVkUmVjb3Jkcy5tYXAocmVjID0+IDxSZWNvcmRSb3cga2V5PXtyZWMubGVhZF9pZH0gcmVjPXtyZWN9IC8+KQogICAgICAgICAgICApfQogICAgICAgICAgPC9kaXY+CiAgICAgICAgPC8+CiAgICAgICl9CgogICAgICB7IXJlcG9ydCAmJiAhcnVubmluZyAmJiAhZXJyb3IgJiYgKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LWNlbnRlciBweS0xMCB0ZXh0LXNsYXRlLTQwMCI+CiAgICAgICAgICA8Q2xpcGJvYXJkTGlzdCBjbGFzc05hbWU9InctOCBoLTggbXgtYXV0byBtYi0yIG9wYWNpdHktMzAiIC8+CiAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20iPkNsaWNrICJSdW4gQXVkaXQiIHRvIGNoZWNrIGFsbCBmdXR1cmUgbWVldGluZ3MuPC9wPgogICAgICAgIDwvZGl2PgogICAgICApfQogICAgPC9kaXY+CiAgKTsKfQ==
+import { useState } from "react";
+import { railwayRequest, normalizeIntegrationError } from "@/lib/railwayClient";
+import { CheckCircle, AlertTriangle, XCircle, RefreshCw, ClipboardList, ChevronDown, ChevronRight, Wrench } from "lucide-react";
+
+const STATUS_COLORS = {
+  ok:       "text-green-600 bg-green-50 border-green-200",
+  repaired: "text-blue-600 bg-blue-50 border-blue-200",
+  issues:   "text-red-600 bg-red-50 border-red-200",
+};
+
+const STATUS_ICONS = {
+  ok:       <CheckCircle className="w-4 h-4 text-green-500" />,
+  repaired: <Wrench className="w-4 h-4 text-blue-500" />,
+  issues:   <XCircle className="w-4 h-4 text-red-500" />,
+};
+
+function StatCard({ label, value, color = "slate" }) {
+  const colors = {
+    green:  "bg-green-50 border-green-200 text-green-700",
+    red:    "bg-red-50 border-red-200 text-red-700",
+    amber:  "bg-amber-50 border-amber-200 text-amber-700",
+    blue:   "bg-blue-50 border-blue-200 text-blue-700",
+    slate:  "bg-slate-50 border-slate-200 text-slate-700",
+  };
+  return (
+    <div className={`border rounded-lg px-3 py-2 text-center ${colors[color]}`}>
+      <div className="text-2xl font-bold">{value}</div>
+      <div className="text-xs font-semibold mt-0.5 whitespace-nowrap">{label}</div>
+    </div>
+  );
+}
+
+function RecordRow({ rec }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`border rounded-lg mb-2 text-xs ${STATUS_COLORS[rec.status] || STATUS_COLORS.issues}`}>
+      <button
+        className="w-full flex items-center gap-2 px-3 py-2 text-left"
+        onClick={() => setOpen(o => !o)}
+      >
+        {STATUS_ICONS[rec.status] || STATUS_ICONS.issues}
+        <span className="font-semibold flex-1">{rec.name}</span>
+        <span className="text-slate-500">{rec.date} {rec.crm_time}</span>
+        <span className="text-slate-400 ml-1">{rec.owner || "—"}</span>
+        {open ? <ChevronDown className="w-3 h-3 ml-1" /> : <ChevronRight className="w-3 h-3 ml-1" />}
+      </button>
+      {open && (
+        <div className="px-3 pb-3 space-y-1">
+          {rec.issues.length > 0 && (
+            <div>
+              <div className="font-semibold text-red-600 mb-0.5">Issues:</div>
+              {rec.issues.map((issue, i) => <div key={i} className="text-red-700 ml-2">• {issue}</div>)}
+            </div>
+          )}
+          {rec.repairs.length > 0 && (
+            <div>
+              <div className="font-semibold text-blue-600 mb-0.5">Repairs:</div>
+              {rec.repairs.map((r, i) => <div key={i} className="text-blue-700 ml-2">• {r}</div>)}
+            </div>
+          )}
+          <div className="text-slate-500 mt-1">Lead ID: {rec.lead_id} | Owner Email: {rec.owner_email || "—"}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function CalendarAuditPanel() {
+  const [running, setRunning] = useState(false);
+  const [report, setReport] = useState(null);
+  const [error, setError] = useState(null);
+  const [filter, setFilter] = useState("all");
+  const [dryRun, setDryRun] = useState(false);
+
+  const runAudit = async () => {
+    setRunning(true);
+    setError(null);
+    setReport(null);
+    try {
+      const data = await railwayRequest('/calendar/full-audit', { dry_run: dryRun });
+      setReport(data.report);
+    } catch (e) {
+      setError(normalizeIntegrationError(e) || "Audit failed");
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  const filteredRecords = report?.records?.filter(r => {
+    if (filter === "all") return true;
+    if (filter === "ok") return r.status === "ok";
+    if (filter === "repaired") return r.status === "repaired";
+    if (filter === "issues") return r.status === "issues";
+    return true;
+  }) || [];
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <ClipboardList className="w-5 h-5 text-amber-600" />
+          <h2 className="text-sm font-bold text-slate-900">Full Calendar Audit</h2>
+        </div>
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={dryRun}
+              onChange={e => setDryRun(e.target.checked)}
+              className="rounded"
+            />
+            Dry Run (no repairs)
+          </label>
+          <button
+            onClick={runAudit}
+            disabled={running}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${running ? "animate-spin" : ""}`} />
+            {running ? "Auditing…" : "Run Audit"}
+          </button>
+        </div>
+      </div>
+
+      {running && (
+        <div className="text-center py-8">
+          <div className="w-8 h-8 border-4 border-slate-200 border-t-amber-600 rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm text-slate-500">Checking all future meetings against Google Calendar…</p>
+          <p className="text-xs text-slate-400 mt-1">This may take 1–3 minutes depending on meeting count.</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          {error}
+        </div>
+      )}
+
+      {report && !running && (
+        <>
+          {/* Stats Grid */}
+          <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 mb-4">
+            <StatCard label="Total" value={report.total_future_meetings} color="slate" />
+            <StatCard label="✓ Synced" value={report.correctly_synced} color="green" />
+            <StatCard label="Repaired" value={report.repaired} color="blue" />
+            <StatCard label="Failed" value={report.failed} color={report.failed > 0 ? "red" : "slate"} />
+            <StatCard label="No Owner" value={report.missing_owner} color={report.missing_owner > 0 ? "amber" : "slate"} />
+            <StatCard label="No Owner Cal" value={report.missing_owner_calendar} color={report.missing_owner_calendar > 0 ? "red" : "slate"} />
+            <StatCard label="No Michelle" value={report.missing_michelle_calendar} color={report.missing_michelle_calendar > 0 ? "amber" : "slate"} />
+            <StatCard label="No Buffer" value={report.missing_travel_buffer} color={report.missing_travel_buffer > 0 ? "red" : "slate"} />
+            <StatCard label="Wrong Time" value={report.wrong_time} color={report.wrong_time > 0 ? "red" : "slate"} />
+            <StatCard label="Duplicates" value={report.duplicates_found} color={report.duplicates_found > 0 ? "amber" : "slate"} />
+          </div>
+
+          {report.quota_hit && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 text-xs text-amber-700 mb-3 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              Google Calendar quota was hit — some meetings were not fully checked. Run again to continue.
+            </div>
+          )}
+
+          <div className="text-xs text-slate-400 mb-3">
+            Generated: {new Date(report.generated_at).toLocaleString()} {report.dry_run ? "· DRY RUN" : "· Repairs applied"}
+          </div>
+
+          {/* Filter Tabs */}
+          <div className="flex gap-1 border-b border-slate-200 mb-3">
+            {["all", "issues", "repaired", "ok"].map(f => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`px-3 py-1.5 text-xs font-semibold border-b-2 capitalize transition-colors ${
+                  filter === f ? "border-amber-600 text-amber-700" : "border-transparent text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                {f === "all" ? `All (${report.records.length})` : f === "issues" ? `Issues (${report.records.filter(r => r.status === "issues").length})` : f === "repaired" ? `Repaired (${report.records.filter(r => r.status === "repaired").length})` : `OK (${report.records.filter(r => r.status === "ok").length})`}
+              </button>
+            ))}
+          </div>
+
+          {/* Records */}
+          <div className="max-h-[500px] overflow-y-auto pr-1">
+            {filteredRecords.length === 0 ? (
+              <div className="text-center py-8 text-sm text-slate-400">No records match this filter.</div>
+            ) : (
+              filteredRecords.map(rec => <RecordRow key={rec.lead_id} rec={rec} />)
+            )}
+          </div>
+        </>
+      )}
+
+      {!report && !running && !error && (
+        <div className="text-center py-10 text-slate-400">
+          <ClipboardList className="w-8 h-8 mx-auto mb-2 opacity-30" />
+          <p className="text-sm">Click "Run Audit" to check all future meetings.</p>
+        </div>
+      )}
+    </div>
+  );
+}

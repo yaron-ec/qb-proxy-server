@@ -1,1 +1,22 @@
-aW1wb3J0ICogYXMgUmVhY3QgZnJvbSAicmVhY3QiCmltcG9ydCAqIGFzIENoZWNrYm94UHJpbWl0aXZlIGZyb20gIkByYWRpeC11aS9yZWFjdC1jaGVja2JveCIKaW1wb3J0IHsgQ2hlY2sgfSBmcm9tICJsdWNpZGUtcmVhY3QiCgppbXBvcnQgeyBjbiB9IGZyb20gIkAvbGliL3V0aWxzIgoKY29uc3QgQ2hlY2tib3ggPSBSZWFjdC5mb3J3YXJkUmVmKCh7IGNsYXNzTmFtZSwgLi4ucHJvcHMgfSwgcmVmKSA9PiAoCiAgPENoZWNrYm94UHJpbWl0aXZlLlJvb3QKICAgIHJlZj17cmVmfQogICAgY2xhc3NOYW1lPXtjbigKICAgICAgInBlZXIgaC00IHctNCBzaHJpbmstMCByb3VuZGVkLXNtIGJvcmRlciBib3JkZXItcHJpbWFyeSBzaGFkb3cgZm9jdXMtdmlzaWJsZTpvdXRsaW5lLW5vbmUgZm9jdXMtdmlzaWJsZTpyaW5nLTEgZm9jdXMtdmlzaWJsZTpyaW5nLXJpbmcgZGlzYWJsZWQ6Y3Vyc29yLW5vdC1hbGxvd2VkIGRpc2FibGVkOm9wYWNpdHktNTAgZGF0YS1bc3RhdGU9Y2hlY2tlZF06YmctcHJpbWFyeSBkYXRhLVtzdGF0ZT1jaGVja2VkXTp0ZXh0LXByaW1hcnktZm9yZWdyb3VuZCIsCiAgICAgIGNsYXNzTmFtZQogICAgKX0KICAgIHsuLi5wcm9wc30+CiAgICA8Q2hlY2tib3hQcmltaXRpdmUuSW5kaWNhdG9yIGNsYXNzTmFtZT17Y24oImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHRleHQtY3VycmVudCIpfT4KICAgICAgPENoZWNrIGNsYXNzTmFtZT0iaC00IHctNCIgLz4KICAgIDwvQ2hlY2tib3hQcmltaXRpdmUuSW5kaWNhdG9yPgogIDwvQ2hlY2tib3hQcmltaXRpdmUuUm9vdD4KKSkKQ2hlY2tib3guZGlzcGxheU5hbWUgPSBDaGVja2JveFByaW1pdGl2ZS5Sb290LmRpc3BsYXlOYW1lCgpleHBvcnQgeyBDaGVja2JveCB9Cg==
+import * as React from "react"
+import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
+import { Check } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+
+const Checkbox = React.forwardRef(({ className, ...props }, ref) => (
+  <CheckboxPrimitive.Root
+    ref={ref}
+    className={cn(
+      "peer h-4 w-4 shrink-0 rounded-sm border border-primary shadow focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
+      className
+    )}
+    {...props}>
+    <CheckboxPrimitive.Indicator className={cn("flex items-center justify-center text-current")}>
+      <Check className="h-4 w-4" />
+    </CheckboxPrimitive.Indicator>
+  </CheckboxPrimitive.Root>
+))
+Checkbox.displayName = CheckboxPrimitive.Root.displayName
+
+export { Checkbox }

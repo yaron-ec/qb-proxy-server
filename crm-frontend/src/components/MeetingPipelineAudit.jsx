@@ -1,1 +1,433 @@
-LyoqCiAqIE1lZXRpbmdQaXBlbGluZUF1ZGl0CiAqCiAqIEFkbWluIGRpYWdub3N0aWMgcGFuZWw6IHRyYWNlcyB0aGUgZnVsbCBwaXBlbGluZSBmb3IgZXZlcnkgbGVhZCB3aXRoIGEKICogZnV0dXJlIChvciBzYW1lLWRheSkgTWVldGluZyBhcHBvaW50bWVudC4KICoKICogUGlwZWxpbmUgc3RlcHMgcGVyIGxlYWQ6CiAqICAxLiBMZWFkIENyZWF0ZWQKICogIDIuIEZvbGxvdy11cCAvIEFwcG9pbnRtZW50IFNldAogKiAgMy4gTWVldGluZyBUeXBlID0gTWVldGluZwogKiAgNC4gR29vZ2xlIENhbGVuZGFyIEV2ZW50IENyZWF0ZWQKICogIDUuIFRyYXZlbCBCdWZmZXIgRXZlbnQgQ3JlYXRlZAogKiAgNi4gUmVtaW5kZXIgd2luZG93cyAoNDhoLCAyNGgsIDEyaCwgMmgsIDMwbWluKSDigJQgc2VudCBvciBwZW5kaW5nCiAqCiAqIEFsc28gcHJvdmlkZXMgYSAiRml4IEFsbCIgYnV0dG9uIHRoYXQgcmUtcnVucyBjYWxlbmRhciBzeW5jIGZvciBhbnkgbGVhZAogKiBtaXNzaW5nIGV2ZW50cy4KICovCmltcG9ydCB7IHVzZVN0YXRlLCB1c2VFZmZlY3QgfSBmcm9tICJyZWFjdCI7CmltcG9ydCAqIGFzIHJhaWx3YXlMZWFkcyBmcm9tICJAL2FwaS9yYWlsd2F5L2xlYWRzIjsKaW1wb3J0ICogYXMgcmFpbHdheUFjdGl2aXRpZXMgZnJvbSAiQC9hcGkvcmFpbHdheS9hY3Rpdml0aWVzIjsKaW1wb3J0IHsKICBDaGVja0NpcmNsZSwgWENpcmNsZSwgQ2xvY2ssIFJlZnJlc2hDdywgQWxlcnRUcmlhbmdsZSwKICBDYWxlbmRhciwgWmFwLCBDaGV2cm9uRG93biwgQ2hldnJvblJpZ2h0LCBCZWxsCn0gZnJvbSAibHVjaWRlLXJlYWN0IjsKCmNvbnN0IFJFTUlOREVSX1dJTkRPV1MgPSBbJzQ4aCcsICcyNGgnLCAnMTJoJywgJzJoJywgJzMwbWluJ107CgpmdW5jdGlvbiBmbXQoZCkgewogIGlmICghZCkgcmV0dXJuICLigJQiOwogIHJldHVybiBuZXcgRGF0ZShkKS50b0xvY2FsZVN0cmluZygiZW4tVVMiLCB7CiAgICBtb250aDogInNob3J0IiwgZGF5OiAibnVtZXJpYyIsIHllYXI6ICJudW1lcmljIiwKICAgIGhvdXI6ICJudW1lcmljIiwgbWludXRlOiAiMi1kaWdpdCIsIHRpbWVab25lOiAiQW1lcmljYS9Mb3NfQW5nZWxlcyIKICB9KTsKfQoKZnVuY3Rpb24gZm10RGF0ZShkKSB7CiAgaWYgKCFkKSByZXR1cm4gIuKAlCI7CiAgY29uc3QgW3ksIG1vLCBkYXldID0gZC5zcGxpdCgiLSIpLm1hcChOdW1iZXIpOwogIHJldHVybiBuZXcgRGF0ZSh5LCBtbyAtIDEsIGRheSkudG9Mb2NhbGVEYXRlU3RyaW5nKCJlbi1VUyIsIHsKICAgIHdlZWtkYXk6ICJzaG9ydCIsIG1vbnRoOiAic2hvcnQiLCBkYXk6ICJudW1lcmljIiwgeWVhcjogIm51bWVyaWMiCiAgfSk7Cn0KCmZ1bmN0aW9uIFN0ZXAoeyBvaywgbGFiZWwsIGRldGFpbCwgd2FybiB9KSB7CiAgY29uc3QgaWNvbiA9IG9rID09PSB0cnVlCiAgICA/IDxDaGVja0NpcmNsZSBjbGFzc05hbWU9InctMy41IGgtMy41IHRleHQtZW1lcmFsZC01MDAgZmxleC1zaHJpbmstMCIgLz4KICAgIDogb2sgPT09ICJ3YXJuIgogICAgPyA8QWxlcnRUcmlhbmdsZSBjbGFzc05hbWU9InctMy41IGgtMy41IHRleHQtYW1iZXItNTAwIGZsZXgtc2hyaW5rLTAiIC8+CiAgICA6IG9rID09PSBudWxsCiAgICA/IDxDbG9jayBjbGFzc05hbWU9InctMy41IGgtMy41IHRleHQtc2xhdGUtMzAwIGZsZXgtc2hyaW5rLTAiIC8+CiAgICA6IDxYQ2lyY2xlIGNsYXNzTmFtZT0idy0zLjUgaC0zLjUgdGV4dC1yZWQtNTAwIGZsZXgtc2hyaW5rLTAiIC8+OwoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtc3RhcnQgZ2FwLTEuNSBweS0wLjUiPgogICAgICB7aWNvbn0KICAgICAgPGRpdiBjbGFzc05hbWU9Im1pbi13LTAiPgogICAgICAgIDxzcGFuIGNsYXNzTmFtZT17YHRleHQtWzExcHhdIGZvbnQtc2VtaWJvbGQgJHsKICAgICAgICAgIG9rID09PSB0cnVlID8gInRleHQtZW1lcmFsZC03MDAiIDoKICAgICAgICAgIG9rID09PSAid2FybiIgPyAidGV4dC1hbWJlci03MDAiIDoKICAgICAgICAgIG9rID09PSBudWxsID8gInRleHQtc2xhdGUtNDAwIiA6CiAgICAgICAgICAidGV4dC1yZWQtNzAwIgogICAgICAgIH1gfT57bGFiZWx9PC9zcGFuPgogICAgICAgIHtkZXRhaWwgJiYgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSB0ZXh0LXNsYXRlLTQwMCBtbC0xIj57ZGV0YWlsfTwvc3Bhbj59CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CiAgKTsKfQoKZnVuY3Rpb24gTGVhZFJvdyh7IGxlYWQsIHNlbnRLZXlzLCBvbkZpeCwgZml4aW5nIH0pIHsKICBjb25zdCBbb3Blbiwgc2V0T3Blbl0gPSB1c2VTdGF0ZShmYWxzZSk7CgogIGNvbnN0IGFwcHREYXRlID0gbGVhZC5hcHBvaW50bWVudF9kYXRlIHx8IGxlYWQuZm9sbG93X3VwX2RhdGU7CiAgY29uc3QgYXBwdFRpbWUgPSBsZWFkLmFwcG9pbnRtZW50X3RpbWUgfHwgbGVhZC5mb2xsb3dfdXBfdGltZSB8fCAiMDk6MDAiOwogIGNvbnN0IGlzTWVldGluZyA9IGxlYWQuZm9sbG93X3VwX3R5cGUgPT09ICJNZWV0aW5nIjsKICBjb25zdCBoYXNDYWxFdmVudCA9ICEhbGVhZC5nb29nbGVfZXZlbnRfaWQ7CiAgY29uc3QgaGFzQnVmZmVyID0gISFsZWFkLmdvb2dsZV90cmF2ZWxfZXZlbnRfaWQ7CiAgY29uc3Qgc3luY1N0YXR1cyA9IGxlYWQuZ29vZ2xlX2NhbGVuZGFyX3N5bmNfc3RhdHVzOwogIGNvbnN0IHN5bmNFcnJvciA9IGxlYWQuZ29vZ2xlX2NhbGVuZGFyX3N5bmNfZXJyb3I7CgogIC8vIFJlbWluZGVyIHN0YXRlCiAgY29uc3QgcmVtaW5kZXJTdGF0ZSA9IHt9OwogIGZvciAoY29uc3Qgd2luIG9mIFJFTUlOREVSX1dJTkRPV1MpIHsKICAgIGNvbnN0IGtleSA9IGByZW1pbmRlcjoke2xlYWQuaWR9OiR7d2lufToke2FwcHREYXRlfWA7CiAgICByZW1pbmRlclN0YXRlW3dpbl0gPSBzZW50S2V5cy5oYXMoa2V5KSA/ICJzZW50IiA6ICJwZW5kaW5nIjsKICB9CgogIC8vIENvbXB1dGUgYXBwb2ludG1lbnQgVVRDIG1zIGZvciBjb21wYXJpc29uCiAgZnVuY3Rpb24gcGFjaWZpY1RvVXRjTXMoZGF0ZVN0ciwgdGltZVN0cikgewogICAgdHJ5IHsKICAgICAgY29uc3QgcHJvYmUgPSBuZXcgRGF0ZShgJHtkYXRlU3RyfVQxMjowMDowMFpgKTsKICAgICAgY29uc3QgbGFIb3VyID0gTnVtYmVyKG5ldyBJbnRsLkRhdGVUaW1lRm9ybWF0KCJlbi1DQSIsIHsKICAgICAgICB0aW1lWm9uZTogIkFtZXJpY2EvTG9zX0FuZ2VsZXMiLCBob3VyOiAiMi1kaWdpdCIsIGhvdXIxMjogZmFsc2UsCiAgICAgIH0pLmZvcm1hdChwcm9iZSkpOwogICAgICBjb25zdCBbeSwgbW8sIGRdID0gZGF0ZVN0ci5zcGxpdCgiLSIpLm1hcChOdW1iZXIpOwogICAgICBjb25zdCBbaCwgbV0gPSAodGltZVN0ciB8fCAiMDk6MDAiKS5zcGxpdCgiOiIpLm1hcChOdW1iZXIpOwogICAgICByZXR1cm4gRGF0ZS5VVEMoeSwgbW8gLSAxLCBkLCBoIC0gKGxhSG91ciAtIDEyKSwgbSwgMCk7CiAgICB9IGNhdGNoIHsgcmV0dXJuIDA7IH0KICB9CgogIGNvbnN0IGFwcHRNcyA9IGFwcHREYXRlID8gcGFjaWZpY1RvVXRjTXMoYXBwdERhdGUsIGFwcHRUaW1lKSA6IDA7CiAgY29uc3Qgbm93ID0gRGF0ZS5ub3coKTsKICBjb25zdCBpc1Bhc3QgPSBhcHB0TXMgPCBub3c7CiAgY29uc3QgbWluc1VudGlsID0gTWF0aC5yb3VuZCgoYXBwdE1zIC0gbm93KSAvIDYwMDAwKTsKCiAgLy8gV2hpY2ggcmVtaW5kZXIgd2luZG93cyBhcmUgZXhwZWN0ZWQgdG8gaGF2ZSBmaXJlZCBieSBub3c/CiAgY29uc3QgV0lORE9XX01JTlMgPSB7ICI0OGgiOiAyODgwLCAiMjRoIjogMTQ0MCwgIjEyaCI6IDcyMCwgIjJoIjogMTIwLCAiMzBtaW4iOiAzMCB9OwogIGNvbnN0IGV4cGVjdGVkU2VudCA9IFJFTUlOREVSX1dJTkRPV1MuZmlsdGVyKHdpbiA9PiB7CiAgICBjb25zdCB0YXJnZXRNcyA9IGFwcHRNcyAtIFdJTkRPV19NSU5TW3dpbl0gKiA2MCAqIDEwMDA7CiAgICByZXR1cm4gdGFyZ2V0TXMgPD0gbm93OwogIH0pOwogIGNvbnN0IG1pc3NlZFJlbWluZGVycyA9IGV4cGVjdGVkU2VudC5maWx0ZXIod2luID0+IHJlbWluZGVyU3RhdGVbd2luXSA9PT0gInBlbmRpbmciKTsKCiAgLy8gT3ZlcmFsbCBzdGF0dXMKICBjb25zdCBoYXNDcml0aWNhbElzc3VlID0gIWhhc0NhbEV2ZW50IHx8ICFoYXNCdWZmZXIgfHwgbWlzc2VkUmVtaW5kZXJzLmxlbmd0aCA+IDA7CiAgY29uc3QgaGFzU3luY0Vycm9yID0gc3luY1N0YXR1cyA9PT0gImVycm9yIjsKICBjb25zdCBvdmVyYWxsT2sgPSAhaGFzQ3JpdGljYWxJc3N1ZSAmJiAhaGFzU3luY0Vycm9yOwoKICBjb25zdCBzdGF0dXNDb2xvciA9IGhhc1N5bmNFcnJvciB8fCAoIWhhc0NhbEV2ZW50ICYmICFpc1Bhc3QpID8gImJvcmRlci1yZWQtMjAwIGJnLXJlZC01MC80MCIgOgogICAgaGFzQ3JpdGljYWxJc3N1ZSA/ICJib3JkZXItYW1iZXItMjAwIGJnLWFtYmVyLTUwLzMwIiA6CiAgICAiYm9yZGVyLWVtZXJhbGQtMjAwIGJnLWVtZXJhbGQtNTAvMjAiOwoKICBjb25zdCBzdGF0dXNJY29uID0gaGFzU3luY0Vycm9yIHx8ICghaGFzQ2FsRXZlbnQgJiYgIWlzUGFzdCkKICAgID8gPFhDaXJjbGUgY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtcmVkLTUwMCBmbGV4LXNocmluay0wIiAvPgogICAgOiBoYXNDcml0aWNhbElzc3VlCiAgICA/IDxBbGVydFRyaWFuZ2xlIGNsYXNzTmFtZT0idy00IGgtNCB0ZXh0LWFtYmVyLTUwMCBmbGV4LXNocmluay0wIiAvPgogICAgOiA8Q2hlY2tDaXJjbGUgY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtZW1lcmFsZC01MDAgZmxleC1zaHJpbmstMCIgLz47CgogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT17YGJvcmRlciByb3VuZGVkLWxnIG1iLTIgb3ZlcmZsb3ctaGlkZGVuICR7c3RhdHVzQ29sb3J9YH0+CiAgICAgIDxidXR0b24KICAgICAgICBjbGFzc05hbWU9InctZnVsbCBmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBweC0zIHB5LTIuNSB0ZXh0LWxlZnQiCiAgICAgICAgb25DbGljaz17KCkgPT4gc2V0T3BlbihvID0+ICFvKX0KICAgICAgPgogICAgICAgIHtzdGF0dXNJY29ufQogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4LTEgbWluLXctMCI+CiAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQteHMgZm9udC1ib2xkIHRleHQtc2xhdGUtODAwIj4KICAgICAgICAgICAge2xlYWQuZmlyc3RfbmFtZX0ge2xlYWQubGFzdF9uYW1lfQogICAgICAgICAgPC9zcGFuPgogICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSB0ZXh0LXNsYXRlLTUwMCBtbC0yIj4KICAgICAgICAgICAge2ZtdERhdGUoYXBwdERhdGUpfSB7YXBwdFRpbWV9IMK3IHtsZWFkLmFzc2lnbmVkX3JlcCB8fCAiTm8gcmVwIn0KICAgICAgICAgIDwvc3Bhbj4KICAgICAgICA8L2Rpdj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSBmbGV4LXNocmluay0wIHRleHQtWzEwcHhdIj4KICAgICAgICAgIHtpc1Bhc3QgPyAoCiAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1zbGF0ZS00MDAiPnBhc3Q8L3NwYW4+CiAgICAgICAgICApIDogKAogICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtc2xhdGUtNTAwIj57bWluc1VudGlsID49IDYwID8gYCR7TWF0aC5yb3VuZChtaW5zVW50aWwvNjApfWhgIDogYCR7bWluc1VudGlsfW1gfSBhd2F5PC9zcGFuPgogICAgICAgICAgKX0KICAgICAgICAgIHshaGFzQ2FsRXZlbnQgJiYgIWlzUGFzdCAmJiAoCiAgICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgICBvbkNsaWNrPXtlID0+IHsgZS5zdG9wUHJvcGFnYXRpb24oKTsgb25GaXgobGVhZCk7IH19CiAgICAgICAgICAgICAgZGlzYWJsZWQ9e2ZpeGluZ30KICAgICAgICAgICAgICBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0wLjUgcHgtMiBweS0wLjUgcm91bmRlZCBib3JkZXIgYm9yZGVyLWFtYmVyLTQwMCBiZy1hbWJlci01MCB0ZXh0LWFtYmVyLTcwMCBmb250LWJvbGQgaG92ZXI6YmctYW1iZXItMTAwIHRyYW5zaXRpb24tY29sb3JzIGRpc2FibGVkOm9wYWNpdHktNTAiCiAgICAgICAgICAgID4KICAgICAgICAgICAgICB7Zml4aW5nID8gPFJlZnJlc2hDdyBjbGFzc05hbWU9InctMi41IGgtMi41IGFuaW1hdGUtc3BpbiIgLz4gOiA8WmFwIGNsYXNzTmFtZT0idy0yLjUgaC0yLjUiIC8+fQogICAgICAgICAgICAgIEZpeAogICAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICAgICl9CiAgICAgICAgPC9kaXY+CiAgICAgICAge29wZW4gPyA8Q2hldnJvbkRvd24gY2xhc3NOYW1lPSJ3LTMgaC0zIHRleHQtc2xhdGUtNDAwIiAvPiA6IDxDaGV2cm9uUmlnaHQgY2xhc3NOYW1lPSJ3LTMgaC0zIHRleHQtc2xhdGUtNDAwIiAvPn0KICAgICAgPC9idXR0b24+CgogICAgICB7b3BlbiAmJiAoCiAgICAgICAgPGRpdiBjbGFzc05hbWU9InB4LTQgcGItMyBib3JkZXItdCBib3JkZXItc2xhdGUtMTAwIj4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJncmlkIGdyaWQtY29scy0yIGdhcC14LTYgZ2FwLXktMCBtdC0yIj4KICAgICAgICAgICAgey8qIExlZnQ6IHBpcGVsaW5lIHN0ZXBzICovfQogICAgICAgICAgICA8ZGl2PgogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSBmb250LWJvbGQgdXBwZXJjYXNlIHRyYWNraW5nLXdpZGVyIHRleHQtc2xhdGUtNDAwIG1iLTEiPlBpcGVsaW5lPC9kaXY+CiAgICAgICAgICAgICAgPFN0ZXAgb2s9e3RydWV9IGxhYmVsPSJMZWFkIENyZWF0ZWQiIGRldGFpbD17Zm10KGxlYWQuY3JlYXRlZF9kYXRlKX0gLz4KICAgICAgICAgICAgICA8U3RlcCBvaz17ISFhcHB0RGF0ZX0gbGFiZWw9IkFwcG9pbnRtZW50IFNldCIgZGV0YWlsPXthcHB0RGF0ZSA/IGAke2ZtdERhdGUoYXBwdERhdGUpfSAke2FwcHRUaW1lfWAgOiAibWlzc2luZyJ9IC8+CiAgICAgICAgICAgICAgPFN0ZXAgb2s9e2lzTWVldGluZ30gbGFiZWw9Ik1lZXRpbmcgVHlwZSIgZGV0YWlsPXtsZWFkLmZvbGxvd191cF90eXBlIHx8ICJub3Qgc2V0In0gLz4KICAgICAgICAgICAgICA8U3RlcAogICAgICAgICAgICAgICAgb2s9e2hhc0NhbEV2ZW50ID8gdHJ1ZSA6IChzeW5jU3RhdHVzID09PSAiZXJyb3IiID8gZmFsc2UgOiBudWxsKX0KICAgICAgICAgICAgICAgIGxhYmVsPSJHb29nbGUgQ2FsZW5kYXIgRXZlbnQiCiAgICAgICAgICAgICAgICBkZXRhaWw9e2hhc0NhbEV2ZW50ID8gbGVhZC5nb29nbGVfZXZlbnRfaWQ/LnNsaWNlKDAsIDEyKSArICLigKYiIDogKHN5bmNTdGF0dXMgPT09ICJlcnJvciIgPyAiZXJyb3IiIDogIm5vdCBjcmVhdGVkIil9CiAgICAgICAgICAgICAgLz4KICAgICAgICAgICAgICA8U3RlcAogICAgICAgICAgICAgICAgb2s9e2hhc0J1ZmZlciA/IHRydWUgOiAoaGFzQ2FsRXZlbnQgPyAid2FybiIgOiBudWxsKX0KICAgICAgICAgICAgICAgIGxhYmVsPSJUcmF2ZWwgQnVmZmVyIgogICAgICAgICAgICAgICAgZGV0YWlsPXtoYXNCdWZmZXIgPyBsZWFkLmdvb2dsZV90cmF2ZWxfZXZlbnRfaWQ/LnNsaWNlKDAsIDEyKSArICLigKYiIDogIm1pc3NpbmcifQogICAgICAgICAgICAgIC8+CiAgICAgICAgICAgICAge3N5bmNFcnJvciAmJiAoCiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibXQtMSB0ZXh0LVsxMHB4XSB0ZXh0LXJlZC02MDAgYmctcmVkLTUwIGJvcmRlciBib3JkZXItcmVkLTIwMCByb3VuZGVkIHB4LTIgcHktMSI+CiAgICAgICAgICAgICAgICAgIOKaoCB7c3luY0Vycm9yfQogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgPC9kaXY+CgogICAgICAgICAgICB7LyogUmlnaHQ6IHJlbWluZGVyIHdpbmRvd3MgKi99CiAgICAgICAgICAgIDxkaXY+CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtWzEwcHhdIGZvbnQtYm9sZCB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZXIgdGV4dC1zbGF0ZS00MDAgbWItMSI+UmVtaW5kZXJzPC9kaXY+CiAgICAgICAgICAgICAge1JFTUlOREVSX1dJTkRPV1MubWFwKHdpbiA9PiB7CiAgICAgICAgICAgICAgICBjb25zdCB0YXJnZXRNcyA9IGFwcHRNcyAtIFdJTkRPV19NSU5TW3dpbl0gKiA2MCAqIDEwMDA7CiAgICAgICAgICAgICAgICBjb25zdCBzaG91bGRIYXZlRmlyZWQgPSB0YXJnZXRNcyA8PSBub3c7CiAgICAgICAgICAgICAgICBjb25zdCBoYXNGaXJlZCA9IHJlbWluZGVyU3RhdGVbd2luXSA9PT0gInNlbnQiOwogICAgICAgICAgICAgICAgY29uc3QgaXNNaXNzZWQgPSBzaG91bGRIYXZlRmlyZWQgJiYgIWhhc0ZpcmVkOwogICAgICAgICAgICAgICAgcmV0dXJuICgKICAgICAgICAgICAgICAgICAgPFN0ZXAKICAgICAgICAgICAgICAgICAgICBrZXk9e3dpbn0KICAgICAgICAgICAgICAgICAgICBvaz17aGFzRmlyZWQgPyB0cnVlIDogaXNNaXNzZWQgPyBmYWxzZSA6IG51bGx9CiAgICAgICAgICAgICAgICAgICAgbGFiZWw9e2Ake3dpbn0gcmVtaW5kZXJgfQogICAgICAgICAgICAgICAgICAgIGRldGFpbD17aGFzRmlyZWQgPyAic2VudCIgOiBpc01pc3NlZCA/ICJNSVNTRUQiIDogInBlbmRpbmcifQogICAgICAgICAgICAgICAgICAvPgogICAgICAgICAgICAgICAgKTsKICAgICAgICAgICAgICB9KX0KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibXQtMiBmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiI+CiAgICAgICAgICAgIDxhCiAgICAgICAgICAgICAgaHJlZj17YC9sZWFkcy8ke2xlYWQuaWR9YH0KICAgICAgICAgICAgICBjbGFzc05hbWU9InRleHQtWzEwcHhdIGZvbnQtc2VtaWJvbGQgdGV4dC1ibHVlLTYwMCBob3Zlcjp1bmRlcmxpbmUiCiAgICAgICAgICAgICAgdGFyZ2V0PSJfYmxhbmsiIHJlbD0ibm9yZWZlcnJlciIKICAgICAgICAgICAgPgogICAgICAgICAgICAgIE9wZW4gTGVhZCDihpIKICAgICAgICAgICAgPC9hPgogICAgICAgICAgICB7bGVhZC5nb29nbGVfZXZlbnRfaWQgJiYgKAogICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gdGV4dC1zbGF0ZS00MDAiPkNhbCBJRDoge2xlYWQuZ29vZ2xlX2V2ZW50X2lkfTwvc3Bhbj4KICAgICAgICAgICAgKX0KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICApfQogICAgPC9kaXY+CiAgKTsKfQoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gTWVldGluZ1BpcGVsaW5lQXVkaXQoKSB7CiAgY29uc3QgW2xlYWRzLCBzZXRMZWFkc10gPSB1c2VTdGF0ZShbXSk7CiAgY29uc3QgW3NlbnRLZXlzLCBzZXRTZW50S2V5c10gPSB1c2VTdGF0ZShuZXcgU2V0KCkpOwogIGNvbnN0IFtsb2FkaW5nLCBzZXRMb2FkaW5nXSA9IHVzZVN0YXRlKGZhbHNlKTsKICBjb25zdCBbZml4aW5nSWQsIHNldEZpeGluZ0lkXSA9IHVzZVN0YXRlKG51bGwpOwogIGNvbnN0IFtmaXhNc2csIHNldEZpeE1zZ10gPSB1c2VTdGF0ZShudWxsKTsKICBjb25zdCBbZmlsdGVyLCBzZXRGaWx0ZXJdID0gdXNlU3RhdGUoImlzc3VlcyIpOwoKICBjb25zdCBsb2FkID0gYXN5bmMgKCkgPT4gewogICAgc2V0TG9hZGluZyh0cnVlKTsKICAgIHNldEZpeE1zZyhudWxsKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IFtsZWFkc1Jlc3AsIGFjdGl2aXRpZXNSZXNwXSA9IGF3YWl0IFByb21pc2UuYWxsKFsKICAgICAgICByYWlsd2F5TGVhZHMubGlzdCh7IHNvcnQ6ICItY3JlYXRlZF9kYXRlIiwgbGltaXQ6IDMwMDAgfSksCiAgICAgICAgcmFpbHdheUFjdGl2aXRpZXMubGlzdCh7IGxpbWl0OiAzMDAwIH0pLAogICAgICBdKTsKICAgICAgY29uc3QgW2FsbExlYWRzLCBhY3Rpdml0aWVzXSA9IFtsZWFkc1Jlc3AuaXRlbXMgfHwgW10sIGFjdGl2aXRpZXNSZXNwLml0ZW1zIHx8IFtdXTsKCiAgICAgIC8vIE9ubHkga2VlcCBsZWFkcyB3aXRoIGEgZnV0dXJlIG9yIHNhbWUtZGF5IE1lZXRpbmcgYXBwb2ludG1lbnQKICAgICAgY29uc3QgdG9kYXkgPSBuZXcgRGF0ZSgpLnRvSVNPU3RyaW5nKCkuc2xpY2UoMCwgMTApOwogICAgICBjb25zdCByZWxldmFudCA9IGFsbExlYWRzLmZpbHRlcihsID0+IHsKICAgICAgICBjb25zdCBkYXRlID0gbC5hcHBvaW50bWVudF9kYXRlIHx8IGwuZm9sbG93X3VwX2RhdGU7CiAgICAgICAgcmV0dXJuIGwuZm9sbG93X3VwX3R5cGUgPT09ICJNZWV0aW5nIiAmJiBkYXRlID49IHRvZGF5OwogICAgICB9KTsKICAgICAgcmVsZXZhbnQuc29ydCgoYSwgYikgPT4gewogICAgICAgIGNvbnN0IGRhID0gYS5hcHBvaW50bWVudF9kYXRlIHx8IGEuZm9sbG93X3VwX2RhdGU7CiAgICAgICAgY29uc3QgZGIgPSBiLmFwcG9pbnRtZW50X2RhdGUgfHwgYi5mb2xsb3dfdXBfZGF0ZTsKICAgICAgICByZXR1cm4gZGEgPCBkYiA/IC0xIDogZGEgPiBkYiA/IDEgOiAwOwogICAgICB9KTsKICAgICAgc2V0TGVhZHMocmVsZXZhbnQpOwoKICAgICAgLy8gQnVpbGQgc2VudCBrZXlzIGZyb20gYWN0aXZpdHkgbG9nCiAgICAgIGNvbnN0IGtleXMgPSBuZXcgU2V0KAogICAgICAgIGFjdGl2aXRpZXMKICAgICAgICAgIC5maWx0ZXIoYSA9PiBhLmNvbnRlbnQ/LnN0YXJ0c1dpdGgoIlJFTUlOREVSX1NFTlQ6IikpCiAgICAgICAgICAubWFwKGEgPT4gYS5jb250ZW50LnJlcGxhY2UoIlJFTUlOREVSX1NFTlQ6IiwgIiIpLnRyaW0oKSkKICAgICAgKTsKICAgICAgc2V0U2VudEtleXMoa2V5cyk7CiAgICB9IGZpbmFsbHkgewogICAgICBzZXRMb2FkaW5nKGZhbHNlKTsKICAgIH0KICB9OwoKICB1c2VFZmZlY3QoKCkgPT4geyBsb2FkKCk7IH0sIFtdKTsKCiAgY29uc3QgZml4TGVhZCA9IGFzeW5jIChsZWFkKSA9PiB7CiAgICBzZXRGaXhpbmdJZChsZWFkLmlkKTsKICAgIHNldEZpeE1zZyhudWxsKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IGV4dGVybmFsUmVmID0gbGVhZC5leHRlcm5hbF9yZWYgfHwgbGVhZC5pZDsKICAgICAgY29uc3QgcmVzID0gYXdhaXQgcmFpbHdheUxlYWRzLnN5bmNDYWxlbmRhcihleHRlcm5hbFJlZik7CiAgICAgIGlmIChyZXM/LnN1Y2Nlc3MpIHsKICAgICAgICBzZXRGaXhNc2coeyB0eXBlOiAic3VjY2VzcyIsIHRleHQ6IGDinJMgQ2FsZW5kYXIgc3luY2VkIGZvciAke2xlYWQuZmlyc3RfbmFtZX0gJHtsZWFkLmxhc3RfbmFtZX1gIH0pOwogICAgICAgIGF3YWl0IGxvYWQoKTsKICAgICAgfSBlbHNlIHsKICAgICAgICBzZXRGaXhNc2coeyB0eXBlOiAiZXJyb3IiLCB0ZXh0OiBgRml4IGZhaWxlZDogJHtyZXM/LmVycm9yIHx8IHJlcz8ubWVzc2FnZSB8fCAiVW5rbm93biBlcnJvciJ9YCB9KTsKICAgICAgfQogICAgfSBjYXRjaCAoZSkgewogICAgICBzZXRGaXhNc2coeyB0eXBlOiAiZXJyb3IiLCB0ZXh0OiBlLm1lc3NhZ2UgfSk7CiAgICB9IGZpbmFsbHkgewogICAgICBzZXRGaXhpbmdJZChudWxsKTsKICAgIH0KICB9OwoKICBjb25zdCBmaXhBbGwgPSBhc3luYyAoKSA9PiB7CiAgICBjb25zdCBicm9rZW4gPSBsZWFkcy5maWx0ZXIobCA9PiAhbC5nb29nbGVfZXZlbnRfaWQpOwogICAgc2V0Rml4TXNnKHsgdHlwZTogImluZm8iLCB0ZXh0OiBgRml4aW5nICR7YnJva2VuLmxlbmd0aH0gbGVhZHPigKZgIH0pOwogICAgZm9yIChjb25zdCBsZWFkIG9mIGJyb2tlbikgewogICAgICBhd2FpdCBmaXhMZWFkKGxlYWQpOwogICAgfQogICAgc2V0Rml4TXNnKHsgdHlwZTogInN1Y2Nlc3MiLCB0ZXh0OiBgRG9uZSDigJQgZml4ZWQgJHticm9rZW4ubGVuZ3RofSBsZWFkc2AgfSk7CiAgfTsKCiAgLy8gQ29tcHV0ZSBpc3N1ZSBzdGF0cwogIGNvbnN0IFdJTkRPV19NSU5TID0geyAiNDhoIjogMjg4MCwgIjI0aCI6IDE0NDAsICIxMmgiOiA3MjAsICIyaCI6IDEyMCwgIjMwbWluIjogMzAgfTsKICBjb25zdCBub3cgPSBEYXRlLm5vdygpOwoKICBmdW5jdGlvbiBwYWNpZmljVG9VdGNNcyhkYXRlU3RyLCB0aW1lU3RyKSB7CiAgICB0cnkgewogICAgICBjb25zdCBwcm9iZSA9IG5ldyBEYXRlKGAke2RhdGVTdHJ9VDEyOjAwOjAwWmApOwogICAgICBjb25zdCBsYUhvdXIgPSBOdW1iZXIobmV3IEludGwuRGF0ZVRpbWVGb3JtYXQoImVuLUNBIiwgewogICAgICAgIHRpbWVab25lOiAiQW1lcmljYS9Mb3NfQW5nZWxlcyIsIGhvdXI6ICIyLWRpZ2l0IiwgaG91cjEyOiBmYWxzZSwKICAgICAgfSkuZm9ybWF0KHByb2JlKSk7CiAgICAgIGNvbnN0IFt5LCBtbywgZF0gPSBkYXRlU3RyLnNwbGl0KCItIikubWFwKE51bWJlcik7CiAgICAgIGNvbnN0IFtoLCBtXSA9ICh0aW1lU3RyIHx8ICIwOTowMCIpLnNwbGl0KCI6IikubWFwKE51bWJlcik7CiAgICAgIHJldHVybiBEYXRlLlVUQyh5LCBtbyAtIDEsIGQsIGggLSAobGFIb3VyIC0gMTIpLCBtLCAwKTsKICAgIH0gY2F0Y2ggeyByZXR1cm4gMDsgfQogIH0KCiAgY29uc3Qgd2l0aElzc3VlcyA9IGxlYWRzLmZpbHRlcihsID0+IHsKICAgIGlmICghbC5nb29nbGVfZXZlbnRfaWQpIHJldHVybiB0cnVlOwogICAgaWYgKCFsLmdvb2dsZV90cmF2ZWxfZXZlbnRfaWQpIHJldHVybiB0cnVlOwogICAgaWYgKGwuZ29vZ2xlX2NhbGVuZGFyX3N5bmNfc3RhdHVzID09PSAiZXJyb3IiKSByZXR1cm4gdHJ1ZTsKICAgIGNvbnN0IGFwcHREYXRlID0gbC5hcHBvaW50bWVudF9kYXRlIHx8IGwuZm9sbG93X3VwX2RhdGU7CiAgICBjb25zdCBhcHB0TXMgPSBwYWNpZmljVG9VdGNNcyhhcHB0RGF0ZSwgbC5hcHBvaW50bWVudF90aW1lIHx8IGwuZm9sbG93X3VwX3RpbWUgfHwgIjA5OjAwIik7CiAgICBjb25zdCBtaXNzZWRBbnkgPSBSRU1JTkRFUl9XSU5ET1dTLnNvbWUod2luID0+IHsKICAgICAgY29uc3QgdGFyZ2V0TXMgPSBhcHB0TXMgLSBXSU5ET1dfTUlOU1t3aW5dICogNjAgKiAxMDAwOwogICAgICByZXR1cm4gdGFyZ2V0TXMgPD0gbm93ICYmICFzZW50S2V5cy5oYXMoYHJlbWluZGVyOiR7bC5pZH06JHt3aW59OiR7YXBwdERhdGV9YCk7CiAgICB9KTsKICAgIHJldHVybiBtaXNzZWRBbnk7CiAgfSk7CgogIGNvbnN0IG9rID0gbGVhZHMuZmlsdGVyKGwgPT4gIXdpdGhJc3N1ZXMuaW5jbHVkZXMobCkpOwogIGNvbnN0IGZpbHRlcmVkID0gZmlsdGVyID09PSAiaXNzdWVzIiA/IHdpdGhJc3N1ZXMgOiBmaWx0ZXIgPT09ICJvayIgPyBvayA6IGxlYWRzOwogIGNvbnN0IGJyb2tlbkNhbENvdW50ID0gbGVhZHMuZmlsdGVyKGwgPT4gIWwuZ29vZ2xlX2V2ZW50X2lkKS5sZW5ndGg7CgogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT0iYmctd2hpdGUgcm91bmRlZC14bCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCBzaGFkb3ctc20gcC01Ij4KICAgICAgey8qIEhlYWRlciAqL30KICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBtYi00Ij4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIiPgogICAgICAgICAgPENhbGVuZGFyIGNsYXNzTmFtZT0idy00IGgtNCB0ZXh0LWFtYmVyLTYwMCIgLz4KICAgICAgICAgIDxoMiBjbGFzc05hbWU9InRleHQtc20gZm9udC1ib2xkIHRleHQtc2xhdGUtOTAwIj5NZWV0aW5nIOKGkiBDYWxlbmRhciDihpIgUmVtaW5kZXIgUGlwZWxpbmU8L2gyPgogICAgICAgIDwvZGl2PgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiI+CiAgICAgICAgICB7YnJva2VuQ2FsQ291bnQgPiAwICYmICgKICAgICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICAgIG9uQ2xpY2s9e2ZpeEFsbH0KICAgICAgICAgICAgICBkaXNhYmxlZD17ISFmaXhpbmdJZH0KICAgICAgICAgICAgICBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0xLjUgcHgtMyBweS0xLjUgYmctYW1iZXItNjAwIGhvdmVyOmJnLWFtYmVyLTcwMCB0ZXh0LXdoaXRlIHRleHQteHMgZm9udC1zZW1pYm9sZCByb3VuZGVkLWxnIHRyYW5zaXRpb24tY29sb3JzIGRpc2FibGVkOm9wYWNpdHktNTAiCiAgICAgICAgICAgID4KICAgICAgICAgICAgICA8WmFwIGNsYXNzTmFtZT0idy0zIGgtMyIgLz4KICAgICAgICAgICAgICBGaXggQWxsICh7YnJva2VuQ2FsQ291bnR9KQogICAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICAgICl9CiAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgIG9uQ2xpY2s9e2xvYWR9CiAgICAgICAgICAgIGRpc2FibGVkPXtsb2FkaW5nfQogICAgICAgICAgICBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0xLjUgcHgtMyBweS0xLjUgYmctc2xhdGUtMTAwIGhvdmVyOmJnLXNsYXRlLTIwMCB0ZXh0LXNsYXRlLTcwMCB0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgcm91bmRlZC1sZyB0cmFuc2l0aW9uLWNvbG9ycyBkaXNhYmxlZDpvcGFjaXR5LTUwIgogICAgICAgICAgPgogICAgICAgICAgICA8UmVmcmVzaEN3IGNsYXNzTmFtZT17YHctMyBoLTMgJHtsb2FkaW5nID8gImFuaW1hdGUtc3BpbiIgOiAiIn1gfSAvPgogICAgICAgICAgICBSZWZyZXNoCiAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CgogICAgICB7LyogU3RhdHMgKi99CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJncmlkIGdyaWQtY29scy0zIGdhcC0yIG1iLTQiPgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1zbGF0ZS01MCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHAtMiB0ZXh0LWNlbnRlciI+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC14bCBmb250LWJvbGQgdGV4dC1zbGF0ZS04MDAiPntsZWFkcy5sZW5ndGh9PC9kaXY+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1bMTBweF0gdGV4dC1zbGF0ZS01MDAgZm9udC1zZW1pYm9sZCB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZSI+VG90YWwgTWVldGluZ3M8L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT17YGJvcmRlciByb3VuZGVkLWxnIHAtMiB0ZXh0LWNlbnRlciAke3dpdGhJc3N1ZXMubGVuZ3RoID4gMCA/ICJiZy1yZWQtNTAgYm9yZGVyLXJlZC0yMDAiIDogImJnLWVtZXJhbGQtNTAgYm9yZGVyLWVtZXJhbGQtMjAwIn1gfT4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPXtgdGV4dC14bCBmb250LWJvbGQgJHt3aXRoSXNzdWVzLmxlbmd0aCA+IDAgPyAidGV4dC1yZWQtNzAwIiA6ICJ0ZXh0LWVtZXJhbGQtNzAwIn1gfT57d2l0aElzc3Vlcy5sZW5ndGh9PC9kaXY+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1bMTBweF0gdGV4dC1zbGF0ZS01MDAgZm9udC1zZW1pYm9sZCB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZSI+SXNzdWVzIEZvdW5kPC9kaXY+CiAgICAgICAgPC9kaXY+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLWVtZXJhbGQtNTAgYm9yZGVyIGJvcmRlci1lbWVyYWxkLTIwMCByb3VuZGVkLWxnIHAtMiB0ZXh0LWNlbnRlciI+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC14bCBmb250LWJvbGQgdGV4dC1lbWVyYWxkLTcwMCI+e29rLmxlbmd0aH08L2Rpdj4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSB0ZXh0LXNsYXRlLTUwMCBmb250LXNlbWlib2xkIHVwcGVyY2FzZSB0cmFja2luZy13aWRlIj5GdWxseSBTeW5jZWQ8L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CgogICAgICB7Zml4TXNnICYmICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT17YG1iLTMgcHgtMyBweS0yIHJvdW5kZWQtbGcgdGV4dC14cyBmb250LXNlbWlib2xkIGJvcmRlciAkewogICAgICAgICAgZml4TXNnLnR5cGUgPT09ICJzdWNjZXNzIiA/ICJiZy1lbWVyYWxkLTUwIGJvcmRlci1lbWVyYWxkLTIwMCB0ZXh0LWVtZXJhbGQtNzAwIiA6CiAgICAgICAgICBmaXhNc2cudHlwZSA9PT0gImVycm9yIiA/ICJiZy1yZWQtNTAgYm9yZGVyLXJlZC0yMDAgdGV4dC1yZWQtNzAwIiA6CiAgICAgICAgICAiYmctYmx1ZS01MCBib3JkZXItYmx1ZS0yMDAgdGV4dC1ibHVlLTcwMCIKICAgICAgICB9YH0+e2ZpeE1zZy50ZXh0fTwvZGl2PgogICAgICApfQoKICAgICAgey8qIEZpbHRlciB0YWJzICovfQogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBnYXAtMSBib3JkZXItYiBib3JkZXItc2xhdGUtMjAwIG1iLTMiPgogICAgICAgIHtbCiAgICAgICAgICB7IGtleTogImlzc3VlcyIsIGxhYmVsOiBgSXNzdWVzICgke3dpdGhJc3N1ZXMubGVuZ3RofSlgIH0sCiAgICAgICAgICB7IGtleTogIm9rIiwgbGFiZWw6IGBPSyAoJHtvay5sZW5ndGh9KWAgfSwKICAgICAgICAgIHsga2V5OiAiYWxsIiwgbGFiZWw6IGBBbGwgKCR7bGVhZHMubGVuZ3RofSlgIH0sCiAgICAgICAgXS5tYXAoZiA9PiAoCiAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgIGtleT17Zi5rZXl9CiAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHNldEZpbHRlcihmLmtleSl9CiAgICAgICAgICAgIGNsYXNzTmFtZT17YHB4LTMgcHktMS41IHRleHQteHMgZm9udC1zZW1pYm9sZCBib3JkZXItYi0yIHRyYW5zaXRpb24tY29sb3JzICR7CiAgICAgICAgICAgICAgZmlsdGVyID09PSBmLmtleSA/ICJib3JkZXItYW1iZXItNjAwIHRleHQtYW1iZXItNzAwIiA6ICJib3JkZXItdHJhbnNwYXJlbnQgdGV4dC1zbGF0ZS01MDAgaG92ZXI6dGV4dC1zbGF0ZS03MDAiCiAgICAgICAgICAgIH1gfQogICAgICAgICAgPgogICAgICAgICAgICB7Zi5sYWJlbH0KICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICkpfQogICAgICA8L2Rpdj4KCiAgICAgIHtsb2FkaW5nICYmICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1jZW50ZXIgcHktOCI+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idy02IGgtNiBib3JkZXItMyBib3JkZXItc2xhdGUtMjAwIGJvcmRlci10LWFtYmVyLTYwMCByb3VuZGVkLWZ1bGwgYW5pbWF0ZS1zcGluIG14LWF1dG8gbWItMiIgLz4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTQwMCI+TG9hZGluZyBwaXBlbGluZSBkYXRh4oCmPC9wPgogICAgICAgIDwvZGl2PgogICAgICApfQoKICAgICAgeyFsb2FkaW5nICYmIGZpbHRlcmVkLmxlbmd0aCA9PT0gMCAmJiAoCiAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtY2VudGVyIHB5LTggdGV4dC1zbGF0ZS00MDAiPgogICAgICAgICAgPEJlbGwgY2xhc3NOYW1lPSJ3LTYgaC02IG14LWF1dG8gbWItMiBvcGFjaXR5LTMwIiAvPgogICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIj57ZmlsdGVyID09PSAiaXNzdWVzIiA/ICJObyBpc3N1ZXMgZm91bmQg4oCUIGFsbCBtZWV0aW5ncyBhcmUgZnVsbHkgc3luY2VkLiIgOiAiTm8gbWVldGluZ3MgaW4gdGhpcyB2aWV3LiJ9PC9wPgogICAgICAgIDwvZGl2PgogICAgICApfQoKICAgICAgPGRpdiBjbGFzc05hbWU9Im1heC1oLVs2MDBweF0gb3ZlcmZsb3cteS1hdXRvIHByLTEgc3BhY2UteS0wIj4KICAgICAgICB7ZmlsdGVyZWQubWFwKGxlYWQgPT4gKAogICAgICAgICAgPExlYWRSb3cKICAgICAgICAgICAga2V5PXtsZWFkLmlkfQogICAgICAgICAgICBsZWFkPXtsZWFkfQogICAgICAgICAgICBzZW50S2V5cz17c2VudEtleXN9CiAgICAgICAgICAgIG9uRml4PXtmaXhMZWFkfQogICAgICAgICAgICBmaXhpbmc9e2ZpeGluZ0lkID09PSBsZWFkLmlkfQogICAgICAgICAgLz4KICAgICAgICApKX0KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KICApOwp9
+/**
+ * MeetingPipelineAudit
+ *
+ * Admin diagnostic panel: traces the full pipeline for every lead with a
+ * future (or same-day) Meeting appointment.
+ *
+ * Pipeline steps per lead:
+ *  1. Lead Created
+ *  2. Follow-up / Appointment Set
+ *  3. Meeting Type = Meeting
+ *  4. Google Calendar Event Created
+ *  5. Travel Buffer Event Created
+ *  6. Reminder windows (48h, 24h, 12h, 2h, 30min) — sent or pending
+ *
+ * Also provides a "Fix All" button that re-runs calendar sync for any lead
+ * missing events.
+ */
+import { useState, useEffect } from "react";
+import * as railwayLeads from "@/api/railway/leads";
+import * as railwayActivities from "@/api/railway/activities";
+import {
+  CheckCircle, XCircle, Clock, RefreshCw, AlertTriangle,
+  Calendar, Zap, ChevronDown, ChevronRight, Bell
+} from "lucide-react";
+
+const REMINDER_WINDOWS = ['48h', '24h', '12h', '2h', '30min'];
+
+function fmt(d) {
+  if (!d) return "—";
+  return new Date(d).toLocaleString("en-US", {
+    month: "short", day: "numeric", year: "numeric",
+    hour: "numeric", minute: "2-digit", timeZone: "America/Los_Angeles"
+  });
+}
+
+function fmtDate(d) {
+  if (!d) return "—";
+  const [y, mo, day] = d.split("-").map(Number);
+  return new Date(y, mo - 1, day).toLocaleDateString("en-US", {
+    weekday: "short", month: "short", day: "numeric", year: "numeric"
+  });
+}
+
+function Step({ ok, label, detail, warn }) {
+  const icon = ok === true
+    ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+    : ok === "warn"
+    ? <AlertTriangle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+    : ok === null
+    ? <Clock className="w-3.5 h-3.5 text-slate-300 flex-shrink-0" />
+    : <XCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />;
+
+  return (
+    <div className="flex items-start gap-1.5 py-0.5">
+      {icon}
+      <div className="min-w-0">
+        <span className={`text-[11px] font-semibold ${
+          ok === true ? "text-emerald-700" :
+          ok === "warn" ? "text-amber-700" :
+          ok === null ? "text-slate-400" :
+          "text-red-700"
+        }`}>{label}</span>
+        {detail && <span className="text-[10px] text-slate-400 ml-1">{detail}</span>}
+      </div>
+    </div>
+  );
+}
+
+function LeadRow({ lead, sentKeys, onFix, fixing }) {
+  const [open, setOpen] = useState(false);
+
+  const apptDate = lead.appointment_date || lead.follow_up_date;
+  const apptTime = lead.appointment_time || lead.follow_up_time || "09:00";
+  const isMeeting = lead.follow_up_type === "Meeting";
+  const hasCalEvent = !!lead.google_event_id;
+  const hasBuffer = !!lead.google_travel_event_id;
+  const syncStatus = lead.google_calendar_sync_status;
+  const syncError = lead.google_calendar_sync_error;
+
+  // Reminder state
+  const reminderState = {};
+  for (const win of REMINDER_WINDOWS) {
+    const key = `reminder:${lead.id}:${win}:${apptDate}`;
+    reminderState[win] = sentKeys.has(key) ? "sent" : "pending";
+  }
+
+  // Compute appointment UTC ms for comparison
+  function pacificToUtcMs(dateStr, timeStr) {
+    try {
+      const probe = new Date(`${dateStr}T12:00:00Z`);
+      const laHour = Number(new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Los_Angeles", hour: "2-digit", hour12: false,
+      }).format(probe));
+      const [y, mo, d] = dateStr.split("-").map(Number);
+      const [h, m] = (timeStr || "09:00").split(":").map(Number);
+      return Date.UTC(y, mo - 1, d, h - (laHour - 12), m, 0);
+    } catch { return 0; }
+  }
+
+  const apptMs = apptDate ? pacificToUtcMs(apptDate, apptTime) : 0;
+  const now = Date.now();
+  const isPast = apptMs < now;
+  const minsUntil = Math.round((apptMs - now) / 60000);
+
+  // Which reminder windows are expected to have fired by now?
+  const WINDOW_MINS = { "48h": 2880, "24h": 1440, "12h": 720, "2h": 120, "30min": 30 };
+  const expectedSent = REMINDER_WINDOWS.filter(win => {
+    const targetMs = apptMs - WINDOW_MINS[win] * 60 * 1000;
+    return targetMs <= now;
+  });
+  const missedReminders = expectedSent.filter(win => reminderState[win] === "pending");
+
+  // Overall status
+  const hasCriticalIssue = !hasCalEvent || !hasBuffer || missedReminders.length > 0;
+  const hasSyncError = syncStatus === "error";
+  const overallOk = !hasCriticalIssue && !hasSyncError;
+
+  const statusColor = hasSyncError || (!hasCalEvent && !isPast) ? "border-red-200 bg-red-50/40" :
+    hasCriticalIssue ? "border-amber-200 bg-amber-50/30" :
+    "border-emerald-200 bg-emerald-50/20";
+
+  const statusIcon = hasSyncError || (!hasCalEvent && !isPast)
+    ? <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+    : hasCriticalIssue
+    ? <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+    : <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />;
+
+  return (
+    <div className={`border rounded-lg mb-2 overflow-hidden ${statusColor}`}>
+      <button
+        className="w-full flex items-center gap-2 px-3 py-2.5 text-left"
+        onClick={() => setOpen(o => !o)}
+      >
+        {statusIcon}
+        <div className="flex-1 min-w-0">
+          <span className="text-xs font-bold text-slate-800">
+            {lead.first_name} {lead.last_name}
+          </span>
+          <span className="text-[10px] text-slate-500 ml-2">
+            {fmtDate(apptDate)} {apptTime} · {lead.assigned_rep || "No rep"}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 flex-shrink-0 text-[10px]">
+          {isPast ? (
+            <span className="text-slate-400">past</span>
+          ) : (
+            <span className="text-slate-500">{minsUntil >= 60 ? `${Math.round(minsUntil/60)}h` : `${minsUntil}m`} away</span>
+          )}
+          {!hasCalEvent && !isPast && (
+            <button
+              onClick={e => { e.stopPropagation(); onFix(lead); }}
+              disabled={fixing}
+              className="flex items-center gap-0.5 px-2 py-0.5 rounded border border-amber-400 bg-amber-50 text-amber-700 font-bold hover:bg-amber-100 transition-colors disabled:opacity-50"
+            >
+              {fixing ? <RefreshCw className="w-2.5 h-2.5 animate-spin" /> : <Zap className="w-2.5 h-2.5" />}
+              Fix
+            </button>
+          )}
+        </div>
+        {open ? <ChevronDown className="w-3 h-3 text-slate-400" /> : <ChevronRight className="w-3 h-3 text-slate-400" />}
+      </button>
+
+      {open && (
+        <div className="px-4 pb-3 border-t border-slate-100">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-0 mt-2">
+            {/* Left: pipeline steps */}
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Pipeline</div>
+              <Step ok={true} label="Lead Created" detail={fmt(lead.created_date)} />
+              <Step ok={!!apptDate} label="Appointment Set" detail={apptDate ? `${fmtDate(apptDate)} ${apptTime}` : "missing"} />
+              <Step ok={isMeeting} label="Meeting Type" detail={lead.follow_up_type || "not set"} />
+              <Step
+                ok={hasCalEvent ? true : (syncStatus === "error" ? false : null)}
+                label="Google Calendar Event"
+                detail={hasCalEvent ? lead.google_event_id?.slice(0, 12) + "…" : (syncStatus === "error" ? "error" : "not created")}
+              />
+              <Step
+                ok={hasBuffer ? true : (hasCalEvent ? "warn" : null)}
+                label="Travel Buffer"
+                detail={hasBuffer ? lead.google_travel_event_id?.slice(0, 12) + "…" : "missing"}
+              />
+              {syncError && (
+                <div className="mt-1 text-[10px] text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1">
+                  ⚠ {syncError}
+                </div>
+              )}
+            </div>
+
+            {/* Right: reminder windows */}
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Reminders</div>
+              {REMINDER_WINDOWS.map(win => {
+                const targetMs = apptMs - WINDOW_MINS[win] * 60 * 1000;
+                const shouldHaveFired = targetMs <= now;
+                const hasFired = reminderState[win] === "sent";
+                const isMissed = shouldHaveFired && !hasFired;
+                return (
+                  <Step
+                    key={win}
+                    ok={hasFired ? true : isMissed ? false : null}
+                    label={`${win} reminder`}
+                    detail={hasFired ? "sent" : isMissed ? "MISSED" : "pending"}
+                  />
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mt-2 flex items-center gap-2">
+            <a
+              href={`/leads/${lead.id}`}
+              className="text-[10px] font-semibold text-blue-600 hover:underline"
+              target="_blank" rel="noreferrer"
+            >
+              Open Lead →
+            </a>
+            {lead.google_event_id && (
+              <span className="text-[10px] text-slate-400">Cal ID: {lead.google_event_id}</span>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function MeetingPipelineAudit() {
+  const [leads, setLeads] = useState([]);
+  const [sentKeys, setSentKeys] = useState(new Set());
+  const [loading, setLoading] = useState(false);
+  const [fixingId, setFixingId] = useState(null);
+  const [fixMsg, setFixMsg] = useState(null);
+  const [filter, setFilter] = useState("issues");
+
+  const load = async () => {
+    setLoading(true);
+    setFixMsg(null);
+    try {
+      const [leadsResp, activitiesResp] = await Promise.all([
+        railwayLeads.list({ sort: "-created_date", limit: 3000 }),
+        railwayActivities.list({ limit: 3000 }),
+      ]);
+      const [allLeads, activities] = [leadsResp.items || [], activitiesResp.items || []];
+
+      // Only keep leads with a future or same-day Meeting appointment
+      const today = new Date().toISOString().slice(0, 10);
+      const relevant = allLeads.filter(l => {
+        const date = l.appointment_date || l.follow_up_date;
+        return l.follow_up_type === "Meeting" && date >= today;
+      });
+      relevant.sort((a, b) => {
+        const da = a.appointment_date || a.follow_up_date;
+        const db = b.appointment_date || b.follow_up_date;
+        return da < db ? -1 : da > db ? 1 : 0;
+      });
+      setLeads(relevant);
+
+      // Build sent keys from activity log
+      const keys = new Set(
+        activities
+          .filter(a => a.content?.startsWith("REMINDER_SENT:"))
+          .map(a => a.content.replace("REMINDER_SENT:", "").trim())
+      );
+      setSentKeys(keys);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const fixLead = async (lead) => {
+    setFixingId(lead.id);
+    setFixMsg(null);
+    try {
+      const externalRef = lead.external_ref || lead.id;
+      const res = await railwayLeads.syncCalendar(externalRef);
+      if (res?.success) {
+        setFixMsg({ type: "success", text: `✓ Calendar synced for ${lead.first_name} ${lead.last_name}` });
+        await load();
+      } else {
+        setFixMsg({ type: "error", text: `Fix failed: ${res?.error || res?.message || "Unknown error"}` });
+      }
+    } catch (e) {
+      setFixMsg({ type: "error", text: e.message });
+    } finally {
+      setFixingId(null);
+    }
+  };
+
+  const fixAll = async () => {
+    const broken = leads.filter(l => !l.google_event_id);
+    setFixMsg({ type: "info", text: `Fixing ${broken.length} leads…` });
+    for (const lead of broken) {
+      await fixLead(lead);
+    }
+    setFixMsg({ type: "success", text: `Done — fixed ${broken.length} leads` });
+  };
+
+  // Compute issue stats
+  const WINDOW_MINS = { "48h": 2880, "24h": 1440, "12h": 720, "2h": 120, "30min": 30 };
+  const now = Date.now();
+
+  function pacificToUtcMs(dateStr, timeStr) {
+    try {
+      const probe = new Date(`${dateStr}T12:00:00Z`);
+      const laHour = Number(new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Los_Angeles", hour: "2-digit", hour12: false,
+      }).format(probe));
+      const [y, mo, d] = dateStr.split("-").map(Number);
+      const [h, m] = (timeStr || "09:00").split(":").map(Number);
+      return Date.UTC(y, mo - 1, d, h - (laHour - 12), m, 0);
+    } catch { return 0; }
+  }
+
+  const withIssues = leads.filter(l => {
+    if (!l.google_event_id) return true;
+    if (!l.google_travel_event_id) return true;
+    if (l.google_calendar_sync_status === "error") return true;
+    const apptDate = l.appointment_date || l.follow_up_date;
+    const apptMs = pacificToUtcMs(apptDate, l.appointment_time || l.follow_up_time || "09:00");
+    const missedAny = REMINDER_WINDOWS.some(win => {
+      const targetMs = apptMs - WINDOW_MINS[win] * 60 * 1000;
+      return targetMs <= now && !sentKeys.has(`reminder:${l.id}:${win}:${apptDate}`);
+    });
+    return missedAny;
+  });
+
+  const ok = leads.filter(l => !withIssues.includes(l));
+  const filtered = filter === "issues" ? withIssues : filter === "ok" ? ok : leads;
+  const brokenCalCount = leads.filter(l => !l.google_event_id).length;
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Calendar className="w-4 h-4 text-amber-600" />
+          <h2 className="text-sm font-bold text-slate-900">Meeting → Calendar → Reminder Pipeline</h2>
+        </div>
+        <div className="flex items-center gap-2">
+          {brokenCalCount > 0 && (
+            <button
+              onClick={fixAll}
+              disabled={!!fixingId}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
+            >
+              <Zap className="w-3 h-3" />
+              Fix All ({brokenCalCount})
+            </button>
+          )}
+          <button
+            onClick={load}
+            disabled={loading}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-2 mb-4">
+        <div className="bg-slate-50 border border-slate-200 rounded-lg p-2 text-center">
+          <div className="text-xl font-bold text-slate-800">{leads.length}</div>
+          <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide">Total Meetings</div>
+        </div>
+        <div className={`border rounded-lg p-2 text-center ${withIssues.length > 0 ? "bg-red-50 border-red-200" : "bg-emerald-50 border-emerald-200"}`}>
+          <div className={`text-xl font-bold ${withIssues.length > 0 ? "text-red-700" : "text-emerald-700"}`}>{withIssues.length}</div>
+          <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide">Issues Found</div>
+        </div>
+        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-2 text-center">
+          <div className="text-xl font-bold text-emerald-700">{ok.length}</div>
+          <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide">Fully Synced</div>
+        </div>
+      </div>
+
+      {fixMsg && (
+        <div className={`mb-3 px-3 py-2 rounded-lg text-xs font-semibold border ${
+          fixMsg.type === "success" ? "bg-emerald-50 border-emerald-200 text-emerald-700" :
+          fixMsg.type === "error" ? "bg-red-50 border-red-200 text-red-700" :
+          "bg-blue-50 border-blue-200 text-blue-700"
+        }`}>{fixMsg.text}</div>
+      )}
+
+      {/* Filter tabs */}
+      <div className="flex gap-1 border-b border-slate-200 mb-3">
+        {[
+          { key: "issues", label: `Issues (${withIssues.length})` },
+          { key: "ok", label: `OK (${ok.length})` },
+          { key: "all", label: `All (${leads.length})` },
+        ].map(f => (
+          <button
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={`px-3 py-1.5 text-xs font-semibold border-b-2 transition-colors ${
+              filter === f.key ? "border-amber-600 text-amber-700" : "border-transparent text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {loading && (
+        <div className="text-center py-8">
+          <div className="w-6 h-6 border-3 border-slate-200 border-t-amber-600 rounded-full animate-spin mx-auto mb-2" />
+          <p className="text-xs text-slate-400">Loading pipeline data…</p>
+        </div>
+      )}
+
+      {!loading && filtered.length === 0 && (
+        <div className="text-center py-8 text-slate-400">
+          <Bell className="w-6 h-6 mx-auto mb-2 opacity-30" />
+          <p className="text-xs">{filter === "issues" ? "No issues found — all meetings are fully synced." : "No meetings in this view."}</p>
+        </div>
+      )}
+
+      <div className="max-h-[600px] overflow-y-auto pr-1 space-y-0">
+        {filtered.map(lead => (
+          <LeadRow
+            key={lead.id}
+            lead={lead}
+            sentKeys={sentKeys}
+            onFix={fixLead}
+            fixing={fixingId === lead.id}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}

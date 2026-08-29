@@ -1,1 +1,141 @@
-LyoqCiAqIER1cGxpY2F0ZSBEZXRlY3Rpb24gJiBOb3JtYWxpemF0aW9uIFV0aWxpdGllcwogKiAKICogUHJvdmlkZXMgZnVuY3Rpb25zIHRvOgogKiAtIE5vcm1hbGl6ZSBwaG9uZSBudW1iZXJzIGFuZCBlbWFpbHMKICogLSBEZXRlY3QgcG90ZW50aWFsIGR1cGxpY2F0ZXMgYnkgbXVsdGlwbGUgY3JpdGVyaWEKICogLSBGaW5kIGJlc3QgbWF0Y2ggZm9yIGEgbGVhZAogKi8KCi8qKgogKiBOb3JtYWxpemUgcGhvbmUgbnVtYmVyIHRvIGRpZ2l0cyBvbmx5CiAqIEhhbmRsZXM6ICsxLTMxMC0yNTEtNzQ1NCwgKDMxMCkgMjUxLTc0NTQsIDMxMDI1MTc0NTQsIGV0Yy4KICovCmV4cG9ydCBmdW5jdGlvbiBub3JtYWxpemVQaG9uZShwaG9uZSkgewogIGlmICghcGhvbmUpIHJldHVybiBudWxsOwogIGNvbnN0IGRpZ2l0cyA9IFN0cmluZyhwaG9uZSkucmVwbGFjZSgvXEQvZywgJycpOwogIC8vIFJlbW92ZSBsZWFkaW5nIDEgaWYgMTEgZGlnaXRzIChVUykKICByZXR1cm4gZGlnaXRzLmxlbmd0aCA9PT0gMTEgJiYgZGlnaXRzWzBdID09PSAnMScgPyBkaWdpdHMuc2xpY2UoMSkgOiBkaWdpdHM7Cn0KCi8qKgogKiBOb3JtYWxpemUgZW1haWwgdG8gbG93ZXJjYXNlCiAqLwpleHBvcnQgZnVuY3Rpb24gbm9ybWFsaXplRW1haWwoZW1haWwpIHsKICBpZiAoIWVtYWlsKSByZXR1cm4gbnVsbDsKICByZXR1cm4gU3RyaW5nKGVtYWlsKS50b0xvd2VyQ2FzZSgpLnRyaW0oKTsKfQoKLyoqCiAqIE5vcm1hbGl6ZSBuYW1lICh0aXRsZSBjYXNlLCB0cmltKQogKi8KZXhwb3J0IGZ1bmN0aW9uIG5vcm1hbGl6ZU5hbWUobmFtZSkgewogIGlmICghbmFtZSkgcmV0dXJuIG51bGw7CiAgcmV0dXJuIFN0cmluZyhuYW1lKS50cmltKCkudG9Mb3dlckNhc2UoKTsKfQoKLyoqCiAqIEZpbmQgcG90ZW50aWFsIGR1cGxpY2F0ZXMgaW4gbGVhZCBsaXN0CiAqIFJldHVybnMgYXJyYXkgb2YgeyBsZWFkQSwgbGVhZEIsIG1hdGNoVHlwZSwgY29uZmlkZW5jZSB9CiAqLwpleHBvcnQgZnVuY3Rpb24gZmluZFBvdGVudGlhbER1cGxpY2F0ZXMobGVhZHMpIHsKICBjb25zdCBkdXBsaWNhdGVzID0gW107CiAgY29uc3Qgc2VlbiA9IG5ldyBTZXQoKTsKCiAgZm9yIChsZXQgaSA9IDA7IGkgPCBsZWFkcy5sZW5ndGg7IGkrKykgewogICAgZm9yIChsZXQgaiA9IGkgKyAxOyBqIDwgbGVhZHMubGVuZ3RoOyBqKyspIHsKICAgICAgY29uc3QgbGVhZEEgPSBsZWFkc1tpXTsKICAgICAgY29uc3QgbGVhZEIgPSBsZWFkc1tqXTsKICAgICAgY29uc3QgcGFpcktleSA9IFtsZWFkQS5pZCwgbGVhZEIuaWRdLnNvcnQoKS5qb2luKCctJyk7CiAgICAgIAogICAgICBpZiAoc2Vlbi5oYXMocGFpcktleSkpIGNvbnRpbnVlOwoKICAgICAgY29uc3QgbWF0Y2ggPSBkZXRlY3REdXBsaWNhdGUobGVhZEEsIGxlYWRCKTsKICAgICAgaWYgKG1hdGNoKSB7CiAgICAgICAgc2Vlbi5hZGQocGFpcktleSk7CiAgICAgICAgZHVwbGljYXRlcy5wdXNoKHsKICAgICAgICAgIGxlYWRBLAogICAgICAgICAgbGVhZEIsCiAgICAgICAgICBtYXRjaFR5cGU6IG1hdGNoLnR5cGUsCiAgICAgICAgICBjb25maWRlbmNlOiBtYXRjaC5jb25maWRlbmNlLAogICAgICAgIH0pOwogICAgICB9CiAgICB9CiAgfQoKICByZXR1cm4gZHVwbGljYXRlcy5zb3J0KChhLCBiKSA9PiBiLmNvbmZpZGVuY2UgLSBhLmNvbmZpZGVuY2UpOwp9CgovKioKICogRGV0ZWN0IGlmIHR3byBsZWFkcyBhcmUgbGlrZWx5IGR1cGxpY2F0ZXMKICogUmV0dXJucyB7IHR5cGUsIGNvbmZpZGVuY2UgfSBvciBudWxsCiAqLwpleHBvcnQgZnVuY3Rpb24gZGV0ZWN0RHVwbGljYXRlKGxlYWRBLCBsZWFkQikgewogIGlmICghbGVhZEEgfHwgIWxlYWRCIHx8IGxlYWRBLmlkID09PSBsZWFkQi5pZCkgcmV0dXJuIG51bGw7CgogIC8vIElnbm9yZSBpZiBlaXRoZXIgaXMgbWFya2VkIGFzICJDb250YWN0IiBvciBub24tTGVhZAogIGlmIChsZWFkQS5yZWNvcmRfdHlwZSA9PT0gJ0NvbnRhY3QnIHx8IGxlYWRCLnJlY29yZF90eXBlID09PSAnQ29udGFjdCcpIHJldHVybiBudWxsOwogIGlmIChsZWFkQS5pc19jb250YWN0IHx8IGxlYWRCLmlzX2NvbnRhY3QpIHJldHVybiBudWxsOwoKICAvLyAxLiBQaG9uZSBtYXRjaCAoaGlnaGVzdCBjb25maWRlbmNlKQogIGNvbnN0IHBob25lQSA9IG5vcm1hbGl6ZVBob25lKGxlYWRBLnBob25lKTsKICBjb25zdCBwaG9uZUIgPSBub3JtYWxpemVQaG9uZShsZWFkQi5waG9uZSk7CiAgaWYgKHBob25lQSAmJiBwaG9uZUIgJiYgcGhvbmVBID09PSBwaG9uZUIpIHsKICAgIHJldHVybiB7IHR5cGU6ICdwaG9uZV9tYXRjaCcsIGNvbmZpZGVuY2U6IDAuOTkgfTsKICB9CgogIC8vIDIuIEVtYWlsIG1hdGNoIChoaWdoIGNvbmZpZGVuY2UpCiAgY29uc3QgZW1haWxBID0gbm9ybWFsaXplRW1haWwobGVhZEEuZW1haWwpOwogIGNvbnN0IGVtYWlsQiA9IG5vcm1hbGl6ZUVtYWlsKGxlYWRCLmVtYWlsKTsKICBpZiAoZW1haWxBICYmIGVtYWlsQiAmJiBlbWFpbEEgPT09IGVtYWlsQikgewogICAgcmV0dXJuIHsgdHlwZTogJ2VtYWlsX21hdGNoJywgY29uZmlkZW5jZTogMC45OCB9OwogIH0KCiAgLy8gMy4gTmFtZSArIFBob25lIG1hdGNoCiAgY29uc3QgbmFtZUFGdWxsID0gYCR7bm9ybWFsaXplTmFtZShsZWFkQS5maXJzdF9uYW1lKX0gJHtub3JtYWxpemVOYW1lKGxlYWRBLmxhc3RfbmFtZSl9YDsKICBjb25zdCBuYW1lQkZ1bGwgPSBgJHtub3JtYWxpemVOYW1lKGxlYWRCLmZpcnN0X25hbWUpfSAke25vcm1hbGl6ZU5hbWUobGVhZEIubGFzdF9uYW1lKX1gOwogIGlmIChuYW1lQUZ1bGwgPT09IG5hbWVCRnVsbCAmJiBwaG9uZUEgJiYgcGhvbmVCICYmIHBob25lQSA9PT0gcGhvbmVCKSB7CiAgICByZXR1cm4geyB0eXBlOiAnbmFtZV9waG9uZV9tYXRjaCcsIGNvbmZpZGVuY2U6IDAuOTUgfTsKICB9CgogIC8vIDQuIE5hbWUgKyBFbWFpbCBtYXRjaAogIGlmIChuYW1lQUZ1bGwgPT09IG5hbWVCRnVsbCAmJiBlbWFpbEEgJiYgZW1haWxCICYmIGVtYWlsQSA9PT0gZW1haWxCKSB7CiAgICByZXR1cm4geyB0eXBlOiAnbmFtZV9lbWFpbF9tYXRjaCcsIGNvbmZpZGVuY2U6IDAuOTQgfTsKICB9CgogIC8vIDUuIE5hbWUgKyBDaXR5IG1hdGNoIChsb3dlciBjb25maWRlbmNlKQogIGNvbnN0IGNpdHlBID0gbm9ybWFsaXplTmFtZShsZWFkQS5jaXR5KTsKICBjb25zdCBjaXR5QiA9IG5vcm1hbGl6ZU5hbWUobGVhZEIuY2l0eSk7CiAgaWYgKG5hbWVBRnVsbCA9PT0gbmFtZUJGdWxsICYmIGNpdHlBICYmIGNpdHlCICYmIGNpdHlBID09PSBjaXR5QikgewogICAgcmV0dXJuIHsgdHlwZTogJ25hbWVfY2l0eV9tYXRjaCcsIGNvbmZpZGVuY2U6IDAuNzUgfTsKICB9CgogIC8vIDYuIE5hbWUgKyBBZGRyZXNzIG1hdGNoIChsb3dlciBjb25maWRlbmNlKQogIGNvbnN0IGFkZHJBID0gbm9ybWFsaXplTmFtZShsZWFkQS5wcm9wZXJ0eV9hZGRyZXNzKTsKICBjb25zdCBhZGRyQiA9IG5vcm1hbGl6ZU5hbWUobGVhZEIucHJvcGVydHlfYWRkcmVzcyk7CiAgaWYgKG5hbWVBRnVsbCA9PT0gbmFtZUJGdWxsICYmIGFkZHJBICYmIGFkZHJCICYmIGFkZHJBID09PSBhZGRyQikgewogICAgcmV0dXJuIHsgdHlwZTogJ25hbWVfYWRkcmVzc19tYXRjaCcsIGNvbmZpZGVuY2U6IDAuODAgfTsKICB9CgogIHJldHVybiBudWxsOwp9CgovKioKICogRmluZCBiZXN0IG1hdGNoaW5nIGxlYWQgZm9yIGEgbmV3IGxlYWQgYmVpbmcgY3JlYXRlZAogKiBSZXR1cm5zIG1hdGNoaW5nIGxlYWQgb3IgbnVsbAogKi8KZXhwb3J0IGZ1bmN0aW9uIGZpbmRCZXN0TWF0Y2gobmV3TGVhZCwgZXhpc3RpbmdMZWFkcykgewogIGxldCBiZXN0TWF0Y2ggPSBudWxsOwogIGxldCBiZXN0Q29uZmlkZW5jZSA9IDA7CgogIGZvciAoY29uc3QgZXhpc3Rpbmcgb2YgZXhpc3RpbmdMZWFkcykgewogICAgY29uc3QgbWF0Y2ggPSBkZXRlY3REdXBsaWNhdGUobmV3TGVhZCwgZXhpc3RpbmcpOwogICAgaWYgKG1hdGNoICYmIG1hdGNoLmNvbmZpZGVuY2UgPiBiZXN0Q29uZmlkZW5jZSkgewogICAgICBiZXN0TWF0Y2ggPSBleGlzdGluZzsKICAgICAgYmVzdENvbmZpZGVuY2UgPSBtYXRjaC5jb25maWRlbmNlOwogICAgfQogIH0KCiAgLy8gT25seSByZXR1cm4gbWF0Y2ggaWYgY29uZmlkZW5jZSA+IDAuNzUgKGV4Y2x1ZGUgbG93LWNvbmZpZGVuY2UgbWF0Y2hlcykKICByZXR1cm4gYmVzdENvbmZpZGVuY2UgPiAwLjc1ID8gYmVzdE1hdGNoIDogbnVsbDsKfQ==
+/**
+ * Duplicate Detection & Normalization Utilities
+ * 
+ * Provides functions to:
+ * - Normalize phone numbers and emails
+ * - Detect potential duplicates by multiple criteria
+ * - Find best match for a lead
+ */
+
+/**
+ * Normalize phone number to digits only
+ * Handles: +1-310-251-7454, (310) 251-7454, 3102517454, etc.
+ */
+export function normalizePhone(phone) {
+  if (!phone) return null;
+  const digits = String(phone).replace(/\D/g, '');
+  // Remove leading 1 if 11 digits (US)
+  return digits.length === 11 && digits[0] === '1' ? digits.slice(1) : digits;
+}
+
+/**
+ * Normalize email to lowercase
+ */
+export function normalizeEmail(email) {
+  if (!email) return null;
+  return String(email).toLowerCase().trim();
+}
+
+/**
+ * Normalize name (title case, trim)
+ */
+export function normalizeName(name) {
+  if (!name) return null;
+  return String(name).trim().toLowerCase();
+}
+
+/**
+ * Find potential duplicates in lead list
+ * Returns array of { leadA, leadB, matchType, confidence }
+ */
+export function findPotentialDuplicates(leads) {
+  const duplicates = [];
+  const seen = new Set();
+
+  for (let i = 0; i < leads.length; i++) {
+    for (let j = i + 1; j < leads.length; j++) {
+      const leadA = leads[i];
+      const leadB = leads[j];
+      const pairKey = [leadA.id, leadB.id].sort().join('-');
+      
+      if (seen.has(pairKey)) continue;
+
+      const match = detectDuplicate(leadA, leadB);
+      if (match) {
+        seen.add(pairKey);
+        duplicates.push({
+          leadA,
+          leadB,
+          matchType: match.type,
+          confidence: match.confidence,
+        });
+      }
+    }
+  }
+
+  return duplicates.sort((a, b) => b.confidence - a.confidence);
+}
+
+/**
+ * Detect if two leads are likely duplicates
+ * Returns { type, confidence } or null
+ */
+export function detectDuplicate(leadA, leadB) {
+  if (!leadA || !leadB || leadA.id === leadB.id) return null;
+
+  // Ignore if either is marked as "Contact" or non-Lead
+  if (leadA.record_type === 'Contact' || leadB.record_type === 'Contact') return null;
+  if (leadA.is_contact || leadB.is_contact) return null;
+
+  // 1. Phone match (highest confidence)
+  const phoneA = normalizePhone(leadA.phone);
+  const phoneB = normalizePhone(leadB.phone);
+  if (phoneA && phoneB && phoneA === phoneB) {
+    return { type: 'phone_match', confidence: 0.99 };
+  }
+
+  // 2. Email match (high confidence)
+  const emailA = normalizeEmail(leadA.email);
+  const emailB = normalizeEmail(leadB.email);
+  if (emailA && emailB && emailA === emailB) {
+    return { type: 'email_match', confidence: 0.98 };
+  }
+
+  // 3. Name + Phone match
+  const nameAFull = `${normalizeName(leadA.first_name)} ${normalizeName(leadA.last_name)}`;
+  const nameBFull = `${normalizeName(leadB.first_name)} ${normalizeName(leadB.last_name)}`;
+  if (nameAFull === nameBFull && phoneA && phoneB && phoneA === phoneB) {
+    return { type: 'name_phone_match', confidence: 0.95 };
+  }
+
+  // 4. Name + Email match
+  if (nameAFull === nameBFull && emailA && emailB && emailA === emailB) {
+    return { type: 'name_email_match', confidence: 0.94 };
+  }
+
+  // 5. Name + City match (lower confidence)
+  const cityA = normalizeName(leadA.city);
+  const cityB = normalizeName(leadB.city);
+  if (nameAFull === nameBFull && cityA && cityB && cityA === cityB) {
+    return { type: 'name_city_match', confidence: 0.75 };
+  }
+
+  // 6. Name + Address match (lower confidence)
+  const addrA = normalizeName(leadA.property_address);
+  const addrB = normalizeName(leadB.property_address);
+  if (nameAFull === nameBFull && addrA && addrB && addrA === addrB) {
+    return { type: 'name_address_match', confidence: 0.80 };
+  }
+
+  return null;
+}
+
+/**
+ * Find best matching lead for a new lead being created
+ * Returns matching lead or null
+ */
+export function findBestMatch(newLead, existingLeads) {
+  let bestMatch = null;
+  let bestConfidence = 0;
+
+  for (const existing of existingLeads) {
+    const match = detectDuplicate(newLead, existing);
+    if (match && match.confidence > bestConfidence) {
+      bestMatch = existing;
+      bestConfidence = match.confidence;
+    }
+  }
+
+  // Only return match if confidence > 0.75 (exclude low-confidence matches)
+  return bestConfidence > 0.75 ? bestMatch : null;
+}

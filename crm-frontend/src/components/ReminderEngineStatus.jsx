@@ -1,1 +1,174 @@
-aW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IHJhaWx3YXlSZXF1ZXN0IH0gZnJvbSAiQC9saWIvcmFpbHdheUNsaWVudCI7CmltcG9ydCB7IFJlZnJlc2hDdywgQWxlcnRDaXJjbGUsIENoZWNrQ2lyY2xlLCBaYXAsIENsb2NrIH0gZnJvbSAibHVjaWRlLXJlYWN0IjsKCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIFJlbWluZGVyRW5naW5lU3RhdHVzKCkgewogIGNvbnN0IFtsb2FkaW5nLCBzZXRMb2FkaW5nXSA9IHVzZVN0YXRlKGZhbHNlKTsKICBjb25zdCBbbGFzdFJlcG9ydCwgc2V0TGFzdFJlcG9ydF0gPSB1c2VTdGF0ZShudWxsKTsKICBjb25zdCBbZXJyb3IsIHNldEVycm9yXSA9IHVzZVN0YXRlKG51bGwpOwoKICBjb25zdCBoYW5kbGVUZXN0Tm93ID0gYXN5bmMgKCkgPT4gewogICAgc2V0TG9hZGluZyh0cnVlKTsKICAgIHNldEVycm9yKG51bGwpOwogICAgdHJ5IHsKICAgICAgY29uc3QgcmVzID0gYXdhaXQgcmFpbHdheVJlcXVlc3QoJy9yZW1pbmRlcnMvdGVzdCcsIHt9KTsKICAgICAgc2V0TGFzdFJlcG9ydChyZXMpOwogICAgfSBjYXRjaCAoZSkgewogICAgICBzZXRFcnJvcihlLm1lc3NhZ2UgfHwgJ0ZhaWxlZCB0byBydW4gcmVtaW5kZXIgdGVzdCcpOwogICAgfSBmaW5hbGx5IHsKICAgICAgc2V0TG9hZGluZyhmYWxzZSk7CiAgICB9CiAgfTsKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJiZy13aGl0ZSByb3VuZGVkLXhsIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHAtNiBzcGFjZS15LTUiPgogICAgICB7LyogSGVhZGVyICovfQogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIj4KICAgICAgICA8ZGl2PgogICAgICAgICAgPGgzIGNsYXNzTmFtZT0idGV4dC1zbSBmb250LWJvbGQgdGV4dC1zbGF0ZS04MDAgdXBwZXJjYXNlIHRyYWNraW5nLXdpZGUiPlJlbWluZGVyIEVuZ2luZSBTdGF0dXM8L2gzPgogICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNTAwIG10LTAuNSI+VGVzdCBhcHBvaW50bWVudCByZW1pbmRlciBzeXN0ZW08L3A+CiAgICAgICAgPC9kaXY+CiAgICAgICAgPGJ1dHRvbgogICAgICAgICAgb25DbGljaz17aGFuZGxlVGVzdE5vd30KICAgICAgICAgIGRpc2FibGVkPXtsb2FkaW5nfQogICAgICAgICAgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBiZy1hbWJlci02MDAgaG92ZXI6YmctYW1iZXItNzAwIGRpc2FibGVkOm9wYWNpdHktNTAgdGV4dC13aGl0ZSBweC00IHB5LTIgdGV4dC14cyBmb250LWJvbGQgcm91bmRlZC1sZyB0cmFuc2l0aW9uLWNvbG9ycyIKICAgICAgICA+CiAgICAgICAgICA8WmFwIGNsYXNzTmFtZT0idy0zLjUgaC0zLjUiIC8+CiAgICAgICAgICB7bG9hZGluZyA/ICdSdW5uaW5nLi4uJyA6ICdSdW4gUmVtaW5kZXIgQ2hlY2sgTm93J30KICAgICAgICA8L2J1dHRvbj4KICAgICAgPC9kaXY+CgogICAgICB7LyogV2FybmluZyAqL30KICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLXJlZC01MCBib3JkZXIgYm9yZGVyLXJlZC0yMDAgcm91bmRlZC1sZyBweC00IHB5LTMgZmxleCBnYXAtMyI+CiAgICAgICAgPEFsZXJ0Q2lyY2xlIGNsYXNzTmFtZT0idy00IGgtNCB0ZXh0LXJlZC02MDAgZmxleC1zaHJpbmstMCBtdC0wLjUiIC8+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS03MDAiPgogICAgICAgICAgUmVtaW5kZXIgZGVsaXZlcnkgaXMgaGFuZGxlZCBieSB0aGUgUmFpbHdheSByZW1pbmRlciBzZXJ2aWNlLgogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KCiAgICAgIHsvKiBMYXN0IFJlcG9ydCAqL30KICAgICAge2xhc3RSZXBvcnQgJiYgKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJzcGFjZS15LTQiPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLXNsYXRlLTUwIHJvdW5kZWQtbGcgcC00Ij4KICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTYwMCB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZSBtYi0zIj5UZXN0IFJ1biBTdW1tYXJ5PC9kaXY+CiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJncmlkIGdyaWQtY29scy0yIG1kOmdyaWQtY29scy01IGdhcC0zIj4KICAgICAgICAgICAgICA8ZGl2PgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtMnhsIGZvbnQtYmxhY2sgdGV4dC1zbGF0ZS05MDAiPntsYXN0UmVwb3J0LnN1bW1hcnkudG90YWxfbGVhZHNfY2hlY2tlZH08L2Rpdj4KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSB0ZXh0LXNsYXRlLTUwMCBtdC0wLjUiPkxlYWRzIENoZWNrZWQ8L2Rpdj4KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICA8ZGl2PgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtMnhsIGZvbnQtYmxhY2sgdGV4dC1hbWJlci02MDAiPntsYXN0UmVwb3J0LnN1bW1hcnkubWVldGluZ3NfZHVlX25vd19jb3VudH08L2Rpdj4KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSB0ZXh0LXNsYXRlLTUwMCBtdC0wLjUiPkR1ZSBOb3c8L2Rpdj4KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICA8ZGl2PgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtMnhsIGZvbnQtYmxhY2sgdGV4dC1ibHVlLTYwMCI+e2xhc3RSZXBvcnQuc3VtbWFyeS5yZW1pbmRlcnNfdG9fc2VuZF9jb3VudH08L2Rpdj4KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSB0ZXh0LXNsYXRlLTUwMCBtdC0wLjUiPlRvIFNlbmQ8L2Rpdj4KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICA8ZGl2PgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtMnhsIGZvbnQtYmxhY2sgdGV4dC1lbWVyYWxkLTYwMCI+e2xhc3RSZXBvcnQuc3VtbWFyeS5lbWFpbF90ZXN0c19sb2dnZWR9PC9kaXY+CiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1bMTBweF0gdGV4dC1zbGF0ZS01MDAgbXQtMC41Ij5UZXN0cyBMb2dnZWQ8L2Rpdj4KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICA8ZGl2PgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtMnhsIGZvbnQtYmxhY2sgdGV4dC1yZWQtNjAwIj57bGFzdFJlcG9ydC5zdW1tYXJ5LmVycm9yc19jb3VudH08L2Rpdj4KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSB0ZXh0LXNsYXRlLTUwMCBtdC0wLjUiPkVycm9yczwvZGl2PgogICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgIHsvKiBNZWV0aW5ncyBEdWUgTm93ICovfQogICAgICAgICAge2xhc3RSZXBvcnQucmVwb3J0Lm1lZXRpbmdzX2R1ZV9ub3cubGVuZ3RoID4gMCAmJiAoCiAgICAgICAgICAgIDxkaXY+CiAgICAgICAgICAgICAgPGg0IGNsYXNzTmFtZT0idGV4dC14cyBmb250LWJvbGQgdGV4dC1zbGF0ZS03MDAgdXBwZXJjYXNlIHRyYWNraW5nLXdpZGUgbWItMiBmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMS41Ij4KICAgICAgICAgICAgICAgIDxDbG9jayBjbGFzc05hbWU9InctMy41IGgtMy41IiAvPiBNZWV0aW5ncyBEdWUgTm93ICh7bGFzdFJlcG9ydC5yZXBvcnQubWVldGluZ3NfZHVlX25vdy5sZW5ndGh9KQogICAgICAgICAgICAgIDwvaDQ+CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMiBtYXgtaC00OCBvdmVyZmxvdy15LWF1dG8iPgogICAgICAgICAgICAgICAge2xhc3RSZXBvcnQucmVwb3J0Lm1lZXRpbmdzX2R1ZV9ub3cubWFwKChtLCBpKSA9PiAoCiAgICAgICAgICAgICAgICAgIDxkaXYga2V5PXtpfSBjbGFzc05hbWU9ImJnLWFtYmVyLTUwIGJvcmRlciBib3JkZXItYW1iZXItMjAwIHJvdW5kZWQtbGcgcHgtMyBweS0yIHRleHQteHMiPgogICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmb250LXNlbWlib2xkIHRleHQtYW1iZXItOTAwIj57bS5sZWFkX25hbWV9PC9kaXY+CiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtYW1iZXItODAwIG10LTAuNSI+CiAgICAgICAgICAgICAgICAgICAgICB7bS5kYXRlX2Zvcm1hdHRlZCB8fCBtLmRhdGV9IGF0IHttLnRpbWVfZm9ybWF0dGVkIHx8IG0udGltZX0KICAgICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBnYXAtMiBtdC0xLjUgZmxleC13cmFwIj4KICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0iaW5saW5lLWJsb2NrIHB4LTIgcHktMC41IGJnLWFtYmVyLTEwMCB0ZXh0LWFtYmVyLTcwMCByb3VuZGVkIHRleHQtWzEwcHhdIGZvbnQtc2VtaWJvbGQiPgogICAgICAgICAgICAgICAgICAgICAgICBXaW5kb3c6IHttLndpbmRvd30KICAgICAgICAgICAgICAgICAgICAgIDwvc3Bhbj4KICAgICAgICAgICAgICAgICAgICAgIHttLmFscmVhZHlfc2VudCAmJiAoCiAgICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0iaW5saW5lLWJsb2NrIHB4LTIgcHktMC41IGJnLXNsYXRlLTIwMCB0ZXh0LXNsYXRlLTYwMCByb3VuZGVkIHRleHQtWzEwcHhdIGZvbnQtc2VtaWJvbGQiPgogICAgICAgICAgICAgICAgICAgICAgICAgIOKckyBBbHJlYWR5IHNlbnQKICAgICAgICAgICAgICAgICAgICAgICAgPC9zcGFuPgogICAgICAgICAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICApKX0KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICApfQoKICAgICAgICAgIHsvKiBSZW1pbmRlcnMgVG8gU2VuZCAqL30KICAgICAgICAgIHtsYXN0UmVwb3J0LnJlcG9ydC5yZW1pbmRlcnNfdG9fc2VuZC5sZW5ndGggPiAwICYmICgKICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICA8aDQgY2xhc3NOYW1lPSJ0ZXh0LXhzIGZvbnQtYm9sZCB0ZXh0LXNsYXRlLTcwMCB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZSBtYi0yIGZsZXggaXRlbXMtY2VudGVyIGdhcC0xLjUiPgogICAgICAgICAgICAgICAgPFphcCBjbGFzc05hbWU9InctMy41IGgtMy41IiAvPiBSZW1pbmRlcnMgUmVhZHkgdG8gU2VuZCAoe2xhc3RSZXBvcnQucmVwb3J0LnJlbWluZGVyc190b19zZW5kLmxlbmd0aH0pCiAgICAgICAgICAgICAgPC9oND4KICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ic3BhY2UteS0yIG1heC1oLTQ4IG92ZXJmbG93LXktYXV0byI+CiAgICAgICAgICAgICAgICB7bGFzdFJlcG9ydC5yZXBvcnQucmVtaW5kZXJzX3RvX3NlbmQubWFwKChyLCBpKSA9PiAoCiAgICAgICAgICAgICAgICAgIDxkaXYga2V5PXtpfSBjbGFzc05hbWU9ImJnLWJsdWUtNTAgYm9yZGVyIGJvcmRlci1ibHVlLTIwMCByb3VuZGVkLWxnIHB4LTMgcHktMiB0ZXh0LXhzIj4KICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZm9udC1zZW1pYm9sZCB0ZXh0LWJsdWUtOTAwIj57ci5sZWFkX25hbWV9PC9kaXY+CiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtYmx1ZS04MDAgbXQtMC41Ij4KICAgICAgICAgICAgICAgICAgICAgIHtyLmRhdGVfZm9ybWF0dGVkfSBhdCB7ci50aW1lX2Zvcm1hdHRlZH0KICAgICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZ3JpZCBncmlkLWNvbHMtMyBnYXAtMiBtdC0xLjUgdGV4dC1bMTBweF0iPgogICAgICAgICAgICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXNsYXRlLTUwMCI+Q2xpZW50Ojwvc3Bhbj4ge3IuY2xpZW50X2VtYWlsIHx8ICfigJQnfQogICAgICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICAgICAgICA8ZGl2PgogICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtc2xhdGUtNTAwIj5Pd25lcjo8L3NwYW4+IHtyLm93bmVyX2VtYWlsIHx8ICfigJQnfQogICAgICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICAgICAgICA8ZGl2PgogICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9ImZvbnQtc2VtaWJvbGQgdGV4dC1ibHVlLTYwMCI+V2luZG93OiB7ci53aW5kb3d9PC9zcGFuPgogICAgICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgKSl9CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgKX0KCiAgICAgICAgICB7LyogRXJyb3JzICovfQogICAgICAgICAge2xhc3RSZXBvcnQucmVwb3J0LmVycm9ycy5sZW5ndGggPiAwICYmICgKICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICA8aDQgY2xhc3NOYW1lPSJ0ZXh0LXhzIGZvbnQtYm9sZCB0ZXh0LXJlZC03MDAgdXBwZXJjYXNlIHRyYWNraW5nLXdpZGUgbWItMiI+4pqg77iPIEVycm9ycyAoe2xhc3RSZXBvcnQucmVwb3J0LmVycm9ycy5sZW5ndGh9KTwvaDQ+CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMS41IG1heC1oLTQ4IG92ZXJmbG93LXktYXV0byI+CiAgICAgICAgICAgICAgICB7bGFzdFJlcG9ydC5yZXBvcnQuZXJyb3JzLm1hcCgoZSwgaSkgPT4gKAogICAgICAgICAgICAgICAgICA8ZGl2IGtleT17aX0gY2xhc3NOYW1lPSJiZy1yZWQtNTAgYm9yZGVyIGJvcmRlci1yZWQtMjAwIHJvdW5kZWQtbGcgcHgtMyBweS0yIHRleHQtWzEwcHhdIHRleHQtcmVkLTgwMCI+CiAgICAgICAgICAgICAgICAgICAge2UuZXJyb3J9CiAgICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgKSl9CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgKX0KCiAgICAgICAgICB7LyogVGltZXN0YW1wICovfQogICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS01MDAgaXRhbGljIj4KICAgICAgICAgICAgTGFzdCBydW46IHtuZXcgRGF0ZShsYXN0UmVwb3J0LnN1bW1hcnkudGltZXN0YW1wKS50b0xvY2FsZVN0cmluZygpfQogICAgICAgICAgPC9kaXY+CiAgICAgICAgPC9kaXY+CiAgICAgICl9CgogICAgICB7LyogRXJyb3IgU3RhdGUgKi99CiAgICAgIHtlcnJvciAmJiAoCiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLXJlZC01MCBib3JkZXIgYm9yZGVyLXJlZC0yMDAgcm91bmRlZC1sZyBweC00IHB5LTMgdGV4dC14cyB0ZXh0LXJlZC03MDAiPgogICAgICAgICAge2Vycm9yfQogICAgICAgIDwvZGl2PgogICAgICApfQoKICAgICAgey8qIEVtcHR5IFN0YXRlICovfQogICAgICB7IWxhc3RSZXBvcnQgJiYgIWVycm9yICYmICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1jZW50ZXIgcHktNiB0ZXh0LXNsYXRlLTQwMCI+CiAgICAgICAgICA8Q2xvY2sgY2xhc3NOYW1lPSJ3LTggaC04IG14LWF1dG8gbWItMiBvcGFjaXR5LTMwIiAvPgogICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIj5DbGljayAiUnVuIFJlbWluZGVyIENoZWNrIE5vdyIgdG8gdGVzdCB0aGUgcmVtaW5kZXIgZW5naW5lPC9wPgogICAgICAgIDwvZGl2PgogICAgICApfQogICAgPC9kaXY+CiAgKTsKfQ==
+import { useState } from "react";
+import { railwayRequest } from "@/lib/railwayClient";
+import { RefreshCw, AlertCircle, CheckCircle, Zap, Clock } from "lucide-react";
+
+export default function ReminderEngineStatus() {
+  const [loading, setLoading] = useState(false);
+  const [lastReport, setLastReport] = useState(null);
+  const [error, setError] = useState(null);
+
+  const handleTestNow = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await railwayRequest('/reminders/test', {});
+      setLastReport(res);
+    } catch (e) {
+      setError(e.message || 'Failed to run reminder test');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-5">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Reminder Engine Status</h3>
+          <p className="text-xs text-slate-500 mt-0.5">Test appointment reminder system</p>
+        </div>
+        <button
+          onClick={handleTestNow}
+          disabled={loading}
+          className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white px-4 py-2 text-xs font-bold rounded-lg transition-colors"
+        >
+          <Zap className="w-3.5 h-3.5" />
+          {loading ? 'Running...' : 'Run Reminder Check Now'}
+        </button>
+      </div>
+
+      {/* Warning */}
+      <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex gap-3">
+        <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+        <div className="text-xs text-slate-700">
+          Reminder delivery is handled by the Railway reminder service.
+        </div>
+      </div>
+
+      {/* Last Report */}
+      {lastReport && (
+        <div className="space-y-4">
+          <div className="bg-slate-50 rounded-lg p-4">
+            <div className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-3">Test Run Summary</div>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <div>
+                <div className="text-2xl font-black text-slate-900">{lastReport.summary.total_leads_checked}</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">Leads Checked</div>
+              </div>
+              <div>
+                <div className="text-2xl font-black text-amber-600">{lastReport.summary.meetings_due_now_count}</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">Due Now</div>
+              </div>
+              <div>
+                <div className="text-2xl font-black text-blue-600">{lastReport.summary.reminders_to_send_count}</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">To Send</div>
+              </div>
+              <div>
+                <div className="text-2xl font-black text-emerald-600">{lastReport.summary.email_tests_logged}</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">Tests Logged</div>
+              </div>
+              <div>
+                <div className="text-2xl font-black text-red-600">{lastReport.summary.errors_count}</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">Errors</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Meetings Due Now */}
+          {lastReport.report.meetings_due_now.length > 0 && (
+            <div>
+              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5" /> Meetings Due Now ({lastReport.report.meetings_due_now.length})
+              </h4>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {lastReport.report.meetings_due_now.map((m, i) => (
+                  <div key={i} className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs">
+                    <div className="font-semibold text-amber-900">{m.lead_name}</div>
+                    <div className="text-amber-800 mt-0.5">
+                      {m.date_formatted || m.date} at {m.time_formatted || m.time}
+                    </div>
+                    <div className="flex gap-2 mt-1.5 flex-wrap">
+                      <span className="inline-block px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-[10px] font-semibold">
+                        Window: {m.window}
+                      </span>
+                      {m.already_sent && (
+                        <span className="inline-block px-2 py-0.5 bg-slate-200 text-slate-600 rounded text-[10px] font-semibold">
+                          ✓ Already sent
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Reminders To Send */}
+          {lastReport.report.reminders_to_send.length > 0 && (
+            <div>
+              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5" /> Reminders Ready to Send ({lastReport.report.reminders_to_send.length})
+              </h4>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {lastReport.report.reminders_to_send.map((r, i) => (
+                  <div key={i} className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-xs">
+                    <div className="font-semibold text-blue-900">{r.lead_name}</div>
+                    <div className="text-blue-800 mt-0.5">
+                      {r.date_formatted} at {r.time_formatted}
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 mt-1.5 text-[10px]">
+                      <div>
+                        <span className="text-slate-500">Client:</span> {r.client_email || '—'}
+                      </div>
+                      <div>
+                        <span className="text-slate-500">Owner:</span> {r.owner_email || '—'}
+                      </div>
+                      <div>
+                        <span className="font-semibold text-blue-600">Window: {r.window}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Errors */}
+          {lastReport.report.errors.length > 0 && (
+            <div>
+              <h4 className="text-xs font-bold text-red-700 uppercase tracking-wide mb-2">⚠️ Errors ({lastReport.report.errors.length})</h4>
+              <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                {lastReport.report.errors.map((e, i) => (
+                  <div key={i} className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-[10px] text-red-800">
+                    {e.error}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Timestamp */}
+          <div className="text-xs text-slate-500 italic">
+            Last run: {new Date(lastReport.summary.timestamp).toLocaleString()}
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-xs text-red-700">
+          {error}
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!lastReport && !error && (
+        <div className="text-center py-6 text-slate-400">
+          <Clock className="w-8 h-8 mx-auto mb-2 opacity-30" />
+          <p className="text-xs">Click "Run Reminder Check Now" to test the reminder engine</p>
+        </div>
+      )}
+    </div>
+  );
+}

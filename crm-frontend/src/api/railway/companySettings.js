@@ -1,1 +1,16 @@
-LyoqCiAqIHJhaWx3YXkgY29tcGFueSBzZXR0aW5ncyDigJQgQ29tcGFueSBTZXR0aW5ncyBzaW5nbGV0b24gY2xpZW50LgogKi8KaW1wb3J0IHsgYXBpQ2FsbCB9IGZyb20gJy4vY2xpZW50JzsKCmV4cG9ydCBmdW5jdGlvbiBnZXQoKSB7CiAgcmV0dXJuIGFwaUNhbGwoJy9hcGkvdjEvY29tcGFueS1zZXR0aW5ncycsIHsgbWV0aG9kOiAnR0VUJyB9KTsKfQoKZXhwb3J0IGZ1bmN0aW9uIHVwc2VydChkYXRhKSB7CiAgcmV0dXJuIGFwaUNhbGwoJy9hcGkvdjEvY29tcGFueS1zZXR0aW5ncycsIHsgbWV0aG9kOiAnUFVUJywgYm9keTogZGF0YSB9KTsKfQoKZXhwb3J0IGZ1bmN0aW9uIHJlbW92ZSgpIHsKICByZXR1cm4gYXBpQ2FsbCgnL2FwaS92MS9jb21wYW55LXNldHRpbmdzJywgeyBtZXRob2Q6ICdERUxFVEUnIH0pOwp9
+/**
+ * railway company settings — Company Settings singleton client.
+ */
+import { apiCall } from './client';
+
+export function get() {
+  return apiCall('/api/v1/company-settings', { method: 'GET' });
+}
+
+export function upsert(data) {
+  return apiCall('/api/v1/company-settings', { method: 'PUT', body: data });
+}
+
+export function remove() {
+  return apiCall('/api/v1/company-settings', { method: 'DELETE' });
+}

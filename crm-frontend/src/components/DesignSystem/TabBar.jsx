@@ -1,1 +1,31 @@
-LyoqCiAqIFRhYkJhciDigJQgaG9yaXpvbnRhbCB0YWIgbmF2aWdhdGlvbiBmb3IgZGV0YWlsIHBhZ2VzLgogKiBSZXNwb25zaXZlOiBzY3JvbGxzIGhvcml6b250YWxseSBvbiBuYXJyb3cgc2NyZWVucy4KICovCmV4cG9ydCBmdW5jdGlvbiBUYWJCYXIoeyB0YWJzLCBhY3RpdmVUYWIsIG9uQ2hhbmdlLCBjbGFzc05hbWUgPSAiIiB9KSB7CiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPXtgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTAuNSBtZDpnYXAtMSBib3JkZXItYiBib3JkZXItc2xhdGUtMjAwIG92ZXJmbG93LXgtYXV0byBiZy13aGl0ZSAke2NsYXNzTmFtZX1gfSBzdHlsZT17eyBXZWJraXRPdmVyZmxvd1Njcm9sbGluZzogJ3RvdWNoJywgc2Nyb2xsYmFyV2lkdGg6ICdub25lJyB9fT4KICAgICAge3RhYnMubWFwKHRhYiA9PiAoCiAgICAgICAgPGJ1dHRvbgogICAgICAgICAga2V5PXt0YWIuaWR9CiAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBvbkNoYW5nZSh0YWIuaWQpfQogICAgICAgICAgY2xhc3NOYW1lPXtgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSBweC0zIHB5LTIuNSBtZDpweC00IHRleHQteHMgZm9udC1zZW1pYm9sZCBib3JkZXItYi0yIHRyYW5zaXRpb24tY29sb3JzIHdoaXRlc3BhY2Utbm93cmFwIGZsZXgtc2hyaW5rLTAgJHsKICAgICAgICAgICAgYWN0aXZlVGFiID09PSB0YWIuaWQKICAgICAgICAgICAgICA/ICJib3JkZXItYW1iZXItNjAwIHRleHQtYW1iZXItNzAwIgogICAgICAgICAgICAgIDogImJvcmRlci10cmFuc3BhcmVudCB0ZXh0LXNsYXRlLTQwMCBob3Zlcjp0ZXh0LXNsYXRlLTYwMCIKICAgICAgICAgIH1gfQogICAgICAgID4KICAgICAgICAgIHt0YWIuaWNvbiAmJiA8dGFiLmljb24gY2xhc3NOYW1lPSJ3LTMuNSBoLTMuNSIgLz59CiAgICAgICAgICB7dGFiLmxhYmVsfQogICAgICAgICAge3RhYi5jb3VudCAhPSBudWxsICYmIHRhYi5jb3VudCA+IDAgJiYgKAogICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9e2B0ZXh0LVsxMHB4XSBmb250LWJvbGQgcHgtMS41IHB5LTAuNSByb3VuZGVkLWZ1bGwgJHsKICAgICAgICAgICAgICBhY3RpdmVUYWIgPT09IHRhYi5pZCA/ICJiZy1hbWJlci0xMDAgdGV4dC1hbWJlci03MDAiIDogImJnLXNsYXRlLTEwMCB0ZXh0LXNsYXRlLTUwMCIKICAgICAgICAgICAgfWB9PgogICAgICAgICAgICAgIHt0YWIuY291bnR9CiAgICAgICAgICAgIDwvc3Bhbj4KICAgICAgICAgICl9CiAgICAgICAgPC9idXR0b24+CiAgICAgICkpfQogICAgPC9kaXY+CiAgKTsKfQ==
+/**
+ * TabBar — horizontal tab navigation for detail pages.
+ * Responsive: scrolls horizontally on narrow screens.
+ */
+export function TabBar({ tabs, activeTab, onChange, className = "" }) {
+  return (
+    <div className={`flex items-center gap-0.5 md:gap-1 border-b border-slate-200 overflow-x-auto bg-white ${className}`} style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
+      {tabs.map(tab => (
+        <button
+          key={tab.id}
+          onClick={() => onChange(tab.id)}
+          className={`flex items-center gap-1.5 px-3 py-2.5 md:px-4 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
+            activeTab === tab.id
+              ? "border-amber-600 text-amber-700"
+              : "border-transparent text-slate-400 hover:text-slate-600"
+          }`}
+        >
+          {tab.icon && <tab.icon className="w-3.5 h-3.5" />}
+          {tab.label}
+          {tab.count != null && tab.count > 0 && (
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+              activeTab === tab.id ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-500"
+            }`}>
+              {tab.count}
+            </span>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+}

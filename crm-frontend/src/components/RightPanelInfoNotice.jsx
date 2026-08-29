@@ -1,1 +1,66 @@
-LyoqCiAqIFJpZ2h0UGFuZWxJbmZvTm90aWNlIC0gVW5pZmllZCBpbmZvL3dhcm5pbmcgbm90aWNlIGZvciByaWdodC1zaWRlIHBhbmVscwogKiAKICogRW5zdXJlcyBjb25zaXN0ZW50OgogKiAtIEJsdWUgYmFja2dyb3VuZCBhbmQgYm9yZGVyCiAqIC0gSWNvbiBzdHlsZSBhbmQgcGxhY2VtZW50CiAqIC0gVGl0bGUgKHR5cG9ncmFwaHktbWVzc2FnZS10aXRsZSkKICogLSBEZXNjcmlwdGlvbiB0ZXh0CiAqIC0gUGFkZGluZyBhbmQgc3BhY2luZwogKi8KCmltcG9ydCB7IEluZm8gfSBmcm9tICJsdWNpZGUtcmVhY3QiOwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gUmlnaHRQYW5lbEluZm9Ob3RpY2UoewogIGljb246IEljb24sCiAgdGl0bGUsCiAgZGVzY3JpcHRpb24sCiAgdHlwZSA9ICJpbmZvIiwgLy8gJ2luZm8nIHwgJ3dhcm5pbmcnIHwgJ2Vycm9yJyB8ICdzdWNjZXNzJwp9KSB7CiAgY29uc3QgYmdDb2xvck1hcCA9IHsKICAgIGluZm86ICJiZy1ibHVlLTUwIGJvcmRlci1ibHVlLTIwMCIsCiAgICB3YXJuaW5nOiAiYmctYW1iZXItNTAgYm9yZGVyLWFtYmVyLTIwMCIsCiAgICBlcnJvcjogImJnLXJlZC01MCBib3JkZXItcmVkLTIwMCIsCiAgICBzdWNjZXNzOiAiYmctZW1lcmFsZC01MCBib3JkZXItZW1lcmFsZC0yMDAiLAogIH07CgogIGNvbnN0IHRleHRDb2xvck1hcCA9IHsKICAgIGluZm86ICJ0ZXh0LWJsdWUtOTAwIiwKICAgIHdhcm5pbmc6ICJ0ZXh0LWFtYmVyLTkwMCIsCiAgICBlcnJvcjogInRleHQtcmVkLTkwMCIsCiAgICBzdWNjZXNzOiAidGV4dC1lbWVyYWxkLTkwMCIsCiAgfTsKCiAgY29uc3QgaWNvbkNvbG9yTWFwID0gewogICAgaW5mbzogInRleHQtYmx1ZS02MDAiLAogICAgd2FybmluZzogInRleHQtYW1iZXItNjAwIiwKICAgIGVycm9yOiAidGV4dC1yZWQtNjAwIiwKICAgIHN1Y2Nlc3M6ICJ0ZXh0LWVtZXJhbGQtNjAwIiwKICB9OwoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9e2Bib3JkZXIgcm91bmRlZC1sZyBwLTQgc3BhY2UteS0yICR7YmdDb2xvck1hcFt0eXBlXX1gfT4KICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtc3RhcnQgZ2FwLTMiPgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4LXNocmluay0wIG10LTAuNSI+CiAgICAgICAgICB7SWNvbiA/ICgKICAgICAgICAgICAgPEljb24gY2xhc3NOYW1lPXtgdy00IGgtNCAke2ljb25Db2xvck1hcFt0eXBlXX1gfSAvPgogICAgICAgICAgKSA6ICgKICAgICAgICAgICAgPEluZm8gY2xhc3NOYW1lPXtgdy00IGgtNCAke2ljb25Db2xvck1hcFt0eXBlXX1gfSAvPgogICAgICAgICAgKX0KICAgICAgICA8L2Rpdj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleC0xIG1pbi13LTAiPgogICAgICAgICAge3RpdGxlICYmICgKICAgICAgICAgICAgPGgzIGNsYXNzTmFtZT17YHR5cG9ncmFwaHktbWVzc2FnZS10aXRsZSAke3RleHRDb2xvck1hcFt0eXBlXX1gfT4KICAgICAgICAgICAgICB7dGl0bGV9CiAgICAgICAgICAgIDwvaDM+CiAgICAgICAgICApfQogICAgICAgICAge2Rlc2NyaXB0aW9uICYmICgKICAgICAgICAgICAgPHAgY2xhc3NOYW1lPXtgdGV4dC1zbSBtdC0xICR7dGV4dENvbG9yTWFwW3R5cGVdfWB9PgogICAgICAgICAgICAgIHtkZXNjcmlwdGlvbn0KICAgICAgICAgICAgPC9wPgogICAgICAgICAgKX0KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KICApOwp9
+/**
+ * RightPanelInfoNotice - Unified info/warning notice for right-side panels
+ * 
+ * Ensures consistent:
+ * - Blue background and border
+ * - Icon style and placement
+ * - Title (typography-message-title)
+ * - Description text
+ * - Padding and spacing
+ */
+
+import { Info } from "lucide-react";
+
+export default function RightPanelInfoNotice({
+  icon: Icon,
+  title,
+  description,
+  type = "info", // 'info' | 'warning' | 'error' | 'success'
+}) {
+  const bgColorMap = {
+    info: "bg-blue-50 border-blue-200",
+    warning: "bg-amber-50 border-amber-200",
+    error: "bg-red-50 border-red-200",
+    success: "bg-emerald-50 border-emerald-200",
+  };
+
+  const textColorMap = {
+    info: "text-blue-900",
+    warning: "text-amber-900",
+    error: "text-red-900",
+    success: "text-emerald-900",
+  };
+
+  const iconColorMap = {
+    info: "text-blue-600",
+    warning: "text-amber-600",
+    error: "text-red-600",
+    success: "text-emerald-600",
+  };
+
+  return (
+    <div className={`border rounded-lg p-4 space-y-2 ${bgColorMap[type]}`}>
+      <div className="flex items-start gap-3">
+        <div className="flex-shrink-0 mt-0.5">
+          {Icon ? (
+            <Icon className={`w-4 h-4 ${iconColorMap[type]}`} />
+          ) : (
+            <Info className={`w-4 h-4 ${iconColorMap[type]}`} />
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          {title && (
+            <h3 className={`typography-message-title ${textColorMap[type]}`}>
+              {title}
+            </h3>
+          )}
+          {description && (
+            <p className={`text-sm mt-1 ${textColorMap[type]}`}>
+              {description}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

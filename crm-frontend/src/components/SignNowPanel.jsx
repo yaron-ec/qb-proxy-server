@@ -1,1 +1,205 @@
-LyoqCiAqIFNpZ25Ob3dQYW5lbCDigJQgTmF0aXZlIFJhaWx3YXkgU2lnbk5vdyBwYW5lbCBmb3IgTGVhZCBEZXRhaWwuCiAqCiAqIExpc3RzIFNpZ25Ob3cgZG9jdW1lbnRzIGZvciBhIGxlYWQsIGFsbG93cyB1cGxvYWRpbmcgUERGcyBmb3Igc2lnbmluZywKICogY2hlY2tpbmcgc2lnbmluZyBzdGF0dXMsIGFuZCBkb3dubG9hZGluZyBzaWduZWQgZG9jdW1lbnRzLgogKgogKiBDYWxscyBTaWduTm93IEFQSSBkaXJlY3RseSB2aWEgbmF0aXZlIFJhaWx3YXkgcm91dGVzIChubyBCYXNlNDQpLgogKiBTdG9yZXMgZG9jdW1lbnQgbWV0YWRhdGEgaW4gdGhlIHNpZ25ub3dfZG9jdW1lbnRzIFBvc3RncmVzIHRhYmxlLgogKi8KaW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCwgdXNlQ2FsbGJhY2sgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IHNpZ25ub3cgYXMgcmFpbHdheVNpZ25ub3cgfSBmcm9tICJAL2FwaS9yYWlsd2F5IjsKaW1wb3J0IHsgdXBsb2FkRmlsZVRvU3RvcmFnZSB9IGZyb20gIkAvbGliL2ZpbGVVcGxvYWQiOwppbXBvcnQgeyB1c2VUb2FzdCB9IGZyb20gIkAvY29tcG9uZW50cy91aS91c2UtdG9hc3QiOwppbXBvcnQgeyBGaWxlU2lnbmF0dXJlLCBSZWZyZXNoQ3csIFVwbG9hZCwgRG93bmxvYWQsIFRyYXNoMiwgRXh0ZXJuYWxMaW5rLCBBbGVydENpcmNsZSwgQ2hlY2tDaXJjbGUyLCBDbG9jayB9IGZyb20gImx1Y2lkZS1yZWFjdCI7CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBTaWduTm93UGFuZWwoeyBsZWFkLCBvbkxlYWRVcGRhdGUgfSkgewogIGNvbnN0IFtkb2N1bWVudHMsIHNldERvY3VtZW50c10gPSB1c2VTdGF0ZShbXSk7CiAgY29uc3QgW2xvYWRpbmcsIHNldExvYWRpbmddID0gdXNlU3RhdGUodHJ1ZSk7CiAgY29uc3QgW2Vycm9yLCBzZXRFcnJvcl0gPSB1c2VTdGF0ZShudWxsKTsKICBjb25zdCBbdXBsb2FkaW5nLCBzZXRVcGxvYWRpbmddID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IHsgdG9hc3QgfSA9IHVzZVRvYXN0KCk7CgogIGNvbnN0IGxvYWREb2N1bWVudHMgPSB1c2VDYWxsYmFjayhhc3luYyAoKSA9PiB7CiAgICBpZiAoIWxlYWQ/LmlkKSByZXR1cm47CiAgICBzZXRMb2FkaW5nKHRydWUpOwogICAgc2V0RXJyb3IobnVsbCk7CiAgICB0cnkgewogICAgICBjb25zdCBkYXRhID0gYXdhaXQgcmFpbHdheVNpZ25ub3cubGlzdERvY3VtZW50cyhsZWFkLmlkKTsKICAgICAgc2V0RG9jdW1lbnRzKGRhdGEuZG9jdW1lbnRzIHx8IFtdKTsKICAgIH0gY2F0Y2ggKGUpIHsKICAgICAgaWYgKGUubWVzc2FnZT8uaW5jbHVkZXMoJ25vdF9jb25maWd1cmVkJykgfHwgZS5tZXNzYWdlPy5pbmNsdWRlcygnU0lHTk5PVycpKSB7CiAgICAgICAgc2V0RXJyb3IoJ1NpZ25Ob3cgY3JlZGVudGlhbHMgbm90IGNvbmZpZ3VyZWQuIFNldCBTSUdOTk9XX0NMSUVOVF9JRCwgU0lHTk5PV19DTElFTlRfU0VDUkVULCBTSUdOTk9XX1VTRVJOQU1FLCBhbmQgU0lHTk5PV19QQVNTV09SRCBvbiBSYWlsd2F5LicpOwogICAgICB9IGVsc2UgewogICAgICAgIHNldEVycm9yKGUubWVzc2FnZSB8fCAnRmFpbGVkIHRvIGxvYWQgZG9jdW1lbnRzJyk7CiAgICAgIH0KICAgIH0gZmluYWxseSB7CiAgICAgIHNldExvYWRpbmcoZmFsc2UpOwogICAgfQogIH0sIFtsZWFkPy5pZF0pOwoKICB1c2VFZmZlY3QoKCkgPT4geyBsb2FkRG9jdW1lbnRzKCk7IH0sIFtsb2FkRG9jdW1lbnRzXSk7CgogIGNvbnN0IGhhbmRsZVVwbG9hZCA9IGFzeW5jIChldmVudCkgPT4gewogICAgY29uc3QgZmlsZSA9IGV2ZW50LnRhcmdldC5maWxlcz8uWzBdOwogICAgaWYgKCFmaWxlKSByZXR1cm47CiAgICBzZXRVcGxvYWRpbmcodHJ1ZSk7CiAgICB0cnkgewogICAgICAvLyBVcGxvYWQgdGhlIFBERiB0byBSMi9TMyBzdG9yYWdlIChyZXR1cm5zIGEgcHVibGljIFVSTCkKICAgICAgY29uc3QgdXBsb2FkUmVzID0gYXdhaXQgdXBsb2FkRmlsZVRvU3RvcmFnZShmaWxlKTsKICAgICAgY29uc3QgZmlsZVVybCA9IHVwbG9hZFJlcz8udXJsOwoKICAgICAgaWYgKCFmaWxlVXJsKSB0aHJvdyBuZXcgRXJyb3IoJ0ZpbGUgdXBsb2FkIGZhaWxlZCcpOwoKICAgICAgLy8gVGhlbiBjcmVhdGUgdGhlIFNpZ25Ob3cgZG9jdW1lbnQgZnJvbSB0aGUgdXBsb2FkZWQgUERGCiAgICAgIGNvbnN0IHNpZ25lcnMgPSBsZWFkLmVtYWlsID8gW3sgZW1haWw6IGxlYWQuZW1haWwsIG5hbWU6IGAke2xlYWQuZmlyc3RfbmFtZX0gJHtsZWFkLmxhc3RfbmFtZX1gLCByb2xlOiAnU2lnbmVyIDEnIH1dIDogW107CiAgICAgIGNvbnN0IHJlc3VsdCA9IGF3YWl0IHJhaWx3YXlTaWdubm93LnVwbG9hZERvY3VtZW50KGxlYWQuaWQsIHsKICAgICAgICBmaWxlX3VybDogZmlsZVVybCwKICAgICAgICBkb2N1bWVudF9uYW1lOiBmaWxlLm5hbWUsCiAgICAgICAgc2lnbmVycywKICAgICAgfSk7CgogICAgICB0b2FzdCh7IHRpdGxlOiAnRG9jdW1lbnQgdXBsb2FkZWQnLCBkZXNjcmlwdGlvbjogJ1NpZ25Ob3cgZG9jdW1lbnQgY3JlYXRlZCBhbmQgc2VudCBmb3Igc2lnbmluZycsIGR1cmF0aW9uOiAzMDAwIH0pOwogICAgICBhd2FpdCBsb2FkRG9jdW1lbnRzKCk7CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIHRvYXN0KHsgdGl0bGU6ICdVcGxvYWQgZmFpbGVkJywgZGVzY3JpcHRpb246IGUubWVzc2FnZSwgdmFyaWFudDogJ2Rlc3RydWN0aXZlJywgZHVyYXRpb246IDUwMDAgfSk7CiAgICB9IGZpbmFsbHkgewogICAgICBzZXRVcGxvYWRpbmcoZmFsc2UpOwogICAgICBldmVudC50YXJnZXQudmFsdWUgPSAnJzsKICAgIH0KICB9OwoKICBjb25zdCBoYW5kbGVEZWxldGUgPSBhc3luYyAoZG9jSWQpID0+IHsKICAgIGlmICghY29uZmlybSgnRGVsZXRlIHRoaXMgZG9jdW1lbnQgcmVjb3JkPycpKSByZXR1cm47CiAgICB0cnkgewogICAgICBhd2FpdCByYWlsd2F5U2lnbm5vdy5kZWxldGVEb2N1bWVudChkb2NJZCk7CiAgICAgIHRvYXN0KHsgdGl0bGU6ICdEb2N1bWVudCBkZWxldGVkJywgZHVyYXRpb246IDIwMDAgfSk7CiAgICAgIGF3YWl0IGxvYWREb2N1bWVudHMoKTsKICAgIH0gY2F0Y2ggKGUpIHsKICAgICAgdG9hc3QoeyB0aXRsZTogJ0RlbGV0ZSBmYWlsZWQnLCBkZXNjcmlwdGlvbjogZS5tZXNzYWdlLCB2YXJpYW50OiAnZGVzdHJ1Y3RpdmUnIH0pOwogICAgfQogIH07CgogIGNvbnN0IGhhbmRsZVJlZnJlc2hTdGF0dXMgPSBhc3luYyAoZG9jSWQpID0+IHsKICAgIHRyeSB7CiAgICAgIGF3YWl0IHJhaWx3YXlTaWdubm93LmdldERvY3VtZW50U3RhdHVzKGRvY0lkKTsKICAgICAgYXdhaXQgbG9hZERvY3VtZW50cygpOwogICAgICB0b2FzdCh7IHRpdGxlOiAnU3RhdHVzIHJlZnJlc2hlZCcsIGR1cmF0aW9uOiAyMDAwIH0pOwogICAgfSBjYXRjaCAoZSkgewogICAgICB0b2FzdCh7IHRpdGxlOiAnUmVmcmVzaCBmYWlsZWQnLCBkZXNjcmlwdGlvbjogZS5tZXNzYWdlLCB2YXJpYW50OiAnZGVzdHJ1Y3RpdmUnIH0pOwogICAgfQogIH07CgogIGNvbnN0IHN0YXR1c0NvbmZpZyA9IHsKICAgIHBlbmRpbmc6IHsgY29sb3I6ICd0ZXh0LXNsYXRlLTUwMCcsIGJnOiAnYmctc2xhdGUtNTAnLCBpY29uOiBDbG9jayB9LAogICAgc2VudDogeyBjb2xvcjogJ3RleHQtYmx1ZS02MDAnLCBiZzogJ2JnLWJsdWUtNTAnLCBpY29uOiBFeHRlcm5hbExpbmsgfSwKICAgIHZpZXdlZDogeyBjb2xvcjogJ3RleHQtYmx1ZS02MDAnLCBiZzogJ2JnLWJsdWUtNTAnLCBpY29uOiBFeHRlcm5hbExpbmsgfSwKICAgIHNpZ25lZDogeyBjb2xvcjogJ3RleHQtYW1iZXItNjAwJywgYmc6ICdiZy1hbWJlci01MCcsIGljb246IEZpbGVTaWduYXR1cmUgfSwKICAgIGNvbXBsZXRlZDogeyBjb2xvcjogJ3RleHQtZW1lcmFsZC02MDAnLCBiZzogJ2JnLWVtZXJhbGQtNTAnLCBpY29uOiBDaGVja0NpcmNsZTIgfSwKICAgIHZvaWRlZDogeyBjb2xvcjogJ3RleHQtcmVkLTUwMCcsIGJnOiAnYmctcmVkLTUwJywgaWNvbjogQWxlcnRDaXJjbGUgfSwKICAgIGVycm9yOiB7IGNvbG9yOiAndGV4dC1yZWQtNTAwJywgYmc6ICdiZy1yZWQtNTAnLCBpY29uOiBBbGVydENpcmNsZSB9LAogIH07CgogIGlmIChsb2FkaW5nKSB7CiAgICByZXR1cm4gKAogICAgICA8ZGl2IGNsYXNzTmFtZT0icC00IGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIj4KICAgICAgICA8UmVmcmVzaEN3IGNsYXNzTmFtZT0idy00IGgtNCB0ZXh0LXNsYXRlLTQwMCBhbmltYXRlLXNwaW4iIC8+CiAgICAgIDwvZGl2PgogICAgKTsKICB9CgogIGlmIChlcnJvcikgewogICAgcmV0dXJuICgKICAgICAgPGRpdiBjbGFzc05hbWU9InAtNCI+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtc3RhcnQgZ2FwLTIgYmctYW1iZXItNTAgYm9yZGVyIGJvcmRlci1hbWJlci0yMDAgcm91bmRlZC1sZyBweC0zIHB5LTIiPgogICAgICAgICAgPEFsZXJ0Q2lyY2xlIGNsYXNzTmFtZT0idy00IGgtNCB0ZXh0LWFtYmVyLTUwMCBmbGV4LXNocmluay0wIG10LTAuNSIgLz4KICAgICAgICAgIDxkaXY+CiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtYW1iZXItNzAwIj5TaWduTm93IE5vdCBDb25maWd1cmVkPC9wPgogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzExcHhdIHRleHQtYW1iZXItNjAwIG10LTAuNSI+e2Vycm9yfTwvcD4KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KICAgICk7CiAgfQoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMyI+CiAgICAgIHsvKiBVcGxvYWQgYnV0dG9uICovfQogICAgICA8bGFiZWwgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBnYXAtMiB3LWZ1bGwgcHgtMyBweS0yIHRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXdoaXRlIGJnLWFtYmVyLTYwMCBob3ZlcjpiZy1hbWJlci03MDAgZGlzYWJsZWQ6b3BhY2l0eS01MCByb3VuZGVkLWxnIHRyYW5zaXRpb24tY29sb3JzIGN1cnNvci1wb2ludGVyIj4KICAgICAgICA8VXBsb2FkIGNsYXNzTmFtZT0idy0zLjUgaC0zLjUiIC8+CiAgICAgICAge3VwbG9hZGluZyA/ICdVcGxvYWRpbmcuLi4nIDogJ1VwbG9hZCBQREYgZm9yIFNpZ25pbmcnfQogICAgICAgIDxpbnB1dCB0eXBlPSJmaWxlIiBhY2NlcHQ9Ii5wZGYiIG9uQ2hhbmdlPXtoYW5kbGVVcGxvYWR9IGRpc2FibGVkPXt1cGxvYWRpbmd9IGNsYXNzTmFtZT0iaGlkZGVuIiAvPgogICAgICA8L2xhYmVsPgoKICAgICAgey8qIERvY3VtZW50cyBsaXN0ICovfQogICAgICB7ZG9jdW1lbnRzLmxlbmd0aCA9PT0gMCA/ICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1jZW50ZXIgcHktNCI+CiAgICAgICAgICA8RmlsZVNpZ25hdHVyZSBjbGFzc05hbWU9InctNiBoLTYgdGV4dC1zbGF0ZS0yMDAgbXgtYXV0byBtYi0xLjUiIC8+CiAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS00MDAiPk5vIGRvY3VtZW50cyB5ZXQ8L3A+CiAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzEwcHhdIHRleHQtc2xhdGUtNDAwIG10LTAuNSI+VXBsb2FkIGEgUERGIHRvIHNlbmQgZm9yIHNpZ25pbmc8L3A+CiAgICAgICAgPC9kaXY+CiAgICAgICkgOiAoCiAgICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMiI+CiAgICAgICAgICB7ZG9jdW1lbnRzLm1hcCgoZG9jKSA9PiB7CiAgICAgICAgICAgIGNvbnN0IGNmZyA9IHN0YXR1c0NvbmZpZ1tkb2Muc3RhdHVzXSB8fCBzdGF0dXNDb25maWcucGVuZGluZzsKICAgICAgICAgICAgY29uc3QgU3RhdHVzSWNvbiA9IGNmZy5pY29uOwogICAgICAgICAgICByZXR1cm4gKAogICAgICAgICAgICAgIDxkaXYga2V5PXtkb2MuaWR9IGNsYXNzTmFtZT17YGJvcmRlciByb3VuZGVkLWxnIHB4LTMgcHktMi41ICR7Y2ZnLmJnfWB9PgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtc3RhcnQganVzdGlmeS1iZXR3ZWVuIGdhcC0yIG1iLTEuNSI+CiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtaW4tdy0wIGZsZXgtMSI+CiAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS04MDAgdHJ1bmNhdGUiPntkb2MuZG9jdW1lbnRfbmFtZSB8fCAnVW50aXRsZWQnfTwvcD4KICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSBtdC0wLjUiPgogICAgICAgICAgICAgICAgICAgICAgPFN0YXR1c0ljb24gY2xhc3NOYW1lPXtgdy0zIGgtMyAke2NmZy5jb2xvcn1gfSAvPgogICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPXtgdGV4dC1bMTBweF0gZm9udC1zZW1pYm9sZCAke2NmZy5jb2xvcn0gdXBwZXJjYXNlIHRyYWNraW5nLXdpZGVgfT57ZG9jLnN0YXR1c308L3NwYW4+CiAgICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgPC9kaXY+CgogICAgICAgICAgICAgICAgey8qIFNpZ25lcnMgKi99CiAgICAgICAgICAgICAgICB7ZG9jLnNpZ25lcnMgJiYgZG9jLnNpZ25lcnMubGVuZ3RoID4gMCAmJiAoCiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtYi0xLjUiPgogICAgICAgICAgICAgICAgICAgIHtkb2Muc2lnbmVycy5tYXAoKHMsIGkpID0+ICgKICAgICAgICAgICAgICAgICAgICAgIDxwIGtleT17aX0gY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSB0ZXh0LXNsYXRlLTUwMCB0cnVuY2F0ZSI+4oaSIHtzLmVtYWlsfTwvcD4KICAgICAgICAgICAgICAgICAgICApKX0KICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICApfQoKICAgICAgICAgICAgICAgIHsvKiBBY3Rpb25zICovfQogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIG10LTEuNSI+CiAgICAgICAgICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBoYW5kbGVSZWZyZXNoU3RhdHVzKGRvYy5kb2N1bWVudF9pZCl9CiAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSB0ZXh0LXNsYXRlLTUwMCBob3Zlcjp0ZXh0LWFtYmVyLTYwMCBmb250LXNlbWlib2xkIGZsZXggaXRlbXMtY2VudGVyIGdhcC0xIgogICAgICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICAgICAgPFJlZnJlc2hDdyBjbGFzc05hbWU9InctMyBoLTMiIC8+IFJlZnJlc2gKICAgICAgICAgICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICAgICAgICAgIHtkb2Muc2lnbmluZ191cmwgJiYgKAogICAgICAgICAgICAgICAgICAgIDxhIGhyZWY9e2RvYy5zaWduaW5nX3VybH0gdGFyZ2V0PSJfYmxhbmsiIHJlbD0ibm9vcGVuZXIgbm9yZWZlcnJlciIKICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gdGV4dC1ibHVlLTYwMCBob3Zlcjp0ZXh0LWJsdWUtNzAwIGZvbnQtc2VtaWJvbGQgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEiPgogICAgICAgICAgICAgICAgICAgICAgPEV4dGVybmFsTGluayBjbGFzc05hbWU9InctMyBoLTMiIC8+IFNpZ24KICAgICAgICAgICAgICAgICAgICA8L2E+CiAgICAgICAgICAgICAgICAgICl9CiAgICAgICAgICAgICAgICAgIHtkb2MucGRmX3VybCAmJiAoCiAgICAgICAgICAgICAgICAgICAgPGEgaHJlZj17ZG9jLnBkZl91cmx9IHRhcmdldD0iX2JsYW5rIiByZWw9Im5vb3BlbmVyIG5vcmVmZXJyZXIiCiAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9InRleHQtWzEwcHhdIHRleHQtZW1lcmFsZC02MDAgaG92ZXI6dGV4dC1lbWVyYWxkLTcwMCBmb250LXNlbWlib2xkIGZsZXggaXRlbXMtY2VudGVyIGdhcC0xIj4KICAgICAgICAgICAgICAgICAgICAgIDxEb3dubG9hZCBjbGFzc05hbWU9InctMyBoLTMiIC8+IFBERgogICAgICAgICAgICAgICAgICAgIDwvYT4KICAgICAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IGhhbmRsZURlbGV0ZShkb2MuZG9jdW1lbnRfaWQpfQogICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gdGV4dC1yZWQtNDAwIGhvdmVyOnRleHQtcmVkLTYwMCBmb250LXNlbWlib2xkIGZsZXggaXRlbXMtY2VudGVyIGdhcC0xIG1sLWF1dG8iCiAgICAgICAgICAgICAgICAgID4KICAgICAgICAgICAgICAgICAgICA8VHJhc2gyIGNsYXNzTmFtZT0idy0zIGgtMyIgLz4KICAgICAgICAgICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICAgICAgICB7ZG9jLmVycm9yX21lc3NhZ2UgJiYgKAogICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzEwcHhdIHRleHQtcmVkLTUwMCBtdC0xIj57ZG9jLmVycm9yX21lc3NhZ2V9PC9wPgogICAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgKTsKICAgICAgICAgIH0pfQogICAgICAgIDwvZGl2PgogICAgICApfQogICAgPC9kaXY+CiAgKTsKfQ==
+/**
+ * SignNowPanel — Native Railway SignNow panel for Lead Detail.
+ *
+ * Lists SignNow documents for a lead, allows uploading PDFs for signing,
+ * checking signing status, and downloading signed documents.
+ *
+ * Calls SignNow API directly via native Railway routes (no Base44).
+ * Stores document metadata in the signnow_documents Postgres table.
+ */
+import { useState, useEffect, useCallback } from "react";
+import { signnow as railwaySignnow } from "@/api/railway";
+import { uploadFileToStorage } from "@/lib/fileUpload";
+import { useToast } from "@/components/ui/use-toast";
+import { FileSignature, RefreshCw, Upload, Download, Trash2, ExternalLink, AlertCircle, CheckCircle2, Clock } from "lucide-react";
+
+export default function SignNowPanel({ lead, onLeadUpdate }) {
+  const [documents, setDocuments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const { toast } = useToast();
+
+  const loadDocuments = useCallback(async () => {
+    if (!lead?.id) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await railwaySignnow.listDocuments(lead.id);
+      setDocuments(data.documents || []);
+    } catch (e) {
+      if (e.message?.includes('not_configured') || e.message?.includes('SIGNNOW')) {
+        setError('SignNow credentials not configured. Set SIGNNOW_CLIENT_ID, SIGNNOW_CLIENT_SECRET, SIGNNOW_USERNAME, and SIGNNOW_PASSWORD on Railway.');
+      } else {
+        setError(e.message || 'Failed to load documents');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [lead?.id]);
+
+  useEffect(() => { loadDocuments(); }, [loadDocuments]);
+
+  const handleUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      // Upload the PDF to R2/S3 storage (returns a public URL)
+      const uploadRes = await uploadFileToStorage(file);
+      const fileUrl = uploadRes?.url;
+
+      if (!fileUrl) throw new Error('File upload failed');
+
+      // Then create the SignNow document from the uploaded PDF
+      const signers = lead.email ? [{ email: lead.email, name: `${lead.first_name} ${lead.last_name}`, role: 'Signer 1' }] : [];
+      const result = await railwaySignnow.uploadDocument(lead.id, {
+        file_url: fileUrl,
+        document_name: file.name,
+        signers,
+      });
+
+      toast({ title: 'Document uploaded', description: 'SignNow document created and sent for signing', duration: 3000 });
+      await loadDocuments();
+    } catch (e) {
+      toast({ title: 'Upload failed', description: e.message, variant: 'destructive', duration: 5000 });
+    } finally {
+      setUploading(false);
+      event.target.value = '';
+    }
+  };
+
+  const handleDelete = async (docId) => {
+    if (!confirm('Delete this document record?')) return;
+    try {
+      await railwaySignnow.deleteDocument(docId);
+      toast({ title: 'Document deleted', duration: 2000 });
+      await loadDocuments();
+    } catch (e) {
+      toast({ title: 'Delete failed', description: e.message, variant: 'destructive' });
+    }
+  };
+
+  const handleRefreshStatus = async (docId) => {
+    try {
+      await railwaySignnow.getDocumentStatus(docId);
+      await loadDocuments();
+      toast({ title: 'Status refreshed', duration: 2000 });
+    } catch (e) {
+      toast({ title: 'Refresh failed', description: e.message, variant: 'destructive' });
+    }
+  };
+
+  const statusConfig = {
+    pending: { color: 'text-slate-500', bg: 'bg-slate-50', icon: Clock },
+    sent: { color: 'text-blue-600', bg: 'bg-blue-50', icon: ExternalLink },
+    viewed: { color: 'text-blue-600', bg: 'bg-blue-50', icon: ExternalLink },
+    signed: { color: 'text-amber-600', bg: 'bg-amber-50', icon: FileSignature },
+    completed: { color: 'text-emerald-600', bg: 'bg-emerald-50', icon: CheckCircle2 },
+    voided: { color: 'text-red-500', bg: 'bg-red-50', icon: AlertCircle },
+    error: { color: 'text-red-500', bg: 'bg-red-50', icon: AlertCircle },
+  };
+
+  if (loading) {
+    return (
+      <div className="p-4 flex items-center justify-center">
+        <RefreshCw className="w-4 h-4 text-slate-400 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4">
+        <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+          <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-xs font-semibold text-amber-700">SignNow Not Configured</p>
+            <p className="text-[11px] text-amber-600 mt-0.5">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* Upload button */}
+      <label className="flex items-center justify-center gap-2 w-full px-3 py-2 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50 rounded-lg transition-colors cursor-pointer">
+        <Upload className="w-3.5 h-3.5" />
+        {uploading ? 'Uploading...' : 'Upload PDF for Signing'}
+        <input type="file" accept=".pdf" onChange={handleUpload} disabled={uploading} className="hidden" />
+      </label>
+
+      {/* Documents list */}
+      {documents.length === 0 ? (
+        <div className="text-center py-4">
+          <FileSignature className="w-6 h-6 text-slate-200 mx-auto mb-1.5" />
+          <p className="text-xs text-slate-400">No documents yet</p>
+          <p className="text-[10px] text-slate-400 mt-0.5">Upload a PDF to send for signing</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {documents.map((doc) => {
+            const cfg = statusConfig[doc.status] || statusConfig.pending;
+            const StatusIcon = cfg.icon;
+            return (
+              <div key={doc.id} className={`border rounded-lg px-3 py-2.5 ${cfg.bg}`}>
+                <div className="flex items-start justify-between gap-2 mb-1.5">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-slate-800 truncate">{doc.document_name || 'Untitled'}</p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <StatusIcon className={`w-3 h-3 ${cfg.color}`} />
+                      <span className={`text-[10px] font-semibold ${cfg.color} uppercase tracking-wide`}>{doc.status}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Signers */}
+                {doc.signers && doc.signers.length > 0 && (
+                  <div className="mb-1.5">
+                    {doc.signers.map((s, i) => (
+                      <p key={i} className="text-[10px] text-slate-500 truncate">→ {s.email}</p>
+                    ))}
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex items-center gap-2 mt-1.5">
+                  <button
+                    onClick={() => handleRefreshStatus(doc.document_id)}
+                    className="text-[10px] text-slate-500 hover:text-amber-600 font-semibold flex items-center gap-1"
+                  >
+                    <RefreshCw className="w-3 h-3" /> Refresh
+                  </button>
+                  {doc.signing_url && (
+                    <a href={doc.signing_url} target="_blank" rel="noopener noreferrer"
+                      className="text-[10px] text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1">
+                      <ExternalLink className="w-3 h-3" /> Sign
+                    </a>
+                  )}
+                  {doc.pdf_url && (
+                    <a href={doc.pdf_url} target="_blank" rel="noopener noreferrer"
+                      className="text-[10px] text-emerald-600 hover:text-emerald-700 font-semibold flex items-center gap-1">
+                      <Download className="w-3 h-3" /> PDF
+                    </a>
+                  )}
+                  <button
+                    onClick={() => handleDelete(doc.document_id)}
+                    className="text-[10px] text-red-400 hover:text-red-600 font-semibold flex items-center gap-1 ml-auto"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+
+                {doc.error_message && (
+                  <p className="text-[10px] text-red-500 mt-1">{doc.error_message}</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}

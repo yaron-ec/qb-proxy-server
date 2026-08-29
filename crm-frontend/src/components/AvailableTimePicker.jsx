@@ -1,1 +1,151 @@
-LyoqCiAqIEF2YWlsYWJsZVRpbWVQaWNrZXIKICoKICogTG9hZHMgdGhlIG93bmVyJ3MgR29vZ2xlIENhbGVuZGFyIGF2YWlsYWJpbGl0eSBmb3IgdGhlIHNlbGVjdGVkIGRhdGUKICogYW5kIHJlbW92ZXMgYmxvY2tlZCBzbG90cyBmcm9tIHRoZSBkcm9wZG93biBlbnRpcmVseS4KICoKICogUHJvcHM6CiAqICAgdmFsdWUgICAgICAtIGN1cnJlbnRseSBzZWxlY3RlZCB0aW1lICgiSEg6TU0iKQogKiAgIG9uQ2hhbmdlICAgLSBjYWxsZWQgd2l0aCAiSEg6TU0iIHdoZW4gdXNlciBzZWxlY3RzIGFuIGF2YWlsYWJsZSBzbG90CiAqICAgZGF0ZSAgICAgICAtICJZWVlZLU1NLUREIiDigJQgcmVxdWlyZWQgdG8gbG9hZCBhdmFpbGFiaWxpdHkKICogICBvd25lck5hbWUgIC0gYXNzaWduZWQgcmVwIG5hbWUKICogICBkaXNhYmxlZCAgIC0gZGlzYWJsZXMgdGhlIHdob2xlIHBpY2tlcgogKiAgIGNsYXNzTmFtZSAgLSBleHRyYSB3cmFwcGVyIGNsYXNzZXMKICovCmltcG9ydCB7IHVzZVN0YXRlLCB1c2VFZmZlY3QsIHVzZVJlZiB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsgZ2V0QmxvY2tlZFNsb3RzIH0gZnJvbSAiQC9saWIvY2FsZW5kYXJBdmFpbGFiaWxpdHkiOwppbXBvcnQgeyBMb2FkZXIyLCBBbGVydFRyaWFuZ2xlIH0gZnJvbSAibHVjaWRlLXJlYWN0IjsKCi8vIFRpbWVzIGZyb20gODozMCBBTSB0byA2OjMwIFBNCmNvbnN0IEFMTF9TTE9UUyA9IFtdOwpmb3IgKGxldCBoID0gODsgaCA8PSAxODsgaCsrKSB7CiAgZm9yIChsZXQgbSA9IDA7IG0gPCA2MDsgbSArPSAzMCkgewogICAgaWYgKGggPT09IDggJiYgbSA9PT0gMCkgY29udGludWU7IC8vIHNraXAgODowMCwgc3RhcnQgYXQgODozMAogICAgaWYgKGggPT09IDE4ICYmIG0gPiAzMCkgY29udGludWU7IC8vIHN0b3AgYXQgNjozMCBQTQogICAgQUxMX1NMT1RTLnB1c2goYCR7U3RyaW5nKGgpLnBhZFN0YXJ0KDIsICcwJyl9OiR7U3RyaW5nKG0pLnBhZFN0YXJ0KDIsICcwJyl9YCk7CiAgfQp9CgpmdW5jdGlvbiBmbXQxMih0KSB7CiAgaWYgKCF0KSByZXR1cm4gdDsKICBjb25zdCBbaCwgbV0gPSB0LnNwbGl0KCc6JykubWFwKE51bWJlcik7CiAgY29uc3QgYW1wbSA9IGggPj0gMTIgPyAnUE0nIDogJ0FNJzsKICByZXR1cm4gYCR7aCAlIDEyIHx8IDEyfToke1N0cmluZyhtKS5wYWRTdGFydCgyLCAnMCcpfSAke2FtcG19YDsKfQoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gQXZhaWxhYmxlVGltZVBpY2tlcih7IHZhbHVlLCBvbkNoYW5nZSwgZGF0ZSwgb3duZXJOYW1lLCBkaXNhYmxlZCwgY2xhc3NOYW1lID0gIiIsIGFkbWluT3ZlcnJpZGUgPSBmYWxzZSB9KSB7CiAgY29uc3QgW2Jsb2NrZWRTbG90cywgc2V0QmxvY2tlZFNsb3RzXSA9IHVzZVN0YXRlKFtdKTsKICBjb25zdCBbbG9hZGluZywgc2V0TG9hZGluZ10gPSB1c2VTdGF0ZShmYWxzZSk7CiAgY29uc3QgW2xvYWRFcnJvciwgc2V0TG9hZEVycm9yXSA9IHVzZVN0YXRlKG51bGwpOwogIGNvbnN0IFtxdW90YUVycm9yLCBzZXRRdW90YUVycm9yXSA9IHVzZVN0YXRlKGZhbHNlKTsKICBjb25zdCBhYm9ydFJlZiA9IHVzZVJlZihudWxsKTsKCiAgdXNlRWZmZWN0KCgpID0+IHsKICAgIC8vIENhbmNlbCBhbnkgaW4tZmxpZ2h0IHJlcXVlc3QKICAgIGlmIChhYm9ydFJlZi5jdXJyZW50KSBhYm9ydFJlZi5jdXJyZW50ID0gZmFsc2U7CgogICAgLy8gT25seSBsb2FkIGlmIEJPVEggZGF0ZSBBTkQgb3duZXIgYXJlIHNlbGVjdGVkCiAgICBpZiAoIWRhdGUgfHwgIW93bmVyTmFtZSkgewogICAgICBzZXRCbG9ja2VkU2xvdHMoW10pOwogICAgICBzZXRMb2FkaW5nKGZhbHNlKTsKICAgICAgc2V0UXVvdGFFcnJvcihmYWxzZSk7CiAgICAgIHJldHVybjsKICAgIH0KCiAgICBsZXQgYWN0aXZlID0gdHJ1ZTsKICAgIGFib3J0UmVmLmN1cnJlbnQgPSB0cnVlOwoKICAgIHNldExvYWRpbmcodHJ1ZSk7CiAgICBzZXRMb2FkRXJyb3IobnVsbCk7CiAgICBzZXRRdW90YUVycm9yKGZhbHNlKTsKCiAgICBnZXRCbG9ja2VkU2xvdHMoZGF0ZSwgb3duZXJOYW1lKS50aGVuKGRhdGEgPT4gewogICAgICBpZiAoIWFjdGl2ZSkgcmV0dXJuOwogICAgICBjb25zdCBibG9ja2VkID0gZGF0YT8uYmxvY2tlZF9zbG90cyB8fCBbXTsKICAgICAgc2V0QmxvY2tlZFNsb3RzKGJsb2NrZWQpOwogICAgICBpZiAoIWFkbWluT3ZlcnJpZGUgJiYgdmFsdWUgJiYgYmxvY2tlZC5pbmNsdWRlcyh2YWx1ZSkpIHsKICAgICAgICBvbkNoYW5nZSgnJyk7CiAgICAgIH0KICAgIH0pLmNhdGNoKGUgPT4gewogICAgICBpZiAoIWFjdGl2ZSkgcmV0dXJuOwogICAgICBjb25zb2xlLndhcm4oJ1tBdmFpbGFibGVUaW1lUGlja2VyXSBDb3VsZCBub3QgY2hlY2sgYXZhaWxhYmlsaXR5OicsIGUubWVzc2FnZSk7CiAgICAgIHNldEJsb2NrZWRTbG90cyhbXSk7CiAgICB9KS5maW5hbGx5KCgpID0+IHsKICAgICAgaWYgKCFhY3RpdmUpIHJldHVybjsKICAgICAgc2V0TG9hZGluZyhmYWxzZSk7CiAgICB9KTsKCiAgICByZXR1cm4gKCkgPT4geyBhY3RpdmUgPSBmYWxzZTsgfTsKICB9LCBbZGF0ZSwgb3duZXJOYW1lXSk7IC8vIE9ubHkgZmV0Y2ggd2hlbiBkYXRlIG9yIG93bmVyIGNoYW5nZXMKCiAgLy8gSW4gYWRtaW4gb3ZlcnJpZGUgbW9kZSwgc2hvdyBhbGwgc2xvdHM7IG90aGVyd2lzZSBmaWx0ZXIgb3V0IGJsb2NrZWQgb25lcwogIGNvbnN0IHZpc2libGVTbG90cyA9IGFkbWluT3ZlcnJpZGUgPyBBTExfU0xPVFMgOiBBTExfU0xPVFMuZmlsdGVyKHMgPT4gIWJsb2NrZWRTbG90cy5pbmNsdWRlcyhzKSk7CiAgY29uc3Qgc2VsZWN0ZWRJc0Jsb2NrZWQgPSBhZG1pbk92ZXJyaWRlICYmIHZhbHVlICYmIGJsb2NrZWRTbG90cy5pbmNsdWRlcyh2YWx1ZSk7CgogIGNvbnN0IGhhbmRsZUNoYW5nZSA9IChlKSA9PiB7CiAgICBjb25zdCBzZWxlY3RlZCA9IGUudGFyZ2V0LnZhbHVlOwogICAgaWYgKCFzZWxlY3RlZCkgeyBvbkNoYW5nZSgnJyk7IHJldHVybjsgfQogICAgb25DaGFuZ2Uoc2VsZWN0ZWQpOwogIH07CgogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT17Y2xhc3NOYW1lfT4KICAgICAgPGRpdiBjbGFzc05hbWU9InJlbGF0aXZlIj4KICAgICAgICA8c2VsZWN0CiAgICAgICAgICB2YWx1ZT17dmFsdWUgfHwgJyd9CiAgICAgICAgICBvbkNoYW5nZT17aGFuZGxlQ2hhbmdlfQogICAgICAgICAgZGlzYWJsZWQ9e2Rpc2FibGVkIHx8IGxvYWRpbmcgfHwgcXVvdGFFcnJvcn0KICAgICAgICAgIGNsYXNzTmFtZT17YHctZnVsbCBib3JkZXIgcm91bmRlZC1sZyBweC0zIHB5LTIuNSB0ZXh0LXNtIHRleHQtc2xhdGUtOTAwIGJnLXdoaXRlIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1hbWJlci01MDAvMjAgZm9jdXM6Ym9yZGVyLWFtYmVyLTUwMCB0cmFuc2l0aW9uLWNvbG9ycyAke3NlbGVjdGVkSXNCbG9ja2VkID8gJ2JvcmRlci1hbWJlci00MDAnIDogJ2JvcmRlci1zbGF0ZS0yMDAnfSAkeyhkaXNhYmxlZCB8fCBsb2FkaW5nIHx8IHF1b3RhRXJyb3IpID8gJ29wYWNpdHktNjAgY3Vyc29yLW5vdC1hbGxvd2VkJyA6ICcnfWB9CiAgICAgICAgPgogICAgICAgICAgPG9wdGlvbiB2YWx1ZT0iIj4KICAgICAgICAgICAge2xvYWRpbmcgPyAnQ2hlY2tpbmcgYXZhaWxhYmlsaXR5Li4uJyA6IHF1b3RhRXJyb3IgPyAnUXVvdGEgZXhjZWVkZWQnIDogJ+KAlCBTZWxlY3QgdGltZSd9CiAgICAgICAgICA8L29wdGlvbj4KICAgICAgICAgIHt2aXNpYmxlU2xvdHMubWFwKHNsb3QgPT4gewogICAgICAgICAgICBjb25zdCBpc0Jsb2NrZWQgPSBhZG1pbk92ZXJyaWRlICYmIGJsb2NrZWRTbG90cy5pbmNsdWRlcyhzbG90KTsKICAgICAgICAgICAgcmV0dXJuICgKICAgICAgICAgICAgICA8b3B0aW9uIGtleT17c2xvdH0gdmFsdWU9e3Nsb3R9PgogICAgICAgICAgICAgICAge2ZtdDEyKHNsb3QpfXtpc0Jsb2NrZWQgPyAnIOKaoCBBbHJlYWR5IGJvb2tlZCcgOiAnJ30KICAgICAgICAgICAgICA8L29wdGlvbj4KICAgICAgICAgICAgKTsKICAgICAgICAgIH0pfQogICAgICAgIDwvc2VsZWN0PgogICAgICAgIHtsb2FkaW5nICYmICgKICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJhYnNvbHV0ZSByaWdodC0zIHRvcC0xLzIgLXRyYW5zbGF0ZS15LTEvMiBwb2ludGVyLWV2ZW50cy1ub25lIj4KICAgICAgICAgICAgPExvYWRlcjIgY2xhc3NOYW1lPSJ3LTQgaC00IGFuaW1hdGUtc3BpbiB0ZXh0LXNsYXRlLTQwMCIgLz4KICAgICAgICAgIDwvZGl2PgogICAgICAgICl9CiAgICAgIDwvZGl2PgoKICAgICAge2xvYWRFcnJvciAmJiAoCiAgICAgICAgPGRpdiBjbGFzc05hbWU9e2BtdC0xLjUgZmxleCBpdGVtcy1zdGFydCBnYXAtMS41IHJvdW5kZWQtbGcgcHgtMi41IHB5LTIgYm9yZGVyICR7CiAgICAgICAgICBxdW90YUVycm9yIAogICAgICAgICAgICA/ICdiZy1yZWQtNTAgYm9yZGVyLXJlZC0yMDAnIAogICAgICAgICAgICA6ICdiZy1hbWJlci01MCBib3JkZXItYW1iZXItMjAwJwogICAgICAgIH1gfT4KICAgICAgICAgIDxBbGVydFRyaWFuZ2xlIGNsYXNzTmFtZT17YHctMy41IGgtMy41IGZsZXgtc2hyaW5rLTAgbXQtMC41ICR7CiAgICAgICAgICAgIHF1b3RhRXJyb3IgCiAgICAgICAgICAgICAgPyAndGV4dC1yZWQtNTAwJyAKICAgICAgICAgICAgICA6ICd0ZXh0LWFtYmVyLTUwMCcKICAgICAgICAgIH1gfSAvPgogICAgICAgICAgPHAgY2xhc3NOYW1lPXtgdGV4dC14cyAkewogICAgICAgICAgICBxdW90YUVycm9yIAogICAgICAgICAgICAgID8gJ3RleHQtcmVkLTcwMCcgCiAgICAgICAgICAgICAgOiAndGV4dC1hbWJlci03MDAnCiAgICAgICAgICB9YH0+e2xvYWRFcnJvcn17IXF1b3RhRXJyb3IgJiYgJyDigJQgc2hvd2luZyBhbGwgc2xvdHMnfTwvcD4KICAgICAgICA8L2Rpdj4KICAgICAgKX0KCiAgICAgIHshYWRtaW5PdmVycmlkZSAmJiAhbG9hZGluZyAmJiAhbG9hZEVycm9yICYmIGRhdGUgJiYgb3duZXJOYW1lICYmIGJsb2NrZWRTbG90cy5sZW5ndGggPiAwICYmICgKICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzEwcHhdIHRleHQtc2xhdGUtNDAwIG10LTEiPgogICAgICAgICAge2Jsb2NrZWRTbG90cy5sZW5ndGh9IHNsb3R7YmxvY2tlZFNsb3RzLmxlbmd0aCAhPT0gMSA/ICdzJyA6ICcnfSByZW1vdmVkIOKAlCBub3QgYXZhaWxhYmxlIGZvciB7b3duZXJOYW1lfQogICAgICAgIDwvcD4KICAgICAgKX0KICAgICAge2FkbWluT3ZlcnJpZGUgJiYgc2VsZWN0ZWRJc0Jsb2NrZWQgJiYgKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtdC0xLjUgZmxleCBpdGVtcy1zdGFydCBnYXAtMS41IHJvdW5kZWQtbGcgcHgtMi41IHB5LTIgYm9yZGVyIGJnLWFtYmVyLTUwIGJvcmRlci1hbWJlci0zMDAiPgogICAgICAgICAgPEFsZXJ0VHJpYW5nbGUgY2xhc3NOYW1lPSJ3LTMuNSBoLTMuNSBmbGV4LXNocmluay0wIG10LTAuNSB0ZXh0LWFtYmVyLTUwMCIgLz4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LWFtYmVyLTcwMCBmb250LXNlbWlib2xkIj5BZG1pbiBvdmVycmlkZTogdGhpcyB0aW1lIHNsb3QgaXMgYWxyZWFkeSBib29rZWQuIEJvdGggYXBwb2ludG1lbnRzIHdpbGwgYXBwZWFyIGluIHRoZSBjYWxlbmRhci48L3A+CiAgICAgICAgPC9kaXY+CiAgICAgICl9CiAgICA8L2Rpdj4KICApOwp9
+/**
+ * AvailableTimePicker
+ *
+ * Loads the owner's Google Calendar availability for the selected date
+ * and removes blocked slots from the dropdown entirely.
+ *
+ * Props:
+ *   value      - currently selected time ("HH:MM")
+ *   onChange   - called with "HH:MM" when user selects an available slot
+ *   date       - "YYYY-MM-DD" — required to load availability
+ *   ownerName  - assigned rep name
+ *   disabled   - disables the whole picker
+ *   className  - extra wrapper classes
+ */
+import { useState, useEffect, useRef } from "react";
+import { getBlockedSlots } from "@/lib/calendarAvailability";
+import { Loader2, AlertTriangle } from "lucide-react";
+
+// Times from 8:30 AM to 6:30 PM
+const ALL_SLOTS = [];
+for (let h = 8; h <= 18; h++) {
+  for (let m = 0; m < 60; m += 30) {
+    if (h === 8 && m === 0) continue; // skip 8:00, start at 8:30
+    if (h === 18 && m > 30) continue; // stop at 6:30 PM
+    ALL_SLOTS.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+  }
+}
+
+function fmt12(t) {
+  if (!t) return t;
+  const [h, m] = t.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ampm}`;
+}
+
+export default function AvailableTimePicker({ value, onChange, date, ownerName, disabled, className = "", adminOverride = false }) {
+  const [blockedSlots, setBlockedSlots] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(null);
+  const [quotaError, setQuotaError] = useState(false);
+  const abortRef = useRef(null);
+
+  useEffect(() => {
+    // Cancel any in-flight request
+    if (abortRef.current) abortRef.current = false;
+
+    // Only load if BOTH date AND owner are selected
+    if (!date || !ownerName) {
+      setBlockedSlots([]);
+      setLoading(false);
+      setQuotaError(false);
+      return;
+    }
+
+    let active = true;
+    abortRef.current = true;
+
+    setLoading(true);
+    setLoadError(null);
+    setQuotaError(false);
+
+    getBlockedSlots(date, ownerName).then(data => {
+      if (!active) return;
+      const blocked = data?.blocked_slots || [];
+      setBlockedSlots(blocked);
+      if (!adminOverride && value && blocked.includes(value)) {
+        onChange('');
+      }
+    }).catch(e => {
+      if (!active) return;
+      console.warn('[AvailableTimePicker] Could not check availability:', e.message);
+      setBlockedSlots([]);
+    }).finally(() => {
+      if (!active) return;
+      setLoading(false);
+    });
+
+    return () => { active = false; };
+  }, [date, ownerName]); // Only fetch when date or owner changes
+
+  // In admin override mode, show all slots; otherwise filter out blocked ones
+  const visibleSlots = adminOverride ? ALL_SLOTS : ALL_SLOTS.filter(s => !blockedSlots.includes(s));
+  const selectedIsBlocked = adminOverride && value && blockedSlots.includes(value);
+
+  const handleChange = (e) => {
+    const selected = e.target.value;
+    if (!selected) { onChange(''); return; }
+    onChange(selected);
+  };
+
+  return (
+    <div className={className}>
+      <div className="relative">
+        <select
+          value={value || ''}
+          onChange={handleChange}
+          disabled={disabled || loading || quotaError}
+          className={`w-full border rounded-lg px-3 py-2.5 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors ${selectedIsBlocked ? 'border-amber-400' : 'border-slate-200'} ${(disabled || loading || quotaError) ? 'opacity-60 cursor-not-allowed' : ''}`}
+        >
+          <option value="">
+            {loading ? 'Checking availability...' : quotaError ? 'Quota exceeded' : '— Select time'}
+          </option>
+          {visibleSlots.map(slot => {
+            const isBlocked = adminOverride && blockedSlots.includes(slot);
+            return (
+              <option key={slot} value={slot}>
+                {fmt12(slot)}{isBlocked ? ' ⚠ Already booked' : ''}
+              </option>
+            );
+          })}
+        </select>
+        {loading && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+            <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+          </div>
+        )}
+      </div>
+
+      {loadError && (
+        <div className={`mt-1.5 flex items-start gap-1.5 rounded-lg px-2.5 py-2 border ${
+          quotaError 
+            ? 'bg-red-50 border-red-200' 
+            : 'bg-amber-50 border-amber-200'
+        }`}>
+          <AlertTriangle className={`w-3.5 h-3.5 flex-shrink-0 mt-0.5 ${
+            quotaError 
+              ? 'text-red-500' 
+              : 'text-amber-500'
+          }`} />
+          <p className={`text-xs ${
+            quotaError 
+              ? 'text-red-700' 
+              : 'text-amber-700'
+          }`}>{loadError}{!quotaError && ' — showing all slots'}</p>
+        </div>
+      )}
+
+      {!adminOverride && !loading && !loadError && date && ownerName && blockedSlots.length > 0 && (
+        <p className="text-[10px] text-slate-400 mt-1">
+          {blockedSlots.length} slot{blockedSlots.length !== 1 ? 's' : ''} removed — not available for {ownerName}
+        </p>
+      )}
+      {adminOverride && selectedIsBlocked && (
+        <div className="mt-1.5 flex items-start gap-1.5 rounded-lg px-2.5 py-2 border bg-amber-50 border-amber-300">
+          <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-amber-500" />
+          <p className="text-xs text-amber-700 font-semibold">Admin override: this time slot is already booked. Both appointments will appear in the calendar.</p>
+        </div>
+      )}
+    </div>
+  );
+}

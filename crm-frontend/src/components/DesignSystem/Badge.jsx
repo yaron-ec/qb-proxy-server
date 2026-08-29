@@ -1,1 +1,47 @@
-LyoqCiAqIFVuaWZpZWQgQmFkZ2UgQ29tcG9uZW50IFN5c3RlbQogKiBDb25zaXN0ZW50IGhlaWdodCwgcGFkZGluZywgcmFkaXVzLCBhbmQgdHlwb2dyYXBoeSBhY3Jvc3MgYWxsIGJhZGdlcwogKiBVc2VzIGRlc2lnbiB0b2tlbnMgZm9yIG1haW50YWluYWJpbGl0eQogKi8KCmV4cG9ydCBmdW5jdGlvbiBTdGF0dXNCYWRnZSh7IHZhcmlhbnQgPSAiZGVmYXVsdCIsIGNoaWxkcmVuLCBjbGFzc05hbWUgPSAiIiB9KSB7CiAgY29uc3QgdmFyaWFudHMgPSB7CiAgICBkZWZhdWx0OiAgICAgImJnLXNsYXRlLTEwMCB0ZXh0LXNsYXRlLTcwMCIsCiAgICBzdWNjZXNzOiAgICAgImJnLWVtZXJhbGQtMTAwIHRleHQtZW1lcmFsZC03MDAiLAogICAgd2FybmluZzogICAgICJiZy1hbWJlci0xMDAgdGV4dC1hbWJlci03MDAiLAogICAgZXJyb3I6ICAgICAgICJiZy1yZWQtMTAwIHRleHQtcmVkLTYwMCIsCiAgICBpbmZvOiAgICAgICAgImJnLWJsdWUtMTAwIHRleHQtYmx1ZS03MDAiLAogICAgcHVycGxlOiAgICAgICJiZy1wdXJwbGUtMTAwIHRleHQtcHVycGxlLTcwMCIsCiAgICBzb2xkOiAgICAgICAgImJnLWVtZXJhbGQtMTAwIHRleHQtZW1lcmFsZC03MDAiLAogICAgcGVuZGluZzogICAgICJiZy1hbWJlci0xMDAgdGV4dC1hbWJlci03MDAiLAogICAgZHJhZnQ6ICAgICAgICJiZy1zbGF0ZS0xMDAgdGV4dC1zbGF0ZS02MDAiLAogICAgYXBwb2ludG1lbnQ6ICJiZy1pbmRpZ28tMTAwIHRleHQtaW5kaWdvLTcwMCIsCiAgICBhZG1pbjogICAgICAgImJnLXNsYXRlLTcwMCB0ZXh0LXNsYXRlLTEwMCIsCiAgICBhY3RpdmU6ICAgICAgImJnLWVtZXJhbGQtMTAwIHRleHQtZW1lcmFsZC03MDAiLAogIH07CiAgcmV0dXJuICgKICAgIDxzcGFuIAogICAgICBjbGFzc05hbWU9e2BpbmxpbmUtZmxleCBpdGVtcy1jZW50ZXIgaGVpZ2h0LVsxLjVyZW1dIHB4LTIgcHktMC41IHJvdW5kZWQtZnVsbCB3aGl0ZXNwYWNlLW5vd3JhcCB0eXBvZ3JhcGh5LWJhZGdlICR7dmFyaWFudHNbdmFyaWFudF19ICR7Y2xhc3NOYW1lfWB9CiAgICA+CiAgICAgIHtjaGlsZHJlbn0KICAgIDwvc3Bhbj4KICApOwp9CgpleHBvcnQgZnVuY3Rpb24gQWN0aW9uQmFkZ2UoeyBjaGlsZHJlbiwgb25DbGljaywgdmFyaWFudCA9ICJkZWZhdWx0IiwgZGlzYWJsZWQgPSBmYWxzZSB9KSB7CiAgY29uc3QgdmFyaWFudHMgPSB7CiAgICBkZWZhdWx0OiAgICJiZy1zbGF0ZS0xMDAgdGV4dC1zbGF0ZS03MDAgaG92ZXI6Ymctc2xhdGUtMjAwIiwKICAgIGFtYmVyOiAgICAgImJnLWFtYmVyLTUwIHRleHQtYW1iZXItNzAwIGJvcmRlciBib3JkZXItYW1iZXItMjAwIGhvdmVyOmJnLWFtYmVyLTEwMCIsCiAgICBlbWVyYWxkOiAgICJiZy1lbWVyYWxkLTUwIHRleHQtZW1lcmFsZC03MDAgYm9yZGVyIGJvcmRlci1lbWVyYWxkLTIwMCBob3ZlcjpiZy1lbWVyYWxkLTEwMCIsCiAgfTsKICAKICByZXR1cm4gKAogICAgPGJ1dHRvbiAKICAgICAgb25DbGljaz17b25DbGlja30KICAgICAgZGlzYWJsZWQ9e2Rpc2FibGVkfQogICAgICBjbGFzc05hbWU9e2BpbmxpbmUtZmxleCBpdGVtcy1jZW50ZXIgaC02IHB4LTIgcHktMC41IHJvdW5kZWQtZnVsbCB3aGl0ZXNwYWNlLW5vd3JhcCB0eXBvZ3JhcGh5LWJhZGdlIHRyYW5zaXRpb24tY29sb3JzIGRpc2FibGVkOm9wYWNpdHktNTAgJHt2YXJpYW50c1t2YXJpYW50XX1gfQogICAgPgogICAgICB7Y2hpbGRyZW59CiAgICA8L2J1dHRvbj4KICApOwp9
+/**
+ * Unified Badge Component System
+ * Consistent height, padding, radius, and typography across all badges
+ * Uses design tokens for maintainability
+ */
+
+export function StatusBadge({ variant = "default", children, className = "" }) {
+  const variants = {
+    default:     "bg-slate-100 text-slate-700",
+    success:     "bg-emerald-100 text-emerald-700",
+    warning:     "bg-amber-100 text-amber-700",
+    error:       "bg-red-100 text-red-600",
+    info:        "bg-blue-100 text-blue-700",
+    purple:      "bg-purple-100 text-purple-700",
+    sold:        "bg-emerald-100 text-emerald-700",
+    pending:     "bg-amber-100 text-amber-700",
+    draft:       "bg-slate-100 text-slate-600",
+    appointment: "bg-indigo-100 text-indigo-700",
+    admin:       "bg-slate-700 text-slate-100",
+    active:      "bg-emerald-100 text-emerald-700",
+  };
+  return (
+    <span 
+      className={`inline-flex items-center height-[1.5rem] px-2 py-0.5 rounded-full whitespace-nowrap typography-badge ${variants[variant]} ${className}`}
+    >
+      {children}
+    </span>
+  );
+}
+
+export function ActionBadge({ children, onClick, variant = "default", disabled = false }) {
+  const variants = {
+    default:   "bg-slate-100 text-slate-700 hover:bg-slate-200",
+    amber:     "bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100",
+    emerald:   "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100",
+  };
+  
+  return (
+    <button 
+      onClick={onClick}
+      disabled={disabled}
+      className={`inline-flex items-center h-6 px-2 py-0.5 rounded-full whitespace-nowrap typography-badge transition-colors disabled:opacity-50 ${variants[variant]}`}
+    >
+      {children}
+    </button>
+  );
+}

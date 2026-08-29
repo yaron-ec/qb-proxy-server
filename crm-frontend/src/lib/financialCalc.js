@@ -1,1 +1,225 @@
-LyoqCiAqIGZpbmFuY2lhbENhbGMuanMg4oCUIHNoYXJlZCBmaW5hbmNpYWwgaGVscGVycyArIHN1bW1hcnkgY2FsY3VsYXRpb24uCiAqIFVzZWQgYnkgdGhlIERlYWwgRmluYW5jaWFscyB0YWIuIE5vIGJhY2tlbmQgY2FsbHMuCiAqLwoKZXhwb3J0IGZ1bmN0aW9uIHNhZmVOdW1iZXIodikgewogIGlmICh2ID09IG51bGwgfHwgdiA9PT0gIiIpIHJldHVybiAwOwogIGNvbnN0IG4gPSB0eXBlb2YgdiA9PT0gIm51bWJlciIgPyB2IDogcGFyc2VGbG9hdCh2KTsKICByZXR1cm4gTnVtYmVyLmlzRmluaXRlKG4pID8gbiA6IDA7Cn0KCmV4cG9ydCBmdW5jdGlvbiByb3VuZDIobikgewogIHJldHVybiBNYXRoLnJvdW5kKChuICsgTnVtYmVyLkVQU0lMT04pICogMTAwKSAvIDEwMDsKfQoKZXhwb3J0IGZ1bmN0aW9uIGZvcm1hdEN1cnJlbmN5KHYpIHsKICByZXR1cm4gbmV3IEludGwuTnVtYmVyRm9ybWF0KCJlbi1VUyIsIHsKICAgIHN0eWxlOiAiY3VycmVuY3kiLAogICAgY3VycmVuY3k6ICJVU0QiLAogICAgbWluaW11bUZyYWN0aW9uRGlnaXRzOiAyLAogICAgbWF4aW11bUZyYWN0aW9uRGlnaXRzOiAyLAogIH0pLmZvcm1hdChzYWZlTnVtYmVyKHYpKTsKfQoKZXhwb3J0IGZ1bmN0aW9uIGZvcm1hdFBlcmNlbnQodiwgZGlnaXRzID0gMikgewogIGNvbnN0IG4gPSBzYWZlTnVtYmVyKHYpOwogIHJldHVybiBgJHtOdW1iZXIobi50b0ZpeGVkKGRpZ2l0cykpfSVgOwp9CgpleHBvcnQgZnVuY3Rpb24gZm9ybWF0RGF0ZShkKSB7CiAgaWYgKCFkKSByZXR1cm4gIuKAlCI7CiAgdHJ5IHsKICAgIGNvbnN0IHMgPSBTdHJpbmcoZCk7CiAgICByZXR1cm4gbmV3IERhdGUocy5sZW5ndGggPD0gMTAgPyBzICsgIlQwMDowMDowMCIgOiBzKS50b0xvY2FsZURhdGVTdHJpbmcoImVuLVVTIiwgewogICAgICBtb250aDogInNob3J0IiwKICAgICAgZGF5OiAibnVtZXJpYyIsCiAgICAgIHllYXI6ICJudW1lcmljIiwKICAgIH0pOwogIH0gY2F0Y2ggewogICAgcmV0dXJuIFN0cmluZyhkKTsKICB9Cn0KCmV4cG9ydCBmdW5jdGlvbiBsZWFkQ29zdEJhc2UoZGVhbCwgY3R4KSB7CiAgc3dpdGNoIChkZWFsPy5sZWFkX2Nvc3RfY2FsY3VsYXRpb25fYmFzZSkgewogICAgY2FzZSAicGF5bWVudHNfcmVjZWl2ZWQiOiByZXR1cm4gY3R4LnBheW1lbnRzUmVjZWl2ZWQ7CiAgICBjYXNlICJncm9zc19wcm9maXRfYmVmb3JlX2xlYWRfY29zdCI6IHJldHVybiBjdHgudG90YWxSZXZlbnVlOwogICAgY2FzZSAiY3VzdG9tIjogcmV0dXJuIHNhZmVOdW1iZXIoZGVhbD8ubGVhZF9jb3N0X2N1c3RvbV9iYXNlX2Ftb3VudCk7CiAgICBjYXNlICJ0b3RhbF9jb250cmFjdCI6CiAgICBkZWZhdWx0OiByZXR1cm4gY3R4LnRvdGFsUmV2ZW51ZTsKICB9Cn0KCmV4cG9ydCBmdW5jdGlvbiBjb21wdXRlTGVhZENvc3QoZGVhbCwgY3R4KSB7CiAgaWYgKGRlYWw/LmxlYWRfY29zdF90eXBlID09PSAiZml4ZWQiKSByZXR1cm4gcm91bmQyKHNhZmVOdW1iZXIoZGVhbD8ubGVhZF9jb3N0X2ZpeGVkX2Ftb3VudCkpOwogIHJldHVybiByb3VuZDIobGVhZENvc3RCYXNlKGRlYWwsIGN0eCkgKiAoc2FmZU51bWJlcihkZWFsPy5sZWFkX2Nvc3RfcGVyY2VudGFnZSkgLyAxMDApKTsKfQoKZXhwb3J0IGZ1bmN0aW9uIGNvbW1pc3Npb25CYXNlKGMsIGN0eCkgewogIHN3aXRjaCAoYz8uY2FsY3VsYXRpb25fYmFzZSkgewogICAgY2FzZSAicGF5bWVudHNfcmVjZWl2ZWQiOiByZXR1cm4gY3R4LnBheW1lbnRzUmVjZWl2ZWQ7CiAgICBjYXNlICJncm9zc19wcm9maXRfYmVmb3JlX2NvbW1pc3Npb24iOiByZXR1cm4gY3R4Lmdyb3NzUHJvZml0QmVmb3JlQ29tbWlzc2lvbjsKICAgIGNhc2UgImN1c3RvbSI6IHJldHVybiBzYWZlTnVtYmVyKGM/LmN1c3RvbV9iYXNlX2Ftb3VudCk7CiAgICBjYXNlICJ0b3RhbF9jb250cmFjdCI6CiAgICBkZWZhdWx0OiByZXR1cm4gY3R4LnRvdGFsUmV2ZW51ZTsKICB9Cn0KCmV4cG9ydCBmdW5jdGlvbiBjb21taXNzaW9uQW1vdW50KGMsIGN0eCkgewogIGlmICghYyB8fCBjLnN0YXR1cyA9PT0gIkNhbmNlbGxlZCIpIHJldHVybiAwOwogIGlmIChjLmNvbW1pc3Npb25fdHlwZSA9PT0gImZpeGVkIikgcmV0dXJuIHJvdW5kMihzYWZlTnVtYmVyKGMuY29tbWlzc2lvbl9maXhlZF9hbW91bnQpKTsKICByZXR1cm4gcm91bmQyKGNvbW1pc3Npb25CYXNlKGMsIGN0eCkgKiAoc2FmZU51bWJlcihjLmNvbW1pc3Npb25fcGVyY2VudGFnZSkgLyAxMDApKTsKfQoKLyoqCiAqIGdldERlYWxQYXltZW50U3VtbWFyeSDigJQgVEhFIHNpbmdsZSBzb3VyY2Ugb2YgdHJ1dGggZm9yIGRlYWwgcGF5bWVudCBLUElzLgogKgogKiBFdmVyeSBmaW5hbmNpYWwgZGlzcGxheSBjb21wb25lbnQgaW4gdGhlIENSTSDigJQgdGhlIEZpbmFuY2lhbCB0YWIgS1BJIGNoaXBzLAogKiBQYXltZW50IFByb2dyZXNzLCBGaW5hbmNpYWwgU3VtbWFyeSwgRGFzaGJvYXJkIHdpZGdldHMsIFJlcG9ydHMg4oCUIE1VU1QgY2FsbAogKiB0aGlzIGZ1bmN0aW9uLiBOZXZlciByZWNhbGN1bGF0ZSBJbnZvaWNlZCAvIFBhaWQgLyBCYWxhbmNlIC8gUmVtYWluaW5nCiAqIHNlcGFyYXRlbHkgaW4gYSBjb21wb25lbnQuCiAqCiAqIFJlYWRzIGZyb20gdGhlIGxlYWQncyBzeW5jaHJvbml6ZWQgUXVpY2tCb29rcyBmaWVsZHMsIHdoaWNoIGFyZSBrZXB0IGN1cnJlbnQKICogYnkgZ2V0UUJMZWFkU3RhdHVzIChzdW1zIGFjcm9zcyBBTEwgYWN0aXZlIG5vbi12b2lkZWQgUUIgaW52b2ljZXMgYW5kIHdyaXRlcwogKiB0aGUgdG90YWxzIGJhY2sgdG8gdGhlIGxlYWQgZW50aXR5KToKICogICBsZWFkLnFiX2ludm9pY2VfYW1vdW50ICAgPSBzdW0gb2YgYWxsIGFjdGl2ZSAobm9uLXZvaWRlZCkgUUIgaW52b2ljZSB0b3RhbHMKICogICBsZWFkLnFiX3BheW1lbnRfcmVjZWl2ZWQgPSB0b3RhbCBwYXltZW50cyByZWNlaXZlZCBmcm9tIFF1aWNrQm9va3MKICogICBsZWFkLnFiX2JhbGFuY2VfZHVlICAgICAgPSBpbnZvaWNlZCAtIHBhaWQgKFFCLXNpZGUgYmFsYW5jZSkKICoKICogV2hlbiBRQiBpcyBOT1QgY29ubmVjdGVkLCBmYWxscyBiYWNrIHRvIGxvY2FsIEludm9pY2UgcmVjb3JkcyBvciBkZWFsIG1pbGVzdG9uZXMuCiAqCiAqIEZvcm11bGEgKGdsb2JhbCBmaW5hbmNpYWwgYXJjaGl0ZWN0dXJlKToKICogICBQcm9qZWN0IFRvdGFsID0gZGVhbC5hbW91bnQgfHwgbGVhZC5lc3RpbWF0ZWRfdmFsdWUKICogICBJbnZvaWNlZCAgPSBsZWFkLnFiX2ludm9pY2VfYW1vdW50ICAoUUIpIHx8IHN1bShsb2NhbCBpbnZvaWNlIGFtb3VudHMpCiAqICAgUGFpZCAgICAgID0gbGVhZC5xYl9wYXltZW50X3JlY2VpdmVkIChRQikgfHwgc3VtKGxvY2FsIGludm9pY2UgcGF5bWVudHMpIHx8IGRlYWwgbWlsZXN0b25lcwogKiAgIEJhbGFuY2UgICA9IEludm9pY2VkIC0gUGFpZCAgICh1bnBhaWQgcG9ydGlvbiBvZiB3aGF0J3MgYmVlbiBiaWxsZWQpCiAqICAgUmVtYWluaW5nID0gUHJvamVjdCBUb3RhbCAtIFBhaWQgICh0b3RhbCBsZWZ0IHRvIGNvbGxlY3Qgb24gdGhlIHByb2plY3QpCiAqICAgUGN0IFBhaWQgID0gUGFpZCAvIFByb2plY3QgVG90YWwgKiAxMDAKICoKICogQHJldHVybnMge3sgaGFzUUIsIHByb2plY3RUb3RhbCwgaW52b2ljZWQsIHBhaWQsIGJhbGFuY2UsIHJlbWFpbmluZywgcGN0UGFpZCB9fQogKi8KZXhwb3J0IGZ1bmN0aW9uIGdldERlYWxQYXltZW50U3VtbWFyeShkZWFsLCBsZWFkLCBpbnZvaWNlcyA9IFtdLCBzYWxlSW52b2ljZXMgPSBudWxsKSB7CiAgY29uc3QgaGFzUUIgPSAhIShsZWFkPy5xYl9pbnZvaWNlX2lkIHx8IChOdW1iZXIobGVhZD8ucWJfaW52b2ljZV9hbW91bnQpID4gMCkpOwogIGNvbnN0IGludnMgPSBpbnZvaWNlcyB8fCBbXTsKCiAgY29uc3QgcHJvamVjdFRvdGFsID0gc2FmZU51bWJlcihkZWFsPy5hbW91bnQpIHx8IHNhZmVOdW1iZXIobGVhZD8uZXN0aW1hdGVkX3ZhbHVlKTsKCiAgLy8g4pSA4pSAIFNhbGUtc2NvcGVkIHBhdGggKHNhbGUtbGV2ZWwgZmluYW5jaWFsIGlzb2xhdGlvbikg4pSA4pSACiAgLy8gV2hlbiBzYWxlLXNjb3BlZCBRQiBpbnZvaWNlcyBhcmUgc3VwcGxpZWQgKGVhY2ggbWFwcGVkIHRvIFRISVMgZGVhbCdzCiAgLy8gY3JtX3NhbGVfaWQgdmlhIFJhaWx3YXkgcWJfaW52b2ljZV9zYWxlX21hcCksIGNvbXB1dGUgaW52b2ljZWQvcGFpZCBmcm9tCiAgLy8gdGhlbSBPTkxZLiBObyBjdXN0b21lci1sZXZlbCBmYWxsYmFjayBpcyBwZXJtaXR0ZWQgZm9yIG11bHRpLVNhbGUgbGVhZHMg4oCUCiAgLy8gdW5tYXBwZWQgaW52b2ljZXMgY29udHJpYnV0ZSB0byBubyBTYWxlLiBUaGUgY2FsbGVyIGlzIHJlc3BvbnNpYmxlIGZvcgogIC8vIHBhc3Npbmcgc2FsZUludm9pY2VzIGZvciBtdWx0aS1TYWxlIGxlYWRzOyBvbWl0dGluZyB0aGVtIGZvciBhIHNpbmdsZS1TYWxlCiAgLy8gbGVhZCBmYWxscyB0aHJvdWdoIHRvIHRoZSBsZWdhY3kgcGF0aCBiZWxvdy4KICBpZiAoc2FsZUludm9pY2VzICYmIHNhbGVJbnZvaWNlcy5sZW5ndGggPiAwKSB7CiAgICBjb25zdCBpbnZvaWNlZCA9IHNhbGVJbnZvaWNlcy5yZWR1Y2UoKHMsIGkpID0+IHMgKyBzYWZlTnVtYmVyKGkudG90YWxfYW10ID8/IGkudG90YWxBbXQgPz8gaS5hbW91bnQpLCAwKTsKICAgIGNvbnN0IHBhaWQgPSBzYWxlSW52b2ljZXMucmVkdWNlKChzLCBpKSA9PiBzICsgc2FmZU51bWJlcihpLnBhaWQgPz8gaS5wYXltZW50X3JlY2VpdmVkKSwgMCk7CiAgICBjb25zdCBiYWxhbmNlID0gcm91bmQyKE1hdGgubWF4KDAsIGludm9pY2VkIC0gcGFpZCkpOwogICAgY29uc3QgcmVtYWluaW5nID0gcm91bmQyKE1hdGgubWF4KDAsIHByb2plY3RUb3RhbCAtIHBhaWQpKTsKICAgIGNvbnN0IHBjdFBhaWQgPSBwcm9qZWN0VG90YWwgPiAwID8gTWF0aC5taW4oMTAwLCBNYXRoLnJvdW5kKChwYWlkIC8gcHJvamVjdFRvdGFsKSAqIDEwMCkpIDogMDsKICAgIHJldHVybiB7IGhhc1FCOiB0cnVlLCBwcm9qZWN0VG90YWwsIGludm9pY2VkOiByb3VuZDIoaW52b2ljZWQpLCBwYWlkOiByb3VuZDIocGFpZCksIGJhbGFuY2UsIHJlbWFpbmluZywgcGN0UGFpZCwgc2FsZVNjb3BlZDogdHJ1ZSB9OwogIH0KCiAgLy8g4pSA4pSAIExlZ2FjeSBwYXRoIChzaW5nbGUtU2FsZSBsZWFkcyAvIGJhY2t3YXJkIGNvbXBhdGliaWxpdHkpIOKUgOKUgAogIC8vIFVzZXMgbGVhZC1sZXZlbCBRQiBhZ2dyZWdhdGVzLiBDb3JyZWN0IE9OTFkgd2hlbiB0aGUgbGVhZCBoYXMgZXhhY3RseSBvbmUKICAvLyBTYWxlLiBGb3IgbXVsdGktU2FsZSBsZWFkcyB0aGUgY2FsbGVyIE1VU1Qgc3VwcGx5IHNhbGVJbnZvaWNlcyBpbnN0ZWFkLgogIGNvbnN0IGxvY2FsSW52b2ljZVRvdGFsID0gaW52cy5yZWR1Y2UoKHMsIGkpID0+IHMgKyBzYWZlTnVtYmVyKGkuYW1vdW50KSwgMCk7CiAgY29uc3QgbG9jYWxJbnZvaWNlUGFpZCAgPSBpbnZzLnJlZHVjZSgocywgaSkgPT4gcyArIHNhZmVOdW1iZXIoaS5wYXltZW50X3JlY2VpdmVkKSwgMCk7CiAgY29uc3QgbWlsZXN0b25lUGFpZCA9CiAgICBzYWZlTnVtYmVyKGRlYWw/LmRlcG9zaXRfcGFpZCkgKwogICAgc2FmZU51bWJlcihkZWFsPy5wcm9ncmVzc19wYXltZW50X3BhaWQpICsKICAgIHNhZmVOdW1iZXIoZGVhbD8uZmluYWxfcGF5bWVudF9wYWlkKTsKCiAgY29uc3QgaW52b2ljZWQgPSBoYXNRQiA/IHNhZmVOdW1iZXIobGVhZD8ucWJfaW52b2ljZV9hbW91bnQpIDogbG9jYWxJbnZvaWNlVG90YWw7CgogIGNvbnN0IHBhaWQgPSBoYXNRQgogICAgPyBzYWZlTnVtYmVyKGxlYWQ/LnFiX3BheW1lbnRfcmVjZWl2ZWQpCiAgICA6IChsb2NhbEludm9pY2VQYWlkIHx8IHNhZmVOdW1iZXIoZGVhbD8udG90YWxfcGFpZCkgfHwgbWlsZXN0b25lUGFpZCk7CgogIGNvbnN0IGJhbGFuY2UgICA9IHJvdW5kMihNYXRoLm1heCgwLCBpbnZvaWNlZCAtIHBhaWQpKTsKICBjb25zdCByZW1haW5pbmcgPSByb3VuZDIoTWF0aC5tYXgoMCwgcHJvamVjdFRvdGFsIC0gcGFpZCkpOwogIGNvbnN0IHBjdFBhaWQgICA9IHByb2plY3RUb3RhbCA+IDAgPyBNYXRoLm1pbigxMDAsIE1hdGgucm91bmQoKHBhaWQgLyBwcm9qZWN0VG90YWwpICogMTAwKSkgOiAwOwoKICByZXR1cm4geyBoYXNRQiwgcHJvamVjdFRvdGFsLCBpbnZvaWNlZCwgcGFpZCwgYmFsYW5jZSwgcmVtYWluaW5nLCBwY3RQYWlkIH07Cn0KCmV4cG9ydCBmdW5jdGlvbiBjb21wdXRlRmluYW5jaWFscyh7IGRlYWwsIGxlYWQsIGludm9pY2VzLCBleHBlbnNlcywgY29tbWlzc2lvbnMsIGxvYW5QYXltZW50cyB9KSB7CiAgY29uc3QgaGFzUUIgPSAhIWxlYWQ/LnFiX2ludm9pY2VfaWQ7CiAgY29uc3QgcWJJbnZvaWNlQW1vdW50ID0gc2FmZU51bWJlcihsZWFkPy5xYl9pbnZvaWNlX2Ftb3VudCk7CiAgY29uc3QgcWJQYXltZW50UmVjZWl2ZWQgPSBzYWZlTnVtYmVyKGxlYWQ/LnFiX3BheW1lbnRfcmVjZWl2ZWQpOwoKICBjb25zdCBjb250cmFjdEFtb3VudCA9IGhhc1FCICYmIHFiSW52b2ljZUFtb3VudCA+IDAgPyBxYkludm9pY2VBbW91bnQgOiBzYWZlTnVtYmVyKGRlYWw/LmFtb3VudCk7CiAgY29uc3QgY2hhbmdlT3JkZXJzID0gc2FmZU51bWJlcihkZWFsPy5maW5hbmNpYWxfY2hhbmdlX29yZGVyc19hbW91bnQpOwogIGNvbnN0IG1hbnVhbEFkaiA9IHNhZmVOdW1iZXIoZGVhbD8uZmluYW5jaWFsX21hbnVhbF9yZXZlbnVlX2FkanVzdG1lbnQpOwogIGNvbnN0IHRvdGFsUmV2ZW51ZSA9IHJvdW5kMihjb250cmFjdEFtb3VudCArIGNoYW5nZU9yZGVycyArIG1hbnVhbEFkaik7CgogIC8vIOKUgOKUgCBwYXltZW50c1JlY2VpdmVkIGRlbGVnYXRlcyB0byB0aGUgc2hhcmVkIGhlbHBlciBzbyB0aGUgUCZMIGFsd2F5cwogIC8vIG1hdGNoZXMgdGhlIEZpbmFuY2lhbCB0YWIgLyBQYXltZW50IFByb2dyZXNzIC8gRmluYW5jaWFsIFN1bW1hcnkuIOKUgOKUgAogIGNvbnN0IHBheW1lbnRzUmVjZWl2ZWQgPSBnZXREZWFsUGF5bWVudFN1bW1hcnkoZGVhbCwgbGVhZCwgaW52b2ljZXMpLnBhaWQ7CiAgY29uc3QgcmVtYWluaW5nQ3VzdG9tZXJCYWxhbmNlID0gcm91bmQyKE1hdGgubWF4KDAsIHRvdGFsUmV2ZW51ZSAtIHBheW1lbnRzUmVjZWl2ZWQpKTsKCiAgY29uc3QgY3R4MCA9IHsgdG90YWxSZXZlbnVlLCBwYXltZW50c1JlY2VpdmVkIH07CiAgY29uc3QgbGVhZENvc3RBbW91bnQgPSBjb21wdXRlTGVhZENvc3QoZGVhbCwgY3R4MCk7CiAgY29uc3QgY29tcGFueVNoYXJlQW1vdW50ID0gcm91bmQyKHRvdGFsUmV2ZW51ZSAtIGxlYWRDb3N0QW1vdW50KTsKCiAgY29uc3QgYWN0aXZlRXhwZW5zZXMgPSAoZXhwZW5zZXMgfHwgW10pLmZpbHRlcigKICAgIChlKSA9PiBlLmluY2x1ZGVfaW5fcHJvZml0X2NhbGN1bGF0aW9uICE9PSBmYWxzZSAmJiBlLnBheW1lbnRfc3RhdHVzICE9PSAiQ2FuY2VsbGVkIgogICk7CiAgY29uc3QgdG90YWxWZW5kb3JFeHBlbnNlcyA9IHJvdW5kMigKICAgIGFjdGl2ZUV4cGVuc2VzLnJlZHVjZSgocywgZSkgPT4gewogICAgICBjb25zdCBhbXQgPSBzYWZlTnVtYmVyKGUuYW1vdW50KTsKICAgICAgcmV0dXJuIGUucGF5bWVudF9zdGF0dXMgPT09ICJSZWZ1bmRlZCIgPyBzIC0gYW10IDogcyArIGFtdDsKICAgIH0sIDApCiAgKTsKCiAgY29uc3QgdG90YWxMb2FuSW50ZXJlc3QgPSByb3VuZDIoCiAgICAobG9hblBheW1lbnRzIHx8IFtdKS5yZWR1Y2UoCiAgICAgIChzLCBscCkgPT4KICAgICAgICBzICsgc2FmZU51bWJlcihscC5pbnRlcmVzdF9hbW91bnQpICsgc2FmZU51bWJlcihscC5mZWVfYW1vdW50KSArIHNhZmVOdW1iZXIobHAub3RoZXJfY29zdF9hbW91bnQpLAogICAgICAwCiAgICApCiAgKTsKCiAgY29uc3Qgb3RoZXJJbmNsdWRlZENvc3RzID0gc2FmZU51bWJlcihkZWFsPy5maW5hbmNpYWxfb3RoZXJfY29zdHNfYW1vdW50KTsKCiAgY29uc3QgZ3Jvc3NQcm9maXRCZWZvcmVDb21taXNzaW9uID0gcm91bmQyKAogICAgdG90YWxSZXZlbnVlIC0gbGVhZENvc3RBbW91bnQgLSB0b3RhbFZlbmRvckV4cGVuc2VzIC0gdG90YWxMb2FuSW50ZXJlc3QgLSBvdGhlckluY2x1ZGVkQ29zdHMKICApOwoKICBjb25zdCBjdHggPSB7IHRvdGFsUmV2ZW51ZSwgcGF5bWVudHNSZWNlaXZlZCwgZ3Jvc3NQcm9maXRCZWZvcmVDb21taXNzaW9uIH07CiAgY29uc3QgYWN0aXZlQ29tbWlzc2lvbnMgPSAoY29tbWlzc2lvbnMgfHwgW10pLmZpbHRlcigoYykgPT4gYy5zdGF0dXMgIT09ICJDYW5jZWxsZWQiKTsKICBjb25zdCBzYWxlc0NvbW1pc3Npb25BbW91bnQgPSByb3VuZDIoCiAgICBhY3RpdmVDb21taXNzaW9ucy5yZWR1Y2UoKHMsIGMpID0+IHMgKyBjb21taXNzaW9uQW1vdW50KGMsIGN0eCksIDApCiAgKTsKICBjb25zdCBjb21taXNzaW9uUGFpZCA9IHJvdW5kMihhY3RpdmVDb21taXNzaW9ucy5yZWR1Y2UoKHMsIGMpID0+IHMgKyBzYWZlTnVtYmVyKGMucGFpZF9hbW91bnQpLCAwKSk7CiAgY29uc3QgY29tbWlzc2lvbkJhbGFuY2UgPSByb3VuZDIoc2FsZXNDb21taXNzaW9uQW1vdW50IC0gY29tbWlzc2lvblBhaWQpOwoKICBjb25zdCB0b3RhbENvc3RzID0gcm91bmQyKAogICAgbGVhZENvc3RBbW91bnQgKyBzYWxlc0NvbW1pc3Npb25BbW91bnQgKyB0b3RhbFZlbmRvckV4cGVuc2VzICsgdG90YWxMb2FuSW50ZXJlc3QgKyBvdGhlckluY2x1ZGVkQ29zdHMKICApOwogIGNvbnN0IG5ldFByb2ZpdCA9IHJvdW5kMih0b3RhbFJldmVudWUgLSB0b3RhbENvc3RzKTsKICBjb25zdCBwcm9maXRNYXJnaW4gPSB0b3RhbFJldmVudWUgPiAwID8gcm91bmQyKChuZXRQcm9maXQgLyB0b3RhbFJldmVudWUpICogMTAwKSA6IDA7CgogIHJldHVybiB7CiAgICBoYXNRQiwKICAgIGNvbnRyYWN0QW1vdW50LAogICAgY2hhbmdlT3JkZXJzLAogICAgbWFudWFsQWRqLAogICAgdG90YWxSZXZlbnVlLAogICAgcGF5bWVudHNSZWNlaXZlZCwKICAgIHJlbWFpbmluZ0N1c3RvbWVyQmFsYW5jZSwKICAgIGxlYWRDb3N0QW1vdW50LAogICAgY29tcGFueVNoYXJlQW1vdW50LAogICAgdG90YWxWZW5kb3JFeHBlbnNlcywKICAgIHRvdGFsTG9hbkludGVyZXN0LAogICAgb3RoZXJJbmNsdWRlZENvc3RzLAogICAgc2FsZXNDb21taXNzaW9uQW1vdW50LAogICAgY29tbWlzc2lvblBhaWQsCiAgICBjb21taXNzaW9uQmFsYW5jZSwKICAgIHRvdGFsQ29zdHMsCiAgICBuZXRQcm9maXQsCiAgICBwcm9maXRNYXJnaW4sCiAgICBjdHgsCiAgfTsKfQ==
+/**
+ * financialCalc.js — shared financial helpers + summary calculation.
+ * Used by the Deal Financials tab. No backend calls.
+ */
+
+export function safeNumber(v) {
+  if (v == null || v === "") return 0;
+  const n = typeof v === "number" ? v : parseFloat(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
+export function round2(n) {
+  return Math.round((n + Number.EPSILON) * 100) / 100;
+}
+
+export function formatCurrency(v) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(safeNumber(v));
+}
+
+export function formatPercent(v, digits = 2) {
+  const n = safeNumber(v);
+  return `${Number(n.toFixed(digits))}%`;
+}
+
+export function formatDate(d) {
+  if (!d) return "—";
+  try {
+    const s = String(d);
+    return new Date(s.length <= 10 ? s + "T00:00:00" : s).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return String(d);
+  }
+}
+
+export function leadCostBase(deal, ctx) {
+  switch (deal?.lead_cost_calculation_base) {
+    case "payments_received": return ctx.paymentsReceived;
+    case "gross_profit_before_lead_cost": return ctx.totalRevenue;
+    case "custom": return safeNumber(deal?.lead_cost_custom_base_amount);
+    case "total_contract":
+    default: return ctx.totalRevenue;
+  }
+}
+
+export function computeLeadCost(deal, ctx) {
+  if (deal?.lead_cost_type === "fixed") return round2(safeNumber(deal?.lead_cost_fixed_amount));
+  return round2(leadCostBase(deal, ctx) * (safeNumber(deal?.lead_cost_percentage) / 100));
+}
+
+export function commissionBase(c, ctx) {
+  switch (c?.calculation_base) {
+    case "payments_received": return ctx.paymentsReceived;
+    case "gross_profit_before_commission": return ctx.grossProfitBeforeCommission;
+    case "custom": return safeNumber(c?.custom_base_amount);
+    case "total_contract":
+    default: return ctx.totalRevenue;
+  }
+}
+
+export function commissionAmount(c, ctx) {
+  if (!c || c.status === "Cancelled") return 0;
+  if (c.commission_type === "fixed") return round2(safeNumber(c.commission_fixed_amount));
+  return round2(commissionBase(c, ctx) * (safeNumber(c.commission_percentage) / 100));
+}
+
+/**
+ * getDealPaymentSummary — THE single source of truth for deal payment KPIs.
+ *
+ * Every financial display component in the CRM — the Financial tab KPI chips,
+ * Payment Progress, Financial Summary, Dashboard widgets, Reports — MUST call
+ * this function. Never recalculate Invoiced / Paid / Balance / Remaining
+ * separately in a component.
+ *
+ * Reads from the lead's synchronized QuickBooks fields, which are kept current
+ * by getQBLeadStatus (sums across ALL active non-voided QB invoices and writes
+ * the totals back to the lead entity):
+ *   lead.qb_invoice_amount   = sum of all active (non-voided) QB invoice totals
+ *   lead.qb_payment_received = total payments received from QuickBooks
+ *   lead.qb_balance_due      = invoiced - paid (QB-side balance)
+ *
+ * When QB is NOT connected, falls back to local Invoice records or deal milestones.
+ *
+ * Formula (global financial architecture):
+ *   Project Total = deal.amount || lead.estimated_value
+ *   Invoiced  = lead.qb_invoice_amount  (QB) || sum(local invoice amounts)
+ *   Paid      = lead.qb_payment_received (QB) || sum(local invoice payments) || deal milestones
+ *   Balance   = Invoiced - Paid   (unpaid portion of what's been billed)
+ *   Remaining = Project Total - Paid  (total left to collect on the project)
+ *   Pct Paid  = Paid / Project Total * 100
+ *
+ * @returns {{ hasQB, projectTotal, invoiced, paid, balance, remaining, pctPaid }}
+ */
+export function getDealPaymentSummary(deal, lead, invoices = [], saleInvoices = null) {
+  const hasQB = !!(lead?.qb_invoice_id || (Number(lead?.qb_invoice_amount) > 0));
+  const invs = invoices || [];
+
+  const projectTotal = safeNumber(deal?.amount) || safeNumber(lead?.estimated_value);
+
+  // ── Sale-scoped path (sale-level financial isolation) ──
+  // When sale-scoped QB invoices are supplied (each mapped to THIS deal's
+  // crm_sale_id via Railway qb_invoice_sale_map), compute invoiced/paid from
+  // them ONLY. No customer-level fallback is permitted for multi-Sale leads —
+  // unmapped invoices contribute to no Sale. The caller is responsible for
+  // passing saleInvoices for multi-Sale leads; omitting them for a single-Sale
+  // lead falls through to the legacy path below.
+  if (saleInvoices && saleInvoices.length > 0) {
+    const invoiced = saleInvoices.reduce((s, i) => s + safeNumber(i.total_amt ?? i.totalAmt ?? i.amount), 0);
+    const paid = saleInvoices.reduce((s, i) => s + safeNumber(i.paid ?? i.payment_received), 0);
+    const balance = round2(Math.max(0, invoiced - paid));
+    const remaining = round2(Math.max(0, projectTotal - paid));
+    const pctPaid = projectTotal > 0 ? Math.min(100, Math.round((paid / projectTotal) * 100)) : 0;
+    return { hasQB: true, projectTotal, invoiced: round2(invoiced), paid: round2(paid), balance, remaining, pctPaid, saleScoped: true };
+  }
+
+  // ── Legacy path (single-Sale leads / backward compatibility) ──
+  // Uses lead-level QB aggregates. Correct ONLY when the lead has exactly one
+  // Sale. For multi-Sale leads the caller MUST supply saleInvoices instead.
+  const localInvoiceTotal = invs.reduce((s, i) => s + safeNumber(i.amount), 0);
+  const localInvoicePaid  = invs.reduce((s, i) => s + safeNumber(i.payment_received), 0);
+  const milestonePaid =
+    safeNumber(deal?.deposit_paid) +
+    safeNumber(deal?.progress_payment_paid) +
+    safeNumber(deal?.final_payment_paid);
+
+  const invoiced = hasQB ? safeNumber(lead?.qb_invoice_amount) : localInvoiceTotal;
+
+  const paid = hasQB
+    ? safeNumber(lead?.qb_payment_received)
+    : (localInvoicePaid || safeNumber(deal?.total_paid) || milestonePaid);
+
+  const balance   = round2(Math.max(0, invoiced - paid));
+  const remaining = round2(Math.max(0, projectTotal - paid));
+  const pctPaid   = projectTotal > 0 ? Math.min(100, Math.round((paid / projectTotal) * 100)) : 0;
+
+  return { hasQB, projectTotal, invoiced, paid, balance, remaining, pctPaid };
+}
+
+export function computeFinancials({ deal, lead, invoices, expenses, commissions, loanPayments }) {
+  const hasQB = !!lead?.qb_invoice_id;
+  const qbInvoiceAmount = safeNumber(lead?.qb_invoice_amount);
+  const qbPaymentReceived = safeNumber(lead?.qb_payment_received);
+
+  const contractAmount = hasQB && qbInvoiceAmount > 0 ? qbInvoiceAmount : safeNumber(deal?.amount);
+  const changeOrders = safeNumber(deal?.financial_change_orders_amount);
+  const manualAdj = safeNumber(deal?.financial_manual_revenue_adjustment);
+  const totalRevenue = round2(contractAmount + changeOrders + manualAdj);
+
+  // ── paymentsReceived delegates to the shared helper so the P&L always
+  // matches the Financial tab / Payment Progress / Financial Summary. ──
+  const paymentsReceived = getDealPaymentSummary(deal, lead, invoices).paid;
+  const remainingCustomerBalance = round2(Math.max(0, totalRevenue - paymentsReceived));
+
+  const ctx0 = { totalRevenue, paymentsReceived };
+  const leadCostAmount = computeLeadCost(deal, ctx0);
+  const companyShareAmount = round2(totalRevenue - leadCostAmount);
+
+  const activeExpenses = (expenses || []).filter(
+    (e) => e.include_in_profit_calculation !== false && e.payment_status !== "Cancelled"
+  );
+  const totalVendorExpenses = round2(
+    activeExpenses.reduce((s, e) => {
+      const amt = safeNumber(e.amount);
+      return e.payment_status === "Refunded" ? s - amt : s + amt;
+    }, 0)
+  );
+
+  const totalLoanInterest = round2(
+    (loanPayments || []).reduce(
+      (s, lp) =>
+        s + safeNumber(lp.interest_amount) + safeNumber(lp.fee_amount) + safeNumber(lp.other_cost_amount),
+      0
+    )
+  );
+
+  const otherIncludedCosts = safeNumber(deal?.financial_other_costs_amount);
+
+  const grossProfitBeforeCommission = round2(
+    totalRevenue - leadCostAmount - totalVendorExpenses - totalLoanInterest - otherIncludedCosts
+  );
+
+  const ctx = { totalRevenue, paymentsReceived, grossProfitBeforeCommission };
+  const activeCommissions = (commissions || []).filter((c) => c.status !== "Cancelled");
+  const salesCommissionAmount = round2(
+    activeCommissions.reduce((s, c) => s + commissionAmount(c, ctx), 0)
+  );
+  const commissionPaid = round2(activeCommissions.reduce((s, c) => s + safeNumber(c.paid_amount), 0));
+  const commissionBalance = round2(salesCommissionAmount - commissionPaid);
+
+  const totalCosts = round2(
+    leadCostAmount + salesCommissionAmount + totalVendorExpenses + totalLoanInterest + otherIncludedCosts
+  );
+  const netProfit = round2(totalRevenue - totalCosts);
+  const profitMargin = totalRevenue > 0 ? round2((netProfit / totalRevenue) * 100) : 0;
+
+  return {
+    hasQB,
+    contractAmount,
+    changeOrders,
+    manualAdj,
+    totalRevenue,
+    paymentsReceived,
+    remainingCustomerBalance,
+    leadCostAmount,
+    companyShareAmount,
+    totalVendorExpenses,
+    totalLoanInterest,
+    otherIncludedCosts,
+    salesCommissionAmount,
+    commissionPaid,
+    commissionBalance,
+    totalCosts,
+    netProfit,
+    profitMargin,
+    ctx,
+  };
+}

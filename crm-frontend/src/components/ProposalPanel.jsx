@@ -1,1 +1,49 @@
-aW1wb3J0IHsgRXh0ZXJuYWxMaW5rIH0gZnJvbSAibHVjaWRlLXJlYWN0IjsKCi8qKgogKiBQcm9wb3NhbFBhbmVsCiAqIAogKiBTaW1wbGUgYnV0dG9uIHRvIG9wZW4gSGFuZG9mZiB3ZWJzaXRlIGRpcmVjdGx5LgogKiBDb3BpZXMgbGVhZCBkZXRhaWxzIHRvIGNsaXBib2FyZCBmb3IgbWFudWFsIGVudHJ5LgogKi8KZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gUHJvcG9zYWxQYW5lbCh7IGxlYWQgfSkgewogIGNvbnN0IGhhbmRsZU9wZW5IYW5kb2ZmID0gKCkgPT4gewogICAgLy8gQ29weSBsZWFkIGRldGFpbHMgdG8gY2xpcGJvYXJkCiAgICBjb25zdCBkZXRhaWxzID0gWwogICAgICBgQ3VzdG9tZXI6ICR7bGVhZC5maXJzdF9uYW1lfSAke2xlYWQubGFzdF9uYW1lfWAsCiAgICAgIGxlYWQucGhvbmUgPyBgUGhvbmU6ICR7bGVhZC5waG9uZX1gIDogbnVsbCwKICAgICAgbGVhZC5lbWFpbCA/IGBFbWFpbDogJHtsZWFkLmVtYWlsfWAgOiBudWxsLAogICAgICBsZWFkLnByb3BlcnR5X2FkZHJlc3MgPyBgQWRkcmVzczogJHtsZWFkLnByb3BlcnR5X2FkZHJlc3N9YCA6IG51bGwsCiAgICAgIGxlYWQuY2l0eSA/IGBDaXR5OiAke2xlYWQuY2l0eX1gIDogbnVsbCwKICAgICAgbGVhZC5wcm9qZWN0X3R5cGUgPyBgSm9iIFR5cGU6ICR7bGVhZC5wcm9qZWN0X3R5cGV9YCA6IG51bGwsCiAgICBdCiAgICAgIC5maWx0ZXIoQm9vbGVhbikKICAgICAgLmpvaW4oIlxuIik7CgogICAgbmF2aWdhdG9yLmNsaXBib2FyZC53cml0ZVRleHQoZGV0YWlscykudGhlbigoKSA9PiB7CiAgICAgIC8vIE9wZW4gSGFuZG9mZiBpbiBuZXcgdGFiCiAgICAgIHdpbmRvdy5vcGVuKCJodHRwczovL2FwcC5oYW5kb2ZmLmFpIiwgIl9ibGFuayIpOwogICAgfSkuY2F0Y2goKCkgPT4gewogICAgICAvLyBGYWxsYmFjayBpZiBjbGlwYm9hcmQgZmFpbHMKICAgICAgd2luZG93Lm9wZW4oImh0dHBzOi8vYXBwLmhhbmRvZmYuYWkiLCAiX2JsYW5rIik7CiAgICB9KTsKICB9OwoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMyI+CiAgICAgIDxoMyBjbGFzc05hbWU9InRleHQtc20gZm9udC1ib2xkIHRleHQtc2xhdGUtOTAwIj5DcmVhdGUgRXN0aW1hdGU8L2gzPgogICAgICAKICAgICAgPGJ1dHRvbgogICAgICAgIG9uQ2xpY2s9e2hhbmRsZU9wZW5IYW5kb2ZmfQogICAgICAgIGNsYXNzTmFtZT0idy1mdWxsIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGdhcC0yIHB4LTQgcHktMyB0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgdGV4dC13aGl0ZSBiZy1ibHVlLTYwMCBob3ZlcjpiZy1ibHVlLTcwMCByb3VuZGVkLWxnIHRyYW5zaXRpb24tY29sb3JzIgogICAgICA+CiAgICAgICAgPEV4dGVybmFsTGluayBjbGFzc05hbWU9InctNCBoLTQiIC8+CiAgICAgICAgT3BlbiBIYW5kb2ZmCiAgICAgIDwvYnV0dG9uPgogICAgICAKICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNTAwIj4KICAgICAgICBPcGVucyBIYW5kb2ZmLmFpIGluIGEgbmV3IHRhYi4gTGVhZCBkZXRhaWxzIGNvcGllZCB0byBjbGlwYm9hcmQuCiAgICAgIDwvcD4KICAgIDwvZGl2PgogICk7Cn0=
+import { ExternalLink } from "lucide-react";
+
+/**
+ * ProposalPanel
+ * 
+ * Simple button to open Handoff website directly.
+ * Copies lead details to clipboard for manual entry.
+ */
+export default function ProposalPanel({ lead }) {
+  const handleOpenHandoff = () => {
+    // Copy lead details to clipboard
+    const details = [
+      `Customer: ${lead.first_name} ${lead.last_name}`,
+      lead.phone ? `Phone: ${lead.phone}` : null,
+      lead.email ? `Email: ${lead.email}` : null,
+      lead.property_address ? `Address: ${lead.property_address}` : null,
+      lead.city ? `City: ${lead.city}` : null,
+      lead.project_type ? `Job Type: ${lead.project_type}` : null,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    navigator.clipboard.writeText(details).then(() => {
+      // Open Handoff in new tab
+      window.open("https://app.handoff.ai", "_blank");
+    }).catch(() => {
+      // Fallback if clipboard fails
+      window.open("https://app.handoff.ai", "_blank");
+    });
+  };
+
+  return (
+    <div className="space-y-3">
+      <h3 className="text-sm font-bold text-slate-900">Create Estimate</h3>
+      
+      <button
+        onClick={handleOpenHandoff}
+        className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+      >
+        <ExternalLink className="w-4 h-4" />
+        Open Handoff
+      </button>
+      
+      <p className="text-xs text-slate-500">
+        Opens Handoff.ai in a new tab. Lead details copied to clipboard.
+      </p>
+    </div>
+  );
+}

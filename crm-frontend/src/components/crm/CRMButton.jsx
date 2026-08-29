@@ -1,1 +1,19 @@
-aW1wb3J0IHsgYnV0dG9uIH0gZnJvbSAiQC9saWIvY3JtRGVzaWduU3lzdGVtIjsKCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIENSTUJ1dHRvbih7IGNoaWxkcmVuLCB2YXJpYW50ID0gInByaW1hcnkiLCBjbGFzc05hbWUgPSAiIiwgLi4ucHJvcHMgfSkgewogIGNvbnN0IGJ1dHRvblN0eWxlcyA9IHsKICAgIHByaW1hcnk6IGJ1dHRvbi5wcmltYXJ5LAogICAgc2Vjb25kYXJ5OiBidXR0b24uc2Vjb25kYXJ5LAogICAgZGFuZ2VyOiBidXR0b24uZGFuZ2VyLAogICAgc3VjY2VzczogYnV0dG9uLnN1Y2Nlc3MsCiAgICBnaG9zdDogYnV0dG9uLmdob3N0LAogIH07CgogIGNvbnN0IGJhc2VTdHlsZSA9IGJ1dHRvblN0eWxlc1t2YXJpYW50XSB8fCBidXR0b25TdHlsZXMucHJpbWFyeTsKCiAgcmV0dXJuICgKICAgIDxidXR0b24gY2xhc3NOYW1lPXtgJHtiYXNlU3R5bGV9ICR7Y2xhc3NOYW1lfWB9IHsuLi5wcm9wc30+CiAgICAgIHtjaGlsZHJlbn0KICAgIDwvYnV0dG9uPgogICk7Cn0=
+import { button } from "@/lib/crmDesignSystem";
+
+export default function CRMButton({ children, variant = "primary", className = "", ...props }) {
+  const buttonStyles = {
+    primary: button.primary,
+    secondary: button.secondary,
+    danger: button.danger,
+    success: button.success,
+    ghost: button.ghost,
+  };
+
+  const baseStyle = buttonStyles[variant] || buttonStyles.primary;
+
+  return (
+    <button className={`${baseStyle} ${className}`} {...props}>
+      {children}
+    </button>
+  );
+}

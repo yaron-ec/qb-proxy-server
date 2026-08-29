@@ -1,1 +1,115 @@
-aW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IEZpbGVUZXh0LCBFeWUsIERvd25sb2FkLCBSZWZyZXNoQ3csIFgsIFVwbG9hZCB9IGZyb20gImx1Y2lkZS1yZWFjdCI7CmltcG9ydCB7IHVwbG9hZEZpbGVUb1N0b3JhZ2UsIGdldFNpZ25lZEZpbGVVcmwsIGRlbGV0ZUZpbGVGcm9tU3RvcmFnZSwgZXh0cmFjdEtleSB9IGZyb20gIkAvbGliL2ZpbGVVcGxvYWQiOwoKY29uc3QgQUNDRVBUID0gIi5wZGYsLmpwZywuanBlZywucG5nLC5oZWljIjsKCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIFJlY2VpcHRVcGxvYWQoeyB2YWx1ZSwgZmlsZW5hbWUsIGZpbGVLZXksIG9uQ2hhbmdlLCBvblJlbW92ZSwgZGlzYWJsZWQgfSkgewogIGNvbnN0IFt1cGxvYWRpbmcsIHNldFVwbG9hZGluZ10gPSB1c2VTdGF0ZShmYWxzZSk7CiAgY29uc3QgW2J1c3ksIHNldEJ1c3ldID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFtlcnIsIHNldEVycl0gPSB1c2VTdGF0ZShudWxsKTsKCiAgLy8gRWZmZWN0aXZlIFIyIG9iamVjdCBrZXk6IHN0b3JlZCBrZXkgcHJlZmVycmVkOyBmb3IgbGVnYWN5IG1hbGZvcm1lZCBVUkxzLAogIC8vIHNhZmVseSBleHRyYWN0IHRoZSB1cGxvYWRzLy4uLiBwb3J0aW9uIG9ubHkgd2hlbiBubyBzdG9yZWQga2V5IGV4aXN0cy4KICBjb25zdCBjdXJyZW50S2V5ID0gZmlsZUtleSB8fCBleHRyYWN0S2V5KHZhbHVlKTsKCiAgY29uc3QgaGFuZGxlID0gYXN5bmMgKGZpbGUpID0+IHsKICAgIGlmICghZmlsZSkgcmV0dXJuOwogICAgc2V0RXJyKG51bGwpOwogICAgc2V0VXBsb2FkaW5nKHRydWUpOwogICAgdHJ5IHsKICAgICAgY29uc3QgcmVzID0gYXdhaXQgdXBsb2FkRmlsZVRvU3RvcmFnZShmaWxlKTsKICAgICAgLy8gUmVwbGFjZTogdXBsb2FkIG5ldyArIHBhc3MgbmV3IGtleSB0byBwYXJlbnQuIE9sZC1vYmplY3QgY2xlYW51cCBpcwogICAgICAvLyBwZXJmb3JtZWQgYnkgdGhlIHBhcmVudCBBRlRFUiB0aGUgbmV3IGtleSBpcyBzYXZlZCB0byB0aGUgZGF0YWJhc2UuCiAgICAgIG9uQ2hhbmdlKHsgdXJsOiByZXMudXJsLCBrZXk6IHJlcy5rZXksIGZpbGVuYW1lOiByZXMuZmlsZU5hbWUgfHwgZmlsZS5uYW1lLCBtaW1lOiByZXMuY29udGVudFR5cGUgfHwgZmlsZS50eXBlIH0pOwogICAgfSBjYXRjaCAoZSkgewogICAgICBzZXRFcnIoZS5tZXNzYWdlIHx8ICJVcGxvYWQgZmFpbGVkIik7CiAgICB9IGZpbmFsbHkgewogICAgICBzZXRVcGxvYWRpbmcoZmFsc2UpOwogICAgfQogIH07CgogIGNvbnN0IHZpZXcgPSBhc3luYyAoKSA9PiB7CiAgICBpZiAoIWN1cnJlbnRLZXkpIHsgc2V0RXJyKCJObyByZWNlaXB0IGZpbGUgdG8gdmlldy4iKTsgcmV0dXJuOyB9CiAgICBzZXRFcnIobnVsbCk7IHNldEJ1c3kodHJ1ZSk7CiAgICB0cnkgewogICAgICBjb25zdCB1cmwgPSBhd2FpdCBnZXRTaWduZWRGaWxlVXJsKGN1cnJlbnRLZXksICJpbmxpbmUiKTsKICAgICAgd2luZG93Lm9wZW4odXJsLCAiX2JsYW5rIiwgIm5vb3BlbmVyLG5vcmVmZXJyZXIiKTsKICAgIH0gY2F0Y2ggKGUpIHsKICAgICAgc2V0RXJyKGUubWVzc2FnZSB8fCAiQ291bGQgbm90IG9wZW4gcmVjZWlwdC4iKTsKICAgIH0gZmluYWxseSB7IHNldEJ1c3koZmFsc2UpOyB9CiAgfTsKCiAgY29uc3QgZG93bmxvYWQgPSBhc3luYyAoKSA9PiB7CiAgICBpZiAoIWN1cnJlbnRLZXkpIHsgc2V0RXJyKCJObyByZWNlaXB0IGZpbGUgdG8gZG93bmxvYWQuIik7IHJldHVybjsgfQogICAgc2V0RXJyKG51bGwpOyBzZXRCdXN5KHRydWUpOwogICAgdHJ5IHsKICAgICAgY29uc3QgdXJsID0gYXdhaXQgZ2V0U2lnbmVkRmlsZVVybChjdXJyZW50S2V5LCAiYXR0YWNobWVudCIpOwogICAgICBjb25zdCBhID0gZG9jdW1lbnQuY3JlYXRlRWxlbWVudCgiYSIpOwogICAgICBhLmhyZWYgPSB1cmw7CiAgICAgIGEuZG93bmxvYWQgPSBmaWxlbmFtZSB8fCAiIjsKICAgICAgZG9jdW1lbnQuYm9keS5hcHBlbmRDaGlsZChhKTsKICAgICAgYS5jbGljaygpOwogICAgICBhLnJlbW92ZSgpOwogICAgfSBjYXRjaCAoZSkgewogICAgICBzZXRFcnIoZS5tZXNzYWdlIHx8ICJDb3VsZCBub3QgZG93bmxvYWQgcmVjZWlwdC4iKTsKICAgIH0gZmluYWxseSB7IHNldEJ1c3koZmFsc2UpOyB9CiAgfTsKCiAgY29uc3QgcmVtb3ZlID0gYXN5bmMgKCkgPT4gewogICAgc2V0RXJyKG51bGwpOwogICAgaWYgKGN1cnJlbnRLZXkpIHsKICAgICAgc2V0QnVzeSh0cnVlKTsKICAgICAgdHJ5IHsKICAgICAgICBhd2FpdCBkZWxldGVGaWxlRnJvbVN0b3JhZ2UoY3VycmVudEtleSk7CiAgICAgIH0gY2F0Y2ggKGUpIHsKICAgICAgICBzZXRCdXN5KGZhbHNlKTsKICAgICAgICBzZXRFcnIoIkNvdWxkIG5vdCBkZWxldGUgdGhlIHJlY2VpcHQgZmlsZSDigJQgdGhlIHJlY2VpcHQgd2FzIGtlcHQuICIgKyAoZS5tZXNzYWdlIHx8ICIiKSk7CiAgICAgICAgcmV0dXJuOwogICAgICB9CiAgICAgIHNldEJ1c3koZmFsc2UpOwogICAgfQogICAgb25SZW1vdmUoKTsKICB9OwoKICBpZiAodmFsdWUpIHsKICAgIHJldHVybiAoCiAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGZsZXgtd3JhcCBpdGVtcy1jZW50ZXIgZ2FwLTIgdGV4dC14cyI+CiAgICAgICAgPEZpbGVUZXh0IGNsYXNzTmFtZT0idy00IGgtNCB0ZXh0LXNsYXRlLTQwMCBmbGV4LXNocmluay0wIiAvPgogICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idHJ1bmNhdGUgbWF4LXctWzE4MHB4XSB0ZXh0LXNsYXRlLTcwMCBmb250LW1lZGl1bSI+e2ZpbGVuYW1lIHx8ICJSZWNlaXB0In08L3NwYW4+CiAgICAgICAgPGJ1dHRvbiB0eXBlPSJidXR0b24iIG9uQ2xpY2s9e3ZpZXd9IGRpc2FibGVkPXtidXN5fSBjbGFzc05hbWU9ImlubGluZS1mbGV4IGl0ZW1zLWNlbnRlciBnYXAtMSB0ZXh0LWFtYmVyLTYwMCBmb250LXNlbWlib2xkIGhvdmVyOnVuZGVybGluZSBkaXNhYmxlZDpvcGFjaXR5LTUwIj4KICAgICAgICAgIDxFeWUgY2xhc3NOYW1lPSJ3LTMgaC0zIiAvPiB7YnVzeSA/ICJMb2FkaW5n4oCmIiA6ICJWaWV3In0KICAgICAgICA8L2J1dHRvbj4KICAgICAgICA8YnV0dG9uIHR5cGU9ImJ1dHRvbiIgb25DbGljaz17ZG93bmxvYWR9IGRpc2FibGVkPXtidXN5fSBjbGFzc05hbWU9ImlubGluZS1mbGV4IGl0ZW1zLWNlbnRlciBnYXAtMSB0ZXh0LWJsdWUtNjAwIGZvbnQtc2VtaWJvbGQgaG92ZXI6dW5kZXJsaW5lIGRpc2FibGVkOm9wYWNpdHktNTAiPgogICAgICAgICAgPERvd25sb2FkIGNsYXNzTmFtZT0idy0zIGgtMyIgLz4gRG93bmxvYWQKICAgICAgICA8L2J1dHRvbj4KICAgICAgICB7IWRpc2FibGVkICYmICgKICAgICAgICAgIDw+CiAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9ImlubGluZS1mbGV4IGl0ZW1zLWNlbnRlciBnYXAtMSB0ZXh0LXNsYXRlLTYwMCBmb250LXNlbWlib2xkIGN1cnNvci1wb2ludGVyIGhvdmVyOnVuZGVybGluZSI+CiAgICAgICAgICAgICAgPFJlZnJlc2hDdyBjbGFzc05hbWU9InctMyBoLTMiIC8+IFJlcGxhY2UKICAgICAgICAgICAgICA8aW5wdXQgdHlwZT0iZmlsZSIgYWNjZXB0PXtBQ0NFUFR9IGNsYXNzTmFtZT0iaGlkZGVuIiBvbkNoYW5nZT17KGUpID0+IGhhbmRsZShlLnRhcmdldC5maWxlcz8uWzBdKX0gLz4KICAgICAgICAgICAgPC9sYWJlbD4KICAgICAgICAgICAgPGJ1dHRvbiB0eXBlPSJidXR0b24iIG9uQ2xpY2s9e3JlbW92ZX0gZGlzYWJsZWQ9e2J1c3l9IGNsYXNzTmFtZT0iaW5saW5lLWZsZXggaXRlbXMtY2VudGVyIGdhcC0xIHRleHQtcm9zZS02MDAgZm9udC1zZW1pYm9sZCBob3Zlcjp1bmRlcmxpbmUgZGlzYWJsZWQ6b3BhY2l0eS01MCI+CiAgICAgICAgICAgICAgPFggY2xhc3NOYW1lPSJ3LTMgaC0zIiAvPiBSZW1vdmUKICAgICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICA8Lz4KICAgICAgICApfQogICAgICAgIHtlcnIgJiYgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXJvc2UtNjAwIj57ZXJyfTwvc3Bhbj59CiAgICAgIDwvZGl2PgogICAgKTsKICB9CgogIHJldHVybiAoCiAgICA8ZGl2PgogICAgICA8bGFiZWwKICAgICAgICBjbGFzc05hbWU9e2BpbmxpbmUtZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSB0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgcHgtMi41IHB5LTEuNSBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLW1kIHRleHQtc2xhdGUtNjAwIGhvdmVyOmJnLXNsYXRlLTUwIGN1cnNvci1wb2ludGVyICR7CiAgICAgICAgICBkaXNhYmxlZCB8fCB1cGxvYWRpbmcgfHwgYnVzeSA/ICJvcGFjaXR5LTUwIHBvaW50ZXItZXZlbnRzLW5vbmUiIDogIiIKICAgICAgICB9YH0KICAgICAgPgogICAgICAgIDxVcGxvYWQgY2xhc3NOYW1lPSJ3LTMuNSBoLTMuNSIgLz4ge3VwbG9hZGluZyA/ICJVcGxvYWRpbmfigKYiIDogIlVwbG9hZCBSZWNlaXB0In0KICAgICAgICA8aW5wdXQgdHlwZT0iZmlsZSIgYWNjZXB0PXtBQ0NFUFR9IGNsYXNzTmFtZT0iaGlkZGVuIiBvbkNoYW5nZT17KGUpID0+IGhhbmRsZShlLnRhcmdldC5maWxlcz8uWzBdKX0gZGlzYWJsZWQ9e2Rpc2FibGVkfSAvPgogICAgICA8L2xhYmVsPgogICAgICB7ZXJyICYmIDxwIGNsYXNzTmFtZT0idGV4dC1bMTFweF0gdGV4dC1yb3NlLTYwMCBtdC0xIj57ZXJyfTwvcD59CiAgICA8L2Rpdj4KICApOwp9
+import { useState } from "react";
+import { FileText, Eye, Download, RefreshCw, X, Upload } from "lucide-react";
+import { uploadFileToStorage, getSignedFileUrl, deleteFileFromStorage, extractKey } from "@/lib/fileUpload";
+
+const ACCEPT = ".pdf,.jpg,.jpeg,.png,.heic";
+
+export default function ReceiptUpload({ value, filename, fileKey, onChange, onRemove, disabled }) {
+  const [uploading, setUploading] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(null);
+
+  // Effective R2 object key: stored key preferred; for legacy malformed URLs,
+  // safely extract the uploads/... portion only when no stored key exists.
+  const currentKey = fileKey || extractKey(value);
+
+  const handle = async (file) => {
+    if (!file) return;
+    setErr(null);
+    setUploading(true);
+    try {
+      const res = await uploadFileToStorage(file);
+      // Replace: upload new + pass new key to parent. Old-object cleanup is
+      // performed by the parent AFTER the new key is saved to the database.
+      onChange({ url: res.url, key: res.key, filename: res.fileName || file.name, mime: res.contentType || file.type });
+    } catch (e) {
+      setErr(e.message || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const view = async () => {
+    if (!currentKey) { setErr("No receipt file to view."); return; }
+    setErr(null); setBusy(true);
+    try {
+      const url = await getSignedFileUrl(currentKey, "inline");
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      setErr(e.message || "Could not open receipt.");
+    } finally { setBusy(false); }
+  };
+
+  const download = async () => {
+    if (!currentKey) { setErr("No receipt file to download."); return; }
+    setErr(null); setBusy(true);
+    try {
+      const url = await getSignedFileUrl(currentKey, "attachment");
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename || "";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (e) {
+      setErr(e.message || "Could not download receipt.");
+    } finally { setBusy(false); }
+  };
+
+  const remove = async () => {
+    setErr(null);
+    if (currentKey) {
+      setBusy(true);
+      try {
+        await deleteFileFromStorage(currentKey);
+      } catch (e) {
+        setBusy(false);
+        setErr("Could not delete the receipt file — the receipt was kept. " + (e.message || ""));
+        return;
+      }
+      setBusy(false);
+    }
+    onRemove();
+  };
+
+  if (value) {
+    return (
+      <div className="flex flex-wrap items-center gap-2 text-xs">
+        <FileText className="w-4 h-4 text-slate-400 flex-shrink-0" />
+        <span className="truncate max-w-[180px] text-slate-700 font-medium">{filename || "Receipt"}</span>
+        <button type="button" onClick={view} disabled={busy} className="inline-flex items-center gap-1 text-amber-600 font-semibold hover:underline disabled:opacity-50">
+          <Eye className="w-3 h-3" /> {busy ? "Loading…" : "View"}
+        </button>
+        <button type="button" onClick={download} disabled={busy} className="inline-flex items-center gap-1 text-blue-600 font-semibold hover:underline disabled:opacity-50">
+          <Download className="w-3 h-3" /> Download
+        </button>
+        {!disabled && (
+          <>
+            <label className="inline-flex items-center gap-1 text-slate-600 font-semibold cursor-pointer hover:underline">
+              <RefreshCw className="w-3 h-3" /> Replace
+              <input type="file" accept={ACCEPT} className="hidden" onChange={(e) => handle(e.target.files?.[0])} />
+            </label>
+            <button type="button" onClick={remove} disabled={busy} className="inline-flex items-center gap-1 text-rose-600 font-semibold hover:underline disabled:opacity-50">
+              <X className="w-3 h-3" /> Remove
+            </button>
+          </>
+        )}
+        {err && <span className="text-rose-600">{err}</span>}
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <label
+        className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 border border-slate-200 rounded-md text-slate-600 hover:bg-slate-50 cursor-pointer ${
+          disabled || uploading || busy ? "opacity-50 pointer-events-none" : ""
+        }`}
+      >
+        <Upload className="w-3.5 h-3.5" /> {uploading ? "Uploading…" : "Upload Receipt"}
+        <input type="file" accept={ACCEPT} className="hidden" onChange={(e) => handle(e.target.files?.[0])} disabled={disabled} />
+      </label>
+      {err && <p className="text-[11px] text-rose-600 mt-1">{err}</p>}
+    </div>
+  );
+}

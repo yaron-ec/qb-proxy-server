@@ -1,1 +1,20 @@
-LyoqCiAqIE93bmVyIHRvIEVtYWlsIEFkZHJlc3MgTWFwcGluZwogKiBNYXBzIGxlYWQgb3duZXIgbmFtZXMgdG8gdGhlaXIgYWN0dWFsIEdtYWlsIGFkZHJlc3NlcwogKi8KCmV4cG9ydCBjb25zdCBPV05FUl9FTUFJTF9NQVAgPSB7CiAgIllhcm9uIjogInlhcm9uQGVjY29uc3RydWN0aW9uZ3JvdXAuY29tIiwKICAiWWFyb24gRHJpbGV2aWNoIjogInlhcm9uQGVjY29uc3RydWN0aW9uZ3JvdXAuY29tIiwKICAiTWlja2V5IjogIm1pY2t5QGVjY29uc3RydWN0aW9uZ3JvdXAuY29tIiwKICAiTWlja2V5IEdhZCI6ICJtaWNreUBlY2NvbnN0cnVjdGlvbmdyb3VwLmNvbSIsCiAgIk1pY2t5IjogIm1pY2t5QGVjY29uc3RydWN0aW9uZ3JvdXAuY29tIiwKICAiTWlja3kgR2FkIjogIm1pY2t5QGVjY29uc3RydWN0aW9uZ3JvdXAuY29tIiwKICAiVmljdG9yaWEiOiAidmljdG9yaWFAZWNjb25zdHJ1Y3Rpb25ncm91cC5jb20iLAp9OwoKZXhwb3J0IGZ1bmN0aW9uIGdldE93bmVyRW1haWwob3duZXJOYW1lKSB7CiAgaWYgKCFvd25lck5hbWUpIHJldHVybiBudWxsOwogIGNvbnN0IG5vcm1hbGl6ZWQgPSBTdHJpbmcob3duZXJOYW1lKS50cmltKCk7CiAgcmV0dXJuIE9XTkVSX0VNQUlMX01BUFtub3JtYWxpemVkXSB8fCBudWxsOwp9
+/**
+ * Owner to Email Address Mapping
+ * Maps lead owner names to their actual Gmail addresses
+ */
+
+export const OWNER_EMAIL_MAP = {
+  "Yaron": "yaron@ecconstructiongroup.com",
+  "Yaron Drilevich": "yaron@ecconstructiongroup.com",
+  "Mickey": "micky@ecconstructiongroup.com",
+  "Mickey Gad": "micky@ecconstructiongroup.com",
+  "Micky": "micky@ecconstructiongroup.com",
+  "Micky Gad": "micky@ecconstructiongroup.com",
+  "Victoria": "victoria@ecconstructiongroup.com",
+};
+
+export function getOwnerEmail(ownerName) {
+  if (!ownerName) return null;
+  const normalized = String(ownerName).trim();
+  return OWNER_EMAIL_MAP[normalized] || null;
+}

@@ -1,1 +1,172 @@
-Ly8gUmVidWlsZCB0cmlnZ2VyIDIwMjYtMDgtMjg6IGZvcmNlIEJhc2U0NCBwdWJsaXNoZWQgYXBwIHRvIHNlcnZlIGN1cnJlbnQKLy8gUmFpbHdheS1vbmx5IGNvZGUgKGZpeGVzIHN0YWxlIGJ1bmRsZTogQWN0aXZpdHkgd3JpdGVzLCBDb250YWN0SW5mb0VkaXRvciBwZW5jaWxzLAovLyBEYXNoYm9hcmQvRGVhbHMgbWV0cmljcyDigJQgYWxsIHRocmVlIGRlZmVjdHMgdHJhY2VkIHRvIHN0YWxlIGJ1aWxkIGluZGV4LUNId1NzbEc4LmpzKQppbXBvcnQgeyBUb2FzdGVyIH0gZnJvbSAiQC9jb21wb25lbnRzL3VpL3RvYXN0ZXIiCmltcG9ydCB7IFRvb2x0aXBQcm92aWRlciB9IGZyb20gIkAvY29tcG9uZW50cy91aS90b29sdGlwIgppbXBvcnQgeyBRdWVyeUNsaWVudFByb3ZpZGVyIH0gZnJvbSAnQHRhbnN0YWNrL3JlYWN0LXF1ZXJ5JwppbXBvcnQgeyBxdWVyeUNsaWVudEluc3RhbmNlIH0gZnJvbSAnQC9saWIvcXVlcnktY2xpZW50JwppbXBvcnQgeyBCcm93c2VyUm91dGVyIGFzIFJvdXRlciwgUm91dGUsIFJvdXRlcywgdXNlTG9jYXRpb24sIE5hdmlnYXRlIH0gZnJvbSAncmVhY3Qtcm91dGVyLWRvbSc7CmltcG9ydCB7IEFuaW1hdGVQcmVzZW5jZSwgbW90aW9uIH0gZnJvbSAnZnJhbWVyLW1vdGlvbic7CmltcG9ydCBSZWFjdCBmcm9tICdyZWFjdCc7CmltcG9ydCBQYWdlTm90Rm91bmQgZnJvbSAnLi9saWIvUGFnZU5vdEZvdW5kJzsKaW1wb3J0IHsgQXV0aFByb3ZpZGVyLCB1c2VBdXRoIH0gZnJvbSAnQC9saWIvQXV0aENvbnRleHQnOwppbXBvcnQgeyBpc0V4aXRCdWlsZCB9IGZyb20gJ0AvbGliL2FwcC1wYXJhbXMnOwppbXBvcnQgeyBTeW5jUHJvdmlkZXIgfSBmcm9tICdAL2xpYi9zeW5jQ29udGV4dCc7CmltcG9ydCBTeW5jU3RhdHVzUHJlbWl1bSBmcm9tICdAL2NvbXBvbmVudHMvU3luY1N0YXR1c1ByZW1pdW0nOwppbXBvcnQgVXNlck5vdFJlZ2lzdGVyZWRFcnJvciBmcm9tICdAL2NvbXBvbmVudHMvVXNlck5vdFJlZ2lzdGVyZWRFcnJvcic7CmltcG9ydCBNb2JpbGVOYXYgZnJvbSAnQC9jb21wb25lbnRzL01vYmlsZU5hdic7CmltcG9ydCBGb2xsb3dVcFJlbWluZGVyUG9wdXAgZnJvbSAnQC9jb21wb25lbnRzL0ZvbGxvd1VwUmVtaW5kZXJQb3B1cCc7Ci8vIEFkZCBwYWdlIGltcG9ydHMgaGVyZQppbXBvcnQgTXlEaWFnIGZyb20gJy4vcGFnZXMvTXlEaWFnJzsKaW1wb3J0IExvZ2luIGZyb20gJy4vcGFnZXMvTG9naW4nOwppbXBvcnQgTGF5b3V0IGZyb20gJy4vY29tcG9uZW50cy9MYXlvdXQnOwppbXBvcnQgRGFzaGJvYXJkIGZyb20gJy4vcGFnZXMvRGFzaGJvYXJkJzsKaW1wb3J0IExlYWRzIGZyb20gJy4vcGFnZXMvTGVhZHNNb2Rlcm4nOwppbXBvcnQgTGVhZERldGFpbE1vZGVybiBmcm9tICcuL3BhZ2VzL0xlYWREZXRhaWxNb2Rlcm4nOwppbXBvcnQgTGVhZENhcHR1cmUgZnJvbSAnLi9wYWdlcy9MZWFkQ2FwdHVyZSc7CmltcG9ydCBFc3RpbWF0ZXMgZnJvbSAnLi9wYWdlcy9Fc3RpbWF0ZXNNb2Rlcm4nOwppbXBvcnQgRXN0aW1hdGVEZXRhaWwgZnJvbSAnLi9wYWdlcy9Fc3RpbWF0ZURldGFpbCc7CmltcG9ydCBTZXR0aW5ncyBmcm9tICcuL3BhZ2VzL1NldHRpbmdzJzsKaW1wb3J0IEludGVncmF0aW9ucyBmcm9tICcuL3BhZ2VzL0ludGVncmF0aW9ucyc7CmltcG9ydCBRQkNhbGxiYWNrIGZyb20gJy4vcGFnZXMvUUJDYWxsYmFjayc7CmltcG9ydCBEZWFsRGV0YWlsIGZyb20gJy4vcGFnZXMvRGVhbERldGFpbCc7CmltcG9ydCBEZWFscyBmcm9tICcuL3BhZ2VzL0RlYWxzJzsKaW1wb3J0IERhaWx5TWFwIGZyb20gJy4vcGFnZXMvRGFpbHlNYXAnOwppbXBvcnQgQXV0b21hdGlvbkNlbnRlciBmcm9tICcuL3BhZ2VzL0F1dG9tYXRpb25DZW50ZXInOwppbXBvcnQgRGFpbHlBY3Rpb25DZW50ZXIgZnJvbSAnLi9wYWdlcy9EYWlseUFjdGlvbkNlbnRlcic7CmltcG9ydCBSZXBvcnRzIGZyb20gJy4vcGFnZXMvUmVwb3J0cyc7CmltcG9ydCBNb2JpbGVEYXlWaWV3IGZyb20gJy4vcGFnZXMvTW9iaWxlRGF5Vmlldyc7CmltcG9ydCBLYW5iYW5Cb2FyZCBmcm9tICcuL3BhZ2VzL0thbmJhbkJvYXJkJzsKCi8vIFBhZ2UgY29udGVudCB3cmFwcGVyIHdpdGggdHJhbnNpdGlvbiAob25seSB3cmFwcyBwYWdlIGNvbnRlbnQsIG5vdCBMYXlvdXQpCmNvbnN0IFBhZ2VDb250ZW50V3JhcHBlciA9ICh7IGNoaWxkcmVuIH0pID0+IHsKICBjb25zdCBsb2NhdGlvbiA9IHVzZUxvY2F0aW9uKCk7CiAgY29uc3QgaXNQdWJsaWNSb3V0ZSA9IFsnL2NhcHR1cmUnXS5pbmNsdWRlcyhsb2NhdGlvbi5wYXRobmFtZSk7CgogIHJldHVybiAoCiAgICA8QW5pbWF0ZVByZXNlbmNlIG1vZGU9IndhaXQiIGluaXRpYWw9e2ZhbHNlfT4KICAgICAgPG1vdGlvbi5kaXYKICAgICAgICBrZXk9e2xvY2F0aW9uLnBhdGhuYW1lfQogICAgICAgIGluaXRpYWw9e3sgb3BhY2l0eTogMCwgeDogaXNQdWJsaWNSb3V0ZSA/IDAgOiAyMCB9fQogICAgICAgIGFuaW1hdGU9e3sgb3BhY2l0eTogMSwgeDogMCB9fQogICAgICAgIGV4aXQ9e3sgb3BhY2l0eTogMCwgeDogLTIwIH19CiAgICAgICAgdHJhbnNpdGlvbj17eyBkdXJhdGlvbjogMC4yIH19CiAgICAgID4KICAgICAgICB7Y2hpbGRyZW59CiAgICAgIDwvbW90aW9uLmRpdj4KICAgIDwvQW5pbWF0ZVByZXNlbmNlPgogICk7Cn07Cgpjb25zdCBBdXRoZW50aWNhdGVkQXBwID0gKCkgPT4gewogIGNvbnN0IHsgaXNMb2FkaW5nQXV0aCwgaXNMb2FkaW5nUHVibGljU2V0dGluZ3MsIGF1dGhFcnJvciwgbmF2aWdhdGVUb0xvZ2luLCBjaGVja0FwcFN0YXRlLCB1c2VyIH0gPSB1c2VBdXRoKCk7CgogIC8vIFB1YmxpYyByb3V0ZXMg4oCUIHNraXAgYXV0aCBjaGVja3MgZW50aXJlbHkKICBjb25zdCBpc1B1YmxpY1JvdXRlID0gWycvY2FwdHVyZScsICcvbG9naW4nXS5pbmNsdWRlcyh3aW5kb3cubG9jYXRpb24ucGF0aG5hbWUpOwogIGlmIChpc1B1YmxpY1JvdXRlKSB7CiAgICByZXR1cm4gKAogICAgICA8Um91dGVzPgogICAgICAgIDxSb3V0ZSBwYXRoPSIvY2FwdHVyZSIgZWxlbWVudD17PExlYWRDYXB0dXJlIC8+fSAvPgogICAgICAgIDxSb3V0ZSBwYXRoPSIvbG9naW4iIGVsZW1lbnQ9ezxMb2dpbiAvPn0gLz4KICAgICAgPC9Sb3V0ZXM+CiAgICApOwogIH0KCiAgLy8gU2hvdyBsb2FkaW5nIHNwaW5uZXIgd2hpbGUgY2hlY2tpbmcgYXBwIHB1YmxpYyBzZXR0aW5ncyBvciBhdXRoCiAgaWYgKGlzTG9hZGluZ1B1YmxpY1NldHRpbmdzIHx8IGlzTG9hZGluZ0F1dGgpIHsKICAgIHJldHVybiAoCiAgICAgIDxkaXYgY2xhc3NOYW1lPSJmaXhlZCBpbnNldC0wIGZsZXggZmxleC1jb2wgaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGdhcC0zIj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idy04IGgtOCBib3JkZXItNCBib3JkZXItc2xhdGUtMjAwIGJvcmRlci10LXNsYXRlLTgwMCByb3VuZGVkLWZ1bGwgYW5pbWF0ZS1zcGluIj48L2Rpdj4KICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS00MDAiPkxvYWRpbmcgRUMgQ1JN4oCmPC9wPgogICAgICA8L2Rpdj4KICAgICk7CiAgfQoKICAvLyBIYW5kbGUgYXV0aGVudGljYXRpb24gZXJyb3JzCiAgaWYgKGF1dGhFcnJvcikgewogICAgaWYgKGF1dGhFcnJvci50eXBlID09PSAndXNlcl9ub3RfcmVnaXN0ZXJlZCcgfHwgYXV0aEVycm9yLnR5cGUgPT09ICd1c2VyX25vdF9hdXRob3JpemVkJykgewogICAgICByZXR1cm4gPFVzZXJOb3RSZWdpc3RlcmVkRXJyb3IgYXV0aEVycm9yPXthdXRoRXJyb3J9IHVzZXI9e3VzZXJ9IC8+OwogICAgfSBlbHNlIGlmIChhdXRoRXJyb3IudHlwZSA9PT0gJ2F1dGhfcmVxdWlyZWQnKSB7CiAgICAgIC8vIFJhaWx3YXkgYXV0aDogcm91dGUgdG8gdGhlIG5hdGl2ZSBsb2dpbiBwYWdlIChHb29nbGUgU1NPICsgZW1haWwvcGFzc3dvcmQpLgogICAgICByZXR1cm4gPE5hdmlnYXRlIHRvPSIvbG9naW4iIHJlcGxhY2UgLz47CiAgICB9IGVsc2UgaWYgKGF1dGhFcnJvci50eXBlID09PSAnbmV0d29ya19lcnJvcicpIHsKICAgICAgLy8gVGltZW91dCBvciBjb25uZWN0aW9uIGZhaWx1cmUg4oCUIHNob3cgcmV0cnkgc2NyZWVuIGluc3RlYWQgb2YgaW5maW5pdGUgc3Bpbm5lcgogICAgICByZXR1cm4gKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmaXhlZCBpbnNldC0wIGZsZXggZmxleC1jb2wgaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGdhcC00IHB4LTggdGV4dC1jZW50ZXIgYmctd2hpdGUiPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9InctMTIgaC0xMiByb3VuZGVkLWZ1bGwgYmctcmVkLTUwIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIj4KICAgICAgICAgICAgPHN2ZyBjbGFzc05hbWU9InctNiBoLTYgdGV4dC1yZWQtNTAwIiBmaWxsPSJub25lIiB2aWV3Qm94PSIwIDAgMjQgMjQiIHN0cm9rZT0iY3VycmVudENvbG9yIj4KICAgICAgICAgICAgICA8cGF0aCBzdHJva2VMaW5lY2FwPSJyb3VuZCIgc3Ryb2tlTGluZWpvaW49InJvdW5kIiBzdHJva2VXaWR0aD17Mn0gZD0iTTEyIDl2Mm0wIDRoLjAxTTEyIDNhOSA5IDAgMTAwIDE4QTkgOSAwIDAwMTIgM3oiIC8+CiAgICAgICAgICAgIDwvc3ZnPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8ZGl2PgogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtYmFzZSBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtODAwIj5Db25uZWN0aW9uIHByb2JsZW08L3A+CiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1zbSB0ZXh0LXNsYXRlLTUwMCBtdC0xIj57YXV0aEVycm9yLm1lc3NhZ2V9PC9wPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgIG9uQ2xpY2s9e2NoZWNrQXBwU3RhdGV9CiAgICAgICAgICAgIGNsYXNzTmFtZT0icHgtNSBweS0yLjUgYmctc2xhdGUtOTAwIHRleHQtd2hpdGUgdGV4dC1zbSBmb250LXNlbWlib2xkIHJvdW5kZWQtbGcgaG92ZXI6Ymctc2xhdGUtODAwIGFjdGl2ZTpzY2FsZS05NSB0cmFuc2l0aW9uLWFsbCIKICAgICAgICAgID4KICAgICAgICAgICAgUmV0cnkKICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiB7IGxvY2FsU3RvcmFnZS5jbGVhcigpOyBuYXZpZ2F0ZVRvTG9naW4oKTsgfX0KICAgICAgICAgICAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNDAwIHVuZGVybGluZSIKICAgICAgICAgID4KICAgICAgICAgICAgQ2xlYXIgc2Vzc2lvbiAmYW1wOyBzaWduIGluIGFnYWluCiAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICA8L2Rpdj4KICAgICAgKTsKICAgIH0KICB9CgogIC8vIFJlbmRlciB0aGUgbWFpbiBhcHAg4oCUIExheW91dCB3cmFwcyBSb3V0ZXMgKHNpZGViYXIgc3RheXMgbW91bnRlZCwgb25seSBwYWdlIGNvbnRlbnQgY2hhbmdlcykKICByZXR1cm4gKAogICAgPFJvdXRlcz4KICAgICAgPFJvdXRlIGVsZW1lbnQ9ezxMYXlvdXQgLz59PgogICAgICAgIDxSb3V0ZSBwYXRoPSIvIiBlbGVtZW50PXs8UGFnZUNvbnRlbnRXcmFwcGVyPjxEYXNoYm9hcmQgLz48L1BhZ2VDb250ZW50V3JhcHBlcj59IC8+CiAgICAgICAgPFJvdXRlIHBhdGg9Ii9kYWlseS1tYXAiIGVsZW1lbnQ9ezxQYWdlQ29udGVudFdyYXBwZXI+PERhaWx5TWFwIC8+PC9QYWdlQ29udGVudFdyYXBwZXI+fSAvPgogICAgICAgIDxSb3V0ZSBwYXRoPSIvbXktZGF5IiBlbGVtZW50PXs8UGFnZUNvbnRlbnRXcmFwcGVyPjxNb2JpbGVEYXlWaWV3IC8+PC9QYWdlQ29udGVudFdyYXBwZXI+fSAvPgogICAgICAgIDxSb3V0ZSBwYXRoPSIva2FuYmFuIiBlbGVtZW50PXs8UGFnZUNvbnRlbnRXcmFwcGVyPjxLYW5iYW5Cb2FyZCAvPjwvUGFnZUNvbnRlbnRXcmFwcGVyPn0gLz4KICAgICAgICA8Um91dGUgcGF0aD0iL2F1dG9tYXRpb25zIiBlbGVtZW50PXs8UGFnZUNvbnRlbnRXcmFwcGVyPjxBdXRvbWF0aW9uQ2VudGVyIC8+PC9QYWdlQ29udGVudFdyYXBwZXI+fSAvPgogICAgICAgIDxSb3V0ZSBwYXRoPSIvbGVhZHMiIGVsZW1lbnQ9ezxQYWdlQ29udGVudFdyYXBwZXI+PExlYWRzIC8+PC9QYWdlQ29udGVudFdyYXBwZXI+fSAvPgogICAgICAgIDxSb3V0ZSBwYXRoPSIvbGVhZHMvOmlkIiBlbGVtZW50PXs8UGFnZUNvbnRlbnRXcmFwcGVyPjxMZWFkRGV0YWlsTW9kZXJuIC8+PC9QYWdlQ29udGVudFdyYXBwZXI+fSAvPgogICAgICAgIDxSb3V0ZSBwYXRoPSIvZXN0aW1hdGVzIiBlbGVtZW50PXs8UGFnZUNvbnRlbnRXcmFwcGVyPjxFc3RpbWF0ZXMgLz48L1BhZ2VDb250ZW50V3JhcHBlcj59IC8+CiAgICAgICAgPFJvdXRlIHBhdGg9Ii9lc3RpbWF0ZXMvOmlkIiBlbGVtZW50PXs8UGFnZUNvbnRlbnRXcmFwcGVyPjxFc3RpbWF0ZURldGFpbCAvPjwvUGFnZUNvbnRlbnRXcmFwcGVyPn0gLz4KICAgICAgICA8Um91dGUgcGF0aD0iL2RlYWxzIiBlbGVtZW50PXs8UGFnZUNvbnRlbnRXcmFwcGVyPjxEZWFscyAvPjwvUGFnZUNvbnRlbnRXcmFwcGVyPn0gLz4KICAgICAgICA8Um91dGUgcGF0aD0iL2RlYWxzLzppZCIgZWxlbWVudD17PFBhZ2VDb250ZW50V3JhcHBlcj48RGVhbERldGFpbCAvPjwvUGFnZUNvbnRlbnRXcmFwcGVyPn0gLz4KICAgICAgICA8Um91dGUgcGF0aD0iL3JlcG9ydHMiIGVsZW1lbnQ9ezxQYWdlQ29udGVudFdyYXBwZXI+PFJlcG9ydHMgLz48L1BhZ2VDb250ZW50V3JhcHBlcj59IC8+CiAgICAgICAgPFJvdXRlIHBhdGg9Ii9zZXR0aW5ncyIgZWxlbWVudD17PFBhZ2VDb250ZW50V3JhcHBlcj48U2V0dGluZ3MgLz48L1BhZ2VDb250ZW50V3JhcHBlcj59IC8+CiAgICAgICAgPFJvdXRlIHBhdGg9Ii9pbnRlZ3JhdGlvbnMiIGVsZW1lbnQ9ezxQYWdlQ29udGVudFdyYXBwZXI+PEludGVncmF0aW9ucyAvPjwvUGFnZUNvbnRlbnRXcmFwcGVyPn0gLz4KICAgICAgPC9Sb3V0ZT4KICAgICAgPFJvdXRlIHBhdGg9Ii9xYi1jYWxsYmFjayIgZWxlbWVudD17PFFCQ2FsbGJhY2sgLz59IC8+CiAgICAgIDxSb3V0ZSBwYXRoPSIvbXktZGlhZyIgZWxlbWVudD17PE15RGlhZyAvPn0gLz4KICAgICAgPFJvdXRlIHBhdGg9IioiIGVsZW1lbnQ9ezxQYWdlTm90Rm91bmQgLz59IC8+CiAgICA8L1JvdXRlcz4KICApOwp9OwoKCmZ1bmN0aW9uIEFwcCgpIHsKCiAgcmV0dXJuICgKICAgIDxBdXRoUHJvdmlkZXI+CiAgICAgIDxTeW5jUHJvdmlkZXI+CiAgICAgICAgPFF1ZXJ5Q2xpZW50UHJvdmlkZXIgY2xpZW50PXtxdWVyeUNsaWVudEluc3RhbmNlfT4KICAgICAgICAgIDxUb29sdGlwUHJvdmlkZXI+CiAgICAgICAgICA8Um91dGVyPgogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBmbGV4LWNvbCBoLXNjcmVlbiIgZGF0YS1idWlsZD0iMjAyNi0wOC0yOC1yYWlsd2F5LW9ubHkiPgogICAgICAgICAgICAgIDxBdXRoZW50aWNhdGVkQXBwIC8+CiAgICAgICAgICAgICAgPE1vYmlsZU5hdiAvPgogICAgICAgICAgICAgIDxTeW5jU3RhdHVzUHJlbWl1bSAvPgogICAgICAgICAgICAgIDxGb2xsb3dVcFJlbWluZGVyUG9wdXAgLz4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8L1JvdXRlcj4KICAgICAgICAgIDxUb2FzdGVyIC8+CiAgICAgICAgICA8L1Rvb2x0aXBQcm92aWRlcj4KICAgICAgICA8L1F1ZXJ5Q2xpZW50UHJvdmlkZXI+CiAgICAgIDwvU3luY1Byb3ZpZGVyPgogICAgPC9BdXRoUHJvdmlkZXI+CiAgKQp9CgpleHBvcnQgZGVmYXVsdCBBcHA=
+// Rebuild trigger 2026-08-28: force Base44 published app to serve current
+// Railway-only code (fixes stale bundle: Activity writes, ContactInfoEditor pencils,
+// Dashboard/Deals metrics — all three defects traced to stale build index-CHwSslG8.js)
+import { Toaster } from "@/components/ui/toaster"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { QueryClientProvider } from '@tanstack/react-query'
+import { queryClientInstance } from '@/lib/query-client'
+import { BrowserRouter as Router, Route, Routes, useLocation, Navigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import React from 'react';
+import PageNotFound from './lib/PageNotFound';
+import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { isExitBuild } from '@/lib/app-params';
+import { SyncProvider } from '@/lib/syncContext';
+import SyncStatusPremium from '@/components/SyncStatusPremium';
+import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import MobileNav from '@/components/MobileNav';
+import FollowUpReminderPopup from '@/components/FollowUpReminderPopup';
+// Add page imports here
+import MyDiag from './pages/MyDiag';
+import Login from './pages/Login';
+import Layout from './components/Layout';
+import Dashboard from './pages/Dashboard';
+import Leads from './pages/LeadsModern';
+import LeadDetailModern from './pages/LeadDetailModern';
+import LeadCapture from './pages/LeadCapture';
+import Estimates from './pages/EstimatesModern';
+import EstimateDetail from './pages/EstimateDetail';
+import Settings from './pages/Settings';
+import Integrations from './pages/Integrations';
+import QBCallback from './pages/QBCallback';
+import DealDetail from './pages/DealDetail';
+import Deals from './pages/Deals';
+import DailyMap from './pages/DailyMap';
+import AutomationCenter from './pages/AutomationCenter';
+import DailyActionCenter from './pages/DailyActionCenter';
+import Reports from './pages/Reports';
+import MobileDayView from './pages/MobileDayView';
+import KanbanBoard from './pages/KanbanBoard';
+
+// Page content wrapper with transition (only wraps page content, not Layout)
+const PageContentWrapper = ({ children }) => {
+  const location = useLocation();
+  const isPublicRoute = ['/capture'].includes(location.pathname);
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0, x: isPublicRoute ? 0 : 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        transition={{ duration: 0.2 }}
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
+const AuthenticatedApp = () => {
+  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, checkAppState, user } = useAuth();
+
+  // Public routes — skip auth checks entirely
+  const isPublicRoute = ['/capture', '/login'].includes(window.location.pathname);
+  if (isPublicRoute) {
+    return (
+      <Routes>
+        <Route path="/capture" element={<LeadCapture />} />
+        <Route path="/login" element={<Login />} />
+      </Routes>
+    );
+  }
+
+  // Show loading spinner while checking app public settings or auth
+  if (isLoadingPublicSettings || isLoadingAuth) {
+    return (
+      <div className="fixed inset-0 flex flex-col items-center justify-center gap-3">
+        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+        <p className="text-xs text-slate-400">Loading EC CRM…</p>
+      </div>
+    );
+  }
+
+  // Handle authentication errors
+  if (authError) {
+    if (authError.type === 'user_not_registered' || authError.type === 'user_not_authorized') {
+      return <UserNotRegisteredError authError={authError} user={user} />;
+    } else if (authError.type === 'auth_required') {
+      // Railway auth: route to the native login page (Google SSO + email/password).
+      return <Navigate to="/login" replace />;
+    } else if (authError.type === 'network_error') {
+      // Timeout or connection failure — show retry screen instead of infinite spinner
+      return (
+        <div className="fixed inset-0 flex flex-col items-center justify-center gap-4 px-8 text-center bg-white">
+          <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
+            <svg className="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-base font-semibold text-slate-800">Connection problem</p>
+            <p className="text-sm text-slate-500 mt-1">{authError.message}</p>
+          </div>
+          <button
+            onClick={checkAppState}
+            className="px-5 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-lg hover:bg-slate-800 active:scale-95 transition-all"
+          >
+            Retry
+          </button>
+          <button
+            onClick={() => { localStorage.clear(); navigateToLogin(); }}
+            className="text-xs text-slate-400 underline"
+          >
+            Clear session &amp; sign in again
+          </button>
+        </div>
+      );
+    }
+  }
+
+  // Render the main app — Layout wraps Routes (sidebar stays mounted, only page content changes)
+  return (
+    <Routes>
+      <Route element={<Layout />}>
+        <Route path="/" element={<PageContentWrapper><Dashboard /></PageContentWrapper>} />
+        <Route path="/daily-map" element={<PageContentWrapper><DailyMap /></PageContentWrapper>} />
+        <Route path="/my-day" element={<PageContentWrapper><MobileDayView /></PageContentWrapper>} />
+        <Route path="/kanban" element={<PageContentWrapper><KanbanBoard /></PageContentWrapper>} />
+        <Route path="/automations" element={<PageContentWrapper><AutomationCenter /></PageContentWrapper>} />
+        <Route path="/leads" element={<PageContentWrapper><Leads /></PageContentWrapper>} />
+        <Route path="/leads/:id" element={<PageContentWrapper><LeadDetailModern /></PageContentWrapper>} />
+        <Route path="/estimates" element={<PageContentWrapper><Estimates /></PageContentWrapper>} />
+        <Route path="/estimates/:id" element={<PageContentWrapper><EstimateDetail /></PageContentWrapper>} />
+        <Route path="/deals" element={<PageContentWrapper><Deals /></PageContentWrapper>} />
+        <Route path="/deals/:id" element={<PageContentWrapper><DealDetail /></PageContentWrapper>} />
+        <Route path="/reports" element={<PageContentWrapper><Reports /></PageContentWrapper>} />
+        <Route path="/settings" element={<PageContentWrapper><Settings /></PageContentWrapper>} />
+        <Route path="/integrations" element={<PageContentWrapper><Integrations /></PageContentWrapper>} />
+      </Route>
+      <Route path="/qb-callback" element={<QBCallback />} />
+      <Route path="/my-diag" element={<MyDiag />} />
+      <Route path="*" element={<PageNotFound />} />
+    </Routes>
+  );
+};
+
+
+function App() {
+
+  return (
+    <AuthProvider>
+      <SyncProvider>
+        <QueryClientProvider client={queryClientInstance}>
+          <TooltipProvider>
+          <Router>
+            <div className="flex flex-col h-screen" data-build="2026-08-28-railway-only">
+              <AuthenticatedApp />
+              <MobileNav />
+              <SyncStatusPremium />
+              <FollowUpReminderPopup />
+            </div>
+          </Router>
+          <Toaster />
+          </TooltipProvider>
+        </QueryClientProvider>
+      </SyncProvider>
+    </AuthProvider>
+  )
+}
+
+export default App

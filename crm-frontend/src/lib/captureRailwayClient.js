@@ -1,1 +1,66 @@
-LyoqCiAqIGNhcHR1cmVSYWlsd2F5Q2xpZW50IOKAlCBmcm9udGVuZCBjbGllbnQgZm9yIHRoZSBQVUJMSUMgUmFpbHdheSBMZWFkIENhcHR1cmUKICogZW5kcG9pbnRzIChubyBKV1QsIG5vIHByb3h5IHNlY3JldCkuIFJlcGxhY2VzIHRoZSBCYXNlNDQgY2hlY2tDYWxlbmRhckNvbmZsaWN0cwogKiArIHN1Ym1pdExlYWRDYXB0dXJlIHJ1bnRpbWUgY2FsbHMgaW4gdGhlIC9jYXB0dXJlIGZsb3cuCiAqCiAqIEJhc2UgVVJMIGlzIHRoZSBSYWlsd2F5IHNlcnZpY2UgKFZJVEVfUUJfUFJPWFlfVVJMKSwgc2FtZSBob3N0IHRoYXQgc2VydmVzCiAqIC9hcGkvcHVibGljL2NhcHR1cmUvKi4gTm8gYXV0aCBoZWFkZXJzIOKAlCB0aGVzZSBhcmUgaW50ZW50aW9uYWxseSBwdWJsaWMsCiAqIHJhdGUtbGltaXRlZCBlbmRwb2ludHMuCiAqLwoKaW1wb3J0IHsgUkFJTFdBWV9BUElfVVJMIGFzIEJBU0UgfSBmcm9tICdAL2xpYi9hcGlDb25maWcnOwoKLy8gRUMtb3duZWQga2lsbC1zd2l0Y2g6IHdoZW4gc2V0IHRvICdmYWxzZScsIHN1Ym1pdCBmYWxscyBiYWNrIHRvIHRoZSBleGlzdGluZwovLyBCYXNlNDQgc3VibWl0TGVhZENhcHR1cmUgZnVuY3Rpb24gKHJvbGxiYWNrIGR1cmluZyB2YWxpZGF0aW9uKS4gRGVmYXVsdHMgdG8KLy8gUmFpbHdheSAoZW5hYmxlZCkuIEF2YWlsYWJpbGl0eSBhbHdheXMgdXNlcyBSYWlsd2F5IOKAlCB0aGUgMWhyLWJlZm9yZSArCi8vIGR1cmF0aW9uICsgMWhyLWFmdGVyIGJ1ZmZlciBydWxlIGxpdmVzIG9ubHkgaW4gdGhlIFJhaWx3YXkgYXZhaWxhYmlsaXR5U2VydmljZS4KZXhwb3J0IGZ1bmN0aW9uIGlzUmFpbHdheUNhcHR1cmVFbmFibGVkKCkgewogIHJldHVybiBpbXBvcnQubWV0YS5lbnYuVklURV9SQUlMV0FZX0NBUFRVUkVfRU5BQkxFRCAhPT0gJ2ZhbHNlJzsKfQoKZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIGZldGNoQ2FwdHVyZUF2YWlsYWJpbGl0eSh7IG93bmVyLCBkYXRlLCBkdXJhdGlvbiA9IDYwIH0pIHsKICBpZiAoIUJBU0UpIHsKICAgIHRocm93IE9iamVjdC5hc3NpZ24obmV3IEVycm9yKCdDYXB0dXJlIHNlcnZpY2Ugbm90IGNvbmZpZ3VyZWQuJyksIHsgY29kZTogJ2NvbmZpZ19lcnJvcicgfSk7CiAgfQogIGNvbnN0IHVybCA9IGAke0JBU0V9L2FwaS9wdWJsaWMvY2FwdHVyZS9hdmFpbGFiaWxpdHk/b3duZXI9JHtlbmNvZGVVUklDb21wb25lbnQob3duZXIpfSZkYXRlPSR7ZW5jb2RlVVJJQ29tcG9uZW50KGRhdGUpfSZkdXJhdGlvbj0ke2R1cmF0aW9ufWA7CiAgY29uc3QgcmVzID0gYXdhaXQgZmV0Y2godXJsLCB7IGhlYWRlcnM6IHsgQWNjZXB0OiAnYXBwbGljYXRpb24vanNvbicgfSB9KTsKICBjb25zdCBkYXRhID0gYXdhaXQgcmVzLmpzb24oKS5jYXRjaCgoKSA9PiAoe30pKTsKICBpZiAoIXJlcy5vaykgewogICAgdGhyb3cgT2JqZWN0LmFzc2lnbihuZXcgRXJyb3IoZGF0YT8ubWVzc2FnZSB8fCBkYXRhPy5lcnJvciB8fCAnYXZhaWxhYmlsaXR5IGZhaWxlZCcpLCB7CiAgICAgIHN0YXR1czogcmVzLnN0YXR1cywgZGF0YSwgY29kZTogZGF0YT8uZXJyb3IsCiAgICB9KTsKICB9CiAgcmV0dXJuIGRhdGE7Cn0KCmV4cG9ydCBhc3luYyBmdW5jdGlvbiBzdWJtaXRDYXB0dXJlKHBheWxvYWQsIG9wdGlvbnMgPSB7fSkgewogIGlmICghaXNSYWlsd2F5Q2FwdHVyZUVuYWJsZWQoKSkgewogICAgdGhyb3cgbmV3IEVycm9yKCdSYWlsd2F5IGNhcHR1cmUgaXMgZGlzYWJsZWQuIFNldCBWSVRFX1JBSUxXQVlfQ0FQVFVSRV9FTkFCTEVEIHRvIGVuYWJsZS4nKTsKICB9CiAgaWYgKCFCQVNFKSB7CiAgICB0aHJvdyBPYmplY3QuYXNzaWduKG5ldyBFcnJvcignQ2FwdHVyZSBzZXJ2aWNlIG5vdCBjb25maWd1cmVkLicpLCB7IGNvZGU6ICdjb25maWdfZXJyb3InIH0pOwogIH0KICBjb25zdCBoZWFkZXJzID0geyAnQ29udGVudC1UeXBlJzogJ2FwcGxpY2F0aW9uL2pzb24nLCBBY2NlcHQ6ICdhcHBsaWNhdGlvbi9qc29uJyB9OwogIC8vIEFkbWluIGNvbmZsaWN0LW92ZXJyaWRlOiBhdHRhY2ggdGhlIFJhaWx3YXkgSldUIE9OTFkgd2hlbiB0aGUgY2FsbGVyCiAgLy8gZXhwbGljaXRseSBwYXNzZXMgYW4gYWRtaW5Ub2tlbiAoYWRtaW4tb3ZlcnJpZGUgc3VibWlzc2lvbikuIE5vcm1hbAogIC8vIHN1Ym1pc3Npb25zIHN0YXkgYXV0aC1mcmVlLiBUaGUgYmFja2VuZCByZS12ZXJpZmllcyB0aGUgdG9rZW4gKyByb2xlICsKICAvLyBlbWFpbCBhbGxvd2xpc3Qgc2VydmVyLXNpZGU7IHRoaXMgaGVhZGVyIGlzIG5ldmVyIHRydXN0ZWQgYWxvbmUuCiAgaWYgKG9wdGlvbnMuYWRtaW5Ub2tlbikgewogICAgaGVhZGVycy5BdXRob3JpemF0aW9uID0gYEJlYXJlciAke29wdGlvbnMuYWRtaW5Ub2tlbn1gOwogIH0KICBjb25zdCByZXMgPSBhd2FpdCBmZXRjaChgJHtCQVNFfS9hcGkvcHVibGljL2NhcHR1cmVgLCB7CiAgICBtZXRob2Q6ICdQT1NUJywKICAgIGhlYWRlcnMsCiAgICBib2R5OiBKU09OLnN0cmluZ2lmeShwYXlsb2FkKSwKICB9KTsKICBjb25zdCBkYXRhID0gYXdhaXQgcmVzLmpzb24oKS5jYXRjaCgoKSA9PiAoe30pKTsKICBpZiAoIXJlcy5vaykgewogICAgdGhyb3cgT2JqZWN0LmFzc2lnbihuZXcgRXJyb3IoZGF0YT8ubWVzc2FnZSB8fCBkYXRhPy5lcnJvciB8fCAnc3VibWl0IGZhaWxlZCcpLCB7CiAgICAgIHN0YXR1czogcmVzLnN0YXR1cywgZGF0YSwgY29kZTogZGF0YT8uZXJyb3IsCiAgICB9KTsKICB9CiAgcmV0dXJuIGRhdGE7Cn0KCi8vIEJhc2U0NCBmYWxsYmFjayByZW1vdmVkIOKAlCBSYWlsd2F5IGNhcHR1cmUgaXMgdGhlIHNvbGUgc3VibWlzc2lvbiBwYXRoLgovLyBJZiBpc1JhaWx3YXlDYXB0dXJlRW5hYmxlZCgpIGlzIGZhbHNlLCBzdWJtaXQgdGhyb3dzIChubyBCYXNlNDQgcm9sbGJhY2spLg==
+/**
+ * captureRailwayClient — frontend client for the PUBLIC Railway Lead Capture
+ * endpoints (no JWT, no proxy secret). Replaces the Base44 checkCalendarConflicts
+ * + submitLeadCapture runtime calls in the /capture flow.
+ *
+ * Base URL is the Railway service (VITE_QB_PROXY_URL), same host that serves
+ * /api/public/capture/*. No auth headers — these are intentionally public,
+ * rate-limited endpoints.
+ */
+
+import { RAILWAY_API_URL as BASE } from '@/lib/apiConfig';
+
+// EC-owned kill-switch: when set to 'false', submit falls back to the existing
+// Base44 submitLeadCapture function (rollback during validation). Defaults to
+// Railway (enabled). Availability always uses Railway — the 1hr-before +
+// duration + 1hr-after buffer rule lives only in the Railway availabilityService.
+export function isRailwayCaptureEnabled() {
+  return import.meta.env.VITE_RAILWAY_CAPTURE_ENABLED !== 'false';
+}
+
+export async function fetchCaptureAvailability({ owner, date, duration = 60 }) {
+  if (!BASE) {
+    throw Object.assign(new Error('Capture service not configured.'), { code: 'config_error' });
+  }
+  const url = `${BASE}/api/public/capture/availability?owner=${encodeURIComponent(owner)}&date=${encodeURIComponent(date)}&duration=${duration}`;
+  const res = await fetch(url, { headers: { Accept: 'application/json' } });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw Object.assign(new Error(data?.message || data?.error || 'availability failed'), {
+      status: res.status, data, code: data?.error,
+    });
+  }
+  return data;
+}
+
+export async function submitCapture(payload, options = {}) {
+  if (!isRailwayCaptureEnabled()) {
+    throw new Error('Railway capture is disabled. Set VITE_RAILWAY_CAPTURE_ENABLED to enable.');
+  }
+  if (!BASE) {
+    throw Object.assign(new Error('Capture service not configured.'), { code: 'config_error' });
+  }
+  const headers = { 'Content-Type': 'application/json', Accept: 'application/json' };
+  // Admin conflict-override: attach the Railway JWT ONLY when the caller
+  // explicitly passes an adminToken (admin-override submission). Normal
+  // submissions stay auth-free. The backend re-verifies the token + role +
+  // email allowlist server-side; this header is never trusted alone.
+  if (options.adminToken) {
+    headers.Authorization = `Bearer ${options.adminToken}`;
+  }
+  const res = await fetch(`${BASE}/api/public/capture`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw Object.assign(new Error(data?.message || data?.error || 'submit failed'), {
+      status: res.status, data, code: data?.error,
+    });
+  }
+  return data;
+}
+
+// Base44 fallback removed — Railway capture is the sole submission path.
+// If isRailwayCaptureEnabled() is false, submit throws (no Base44 rollback).

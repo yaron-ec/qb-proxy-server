@@ -1,1 +1,144 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCwgdXNlUmVmLCB1c2VDYWxsYmFjayB9IGZyb20gInJlYWN0IjsKaW1wb3J0ICogYXMgcmFpbHdheUNvbXBhbnlTZXR0aW5ncyBmcm9tICJAL2FwaS9yYWlsd2F5L2NvbXBhbnlTZXR0aW5ncyI7CmltcG9ydCB7IFNhdmUsIENoZWNrIH0gZnJvbSAibHVjaWRlLXJlYWN0IjsKCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIENvbXBhbnlTZXR0aW5nc1RhYigpIHsKICBjb25zdCBbY29tcGFueSwgc2V0Q29tcGFueV0gPSB1c2VTdGF0ZShudWxsKTsKICBjb25zdCBbZm9ybSwgc2V0Rm9ybV0gPSB1c2VTdGF0ZSh7fSk7CiAgY29uc3QgW2xvYWRpbmcsIHNldExvYWRpbmddID0gdXNlU3RhdGUodHJ1ZSk7CiAgY29uc3QgW3NhdmVTdGF0ZSwgc2V0U2F2ZVN0YXRlXSA9IHVzZVN0YXRlKCJpZGxlIik7IC8vIGlkbGUgfCBzYXZpbmcgfCBzYXZlZAogIGNvbnN0IGRlYm91bmNlUmVmID0gdXNlUmVmKG51bGwpOwogIGNvbnN0IGNvbXBhbnlSZWYgPSB1c2VSZWYobnVsbCk7CgogIHVzZUVmZmVjdCgoKSA9PiB7CiAgICByYWlsd2F5Q29tcGFueVNldHRpbmdzLmdldCgpLnRoZW4oZGF0YSA9PiB7CiAgICAgIGlmIChkYXRhKSB7CiAgICAgICAgc2V0Q29tcGFueShkYXRhKTsKICAgICAgICBjb21wYW55UmVmLmN1cnJlbnQgPSBkYXRhOwogICAgICAgIHNldEZvcm0oZGF0YSk7CiAgICAgIH0gZWxzZSB7CiAgICAgICAgc2V0Q29tcGFueShudWxsKTsKICAgICAgICBjb21wYW55UmVmLmN1cnJlbnQgPSBudWxsOwogICAgICAgIHNldEZvcm0oe30pOwogICAgICB9CiAgICAgIHNldExvYWRpbmcoZmFsc2UpOwogICAgfSkuY2F0Y2goKCkgPT4gewogICAgICBzZXRDb21wYW55KG51bGwpOwogICAgICBjb21wYW55UmVmLmN1cnJlbnQgPSBudWxsOwogICAgICBzZXRGb3JtKHt9KTsKICAgICAgc2V0TG9hZGluZyhmYWxzZSk7CiAgICB9KTsKICB9LCBbXSk7CgogIGNvbnN0IGRvU2F2ZSA9IHVzZUNhbGxiYWNrKGFzeW5jIChsYXRlc3RGb3JtKSA9PiB7CiAgICBzZXRTYXZlU3RhdGUoInNhdmluZyIpOwogICAgdHJ5IHsKICAgICAgY29uc3QgdXBkYXRlZCA9IGF3YWl0IHJhaWx3YXlDb21wYW55U2V0dGluZ3MudXBzZXJ0KGxhdGVzdEZvcm0pOwogICAgICBzZXRDb21wYW55KHVwZGF0ZWQpOwogICAgICBjb21wYW55UmVmLmN1cnJlbnQgPSB1cGRhdGVkOwogICAgICBzZXRTYXZlU3RhdGUoInNhdmVkIik7CiAgICAgIHNldFRpbWVvdXQoKCkgPT4gc2V0U2F2ZVN0YXRlKCJpZGxlIiksIDIwMDApOwogICAgfSBjYXRjaCAoZXJyKSB7CiAgICAgIGNvbnNvbGUuZXJyb3IoIlNhdmUgZmFpbGVkOiIsIGVyci5tZXNzYWdlKTsKICAgICAgc2V0U2F2ZVN0YXRlKCJpZGxlIik7CiAgICAgIC8vIFJldmVydCB0byBsYXN0IHNhdmVkIHN0YXRlIG9uIGVycm9yCiAgICAgIGlmIChjb21wYW55UmVmLmN1cnJlbnQpIHsKICAgICAgICBzZXRGb3JtKGNvbXBhbnlSZWYuY3VycmVudCk7CiAgICAgIH0KICAgIH0KICB9LCBbXSk7CgogIGNvbnN0IHNldCA9IChrZXksIHZhbHVlKSA9PiB7CiAgICBjb25zdCB1cGRhdGVkID0geyAuLi5mb3JtLCBba2V5XTogdmFsdWUgfTsKICAgIHNldEZvcm0odXBkYXRlZCk7CiAgICAvLyBkZWJvdW5jZSBhdXRvLXNhdmUgODAwbXMKICAgIGlmIChkZWJvdW5jZVJlZi5jdXJyZW50KSBjbGVhclRpbWVvdXQoZGVib3VuY2VSZWYuY3VycmVudCk7CiAgICBkZWJvdW5jZVJlZi5jdXJyZW50ID0gc2V0VGltZW91dCgoKSA9PiBkb1NhdmUodXBkYXRlZCksIDgwMCk7CiAgfTsKCiAgaWYgKGxvYWRpbmcpIHJldHVybiA8ZGl2IGNsYXNzTmFtZT0idGV4dC1jZW50ZXIgcHktOCB0ZXh0LXNsYXRlLTUwMCI+TG9hZGluZy4uLjwvZGl2PjsKCiAgY29uc3QgYnV0dG9uQ2xhc3MgPSBzYXZlU3RhdGUgPT09ICJzYXZlZCIKICAgID8gImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIGJnLWVtZXJhbGQtNTAwIHRleHQtd2hpdGUgcHgtNCBweS0yIHRleHQtc20gZm9udC1ib2xkIHJvdW5kZWQgdHJhbnNpdGlvbi1hbGwgZHVyYXRpb24tMzAwIgogICAgOiBzYXZlU3RhdGUgPT09ICJzYXZpbmciCiAgICA/ICJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBiZy1vcmFuZ2UvNzAgdGV4dC13aGl0ZSBweC00IHB5LTIgdGV4dC1zbSBmb250LWJvbGQgcm91bmRlZCB0cmFuc2l0aW9uLWFsbCBkdXJhdGlvbi0zMDAiCiAgICA6ICJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBiZy1vcmFuZ2UgdGV4dC13aGl0ZSBweC00IHB5LTIgdGV4dC1zbSBmb250LWJvbGQgcm91bmRlZCBob3ZlcjpiZy1vcmFuZ2UvOTAgdHJhbnNpdGlvbi1hbGwgZHVyYXRpb24tMzAwIjsKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJtYXgtdy0zeGwiPgogICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctd2hpdGUgcm91bmRlZCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCBwLTYiPgogICAgICAgIDxoMiBjbGFzc05hbWU9InRleHQtc20gZm9udC1ib2xkIHRleHQtc2xhdGUtNzAwIG1iLTYiPkNvbXBhbnkgSW5mb3JtYXRpb248L2gyPgoKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ic3BhY2UteS01Ij4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJncmlkIGdyaWQtY29scy0yIGdhcC00Ij4KICAgICAgICAgICAgPEZpZWxkIGxhYmVsPSJDb21wYW55IE5hbWUgKiIgdmFsdWU9e2Zvcm0uY29tcGFueV9uYW1lIHx8ICIifSBvbkNoYW5nZT17diA9PiBzZXQoImNvbXBhbnlfbmFtZSIsIHYpfSAvPgogICAgICAgICAgICA8RmllbGQgbGFiZWw9IkNvbXBhbnkgRW1haWwiIHR5cGU9ImVtYWlsIiB2YWx1ZT17Zm9ybS5jb21wYW55X2VtYWlsIHx8ICIifSBvbkNoYW5nZT17diA9PiBzZXQoImNvbXBhbnlfZW1haWwiLCB2KX0gLz4KICAgICAgICAgICAgPEZpZWxkIGxhYmVsPSJDb21wYW55IFBob25lIiB0eXBlPSJ0ZWwiIHZhbHVlPXtmb3JtLmNvbXBhbnlfcGhvbmUgfHwgIiJ9IG9uQ2hhbmdlPXt2ID0+IHNldCgiY29tcGFueV9waG9uZSIsIHYpfSAvPgogICAgICAgICAgICA8RmllbGQgbGFiZWw9IkNvbXBhbnkgV2Vic2l0ZSIgdHlwZT0idXJsIiB2YWx1ZT17Zm9ybS5jb21wYW55X3dlYnNpdGUgfHwgIiJ9IG9uQ2hhbmdlPXt2ID0+IHNldCgiY29tcGFueV93ZWJzaXRlIiwgdil9IC8+CiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJjb2wtc3Bhbi0yIj4KICAgICAgICAgICAgICA8RmllbGQgbGFiZWw9IkNvbXBhbnkgQWRkcmVzcyIgdmFsdWU9e2Zvcm0uY29tcGFueV9hZGRyZXNzIHx8ICIifSBvbkNoYW5nZT17diA9PiBzZXQoImNvbXBhbnlfYWRkcmVzcyIsIHYpfSAvPgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgPEZpZWxkIGxhYmVsPSJDaXR5IiB2YWx1ZT17Zm9ybS5jb21wYW55X2NpdHkgfHwgIiJ9IG9uQ2hhbmdlPXt2ID0+IHNldCgiY29tcGFueV9jaXR5Iiwgdil9IC8+CiAgICAgICAgICAgIDxGaWVsZCBsYWJlbD0iU3RhdGUiIHZhbHVlPXtmb3JtLmNvbXBhbnlfc3RhdGUgfHwgIiJ9IG9uQ2hhbmdlPXt2ID0+IHNldCgiY29tcGFueV9zdGF0ZSIsIHYpfSAvPgogICAgICAgICAgICA8RmllbGQgbGFiZWw9IlpJUCBDb2RlIiB2YWx1ZT17Zm9ybS5jb21wYW55X3ppcCB8fCAiIn0gb25DaGFuZ2U9e3YgPT4gc2V0KCJjb21wYW55X3ppcCIsIHYpfSAvPgogICAgICAgICAgICA8RmllbGQgbGFiZWw9IkNvbXBhbnkgTG9nbyBVUkwiIHR5cGU9InVybCIgdmFsdWU9e2Zvcm0uY29tcGFueV9sb2dvX3VybCB8fCAiIn0gb25DaGFuZ2U9e3YgPT4gc2V0KCJjb21wYW55X2xvZ29fdXJsIiwgdil9IC8+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KCiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJvcmRlci10IGJvcmRlci1zbGF0ZS0yMDAgbXQtOCBwdC02Ij4KICAgICAgICAgIDxoMyBjbGFzc05hbWU9InRleHQtc20gZm9udC1ib2xkIHRleHQtc2xhdGUtNzAwIG1iLTQiPkFkbWluIEluZm9ybWF0aW9uPC9oMz4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJncmlkIGdyaWQtY29scy0yIGdhcC00Ij4KICAgICAgICAgICAgPEZpZWxkIGxhYmVsPSJBZG1pbiBOYW1lIiB2YWx1ZT17Zm9ybS5hZG1pbl9uYW1lIHx8ICIifSBvbkNoYW5nZT17diA9PiBzZXQoImFkbWluX25hbWUiLCB2KX0gLz4KICAgICAgICAgICAgPEZpZWxkIGxhYmVsPSJBZG1pbiBFbWFpbCIgdHlwZT0iZW1haWwiIHZhbHVlPXtmb3JtLmFkbWluX2VtYWlsIHx8ICIifSBvbkNoYW5nZT17diA9PiBzZXQoImFkbWluX2VtYWlsIiwgdil9IC8+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KCiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJvcmRlci10IGJvcmRlci1zbGF0ZS0yMDAgbXQtOCBwdC02Ij4KICAgICAgICAgIDxoMyBjbGFzc05hbWU9InRleHQtc20gZm9udC1ib2xkIHRleHQtc2xhdGUtNzAwIG1iLTQiPk5vdGlmaWNhdGlvbiBTZXR0aW5nczwvaDM+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1zdGFydCBnYXAtMyI+CiAgICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgICB0eXBlPSJidXR0b24iCiAgICAgICAgICAgICAgcm9sZT0ic3dpdGNoIgogICAgICAgICAgICAgIGFyaWEtY2hlY2tlZD17ISFmb3JtLmNybV9hY3Rpdml0eV9ub3RpZmljYXRpb25zX2VuYWJsZWR9CiAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0KCJjcm1fYWN0aXZpdHlfbm90aWZpY2F0aW9uc19lbmFibGVkIiwgIWZvcm0uY3JtX2FjdGl2aXR5X25vdGlmaWNhdGlvbnNfZW5hYmxlZCl9CiAgICAgICAgICAgICAgY2xhc3NOYW1lPXtgcmVsYXRpdmUgbXQtMC41IGZsZXgtc2hyaW5rLTAgdy0xMCBoLTYgcm91bmRlZC1mdWxsIHRyYW5zaXRpb24tY29sb3JzIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1vcmFuZ2UvNTAgJHtmb3JtLmNybV9hY3Rpdml0eV9ub3RpZmljYXRpb25zX2VuYWJsZWQgPyAnYmctb3JhbmdlJyA6ICdiZy1zbGF0ZS0yMDAnfWB9CiAgICAgICAgICAgID4KICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9e2BibG9jayB3LTQgaC00IGJnLXdoaXRlIHJvdW5kZWQtZnVsbCBzaGFkb3ctc20gYWJzb2x1dGUgdG9wLTEgdHJhbnNpdGlvbi1hbGwgZHVyYXRpb24tMjAwICR7Zm9ybS5jcm1fYWN0aXZpdHlfbm90aWZpY2F0aW9uc19lbmFibGVkID8gJ2xlZnQtNScgOiAnbGVmdC0xJ31gfSAvPgogICAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20gZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTgwMCI+U2VuZCBDUk0gQWN0aXZpdHkgTm90aWZpY2F0aW9ucyB0byBZYXJvbjwvcD4KICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS01MDAgbXQtMC41Ij4KICAgICAgICAgICAgICAgIFdoZW4gZW5hYmxlZCwgYW4gZW1haWwgaXMgc2VudCB0byA8c3BhbiBjbGFzc05hbWU9ImZvbnQtbW9ubyI+eWFyb25AZWNjb25zdHJ1Y3Rpb25ncm91cC5jb208L3NwYW4+IHdoZW5ldmVyIGEgc2FsZXMgcmVwIGxvZ3MgYSBub3RlLCBjYWxsLCBtZWV0aW5nLCB0YXNrLCBvciB3aGVuIGxlYWQvZGVhbCBhY3Rpdml0eSBjaGFuZ2VzLgogICAgICAgICAgICAgIDwvcD4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KCiAgICAgICAgPGRpdiBjbGFzc05hbWU9Im10LTYiPgogICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBkb1NhdmUoZm9ybSl9CiAgICAgICAgICAgIGRpc2FibGVkPXtzYXZlU3RhdGUgPT09ICJzYXZpbmcifQogICAgICAgICAgICBjbGFzc05hbWU9e2J1dHRvbkNsYXNzfQogICAgICAgICAgPgogICAgICAgICAgICB7c2F2ZVN0YXRlID09PSAic2F2ZWQiID8gPENoZWNrIGNsYXNzTmFtZT0idy00IGgtNCIgLz4gOiA8U2F2ZSBjbGFzc05hbWU9InctNCBoLTQiIC8+fQogICAgICAgICAgICB7c2F2ZVN0YXRlID09PSAic2F2aW5nIiA/ICJTYXZpbmcuLi4iIDogc2F2ZVN0YXRlID09PSAic2F2ZWQiID8gIlNhdmVkISIgOiAiU2F2ZSBDb21wYW55IEluZm8ifQogICAgICAgICAgPC9idXR0b24+CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CiAgKTsKfQoKZnVuY3Rpb24gRmllbGQoeyBsYWJlbCwgdmFsdWUsIG9uQ2hhbmdlLCB0eXBlID0gInRleHQiIH0pIHsKICByZXR1cm4gKAogICAgPGRpdj4KICAgICAgPGxhYmVsIGNsYXNzTmFtZT0iYmxvY2sgdGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNjAwIG1iLTEiPntsYWJlbH08L2xhYmVsPgogICAgICA8aW5wdXQKICAgICAgICB0eXBlPXt0eXBlfQogICAgICAgIGNsYXNzTmFtZT0idy1mdWxsIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQgcHgtMyBweS0yIHRleHQtc20gdGV4dC1zbGF0ZS04MDAgYmctd2hpdGUgZm9jdXM6b3V0bGluZS1ub25lIGZvY3VzOmJvcmRlci1vcmFuZ2UgdHJhbnNpdGlvbi1jb2xvcnMiCiAgICAgICAgdmFsdWU9e3ZhbHVlfQogICAgICAgIG9uQ2hhbmdlPXtlID0+IG9uQ2hhbmdlKGUudGFyZ2V0LnZhbHVlKX0KICAgICAgLz4KICAgIDwvZGl2PgogICk7Cn0=
+import { useState, useEffect, useRef, useCallback } from "react";
+import * as railwayCompanySettings from "@/api/railway/companySettings";
+import { Save, Check } from "lucide-react";
+
+export default function CompanySettingsTab() {
+  const [company, setCompany] = useState(null);
+  const [form, setForm] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [saveState, setSaveState] = useState("idle"); // idle | saving | saved
+  const debounceRef = useRef(null);
+  const companyRef = useRef(null);
+
+  useEffect(() => {
+    railwayCompanySettings.get().then(data => {
+      if (data) {
+        setCompany(data);
+        companyRef.current = data;
+        setForm(data);
+      } else {
+        setCompany(null);
+        companyRef.current = null;
+        setForm({});
+      }
+      setLoading(false);
+    }).catch(() => {
+      setCompany(null);
+      companyRef.current = null;
+      setForm({});
+      setLoading(false);
+    });
+  }, []);
+
+  const doSave = useCallback(async (latestForm) => {
+    setSaveState("saving");
+    try {
+      const updated = await railwayCompanySettings.upsert(latestForm);
+      setCompany(updated);
+      companyRef.current = updated;
+      setSaveState("saved");
+      setTimeout(() => setSaveState("idle"), 2000);
+    } catch (err) {
+      console.error("Save failed:", err.message);
+      setSaveState("idle");
+      // Revert to last saved state on error
+      if (companyRef.current) {
+        setForm(companyRef.current);
+      }
+    }
+  }, []);
+
+  const set = (key, value) => {
+    const updated = { ...form, [key]: value };
+    setForm(updated);
+    // debounce auto-save 800ms
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => doSave(updated), 800);
+  };
+
+  if (loading) return <div className="text-center py-8 text-slate-500">Loading...</div>;
+
+  const buttonClass = saveState === "saved"
+    ? "flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 text-sm font-bold rounded transition-all duration-300"
+    : saveState === "saving"
+    ? "flex items-center gap-2 bg-orange/70 text-white px-4 py-2 text-sm font-bold rounded transition-all duration-300"
+    : "flex items-center gap-2 bg-orange text-white px-4 py-2 text-sm font-bold rounded hover:bg-orange/90 transition-all duration-300";
+
+  return (
+    <div className="max-w-3xl">
+      <div className="bg-white rounded border border-slate-200 p-6">
+        <h2 className="text-sm font-bold text-slate-700 mb-6">Company Information</h2>
+
+        <div className="space-y-5">
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Company Name *" value={form.company_name || ""} onChange={v => set("company_name", v)} />
+            <Field label="Company Email" type="email" value={form.company_email || ""} onChange={v => set("company_email", v)} />
+            <Field label="Company Phone" type="tel" value={form.company_phone || ""} onChange={v => set("company_phone", v)} />
+            <Field label="Company Website" type="url" value={form.company_website || ""} onChange={v => set("company_website", v)} />
+            <div className="col-span-2">
+              <Field label="Company Address" value={form.company_address || ""} onChange={v => set("company_address", v)} />
+            </div>
+            <Field label="City" value={form.company_city || ""} onChange={v => set("company_city", v)} />
+            <Field label="State" value={form.company_state || ""} onChange={v => set("company_state", v)} />
+            <Field label="ZIP Code" value={form.company_zip || ""} onChange={v => set("company_zip", v)} />
+            <Field label="Company Logo URL" type="url" value={form.company_logo_url || ""} onChange={v => set("company_logo_url", v)} />
+          </div>
+        </div>
+
+        <div className="border-t border-slate-200 mt-8 pt-6">
+          <h3 className="text-sm font-bold text-slate-700 mb-4">Admin Information</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Admin Name" value={form.admin_name || ""} onChange={v => set("admin_name", v)} />
+            <Field label="Admin Email" type="email" value={form.admin_email || ""} onChange={v => set("admin_email", v)} />
+          </div>
+        </div>
+
+        <div className="border-t border-slate-200 mt-8 pt-6">
+          <h3 className="text-sm font-bold text-slate-700 mb-4">Notification Settings</h3>
+          <div className="flex items-start gap-3">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={!!form.crm_activity_notifications_enabled}
+              onClick={() => set("crm_activity_notifications_enabled", !form.crm_activity_notifications_enabled)}
+              className={`relative mt-0.5 flex-shrink-0 w-10 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange/50 ${form.crm_activity_notifications_enabled ? 'bg-orange' : 'bg-slate-200'}`}
+            >
+              <span className={`block w-4 h-4 bg-white rounded-full shadow-sm absolute top-1 transition-all duration-200 ${form.crm_activity_notifications_enabled ? 'left-5' : 'left-1'}`} />
+            </button>
+            <div>
+              <p className="text-sm font-semibold text-slate-800">Send CRM Activity Notifications to Yaron</p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                When enabled, an email is sent to <span className="font-mono">yaron@ecconstructiongroup.com</span> whenever a sales rep logs a note, call, meeting, task, or when lead/deal activity changes.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6">
+          <button
+            onClick={() => doSave(form)}
+            disabled={saveState === "saving"}
+            className={buttonClass}
+          >
+            {saveState === "saved" ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+            {saveState === "saving" ? "Saving..." : saveState === "saved" ? "Saved!" : "Save Company Info"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, value, onChange, type = "text" }) {
+  return (
+    <div>
+      <label className="block text-xs font-semibold text-slate-600 mb-1">{label}</label>
+      <input
+        type={type}
+        className="w-full border border-slate-200 rounded px-3 py-2 text-sm text-slate-800 bg-white focus:outline-none focus:border-orange transition-colors"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+      />
+    </div>
+  );
+}

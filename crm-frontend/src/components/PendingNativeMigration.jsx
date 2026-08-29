@@ -1,1 +1,22 @@
-LyoqCiAqIFBlbmRpbmdOYXRpdmVNaWdyYXRpb24g4oCUIHBsYWNlaG9sZGVyIGZvciBMZWFkIERldGFpbCBzZWN0aW9ucyB0aGF0IGFyZQogKiBhd2FpdGluZyBuYXRpdmUgUmFpbHdheSBpbXBsZW1lbnRhdGlvbiAoUUIsIFNpZ25Ob3csIFN1Ym1pc3Npb25zKS4KICoKICogU2hvd3MgYSBjbGVhciBtZXNzYWdlIHRoYXQgbm8gQmFzZTQ0IGNhbGxzIGFyZSBtYWRlIGFuZCBuYXRpdmUgaW1wbGVtZW50YXRpb24KICogaXMgcGVuZGluZy4gVXNlZCBieSBRQlN0YXR1c1BhbmVsLCBTaWduTm93UGFuZWwsIGFuZCBTdWJtaXNzaW9uSGlzdG9yeS4KICovCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIFBlbmRpbmdOYXRpdmVNaWdyYXRpb24oeyBmZWF0dXJlLCBkZXNjcmlwdGlvbiB9KSB7CiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJwLTQgdGV4dC1jZW50ZXIiPgogICAgICA8ZGl2IGNsYXNzTmFtZT0iaW5saW5lLWZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHctMTAgaC0xMCByb3VuZGVkLWZ1bGwgYmctYW1iZXItNTAgYm9yZGVyIGJvcmRlci1hbWJlci0yMDAgbWItMiI+CiAgICAgICAgPHN2ZyBjbGFzc05hbWU9InctNSBoLTUgdGV4dC1hbWJlci02MDAiIGZpbGw9Im5vbmUiIHZpZXdCb3g9IjAgMCAyNCAyNCIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiPgogICAgICAgICAgPHBhdGggc3Ryb2tlTGluZWNhcD0icm91bmQiIHN0cm9rZUxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlV2lkdGg9ezJ9IGQ9Ik0xMiA4djRsMyAzbTYtM2E5IDkgMCAxMS0xOCAwIDkgOSAwIDAxMTggMHoiIC8+CiAgICAgICAgPC9zdmc+CiAgICAgIDwvZGl2PgogICAgICA8cCBjbGFzc05hbWU9InRleHQtc20gZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTcwMCI+e2ZlYXR1cmV9IOKAlCBQZW5kaW5nIE5hdGl2ZSBNaWdyYXRpb248L3A+CiAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTUwMCBtdC0xIG1heC13LXhzIG14LWF1dG8iPgogICAgICAgIHtkZXNjcmlwdGlvbiB8fCAiVGhpcyBzZWN0aW9uIGlzIGF3YWl0aW5nIG5hdGl2ZSBSYWlsd2F5IGltcGxlbWVudGF0aW9uLiBObyBCYXNlNDQgY2FsbHMgYXJlIG1hZGUuIn0KICAgICAgPC9wPgogICAgPC9kaXY+CiAgKTsKfQ==
+/**
+ * PendingNativeMigration — placeholder for Lead Detail sections that are
+ * awaiting native Railway implementation (QB, SignNow, Submissions).
+ *
+ * Shows a clear message that no Base44 calls are made and native implementation
+ * is pending. Used by QBStatusPanel, SignNowPanel, and SubmissionHistory.
+ */
+export default function PendingNativeMigration({ feature, description }) {
+  return (
+    <div className="p-4 text-center">
+      <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-amber-50 border border-amber-200 mb-2">
+        <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <p className="text-sm font-semibold text-slate-700">{feature} — Pending Native Migration</p>
+      <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
+        {description || "This section is awaiting native Railway implementation. No Base44 calls are made."}
+      </p>
+    </div>
+  );
+}

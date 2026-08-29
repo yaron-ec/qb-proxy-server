@@ -1,1 +1,14 @@
-ZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gU3RhdENhcmQoeyBsYWJlbCwgdmFsdWUsIHN1YiwgYWNjZW50IH0pIHsKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9e2BiZy13aGl0ZSBib3JkZXIgYm9yZGVyLWJvcmRlciBwLTYgcmVsYXRpdmUgb3ZlcmZsb3ctaGlkZGVuIGdyb3VwIGhvdmVyOnNoYWRvdy1sZyB0cmFuc2l0aW9uLWFsbCBkdXJhdGlvbi0yMDAgaG92ZXI6LXRyYW5zbGF0ZS15LTAuNWB9PgogICAgICB7YWNjZW50ICYmICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYWJzb2x1dGUgdG9wLTAgbGVmdC0wIHctMSBoLWZ1bGwgYmctb3JhbmdlIiAvPgogICAgICApfQogICAgICA8ZGl2IGNsYXNzTmFtZT0icGwtMSI+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtWzEwcHhdIGZvbnQtYm9sZCB0cmFja2luZy13aWRlc3QgdXBwZXJjYXNlIHRleHQtbXV0ZWQtZm9yZWdyb3VuZCBmb250LW1vbm8gbWItMiI+e2xhYmVsfTwvZGl2PgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LTN4bCBmb250LWJsYWNrIHRleHQtbWlkbmlnaHQgdHJhY2tpbmctdGlnaHQiPnt2YWx1ZX08L2Rpdj4KICAgICAgICB7c3ViICYmIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LXhzIGZvbnQtbW9ubyB0ZXh0LW11dGVkLWZvcmVncm91bmQgbXQtMSI+e3N1Yn08L2Rpdj59CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CiAgKTsKfQ==
+export default function StatCard({ label, value, sub, accent }) {
+  return (
+    <div className={`bg-white border border-border p-6 relative overflow-hidden group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5`}>
+      {accent && (
+        <div className="absolute top-0 left-0 w-1 h-full bg-orange" />
+      )}
+      <div className="pl-1">
+        <div className="text-[10px] font-bold tracking-widest uppercase text-muted-foreground font-mono mb-2">{label}</div>
+        <div className="text-3xl font-black text-midnight tracking-tight">{value}</div>
+        {sub && <div className="text-xs font-mono text-muted-foreground mt-1">{sub}</div>}
+      </div>
+    </div>
+  );
+}

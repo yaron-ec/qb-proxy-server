@@ -1,1 +1,137 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gInJlYWN0IjsKaW1wb3J0ICogYXMgcmFpbHdheVNldHRpbmdzIGZyb20gIkAvYXBpL3JhaWx3YXkvc2V0dGluZ3MiOwppbXBvcnQgeyBYLCBMb2FkZXIyIH0gZnJvbSAibHVjaWRlLXJlYWN0IjsKCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIFByb2plY3RUeXBlU2VsZWN0b3IoeyB2YWx1ZSwgb25TYXZlLCBsYWJlbCA9ICJQcm9qZWN0IFR5cGUiIH0pIHsKICBjb25zdCBbc2hvd01vZGFsLCBzZXRTaG93TW9kYWxdID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFtwcm9qZWN0VHlwZXMsIHNldFByb2plY3RUeXBlc10gPSB1c2VTdGF0ZShbXSk7CiAgY29uc3QgW2xvYWRpbmcsIHNldExvYWRpbmddID0gdXNlU3RhdGUodHJ1ZSk7CiAgY29uc3QgW3NlbGVjdGVkVHlwZXMsIHNldFNlbGVjdGVkVHlwZXNdID0gdXNlU3RhdGUoW10pOwogIGNvbnN0IFtzYXZpbmcsIHNldFNhdmluZ10gPSB1c2VTdGF0ZShmYWxzZSk7CgogIHVzZUVmZmVjdCgoKSA9PiB7CiAgICBsb2FkUHJvamVjdFR5cGVzKCk7CiAgfSwgW10pOwoKICB1c2VFZmZlY3QoKCkgPT4gewogICAgLy8gUGFyc2UgaW5pdGlhbCB2YWx1ZSAoY2FuIGJlIGNvbW1hLXNlcGFyYXRlZCBzdHJpbmcgb3IgYXJyYXkpCiAgICBpZiAodmFsdWUpIHsKICAgICAgY29uc3QgdHlwZXMgPSBBcnJheS5pc0FycmF5KHZhbHVlKSAKICAgICAgICA/IHZhbHVlIAogICAgICAgIDogU3RyaW5nKHZhbHVlKS5zcGxpdCgiLCIpLm1hcCh2ID0+IHYudHJpbSgpKS5maWx0ZXIodiA9PiB2KTsKICAgICAgc2V0U2VsZWN0ZWRUeXBlcyh0eXBlcyk7CiAgICB9CiAgfSwgW3ZhbHVlXSk7CgogIGNvbnN0IGxvYWRQcm9qZWN0VHlwZXMgPSBhc3luYyAoKSA9PiB7CiAgICBzZXRMb2FkaW5nKHRydWUpOwogICAgdHJ5IHsKICAgICAgY29uc3Qgc2V0dGluZ3MgPSBhd2FpdCByYWlsd2F5U2V0dGluZ3MuZ2V0KCJhcHBfbGlzdHMiKTsKICAgICAgaWYgKHNldHRpbmdzICYmIHNldHRpbmdzLnZhbHVlPy5wcm9qZWN0VHlwZXMpIHsKICAgICAgICBzZXRQcm9qZWN0VHlwZXMoc2V0dGluZ3MudmFsdWUucHJvamVjdFR5cGVzKTsKICAgICAgfQogICAgfSBjYXRjaCAoZSkgewogICAgICBjb25zb2xlLmVycm9yKCJFcnJvciBsb2FkaW5nIHByb2plY3QgdHlwZXM6IiwgZSk7CiAgICB9CiAgICBzZXRMb2FkaW5nKGZhbHNlKTsKICB9OwoKICBjb25zdCB0b2dnbGVUeXBlID0gKHR5cGUpID0+IHsKICAgIHNldFNlbGVjdGVkVHlwZXMocHJldiA9PgogICAgICBwcmV2LmluY2x1ZGVzKHR5cGUpID8gcHJldi5maWx0ZXIodCA9PiB0ICE9PSB0eXBlKSA6IFsuLi5wcmV2LCB0eXBlXQogICAgKTsKICB9OwoKICBjb25zdCBoYW5kbGVTYXZlID0gYXN5bmMgKCkgPT4gewogICAgc2V0U2F2aW5nKHRydWUpOwogICAgYXdhaXQgb25TYXZlKHNlbGVjdGVkVHlwZXMpOwogICAgc2V0U2F2aW5nKGZhbHNlKTsKICAgIHNldFNob3dNb2RhbChmYWxzZSk7CiAgfTsKCiAgY29uc3QgZGlzcGxheVZhbHVlID0gQXJyYXkuaXNBcnJheSh2YWx1ZSkgCiAgICA/IHZhbHVlLmpvaW4oIiwgIikgCiAgICA6ICh2YWx1ZSB8fCAi4oCUIik7CgogIHJldHVybiAoCiAgICA8PgogICAgICA8ZGl2IAogICAgICAgIG9uQ2xpY2s9eygpID0+IHNldFNob3dNb2RhbCh0cnVlKX0KICAgICAgICBjbGFzc05hbWU9ImN1cnNvci1wb2ludGVyIGdyb3VwIgogICAgICA+CiAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNTAwIHVwcGVyY2FzZSB0cmFja2luZy13aWRlIj57bGFiZWx9PC9wPgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gZ3JvdXAtaG92ZXI6Ymctc2xhdGUtNTAgcm91bmRlZCBweC0yIHB5LTEgdHJhbnNpdGlvbi1jb2xvcnMiPgogICAgICAgICAge3NlbGVjdGVkVHlwZXMubGVuZ3RoID4gMCA/ICgKICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZmxleC13cmFwIGdhcC0xIj4KICAgICAgICAgICAgICB7c2VsZWN0ZWRUeXBlcy5tYXAoKHQsIGkpID0+ICgKICAgICAgICAgICAgICAgIDxzcGFuIGtleT17aX0gY2xhc3NOYW1lPSJ0ZXh0LXhzIGJnLWFtYmVyLTEwMCB0ZXh0LWFtYmVyLTkwMCBweC0yIHB5LTEgcm91bmRlZCI+CiAgICAgICAgICAgICAgICAgIHt0fQogICAgICAgICAgICAgICAgPC9zcGFuPgogICAgICAgICAgICAgICkpfQogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICkgOiAoCiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1zbSB0ZXh0LXNsYXRlLTkwMCI+e2Rpc3BsYXlWYWx1ZX08L3A+CiAgICAgICAgICApfQogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KCiAgICAgIHtzaG93TW9kYWwgJiYgKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmaXhlZCBpbnNldC0wIGJnLWJsYWNrLzUwIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHotNTAiIG9uQ2xpY2s9eygpID0+IHNldFNob3dNb2RhbChmYWxzZSl9PgogICAgICAgICAgPGRpdiAKICAgICAgICAgICAgY2xhc3NOYW1lPSJiZy13aGl0ZSByb3VuZGVkLXhsIHNoYWRvdy1sZyBwLTYgdy1mdWxsIG1heC13LW1kIG14LTQiCiAgICAgICAgICAgIG9uQ2xpY2s9e2UgPT4gZS5zdG9wUHJvcGFnYXRpb24oKX0KICAgICAgICAgID4KICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBtYi00Ij4KICAgICAgICAgICAgICA8aDMgY2xhc3NOYW1lPSJ0ZXh0LWxnIGZvbnQtYm9sZCB0ZXh0LXNsYXRlLTkwMCI+U2VsZWN0IHtsYWJlbH1zPC9oMz4KICAgICAgICAgICAgICA8YnV0dG9uIAogICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0U2hvd01vZGFsKGZhbHNlKX0KICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0icC0xIGhvdmVyOmJnLXNsYXRlLTEwMCByb3VuZGVkIHRyYW5zaXRpb24tY29sb3JzIgogICAgICAgICAgICAgID4KICAgICAgICAgICAgICAgIDxYIGNsYXNzTmFtZT0idy00IGgtNCIgLz4KICAgICAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICAgICAgPC9kaXY+CgogICAgICAgICAgICB7bG9hZGluZyA/ICgKICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgcHktOCI+CiAgICAgICAgICAgICAgICA8TG9hZGVyMiBjbGFzc05hbWU9InctNSBoLTUgdGV4dC1hbWJlci02MDAgYW5pbWF0ZS1zcGluIiAvPgogICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICApIDogKAogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJzcGFjZS15LTIgbWF4LWgtODAgb3ZlcmZsb3cteS1hdXRvIG1iLTQiPgogICAgICAgICAgICAgICAge3Byb2plY3RUeXBlcy5tYXAodHlwZSA9PiAoCiAgICAgICAgICAgICAgICAgIDxsYWJlbCAKICAgICAgICAgICAgICAgICAgICBrZXk9e3R5cGV9CiAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMyBwLTMgcm91bmRlZC1sZyBob3ZlcjpiZy1zbGF0ZS01MCBjdXJzb3ItcG9pbnRlciB0cmFuc2l0aW9uLWNvbG9ycyIKICAgICAgICAgICAgICAgICAgPgogICAgICAgICAgICAgICAgICAgIDxpbnB1dAogICAgICAgICAgICAgICAgICAgICAgdHlwZT0iY2hlY2tib3giCiAgICAgICAgICAgICAgICAgICAgICBjaGVja2VkPXtzZWxlY3RlZFR5cGVzLmluY2x1ZGVzKHR5cGUpfQogICAgICAgICAgICAgICAgICAgICAgb25DaGFuZ2U9eygpID0+IHRvZ2dsZVR5cGUodHlwZSl9CiAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9InctNCBoLTQgcm91bmRlZCBib3JkZXItc2xhdGUtMzAwIGFjY2VudC1hbWJlci02MDAiCiAgICAgICAgICAgICAgICAgICAgLz4KICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtc20gdGV4dC1zbGF0ZS03MDAiPnt0eXBlfTwvc3Bhbj4KICAgICAgICAgICAgICAgICAgPC9sYWJlbD4KICAgICAgICAgICAgICAgICkpfQogICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICApfQoKICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZ2FwLTIiPgogICAgICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHNldFNob3dNb2RhbChmYWxzZSl9CiAgICAgICAgICAgICAgICBjbGFzc05hbWU9ImZsZXgtMSBweC00IHB5LTIgdGV4dC1zbSBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNjAwIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgaG92ZXI6Ymctc2xhdGUtNTAgdHJhbnNpdGlvbi1jb2xvcnMiCiAgICAgICAgICAgICAgPgogICAgICAgICAgICAgICAgQ2FuY2VsCiAgICAgICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICAgICAgb25DbGljaz17aGFuZGxlU2F2ZX0KICAgICAgICAgICAgICAgIGRpc2FibGVkPXtzYXZpbmd9CiAgICAgICAgICAgICAgICBjbGFzc05hbWU9ImZsZXgtMSBweC00IHB5LTIgdGV4dC1zbSBmb250LXNlbWlib2xkIHRleHQtd2hpdGUgYmctYW1iZXItNjAwIGhvdmVyOmJnLWFtYmVyLTcwMCByb3VuZGVkLWxnIHRyYW5zaXRpb24tY29sb3JzIGRpc2FibGVkOm9wYWNpdHktNTAiCiAgICAgICAgICAgICAgPgogICAgICAgICAgICAgICAge3NhdmluZyA/ICJTYXZpbmcuLi4iIDogIlNhdmUifQogICAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICApfQogICAgPC8+CiAgKTsKfQ==
+import { useState, useEffect } from "react";
+import * as railwaySettings from "@/api/railway/settings";
+import { X, Loader2 } from "lucide-react";
+
+export default function ProjectTypeSelector({ value, onSave, label = "Project Type" }) {
+  const [showModal, setShowModal] = useState(false);
+  const [projectTypes, setProjectTypes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedTypes, setSelectedTypes] = useState([]);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    loadProjectTypes();
+  }, []);
+
+  useEffect(() => {
+    // Parse initial value (can be comma-separated string or array)
+    if (value) {
+      const types = Array.isArray(value) 
+        ? value 
+        : String(value).split(",").map(v => v.trim()).filter(v => v);
+      setSelectedTypes(types);
+    }
+  }, [value]);
+
+  const loadProjectTypes = async () => {
+    setLoading(true);
+    try {
+      const settings = await railwaySettings.get("app_lists");
+      if (settings && settings.value?.projectTypes) {
+        setProjectTypes(settings.value.projectTypes);
+      }
+    } catch (e) {
+      console.error("Error loading project types:", e);
+    }
+    setLoading(false);
+  };
+
+  const toggleType = (type) => {
+    setSelectedTypes(prev =>
+      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+    );
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    await onSave(selectedTypes);
+    setSaving(false);
+    setShowModal(false);
+  };
+
+  const displayValue = Array.isArray(value) 
+    ? value.join(", ") 
+    : (value || "—");
+
+  return (
+    <>
+      <div 
+        onClick={() => setShowModal(true)}
+        className="cursor-pointer group"
+      >
+        <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">{label}</p>
+        <div className="flex items-center justify-between group-hover:bg-slate-50 rounded px-2 py-1 transition-colors">
+          {selectedTypes.length > 0 ? (
+            <div className="flex flex-wrap gap-1">
+              {selectedTypes.map((t, i) => (
+                <span key={i} className="text-xs bg-amber-100 text-amber-900 px-2 py-1 rounded">
+                  {t}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-slate-900">{displayValue}</p>
+          )}
+        </div>
+      </div>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowModal(false)}>
+          <div 
+            className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md mx-4"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-slate-900">Select {label}s</h3>
+              <button 
+                onClick={() => setShowModal(false)}
+                className="p-1 hover:bg-slate-100 rounded transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-5 h-5 text-amber-600 animate-spin" />
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-80 overflow-y-auto mb-4">
+                {projectTypes.map(type => (
+                  <label 
+                    key={type}
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedTypes.includes(type)}
+                      onChange={() => toggleType(type)}
+                      className="w-4 h-4 rounded border-slate-300 accent-amber-600"
+                    />
+                    <span className="text-sm text-slate-700">{type}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowModal(false)}
+                className="flex-1 px-4 py-2 text-sm font-semibold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {saving ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

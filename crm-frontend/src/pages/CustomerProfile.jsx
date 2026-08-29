@@ -1,1 +1,199 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsgdXNlUGFyYW1zLCB1c2VOYXZpZ2F0ZSwgTGluayB9IGZyb20gInJlYWN0LXJvdXRlci1kb20iOwppbXBvcnQgeyBhcGlDYWxsIH0gZnJvbSAiQC9hcGkvcmFpbHdheS9jbGllbnQiOwppbXBvcnQgeyBBcnJvd0xlZnQsIFRyZW5kaW5nVXAsIEJyaWVmY2FzZSwgQ2hlY2tDaXJjbGUsIENsb2NrIH0gZnJvbSAibHVjaWRlLXJlYWN0IjsKaW1wb3J0IHsgQ1JNU2VjdGlvbkhlYWRlciwgQ1JNRGF0YVZhbHVlLCBDUk1GaWVsZExhYmVsIH0gZnJvbSAiQC9jb21wb25lbnRzL2NybSI7Cgpjb25zdCBmbXRNb25leSA9ICh2KSA9PiB2ICE9IG51bGwgPyBgJCR7TnVtYmVyKHYpLnRvTG9jYWxlU3RyaW5nKCJlbi1VUyIsIHsgbWluaW11bUZyYWN0aW9uRGlnaXRzOiAwIH0pfWAgOiAi4oCUIjsKY29uc3QgZm10RGF0ZSA9IChkKSA9PiBkID8gbmV3IERhdGUoZCkudG9Mb2NhbGVEYXRlU3RyaW5nKCJlbi1VUyIsIHsgbW9udGg6ICJzaG9ydCIsIGRheTogIm51bWVyaWMiLCB5ZWFyOiAibnVtZXJpYyIgfSkgOiAi4oCUIjsKCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIEN1c3RvbWVyUHJvZmlsZSgpIHsKICBjb25zdCB7IGlkIH0gPSB1c2VQYXJhbXMoKTsgLy8gbGVhZF9pZAogIGNvbnN0IG5hdmlnYXRlID0gdXNlTmF2aWdhdGUoKTsKICBjb25zdCBbbGVhZCwgc2V0TGVhZF0gPSB1c2VTdGF0ZShudWxsKTsKICBjb25zdCBbZGVhbHMsIHNldERlYWxzXSA9IHVzZVN0YXRlKFtdKTsKICBjb25zdCBbbG9hZGluZywgc2V0TG9hZGluZ10gPSB1c2VTdGF0ZSh0cnVlKTsKCiAgdXNlRWZmZWN0KCgpID0+IHsKICAgIGxvYWREYXRhKCk7CiAgfSwgW2lkXSk7CgogIGNvbnN0IGxvYWREYXRhID0gYXN5bmMgKCkgPT4gewogICAgc2V0TG9hZGluZyh0cnVlKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IFtsZWFkRGF0YSwgZGVhbHNEYXRhXSA9IGF3YWl0IFByb21pc2UuYWxsKFsKICAgICAgICBhcGlDYWxsKGAvYXBpL3YxL2xlYWRzLyR7aWR9YCwgeyBtZXRob2Q6ICdHRVQnIH0pLmNhdGNoKCgpID0+IG51bGwpLAogICAgICAgIGFwaUNhbGwoYC9hcGkvdjEvZGVhbHM/bGVhZF9pZD0ke2lkfWAsIHsgbWV0aG9kOiAnR0VUJyB9KQogICAgICAgICAgLnRoZW4ociA9PiBBcnJheS5pc0FycmF5KHIpID8gciA6IChyPy5pdGVtcyB8fCBbXSkpCiAgICAgICAgICAuY2F0Y2goKCkgPT4gW10pLAogICAgICBdKTsKICAgICAgc2V0TGVhZChsZWFkRGF0YSk7CiAgICAgIHNldERlYWxzKGRlYWxzRGF0YS5zb3J0KChhLCBiKSA9PiBuZXcgRGF0ZShiLmNyZWF0ZWRfZGF0ZSkgLSBuZXcgRGF0ZShhLmNyZWF0ZWRfZGF0ZSkpKTsKICAgIH0gZmluYWxseSB7CiAgICAgIHNldExvYWRpbmcoZmFsc2UpOwogICAgfQogIH07CgogIGlmIChsb2FkaW5nKSB7CiAgICByZXR1cm4gKAogICAgICA8ZGl2IGNsYXNzTmFtZT0iaC1mdWxsIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGJnLXNsYXRlLTUwIj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idy0xMCBoLTEwIGJvcmRlci00IGJvcmRlci1zbGF0ZS0yMDAgYm9yZGVyLXQtYW1iZXItNTAwIHJvdW5kZWQtZnVsbCBhbmltYXRlLXNwaW4iPjwvZGl2PgogICAgICA8L2Rpdj4KICAgICk7CiAgfQoKICBpZiAoIWxlYWQpIHsKICAgIHJldHVybiAoCiAgICAgIDxkaXYgY2xhc3NOYW1lPSJoLWZ1bGwgZmxleCBmbGV4LWNvbCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgYmctc2xhdGUtNTAgZ2FwLTMiPgogICAgICAgIDxUcmVuZGluZ1VwIGNsYXNzTmFtZT0idy0xMiBoLTEyIHRleHQtc2xhdGUtMzAwIiAvPgogICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1iYXNlIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS02MDAiPkN1c3RvbWVyIG5vdCBmb3VuZDwvcD4KICAgICAgICA8TGluayB0bz0iL2RlYWxzIiBjbGFzc05hbWU9InRleHQteHMgdGV4dC1hbWJlci02MDAgaG92ZXI6dW5kZXJsaW5lIj5CYWNrIHRvIERlYWxzPC9MaW5rPgogICAgICA8L2Rpdj4KICAgICk7CiAgfQoKICBjb25zdCB0b3RhbFJldmVudWUgPSBkZWFscy5yZWR1Y2UoKHN1bSwgZCkgPT4gc3VtICsgKGQuYW1vdW50IHx8IDApLCAwKTsKICBjb25zdCB0b3RhbERlYWxzID0gZGVhbHMubGVuZ3RoOwogIGNvbnN0IGFjdGl2ZVByb2plY3RzID0gZGVhbHMuZmlsdGVyKGQgPT4gIVsiQ29tcGxldGVkIiwgIkpvYiBDb21wbGV0ZWQiXS5pbmNsdWRlcyhkLnN0YWdlKSkubGVuZ3RoOwogIGNvbnN0IGNvbXBsZXRlZFByb2plY3RzID0gZGVhbHMuZmlsdGVyKGQgPT4gWyJDb21wbGV0ZWQiLCAiSm9iIENvbXBsZXRlZCJdLmluY2x1ZGVzKGQuc3RhZ2UpKS5sZW5ndGg7CiAgY29uc3QgZmlyc3RQcm9qZWN0RGF0ZSA9IGRlYWxzLmxlbmd0aCA+IDAgPyBkZWFsc1tkZWFscy5sZW5ndGggLSAxXS5jcmVhdGVkX2RhdGUgOiBudWxsOwogIGNvbnN0IGxhc3RQcm9qZWN0RGF0ZSA9IGRlYWxzLmxlbmd0aCA+IDAgPyBkZWFsc1swXS5jcmVhdGVkX2RhdGUgOiBudWxsOwoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZmxleC1jb2wgaC1mdWxsIGJnLXNsYXRlLTUwIG92ZXJmbG93LWhpZGRlbiI+CiAgICAgIHsvKiBIRUFERVIgKi99CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy13aGl0ZSBib3JkZXItYiBib3JkZXItc2xhdGUtMjAwIGZsZXgtc2hyaW5rLTAiPgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJweC02IHB0LTQgcGItMCBmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiI+CiAgICAgICAgICA8TGluawogICAgICAgICAgICB0bz0iL2RlYWxzIgogICAgICAgICAgICBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0xLjUgdGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNDAwIGhvdmVyOnRleHQtc2xhdGUtNzAwIgogICAgICAgICAgPgogICAgICAgICAgICA8QXJyb3dMZWZ0IGNsYXNzTmFtZT0idy0zLjUgaC0zLjUiIC8+CiAgICAgICAgICAgIERlYWxzCiAgICAgICAgICA8L0xpbms+CiAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtc2xhdGUtMzAwIHRleHQteHMiPi88L3NwYW4+CiAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTYwMCB0cnVuY2F0ZSI+Q3VzdG9tZXIgUHJvZmlsZTwvc3Bhbj4KICAgICAgICA8L2Rpdj4KCiAgICAgICAgPGRpdiBjbGFzc05hbWU9InB4LTYgcHktNCI+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1zdGFydCBnYXAtNCI+CiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ3LTEyIGgtMTIgcm91bmRlZC14bCBiZy1ncmFkaWVudC10by1iciBmcm9tLWFtYmVyLTUwMCB0by1vcmFuZ2UtNTAwIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGZsZXgtc2hyaW5rLTAiPgogICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1zbSBmb250LWJvbGQgdGV4dC13aGl0ZSI+e2xlYWQuZmlyc3RfbmFtZT8uWzBdfXtsZWFkLmxhc3RfbmFtZT8uWzBdfTwvc3Bhbj4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtaW4tdy0wIj4KICAgICAgICAgICAgICA8aDEgY2xhc3NOYW1lPSJ0ZXh0LTJ4bCBmb250LWJvbGQgdGV4dC1zbGF0ZS05MDAgbGVhZGluZy10aWdodCI+e2xlYWQuZmlyc3RfbmFtZX0ge2xlYWQubGFzdF9uYW1lfTwvaDE+CiAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIHRleHQtc2xhdGUtNTAwIG10LTEiPntsZWFkLmVtYWlsIHx8IGxlYWQucGhvbmUgfHwgIuKAlCJ9PC9wPgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KCiAgICAgIHsvKiBNQUlOIENPTlRFTlQgKi99CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4LTEgb3ZlcmZsb3cteS1hdXRvIHBiLTgiPgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtYXgtdy00eGwgbXgtYXV0byBweC02IHB0LTYgc3BhY2UteS02Ij4KICAgICAgICAgIAogICAgICAgICAgey8qIE1FVFJJQ1MgKi99CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZ3JpZCBncmlkLWNvbHMtMiBtZDpncmlkLWNvbHMtNCBnYXAtMyI+CiAgICAgICAgICAgIDxNZXRyaWNDYXJkIGxhYmVsPSJUb3RhbCBSZXZlbnVlIiB2YWx1ZT17Zm10TW9uZXkodG90YWxSZXZlbnVlKX0gaWNvbj17VHJlbmRpbmdVcH0gLz4KICAgICAgICAgICAgPE1ldHJpY0NhcmQgbGFiZWw9IlRvdGFsIERlYWxzIiB2YWx1ZT17dG90YWxEZWFscy50b1N0cmluZygpfSBpY29uPXtCcmllZmNhc2V9IC8+CiAgICAgICAgICAgIDxNZXRyaWNDYXJkIGxhYmVsPSJBY3RpdmUgUHJvamVjdHMiIHZhbHVlPXthY3RpdmVQcm9qZWN0cy50b1N0cmluZygpfSBpY29uPXtDbG9ja30gLz4KICAgICAgICAgICAgPE1ldHJpY0NhcmQgbGFiZWw9IkNvbXBsZXRlZCBQcm9qZWN0cyIgdmFsdWU9e2NvbXBsZXRlZFByb2plY3RzLnRvU3RyaW5nKCl9IGljb249e0NoZWNrQ2lyY2xlfSAvPgogICAgICAgICAgPC9kaXY+CgogICAgICAgICAgey8qIFRJTUVMSU5FICovfQogICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLXdoaXRlIHJvdW5kZWQteGwgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgc2hhZG93LXNtIHAtNCI+CiAgICAgICAgICAgIDxDUk1TZWN0aW9uSGVhZGVyIGNsYXNzTmFtZT0ibWItMyI+VGltZWxpbmU8L0NSTVNlY3Rpb25IZWFkZXI+CiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJzcGFjZS15LTIiPgogICAgICAgICAgICAgIHtmaXJzdFByb2plY3REYXRlICYmICgKICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4iPgogICAgICAgICAgICAgICAgICA8Q1JNRmllbGRMYWJlbD5GaXJzdCBQcm9qZWN0PC9DUk1GaWVsZExhYmVsPgogICAgICAgICAgICAgICAgICA8Q1JNRGF0YVZhbHVlPntmbXREYXRlKGZpcnN0UHJvamVjdERhdGUpfTwvQ1JNRGF0YVZhbHVlPgogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgICB7bGFzdFByb2plY3REYXRlICYmICgKICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4iPgogICAgICAgICAgICAgICAgICA8Q1JNRmllbGRMYWJlbD5MYXN0IFByb2plY3Q8L0NSTUZpZWxkTGFiZWw+CiAgICAgICAgICAgICAgICAgIDxDUk1EYXRhVmFsdWU+e2ZtdERhdGUobGFzdFByb2plY3REYXRlKX08L0NSTURhdGFWYWx1ZT4KICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICl9CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgPC9kaXY+CgogICAgICAgICAgey8qIFBST0pFQ1RTIExJU1QgKi99CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctd2hpdGUgcm91bmRlZC14bCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCBzaGFkb3ctc20gb3ZlcmZsb3ctaGlkZGVuIj4KICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InB4LTQgcHktMyBib3JkZXItYiBib3JkZXItc2xhdGUtMTAwIj4KICAgICAgICAgICAgICA8Q1JNU2VjdGlvbkhlYWRlcj5BbGwgUHJvamVjdHM8L0NSTVNlY3Rpb25IZWFkZXI+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAKICAgICAgICAgICAge2RlYWxzLmxlbmd0aCA9PT0gMCA/ICgKICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0icHgtNCBweS02IHRleHQtY2VudGVyIHRleHQtc2xhdGUtNDAwIHRleHQtc20iPgogICAgICAgICAgICAgICAgTm8gcHJvamVjdHMgeWV0CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICkgOiAoCiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImRpdmlkZS15IGRpdmlkZS1zbGF0ZS0xMDAiPgogICAgICAgICAgICAgICAge2RlYWxzLm1hcChkZWFsID0+ICgKICAgICAgICAgICAgICAgICAgPExpbmsKICAgICAgICAgICAgICAgICAgICBrZXk9e2RlYWwuaWR9CiAgICAgICAgICAgICAgICAgICAgdG89e2AvZGVhbHMvJHtkZWFsLmlkfWB9CiAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJweC00IHB5LTMgaG92ZXI6Ymctc2xhdGUtNTAgdHJhbnNpdGlvbi1jb2xvcnMgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIGdyb3VwIgogICAgICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9Im1pbi13LTAiPgogICAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS05MDAgZ3JvdXAtaG92ZXI6dGV4dC1hbWJlci02MDAiPntkZWFsLm5hbWV9PC9wPgogICAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNTAwIG10LTAuNSI+CiAgICAgICAgICAgICAgICAgICAgICAgIHtkZWFsLnN0YWdlIHx8ICLigJQifSDigKIge2ZtdERhdGUoZGVhbC5zb2xkX2RhdGUgfHwgZGVhbC5jcmVhdGVkX2RhdGUpfQogICAgICAgICAgICAgICAgICAgICAgPC9wPgogICAgICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LXJpZ2h0IGZsZXgtc2hyaW5rLTAgbWwtNCI+CiAgICAgICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20gZm9udC1ib2xkIHRleHQtc2xhdGUtOTAwIj57Zm10TW9uZXkoZGVhbC5hbW91bnQpfTwvcD4KICAgICAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTQwMCBtdC0wLjUiPntkZWFsLmFzc2lnbmVkX3JlcCB8fCAi4oCUIn08L3A+CiAgICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICAgIDwvTGluaz4KICAgICAgICAgICAgICAgICkpfQogICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICApfQogICAgICAgICAgPC9kaXY+CgogICAgICAgICAgey8qIENVU1RPTUVSIElORk8gKi99CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctd2hpdGUgcm91bmRlZC14bCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCBzaGFkb3ctc20gcC00Ij4KICAgICAgICAgICAgPENSTVNlY3Rpb25IZWFkZXIgY2xhc3NOYW1lPSJtYi0zIj5Db250YWN0IEluZm9ybWF0aW9uPC9DUk1TZWN0aW9uSGVhZGVyPgogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ic3BhY2UteS0yIj4KICAgICAgICAgICAgICB7bGVhZC5lbWFpbCAmJiAoCiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIj4KICAgICAgICAgICAgICAgICAgPENSTUZpZWxkTGFiZWw+RW1haWw8L0NSTUZpZWxkTGFiZWw+CiAgICAgICAgICAgICAgICAgIDxDUk1EYXRhVmFsdWU+e2xlYWQuZW1haWx9PC9DUk1EYXRhVmFsdWU+CiAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICApfQogICAgICAgICAgICAgIHtsZWFkLnBob25lICYmICgKICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4iPgogICAgICAgICAgICAgICAgICA8Q1JNRmllbGRMYWJlbD5QaG9uZTwvQ1JNRmllbGRMYWJlbD4KICAgICAgICAgICAgICAgICAgPENSTURhdGFWYWx1ZT57bGVhZC5waG9uZX08L0NSTURhdGFWYWx1ZT4KICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICl9CiAgICAgICAgICAgICAge2xlYWQucHJvcGVydHlfYWRkcmVzcyAmJiAoCiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIj4KICAgICAgICAgICAgICAgICAgPENSTUZpZWxkTGFiZWw+QWRkcmVzczwvQ1JNRmllbGRMYWJlbD4KICAgICAgICAgICAgICAgICAgPENSTURhdGFWYWx1ZT57bGVhZC5wcm9wZXJ0eV9hZGRyZXNzfTwvQ1JNRGF0YVZhbHVlPgogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgICB7bGVhZC5jaXR5ICYmICgKICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4iPgogICAgICAgICAgICAgICAgICA8Q1JNRmllbGRMYWJlbD5DaXR5PC9DUk1GaWVsZExhYmVsPgogICAgICAgICAgICAgICAgICA8Q1JNRGF0YVZhbHVlPntsZWFkLmNpdHl9PC9DUk1EYXRhVmFsdWU+CiAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICApfQogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KICAgIDwvZGl2PgogICk7Cn0KCmZ1bmN0aW9uIE1ldHJpY0NhcmQoeyBsYWJlbCwgdmFsdWUsIGljb246IEljb24gfSkgewogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT0iYmctd2hpdGUgcm91bmRlZC14bCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCBzaGFkb3ctc20gcC00Ij4KICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS01MDAgdXBwZXJjYXNlIHRyYWNraW5nLXdpZGUgbWItMiI+e2xhYmVsfTwvcD4KICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LWJhc2UgZm9udC1ib2xkIHRleHQtc2xhdGUtOTAwIj57dmFsdWV9PC9wPgogICAgPC9kaXY+CiAgKTsKfQ==
+import { useState, useEffect } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { apiCall } from "@/api/railway/client";
+import { ArrowLeft, TrendingUp, Briefcase, CheckCircle, Clock } from "lucide-react";
+import { CRMSectionHeader, CRMDataValue, CRMFieldLabel } from "@/components/crm";
+
+const fmtMoney = (v) => v != null ? `$${Number(v).toLocaleString("en-US", { minimumFractionDigits: 0 })}` : "—";
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—";
+
+export default function CustomerProfile() {
+  const { id } = useParams(); // lead_id
+  const navigate = useNavigate();
+  const [lead, setLead] = useState(null);
+  const [deals, setDeals] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadData();
+  }, [id]);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [leadData, dealsData] = await Promise.all([
+        apiCall(`/api/v1/leads/${id}`, { method: 'GET' }).catch(() => null),
+        apiCall(`/api/v1/deals?lead_id=${id}`, { method: 'GET' })
+          .then(r => Array.isArray(r) ? r : (r?.items || []))
+          .catch(() => []),
+      ]);
+      setLead(leadData);
+      setDeals(dealsData.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center bg-slate-50">
+        <div className="w-10 h-10 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!lead) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center bg-slate-50 gap-3">
+        <TrendingUp className="w-12 h-12 text-slate-300" />
+        <p className="text-base font-semibold text-slate-600">Customer not found</p>
+        <Link to="/deals" className="text-xs text-amber-600 hover:underline">Back to Deals</Link>
+      </div>
+    );
+  }
+
+  const totalRevenue = deals.reduce((sum, d) => sum + (d.amount || 0), 0);
+  const totalDeals = deals.length;
+  const activeProjects = deals.filter(d => !["Completed", "Job Completed"].includes(d.stage)).length;
+  const completedProjects = deals.filter(d => ["Completed", "Job Completed"].includes(d.stage)).length;
+  const firstProjectDate = deals.length > 0 ? deals[deals.length - 1].created_date : null;
+  const lastProjectDate = deals.length > 0 ? deals[0].created_date : null;
+
+  return (
+    <div className="flex flex-col h-full bg-slate-50 overflow-hidden">
+      {/* HEADER */}
+      <div className="bg-white border-b border-slate-200 flex-shrink-0">
+        <div className="px-6 pt-4 pb-0 flex items-center gap-2">
+          <Link
+            to="/deals"
+            className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-slate-700"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Deals
+          </Link>
+          <span className="text-slate-300 text-xs">/</span>
+          <span className="text-xs font-semibold text-slate-600 truncate">Customer Profile</span>
+        </div>
+
+        <div className="px-6 py-4">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center flex-shrink-0">
+              <span className="text-sm font-bold text-white">{lead.first_name?.[0]}{lead.last_name?.[0]}</span>
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-2xl font-bold text-slate-900 leading-tight">{lead.first_name} {lead.last_name}</h1>
+              <p className="text-sm text-slate-500 mt-1">{lead.email || lead.phone || "—"}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* MAIN CONTENT */}
+      <div className="flex-1 overflow-y-auto pb-8">
+        <div className="max-w-4xl mx-auto px-6 pt-6 space-y-6">
+          
+          {/* METRICS */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <MetricCard label="Total Revenue" value={fmtMoney(totalRevenue)} icon={TrendingUp} />
+            <MetricCard label="Total Deals" value={totalDeals.toString()} icon={Briefcase} />
+            <MetricCard label="Active Projects" value={activeProjects.toString()} icon={Clock} />
+            <MetricCard label="Completed Projects" value={completedProjects.toString()} icon={CheckCircle} />
+          </div>
+
+          {/* TIMELINE */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+            <CRMSectionHeader className="mb-3">Timeline</CRMSectionHeader>
+            <div className="space-y-2">
+              {firstProjectDate && (
+                <div className="flex items-center justify-between">
+                  <CRMFieldLabel>First Project</CRMFieldLabel>
+                  <CRMDataValue>{fmtDate(firstProjectDate)}</CRMDataValue>
+                </div>
+              )}
+              {lastProjectDate && (
+                <div className="flex items-center justify-between">
+                  <CRMFieldLabel>Last Project</CRMFieldLabel>
+                  <CRMDataValue>{fmtDate(lastProjectDate)}</CRMDataValue>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* PROJECTS LIST */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-100">
+              <CRMSectionHeader>All Projects</CRMSectionHeader>
+            </div>
+            
+            {deals.length === 0 ? (
+              <div className="px-4 py-6 text-center text-slate-400 text-sm">
+                No projects yet
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {deals.map(deal => (
+                  <Link
+                    key={deal.id}
+                    to={`/deals/${deal.id}`}
+                    className="px-4 py-3 hover:bg-slate-50 transition-colors flex items-center justify-between group"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-900 group-hover:text-amber-600">{deal.name}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {deal.stage || "—"} • {fmtDate(deal.sold_date || deal.created_date)}
+                      </p>
+                    </div>
+                    <div className="text-right flex-shrink-0 ml-4">
+                      <p className="text-sm font-bold text-slate-900">{fmtMoney(deal.amount)}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{deal.assigned_rep || "—"}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* CUSTOMER INFO */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+            <CRMSectionHeader className="mb-3">Contact Information</CRMSectionHeader>
+            <div className="space-y-2">
+              {lead.email && (
+                <div className="flex items-center justify-between">
+                  <CRMFieldLabel>Email</CRMFieldLabel>
+                  <CRMDataValue>{lead.email}</CRMDataValue>
+                </div>
+              )}
+              {lead.phone && (
+                <div className="flex items-center justify-between">
+                  <CRMFieldLabel>Phone</CRMFieldLabel>
+                  <CRMDataValue>{lead.phone}</CRMDataValue>
+                </div>
+              )}
+              {lead.property_address && (
+                <div className="flex items-center justify-between">
+                  <CRMFieldLabel>Address</CRMFieldLabel>
+                  <CRMDataValue>{lead.property_address}</CRMDataValue>
+                </div>
+              )}
+              {lead.city && (
+                <div className="flex items-center justify-between">
+                  <CRMFieldLabel>City</CRMFieldLabel>
+                  <CRMDataValue>{lead.city}</CRMDataValue>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MetricCard({ label, value, icon: Icon }) {
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">{label}</p>
+      <p className="text-base font-bold text-slate-900">{value}</p>
+    </div>
+  );
+}

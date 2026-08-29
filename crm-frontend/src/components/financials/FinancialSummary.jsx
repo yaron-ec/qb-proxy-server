@@ -1,1 +1,36 @@
-aW1wb3J0IHsgZm9ybWF0Q3VycmVuY3ksIGZvcm1hdFBlcmNlbnQgfSBmcm9tICJAL2xpYi9maW5hbmNpYWxDYWxjIjsKCmZ1bmN0aW9uIENhcmQoeyBsYWJlbCwgdmFsdWUsIHRvbmUgfSkgewogIGNvbnN0IHRvbmVzID0gewogICAgZGVmYXVsdDogInRleHQtc2xhdGUtODAwIiwKICAgIHBvc2l0aXZlOiAidGV4dC1lbWVyYWxkLTcwMCIsCiAgICBuZWdhdGl2ZTogInRleHQtcm9zZS03MDAiLAogICAgbXV0ZWQ6ICJ0ZXh0LXNsYXRlLTUwMCIsCiAgfTsKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9ImNhcmQtcHJlbWl1bSBwLTMiPgogICAgICA8cCBjbGFzc05hbWU9InRleHQtWzEwcHhdIGZvbnQtc2VtaWJvbGQgdXBwZXJjYXNlIHRyYWNraW5nLXdpZGVyIHRleHQtc2xhdGUtNTAwIGxlYWRpbmctbm9uZSI+e2xhYmVsfTwvcD4KICAgICAgPHAgY2xhc3NOYW1lPXtgdGV4dC1zbSBmb250LWJvbGQgbXQtMSAke3RvbmVzW3RvbmVdIHx8IHRvbmVzLmRlZmF1bHR9YH0+e3ZhbHVlfTwvcD4KICAgIDwvZGl2PgogICk7Cn0KCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIEZpbmFuY2lhbFN1bW1hcnkoeyBmaW4gfSkgewogIHJldHVybiAoCiAgICA8ZGl2PgogICAgICA8cCBjbGFzc05hbWU9InR5cG9ncmFwaHktc2VjdGlvbi1oZWFkZXIgbWItMiI+RklOQU5DSUFMIFNVTU1BUlk8L3A+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJncmlkIGdyaWQtY29scy0yIHNtOmdyaWQtY29scy0zIGxnOmdyaWQtY29scy01IGdhcC0yIj4KICAgICAgICA8Q2FyZCBsYWJlbD0iVG90YWwgQ29udHJhY3QiIHZhbHVlPXtmb3JtYXRDdXJyZW5jeShmaW4udG90YWxSZXZlbnVlKX0gLz4KICAgICAgICA8Q2FyZCBsYWJlbD0iUGF5bWVudHMgUmVjZWl2ZWQiIHZhbHVlPXtmb3JtYXRDdXJyZW5jeShmaW4ucGF5bWVudHNSZWNlaXZlZCl9IHRvbmU9InBvc2l0aXZlIiAvPgogICAgICAgIDxDYXJkIGxhYmVsPSJDdXN0b21lciBCYWxhbmNlIiB2YWx1ZT17Zm9ybWF0Q3VycmVuY3koZmluLnJlbWFpbmluZ0N1c3RvbWVyQmFsYW5jZSl9IHRvbmU9Im11dGVkIiAvPgogICAgICAgIDxDYXJkIGxhYmVsPSJUb3RhbCBMZWFkIENvc3QiIHZhbHVlPXtmb3JtYXRDdXJyZW5jeShmaW4ubGVhZENvc3RBbW91bnQpfSB0b25lPSJuZWdhdGl2ZSIgLz4KICAgICAgICA8Q2FyZCBsYWJlbD0iU2FsZXMgQ29tbWlzc2lvbiIgdmFsdWU9e2Zvcm1hdEN1cnJlbmN5KGZpbi5zYWxlc0NvbW1pc3Npb25BbW91bnQpfSB0b25lPSJuZWdhdGl2ZSIgLz4KICAgICAgICA8Q2FyZCBsYWJlbD0iVmVuZG9yIEV4cGVuc2VzIiB2YWx1ZT17Zm9ybWF0Q3VycmVuY3koZmluLnRvdGFsVmVuZG9yRXhwZW5zZXMpfSB0b25lPSJuZWdhdGl2ZSIgLz4KICAgICAgICA8Q2FyZCBsYWJlbD0iTG9hbiBJbnRlcmVzdCIgdmFsdWU9e2Zvcm1hdEN1cnJlbmN5KGZpbi50b3RhbExvYW5JbnRlcmVzdCl9IHRvbmU9Im5lZ2F0aXZlIiAvPgogICAgICAgIDxDYXJkIGxhYmVsPSJUb3RhbCBDb3N0cyIgdmFsdWU9e2Zvcm1hdEN1cnJlbmN5KGZpbi50b3RhbENvc3RzKX0gdG9uZT0ibmVnYXRpdmUiIC8+CiAgICAgICAgPENhcmQgbGFiZWw9Ik5ldCBQcm9maXQiIHZhbHVlPXtmb3JtYXRDdXJyZW5jeShmaW4ubmV0UHJvZml0KX0gdG9uZT17ZmluLm5ldFByb2ZpdCA+PSAwID8gInBvc2l0aXZlIiA6ICJuZWdhdGl2ZSJ9IC8+CiAgICAgICAgPENhcmQgbGFiZWw9IlByb2ZpdCBNYXJnaW4iIHZhbHVlPXtmb3JtYXRQZXJjZW50KGZpbi5wcm9maXRNYXJnaW4pfSB0b25lPXtmaW4ucHJvZml0TWFyZ2luID49IDAgPyAicG9zaXRpdmUiIDogIm5lZ2F0aXZlIn0gLz4KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KICApOwp9
+import { formatCurrency, formatPercent } from "@/lib/financialCalc";
+
+function Card({ label, value, tone }) {
+  const tones = {
+    default: "text-slate-800",
+    positive: "text-emerald-700",
+    negative: "text-rose-700",
+    muted: "text-slate-500",
+  };
+  return (
+    <div className="card-premium p-3">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 leading-none">{label}</p>
+      <p className={`text-sm font-bold mt-1 ${tones[tone] || tones.default}`}>{value}</p>
+    </div>
+  );
+}
+
+export default function FinancialSummary({ fin }) {
+  return (
+    <div>
+      <p className="typography-section-header mb-2">FINANCIAL SUMMARY</p>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+        <Card label="Total Contract" value={formatCurrency(fin.totalRevenue)} />
+        <Card label="Payments Received" value={formatCurrency(fin.paymentsReceived)} tone="positive" />
+        <Card label="Customer Balance" value={formatCurrency(fin.remainingCustomerBalance)} tone="muted" />
+        <Card label="Total Lead Cost" value={formatCurrency(fin.leadCostAmount)} tone="negative" />
+        <Card label="Sales Commission" value={formatCurrency(fin.salesCommissionAmount)} tone="negative" />
+        <Card label="Vendor Expenses" value={formatCurrency(fin.totalVendorExpenses)} tone="negative" />
+        <Card label="Loan Interest" value={formatCurrency(fin.totalLoanInterest)} tone="negative" />
+        <Card label="Total Costs" value={formatCurrency(fin.totalCosts)} tone="negative" />
+        <Card label="Net Profit" value={formatCurrency(fin.netProfit)} tone={fin.netProfit >= 0 ? "positive" : "negative"} />
+        <Card label="Profit Margin" value={formatPercent(fin.profitMargin)} tone={fin.profitMargin >= 0 ? "positive" : "negative"} />
+      </div>
+    </div>
+  );
+}

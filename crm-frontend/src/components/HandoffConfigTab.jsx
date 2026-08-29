@@ -1,1 +1,304 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gInJlYWN0IjsKaW1wb3J0ICogYXMgcmFpbHdheVNldHRpbmdzIGZyb20gIkAvYXBpL3JhaWx3YXkvc2V0dGluZ3MiOwppbXBvcnQgeyBhcGlDYWxsIH0gZnJvbSAiQC9hcGkvcmFpbHdheS9jbGllbnQiOwppbXBvcnQgeyBBbGVydENpcmNsZSwgQ2hlY2tDaXJjbGUyLCBMb2NrIH0gZnJvbSAibHVjaWRlLXJlYWN0IjsKCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIEhhbmRvZmZDb25maWdUYWIoKSB7CiAgY29uc3QgW3Bob25lLCBzZXRQaG9uZV0gPSB1c2VTdGF0ZSgiIik7CiAgY29uc3QgW3ZlcmlmaWNhdGlvbkNvZGUsIHNldFZlcmlmaWNhdGlvbkNvZGVdID0gdXNlU3RhdGUoIiIpOwogIGNvbnN0IFtzdGVwLCBzZXRTdGVwXSA9IHVzZVN0YXRlKCJwaG9uZSIpOyAvLyBwaG9uZSB8IHZlcmlmeSB8IGNvbm5lY3RlZAogIGNvbnN0IFtzYXZpbmcsIHNldFNhdmluZ10gPSB1c2VTdGF0ZShmYWxzZSk7CiAgY29uc3QgW3N0YXR1cywgc2V0U3RhdHVzXSA9IHVzZVN0YXRlKG51bGwpOwogIGNvbnN0IFtzdGF0dXNNZXNzYWdlLCBzZXRTdGF0dXNNZXNzYWdlXSA9IHVzZVN0YXRlKCIiKTsKICBjb25zdCBbc2V0dGluZ3NJZCwgc2V0U2V0dGluZ3NJZF0gPSB1c2VTdGF0ZShudWxsKTsKICBjb25zdCBbaXNDb25uZWN0ZWQsIHNldElzQ29ubmVjdGVkXSA9IHVzZVN0YXRlKGZhbHNlKTsKICBjb25zdCBbY29ubmVjdGVkUGhvbmUsIHNldENvbm5lY3RlZFBob25lXSA9IHVzZVN0YXRlKCIiKTsKCiAgdXNlRWZmZWN0KCgpID0+IHsKICAgIHJhaWx3YXlTZXR0aW5ncy5nZXQoImhhbmRvZmZfY29uZmlnIikudGhlbihzID0+IHsKICAgICAgaWYgKHMgJiYgcy52YWx1ZT8uaXNfY29ubmVjdGVkKSB7CiAgICAgICAgc2V0SXNDb25uZWN0ZWQodHJ1ZSk7CiAgICAgICAgc2V0U3RlcCgiY29ubmVjdGVkIik7CiAgICAgICAgc2V0U2V0dGluZ3NJZChzLmlkIHx8ICJoYW5kb2ZmX2NvbmZpZyIpOwogICAgICAgIHNldENvbm5lY3RlZFBob25lKHMudmFsdWU/LnBob25lIHx8ICIiKTsKICAgICAgfQogICAgfSkuY2F0Y2goKCkgPT4ge30pOwogIH0sIFtdKTsKCiAgY29uc3QgaGFuZGxlUGhvbmVTdWJtaXQgPSBhc3luYyAoZSkgPT4gewogICAgZS5wcmV2ZW50RGVmYXVsdCgpOwogICAgaWYgKCFwaG9uZS50cmltKCkpIHsKICAgICAgc2V0U3RhdHVzKCJlcnJvciIpOwogICAgICBzZXRTdGF0dXNNZXNzYWdlKCJQaG9uZSBudW1iZXIgaXMgcmVxdWlyZWQiKTsKICAgICAgcmV0dXJuOwogICAgfQoKICAgIHNldFNhdmluZyh0cnVlKTsKICAgIHNldFN0YXR1cyhudWxsKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IHJlc3VsdCA9IGF3YWl0IGFwaUNhbGwoJy9hcGkvdjEvaGFuZG9mZi9hdXRoJywgewogICAgICAgIG1ldGhvZDogJ1BPU1QnLAogICAgICAgIGJvZHk6IHsKICAgICAgICAgIGFjdGlvbjogJ2xvZ2luJywKICAgICAgICAgIHBob25lOiBwaG9uZS50cmltKCksCiAgICAgICAgfSwKICAgICAgfSkuY2F0Y2goZSA9PiAoeyBzdWNjZXNzOiBmYWxzZSwgZXJyb3I6IGUubWVzc2FnZSB9KSk7CgogICAgICBpZiAocmVzdWx0Py5zdWNjZXNzKSB7CiAgICAgICAgc2V0U3RhdHVzKCJzdWNjZXNzIik7CiAgICAgICAgc2V0U3RhdHVzTWVzc2FnZSgiVmVyaWZpY2F0aW9uIGNvZGUgc2VudCB0byB5b3VyIHBob25lIik7CiAgICAgICAgc2V0U3RlcCgidmVyaWZ5Iik7CiAgICAgIH0gZWxzZSB7CiAgICAgICAgc2V0U3RhdHVzKCJlcnJvciIpOwogICAgICAgIHNldFN0YXR1c01lc3NhZ2UocmVzdWx0LmRhdGE/LmVycm9yIHx8ICJGYWlsZWQgdG8gc2VuZCB2ZXJpZmljYXRpb24gY29kZSIpOwogICAgICB9CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIGNvbnNvbGUuZXJyb3IoIlBob25lIGF1dGggZXJyb3I6IiwgZSk7CiAgICAgIHNldFN0YXR1cygiZXJyb3IiKTsKICAgICAgc2V0U3RhdHVzTWVzc2FnZShlLm1lc3NhZ2UgfHwgIkZhaWxlZCB0byBhdXRoZW50aWNhdGUgd2l0aCBIYW5kb2ZmIik7CiAgICB9IGZpbmFsbHkgewogICAgICBzZXRTYXZpbmcoZmFsc2UpOwogICAgfQogIH07CgogIGNvbnN0IGhhbmRsZVZlcmlmeSA9IGFzeW5jIChlKSA9PiB7CiAgICBlLnByZXZlbnREZWZhdWx0KCk7CiAgICBpZiAoIXZlcmlmaWNhdGlvbkNvZGUudHJpbSgpKSB7CiAgICAgIHNldFN0YXR1cygiZXJyb3IiKTsKICAgICAgc2V0U3RhdHVzTWVzc2FnZSgiVmVyaWZpY2F0aW9uIGNvZGUgaXMgcmVxdWlyZWQiKTsKICAgICAgcmV0dXJuOwogICAgfQoKICAgIHNldFNhdmluZyh0cnVlKTsKICAgIHNldFN0YXR1cyhudWxsKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IHJlc3VsdCA9IGF3YWl0IGFwaUNhbGwoJy9hcGkvdjEvaGFuZG9mZi9hdXRoJywgewogICAgICAgIG1ldGhvZDogJ1BPU1QnLAogICAgICAgIGJvZHk6IHsKICAgICAgICAgIGFjdGlvbjogJ3ZlcmlmeScsCiAgICAgICAgICBwaG9uZTogcGhvbmUudHJpbSgpLAogICAgICAgICAgY29kZTogdmVyaWZpY2F0aW9uQ29kZS50cmltKCksCiAgICAgICAgfSwKICAgICAgfSkuY2F0Y2goZSA9PiAoeyBzdWNjZXNzOiBmYWxzZSwgZXJyb3I6IGUubWVzc2FnZSB9KSk7CgogICAgICBpZiAocmVzdWx0Py5zdWNjZXNzKSB7CiAgICAgICAgLy8gU2F2ZSB0byBTZXR0aW5ncwogICAgICAgIGNvbnN0IHZhbHVlID0gewogICAgICAgICAgaXNfY29ubmVjdGVkOiB0cnVlLAogICAgICAgICAgcGhvbmU6IHBob25lLnRyaW0oKSwKICAgICAgICAgIHZlcmlmaWVkX2F0OiBuZXcgRGF0ZSgpLnRvSVNPU3RyaW5nKCksCiAgICAgICAgfTsKCiAgICAgICAgYXdhaXQgcmFpbHdheVNldHRpbmdzLnVwc2VydCgiaGFuZG9mZl9jb25maWciLCB2YWx1ZSwgInRleHQiKTsKICAgICAgICBzZXRTZXR0aW5nc0lkKCJoYW5kb2ZmX2NvbmZpZyIpOwoKICAgICAgICBzZXRTdGF0dXMoInN1Y2Nlc3MiKTsKICAgICAgICBzZXRTdGF0dXNNZXNzYWdlKCJDb25uZWN0ZWQgdG8gSGFuZG9mZiEiKTsKICAgICAgICBzZXRDb25uZWN0ZWRQaG9uZShwaG9uZS50cmltKCkpOwogICAgICAgIHNldElzQ29ubmVjdGVkKHRydWUpOwogICAgICAgIHNldFN0ZXAoImNvbm5lY3RlZCIpOwogICAgICB9IGVsc2UgewogICAgICAgIHNldFN0YXR1cygiZXJyb3IiKTsKICAgICAgICBzZXRTdGF0dXNNZXNzYWdlKHJlc3VsdC5kYXRhPy5lcnJvciB8fCAiVmVyaWZpY2F0aW9uIGZhaWxlZCIpOwogICAgICB9CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIGNvbnNvbGUuZXJyb3IoIlZlcmlmaWNhdGlvbiBlcnJvcjoiLCBlKTsKICAgICAgc2V0U3RhdHVzKCJlcnJvciIpOwogICAgICBzZXRTdGF0dXNNZXNzYWdlKGUubWVzc2FnZSB8fCAiRmFpbGVkIHRvIHZlcmlmeSBjb2RlIik7CiAgICB9IGZpbmFsbHkgewogICAgICBzZXRTYXZpbmcoZmFsc2UpOwogICAgfQogIH07CgogIGNvbnN0IGhhbmRsZURpc2Nvbm5lY3QgPSBhc3luYyAoKSA9PiB7CiAgICBpZiAoIWNvbmZpcm0oIkRpc2Nvbm5lY3QgZnJvbSBIYW5kb2ZmPyBZb3UnbGwgbmVlZCB0byBsb2cgaW4gYWdhaW4gdG8gcmVjb25uZWN0LiIpKSB7CiAgICAgIHJldHVybjsKICAgIH0KCiAgICBzZXRTYXZpbmcodHJ1ZSk7CiAgICB0cnkgewogICAgICBhd2FpdCByYWlsd2F5U2V0dGluZ3MudXBzZXJ0KCJoYW5kb2ZmX2NvbmZpZyIsIHsgaXNfY29ubmVjdGVkOiBmYWxzZSB9LCAidGV4dCIpOwoKICAgICAgc2V0SXNDb25uZWN0ZWQoZmFsc2UpOwogICAgICBzZXRTdGVwKCJwaG9uZSIpOwogICAgICBzZXRQaG9uZSgiIik7CiAgICAgIHNldFZlcmlmaWNhdGlvbkNvZGUoIiIpOwogICAgICBzZXRTdGF0dXMoInN1Y2Nlc3MiKTsKICAgICAgc2V0U3RhdHVzTWVzc2FnZSgiRGlzY29ubmVjdGVkIGZyb20gSGFuZG9mZiIpOwogICAgICBzZXRUaW1lb3V0KCgpID0+IHNldFN0YXR1cyhudWxsKSwgMzAwMCk7CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIGNvbnNvbGUuZXJyb3IoIkRpc2Nvbm5lY3QgZXJyb3I6IiwgZSk7CiAgICAgIHNldFN0YXR1cygiZXJyb3IiKTsKICAgICAgc2V0U3RhdHVzTWVzc2FnZSgiRmFpbGVkIHRvIGRpc2Nvbm5lY3QiKTsKICAgIH0gZmluYWxseSB7CiAgICAgIHNldFNhdmluZyhmYWxzZSk7CiAgICB9CiAgfTsKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJtYXgtdy0zeGwgc3BhY2UteS02Ij4KICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLWJsdWUtNTAgYm9yZGVyIGJvcmRlci1ibHVlLTIwMCByb3VuZGVkLWxnIHAtNCI+CiAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1ibHVlLTkwMCBtYi0yIj7wn5SQIEhhbmRvZmYgQXV0aGVudGljYXRpb248L3A+CiAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtYmx1ZS04MDAiPgogICAgICAgICAgQ29ubmVjdCB5b3VyIEhhbmRvZmYgYWNjb3VudCB1c2luZyB5b3VyIHVzZXJuYW1lIGFuZCBwYXNzd29yZC4gWW91J2xsIHJlY2VpdmUgYSB2ZXJpZmljYXRpb24gY29kZSB2aWEgcGhvbmUgdG8gY29uZmlybSB0aGUgY29ubmVjdGlvbi4KICAgICAgICA8L3A+CiAgICAgIDwvZGl2PgoKICAgICAgey8qIFBob25lIFN0ZXAgKi99CiAgICAgIHtzdGVwID09PSAicGhvbmUiICYmICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctd2hpdGUgcm91bmRlZC1sZyBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCBwLTYgc3BhY2UteS00Ij4KICAgICAgICAgIDxoMyBjbGFzc05hbWU9InRleHQtc20gZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTkwMCI+Q29ubmVjdCB0byBIYW5kb2ZmPC9oMz4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTYwMCI+RW50ZXIgeW91ciBwaG9uZSBudW1iZXIgdG8gcmVjZWl2ZSBhIHZlcmlmaWNhdGlvbiBjb2RlLjwvcD4KCiAgICAgICAgICA8Zm9ybSBvblN1Ym1pdD17aGFuZGxlUGhvbmVTdWJtaXR9IGNsYXNzTmFtZT0ic3BhY2UteS00Ij4KICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICA8bGFiZWwgY2xhc3NOYW1lPSJibG9jayB0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS02MDAgbWItMiI+UGhvbmUgTnVtYmVyICo8L2xhYmVsPgogICAgICAgICAgICAgIDxpbnB1dAogICAgICAgICAgICAgICAgdHlwZT0idGVsIgogICAgICAgICAgICAgICAgdmFsdWU9e3Bob25lfQogICAgICAgICAgICAgICAgb25DaGFuZ2U9eyhlKSA9PiBzZXRQaG9uZShlLnRhcmdldC52YWx1ZSl9CiAgICAgICAgICAgICAgICBwbGFjZWhvbGRlcj0iKzEgKDU1NSkgMTIzLTQ1NjciCiAgICAgICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHB4LTMgcHktMi41IHRleHQtc20gdGV4dC1zbGF0ZS05MDAgcGxhY2Vob2xkZXI6dGV4dC1zbGF0ZS00MDAgZm9jdXM6b3V0bGluZS1ub25lIGZvY3VzOnJpbmctMiBmb2N1czpyaW5nLWJsdWUtNTAwLzIwIGZvY3VzOmJvcmRlci1ibHVlLTUwMCB0cmFuc2l0aW9uLWFsbCIKICAgICAgICAgICAgICAgIGRpc2FibGVkPXtzYXZpbmd9CiAgICAgICAgICAgICAgICBhdXRvRm9jdXMKICAgICAgICAgICAgICAvPgogICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gdGV4dC1zbGF0ZS01MDAgbXQtMSI+VmVyaWZpY2F0aW9uIGNvZGUgd2lsbCBiZSBzZW50IHZpYSBTTVMuPC9wPgogICAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICAgIHtzdGF0dXMgJiYgKAogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPXtgZmxleCBpdGVtcy1zdGFydCBnYXAtMiByb3VuZGVkLWxnIHB4LTMgcHktMiAkewogICAgICAgICAgICAgICAgc3RhdHVzID09PSAic3VjY2VzcyIKICAgICAgICAgICAgICAgICAgPyAiYmctZW1lcmFsZC01MCBib3JkZXIgYm9yZGVyLWVtZXJhbGQtMjAwIgogICAgICAgICAgICAgICAgICA6ICJiZy1yZWQtNTAgYm9yZGVyIGJvcmRlci1yZWQtMjAwIgogICAgICAgICAgICAgIH1gfT4KICAgICAgICAgICAgICAgIHtzdGF0dXMgPT09ICJzdWNjZXNzIiA/ICgKICAgICAgICAgICAgICAgICAgPENoZWNrQ2lyY2xlMiBjbGFzc05hbWU9InctNCBoLTQgdGV4dC1lbWVyYWxkLTYwMCBmbGV4LXNocmluay0wIG10LTAuNSIgLz4KICAgICAgICAgICAgICAgICkgOiAoCiAgICAgICAgICAgICAgICAgIDxBbGVydENpcmNsZSBjbGFzc05hbWU9InctNCBoLTQgdGV4dC1yZWQtNjAwIGZsZXgtc2hyaW5rLTAgbXQtMC41IiAvPgogICAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT17YHRleHQteHMgJHtzdGF0dXMgPT09ICJzdWNjZXNzIiA/ICJ0ZXh0LWVtZXJhbGQtNzAwIiA6ICJ0ZXh0LXJlZC03MDAifWB9PgogICAgICAgICAgICAgICAgICB7c3RhdHVzTWVzc2FnZX0KICAgICAgICAgICAgICAgIDwvcD4KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgKX0KCiAgICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgICB0eXBlPSJzdWJtaXQiCiAgICAgICAgICAgICAgZGlzYWJsZWQ9e3NhdmluZyB8fCAhcGhvbmUudHJpbSgpfQogICAgICAgICAgICAgIGNsYXNzTmFtZT0idy1mdWxsIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGdhcC0yIHB4LTQgcHktMyB0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgdGV4dC13aGl0ZSBiZy1ibHVlLTYwMCBob3ZlcjpiZy1ibHVlLTcwMCByb3VuZGVkLWxnIHRyYW5zaXRpb24tY29sb3JzIGRpc2FibGVkOm9wYWNpdHktNTAgZGlzYWJsZWQ6Y3Vyc29yLW5vdC1hbGxvd2VkIgogICAgICAgICAgICA+CiAgICAgICAgICAgICAge3NhdmluZyA/ICgKICAgICAgICAgICAgICAgIDw+CiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ3LTQgaC00IGJvcmRlci0yIGJvcmRlci13aGl0ZSBib3JkZXItdC10cmFuc3BhcmVudCByb3VuZGVkLWZ1bGwgYW5pbWF0ZS1zcGluIiAvPgogICAgICAgICAgICAgICAgICBTZW5kaW5nIGNvZGUuLi4KICAgICAgICAgICAgICAgIDwvPgogICAgICAgICAgICAgICkgOiAoCiAgICAgICAgICAgICAgICA8PgogICAgICAgICAgICAgICAgICA8TG9jayBjbGFzc05hbWU9InctNCBoLTQiIC8+CiAgICAgICAgICAgICAgICAgIFNlbmQgVmVyaWZpY2F0aW9uIENvZGUKICAgICAgICAgICAgICAgIDwvPgogICAgICAgICAgICAgICl9CiAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgPC9mb3JtPgogICAgICAgIDwvZGl2PgogICAgICApfQoKICAgICAgey8qIFZlcmlmaWNhdGlvbiBTdGVwICovfQogICAgICB7c3RlcCA9PT0gInZlcmlmeSIgJiYgKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy13aGl0ZSByb3VuZGVkLWxnIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHAtNiBzcGFjZS15LTQiPgogICAgICAgICAgPGgzIGNsYXNzTmFtZT0idGV4dC1zbSBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtOTAwIj5WZXJpZnkgWW91ciBQaG9uZTwvaDM+CiAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS02MDAiPgogICAgICAgICAgICBBIHZlcmlmaWNhdGlvbiBjb2RlIGhhcyBiZWVuIHNlbnQgdG8ge3Bob25lfS4gRW50ZXIgaXQgYmVsb3cgdG8gY29tcGxldGUgdGhlIGNvbm5lY3Rpb24uCiAgICAgICAgICA8L3A+CgogICAgICAgICAgPGZvcm0gb25TdWJtaXQ9e2hhbmRsZVZlcmlmeX0gY2xhc3NOYW1lPSJzcGFjZS15LTQiPgogICAgICAgICAgICA8ZGl2PgogICAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9ImJsb2NrIHRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTYwMCBtYi0yIj5WZXJpZmljYXRpb24gQ29kZSAqPC9sYWJlbD4KICAgICAgICAgICAgICA8aW5wdXQKICAgICAgICAgICAgICAgIHR5cGU9InRleHQiCiAgICAgICAgICAgICAgICB2YWx1ZT17dmVyaWZpY2F0aW9uQ29kZX0KICAgICAgICAgICAgICAgIG9uQ2hhbmdlPXsoZSkgPT4gc2V0VmVyaWZpY2F0aW9uQ29kZShlLnRhcmdldC52YWx1ZSl9CiAgICAgICAgICAgICAgICBwbGFjZWhvbGRlcj0iMDAwMDAwIgogICAgICAgICAgICAgICAgbWF4TGVuZ3RoPSI2IgogICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJ3LWZ1bGwgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBweC0zIHB5LTIuNSB0ZXh0LXNtIHRleHQtc2xhdGUtOTAwIHBsYWNlaG9sZGVyOnRleHQtc2xhdGUtNDAwIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1ibHVlLTUwMC8yMCBmb2N1czpib3JkZXItYmx1ZS01MDAgdHJhbnNpdGlvbi1hbGwgdGV4dC1jZW50ZXIgZm9udC1tb25vIHRleHQtbGcgbGV0dGVyLXNwYWNpbmciCiAgICAgICAgICAgICAgICBkaXNhYmxlZD17c2F2aW5nfQogICAgICAgICAgICAgIC8+CiAgICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgICAge3N0YXR1cyAmJiAoCiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9e2BmbGV4IGl0ZW1zLXN0YXJ0IGdhcC0yIHJvdW5kZWQtbGcgcHgtMyBweS0yICR7CiAgICAgICAgICAgICAgICBzdGF0dXMgPT09ICJzdWNjZXNzIgogICAgICAgICAgICAgICAgICA/ICJiZy1lbWVyYWxkLTUwIGJvcmRlciBib3JkZXItZW1lcmFsZC0yMDAiCiAgICAgICAgICAgICAgICAgIDogImJnLXJlZC01MCBib3JkZXIgYm9yZGVyLXJlZC0yMDAiCiAgICAgICAgICAgICAgfWB9PgogICAgICAgICAgICAgICAge3N0YXR1cyA9PT0gInN1Y2Nlc3MiID8gKAogICAgICAgICAgICAgICAgICA8Q2hlY2tDaXJjbGUyIGNsYXNzTmFtZT0idy00IGgtNCB0ZXh0LWVtZXJhbGQtNjAwIGZsZXgtc2hyaW5rLTAgbXQtMC41IiAvPgogICAgICAgICAgICAgICAgKSA6ICgKICAgICAgICAgICAgICAgICAgPEFsZXJ0Q2lyY2xlIGNsYXNzTmFtZT0idy00IGgtNCB0ZXh0LXJlZC02MDAgZmxleC1zaHJpbmstMCBtdC0wLjUiIC8+CiAgICAgICAgICAgICAgICApfQogICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPXtgdGV4dC14cyAke3N0YXR1cyA9PT0gInN1Y2Nlc3MiID8gInRleHQtZW1lcmFsZC03MDAiIDogInRleHQtcmVkLTcwMCJ9YH0+CiAgICAgICAgICAgICAgICAgIHtzdGF0dXNNZXNzYWdlfQogICAgICAgICAgICAgICAgPC9wPgogICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICApfQoKICAgICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICAgIHR5cGU9InN1Ym1pdCIKICAgICAgICAgICAgICBkaXNhYmxlZD17c2F2aW5nIHx8ICF2ZXJpZmljYXRpb25Db2RlLnRyaW0oKX0KICAgICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBnYXAtMiBweC00IHB5LTMgdGV4dC1zbSBmb250LXNlbWlib2xkIHRleHQtd2hpdGUgYmctYmx1ZS02MDAgaG92ZXI6YmctYmx1ZS03MDAgcm91bmRlZC1sZyB0cmFuc2l0aW9uLWNvbG9ycyBkaXNhYmxlZDpvcGFjaXR5LTUwIGRpc2FibGVkOmN1cnNvci1ub3QtYWxsb3dlZCIKICAgICAgICAgICAgPgogICAgICAgICAgICAgIHtzYXZpbmcgPyAiVmVyaWZ5aW5nLi4uIiA6ICJWZXJpZnkgJiBDb25uZWN0In0KICAgICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICA8L2Zvcm0+CgogICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRTdGVwKCJsb2dpbiIpfQogICAgICAgICAgICBkaXNhYmxlZD17c2F2aW5nfQogICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBweC00IHB5LTIgdGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNjAwIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgaG92ZXI6Ymctc2xhdGUtNTAgdHJhbnNpdGlvbi1jb2xvcnMiCiAgICAgICAgICA+CiAgICAgICAgICAgIEJhY2sgdG8gTG9naW4KICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgIDwvZGl2PgogICAgICApfQoKICAgICAgey8qIENvbm5lY3RlZCBTdGVwICovfQogICAgICB7c3RlcCA9PT0gImNvbm5lY3RlZCIgJiYgaXNDb25uZWN0ZWQgJiYgKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy13aGl0ZSByb3VuZGVkLWxnIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHAtNiBzcGFjZS15LTQiPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0zIG1iLTQiPgogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idy0xMCBoLTEwIHJvdW5kZWQtbGcgYmctZW1lcmFsZC0xMDAgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIiPgogICAgICAgICAgICAgIDxDaGVja0NpcmNsZTIgY2xhc3NOYW1lPSJ3LTYgaC02IHRleHQtZW1lcmFsZC02MDAiIC8+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8ZGl2PgogICAgICAgICAgICAgIDxoMyBjbGFzc05hbWU9InRleHQtc20gZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTkwMCI+Q29ubmVjdGVkIHRvIEhhbmRvZmY8L2gzPgogICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTUwMCI+e2Nvbm5lY3RlZFBob25lfTwvcD4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctZW1lcmFsZC01MCBib3JkZXIgYm9yZGVyLWVtZXJhbGQtMjAwIHJvdW5kZWQtbGcgcC00Ij4KICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtZW1lcmFsZC04MDAiPgogICAgICAgICAgICAgIOKckyBZb3UgY2FuIG5vdyBjcmVhdGUgZXN0aW1hdGVzIGluIEhhbmRvZmYgZnJvbSB0aGUgQ1JNLiBDbGljayAiQ3JlYXRlIEVzdGltYXRlIGluIEhhbmRvZmYiIG9uIGFueSBsZWFkIHRvIGdldCBzdGFydGVkLgogICAgICAgICAgICA8L3A+CiAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgIG9uQ2xpY2s9e2hhbmRsZURpc2Nvbm5lY3R9CiAgICAgICAgICAgIGRpc2FibGVkPXtzYXZpbmd9CiAgICAgICAgICAgIGNsYXNzTmFtZT0idy1mdWxsIHB4LTQgcHktMi41IHRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXJlZC02MDAgYm9yZGVyIGJvcmRlci1yZWQtMjAwIHJvdW5kZWQtbGcgaG92ZXI6YmctcmVkLTUwIHRyYW5zaXRpb24tY29sb3JzIgogICAgICAgICAgPgogICAgICAgICAgICBEaXNjb25uZWN0IGZyb20gSGFuZG9mZgogICAgICAgICAgPC9idXR0b24+CiAgICAgICAgPC9kaXY+CiAgICAgICl9CgogICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctc2xhdGUtNTAgcm91bmRlZC1sZyBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCBwLTQiPgogICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNzAwIG1iLTMiPkludGVncmF0aW9uIGZlYXR1cmVzOjwvcD4KICAgICAgICA8dWwgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNjAwIHNwYWNlLXktMiI+CiAgICAgICAgICA8bGk+4pyTIENyZWF0ZSBlc3RpbWF0ZXMgZGlyZWN0bHkgZnJvbSB0aGUgQ1JNPC9saT4KICAgICAgICAgIDxsaT7inJMgQ3VzdG9tZXIgaW5mb3JtYXRpb24gYXV0by1maWxscyBpbiBIYW5kb2ZmPC9saT4KICAgICAgICAgIDxsaT7inJMgRXN0aW1hdGVzIHN5bmMgYmFjayBhdXRvbWF0aWNhbGx5PC9saT4KICAgICAgICAgIDxsaT7inJMgUGhvbmUgdmVyaWZpY2F0aW9uIGZvciBzZWN1cmUgY29ubmVjdGlvbjwvbGk+CiAgICAgICAgPC91bD4KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KICApOwp9
+import { useState, useEffect } from "react";
+import * as railwaySettings from "@/api/railway/settings";
+import { apiCall } from "@/api/railway/client";
+import { AlertCircle, CheckCircle2, Lock } from "lucide-react";
+
+export default function HandoffConfigTab() {
+  const [phone, setPhone] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [step, setStep] = useState("phone"); // phone | verify | connected
+  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState(null);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [settingsId, setSettingsId] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [connectedPhone, setConnectedPhone] = useState("");
+
+  useEffect(() => {
+    railwaySettings.get("handoff_config").then(s => {
+      if (s && s.value?.is_connected) {
+        setIsConnected(true);
+        setStep("connected");
+        setSettingsId(s.id || "handoff_config");
+        setConnectedPhone(s.value?.phone || "");
+      }
+    }).catch(() => {});
+  }, []);
+
+  const handlePhoneSubmit = async (e) => {
+    e.preventDefault();
+    if (!phone.trim()) {
+      setStatus("error");
+      setStatusMessage("Phone number is required");
+      return;
+    }
+
+    setSaving(true);
+    setStatus(null);
+    try {
+      const result = await apiCall('/api/v1/handoff/auth', {
+        method: 'POST',
+        body: {
+          action: 'login',
+          phone: phone.trim(),
+        },
+      }).catch(e => ({ success: false, error: e.message }));
+
+      if (result?.success) {
+        setStatus("success");
+        setStatusMessage("Verification code sent to your phone");
+        setStep("verify");
+      } else {
+        setStatus("error");
+        setStatusMessage(result.data?.error || "Failed to send verification code");
+      }
+    } catch (e) {
+      console.error("Phone auth error:", e);
+      setStatus("error");
+      setStatusMessage(e.message || "Failed to authenticate with Handoff");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    if (!verificationCode.trim()) {
+      setStatus("error");
+      setStatusMessage("Verification code is required");
+      return;
+    }
+
+    setSaving(true);
+    setStatus(null);
+    try {
+      const result = await apiCall('/api/v1/handoff/auth', {
+        method: 'POST',
+        body: {
+          action: 'verify',
+          phone: phone.trim(),
+          code: verificationCode.trim(),
+        },
+      }).catch(e => ({ success: false, error: e.message }));
+
+      if (result?.success) {
+        // Save to Settings
+        const value = {
+          is_connected: true,
+          phone: phone.trim(),
+          verified_at: new Date().toISOString(),
+        };
+
+        await railwaySettings.upsert("handoff_config", value, "text");
+        setSettingsId("handoff_config");
+
+        setStatus("success");
+        setStatusMessage("Connected to Handoff!");
+        setConnectedPhone(phone.trim());
+        setIsConnected(true);
+        setStep("connected");
+      } else {
+        setStatus("error");
+        setStatusMessage(result.data?.error || "Verification failed");
+      }
+    } catch (e) {
+      console.error("Verification error:", e);
+      setStatus("error");
+      setStatusMessage(e.message || "Failed to verify code");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    if (!confirm("Disconnect from Handoff? You'll need to log in again to reconnect.")) {
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await railwaySettings.upsert("handoff_config", { is_connected: false }, "text");
+
+      setIsConnected(false);
+      setStep("phone");
+      setPhone("");
+      setVerificationCode("");
+      setStatus("success");
+      setStatusMessage("Disconnected from Handoff");
+      setTimeout(() => setStatus(null), 3000);
+    } catch (e) {
+      console.error("Disconnect error:", e);
+      setStatus("error");
+      setStatusMessage("Failed to disconnect");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="max-w-3xl space-y-6">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <p className="text-xs font-semibold text-blue-900 mb-2">🔐 Handoff Authentication</p>
+        <p className="text-xs text-blue-800">
+          Connect your Handoff account using your username and password. You'll receive a verification code via phone to confirm the connection.
+        </p>
+      </div>
+
+      {/* Phone Step */}
+      {step === "phone" && (
+        <div className="bg-white rounded-lg border border-slate-200 p-6 space-y-4">
+          <h3 className="text-sm font-semibold text-slate-900">Connect to Handoff</h3>
+          <p className="text-xs text-slate-600">Enter your phone number to receive a verification code.</p>
+
+          <form onSubmit={handlePhoneSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-2">Phone Number *</label>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+1 (555) 123-4567"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                disabled={saving}
+                autoFocus
+              />
+              <p className="text-[10px] text-slate-500 mt-1">Verification code will be sent via SMS.</p>
+            </div>
+
+            {status && (
+              <div className={`flex items-start gap-2 rounded-lg px-3 py-2 ${
+                status === "success"
+                  ? "bg-emerald-50 border border-emerald-200"
+                  : "bg-red-50 border border-red-200"
+              }`}>
+                {status === "success" ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                )}
+                <p className={`text-xs ${status === "success" ? "text-emerald-700" : "text-red-700"}`}>
+                  {statusMessage}
+                </p>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={saving || !phone.trim()}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {saving ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Sending code...
+                </>
+              ) : (
+                <>
+                  <Lock className="w-4 h-4" />
+                  Send Verification Code
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* Verification Step */}
+      {step === "verify" && (
+        <div className="bg-white rounded-lg border border-slate-200 p-6 space-y-4">
+          <h3 className="text-sm font-semibold text-slate-900">Verify Your Phone</h3>
+          <p className="text-xs text-slate-600">
+            A verification code has been sent to {phone}. Enter it below to complete the connection.
+          </p>
+
+          <form onSubmit={handleVerify} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-2">Verification Code *</label>
+              <input
+                type="text"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
+                placeholder="000000"
+                maxLength="6"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-center font-mono text-lg letter-spacing"
+                disabled={saving}
+              />
+            </div>
+
+            {status && (
+              <div className={`flex items-start gap-2 rounded-lg px-3 py-2 ${
+                status === "success"
+                  ? "bg-emerald-50 border border-emerald-200"
+                  : "bg-red-50 border border-red-200"
+              }`}>
+                {status === "success" ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                )}
+                <p className={`text-xs ${status === "success" ? "text-emerald-700" : "text-red-700"}`}>
+                  {statusMessage}
+                </p>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={saving || !verificationCode.trim()}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {saving ? "Verifying..." : "Verify & Connect"}
+            </button>
+          </form>
+
+          <button
+            onClick={() => setStep("login")}
+            disabled={saving}
+            className="w-full px-4 py-2 text-xs font-semibold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+          >
+            Back to Login
+          </button>
+        </div>
+      )}
+
+      {/* Connected Step */}
+      {step === "connected" && isConnected && (
+        <div className="bg-white rounded-lg border border-slate-200 p-6 space-y-4">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+              <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900">Connected to Handoff</h3>
+              <p className="text-xs text-slate-500">{connectedPhone}</p>
+            </div>
+          </div>
+
+          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+            <p className="text-xs text-emerald-800">
+              ✓ You can now create estimates in Handoff from the CRM. Click "Create Estimate in Handoff" on any lead to get started.
+            </p>
+          </div>
+
+          <button
+            onClick={handleDisconnect}
+            disabled={saving}
+            className="w-full px-4 py-2.5 text-xs font-semibold text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+          >
+            Disconnect from Handoff
+          </button>
+        </div>
+      )}
+
+      <div className="bg-slate-50 rounded-lg border border-slate-200 p-4">
+        <p className="text-xs font-semibold text-slate-700 mb-3">Integration features:</p>
+        <ul className="text-xs text-slate-600 space-y-2">
+          <li>✓ Create estimates directly from the CRM</li>
+          <li>✓ Customer information auto-fills in Handoff</li>
+          <li>✓ Estimates sync back automatically</li>
+          <li>✓ Phone verification for secure connection</li>
+        </ul>
+      </div>
+    </div>
+  );
+}

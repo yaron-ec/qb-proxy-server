@@ -1,1 +1,245 @@
-LyoqCiAqIFFCU3RhdHVzUGFuZWwg4oCUIE5hdGl2ZSBSYWlsd2F5IFF1aWNrQm9va3Mgc3RhdHVzIHBhbmVsIGZvciBMZWFkIERldGFpbC4KICoKICogUmVhZHMgZnJvbToKICogICAtIFJhaWx3YXkgbGVhZHMgdGFibGUgKHFiX2N1c3RvbWVyX2lkLCBxYl9pbnZvaWNlXyogZmllbGRzKQogKiAgIC0gUmFpbHdheSBpbnZvaWNlcyB0YWJsZSAoQ1JNIGludm9pY2VzKQogKiAgIC0gUmFpbHdheSBxYl9pbnZvaWNlc19jYWNoZSArIHFiX2ludm9pY2Vfc2FsZV9tYXAgKGNhY2hlZCBRQiBmaW5hbmNpYWxzKQogKiAgIC0gUmFpbHdheSBoYW5kb2ZmX2VzdGltYXRlcyAoUUIgZXN0aW1hdGVzKQogKgogKiBBY3Rpb25zOgogKiAgIC0gU3luYyB0byBRQjogY3JlYXRlcy91cGRhdGVzIFFCIGN1c3RvbWVyIHZpYSBleGlzdGluZyBRQiBwcm94eQogKiAgIC0gUmVmcmVzaCBmcm9tIFFCOiBwdWxscyBsaXZlIFFCIGN1c3RvbWVyICsgaW52b2ljZSBkYXRhCiAqCiAqIE5vIEJhc2U0NCBjYWxscy4gQWxsIGRhdGEgaXMgbmF0aXZlIFJhaWx3YXkvUG9zdGdyZXMgb3IgdmlhIHRoZSBleGlzdGluZwogKiBRQiBwcm94eSAocWJJbnRlcm5hbC5qcykuCiAqLwppbXBvcnQgeyB1c2VTdGF0ZSwgdXNlRWZmZWN0LCB1c2VDYWxsYmFjayB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsgbGVhZFFCIGFzIHJhaWx3YXlMZWFkUUIgfSBmcm9tICJAL2FwaS9yYWlsd2F5IjsKaW1wb3J0IHsgZm10TW9uZXkgfSBmcm9tICJAL2xpYi9mb3JtYXR0ZXJzIjsKaW1wb3J0IHsgdXNlVG9hc3QgfSBmcm9tICJAL2NvbXBvbmVudHMvdWkvdXNlLXRvYXN0IjsKaW1wb3J0IHsgRG9sbGFyU2lnbiwgUmVmcmVzaEN3LCBBcnJvd1JpZ2h0TGVmdCwgRmlsZVRleHQsIEFsZXJ0Q2lyY2xlLCBDaGVja0NpcmNsZTIsIEV4dGVybmFsTGluayB9IGZyb20gImx1Y2lkZS1yZWFjdCI7CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBRQlN0YXR1c1BhbmVsKHsgbGVhZCwgb25MZWFkVXBkYXRlZCB9KSB7CiAgY29uc3QgW3FiRGF0YSwgc2V0UWJEYXRhXSA9IHVzZVN0YXRlKG51bGwpOwogIGNvbnN0IFtsb2FkaW5nLCBzZXRMb2FkaW5nXSA9IHVzZVN0YXRlKHRydWUpOwogIGNvbnN0IFtzeW5jaW5nLCBzZXRTeW5jaW5nXSA9IHVzZVN0YXRlKGZhbHNlKTsKICBjb25zdCBbcmVmcmVzaGluZywgc2V0UmVmcmVzaGluZ10gPSB1c2VTdGF0ZShmYWxzZSk7CiAgY29uc3QgW2Vycm9yLCBzZXRFcnJvcl0gPSB1c2VTdGF0ZShudWxsKTsKICBjb25zdCB7IHRvYXN0IH0gPSB1c2VUb2FzdCgpOwoKICBjb25zdCBsb2FkU3RhdHVzID0gdXNlQ2FsbGJhY2soYXN5bmMgKCkgPT4gewogICAgaWYgKCFsZWFkPy5pZCkgcmV0dXJuOwogICAgc2V0TG9hZGluZyh0cnVlKTsKICAgIHNldEVycm9yKG51bGwpOwogICAgdHJ5IHsKICAgICAgY29uc3QgZGF0YSA9IGF3YWl0IHJhaWx3YXlMZWFkUUIuZ2V0U3RhdHVzKGxlYWQuaWQpOwogICAgICBzZXRRYkRhdGEoZGF0YSk7CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIHNldEVycm9yKGUubWVzc2FnZSB8fCAnRmFpbGVkIHRvIGxvYWQgUUIgc3RhdHVzJyk7CiAgICB9IGZpbmFsbHkgewogICAgICBzZXRMb2FkaW5nKGZhbHNlKTsKICAgIH0KICB9LCBbbGVhZD8uaWRdKTsKCiAgdXNlRWZmZWN0KCgpID0+IHsgbG9hZFN0YXR1cygpOyB9LCBbbG9hZFN0YXR1c10pOwoKICBjb25zdCBoYW5kbGVTeW5jID0gYXN5bmMgKCkgPT4gewogICAgc2V0U3luY2luZyh0cnVlKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IHJlc3VsdCA9IGF3YWl0IHJhaWx3YXlMZWFkUUIuc3luY1RvUUIobGVhZC5pZCk7CiAgICAgIHRvYXN0KHsgdGl0bGU6ICdTeW5jZWQgdG8gUXVpY2tCb29rcycsIGRlc2NyaXB0aW9uOiByZXN1bHQuY3VzdG9tZXJfaWQgPyBgQ3VzdG9tZXIgSUQ6ICR7cmVzdWx0LmN1c3RvbWVyX2lkfWAgOiAnQ3VzdG9tZXIgdXBkYXRlZCcsIGR1cmF0aW9uOiAzMDAwIH0pOwogICAgICBhd2FpdCBsb2FkU3RhdHVzKCk7CiAgICAgIGlmIChvbkxlYWRVcGRhdGVkKSBvbkxlYWRVcGRhdGVkKCk7CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIHRvYXN0KHsgdGl0bGU6ICdRQiBTeW5jIEZhaWxlZCcsIGRlc2NyaXB0aW9uOiBlLm1lc3NhZ2UsIHZhcmlhbnQ6ICdkZXN0cnVjdGl2ZScsIGR1cmF0aW9uOiA1MDAwIH0pOwogICAgfSBmaW5hbGx5IHsKICAgICAgc2V0U3luY2luZyhmYWxzZSk7CiAgICB9CiAgfTsKCiAgY29uc3QgaGFuZGxlUmVmcmVzaCA9IGFzeW5jICgpID0+IHsKICAgIHNldFJlZnJlc2hpbmcodHJ1ZSk7CiAgICB0cnkgewogICAgICBjb25zdCByZXN1bHQgPSBhd2FpdCByYWlsd2F5TGVhZFFCLnJlZnJlc2hGcm9tUUIobGVhZC5pZCk7CiAgICAgIHRvYXN0KHsgdGl0bGU6ICdSZWZyZXNoZWQgZnJvbSBRQicsIGRlc2NyaXB0aW9uOiByZXN1bHQubWVzc2FnZSwgZHVyYXRpb246IDMwMDAgfSk7CiAgICAgIGF3YWl0IGxvYWRTdGF0dXMoKTsKICAgIH0gY2F0Y2ggKGUpIHsKICAgICAgY29uc3QgaXNSZWNvbm5lY3QgPSBlLm1lc3NhZ2U/LmluY2x1ZGVzKCdSRUNPTk5FQ1QnKTsKICAgICAgdG9hc3QoeyB0aXRsZTogaXNSZWNvbm5lY3QgPyAnUUIgUmVjb25uZWN0IFJlcXVpcmVkJyA6ICdSZWZyZXNoIEZhaWxlZCcsIGRlc2NyaXB0aW9uOiBlLm1lc3NhZ2UsIHZhcmlhbnQ6ICdkZXN0cnVjdGl2ZScsIGR1cmF0aW9uOiA1MDAwIH0pOwogICAgfSBmaW5hbGx5IHsKICAgICAgc2V0UmVmcmVzaGluZyhmYWxzZSk7CiAgICB9CiAgfTsKCiAgaWYgKGxvYWRpbmcpIHsKICAgIHJldHVybiAoCiAgICAgIDxkaXYgY2xhc3NOYW1lPSJwLTQgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIiPgogICAgICAgIDxSZWZyZXNoQ3cgY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtc2xhdGUtNDAwIGFuaW1hdGUtc3BpbiIgLz4KICAgICAgPC9kaXY+CiAgICApOwogIH0KCiAgaWYgKGVycm9yKSB7CiAgICByZXR1cm4gKAogICAgICA8ZGl2IGNsYXNzTmFtZT0icC00Ij4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1zdGFydCBnYXAtMiBiZy1yZWQtNTAgYm9yZGVyIGJvcmRlci1yZWQtMjAwIHJvdW5kZWQtbGcgcHgtMyBweS0yIj4KICAgICAgICAgIDxBbGVydENpcmNsZSBjbGFzc05hbWU9InctNCBoLTQgdGV4dC1yZWQtNTAwIGZsZXgtc2hyaW5rLTAgbXQtMC41IiAvPgogICAgICAgICAgPGRpdj4KICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1yZWQtNzAwIj5GYWlsZWQgdG8gbG9hZCBRQiBzdGF0dXM8L3A+CiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1bMTFweF0gdGV4dC1yZWQtNTAwIG10LTAuNSI+e2Vycm9yfTwvcD4KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KICAgICk7CiAgfQoKICBjb25zdCB7IHFiQ29ubmVjdGVkLCBxYlJlY29ubmVjdFJlcXVpcmVkLCBjcm1JbnZvaWNlcyA9IFtdLCBxYkludm9pY2VzID0gW10sIGVzdGltYXRlcyA9IFtdIH0gPSBxYkRhdGEgfHwge307CiAgY29uc3QgaGFzUWJDdXN0b21lciA9ICEhbGVhZC5xYl9jdXN0b21lcl9pZCB8fCAhIXFiRGF0YT8ubGVhZD8ucWJfY3VzdG9tZXJfaWQ7CgogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT0ic3BhY2UteS0zIj4KICAgICAgey8qIENvbm5lY3Rpb24gc3RhdHVzICovfQogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIiPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9e2B3LTIgaC0yIHJvdW5kZWQtZnVsbCAke3FiQ29ubmVjdGVkID8gJ2JnLWVtZXJhbGQtNTAwJyA6ICdiZy1yZWQtNDAwJ31gfSAvPgogICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS03MDAiPgogICAgICAgICAgICB7cWJDb25uZWN0ZWQgPyAnUXVpY2tCb29rcyBDb25uZWN0ZWQnIDogJ1F1aWNrQm9va3MgTm90IENvbm5lY3RlZCd9CiAgICAgICAgICA8L3NwYW4+CiAgICAgICAgPC9kaXY+CiAgICAgICAge3FiUmVjb25uZWN0UmVxdWlyZWQgJiYgKAogICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSB0ZXh0LWFtYmVyLTcwMCBiZy1hbWJlci01MCBib3JkZXIgYm9yZGVyLWFtYmVyLTIwMCBweC0yIHB5LTAuNSByb3VuZGVkLWZ1bGwgZm9udC1zZW1pYm9sZCI+CiAgICAgICAgICAgIFJlY29ubmVjdCBSZXF1aXJlZAogICAgICAgICAgPC9zcGFuPgogICAgICAgICl9CiAgICAgIDwvZGl2PgoKICAgICAgey8qIEN1c3RvbWVyIG1hdGNoICovfQogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIGJnLXNsYXRlLTUwIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgcHgtMyBweS0yIj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIiPgogICAgICAgICAge2hhc1FiQ3VzdG9tZXIgPyAoCiAgICAgICAgICAgIDxDaGVja0NpcmNsZTIgY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtZW1lcmFsZC01MDAiIC8+CiAgICAgICAgICApIDogKAogICAgICAgICAgICA8QWxlcnRDaXJjbGUgY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtc2xhdGUtNDAwIiAvPgogICAgICAgICAgKX0KICAgICAgICAgIDxkaXY+CiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNzAwIj5RQiBDdXN0b21lcjwvcD4KICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LVsxMXB4XSB0ZXh0LXNsYXRlLTUwMCI+CiAgICAgICAgICAgICAge2hhc1FiQ3VzdG9tZXIgPyBgSUQ6ICR7bGVhZC5xYl9jdXN0b21lcl9pZCB8fCBxYkRhdGE/LmxlYWQ/LnFiX2N1c3RvbWVyX2lkfWAgOiAnTm90IG1hdGNoZWQnfQogICAgICAgICAgICA8L3A+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CgogICAgICB7LyogQWN0aW9ucyAqL30KICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZ2FwLTIiPgogICAgICAgIDxidXR0b24KICAgICAgICAgIG9uQ2xpY2s9e2hhbmRsZVN5bmN9CiAgICAgICAgICBkaXNhYmxlZD17c3luY2luZyB8fCAhcWJDb25uZWN0ZWR9CiAgICAgICAgICBjbGFzc05hbWU9ImZsZXgtMSBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBnYXAtMS41IHB4LTMgcHktMiB0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC13aGl0ZSBiZy1hbWJlci02MDAgaG92ZXI6YmctYW1iZXItNzAwIGRpc2FibGVkOm9wYWNpdHktNTAgcm91bmRlZC1sZyB0cmFuc2l0aW9uLWNvbG9ycyIKICAgICAgICA+CiAgICAgICAgICA8QXJyb3dSaWdodExlZnQgY2xhc3NOYW1lPXtgdy0zLjUgaC0zLjUgJHtzeW5jaW5nID8gJ2FuaW1hdGUtc3BpbicgOiAnJ31gfSAvPgogICAgICAgICAge3N5bmNpbmcgPyAnU3luY2luZy4uLicgOiAnU3luYyB0byBRQid9CiAgICAgICAgPC9idXR0b24+CiAgICAgICAgPGJ1dHRvbgogICAgICAgICAgb25DbGljaz17aGFuZGxlUmVmcmVzaH0KICAgICAgICAgIGRpc2FibGVkPXtyZWZyZXNoaW5nIHx8ICFxYkNvbm5lY3RlZH0KICAgICAgICAgIGNsYXNzTmFtZT0iZmxleC0xIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGdhcC0xLjUgcHgtMyBweS0yIHRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTcwMCBiZy13aGl0ZSBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCBob3ZlcjpiZy1zbGF0ZS01MCBkaXNhYmxlZDpvcGFjaXR5LTUwIHJvdW5kZWQtbGcgdHJhbnNpdGlvbi1jb2xvcnMiCiAgICAgICAgPgogICAgICAgICAgPFJlZnJlc2hDdyBjbGFzc05hbWU9e2B3LTMuNSBoLTMuNSAke3JlZnJlc2hpbmcgPyAnYW5pbWF0ZS1zcGluJyA6ICcnfWB9IC8+CiAgICAgICAgICB7cmVmcmVzaGluZyA/ICdSZWZyZXNoaW5nLi4uJyA6ICdSZWZyZXNoJ30KICAgICAgICA8L2J1dHRvbj4KICAgICAgPC9kaXY+CgogICAgICB7LyogQ1JNIEludm9pY2VzICovfQogICAgICB7Y3JtSW52b2ljZXMubGVuZ3RoID4gMCAmJiAoCiAgICAgICAgPGRpdj4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gZm9udC1ib2xkIHVwcGVyY2FzZSB0cmFja2luZy13aWRlciB0ZXh0LXNsYXRlLTUwMCBtYi0xLjUiPkNSTSBJbnZvaWNlcyAoe2NybUludm9pY2VzLmxlbmd0aH0pPC9wPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMS41Ij4KICAgICAgICAgICAge2NybUludm9pY2VzLm1hcCgoaW52KSA9PiAoCiAgICAgICAgICAgICAgPGRpdiBrZXk9e2ludi5pZH0gY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gYmctd2hpdGUgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBweC0zIHB5LTIiPgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9Im1pbi13LTAiPgogICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTgwMCB0cnVuY2F0ZSI+CiAgICAgICAgICAgICAgICAgICAge2ludi5xYl9pbnZvaWNlX251bWJlciB8fCBpbnYuaW52b2ljZV9udW1iZXIgfHwgJ0ludm9pY2UnfQogICAgICAgICAgICAgICAgICA8L3A+CiAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gdGV4dC1zbGF0ZS01MDAiPgogICAgICAgICAgICAgICAgICAgIHtpbnYucGF5bWVudF9zdGFnZSB8fCBpbnYuc3RhdHVzIHx8ICfigJQnfQogICAgICAgICAgICAgICAgICAgIHtpbnYuZGVhbF9pZCA/IGAgwrcgU2FsZTogJHtpbnYuZGVhbF9pZC5zdWJzdHJpbmcoMCwgOCl9YCA6ICcnfQogICAgICAgICAgICAgICAgICA8L3A+CiAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LXJpZ2h0IGZsZXgtc2hyaW5rLTAiPgogICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgZm9udC1ib2xkIHRleHQtc2xhdGUtODAwIj57Zm10TW9uZXkoaW52LmFtb3VudCl9PC9wPgogICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9e2B0ZXh0LVsxMHB4XSBmb250LXNlbWlib2xkICR7aW52LnN5bmNlZF90b19xYiA/ICd0ZXh0LWVtZXJhbGQtNjAwJyA6ICd0ZXh0LXNsYXRlLTQwMCd9YH0+CiAgICAgICAgICAgICAgICAgICAge2ludi5zeW5jZWRfdG9fcWIgPyAn4pyTIFN5bmNlZCcgOiAnTm90IHN5bmNlZCd9CiAgICAgICAgICAgICAgICAgIDwvcD4KICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICApKX0KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICApfQoKICAgICAgey8qIFFCIENhY2hlZCBJbnZvaWNlcyAqL30KICAgICAge3FiSW52b2ljZXMubGVuZ3RoID4gMCAmJiAoCiAgICAgICAgPGRpdj4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gZm9udC1ib2xkIHVwcGVyY2FzZSB0cmFja2luZy13aWRlciB0ZXh0LXNsYXRlLTUwMCBtYi0xLjUiPlFCIEludm9pY2VzICh7cWJJbnZvaWNlcy5sZW5ndGh9KTwvcD4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJzcGFjZS15LTEuNSI+CiAgICAgICAgICAgIHtxYkludm9pY2VzLm1hcCgoaW52LCBpKSA9PiAoCiAgICAgICAgICAgICAgPGRpdiBrZXk9e2l9IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIGJnLXdoaXRlIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgcHgtMyBweS0yIj4KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtaW4tdy0wIj4KICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS04MDAgdHJ1bmNhdGUiPgogICAgICAgICAgICAgICAgICAgICN7aW52LnFiX2RvY19udW1iZXIgfHwgaW52LnFiX2ludm9pY2VfaWR9CiAgICAgICAgICAgICAgICAgIDwvcD4KICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSB0ZXh0LXNsYXRlLTUwMCI+CiAgICAgICAgICAgICAgICAgICAge2ludi52b2lkZWQgPyAnVm9pZGVkJyA6IGludi50eG5fc3RhdHVzIHx8ICfigJQnfQogICAgICAgICAgICAgICAgICAgIHtpbnYuY3JtX3NhbGVfaWQgPyBgIMK3IFNhbGU6ICR7aW52LmNybV9zYWxlX2lkLnN1YnN0cmluZygwLCA4KX1gIDogJyd9CiAgICAgICAgICAgICAgICAgIDwvcD4KICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtcmlnaHQgZmxleC1zaHJpbmstMCI+CiAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyBmb250LWJvbGQgdGV4dC1zbGF0ZS04MDAiPntmbXRNb25leShpbnYudG90YWxfYW10KX08L3A+CiAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gdGV4dC1zbGF0ZS01MDAiPkJhbDoge2ZtdE1vbmV5KGludi5iYWxhbmNlKX08L3A+CiAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgKSl9CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgKX0KCiAgICAgIHsvKiBFc3RpbWF0ZXMgKi99CiAgICAgIHtlc3RpbWF0ZXMubGVuZ3RoID4gMCAmJiAoCiAgICAgICAgPGRpdj4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gZm9udC1ib2xkIHVwcGVyY2FzZSB0cmFja2luZy13aWRlciB0ZXh0LXNsYXRlLTUwMCBtYi0xLjUiPkVzdGltYXRlcyAoe2VzdGltYXRlcy5sZW5ndGh9KTwvcD4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJzcGFjZS15LTEuNSI+CiAgICAgICAgICAgIHtlc3RpbWF0ZXMubWFwKChlc3QpID0+ICgKICAgICAgICAgICAgICA8ZGl2IGtleT17ZXN0LmlkfSBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBiZy13aGl0ZSBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHB4LTMgcHktMiI+CiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibWluLXctMCI+CiAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtODAwIHRydW5jYXRlIj4KICAgICAgICAgICAgICAgICAgICAje2VzdC5xYl9lc3RpbWF0ZV9udW1iZXIgfHwgZXN0LnFiX2VzdGltYXRlX2lkfQogICAgICAgICAgICAgICAgICA8L3A+CiAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gdGV4dC1zbGF0ZS01MDAiPntlc3QuZXN0aW1hdGVfc3RhdHVzIHx8ICfigJQnfTwvcD4KICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIGZsZXgtc2hyaW5rLTAiPgogICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQteHMgZm9udC1ib2xkIHRleHQtc2xhdGUtODAwIj57Zm10TW9uZXkoZXN0LmVzdGltYXRlX2Ftb3VudCl9PC9zcGFuPgogICAgICAgICAgICAgICAgICB7ZXN0LnFiX2FwcF91cmwgJiYgKAogICAgICAgICAgICAgICAgICAgIDxhIGhyZWY9e2VzdC5xYl9hcHBfdXJsfSB0YXJnZXQ9Il9ibGFuayIgcmVsPSJub29wZW5lciBub3JlZmVycmVyIiBjbGFzc05hbWU9InRleHQtc2xhdGUtNDAwIGhvdmVyOnRleHQtYW1iZXItNjAwIj4KICAgICAgICAgICAgICAgICAgICAgIDxFeHRlcm5hbExpbmsgY2xhc3NOYW1lPSJ3LTMuNSBoLTMuNSIgLz4KICAgICAgICAgICAgICAgICAgICA8L2E+CiAgICAgICAgICAgICAgICAgICl9CiAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgKSl9CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgKX0KCiAgICAgIHsvKiBFbXB0eSBzdGF0ZSAqL30KICAgICAgeyFsb2FkaW5nICYmIGNybUludm9pY2VzLmxlbmd0aCA9PT0gMCAmJiBxYkludm9pY2VzLmxlbmd0aCA9PT0gMCAmJiBlc3RpbWF0ZXMubGVuZ3RoID09PSAwICYmICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1jZW50ZXIgcHktNCI+CiAgICAgICAgICA8RG9sbGFyU2lnbiBjbGFzc05hbWU9InctNiBoLTYgdGV4dC1zbGF0ZS0yMDAgbXgtYXV0byBtYi0xLjUiIC8+CiAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS00MDAiPk5vIFFCIGRhdGEgZm9yIHRoaXMgbGVhZCB5ZXQ8L3A+CiAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzEwcHhdIHRleHQtc2xhdGUtNDAwIG10LTAuNSI+VXNlICJTeW5jIHRvIFFCIiB0byBjcmVhdGUgYSBjdXN0b21lcjwvcD4KICAgICAgICA8L2Rpdj4KICAgICAgKX0KICAgIDwvZGl2PgogICk7Cn0=
+/**
+ * QBStatusPanel — Native Railway QuickBooks status panel for Lead Detail.
+ *
+ * Reads from:
+ *   - Railway leads table (qb_customer_id, qb_invoice_* fields)
+ *   - Railway invoices table (CRM invoices)
+ *   - Railway qb_invoices_cache + qb_invoice_sale_map (cached QB financials)
+ *   - Railway handoff_estimates (QB estimates)
+ *
+ * Actions:
+ *   - Sync to QB: creates/updates QB customer via existing QB proxy
+ *   - Refresh from QB: pulls live QB customer + invoice data
+ *
+ * No Base44 calls. All data is native Railway/Postgres or via the existing
+ * QB proxy (qbInternal.js).
+ */
+import { useState, useEffect, useCallback } from "react";
+import { leadQB as railwayLeadQB } from "@/api/railway";
+import { fmtMoney } from "@/lib/formatters";
+import { useToast } from "@/components/ui/use-toast";
+import { DollarSign, RefreshCw, ArrowRightLeft, FileText, AlertCircle, CheckCircle2, ExternalLink } from "lucide-react";
+
+export default function QBStatusPanel({ lead, onLeadUpdated }) {
+  const [qbData, setQbData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(null);
+  const { toast } = useToast();
+
+  const loadStatus = useCallback(async () => {
+    if (!lead?.id) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await railwayLeadQB.getStatus(lead.id);
+      setQbData(data);
+    } catch (e) {
+      setError(e.message || 'Failed to load QB status');
+    } finally {
+      setLoading(false);
+    }
+  }, [lead?.id]);
+
+  useEffect(() => { loadStatus(); }, [loadStatus]);
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const result = await railwayLeadQB.syncToQB(lead.id);
+      toast({ title: 'Synced to QuickBooks', description: result.customer_id ? `Customer ID: ${result.customer_id}` : 'Customer updated', duration: 3000 });
+      await loadStatus();
+      if (onLeadUpdated) onLeadUpdated();
+    } catch (e) {
+      toast({ title: 'QB Sync Failed', description: e.message, variant: 'destructive', duration: 5000 });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const result = await railwayLeadQB.refreshFromQB(lead.id);
+      toast({ title: 'Refreshed from QB', description: result.message, duration: 3000 });
+      await loadStatus();
+    } catch (e) {
+      const isReconnect = e.message?.includes('RECONNECT');
+      toast({ title: isReconnect ? 'QB Reconnect Required' : 'Refresh Failed', description: e.message, variant: 'destructive', duration: 5000 });
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-4 flex items-center justify-center">
+        <RefreshCw className="w-4 h-4 text-slate-400 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4">
+        <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-xs font-semibold text-red-700">Failed to load QB status</p>
+            <p className="text-[11px] text-red-500 mt-0.5">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const { qbConnected, qbReconnectRequired, crmInvoices = [], qbInvoices = [], estimates = [] } = qbData || {};
+  const hasQbCustomer = !!lead.qb_customer_id || !!qbData?.lead?.qb_customer_id;
+
+  return (
+    <div className="space-y-3">
+      {/* Connection status */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full ${qbConnected ? 'bg-emerald-500' : 'bg-red-400'}`} />
+          <span className="text-xs font-semibold text-slate-700">
+            {qbConnected ? 'QuickBooks Connected' : 'QuickBooks Not Connected'}
+          </span>
+        </div>
+        {qbReconnectRequired && (
+          <span className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full font-semibold">
+            Reconnect Required
+          </span>
+        )}
+      </div>
+
+      {/* Customer match */}
+      <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+        <div className="flex items-center gap-2">
+          {hasQbCustomer ? (
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+          ) : (
+            <AlertCircle className="w-4 h-4 text-slate-400" />
+          )}
+          <div>
+            <p className="text-xs font-semibold text-slate-700">QB Customer</p>
+            <p className="text-[11px] text-slate-500">
+              {hasQbCustomer ? `ID: ${lead.qb_customer_id || qbData?.lead?.qb_customer_id}` : 'Not matched'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex gap-2">
+        <button
+          onClick={handleSync}
+          disabled={syncing || !qbConnected}
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50 rounded-lg transition-colors"
+        >
+          <ArrowRightLeft className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
+          {syncing ? 'Syncing...' : 'Sync to QB'}
+        </button>
+        <button
+          onClick={handleRefresh}
+          disabled={refreshing || !qbConnected}
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-50 rounded-lg transition-colors"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+          {refreshing ? 'Refreshing...' : 'Refresh'}
+        </button>
+      </div>
+
+      {/* CRM Invoices */}
+      {crmInvoices.length > 0 && (
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">CRM Invoices ({crmInvoices.length})</p>
+          <div className="space-y-1.5">
+            {crmInvoices.map((inv) => (
+              <div key={inv.id} className="flex items-center justify-between bg-white border border-slate-200 rounded-lg px-3 py-2">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-slate-800 truncate">
+                    {inv.qb_invoice_number || inv.invoice_number || 'Invoice'}
+                  </p>
+                  <p className="text-[10px] text-slate-500">
+                    {inv.payment_stage || inv.status || '—'}
+                    {inv.deal_id ? ` · Sale: ${inv.deal_id.substring(0, 8)}` : ''}
+                  </p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-xs font-bold text-slate-800">{fmtMoney(inv.amount)}</p>
+                  <p className={`text-[10px] font-semibold ${inv.synced_to_qb ? 'text-emerald-600' : 'text-slate-400'}`}>
+                    {inv.synced_to_qb ? '✓ Synced' : 'Not synced'}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* QB Cached Invoices */}
+      {qbInvoices.length > 0 && (
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">QB Invoices ({qbInvoices.length})</p>
+          <div className="space-y-1.5">
+            {qbInvoices.map((inv, i) => (
+              <div key={i} className="flex items-center justify-between bg-white border border-slate-200 rounded-lg px-3 py-2">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-slate-800 truncate">
+                    #{inv.qb_doc_number || inv.qb_invoice_id}
+                  </p>
+                  <p className="text-[10px] text-slate-500">
+                    {inv.voided ? 'Voided' : inv.txn_status || '—'}
+                    {inv.crm_sale_id ? ` · Sale: ${inv.crm_sale_id.substring(0, 8)}` : ''}
+                  </p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-xs font-bold text-slate-800">{fmtMoney(inv.total_amt)}</p>
+                  <p className="text-[10px] text-slate-500">Bal: {fmtMoney(inv.balance)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Estimates */}
+      {estimates.length > 0 && (
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Estimates ({estimates.length})</p>
+          <div className="space-y-1.5">
+            {estimates.map((est) => (
+              <div key={est.id} className="flex items-center justify-between bg-white border border-slate-200 rounded-lg px-3 py-2">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-slate-800 truncate">
+                    #{est.qb_estimate_number || est.qb_estimate_id}
+                  </p>
+                  <p className="text-[10px] text-slate-500">{est.estimate_status || '—'}</p>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className="text-xs font-bold text-slate-800">{fmtMoney(est.estimate_amount)}</span>
+                  {est.qb_app_url && (
+                    <a href={est.qb_app_url} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-amber-600">
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!loading && crmInvoices.length === 0 && qbInvoices.length === 0 && estimates.length === 0 && (
+        <div className="text-center py-4">
+          <DollarSign className="w-6 h-6 text-slate-200 mx-auto mb-1.5" />
+          <p className="text-xs text-slate-400">No QB data for this lead yet</p>
+          <p className="text-[10px] text-slate-400 mt-0.5">Use "Sync to QB" to create a customer</p>
+        </div>
+      )}
+    </div>
+  );
+}

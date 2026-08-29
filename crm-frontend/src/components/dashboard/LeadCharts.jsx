@@ -1,1 +1,151 @@
-aW1wb3J0IHsgdXNlTWVtbyB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsKICBBcmVhQ2hhcnQsIEFyZWEsIEJhckNoYXJ0LCBCYXIsIFBpZUNoYXJ0LCBQaWUsIENlbGwsCiAgWEF4aXMsIFlBeGlzLCBDYXJ0ZXNpYW5HcmlkLCBUb29sdGlwLCBSZXNwb25zaXZlQ29udGFpbmVyLCBMZWdlbmQKfSBmcm9tICJyZWNoYXJ0cyI7CmltcG9ydCB7IGZvcm1hdCwgc3ViTW9udGhzLCBzdGFydE9mTW9udGgsIHBhcnNlSVNPLCBpc0FmdGVyIH0gZnJvbSAiZGF0ZS1mbnMiOwoKY29uc3QgU1RBVFVTX0NPTE9SUyA9IHsKICAiTmV3IjogIiMzYjgyZjYiLAogICJDb250YWN0ZWQiOiAiIzhiNWNmNiIsCiAgIkFuc3dlcmVkLCBubyBhcHBvaW50bWVudCBzZXQiOiAiIzZiNzI4MCIsCiAgIkFwcG9pbnRtZW50IHNjaGVkdWxlZCI6ICIjMTBiOTgxIiwKICAiUXVhbGlmaWVkIjogIiMwNmI2ZDQiLAogICJFc3RpbWF0ZSBTZW50IjogIiNmNTllMGIiLAogICJQcm9wb3NhbCBTZW50IjogIiNmOTczMTYiLAogICJDbG9zZSB3b24iOiAiIzIyYzU1ZSIsCiAgIkNsb3NlZCBMb3N0IjogIiNlZjQ0NDQiLAogICJVbnF1YWxpZmllZCI6ICIjOWNhM2FmIiwKfTsKCmNvbnN0IFNPVVJDRV9DT0xPUlMgPSBbIiNENEEwMTciLCAiIzNiODJmNiIsICIjMTBiOTgxIiwgIiNmOTczMTYiLCAiIzhiNWNmNiIsICIjZWY0NDQ0IiwgIiMwNmI2ZDQiXTsKCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIExlYWRDaGFydHMoeyBsZWFkcyB9KSB7CiAgLy8gTGVhZCBWb2x1bWUgT3ZlciBUaW1lIChsYXN0IDEyIG1vbnRocykKICBjb25zdCB2b2x1bWVEYXRhID0gdXNlTWVtbygoKSA9PiB7CiAgICBjb25zdCBtb250aHMgPSBbXTsKICAgIGZvciAobGV0IGkgPSAxMTsgaSA+PSAwOyBpLS0pIHsKICAgICAgY29uc3QgbW9udGhTdGFydCA9IHN0YXJ0T2ZNb250aChzdWJNb250aHMobmV3IERhdGUoKSwgaSkpOwogICAgICBjb25zdCBsYWJlbCA9IGZvcm1hdChtb250aFN0YXJ0LCAiTU1NIHl5Iik7CiAgICAgIGNvbnN0IGNvdW50ID0gbGVhZHMuZmlsdGVyKGwgPT4gewogICAgICAgIGlmICghbC5jcmVhdGVkX2RhdGUpIHJldHVybiBmYWxzZTsKICAgICAgICBjb25zdCBkID0gbmV3IERhdGUobC5jcmVhdGVkX2RhdGUpOwogICAgICAgIHJldHVybiBkLmdldE1vbnRoKCkgPT09IG1vbnRoU3RhcnQuZ2V0TW9udGgoKSAmJiBkLmdldEZ1bGxZZWFyKCkgPT09IG1vbnRoU3RhcnQuZ2V0RnVsbFllYXIoKTsKICAgICAgfSkubGVuZ3RoOwogICAgICBtb250aHMucHVzaCh7IG1vbnRoOiBsYWJlbCwgbGVhZHM6IGNvdW50IH0pOwogICAgfQogICAgcmV0dXJuIG1vbnRoczsKICB9LCBbbGVhZHNdKTsKCiAgLy8gTGVhZHMgYnkgU3RhdHVzCiAgY29uc3Qgc3RhdHVzRGF0YSA9IHVzZU1lbW8oKCkgPT4gewogICAgY29uc3QgY291bnRzID0ge307CiAgICBmb3IgKGNvbnN0IGxlYWQgb2YgbGVhZHMpIHsKICAgICAgY29uc3QgcyA9IGxlYWQuc3RhdHVzIHx8ICJOZXciOwogICAgICBjb3VudHNbc10gPSAoY291bnRzW3NdIHx8IDApICsgMTsKICAgIH0KICAgIHJldHVybiBPYmplY3QuZW50cmllcyhjb3VudHMpCiAgICAgIC5tYXAoKFtuYW1lLCB2YWx1ZV0pID0+ICh7IG5hbWUsIHZhbHVlIH0pKQogICAgICAuc29ydCgoYSwgYikgPT4gYi52YWx1ZSAtIGEudmFsdWUpOwogIH0sIFtsZWFkc10pOwoKICAvLyBMZWFkcyBieSBTb3VyY2UKICBjb25zdCBzb3VyY2VEYXRhID0gdXNlTWVtbygoKSA9PiB7CiAgICBjb25zdCBjb3VudHMgPSB7fTsKICAgIGZvciAoY29uc3QgbGVhZCBvZiBsZWFkcykgewogICAgICBjb25zdCBzID0gbGVhZC5zb3VyY2UgfHwgIk90aGVyIjsKICAgICAgY291bnRzW3NdID0gKGNvdW50c1tzXSB8fCAwKSArIDE7CiAgICB9CiAgICByZXR1cm4gT2JqZWN0LmVudHJpZXMoY291bnRzKQogICAgICAubWFwKChbbmFtZSwgdmFsdWVdKSA9PiAoeyBuYW1lLCB2YWx1ZSB9KSkKICAgICAgLnNvcnQoKGEsIGIpID0+IGIudmFsdWUgLSBhLnZhbHVlKTsKICB9LCBbbGVhZHNdKTsKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJzcGFjZS15LTYgbXQtOCI+CiAgICAgIHsvKiBMZWFkIFZvbHVtZSBPdmVyIFRpbWUgKi99CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy13aGl0ZSBib3JkZXIgYm9yZGVyLWJvcmRlciBwLTYiPgogICAgICAgIDxoMiBjbGFzc05hbWU9InRleHQtc20gZm9udC1ibGFjayB0cmFja2luZy13aWRlc3QgdXBwZXJjYXNlIHRleHQtc2xhdGUtNzAwIG1iLTEiPkxlYWQgVm9sdW1lIE92ZXIgVGltZTwvaDI+CiAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtbXV0ZWQtZm9yZWdyb3VuZCBmb250LW1vbm8gbWItNSI+TGFzdCAxMiBtb250aHM8L3A+CiAgICAgICAgPFJlc3BvbnNpdmVDb250YWluZXIgd2lkdGg9IjEwMCUiIGhlaWdodD17MjIwfT4KICAgICAgICAgIDxBcmVhQ2hhcnQgZGF0YT17dm9sdW1lRGF0YX0gbWFyZ2luPXt7IHRvcDogNCwgcmlnaHQ6IDgsIGxlZnQ6IC0yMCwgYm90dG9tOiAwIH19PgogICAgICAgICAgICA8ZGVmcz4KICAgICAgICAgICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImxlYWRHcmFkIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgICAgICAgICAgICA8c3RvcCBvZmZzZXQ9IjUlIiBzdG9wQ29sb3I9IiNENEEwMTciIHN0b3BPcGFjaXR5PXswLjN9IC8+CiAgICAgICAgICAgICAgICA8c3RvcCBvZmZzZXQ9Ijk1JSIgc3RvcENvbG9yPSIjRDRBMDE3IiBzdG9wT3BhY2l0eT17MH0gLz4KICAgICAgICAgICAgICA8L2xpbmVhckdyYWRpZW50PgogICAgICAgICAgICA8L2RlZnM+CiAgICAgICAgICAgIDxDYXJ0ZXNpYW5HcmlkIHN0cm9rZURhc2hhcnJheT0iMyAzIiBzdHJva2U9IiNmMWY1ZjkiIC8+CiAgICAgICAgICAgIDxYQXhpcyBkYXRhS2V5PSJtb250aCIgdGljaz17eyBmb250U2l6ZTogMTAsIGZvbnRGYW1pbHk6ICJtb25vc3BhY2UiIH19IC8+CiAgICAgICAgICAgIDxZQXhpcyBhbGxvd0RlY2ltYWxzPXtmYWxzZX0gdGljaz17eyBmb250U2l6ZTogMTAsIGZvbnRGYW1pbHk6ICJtb25vc3BhY2UiIH19IC8+CiAgICAgICAgICAgIDxUb29sdGlwCiAgICAgICAgICAgICAgY29udGVudFN0eWxlPXt7IGZvbnRTaXplOiAxMiwgZm9udEZhbWlseTogIm1vbm9zcGFjZSIsIGJvcmRlcjogIjFweCBzb2xpZCAjZTJlOGYwIiB9fQogICAgICAgICAgICAgIGZvcm1hdHRlcj17KHYpID0+IFt2LCAiTGVhZHMiXX0KICAgICAgICAgICAgLz4KICAgICAgICAgICAgPEFyZWEgdHlwZT0ibW9ub3RvbmUiIGRhdGFLZXk9ImxlYWRzIiBzdHJva2U9IiNENEEwMTciIHN0cm9rZVdpZHRoPXsyfSBmaWxsPSJ1cmwoI2xlYWRHcmFkKSIgZG90PXt7IHI6IDMsIGZpbGw6ICIjRDRBMDE3IiB9fSAvPgogICAgICAgICAgPC9BcmVhQ2hhcnQ+CiAgICAgICAgPC9SZXNwb25zaXZlQ29udGFpbmVyPgogICAgICA8L2Rpdj4KCiAgICAgIDxkaXYgY2xhc3NOYW1lPSJncmlkIGdyaWQtY29scy0xIGxnOmdyaWQtY29scy0yIGdhcC02Ij4KICAgICAgICB7LyogTGVhZHMgYnkgU3RhdHVzICovfQogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy13aGl0ZSBib3JkZXIgYm9yZGVyLWJvcmRlciBwLTYiPgogICAgICAgICAgPGgyIGNsYXNzTmFtZT0idGV4dC1zbSBmb250LWJsYWNrIHRyYWNraW5nLXdpZGVzdCB1cHBlcmNhc2UgdGV4dC1zbGF0ZS03MDAgbWItMSI+TGVhZHMgYnkgU3RhdHVzPC9oMj4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LW11dGVkLWZvcmVncm91bmQgZm9udC1tb25vIG1iLTUiPkN1cnJlbnQgcGlwZWxpbmUgYnJlYWtkb3duPC9wPgogICAgICAgICAgPFJlc3BvbnNpdmVDb250YWluZXIgd2lkdGg9IjEwMCUiIGhlaWdodD17MjIwfT4KICAgICAgICAgICAgPEJhckNoYXJ0IGRhdGE9e3N0YXR1c0RhdGF9IGxheW91dD0idmVydGljYWwiIG1hcmdpbj17eyB0b3A6IDAsIHJpZ2h0OiAxNiwgbGVmdDogNCwgYm90dG9tOiAwIH19PgogICAgICAgICAgICAgIDxDYXJ0ZXNpYW5HcmlkIHN0cm9rZURhc2hhcnJheT0iMyAzIiBzdHJva2U9IiNmMWY1ZjkiIGhvcml6b250YWw9e2ZhbHNlfSAvPgogICAgICAgICAgICAgIDxYQXhpcyB0eXBlPSJudW1iZXIiIGFsbG93RGVjaW1hbHM9e2ZhbHNlfSB0aWNrPXt7IGZvbnRTaXplOiAxMCwgZm9udEZhbWlseTogIm1vbm9zcGFjZSIgfX0gLz4KICAgICAgICAgICAgICA8WUF4aXMgdHlwZT0iY2F0ZWdvcnkiIGRhdGFLZXk9Im5hbWUiIHdpZHRoPXsxMzB9IHRpY2s9e3sgZm9udFNpemU6IDksIGZvbnRGYW1pbHk6ICJtb25vc3BhY2UiIH19IC8+CiAgICAgICAgICAgICAgPFRvb2x0aXAKICAgICAgICAgICAgICAgIGNvbnRlbnRTdHlsZT17eyBmb250U2l6ZTogMTIsIGZvbnRGYW1pbHk6ICJtb25vc3BhY2UiLCBib3JkZXI6ICIxcHggc29saWQgI2UyZThmMCIgfX0KICAgICAgICAgICAgICAgIGZvcm1hdHRlcj17KHYpID0+IFt2LCAiTGVhZHMiXX0KICAgICAgICAgICAgICAvPgogICAgICAgICAgICAgIDxCYXIgZGF0YUtleT0idmFsdWUiIHJhZGl1cz17WzAsIDMsIDMsIDBdfT4KICAgICAgICAgICAgICAgIHtzdGF0dXNEYXRhLm1hcCgoZW50cnksIGkpID0+ICgKICAgICAgICAgICAgICAgICAgPENlbGwga2V5PXtpfSBmaWxsPXtTVEFUVVNfQ09MT1JTW2VudHJ5Lm5hbWVdIHx8ICIjOTRhM2I4In0gLz4KICAgICAgICAgICAgICAgICkpfQogICAgICAgICAgICAgIDwvQmFyPgogICAgICAgICAgICA8L0JhckNoYXJ0PgogICAgICAgICAgPC9SZXNwb25zaXZlQ29udGFpbmVyPgogICAgICAgIDwvZGl2PgoKICAgICAgICB7LyogTGVhZCBTb3VyY2VzICovfQogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy13aGl0ZSBib3JkZXIgYm9yZGVyLWJvcmRlciBwLTYiPgogICAgICAgICAgPGgyIGNsYXNzTmFtZT0idGV4dC1zbSBmb250LWJsYWNrIHRyYWNraW5nLXdpZGVzdCB1cHBlcmNhc2UgdGV4dC1zbGF0ZS03MDAgbWItMSI+TGVhZCBTb3VyY2VzPC9oMj4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LW11dGVkLWZvcmVncm91bmQgZm9udC1tb25vIG1iLTUiPldoZXJlIHlvdXIgbGVhZHMgY29tZSBmcm9tPC9wPgogICAgICAgICAge3NvdXJjZURhdGEubGVuZ3RoID09PSAwID8gKAogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgaC1bMjIwcHhdIHRleHQteHMgdGV4dC1tdXRlZC1mb3JlZ3JvdW5kIGZvbnQtbW9ubyI+Tm8gc291cmNlIGRhdGE8L2Rpdj4KICAgICAgICAgICkgOiAoCiAgICAgICAgICAgIDxSZXNwb25zaXZlQ29udGFpbmVyIHdpZHRoPSIxMDAlIiBoZWlnaHQ9ezIyMH0+CiAgICAgICAgICAgICAgPFBpZUNoYXJ0PgogICAgICAgICAgICAgICAgPFBpZQogICAgICAgICAgICAgICAgICBkYXRhPXtzb3VyY2VEYXRhfQogICAgICAgICAgICAgICAgICBjeD0iNTAlIgogICAgICAgICAgICAgICAgICBjeT0iNTAlIgogICAgICAgICAgICAgICAgICBpbm5lclJhZGl1cz17NTV9CiAgICAgICAgICAgICAgICAgIG91dGVyUmFkaXVzPXs4NX0KICAgICAgICAgICAgICAgICAgcGFkZGluZ0FuZ2xlPXszfQogICAgICAgICAgICAgICAgICBkYXRhS2V5PSJ2YWx1ZSIKICAgICAgICAgICAgICAgID4KICAgICAgICAgICAgICAgICAge3NvdXJjZURhdGEubWFwKChfLCBpKSA9PiAoCiAgICAgICAgICAgICAgICAgICAgPENlbGwga2V5PXtpfSBmaWxsPXtTT1VSQ0VfQ09MT1JTW2kgJSBTT1VSQ0VfQ09MT1JTLmxlbmd0aF19IC8+CiAgICAgICAgICAgICAgICAgICkpfQogICAgICAgICAgICAgICAgPC9QaWU+CiAgICAgICAgICAgICAgICA8VG9vbHRpcAogICAgICAgICAgICAgICAgICBjb250ZW50U3R5bGU9e3sgZm9udFNpemU6IDEyLCBmb250RmFtaWx5OiAibW9ub3NwYWNlIiwgYm9yZGVyOiAiMXB4IHNvbGlkICNlMmU4ZjAiIH19CiAgICAgICAgICAgICAgICAgIGZvcm1hdHRlcj17KHYsIG4pID0+IFt2LCBuXX0KICAgICAgICAgICAgICAgIC8+CiAgICAgICAgICAgICAgICA8TGVnZW5kCiAgICAgICAgICAgICAgICAgIGljb25UeXBlPSJjaXJjbGUiCiAgICAgICAgICAgICAgICAgIGljb25TaXplPXs4fQogICAgICAgICAgICAgICAgICBmb3JtYXR0ZXI9eyh2KSA9PiA8c3BhbiBzdHlsZT17eyBmb250U2l6ZTogMTAsIGZvbnRGYW1pbHk6ICJtb25vc3BhY2UiIH19Pnt2fTwvc3Bhbj59CiAgICAgICAgICAgICAgICAvPgogICAgICAgICAgICAgIDwvUGllQ2hhcnQ+CiAgICAgICAgICAgIDwvUmVzcG9uc2l2ZUNvbnRhaW5lcj4KICAgICAgICAgICl9CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CiAgKTsKfQ==
+import { useMemo } from "react";
+import {
+  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
+} from "recharts";
+import { format, subMonths, startOfMonth, parseISO, isAfter } from "date-fns";
+
+const STATUS_COLORS = {
+  "New": "#3b82f6",
+  "Contacted": "#8b5cf6",
+  "Answered, no appointment set": "#6b7280",
+  "Appointment scheduled": "#10b981",
+  "Qualified": "#06b6d4",
+  "Estimate Sent": "#f59e0b",
+  "Proposal Sent": "#f97316",
+  "Close won": "#22c55e",
+  "Closed Lost": "#ef4444",
+  "Unqualified": "#9ca3af",
+};
+
+const SOURCE_COLORS = ["#D4A017", "#3b82f6", "#10b981", "#f97316", "#8b5cf6", "#ef4444", "#06b6d4"];
+
+export default function LeadCharts({ leads }) {
+  // Lead Volume Over Time (last 12 months)
+  const volumeData = useMemo(() => {
+    const months = [];
+    for (let i = 11; i >= 0; i--) {
+      const monthStart = startOfMonth(subMonths(new Date(), i));
+      const label = format(monthStart, "MMM yy");
+      const count = leads.filter(l => {
+        if (!l.created_date) return false;
+        const d = new Date(l.created_date);
+        return d.getMonth() === monthStart.getMonth() && d.getFullYear() === monthStart.getFullYear();
+      }).length;
+      months.push({ month: label, leads: count });
+    }
+    return months;
+  }, [leads]);
+
+  // Leads by Status
+  const statusData = useMemo(() => {
+    const counts = {};
+    for (const lead of leads) {
+      const s = lead.status || "New";
+      counts[s] = (counts[s] || 0) + 1;
+    }
+    return Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [leads]);
+
+  // Leads by Source
+  const sourceData = useMemo(() => {
+    const counts = {};
+    for (const lead of leads) {
+      const s = lead.source || "Other";
+      counts[s] = (counts[s] || 0) + 1;
+    }
+    return Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [leads]);
+
+  return (
+    <div className="space-y-6 mt-8">
+      {/* Lead Volume Over Time */}
+      <div className="bg-white border border-border p-6">
+        <h2 className="text-sm font-black tracking-widest uppercase text-slate-700 mb-1">Lead Volume Over Time</h2>
+        <p className="text-xs text-muted-foreground font-mono mb-5">Last 12 months</p>
+        <ResponsiveContainer width="100%" height={220}>
+          <AreaChart data={volumeData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+            <defs>
+              <linearGradient id="leadGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#D4A017" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#D4A017" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+            <XAxis dataKey="month" tick={{ fontSize: 10, fontFamily: "monospace" }} />
+            <YAxis allowDecimals={false} tick={{ fontSize: 10, fontFamily: "monospace" }} />
+            <Tooltip
+              contentStyle={{ fontSize: 12, fontFamily: "monospace", border: "1px solid #e2e8f0" }}
+              formatter={(v) => [v, "Leads"]}
+            />
+            <Area type="monotone" dataKey="leads" stroke="#D4A017" strokeWidth={2} fill="url(#leadGrad)" dot={{ r: 3, fill: "#D4A017" }} />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Leads by Status */}
+        <div className="bg-white border border-border p-6">
+          <h2 className="text-sm font-black tracking-widest uppercase text-slate-700 mb-1">Leads by Status</h2>
+          <p className="text-xs text-muted-foreground font-mono mb-5">Current pipeline breakdown</p>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={statusData} layout="vertical" margin={{ top: 0, right: 16, left: 4, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+              <XAxis type="number" allowDecimals={false} tick={{ fontSize: 10, fontFamily: "monospace" }} />
+              <YAxis type="category" dataKey="name" width={130} tick={{ fontSize: 9, fontFamily: "monospace" }} />
+              <Tooltip
+                contentStyle={{ fontSize: 12, fontFamily: "monospace", border: "1px solid #e2e8f0" }}
+                formatter={(v) => [v, "Leads"]}
+              />
+              <Bar dataKey="value" radius={[0, 3, 3, 0]}>
+                {statusData.map((entry, i) => (
+                  <Cell key={i} fill={STATUS_COLORS[entry.name] || "#94a3b8"} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Lead Sources */}
+        <div className="bg-white border border-border p-6">
+          <h2 className="text-sm font-black tracking-widest uppercase text-slate-700 mb-1">Lead Sources</h2>
+          <p className="text-xs text-muted-foreground font-mono mb-5">Where your leads come from</p>
+          {sourceData.length === 0 ? (
+            <div className="flex items-center justify-center h-[220px] text-xs text-muted-foreground font-mono">No source data</div>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie
+                  data={sourceData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={55}
+                  outerRadius={85}
+                  paddingAngle={3}
+                  dataKey="value"
+                >
+                  {sourceData.map((_, i) => (
+                    <Cell key={i} fill={SOURCE_COLORS[i % SOURCE_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{ fontSize: 12, fontFamily: "monospace", border: "1px solid #e2e8f0" }}
+                  formatter={(v, n) => [v, n]}
+                />
+                <Legend
+                  iconType="circle"
+                  iconSize={8}
+                  formatter={(v) => <span style={{ fontSize: 10, fontFamily: "monospace" }}>{v}</span>}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

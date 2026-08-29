@@ -1,1 +1,21 @@
-LyoqCiAqIEdlbmVyYXRlIGEgR21haWwgY29tcG9zZSBVUkwgd2l0aCBwcmUtZmlsbGVkIHJlY2lwaWVudAogKiBPcGVucyBHbWFpbCB3ZWIgY29tcG9zZSBpbiBhIG5ldyB0YWIKICovCmV4cG9ydCBjb25zdCBnZXRHbWFpbENvbXBvc2VVcmwgPSAodG9FbWFpbCkgPT4gewogIGlmICghdG9FbWFpbCkgcmV0dXJuICcjJzsKICByZXR1cm4gYGh0dHBzOi8vbWFpbC5nb29nbGUuY29tL21haWwvdS8wLyNjb21wb3NlPW5ldyh0bz0ke2VuY29kZVVSSUNvbXBvbmVudCh0b0VtYWlsKX0pYDsKfTsKCi8qKgogKiBPcGVuIEdtYWlsIGNvbXBvc2UgaW4gYSBuZXcgd2luZG93L3RhYiB3aXRoIHByZS1maWxsZWQgcmVjaXBpZW50CiAqLwpleHBvcnQgY29uc3Qgb3BlbkdtYWlsQ29tcG9zZSA9ICh0b0VtYWlsLCBlKSA9PiB7CiAgaWYgKGUpIHsKICAgIGUucHJldmVudERlZmF1bHQoKTsKICAgIGUuc3RvcFByb3BhZ2F0aW9uKCk7CiAgfQogIGlmICh0b0VtYWlsKSB7CiAgICB3aW5kb3cub3BlbihnZXRHbWFpbENvbXBvc2VVcmwodG9FbWFpbCksICdfYmxhbmsnKTsKICB9Cn07
+/**
+ * Generate a Gmail compose URL with pre-filled recipient
+ * Opens Gmail web compose in a new tab
+ */
+export const getGmailComposeUrl = (toEmail) => {
+  if (!toEmail) return '#';
+  return `https://mail.google.com/mail/u/0/#compose=new(to=${encodeURIComponent(toEmail)})`;
+};
+
+/**
+ * Open Gmail compose in a new window/tab with pre-filled recipient
+ */
+export const openGmailCompose = (toEmail, e) => {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  if (toEmail) {
+    window.open(getGmailComposeUrl(toEmail), '_blank');
+  }
+};

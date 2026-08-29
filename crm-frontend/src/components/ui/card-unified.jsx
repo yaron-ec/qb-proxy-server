@@ -1,1 +1,165 @@
-LyoqCiAqIFVuaWZpZWQgQ2FyZCBDb21wb25lbnQgU3lzdGVtCiAqIFByb3ZpZGVzIGNvbnNpc3RlbnQgc3R5bGluZyBmb3IgYWxsIGNhcmQgdHlwZXMgYWNyb3NzIHRoZSBDUk0KICovCgppbXBvcnQgUmVhY3QgZnJvbSAncmVhY3QnOwppbXBvcnQgeyBBbGVydFRyaWFuZ2xlLCBBbGVydENpcmNsZSwgQ2hlY2tDaXJjbGUyLCBJbmZvLCBaYXAgfSBmcm9tICdsdWNpZGUtcmVhY3QnOwoKLyoqCiAqIFN0YW5kYXJkQ2FyZCAtIERlZmF1bHQgY29udGFpbmVyIGZvciBjb250ZW50IHNlY3Rpb25zCiAqLwpleHBvcnQgZnVuY3Rpb24gU3RhbmRhcmRDYXJkKHsgY2hpbGRyZW4sIGNsYXNzTmFtZSA9ICcnIH0pIHsKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9e2BiZy1jYXJkIHRleHQtY2FyZC1mb3JlZ3JvdW5kIGJvcmRlciBib3JkZXItYm9yZGVyIHJvdW5kZWQtbGcgcC00IHNoYWRvdy1zbSAke2NsYXNzTmFtZX1gfT4KICAgICAge2NoaWxkcmVufQogICAgPC9kaXY+CiAgKTsKfQoKLyoqCiAqIEluZm9DYXJkIC0gSW5mb3JtYXRpb25hbCBtZXNzYWdlcyB3aXRoIHNvZnQgYmx1ZSBiYWNrZ3JvdW5kCiAqLwpleHBvcnQgZnVuY3Rpb24gSW5mb0NhcmQoeyBpY29uLCB0aXRsZSwgZGVzY3JpcHRpb24sIGFjdGlvbiA9IG51bGwgfSkgewogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT0iYmctYmx1ZS01MCBib3JkZXIgYm9yZGVyLWJsdWUtMjAwIHJvdW5kZWQtbGcgcC00IHNwYWNlLXktMiI+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLXN0YXJ0IGdhcC0zIj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleC1zaHJpbmstMCBtdC0wLjUiPgogICAgICAgICAge2ljb24gfHwgPEluZm8gY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtYmx1ZS02MDAiIC8+fQogICAgICAgIDwvZGl2PgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4LTEgbWluLXctMCI+CiAgICAgICAgICB7dGl0bGUgJiYgPGgzIGNsYXNzTmFtZT0idHlwb2dyYXBoeS1tZXNzYWdlLXRpdGxlIHRleHQtYmx1ZS05MDAiPnt0aXRsZX08L2gzPn0KICAgICAgICAgIHtkZXNjcmlwdGlvbiAmJiA8cCBjbGFzc05hbWU9InRleHQtc20gdGV4dC1ibHVlLTcwMCBtdC0xIj57ZGVzY3JpcHRpb259PC9wPn0KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CiAgICAgIHthY3Rpb24gJiYgPGRpdiBjbGFzc05hbWU9Im1sLTciPnthY3Rpb259PC9kaXY+fQogICAgPC9kaXY+CiAgKTsKfQoKLyoqCiAqIFdhcm5pbmdDYXJkIC0gV2FybmluZy9jYXV0aW9uIG1lc3NhZ2VzIHdpdGggYW1iZXIgYmFja2dyb3VuZAogKi8KZXhwb3J0IGZ1bmN0aW9uIFdhcm5pbmdDYXJkKHsgaWNvbiwgdGl0bGUsIGRlc2NyaXB0aW9uLCBhY3Rpb24gPSBudWxsIH0pIHsKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9ImJnLWFtYmVyLTUwIGJvcmRlciBib3JkZXItYW1iZXItMjAwIHJvdW5kZWQtbGcgcC00IHNwYWNlLXktMiI+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLXN0YXJ0IGdhcC0zIj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleC1zaHJpbmstMCBtdC0wLjUiPgogICAgICAgICAge2ljb24gfHwgPEFsZXJ0VHJpYW5nbGUgY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtYW1iZXItNjAwIiAvPn0KICAgICAgICA8L2Rpdj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleC0xIG1pbi13LTAiPgogICAgICAgICAge3RpdGxlICYmIDxoMyBjbGFzc05hbWU9InR5cG9ncmFwaHktbWVzc2FnZS10aXRsZSB0ZXh0LWFtYmVyLTkwMCI+e3RpdGxlfTwvaDM+fQogICAgICAgICAge2Rlc2NyaXB0aW9uICYmIDxwIGNsYXNzTmFtZT0idGV4dC1zbSB0ZXh0LWFtYmVyLTcwMCBtdC0xIj57ZGVzY3JpcHRpb259PC9wPn0KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CiAgICAgIHthY3Rpb24gJiYgPGRpdiBjbGFzc05hbWU9Im1sLTciPnthY3Rpb259PC9kaXY+fQogICAgPC9kaXY+CiAgKTsKfQoKLyoqCiAqIEVycm9yQ2FyZCAtIEVycm9yIG1lc3NhZ2VzIHdpdGggcmVkIGJhY2tncm91bmQKICovCmV4cG9ydCBmdW5jdGlvbiBFcnJvckNhcmQoeyBpY29uLCB0aXRsZSwgZGVzY3JpcHRpb24sIGFjdGlvbiA9IG51bGwgfSkgewogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT0iYmctcmVkLTUwIGJvcmRlciBib3JkZXItcmVkLTIwMCByb3VuZGVkLWxnIHAtNCBzcGFjZS15LTIiPgogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1zdGFydCBnYXAtMyI+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXgtc2hyaW5rLTAgbXQtMC41Ij4KICAgICAgICAgIHtpY29uIHx8IDxBbGVydFRyaWFuZ2xlIGNsYXNzTmFtZT0idy00IGgtNCB0ZXh0LXJlZC02MDAiIC8+fQogICAgICAgIDwvZGl2PgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4LTEgbWluLXctMCI+CiAgICAgICAgICB7dGl0bGUgJiYgPGgzIGNsYXNzTmFtZT0idHlwb2dyYXBoeS1tZXNzYWdlLXRpdGxlIHRleHQtcmVkLTkwMCI+e3RpdGxlfTwvaDM+fQogICAgICAgICAge2Rlc2NyaXB0aW9uICYmIDxwIGNsYXNzTmFtZT0idGV4dC1zbSB0ZXh0LXJlZC03MDAgbXQtMSI+e2Rlc2NyaXB0aW9ufTwvcD59CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgogICAgICB7YWN0aW9uICYmIDxkaXYgY2xhc3NOYW1lPSJtbC03Ij57YWN0aW9ufTwvZGl2Pn0KICAgIDwvZGl2PgogICk7Cn0KCi8qKgogKiBTdWNjZXNzQ2FyZCAtIFN1Y2Nlc3MvY29uZmlybWF0aW9uIG1lc3NhZ2VzIHdpdGggZ3JlZW4gYmFja2dyb3VuZAogKi8KZXhwb3J0IGZ1bmN0aW9uIFN1Y2Nlc3NDYXJkKHsgaWNvbiwgdGl0bGUsIGRlc2NyaXB0aW9uLCBhY3Rpb24gPSBudWxsIH0pIHsKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9ImJnLWVtZXJhbGQtNTAgYm9yZGVyIGJvcmRlci1lbWVyYWxkLTIwMCByb3VuZGVkLWxnIHAtNCBzcGFjZS15LTIiPgogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1zdGFydCBnYXAtMyI+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXgtc2hyaW5rLTAgbXQtMC41Ij4KICAgICAgICAgIHtpY29uIHx8IDxDaGVja0NpcmNsZTIgY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtZW1lcmFsZC02MDAiIC8+fQogICAgICAgIDwvZGl2PgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4LTEgbWluLXctMCI+CiAgICAgICAgICB7dGl0bGUgJiYgPGgzIGNsYXNzTmFtZT0idHlwb2dyYXBoeS1tZXNzYWdlLXRpdGxlIHRleHQtZW1lcmFsZC05MDAiPnt0aXRsZX08L2gzPn0KICAgICAgICAgIHtkZXNjcmlwdGlvbiAmJiA8cCBjbGFzc05hbWU9InRleHQtc20gdGV4dC1lbWVyYWxkLTcwMCBtdC0xIj57ZGVzY3JpcHRpb259PC9wPn0KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CiAgICAgIHthY3Rpb24gJiYgPGRpdiBjbGFzc05hbWU9Im1sLTciPnthY3Rpb259PC9kaXY+fQogICAgPC9kaXY+CiAgKTsKfQoKLyoqCiAqIEVtcHR5U3RhdGVDYXJkIC0gTGFyZ2UgZW1wdHkgc3RhdGUgd2l0aCBpY29uLCB0aXRsZSwgYW5kIG9wdGlvbmFsIGFjdGlvbgogKi8KZXhwb3J0IGZ1bmN0aW9uIEVtcHR5U3RhdGVDYXJkKHsgaWNvbiwgdGl0bGUsIGRlc2NyaXB0aW9uLCBhY3Rpb24gPSBudWxsLCBjbGFzc05hbWUgPSAnJyB9KSB7CiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPXtgYm9yZGVyLTIgYm9yZGVyLWRhc2hlZCBib3JkZXItYm9yZGVyIHJvdW5kZWQtbGcgcC04IHRleHQtY2VudGVyIHNwYWNlLXktMyAke2NsYXNzTmFtZX1gfT4KICAgICAge2ljb24gJiYgKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGp1c3RpZnktY2VudGVyIj4KICAgICAgICAgIHtSZWFjdC5pc1ZhbGlkRWxlbWVudChpY29uKSA/IGljb24gOiA8ZGl2IGNsYXNzTmFtZT0idGV4dC1zbGF0ZS0zMDAiPntpY29ufTwvZGl2Pn0KICAgICAgICA8L2Rpdj4KICAgICAgKX0KICAgICAge3RpdGxlICYmIDxoMyBjbGFzc05hbWU9InR5cG9ncmFwaHktZW1wdHktc3RhdGUtdGl0bGUiPnt0aXRsZX08L2gzPn0KICAgICAge2Rlc2NyaXB0aW9uICYmIDxwIGNsYXNzTmFtZT0idGV4dC1zbSB0ZXh0LXNsYXRlLTUwMCI+e2Rlc2NyaXB0aW9ufTwvcD59CiAgICAgIHthY3Rpb24gJiYgPGRpdiBjbGFzc05hbWU9InB0LTIiPnthY3Rpb259PC9kaXY+fQogICAgPC9kaXY+CiAgKTsKfQoKLyoqCiAqIFNlY3Rpb25DYXJkIC0gQ2FyZCB3aXRoIG9wdGlvbmFsIGhlYWRlciBhbmQgY29uc2lzdGVudCBzcGFjaW5nCiAqLwpleHBvcnQgZnVuY3Rpb24gU2VjdGlvbkNhcmQoeyB0aXRsZSwgc3VidGl0bGUsIGNoaWxkcmVuLCBjbGFzc05hbWUgPSAnJywgaGVhZGVyQWN0aW9uID0gbnVsbCB9KSB7CiAgcmV0dXJuICgKICAgIDxTdGFuZGFyZENhcmQgY2xhc3NOYW1lPXtjbGFzc05hbWV9PgogICAgICB7KHRpdGxlIHx8IHN1YnRpdGxlIHx8IGhlYWRlckFjdGlvbikgJiYgKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gbWItNCBwYi0zIGJvcmRlci1iIGJvcmRlci1ib3JkZXIiPgogICAgICAgICAgPGRpdj4KICAgICAgICAgICAge3RpdGxlICYmIDxoMiBjbGFzc05hbWU9InR5cG9ncmFwaHktY2FyZC10aXRsZSI+e3RpdGxlfTwvaDI+fQogICAgICAgICAgICB7c3VidGl0bGUgJiYgPHAgY2xhc3NOYW1lPSJ0eXBvZ3JhcGh5LWhlbHBlci10ZXh0IG10LTEiPntzdWJ0aXRsZX08L3A+fQogICAgICAgICAgPC9kaXY+CiAgICAgICAgICB7aGVhZGVyQWN0aW9uICYmIDxkaXY+e2hlYWRlckFjdGlvbn08L2Rpdj59CiAgICAgICAgPC9kaXY+CiAgICAgICl9CiAgICAgIHtjaGlsZHJlbn0KICAgIDwvU3RhbmRhcmRDYXJkPgogICk7Cn0KCi8qKgogKiBTdGF0dXNCYWRnZSAtIENvbnNpc3RlbnQgc3RhdHVzIGluZGljYXRvcgogKi8KZXhwb3J0IGZ1bmN0aW9uIFN0YXR1c0JhZGdlKHsgc3RhdHVzLCBzaXplID0gJ3NtJyB9KSB7CiAgY29uc3Qgc3R5bGVzID0gewogICAgc3VjY2VzczogJ2JnLWVtZXJhbGQtMTAwIHRleHQtZW1lcmFsZC03MDAnLAogICAgd2FybmluZzogJ2JnLWFtYmVyLTEwMCB0ZXh0LWFtYmVyLTcwMCcsCiAgICBlcnJvcjogJ2JnLXJlZC0xMDAgdGV4dC1yZWQtNzAwJywKICAgIGluZm86ICdiZy1ibHVlLTEwMCB0ZXh0LWJsdWUtNzAwJywKICAgIGRlZmF1bHQ6ICdiZy1zbGF0ZS0xMDAgdGV4dC1zbGF0ZS03MDAnLAogIH07CgogIGNvbnN0IHNpemVDbGFzc2VzID0gewogICAgeHM6ICdweC0yIHB5LTAuNSB0ZXh0LVsxMHB4XSBmb250LXNlbWlib2xkJywKICAgIHNtOiAncHgtMi41IHB5LTEgdGV4dC14cyBmb250LXNlbWlib2xkJywKICAgIG1kOiAncHgtMyBweS0xLjUgdGV4dC1zbSBmb250LXNlbWlib2xkJywKICB9OwoKICBjb25zdCBbdHlwZSwgbGFiZWxdID0gdHlwZW9mIHN0YXR1cyA9PT0gJ3N0cmluZycgCiAgICA/IFsnZGVmYXVsdCcsIHN0YXR1c10gCiAgICA6IFtzdGF0dXMudHlwZSB8fCAnZGVmYXVsdCcsIHN0YXR1cy5sYWJlbF07CgogIHJldHVybiAoCiAgICA8c3BhbiBjbGFzc05hbWU9e2Byb3VuZGVkLW1kICR7c3R5bGVzW3R5cGVdIHx8IHN0eWxlcy5kZWZhdWx0fSAke3NpemVDbGFzc2VzW3NpemVdIHx8IHNpemVDbGFzc2VzLnNtfWB9PgogICAgICB7bGFiZWx9CiAgICA8L3NwYW4+CiAgKTsKfQ==
+/**
+ * Unified Card Component System
+ * Provides consistent styling for all card types across the CRM
+ */
+
+import React from 'react';
+import { AlertTriangle, AlertCircle, CheckCircle2, Info, Zap } from 'lucide-react';
+
+/**
+ * StandardCard - Default container for content sections
+ */
+export function StandardCard({ children, className = '' }) {
+  return (
+    <div className={`bg-card text-card-foreground border border-border rounded-lg p-4 shadow-sm ${className}`}>
+      {children}
+    </div>
+  );
+}
+
+/**
+ * InfoCard - Informational messages with soft blue background
+ */
+export function InfoCard({ icon, title, description, action = null }) {
+  return (
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
+      <div className="flex items-start gap-3">
+        <div className="flex-shrink-0 mt-0.5">
+          {icon || <Info className="w-4 h-4 text-blue-600" />}
+        </div>
+        <div className="flex-1 min-w-0">
+          {title && <h3 className="typography-message-title text-blue-900">{title}</h3>}
+          {description && <p className="text-sm text-blue-700 mt-1">{description}</p>}
+        </div>
+      </div>
+      {action && <div className="ml-7">{action}</div>}
+    </div>
+  );
+}
+
+/**
+ * WarningCard - Warning/caution messages with amber background
+ */
+export function WarningCard({ icon, title, description, action = null }) {
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-2">
+      <div className="flex items-start gap-3">
+        <div className="flex-shrink-0 mt-0.5">
+          {icon || <AlertTriangle className="w-4 h-4 text-amber-600" />}
+        </div>
+        <div className="flex-1 min-w-0">
+          {title && <h3 className="typography-message-title text-amber-900">{title}</h3>}
+          {description && <p className="text-sm text-amber-700 mt-1">{description}</p>}
+        </div>
+      </div>
+      {action && <div className="ml-7">{action}</div>}
+    </div>
+  );
+}
+
+/**
+ * ErrorCard - Error messages with red background
+ */
+export function ErrorCard({ icon, title, description, action = null }) {
+  return (
+    <div className="bg-red-50 border border-red-200 rounded-lg p-4 space-y-2">
+      <div className="flex items-start gap-3">
+        <div className="flex-shrink-0 mt-0.5">
+          {icon || <AlertTriangle className="w-4 h-4 text-red-600" />}
+        </div>
+        <div className="flex-1 min-w-0">
+          {title && <h3 className="typography-message-title text-red-900">{title}</h3>}
+          {description && <p className="text-sm text-red-700 mt-1">{description}</p>}
+        </div>
+      </div>
+      {action && <div className="ml-7">{action}</div>}
+    </div>
+  );
+}
+
+/**
+ * SuccessCard - Success/confirmation messages with green background
+ */
+export function SuccessCard({ icon, title, description, action = null }) {
+  return (
+    <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 space-y-2">
+      <div className="flex items-start gap-3">
+        <div className="flex-shrink-0 mt-0.5">
+          {icon || <CheckCircle2 className="w-4 h-4 text-emerald-600" />}
+        </div>
+        <div className="flex-1 min-w-0">
+          {title && <h3 className="typography-message-title text-emerald-900">{title}</h3>}
+          {description && <p className="text-sm text-emerald-700 mt-1">{description}</p>}
+        </div>
+      </div>
+      {action && <div className="ml-7">{action}</div>}
+    </div>
+  );
+}
+
+/**
+ * EmptyStateCard - Large empty state with icon, title, and optional action
+ */
+export function EmptyStateCard({ icon, title, description, action = null, className = '' }) {
+  return (
+    <div className={`border-2 border-dashed border-border rounded-lg p-8 text-center space-y-3 ${className}`}>
+      {icon && (
+        <div className="flex justify-center">
+          {React.isValidElement(icon) ? icon : <div className="text-slate-300">{icon}</div>}
+        </div>
+      )}
+      {title && <h3 className="typography-empty-state-title">{title}</h3>}
+      {description && <p className="text-sm text-slate-500">{description}</p>}
+      {action && <div className="pt-2">{action}</div>}
+    </div>
+  );
+}
+
+/**
+ * SectionCard - Card with optional header and consistent spacing
+ */
+export function SectionCard({ title, subtitle, children, className = '', headerAction = null }) {
+  return (
+    <StandardCard className={className}>
+      {(title || subtitle || headerAction) && (
+        <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
+          <div>
+            {title && <h2 className="typography-card-title">{title}</h2>}
+            {subtitle && <p className="typography-helper-text mt-1">{subtitle}</p>}
+          </div>
+          {headerAction && <div>{headerAction}</div>}
+        </div>
+      )}
+      {children}
+    </StandardCard>
+  );
+}
+
+/**
+ * StatusBadge - Consistent status indicator
+ */
+export function StatusBadge({ status, size = 'sm' }) {
+  const styles = {
+    success: 'bg-emerald-100 text-emerald-700',
+    warning: 'bg-amber-100 text-amber-700',
+    error: 'bg-red-100 text-red-700',
+    info: 'bg-blue-100 text-blue-700',
+    default: 'bg-slate-100 text-slate-700',
+  };
+
+  const sizeClasses = {
+    xs: 'px-2 py-0.5 text-[10px] font-semibold',
+    sm: 'px-2.5 py-1 text-xs font-semibold',
+    md: 'px-3 py-1.5 text-sm font-semibold',
+  };
+
+  const [type, label] = typeof status === 'string' 
+    ? ['default', status] 
+    : [status.type || 'default', status.label];
+
+  return (
+    <span className={`rounded-md ${styles[type] || styles.default} ${sizeClasses[size] || sizeClasses.sm}`}>
+      {label}
+    </span>
+  );
+}

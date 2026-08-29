@@ -1,1 +1,84 @@
-LyoqCiAqIEZpbmFuY2lhbFRhYiDigJQgS1BJIGNoaXBzLCBwYXltZW50IHBhbmVsLCBRQiBwYW5lbCwgaW52b2ljZXMuCiAqCiAqIEFsbCBmaW5hbmNpYWwgdmFsdWVzIGNvbWUgZnJvbSB0aGUgc2hhcmVkIGdldERlYWxQYXltZW50U3VtbWFyeSBoZWxwZXIg4oCUCiAqIHRoZSBzaW5nbGUgc291cmNlIG9mIHRydXRoIGFjcm9zcyB0aGUgZW50aXJlIENSTS4gTmV2ZXIgcmVjYWxjdWxhdGUgaGVyZS4KICovCmltcG9ydCB7IHVzZVN0YXRlLCB1c2VFZmZlY3QgfSBmcm9tICJyZWFjdCI7CmltcG9ydCAqIGFzIHJhaWx3YXlEZWFscyBmcm9tICJAL2FwaS9yYWlsd2F5L2RlYWxzIjsKaW1wb3J0ICogYXMgcmFpbHdheUxlYWRzIGZyb20gIkAvYXBpL3JhaWx3YXkvbGVhZHMiOwppbXBvcnQgeyBnZXREZWFsUGF5bWVudFN1bW1hcnkgfSBmcm9tICJAL2xpYi9maW5hbmNpYWxDYWxjIjsKaW1wb3J0IHsgRWRpdGFibGVLUElDaGlwLCBLUElDaGlwIH0gZnJvbSAiQC9jb21wb25lbnRzL0Rlc2lnblN5c3RlbSI7CmltcG9ydCBEZWFsUGF5bWVudFBhbmVsIGZyb20gIkAvY29tcG9uZW50cy9EZWFsUGF5bWVudFBhbmVsIjsKaW1wb3J0IFFCU3RhdHVzUGFuZWwgZnJvbSAiQC9jb21wb25lbnRzL1FCU3RhdHVzUGFuZWwiOwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gRmluYW5jaWFsVGFiKHsKICBkZWFsLCBsZWFkLCBpbnZvaWNlcywgc2V0RGVhbCwgc2V0TGVhZCwgcmVmcmVzaExlYWQsCiAgZWRpdGluZ0ZpZWxkLCBzZXRFZGl0aW5nRmllbGQsIHNhdmVkTXNnLCBzZXRTYXZlZE1zZywKfSkgewogIC8vIOKUgOKUgCBTaW5nbGUgc291cmNlIG9mIHRydXRoIOKAlCBzaGFyZWQgaGVscGVyIHVzZWQgYnkgZXZlcnkgZmluYW5jaWFsIGNvbXBvbmVudCDilIDilIAKICBjb25zdCBmaW4gPSBnZXREZWFsUGF5bWVudFN1bW1hcnkoZGVhbCwgbGVhZCwgaW52b2ljZXMpOwogIGNvbnN0IHsgcHJvamVjdFRvdGFsLCBpbnZvaWNlZDogdG90YWxJbnZvaWNlZCwgcGFpZDogdG90YWxQYWlkLCBiYWxhbmNlOiBiYWxhbmNlRHVlLCByZW1haW5pbmc6IGFtb3VudFJlbWFpbmluZyB9ID0gZmluOwogIGNvbnN0IG1pbGVzdG9uZVBhaWQgPSAoZGVhbC5kZXBvc2l0X3BhaWQgfHwgMCkgKyAoZGVhbC5wcm9ncmVzc19wYXltZW50X3BhaWQgfHwgMCkgKyAoZGVhbC5maW5hbF9wYXltZW50X3BhaWQgfHwgMCk7CgogIC8vIEF1dG8tc3luYyBvZiBzdGFsZSBRQiBkYXRhIHJlbW92ZWQgZHVyaW5nIEJhc2U0NCBleGl0IOKAlCBRQiBwYW5lbCBvZmZlcnMgbWFudWFsIHN5bmMuCgogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT0ibWF4LXctNHhsIG14LWF1dG8gcHgtNCBtZDpweC02IHB5LTUgc3BhY2UteS01Ij4KICAgICAgey8qIFNhdmVkIGNvbmZpcm1hdGlvbiAqL30KICAgICAge3NhdmVkTXNnICYmICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0icHgtNCBweS0yIGJnLWVtZXJhbGQtNTAgYm9yZGVyIGJvcmRlci1lbWVyYWxkLTIwMCByb3VuZGVkLWxnIHRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LWVtZXJhbGQtNzAwIj4KICAgICAgICAgIOKckyB7c2F2ZWRNc2d9CiAgICAgICAgPC9kaXY+CiAgICAgICl9CgogICAgICB7LyogRmluYW5jaWFsIFN1bW1hcnkg4oCUIGNvbXBhY3QgS1BJIGNoaXBzICovfQogICAgICA8ZGl2PgogICAgICAgIDxwIGNsYXNzTmFtZT0idHlwb2dyYXBoeS1zZWN0aW9uLWhlYWRlciBtYi0yIj5GSU5BTkNJQUwgU1VNTUFSWTwvcD4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZ3JpZCBncmlkLWNvbHMtMiBtZDpmbGV4IG1kOmZsZXgtd3JhcCBnYXAtMiI+CiAgICAgICAgICA8RWRpdGFibGVLUElDaGlwCiAgICAgICAgICAgIGxhYmVsPSJQcm9qZWN0IFRvdGFsIgogICAgICAgICAgICB2YWx1ZT17cHJvamVjdFRvdGFsfQogICAgICAgICAgICBvblNhdmU9e2FzeW5jICh2KSA9PiB7CiAgICAgICAgICAgICAgY29uc3QgbmV3VG90YWwgPSBwYXJzZUZsb2F0KHYpIHx8IDA7CiAgICAgICAgICAgICAgY29uc3QgY3VycmVudFBhaWQgPSBkZWFsLnRvdGFsX3BhaWQgfHwgbWlsZXN0b25lUGFpZCB8fCAwOwogICAgICAgICAgICAgIGNvbnN0IHVwZGF0ZXMgPSB7CiAgICAgICAgICAgICAgICBhbW91bnQ6IG5ld1RvdGFsLAogICAgICAgICAgICAgICAgYmFsYW5jZV9kdWU6IE1hdGgubWF4KDAsIG5ld1RvdGFsIC0gY3VycmVudFBhaWQpLAogICAgICAgICAgICAgICAgcGF5bWVudF9zdGF0dXM6IGN1cnJlbnRQYWlkID09PSAwID8gInVucGFpZCIgOiBjdXJyZW50UGFpZCA+PSBuZXdUb3RhbCA/ICJwYWlkIiA6ICJwYXJ0aWFsIiwKICAgICAgICAgICAgICB9OwogICAgICAgICAgICAgIGF3YWl0IHJhaWx3YXlEZWFscy51cGRhdGUoZGVhbC5pZCwgdXBkYXRlcyk7CiAgICAgICAgICAgICAgc2V0RGVhbChwcmV2ID0+ICh7IC4uLnByZXYsIC4uLnVwZGF0ZXMgfSkpOwogICAgICAgICAgICAgIGlmIChsZWFkPy5pZCkgewogICAgICAgICAgICAgICAgYXdhaXQgcmFpbHdheUxlYWRzLnVwZGF0ZShsZWFkLmlkLCB7IGVzdGltYXRlZF92YWx1ZTogbmV3VG90YWwgfSk7CiAgICAgICAgICAgICAgICBzZXRMZWFkKHByZXYgPT4gKHsgLi4ucHJldiwgZXN0aW1hdGVkX3ZhbHVlOiBuZXdUb3RhbCB9KSk7CiAgICAgICAgICAgICAgfQogICAgICAgICAgICAgIHNldFNhdmVkTXNnKCJQcm9qZWN0IFRvdGFsIHNhdmVkIik7CiAgICAgICAgICAgICAgc2V0VGltZW91dCgoKSA9PiBzZXRTYXZlZE1zZyhudWxsKSwgMjAwMCk7CiAgICAgICAgICAgIH19CiAgICAgICAgICAvPgogICAgICAgICAgPEtQSUNoaXAgbGFiZWw9Ikludm9pY2VkIiB2YWx1ZT17dG90YWxJbnZvaWNlZH0gdmFyaWFudD0iaW52b2ljZWQiIC8+CiAgICAgICAgICA8S1BJQ2hpcCBsYWJlbD0iUGFpZCIgdmFsdWU9e3RvdGFsUGFpZH0gdmFyaWFudD0iY29sbGVjdGVkIiAvPgogICAgICAgICAgPEtQSUNoaXAgbGFiZWw9IkJhbGFuY2UiIHZhbHVlPXtiYWxhbmNlRHVlfSB2YXJpYW50PSJiYWxhbmNlIiAvPgogICAgICAgICAgPEtQSUNoaXAgbGFiZWw9IlJlbWFpbmluZyIgdmFsdWU9e2Ftb3VudFJlbWFpbmluZ30gdmFyaWFudD0icmVtYWluaW5nIiAvPgogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KCiAgICAgIHsvKiBQYXltZW50IFNjaGVkdWxlICovfQogICAgICA8ZGl2PgogICAgICAgIDxwIGNsYXNzTmFtZT0idHlwb2dyYXBoeS1zZWN0aW9uLWhlYWRlciBtYi0yIj5QQVlNRU5UIFNDSEVEVUxFPC9wPgogICAgICAgIDxEZWFsUGF5bWVudFBhbmVsIGRlYWw9e2RlYWx9IGxlYWQ9e2xlYWR9IG9uRGVhbFVwZGF0ZT17c2V0RGVhbH0gaW52b2ljZXM9e2ludm9pY2VzfSAvPgogICAgICA8L2Rpdj4KCiAgICAgIHsvKiBRdWlja0Jvb2tzICovfQogICAgICA8ZGl2PgogICAgICAgIDxwIGNsYXNzTmFtZT0idHlwb2dyYXBoeS1zZWN0aW9uLWhlYWRlciBtYi0yIj5RVUlDS0JPT0tTPC9wPgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJjYXJkLXByZW1pdW0gb3ZlcmZsb3ctaGlkZGVuIj4KICAgICAgICAgIDxRQlN0YXR1c1BhbmVsIGxlYWQ9e3sgLi4ubGVhZCwgc3RhdHVzOiAiU29sZCIgfX0gb25MZWFkVXBkYXRlZD17cmVmcmVzaExlYWR9IC8+CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgoKCiAgICA8L2Rpdj4KICApOwp9
+/**
+ * FinancialTab — KPI chips, payment panel, QB panel, invoices.
+ *
+ * All financial values come from the shared getDealPaymentSummary helper —
+ * the single source of truth across the entire CRM. Never recalculate here.
+ */
+import { useState, useEffect } from "react";
+import * as railwayDeals from "@/api/railway/deals";
+import * as railwayLeads from "@/api/railway/leads";
+import { getDealPaymentSummary } from "@/lib/financialCalc";
+import { EditableKPIChip, KPIChip } from "@/components/DesignSystem";
+import DealPaymentPanel from "@/components/DealPaymentPanel";
+import QBStatusPanel from "@/components/QBStatusPanel";
+
+export default function FinancialTab({
+  deal, lead, invoices, setDeal, setLead, refreshLead,
+  editingField, setEditingField, savedMsg, setSavedMsg,
+}) {
+  // ── Single source of truth — shared helper used by every financial component ──
+  const fin = getDealPaymentSummary(deal, lead, invoices);
+  const { projectTotal, invoiced: totalInvoiced, paid: totalPaid, balance: balanceDue, remaining: amountRemaining } = fin;
+  const milestonePaid = (deal.deposit_paid || 0) + (deal.progress_payment_paid || 0) + (deal.final_payment_paid || 0);
+
+  // Auto-sync of stale QB data removed during Base44 exit — QB panel offers manual sync.
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 md:px-6 py-5 space-y-5">
+      {/* Saved confirmation */}
+      {savedMsg && (
+        <div className="px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-lg text-xs font-semibold text-emerald-700">
+          ✓ {savedMsg}
+        </div>
+      )}
+
+      {/* Financial Summary — compact KPI chips */}
+      <div>
+        <p className="typography-section-header mb-2">FINANCIAL SUMMARY</p>
+        <div className="grid grid-cols-2 md:flex md:flex-wrap gap-2">
+          <EditableKPIChip
+            label="Project Total"
+            value={projectTotal}
+            onSave={async (v) => {
+              const newTotal = parseFloat(v) || 0;
+              const currentPaid = deal.total_paid || milestonePaid || 0;
+              const updates = {
+                amount: newTotal,
+                balance_due: Math.max(0, newTotal - currentPaid),
+                payment_status: currentPaid === 0 ? "unpaid" : currentPaid >= newTotal ? "paid" : "partial",
+              };
+              await railwayDeals.update(deal.id, updates);
+              setDeal(prev => ({ ...prev, ...updates }));
+              if (lead?.id) {
+                await railwayLeads.update(lead.id, { estimated_value: newTotal });
+                setLead(prev => ({ ...prev, estimated_value: newTotal }));
+              }
+              setSavedMsg("Project Total saved");
+              setTimeout(() => setSavedMsg(null), 2000);
+            }}
+          />
+          <KPIChip label="Invoiced" value={totalInvoiced} variant="invoiced" />
+          <KPIChip label="Paid" value={totalPaid} variant="collected" />
+          <KPIChip label="Balance" value={balanceDue} variant="balance" />
+          <KPIChip label="Remaining" value={amountRemaining} variant="remaining" />
+        </div>
+      </div>
+
+      {/* Payment Schedule */}
+      <div>
+        <p className="typography-section-header mb-2">PAYMENT SCHEDULE</p>
+        <DealPaymentPanel deal={deal} lead={lead} onDealUpdate={setDeal} invoices={invoices} />
+      </div>
+
+      {/* QuickBooks */}
+      <div>
+        <p className="typography-section-header mb-2">QUICKBOOKS</p>
+        <div className="card-premium overflow-hidden">
+          <QBStatusPanel lead={{ ...lead, status: "Sold" }} onLeadUpdated={refreshLead} />
+        </div>
+      </div>
+
+
+    </div>
+  );
+}

@@ -1,1 +1,20 @@
-IyAtLS0tIEJ1aWxkIHN0YWdlIC0tLS0KRlJPTSBub2RlOjIwLWFscGluZSBBUyBidWlsZApXT1JLRElSIC9hcHAKQ09QWSBwYWNrYWdlLmpzb24gLi8KUlVOIG5wbSBpbnN0YWxsIC0tbm8tYXVkaXQgLS1uby1mdW5kCkNPUFkgLiAuCkFSRyBWSVRFX1JBSUxXQVlfQVBJX1VSTD1odHRwczovL3FiLXByb3h5LXNlcnZlci1wcm9kdWN0aW9uLnVwLnJhaWx3YXkuYXBwCkVOViBWSVRFX1JBSUxXQVlfQVBJX1VSTD0kVklURV9SQUlMV0FZX0FQSV9VUkwKQVJHIFZJVEVfUkFJTFdBWV9DQVBUVVJFX1VSTD1odHRwczovL3FiLXByb3h5LXNlcnZlci1wcm9kdWN0aW9uLnVwLnJhaWx3YXkuYXBwCkVOViBWSVRFX1JBSUxXQVlfQ0FQVFVSRV9VUkw9JFZJVEVfUkFJTFdBWV9DQVBUVVJFX1VSTApSVU4gbnBtIHJ1biBidWlsZDpleGl0CgojIC0tLS0gUHJvZHVjdGlvbiBTUEEgc2VydmUgc3RhZ2UgLS0tLQpGUk9NIG5naW54OmFscGluZQpFTlYgUE9SVD04MApSVU4gcm0gLWYgL2V0Yy9uZ2lueC9jb25mLmQvZGVmYXVsdC5jb25mCkNPUFkgbmdpbnguY29uZiAvZXRjL25naW54L2NvbmYuZC9kZWZhdWx0LnRlbXBsYXRlCkNPUFkgLS1mcm9tPWJ1aWxkIC9hcHAvZGlzdCAvdXNyL3NoYXJlL25naW54L2h0bWwKRVhQT1NFIDgwCkNNRCBzaCAtYyAnZW52c3Vic3QgIiR7UE9SVH0iIDwgL2V0Yy9uZ2lueC9jb25mLmQvZGVmYXVsdC50ZW1wbGF0ZSA+IC9ldGMvbmdpbngvY29uZi5kL2RlZmF1bHQuY29uZiAmJiBleGVjIG5naW54IC1nICJkYWVtb24gb2ZmOyInCg==
+# ---- Build stage ----
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package.json ./
+RUN npm install --no-audit --no-fund
+COPY . .
+ARG VITE_RAILWAY_API_URL=https://qb-proxy-server-production.up.railway.app
+ENV VITE_RAILWAY_API_URL=$VITE_RAILWAY_API_URL
+ARG VITE_RAILWAY_CAPTURE_URL=https://qb-proxy-server-production.up.railway.app
+ENV VITE_RAILWAY_CAPTURE_URL=$VITE_RAILWAY_CAPTURE_URL
+RUN npm run build:exit
+
+# ---- Production SPA serve stage ----
+FROM nginx:alpine
+ENV PORT=80
+RUN rm -f /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/default.template
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD sh -c 'envsubst "${PORT}" < /etc/nginx/conf.d/default.template > /etc/nginx/conf.d/default.conf && exec nginx -g "daemon off;"'

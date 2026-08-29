@@ -1,1 +1,183 @@
-aW1wb3J0IFJlYWN0LCB7IHVzZVN0YXRlLCB1c2VFZmZlY3QgfSBmcm9tICdyZWFjdCc7CmltcG9ydCB7IHVzZU5hdmlnYXRlLCBOYXZpZ2F0ZSB9IGZyb20gJ3JlYWN0LXJvdXRlci1kb20nOwppbXBvcnQgeyB1c2VBdXRoIH0gZnJvbSAnQC9saWIvQXV0aENvbnRleHQnOwppbXBvcnQgKiBhcyByYWlsd2F5QXBpIGZyb20gJ0AvbGliL3JhaWx3YXlBcGknOwppbXBvcnQgeyBzZXRUb2tlbnMgfSBmcm9tICdAL2FwaS9yYWlsd2F5L2NsaWVudCc7CmltcG9ydCB7IGlzRXhpdEJ1aWxkIH0gZnJvbSAnQC9saWIvYXBwLXBhcmFtcyc7CmltcG9ydCB7IFJBSUxXQVlfQVBJX1VSTCB9IGZyb20gJ0AvbGliL2FwaUNvbmZpZyc7CmltcG9ydCB7IEJ1dHRvbiB9IGZyb20gJ0AvY29tcG9uZW50cy91aS9idXR0b24nOwppbXBvcnQgeyBJbnB1dCB9IGZyb20gJ0AvY29tcG9uZW50cy91aS9pbnB1dCc7CmltcG9ydCB7IExhYmVsIH0gZnJvbSAnQC9jb21wb25lbnRzL3VpL2xhYmVsJzsKaW1wb3J0IHsgTG9hZGVyMiwgTG9jaywgTWFpbCB9IGZyb20gJ2x1Y2lkZS1yZWFjdCc7CgovKioKICogTmF0aXZlIENSTSBsb2dpbiBwYWdlIOKAlCBSYWlsd2F5LW93bmVkIGF1dGhlbnRpY2F0aW9uLgogKgogKiBUd28gbG9naW4gcGF0aHM6CiAqICAgMS4gIkNvbnRpbnVlIHdpdGggR29vZ2xlIiDihpIgUmFpbHdheSAvYXBpL3YxL2F1dGgvZ29vZ2xlIOKGkiBHb29nbGUgT0F1dGgg4oaSCiAqICAgICAgUmFpbHdheSBjYWxsYmFjayDihpIgUmFpbHdheSBzZXNzaW9uIChwcmltYXJ5LCBTU08pCiAqICAgMi4gRW1haWwgKyBwYXNzd29yZCDihpIgUmFpbHdheSAvYXBpL3YxL2F1dGgvbG9naW4gKGZhbGxiYWNrKQogKgogKiBBZnRlciBHb29nbGUgT0F1dGggY2FsbGJhY2ssIHRva2VucyBhcnJpdmUgaW4gdGhlIFVSTCBoYXNoIGZyYWdtZW50OgogKiAgIC9sb2dpbiNhY2Nlc3M9eHh4JnJlZnJlc2g9eHh4CiAqIFRoaXMgcGFnZSBkZXRlY3RzIHRoZW0sIHN0b3JlcyB0aGVtLCBhbmQgZW50ZXJzIHRoZSBDUk0uCiAqCiAqIFJlbmRlcnMgaW4gQk9USCB0aGUgZXhpdCBidWlsZCBhbmQgdGhlIEJhc2U0NCBwcmV2aWV3IHdoZW4KICogVklURV9SQUlMV0FZX0FVVEg9dHJ1ZSAoVVNFX1JBSUxXQVlfQVVUSCBpbiBBdXRoQ29udGV4dCkuCiAqLwpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBMb2dpbigpIHsKICBjb25zdCB7IGlzQXV0aGVudGljYXRlZCwgY2hlY2tBcHBTdGF0ZSB9ID0gdXNlQXV0aCgpOwogIGNvbnN0IG5hdmlnYXRlID0gdXNlTmF2aWdhdGUoKTsKICBjb25zdCBbZW1haWwsIHNldEVtYWlsXSA9IHVzZVN0YXRlKCcnKTsKICBjb25zdCBbcGFzc3dvcmQsIHNldFBhc3N3b3JkXSA9IHVzZVN0YXRlKCcnKTsKICBjb25zdCBbc3VibWl0dGluZywgc2V0U3VibWl0dGluZ10gPSB1c2VTdGF0ZShmYWxzZSk7CiAgY29uc3QgW2Vycm9yLCBzZXRFcnJvcl0gPSB1c2VTdGF0ZShudWxsKTsKICBjb25zdCBbZ29vZ2xlUmVkaXJlY3RpbmcsIHNldEdvb2dsZVJlZGlyZWN0aW5nXSA9IHVzZVN0YXRlKGZhbHNlKTsKCiAgLy8g4pSA4pSAIEhhbmRsZSBHb29nbGUgT0F1dGggY2FsbGJhY2sgdG9rZW5zIGluIFVSTCBoYXNoIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgAogIC8vIEFmdGVyIHRoZSBSYWlsd2F5IGNhbGxiYWNrIHJlZGlyZWN0cyBoZXJlIHdpdGggI2FjY2Vzcz14eHgmcmVmcmVzaD14eHgsCiAgLy8gZXh0cmFjdCwgc3RvcmUsIGFuZCBlbnRlciB0aGUgQ1JNLgogIHVzZUVmZmVjdCgoKSA9PiB7CiAgICBjb25zdCBoYXNoID0gd2luZG93LmxvY2F0aW9uLmhhc2g7CiAgICBpZiAoIWhhc2ggfHwgIWhhc2guaW5jbHVkZXMoJ2FjY2Vzcz0nKSkgcmV0dXJuOwogICAgY29uc3QgcGFyYW1zID0gbmV3IFVSTFNlYXJjaFBhcmFtcyhoYXNoLnJlcGxhY2UoL14jLywgJycpKTsKICAgIGNvbnN0IGFjY2VzcyA9IHBhcmFtcy5nZXQoJ2FjY2VzcycpOwogICAgY29uc3QgcmVmcmVzaCA9IHBhcmFtcy5nZXQoJ3JlZnJlc2gnKTsKICAgIGlmIChhY2Nlc3MgJiYgcmVmcmVzaCkgewogICAgICBzZXRUb2tlbnMoYWNjZXNzLCByZWZyZXNoKTsKICAgICAgLy8gQ2xlYXIgdGhlIGhhc2ggc28gdG9rZW5zIGRvbid0IGxpbmdlciBpbiB0aGUgYnJvd3NlciBVUkwKICAgICAgd2luZG93Lmhpc3RvcnkucmVwbGFjZVN0YXRlKHt9LCBkb2N1bWVudC50aXRsZSwgd2luZG93LmxvY2F0aW9uLnBhdGhuYW1lKTsKICAgICAgLy8gUmUtcnVuIHRoZSBhdXRoIHN0YXRlIG1hY2hpbmUgdG8gbG9hZCB0aGUgUmFpbHdheSB1c2VyCiAgICAgIGNoZWNrQXBwU3RhdGUoKS50aGVuKCgpID0+IG5hdmlnYXRlKCcvJywgeyByZXBsYWNlOiB0cnVlIH0pKTsKICAgIH0KICB9LCBbXSk7CgogIC8vIEFscmVhZHkgYXV0aGVudGljYXRlZCAodmFsaWQgUmFpbHdheSBzZXNzaW9uKSDihpIgc3RyYWlnaHQgdG8gdGhlIENSTS4KICBpZiAoaXNBdXRoZW50aWNhdGVkKSByZXR1cm4gPE5hdmlnYXRlIHRvPSIvIiByZXBsYWNlIC8+OwoKICBjb25zdCBvbkdvb2dsZUxvZ2luID0gKCkgPT4gewogICAgc2V0R29vZ2xlUmVkaXJlY3RpbmcodHJ1ZSk7CiAgICAvLyBSZWRpcmVjdCB0byB0aGUgUmFpbHdheSBHb29nbGUgT0F1dGggZW5kcG9pbnQuCiAgICAvLyBQYXNzIHRoZSBmcm9udGVuZCBvcmlnaW4gc28gdGhlIGNhbGxiYWNrIGtub3dzIHdoZXJlIHRvIHJldHVybi4KICAgIGNvbnN0IHJlZGlyZWN0ID0gZW5jb2RlVVJJQ29tcG9uZW50KHdpbmRvdy5sb2NhdGlvbi5vcmlnaW4pOwogICAgd2luZG93LmxvY2F0aW9uLmhyZWYgPSBgJHtSQUlMV0FZX0FQSV9VUkx9L2FwaS92MS9hdXRoL2dvb2dsZT9yZWRpcmVjdD0ke3JlZGlyZWN0fWA7CiAgfTsKCiAgY29uc3Qgb25TdWJtaXQgPSBhc3luYyAoZSkgPT4gewogICAgZS5wcmV2ZW50RGVmYXVsdCgpOwogICAgY29uc3QgdHJpbW1lZEVtYWlsID0gZW1haWwudHJpbSgpOwogICAgaWYgKCF0cmltbWVkRW1haWwgfHwgIXBhc3N3b3JkKSB7CiAgICAgIHNldEVycm9yKCdFbnRlciB5b3VyIGVtYWlsIGFuZCBwYXNzd29yZC4nKTsKICAgICAgcmV0dXJuOwogICAgfQogICAgc2V0U3VibWl0dGluZyh0cnVlKTsKICAgIHNldEVycm9yKG51bGwpOwogICAgdHJ5IHsKICAgICAgYXdhaXQgcmFpbHdheUFwaS5sb2dpbih0cmltbWVkRW1haWwsIHBhc3N3b3JkKTsKICAgICAgYXdhaXQgY2hlY2tBcHBTdGF0ZSgpOwogICAgICBuYXZpZ2F0ZSgnLycsIHsgcmVwbGFjZTogdHJ1ZSB9KTsKICAgIH0gY2F0Y2ggKGVycikgewogICAgICBjb25zdCBtc2cgPSBlcnI/Lm1lc3NhZ2UgfHwgJ0ludmFsaWQgZW1haWwgb3IgcGFzc3dvcmQuJzsKICAgICAgc2V0RXJyb3IoLzQwMXxpbnZhbGlkIGNyZWRlbnRpYWxzfGVtYWlsIG9yIHBhc3N3b3JkL2kudGVzdChtc2cpCiAgICAgICAgPyAnSW52YWxpZCBlbWFpbCBvciBwYXNzd29yZC4nCiAgICAgICAgOiBtc2cpOwogICAgfSBmaW5hbGx5IHsKICAgICAgc2V0U3VibWl0dGluZyhmYWxzZSk7CiAgICB9CiAgfTsKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGZsZXgtY29sIGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBtaW4taC1zY3JlZW4gYmctc2xhdGUtNTAgcC00Ij4KICAgICAgPGRpdiBjbGFzc05hbWU9Im1heC13LXNtIHctZnVsbCBiZy13aGl0ZSByb3VuZGVkLTJ4bCBzaGFkb3ctbGcgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcC04Ij4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBmbGV4LWNvbCBpdGVtcy1jZW50ZXIgbWItNiI+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iaW5saW5lLWZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHctMTQgaC0xNCBtYi00IHJvdW5kZWQtZnVsbCBiZy1hbWJlci0xMDAiPgogICAgICAgICAgICA8TG9jayBjbGFzc05hbWU9InctNyBoLTcgdGV4dC1hbWJlci02MDAiIC8+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDxoMSBjbGFzc05hbWU9InRleHQteGwgZm9udC1ib2xkIHRleHQtc2xhdGUtOTAwIj5FQyBDb25zdHJ1Y3Rpb24gR3JvdXA8L2gxPgogICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIHRleHQtc2xhdGUtNTAwIG10LTEiPlNpZ24gaW4gdG8gdGhlIENSTTwvcD4KICAgICAgICA8L2Rpdj4KCiAgICAgICAgey8qIENvbnRpbnVlIHdpdGggR29vZ2xlIOKAlCBwcmltYXJ5IFNTTyBwYXRoICovfQogICAgICAgIDxCdXR0b24KICAgICAgICAgIHR5cGU9ImJ1dHRvbiIKICAgICAgICAgIHZhcmlhbnQ9Im91dGxpbmUiCiAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBtYi00IgogICAgICAgICAgb25DbGljaz17b25Hb29nbGVMb2dpbn0KICAgICAgICAgIGRpc2FibGVkPXtnb29nbGVSZWRpcmVjdGluZyB8fCBzdWJtaXR0aW5nfQogICAgICAgID4KICAgICAgICAgIHtnb29nbGVSZWRpcmVjdGluZyA/ICgKICAgICAgICAgICAgPD48TG9hZGVyMiBjbGFzc05hbWU9InctNCBoLTQgYW5pbWF0ZS1zcGluIG1yLTIiIC8+IFJlZGlyZWN0aW5nIHRvIEdvb2dsZeKApjwvPgogICAgICAgICAgKSA6ICgKICAgICAgICAgICAgPD4KICAgICAgICAgICAgICA8c3ZnIGNsYXNzTmFtZT0idy01IGgtNSBtci0yIiB2aWV3Qm94PSIwIDAgMjQgMjQiPgogICAgICAgICAgICAgICAgPHBhdGggZmlsbD0iIzQyODVGNCIgZD0iTTIyLjU2IDEyLjI1YzAtLjc4LS4wNy0xLjUzLS4yLTIuMjVIMTJ2NC4yNmg1LjkyYy0uMjYgMS4zNy0xLjA0IDIuNTMtMi4yMSAzLjMxdjIuNzdoMy41N2MyLjA4LTEuOTIgMy4yOC00Ljc0IDMuMjgtOC4wOXoiLz4KICAgICAgICAgICAgICAgIDxwYXRoIGZpbGw9IiMzNEE4NTMiIGQ9Ik0xMiAyM2MyLjk3IDAgNS40Ni0uOTggNy4yOC0yLjY2bC0zLjU3LTIuNzdjLS45OC42Ni0yLjIzIDEuMDYtMy43MSAxLjA2LTIuODYgMC01LjI5LTEuOTMtNi4xNi00LjUzSDIuMTh2Mi44NEMzLjk5IDIwLjUzIDcuNyAyMyAxMiAyM3oiLz4KICAgICAgICAgICAgICAgIDxwYXRoIGZpbGw9IiNGQkJDMDUiIGQ9Ik01Ljg0IDE0LjA5Yy0uMjItLjY2LS4zNS0xLjM2LS4zNS0yLjA5cy4xMy0xLjQzLjM1LTIuMDlWNy4wN0gyLjE4QzEuNDMgOC41NSAxIDEwLjIyIDEgMTJzLjQzIDMuNDUgMS4xOCA0LjkzbDIuODUtMi4yMi44MS0uNjJ6Ii8+CiAgICAgICAgICAgICAgICA8cGF0aCBmaWxsPSIjRUE0MzM1IiBkPSJNMTIgNS4zOGMxLjYyIDAgMy4wNi41NiA0LjIxIDEuNjRsMy4xNS0zLjE1QzE3LjQ1IDIuMDkgMTQuOTcgMSAxMiAxIDcuNyAxIDMuOTkgMy40NyAyLjE4IDcuMDdsMy42NiAyLjg0Yy44Ny0yLjYgMy4zLTQuNTMgNi4xNi00LjUzeiIvPgogICAgICAgICAgICAgIDwvc3ZnPgogICAgICAgICAgICAgIENvbnRpbnVlIHdpdGggR29vZ2xlCiAgICAgICAgICAgIDwvPgogICAgICAgICAgKX0KICAgICAgICA8L0J1dHRvbj4KCiAgICAgICAgey8qIERpdmlkZXIgKi99CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0zIG15LTQiPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXgtMSBoLXB4IGJnLXNsYXRlLTIwMCIgLz4KICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTQwMCBmb250LW1lZGl1bSI+b3I8L3NwYW4+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleC0xIGgtcHggYmctc2xhdGUtMjAwIiAvPgogICAgICAgIDwvZGl2PgoKICAgICAgICB7LyogRW1haWwgKyBwYXNzd29yZCDigJQgZmFsbGJhY2sgcGF0aCAqL30KICAgICAgICA8Zm9ybSBvblN1Ym1pdD17b25TdWJtaXR9IGNsYXNzTmFtZT0ic3BhY2UteS00IiBub1ZhbGlkYXRlPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMS41Ij4KICAgICAgICAgICAgPExhYmVsIGh0bWxGb3I9ImVtYWlsIj5FbWFpbDwvTGFiZWw+CiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJyZWxhdGl2ZSI+CiAgICAgICAgICAgICAgPE1haWwgY2xhc3NOYW1lPSJhYnNvbHV0ZSBsZWZ0LTMgdG9wLTEvMiAtdHJhbnNsYXRlLXktMS8yIHctNCBoLTQgdGV4dC1zbGF0ZS00MDAgcG9pbnRlci1ldmVudHMtbm9uZSIgLz4KICAgICAgICAgICAgICA8SW5wdXQKICAgICAgICAgICAgICAgIGlkPSJlbWFpbCIKICAgICAgICAgICAgICAgIHR5cGU9ImVtYWlsIgogICAgICAgICAgICAgICAgYXV0b0NvbXBsZXRlPSJlbWFpbCIKICAgICAgICAgICAgICAgIHJlcXVpcmVkCiAgICAgICAgICAgICAgICB2YWx1ZT17ZW1haWx9CiAgICAgICAgICAgICAgICBvbkNoYW5nZT17KGUpID0+IHNldEVtYWlsKGUudGFyZ2V0LnZhbHVlKX0KICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0icGwtOSIKICAgICAgICAgICAgICAgIGRpc2FibGVkPXtzdWJtaXR0aW5nIHx8IGdvb2dsZVJlZGlyZWN0aW5nfQogICAgICAgICAgICAgICAgcGxhY2Vob2xkZXI9InlvdUBlY2NvbnN0cnVjdGlvbmdyb3VwLmNvbSIKICAgICAgICAgICAgICAvPgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJzcGFjZS15LTEuNSI+CiAgICAgICAgICAgIDxMYWJlbCBodG1sRm9yPSJwYXNzd29yZCI+UGFzc3dvcmQ8L0xhYmVsPgogICAgICAgICAgICA8SW5wdXQKICAgICAgICAgICAgICBpZD0icGFzc3dvcmQiCiAgICAgICAgICAgICAgdHlwZT0icGFzc3dvcmQiCiAgICAgICAgICAgICAgYXV0b0NvbXBsZXRlPSJjdXJyZW50LXBhc3N3b3JkIgogICAgICAgICAgICAgIHJlcXVpcmVkCiAgICAgICAgICAgICAgdmFsdWU9e3Bhc3N3b3JkfQogICAgICAgICAgICAgIG9uQ2hhbmdlPXsoZSkgPT4gc2V0UGFzc3dvcmQoZS50YXJnZXQudmFsdWUpfQogICAgICAgICAgICAgIGRpc2FibGVkPXtzdWJtaXR0aW5nIHx8IGdvb2dsZVJlZGlyZWN0aW5nfQogICAgICAgICAgICAgIHBsYWNlaG9sZGVyPSLigKLigKLigKLigKLigKLigKLigKLigKIiCiAgICAgICAgICAgIC8+CiAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICB7ZXJyb3IgJiYgKAogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1zbSB0ZXh0LXJlZC02MDAgYmctcmVkLTUwIGJvcmRlciBib3JkZXItcmVkLTIwMCByb3VuZGVkLWxnIHB4LTMgcHktMiI+CiAgICAgICAgICAgICAge2Vycm9yfQogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICl9CgogICAgICAgICAgPEJ1dHRvbiB0eXBlPSJzdWJtaXQiIGNsYXNzTmFtZT0idy1mdWxsIiBkaXNhYmxlZD17c3VibWl0dGluZyB8fCBnb29nbGVSZWRpcmVjdGluZ30+CiAgICAgICAgICAgIHtzdWJtaXR0aW5nID8gKAogICAgICAgICAgICAgIDw+CiAgICAgICAgICAgICAgICA8TG9hZGVyMiBjbGFzc05hbWU9InctNCBoLTQgYW5pbWF0ZS1zcGluIiAvPiBTaWduaW5nIGlu4oCmCiAgICAgICAgICAgICAgPC8+CiAgICAgICAgICAgICkgOiAoCiAgICAgICAgICAgICAgJ1NpZ24gaW4nCiAgICAgICAgICAgICl9CiAgICAgICAgICA8L0J1dHRvbj4KICAgICAgICA8L2Zvcm0+CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CiAgKTsKfQ==
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
+import { useAuth } from '@/lib/AuthContext';
+import * as railwayApi from '@/lib/railwayApi';
+import { setTokens } from '@/api/railway/client';
+import { isExitBuild } from '@/lib/app-params';
+import { RAILWAY_API_URL } from '@/lib/apiConfig';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Loader2, Lock, Mail } from 'lucide-react';
+
+/**
+ * Native CRM login page — Railway-owned authentication.
+ *
+ * Two login paths:
+ *   1. "Continue with Google" → Railway /api/v1/auth/google → Google OAuth →
+ *      Railway callback → Railway session (primary, SSO)
+ *   2. Email + password → Railway /api/v1/auth/login (fallback)
+ *
+ * After Google OAuth callback, tokens arrive in the URL hash fragment:
+ *   /login#access=xxx&refresh=xxx
+ * This page detects them, stores them, and enters the CRM.
+ *
+ * Renders in BOTH the exit build and the Base44 preview when
+ * VITE_RAILWAY_AUTH=true (USE_RAILWAY_AUTH in AuthContext).
+ */
+export default function Login() {
+  const { isAuthenticated, checkAppState } = useAuth();
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  const [googleRedirecting, setGoogleRedirecting] = useState(false);
+
+  // ── Handle Google OAuth callback tokens in URL hash ────────────────────
+  // After the Railway callback redirects here with #access=xxx&refresh=xxx,
+  // extract, store, and enter the CRM.
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash || !hash.includes('access=')) return;
+    const params = new URLSearchParams(hash.replace(/^#/, ''));
+    const access = params.get('access');
+    const refresh = params.get('refresh');
+    if (access && refresh) {
+      setTokens(access, refresh);
+      // Clear the hash so tokens don't linger in the browser URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      // Re-run the auth state machine to load the Railway user
+      checkAppState().then(() => navigate('/', { replace: true }));
+    }
+  }, []);
+
+  // Already authenticated (valid Railway session) → straight to the CRM.
+  if (isAuthenticated) return <Navigate to="/" replace />;
+
+  const onGoogleLogin = () => {
+    setGoogleRedirecting(true);
+    // Redirect to the Railway Google OAuth endpoint.
+    // Pass the frontend origin so the callback knows where to return.
+    const redirect = encodeURIComponent(window.location.origin);
+    window.location.href = `${RAILWAY_API_URL}/api/v1/auth/google?redirect=${redirect}`;
+  };
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !password) {
+      setError('Enter your email and password.');
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    try {
+      await railwayApi.login(trimmedEmail, password);
+      await checkAppState();
+      navigate('/', { replace: true });
+    } catch (err) {
+      const msg = err?.message || 'Invalid email or password.';
+      setError(/401|invalid credentials|email or password/i.test(msg)
+        ? 'Invalid email or password.'
+        : msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 p-4">
+      <div className="max-w-sm w-full bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+        <div className="flex flex-col items-center mb-6">
+          <div className="inline-flex items-center justify-center w-14 h-14 mb-4 rounded-full bg-amber-100">
+            <Lock className="w-7 h-7 text-amber-600" />
+          </div>
+          <h1 className="text-xl font-bold text-slate-900">EC Construction Group</h1>
+          <p className="text-sm text-slate-500 mt-1">Sign in to the CRM</p>
+        </div>
+
+        {/* Continue with Google — primary SSO path */}
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full mb-4"
+          onClick={onGoogleLogin}
+          disabled={googleRedirecting || submitting}
+        >
+          {googleRedirecting ? (
+            <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Redirecting to Google…</>
+          ) : (
+            <>
+              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              Continue with Google
+            </>
+          )}
+        </Button>
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 my-4">
+          <div className="flex-1 h-px bg-slate-200" />
+          <span className="text-xs text-slate-400 font-medium">or</span>
+          <div className="flex-1 h-px bg-slate-200" />
+        </div>
+
+        {/* Email + password — fallback path */}
+        <form onSubmit={onSubmit} className="space-y-4" noValidate>
+          <div className="space-y-1.5">
+            <Label htmlFor="email">Email</Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="pl-9"
+                disabled={submitting || googleRedirecting}
+                placeholder="you@ecconstructiongroup.com"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={submitting || googleRedirecting}
+              placeholder="••••••••"
+            />
+          </div>
+
+          {error && (
+            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              {error}
+            </div>
+          )}
+
+          <Button type="submit" className="w-full" disabled={submitting || googleRedirecting}>
+            {submitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" /> Signing in…
+              </>
+            ) : (
+              'Sign in'
+            )}
+          </Button>
+        </form>
+      </div>
+    </div>
+  );
+}

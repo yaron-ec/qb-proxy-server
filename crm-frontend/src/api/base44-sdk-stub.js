@@ -1,1 +1,16 @@
-LyoqCiAqIFN0YW5kYWxvbmUgZXhpdC1idWlsZCBzdHViIGZvciBAYmFzZTQ0L3Nkay4KICoKICogVGhlIEJhc2U0NCBwbGF0Zm9ybSByZXF1aXJlcyBBdXRoQ29udGV4dC5qc3ggdG8gaW1wb3J0IGBiYXNlNDRgIGZyb20KICogQC9hcGkvYmFzZTQ0Q2xpZW50LCB3aGljaCBpbiB0dXJuIGltcG9ydHMgeyBjcmVhdGVDbGllbnQgfSBmcm9tICdAYmFzZTQ0L3NkaycuCiAqIEluIHRoZSBzdGFuZGFsb25lIGV4aXQgYnVpbGQgdGhpcyBhbGlhcyByZXBsYWNlcyBAYmFzZTQ0L3NkayB3aXRoIHRoaXMgc3R1YiwKICogc28gWkVSTyBAYmFzZTQ0L3NkayBjb2RlIHJlYWNoZXMgdGhlIHByb2R1Y3Rpb24gYnVuZGxlLgogKgogKiBUaGUgcmVhbCBTREsgaXMgbmV2ZXIgY2FsbGVkIGF0IHJ1bnRpbWUgaW4gZXhpdCBtb2RlIChBdXRoQ29udGV4dCB1c2VzCiAqIHJhaWx3YXlBcGkgZXhjbHVzaXZlbHkpLiBUaGlzIHN0dWIgc2F0aXNmaWVzIHRoZSBtb2R1bGUgZ3JhcGguCiAqLwpleHBvcnQgZnVuY3Rpb24gY3JlYXRlQ2xpZW50KCkgewogIHJldHVybiB7fTsKfQoKZXhwb3J0IGRlZmF1bHQgeyBjcmVhdGVDbGllbnQgfTs=
+/**
+ * Standalone exit-build stub for @base44/sdk.
+ *
+ * The Base44 platform requires AuthContext.jsx to import `base44` from
+ * @/api/base44Client, which in turn imports { createClient } from '@base44/sdk'.
+ * In the standalone exit build this alias replaces @base44/sdk with this stub,
+ * so ZERO @base44/sdk code reaches the production bundle.
+ *
+ * The real SDK is never called at runtime in exit mode (AuthContext uses
+ * railwayApi exclusively). This stub satisfies the module graph.
+ */
+export function createClient() {
+  return {};
+}
+
+export default { createClient };

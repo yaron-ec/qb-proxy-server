@@ -1,1 +1,169 @@
-aW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICdyZWFjdCc7CmltcG9ydCB7IFNlbmQsIEFsZXJ0Q2lyY2xlLCBDaGVja0NpcmNsZSwgQ29weSB9IGZyb20gJ2x1Y2lkZS1yZWFjdCc7CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBUZXN0UmVtaW5kZXJQYW5lbCh7IGxlYWQsIG9uQ2xvc2UgfSkgewogIGNvbnN0IFtsb2FkaW5nLCBzZXRMb2FkaW5nXSA9IHVzZVN0YXRlKGZhbHNlKTsKICBjb25zdCBbcmVzdWx0LCBzZXRSZXN1bHRdID0gdXNlU3RhdGUobnVsbCk7CiAgY29uc3QgW2Vycm9yLCBzZXRFcnJvcl0gPSB1c2VTdGF0ZShudWxsKTsKICBjb25zdCBbY29waWVkLCBzZXRDb3BpZWRdID0gdXNlU3RhdGUoZmFsc2UpOwoKICBjb25zdCBoYW5kbGVTZW5kVGVzdCA9IGFzeW5jICgpID0+IHsKICAgIHNldExvYWRpbmcodHJ1ZSk7CiAgICBzZXRFcnJvcihudWxsKTsKICAgIHNldFJlc3VsdChudWxsKTsKCiAgICB0cnkgewogICAgICAvLyBSb3V0ZSB0aHJvdWdoIHRoZSBzaGFyZWQgZW1haWwgdHJhbnNwb3J0IChSYWlsd2F5IC9pbnRlcm5hbC9lbWFpbC9zZW5kKQogICAgICAvLyBpbnN0ZWFkIG9mIGNhbGxpbmcgdGhlIEJhc2U0NCBmdW5jdGlvbiBkaXJlY3RseS4KICAgICAgY29uc3QgeyBzZW5kVGVzdEVtYWlsIH0gPSBhd2FpdCBpbXBvcnQoJ0AvbGliL2VtYWlsVHJhbnNwb3J0Jyk7CiAgICAgIGNvbnN0IG5vbmNlID0gbGVhZC5pZDsKICAgICAgY29uc3QgcmVzdWx0ID0gYXdhaXQgc2VuZFRlc3RFbWFpbCgneWFyb25AZWNjb25zdHJ1Y3Rpb25ncm91cC5jb20nLCBub25jZSk7CgogICAgICBpZiAocmVzdWx0ICYmIHJlc3VsdC5vayAhPT0gZmFsc2UpIHsKICAgICAgICBzZXRSZXN1bHQoewogICAgICAgICAgc3VjY2VzczogdHJ1ZSwKICAgICAgICAgIG1lc3NhZ2U6IGBUZXN0IGVtYWlsIHNlbnQgdG8geWFyb25AZWNjb25zdHJ1Y3Rpb25ncm91cC5jb20gdmlhIFJhaWx3YXkgRW1haWwgU2VydmljZS5gLAogICAgICAgICAgZ21haWxNZXNzYWdlSWQ6IHJlc3VsdC5nbWFpbE1lc3NhZ2VJZCwKICAgICAgICAgIGlkZW1wb3RlbnQ6IHJlc3VsdC5pZGVtcG90ZW50LAogICAgICAgIH0pOwogICAgICB9IGVsc2UgewogICAgICAgIHNldEVycm9yKHJlc3VsdD8uZXJyb3IgfHwgJ0ZhaWxlZCB0byBzZW5kIHRlc3QgcmVtaW5kZXInKTsKICAgICAgfQogICAgfSBjYXRjaCAoZSkgewogICAgICBzZXRFcnJvcihlLm1lc3NhZ2UgfHwgJ0Vycm9yIHNlbmRpbmcgdGVzdCByZW1pbmRlcicpOwogICAgfSBmaW5hbGx5IHsKICAgICAgc2V0TG9hZGluZyhmYWxzZSk7CiAgICB9CiAgfTsKCiAgY29uc3QgY29weVRvQ2xpcGJvYXJkID0gKHRleHQpID0+IHsKICAgIG5hdmlnYXRvci5jbGlwYm9hcmQud3JpdGVUZXh0KHRleHQpOwogICAgc2V0Q29waWVkKHRydWUpOwogICAgc2V0VGltZW91dCgoKSA9PiBzZXRDb3BpZWQoZmFsc2UpLCAyMDAwKTsKICB9OwoKICBjb25zdCBjYW5TZW5kID0gbGVhZC5mb2xsb3dfdXBfdHlwZSA9PT0gJ01lZXRpbmcnICYmIGxlYWQuZm9sbG93X3VwX2RhdGUgJiYgbGVhZC5mb2xsb3dfdXBfdGltZTsKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJiZy13aGl0ZSByb3VuZGVkLWxnIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHAtNiBzcGFjZS15LTYiPgogICAgICA8ZGl2PgogICAgICAgIDxoMyBjbGFzc05hbWU9InRleHQtbGcgZm9udC1ib2xkIHRleHQtc2xhdGUtOTAwIG1iLTIiPlRlc3QgQXBwb2ludG1lbnQgUmVtaW5kZXI8L2gzPgogICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1zbSB0ZXh0LXNsYXRlLTYwMCI+CiAgICAgICAgICBTZW5kIGEgdGVzdCByZW1pbmRlciBlbWFpbCB0byB5YXJvbkBlY2NvbnN0cnVjdGlvbmdyb3VwLmNvbSB0byB2ZXJpZnkgZm9ybWF0dGluZyBhbmQgbWVyZ2UgZmllbGRzIGJlZm9yZSBlbmFibGluZyBhdXRvbWF0aWMgcmVtaW5kZXJzLgogICAgICAgIDwvcD4KICAgICAgPC9kaXY+CgogICAgICB7IWNhblNlbmQgJiYgKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1hbWJlci01MCBib3JkZXIgYm9yZGVyLWFtYmVyLTIwMCByb3VuZGVkLWxnIHAtNCBmbGV4IGdhcC0zIj4KICAgICAgICAgIDxBbGVydENpcmNsZSBjbGFzc05hbWU9InctNSBoLTUgdGV4dC1hbWJlci02MDAgZmxleC1zaHJpbmstMCBtdC0wLjUiIC8+CiAgICAgICAgICA8ZGl2PgogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20gZm9udC1zZW1pYm9sZCB0ZXh0LWFtYmVyLTkwMCBtYi0xIj5DYW5ub3QgU2VuZCBUZXN0PC9wPgogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1hbWJlci04MDAiPgogICAgICAgICAgICAgIFRoaXMgbGVhZCBtdXN0IGhhdmUgYSBNZWV0aW5nIGZvbGxvdy11cCB3aXRoIGEgZGF0ZSBhbmQgdGltZSBzZXQuCiAgICAgICAgICAgIDwvcD4KICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9Im10LTIgdGV4dC14cyB0ZXh0LWFtYmVyLTgwMCBzcGFjZS15LTEiPgogICAgICAgICAgICAgIHtsZWFkLmZvbGxvd191cF90eXBlICE9PSAnTWVldGluZycgJiYgPGRpdj7igKIgRm9sbG93LXVwIFR5cGU6IHtsZWFkLmZvbGxvd191cF90eXBlIHx8ICdOb3Qgc2V0J308L2Rpdj59CiAgICAgICAgICAgICAgeyFsZWFkLmZvbGxvd191cF9kYXRlICYmIDxkaXY+4oCiIEZvbGxvdy11cCBEYXRlOiBOb3Qgc2V0PC9kaXY+fQogICAgICAgICAgICAgIHshbGVhZC5mb2xsb3dfdXBfdGltZSAmJiA8ZGl2PuKAoiBGb2xsb3ctdXAgVGltZTogTm90IHNldDwvZGl2Pn0KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgKX0KCiAgICAgIHtjYW5TZW5kICYmICFyZXN1bHQgJiYgIWVycm9yICYmICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctYmx1ZS01MCBib3JkZXIgYm9yZGVyLWJsdWUtMjAwIHJvdW5kZWQtbGcgcC00Ij4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLXN0YXJ0IGdhcC0zIj4KICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20gZm9udC1zZW1pYm9sZCB0ZXh0LWJsdWUtOTAwIG1iLTEiPlRlc3QgRGV0YWlsczwvcD4KICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LWJsdWUtODAwIHNwYWNlLXktMSI+CiAgICAgICAgICAgICAgICA8ZGl2PjxzdHJvbmc+UmVjaXBpZW50Ojwvc3Ryb25nPiB5YXJvbkBlY2NvbnN0cnVjdGlvbmdyb3VwLmNvbTwvZGl2PgogICAgICAgICAgICAgICAgPGRpdj48c3Ryb25nPkNsaWVudCBOYW1lOjwvc3Ryb25nPiB7bGVhZC5maXJzdF9uYW1lfSB7bGVhZC5sYXN0X25hbWV9PC9kaXY+CiAgICAgICAgICAgICAgICA8ZGl2PjxzdHJvbmc+QXBwb2ludG1lbnQ6PC9zdHJvbmc+IHtsZWFkLmZvbGxvd191cF9kYXRlfSBhdCB7bGVhZC5mb2xsb3dfdXBfdGltZX08L2Rpdj4KICAgICAgICAgICAgICAgIDxkaXY+PHN0cm9uZz5Pd25lcjo8L3N0cm9uZz4ge2xlYWQuYXNzaWduZWRfcmVwIHx8ICdOb3QgYXNzaWduZWQnfTwvZGl2PgogICAgICAgICAgICAgICAgPGRpdj48c3Ryb25nPlR5cGU6PC9zdHJvbmc+IHtsZWFkLmZvbGxvd191cF90eXBlfTwvZGl2PgogICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICApfQoKICAgICAge2Vycm9yICYmICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctcmVkLTUwIGJvcmRlciBib3JkZXItcmVkLTIwMCByb3VuZGVkLWxnIHAtNCBmbGV4IGdhcC0zIj4KICAgICAgICAgIDxBbGVydENpcmNsZSBjbGFzc05hbWU9InctNSBoLTUgdGV4dC1yZWQtNjAwIGZsZXgtc2hyaW5rLTAgbXQtMC41IiAvPgogICAgICAgICAgPGRpdj4KICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgdGV4dC1yZWQtOTAwIj5FcnJvcjwvcD4KICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtcmVkLTgwMCBtdC0xIj57ZXJyb3J9PC9wPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgPC9kaXY+CiAgICAgICl9CgogICAgICB7cmVzdWx0ICYmICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ic3BhY2UteS00Ij4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1ncmVlbi01MCBib3JkZXIgYm9yZGVyLWdyZWVuLTIwMCByb3VuZGVkLWxnIHAtNCBmbGV4IGdhcC0zIj4KICAgICAgICAgICAgPENoZWNrQ2lyY2xlIGNsYXNzTmFtZT0idy01IGgtNSB0ZXh0LWdyZWVuLTYwMCBmbGV4LXNocmluay0wIG10LTAuNSIgLz4KICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20gZm9udC1zZW1pYm9sZCB0ZXh0LWdyZWVuLTkwMCI+VGVzdCBFbWFpbCBTZW50ITwvcD4KICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1ncmVlbi04MDAgbXQtMSI+e3Jlc3VsdC5tZXNzYWdlfTwvcD4KICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1ncmVlbi03MDAgbXQtMiI+Q2hlY2sgWWFyb24ncyBlbWFpbCB0byByZXZpZXcgdGhlIHJlbWluZGVyIGZvcm1hdHRpbmcuPC9wPgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgIHtyZXN1bHQucHJldmlldyAmJiAoCiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJzcGFjZS15LTQiPgogICAgICAgICAgICAgIDxkaXY+CiAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTYwMCBtYi0yIj5FbWFpbCBTdWJqZWN0OjwvcD4KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1zbGF0ZS01MCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkIHB4LTMgcHktMiB0ZXh0LXNtIHRleHQtc2xhdGUtOTAwIGZvbnQtbW9ubyBicmVhay13b3JkcyI+CiAgICAgICAgICAgICAgICAgIHtyZXN1bHQucHJldmlldy5zdWJqZWN0fQogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgPC9kaXY+CgogICAgICAgICAgICAgIDxkaXY+CiAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTYwMCBtYi0yIj5FbWFpbCBCb2R5IFByZXZpZXc6PC9wPgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLXNsYXRlLTUwIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQgcC0zIHRleHQteHMgdGV4dC1zbGF0ZS03MDAgZm9udC1tb25vIHdoaXRlc3BhY2UtcHJlLXdyYXAgYnJlYWstd29yZHMgbWF4LWgtNjQgb3ZlcmZsb3cteS1hdXRvIj4KICAgICAgICAgICAgICAgICAge3Jlc3VsdC5wcmV2aWV3LmJvZHl9CiAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gY29weVRvQ2xpcGJvYXJkKHJlc3VsdC5wcmV2aWV3LmJvZHkpfQogICAgICAgICAgICAgICAgICBjbGFzc05hbWU9Im10LTIgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEgdGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNjAwIGhvdmVyOnRleHQtc2xhdGUtODAwIHRyYW5zaXRpb24tY29sb3JzIgogICAgICAgICAgICAgICAgPgogICAgICAgICAgICAgICAgICA8Q29weSBjbGFzc05hbWU9InctMy41IGgtMy41IiAvPgogICAgICAgICAgICAgICAgICB7Y29waWVkID8gJ0NvcGllZCEnIDogJ0NvcHkgYm9keSd9CiAgICAgICAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNjAwIG1iLTIiPkRlYnVnIEluZm9ybWF0aW9uOjwvcD4KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1zbGF0ZS01MCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkIHAtMyB0ZXh0LXhzIHRleHQtc2xhdGUtNzAwIGZvbnQtbW9ubyB3aGl0ZXNwYWNlLXByZS13cmFwIGJyZWFrLXdvcmRzIj4KICAgICAgICAgICAgICAgICAge3Jlc3VsdC5wcmV2aWV3LmRlYnVnfQogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgKX0KICAgICAgICA8L2Rpdj4KICAgICAgKX0KCiAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGdhcC0yIHB0LTQgYm9yZGVyLXQgYm9yZGVyLXNsYXRlLTIwMCI+CiAgICAgICAgPGJ1dHRvbgogICAgICAgICAgb25DbGljaz17aGFuZGxlU2VuZFRlc3R9CiAgICAgICAgICBkaXNhYmxlZD17IWNhblNlbmQgfHwgbG9hZGluZ30KICAgICAgICAgIGNsYXNzTmFtZT17YGZsZXggaXRlbXMtY2VudGVyIGdhcC0yIHB4LTQgcHktMiByb3VuZGVkLWxnIGZvbnQtc2VtaWJvbGQgdGV4dC1zbSB0cmFuc2l0aW9uLWFsbCAkewogICAgICAgICAgICBjYW5TZW5kICYmICFsb2FkaW5nCiAgICAgICAgICAgICAgPyAnYmctYW1iZXItNjAwIHRleHQtd2hpdGUgaG92ZXI6YmctYW1iZXItNzAwJwogICAgICAgICAgICAgIDogJ2JnLXNsYXRlLTEwMCB0ZXh0LXNsYXRlLTQwMCBjdXJzb3Itbm90LWFsbG93ZWQnCiAgICAgICAgICB9YH0KICAgICAgICA+CiAgICAgICAgICA8U2VuZCBjbGFzc05hbWU9InctNCBoLTQiIC8+CiAgICAgICAgICB7bG9hZGluZyA/ICdTZW5kaW5nLi4uJyA6ICdTZW5kIFRlc3QgUmVtaW5kZXInfQogICAgICAgIDwvYnV0dG9uPgogICAgICAgIHtvbkNsb3NlICYmICgKICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgb25DbGljaz17b25DbG9zZX0KICAgICAgICAgICAgY2xhc3NOYW1lPSJweC00IHB5LTIgdGV4dC1zbGF0ZS02MDAgaG92ZXI6dGV4dC1zbGF0ZS05MDAgZm9udC1zZW1pYm9sZCB0ZXh0LXNtIHRyYW5zaXRpb24tY29sb3JzIgogICAgICAgICAgPgogICAgICAgICAgICBDbG9zZQogICAgICAgICAgPC9idXR0b24+CiAgICAgICAgKX0KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KICApOwp9
+import { useState } from 'react';
+import { Send, AlertCircle, CheckCircle, Copy } from 'lucide-react';
+
+export default function TestReminderPanel({ lead, onClose }) {
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleSendTest = async () => {
+    setLoading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      // Route through the shared email transport (Railway /internal/email/send)
+      // instead of calling the Base44 function directly.
+      const { sendTestEmail } = await import('@/lib/emailTransport');
+      const nonce = lead.id;
+      const result = await sendTestEmail('yaron@ecconstructiongroup.com', nonce);
+
+      if (result && result.ok !== false) {
+        setResult({
+          success: true,
+          message: `Test email sent to yaron@ecconstructiongroup.com via Railway Email Service.`,
+          gmailMessageId: result.gmailMessageId,
+          idempotent: result.idempotent,
+        });
+      } else {
+        setError(result?.error || 'Failed to send test reminder');
+      }
+    } catch (e) {
+      setError(e.message || 'Error sending test reminder');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const canSend = lead.follow_up_type === 'Meeting' && lead.follow_up_date && lead.follow_up_time;
+
+  return (
+    <div className="bg-white rounded-lg border border-slate-200 p-6 space-y-6">
+      <div>
+        <h3 className="text-lg font-bold text-slate-900 mb-2">Test Appointment Reminder</h3>
+        <p className="text-sm text-slate-600">
+          Send a test reminder email to yaron@ecconstructiongroup.com to verify formatting and merge fields before enabling automatic reminders.
+        </p>
+      </div>
+
+      {!canSend && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex gap-3">
+          <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-amber-900 mb-1">Cannot Send Test</p>
+            <p className="text-xs text-amber-800">
+              This lead must have a Meeting follow-up with a date and time set.
+            </p>
+            <div className="mt-2 text-xs text-amber-800 space-y-1">
+              {lead.follow_up_type !== 'Meeting' && <div>• Follow-up Type: {lead.follow_up_type || 'Not set'}</div>}
+              {!lead.follow_up_date && <div>• Follow-up Date: Not set</div>}
+              {!lead.follow_up_time && <div>• Follow-up Time: Not set</div>}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {canSend && !result && !error && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <div>
+              <p className="text-sm font-semibold text-blue-900 mb-1">Test Details</p>
+              <div className="text-xs text-blue-800 space-y-1">
+                <div><strong>Recipient:</strong> yaron@ecconstructiongroup.com</div>
+                <div><strong>Client Name:</strong> {lead.first_name} {lead.last_name}</div>
+                <div><strong>Appointment:</strong> {lead.follow_up_date} at {lead.follow_up_time}</div>
+                <div><strong>Owner:</strong> {lead.assigned_rep || 'Not assigned'}</div>
+                <div><strong>Type:</strong> {lead.follow_up_type}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex gap-3">
+          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-red-900">Error</p>
+            <p className="text-xs text-red-800 mt-1">{error}</p>
+          </div>
+        </div>
+      )}
+
+      {result && (
+        <div className="space-y-4">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex gap-3">
+            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-green-900">Test Email Sent!</p>
+              <p className="text-xs text-green-800 mt-1">{result.message}</p>
+              <p className="text-xs text-green-700 mt-2">Check Yaron's email to review the reminder formatting.</p>
+            </div>
+          </div>
+
+          {result.preview && (
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs font-semibold text-slate-600 mb-2">Email Subject:</p>
+                <div className="bg-slate-50 border border-slate-200 rounded px-3 py-2 text-sm text-slate-900 font-mono break-words">
+                  {result.preview.subject}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold text-slate-600 mb-2">Email Body Preview:</p>
+                <div className="bg-slate-50 border border-slate-200 rounded p-3 text-xs text-slate-700 font-mono whitespace-pre-wrap break-words max-h-64 overflow-y-auto">
+                  {result.preview.body}
+                </div>
+                <button
+                  onClick={() => copyToClipboard(result.preview.body)}
+                  className="mt-2 flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-slate-800 transition-colors"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  {copied ? 'Copied!' : 'Copy body'}
+                </button>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold text-slate-600 mb-2">Debug Information:</p>
+                <div className="bg-slate-50 border border-slate-200 rounded p-3 text-xs text-slate-700 font-mono whitespace-pre-wrap break-words">
+                  {result.preview.debug}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="flex gap-2 pt-4 border-t border-slate-200">
+        <button
+          onClick={handleSendTest}
+          disabled={!canSend || loading}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+            canSend && !loading
+              ? 'bg-amber-600 text-white hover:bg-amber-700'
+              : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+          }`}
+        >
+          <Send className="w-4 h-4" />
+          {loading ? 'Sending...' : 'Send Test Reminder'}
+        </button>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-slate-600 hover:text-slate-900 font-semibold text-sm transition-colors"
+          >
+            Close
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}

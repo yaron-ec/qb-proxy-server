@@ -1,1 +1,33 @@
-LyoqCiAqIGFwaUNvbmZpZyDigJQgU0lOR0xFIGNhbm9uaWNhbCBBUEkgYmFzZSBVUkwgZm9yIGFsbCBSYWlsd2F5IEFQSSBjbGllbnRzLgogKgogKiBPbmUgZW52IHZhcjogVklURV9SQUlMV0FZX0FQSV9VUkwKICogUHJvZHVjdGlvbjogIGh0dHBzOi8vcWItcHJveHktc2VydmVyLXByb2R1Y3Rpb24udXAucmFpbHdheS5hcHAKICoKICogQWxsIGZyb250ZW5kIEFQSSBjbGllbnRzIChjYXB0dXJlLCBhdXRoLCBsZWFkcywgZGVhbHMsIGVtYWlscywgZXRjLikKICogaW1wb3J0IFJBSUxXQVlfQVBJX1VSTCBmcm9tIHRoaXMgbW9kdWxlLiBObyBoYXJkY29kZWQgZmFsbGJhY2sgVVJMcwogKiBpbiBpbmRpdmlkdWFsIGNsaWVudCBmaWxlcy4KICoKICogQ29tcGF0aWJpbGl0eSBhbGlhc2VzIChWSVRFX1FCX1BST1hZX1VSTCwgVklURV9SQUlMV0FZX0NBUFRVUkVfVVJMKSBhcmUKICogbm9ybWFsaXplZCBIRVJFIG9ubHkg4oCUIG5vIG90aGVyIGZpbGUgcmVhZHMgdGhlbSBkaXJlY3RseS4KICovCgovLyBQcm9kdWN0aW9uIGZhbGxiYWNrIOKAlCB0aGUgT05FIGNhbm9uaWNhbCBwcm9kdWN0aW9uIEFQSSBVUkwuCi8vIFVzZWQgb25seSB3aGVuIGVudiB2YXJzIGFyZSBub3QgaW5qZWN0ZWQgKGUuZy4sIEJhc2U0NCBwcmV2aWV3IHdpdGhvdXQgLmVudgovLyBsb2FkaW5nKS4gRW52IHZhcnMgYWx3YXlzIHRha2UgcHJpb3JpdHkgd2hlbiBwcmVzZW50Lgpjb25zdCBQUk9EVUNUSU9OX0ZBTExCQUNLID0gJ2h0dHBzOi8vcWItcHJveHktc2VydmVyLXByb2R1Y3Rpb24udXAucmFpbHdheS5hcHAnOwoKY29uc3QgX3VybCA9IGltcG9ydC5tZXRhLmVudi5WSVRFX1JBSUxXQVlfQVBJX1VSTAogIHx8IGltcG9ydC5tZXRhLmVudi5WSVRFX1FCX1BST1hZX1VSTAogIHx8IGltcG9ydC5tZXRhLmVudi5WSVRFX1JBSUxXQVlfQ0FQVFVSRV9VUkwKICB8fCBQUk9EVUNUSU9OX0ZBTExCQUNLOwoKZXhwb3J0IGNvbnN0IFJBSUxXQVlfQVBJX1VSTCA9IF91cmw7CgpleHBvcnQgZnVuY3Rpb24gZ2V0QXBpVXJsKCkgewogIHJldHVybiBSQUlMV0FZX0FQSV9VUkw7Cn0KCmV4cG9ydCBmdW5jdGlvbiBpc0FwaUNvbmZpZ3VyZWQoKSB7CiAgcmV0dXJuICEhUkFJTFdBWV9BUElfVVJMOwp9
+/**
+ * apiConfig — SINGLE canonical API base URL for all Railway API clients.
+ *
+ * One env var: VITE_RAILWAY_API_URL
+ * Production:  https://qb-proxy-server-production.up.railway.app
+ *
+ * All frontend API clients (capture, auth, leads, deals, emails, etc.)
+ * import RAILWAY_API_URL from this module. No hardcoded fallback URLs
+ * in individual client files.
+ *
+ * Compatibility aliases (VITE_QB_PROXY_URL, VITE_RAILWAY_CAPTURE_URL) are
+ * normalized HERE only — no other file reads them directly.
+ */
+
+// Production fallback — the ONE canonical production API URL.
+// Used only when env vars are not injected (e.g., Base44 preview without .env
+// loading). Env vars always take priority when present.
+const PRODUCTION_FALLBACK = 'https://qb-proxy-server-production.up.railway.app';
+
+const _url = import.meta.env.VITE_RAILWAY_API_URL
+  || import.meta.env.VITE_QB_PROXY_URL
+  || import.meta.env.VITE_RAILWAY_CAPTURE_URL
+  || PRODUCTION_FALLBACK;
+
+export const RAILWAY_API_URL = _url;
+
+export function getApiUrl() {
+  return RAILWAY_API_URL;
+}
+
+export function isApiConfigured() {
+  return !!RAILWAY_API_URL;
+}

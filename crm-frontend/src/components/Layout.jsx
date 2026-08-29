@@ -1,1 +1,211 @@
-aW1wb3J0IHsgT3V0bGV0LCBMaW5rLCB1c2VMb2NhdGlvbiB9IGZyb20gInJlYWN0LXJvdXRlci1kb20iOwppbXBvcnQgeyB1c2VTdGF0ZSwgdXNlUmVmLCB1c2VFZmZlY3QgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IGNyZWF0ZVBvcnRhbCB9IGZyb20gInJlYWN0LWRvbSI7CmltcG9ydCBSZWFjdCBmcm9tICJyZWFjdCI7CmltcG9ydCB7CiAgTGF5b3V0RGFzaGJvYXJkLCBVc2VycywgQmFyQ2hhcnQyLAogIFNldHRpbmdzLCBDaGV2cm9uTGVmdCwgQ2hldnJvblJpZ2h0LCBMb2dPdXQsIFRyZW5kaW5nVXAsIE1hcCwgRmlsZUJhckNoYXJ0LCBLYW5iYW4KfSBmcm9tICJsdWNpZGUtcmVhY3QiOwppbXBvcnQgeyB1c2VBdXRoIH0gZnJvbSAiQC9saWIvQXV0aENvbnRleHQiOwppbXBvcnQgeyB1c2VJc01vYmlsZSB9IGZyb20gIkAvaG9va3MvdXNlLW1vYmlsZSI7CmltcG9ydCBUaXAgZnJvbSAiQC9jb21wb25lbnRzL3VpL1RpcCI7Cgpjb25zdCBOQVZfSVRFTVNfQUxMID0gWwogIHsgcGF0aDogIi8iLCAgICAgICAgICAgICAgbGFiZWw6ICJEYXNoYm9hcmQiLCAgICAgaWNvbjogQmFyQ2hhcnQyIH0sCiAgeyBwYXRoOiAiL2xlYWRzIiwgICAgICAgICBsYWJlbDogIkFjdGl2ZSBMZWFkcyIsICBpY29uOiBVc2VycyB9LAogIHsgcGF0aDogIi9rYW5iYW4iLCAgICAgICAgbGFiZWw6ICJTdGF0dXMgQm9hcmQiLCAgaWNvbjogS2FuYmFuIH0sCiAgeyBwYXRoOiAiL2RhaWx5LW1hcCIsICAgICBsYWJlbDogIkFwcG9pbnRtZW50IE1hcCIsIGljb246IE1hcCB9LAogIHsgcGF0aDogIi9kZWFscyIsICAgICAgICAgbGFiZWw6ICJEZWFscyIsICAgICAgICAgaWNvbjogVHJlbmRpbmdVcCB9LAogIHsgcGF0aDogIi9yZXBvcnRzIiwgICAgICAgbGFiZWw6ICJSZXBvcnRzIiwgICAgICAgaWNvbjogRmlsZUJhckNoYXJ0IH0sCiAgeyBwYXRoOiAiL3NldHRpbmdzIiwgICAgICBsYWJlbDogIlNldHRpbmdzIiwgICAgICBpY29uOiBTZXR0aW5ncyB9LApdOwoKY29uc3QgTkFWX0lURU1TX1NBTEVTX1JFUCA9IFsKICB7IHBhdGg6ICIvIiwgICAgICAgICAgICAgIGxhYmVsOiAiRGFzaGJvYXJkIiwgICAgIGljb246IEJhckNoYXJ0MiB9LAogIHsgcGF0aDogIi9sZWFkcyIsICAgICAgICAgbGFiZWw6ICJBY3RpdmUgTGVhZHMiLCAgaWNvbjogVXNlcnMgfSwKICB7IHBhdGg6ICIva2FuYmFuIiwgICAgICAgIGxhYmVsOiAiU3RhdHVzIEJvYXJkIiwgIGljb246IEthbmJhbiB9LAogIHsgcGF0aDogIi9kYWlseS1tYXAiLCAgICAgbGFiZWw6ICJBcHBvaW50bWVudCBNYXAiLCBpY29uOiBNYXAgfSwKICB7IHBhdGg6ICIvZGVhbHMiLCAgICAgICAgIGxhYmVsOiAiRGVhbHMiLCAgICAgICAgIGljb246IFRyZW5kaW5nVXAgfSwKICB7IHBhdGg6ICIvcmVwb3J0cyIsICAgICAgIGxhYmVsOiAiUmVwb3J0cyIsICAgICAgIGljb246IEZpbGVCYXJDaGFydCB9LAogIHsgcGF0aDogIi9zZXR0aW5ncyIsICAgICAgbGFiZWw6ICJTZXR0aW5ncyIsICAgICAgaWNvbjogU2V0dGluZ3MgfSwKXTsKCmZ1bmN0aW9uIE5hdkl0ZW0oeyBwYXRoLCBsYWJlbCwgaWNvbjogSWNvbiwgYWN0aXZlLCBjb2xsYXBzZWQgfSkgewogIGNvbnN0IFt0b29sdGlwUG9zLCBzZXRUb29sdGlwUG9zXSA9IHVzZVN0YXRlKG51bGwpOwogIGNvbnN0IHRpbWVyUmVmID0gdXNlUmVmKG51bGwpOwogIGNvbnN0IGxpbmtSZWYgPSB1c2VSZWYobnVsbCk7CgogIGNvbnN0IGhhbmRsZU1vdXNlRW50ZXIgPSAoKSA9PiB7CiAgICBpZiAoIWNvbGxhcHNlZCkgcmV0dXJuOwogICAgdGltZXJSZWYuY3VycmVudCA9IHNldFRpbWVvdXQoKCkgPT4gewogICAgICBpZiAobGlua1JlZi5jdXJyZW50KSB7CiAgICAgICAgY29uc3QgcmVjdCA9IGxpbmtSZWYuY3VycmVudC5nZXRCb3VuZGluZ0NsaWVudFJlY3QoKTsKICAgICAgICBzZXRUb29sdGlwUG9zKHsgdG9wOiByZWN0LnRvcCArIHJlY3QuaGVpZ2h0IC8gMiwgbGVmdDogcmVjdC5yaWdodCArIDEwIH0pOwogICAgICB9CiAgICB9LCAzMDApOwogIH07CgogIGNvbnN0IGhhbmRsZU1vdXNlTGVhdmUgPSAoKSA9PiB7CiAgICBjbGVhclRpbWVvdXQodGltZXJSZWYuY3VycmVudCk7CiAgICBzZXRUb29sdGlwUG9zKG51bGwpOwogIH07CgogIHJldHVybiAoCiAgICA8PgogICAgICA8TGluawogICAgICAgIHJlZj17bGlua1JlZn0KICAgICAgICB0bz17cGF0aH0KICAgICAgICBvbk1vdXNlRW50ZXI9e2hhbmRsZU1vdXNlRW50ZXJ9CiAgICAgICAgb25Nb3VzZUxlYXZlPXtoYW5kbGVNb3VzZUxlYXZlfQogICAgICAgIGNsYXNzTmFtZT17YHJlbGF0aXZlIGZsZXggaXRlbXMtY2VudGVyIGdhcC0zIHB4LTIuNSBweS0yLjUgcm91bmRlZC1sZyBncm91cAogICAgICAgICAgJHthY3RpdmUKICAgICAgICAgICAgPyAiYmctYW1iZXItNjAwLzIwIHRleHQtYW1iZXItNDAwIgogICAgICAgICAgICA6ICJ0ZXh0LXdoaXRlLzYwIGhvdmVyOmJnLXdoaXRlLzggaG92ZXI6dGV4dC13aGl0ZSIKICAgICAgICAgIH1gfQogICAgICA+CiAgICAgICAge2FjdGl2ZSAmJiAoCiAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9ImFic29sdXRlIGxlZnQtMCB0b3AtMS8yIC10cmFuc2xhdGUteS0xLzIgdy0wLjUgaC01IGJnLWFtYmVyLTUwMCByb3VuZGVkLXItZnVsbCIgLz4KICAgICAgICApfQogICAgICAgIDxJY29uCiAgICAgICAgICBjbGFzc05hbWU9e2B3LTUgaC01IGZsZXgtc2hyaW5rLTAgdHJhbnNpdGlvbi1jb2xvcnMgJHthY3RpdmUgPyAidGV4dC1hbWJlci00MDAiIDogInRleHQtd2hpdGUvNTAgZ3JvdXAtaG92ZXI6dGV4dC13aGl0ZSJ9YH0KICAgICAgICAgIHN0cm9rZVdpZHRoPXsxLjc1fQogICAgICAgIC8+CiAgICAgICAgeyFjb2xsYXBzZWQgJiYgKAogICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPXtgdGV4dC14cyBmb250LXNlbWlib2xkIHRyYWNraW5nLXdpZGUgd2hpdGVzcGFjZS1ub3dyYXAgJHthY3RpdmUgPyAidGV4dC1hbWJlci0zMDAiIDogIiJ9YH0+CiAgICAgICAgICAgIHtsYWJlbH0KICAgICAgICAgIDwvc3Bhbj4KICAgICAgICApfQogICAgICA8L0xpbms+CiAgICAgIHt0b29sdGlwUG9zICYmIGNyZWF0ZVBvcnRhbCgKICAgICAgICA8ZGl2CiAgICAgICAgICBzdHlsZT17ewogICAgICAgICAgICBwb3NpdGlvbjogJ2ZpeGVkJywKICAgICAgICAgICAgdG9wOiB0b29sdGlwUG9zLnRvcCwKICAgICAgICAgICAgbGVmdDogdG9vbHRpcFBvcy5sZWZ0LAogICAgICAgICAgICB0cmFuc2Zvcm06ICd0cmFuc2xhdGVZKC01MCUpJywKICAgICAgICAgICAgekluZGV4OiA5OTk5OSwKICAgICAgICAgICAgcG9pbnRlckV2ZW50czogJ25vbmUnLAogICAgICAgICAgfX0KICAgICAgICAgIGNsYXNzTmFtZT0iYmctc2xhdGUtOTAwIHRleHQtd2hpdGUgdGV4dC14cyBmb250LXNlbWlib2xkIHB4LTIuNSBweS0xLjUgcm91bmRlZC1sZyBzaGFkb3ctbGcgc2hhZG93LWJsYWNrLzMwIHdoaXRlc3BhY2Utbm93cmFwIGJvcmRlciBib3JkZXItd2hpdGUvMTAiCiAgICAgICAgPgogICAgICAgICAge2xhYmVsfQogICAgICAgIDwvZGl2PiwKICAgICAgICBkb2N1bWVudC5ib2R5CiAgICAgICl9CiAgICA8Lz4KICApOwp9CgpmdW5jdGlvbiBMYXlvdXRDb21wb25lbnQoKSB7CiAgY29uc3QgW2NvbGxhcHNlZCwgc2V0Q29sbGFwc2VkXSA9IHVzZVN0YXRlKHRydWUpOwogIGNvbnN0IGxvY2F0aW9uID0gdXNlTG9jYXRpb24oKTsKICBjb25zdCB7IHVzZXI6IGN1cnJlbnRVc2VyLCBsb2dvdXQgfSA9IHVzZUF1dGgoKTsKICBjb25zdCBpc01vYmlsZSA9IHVzZUlzTW9iaWxlKCk7CgogIGNvbnN0IE5BVl9JVEVNUyA9IGN1cnJlbnRVc2VyPy5yb2xlID09PSAnc2FsZXNfcmVwJyA/IE5BVl9JVEVNU19TQUxFU19SRVAgOiBOQVZfSVRFTVNfQUxMOwoKICBjb25zdCBpc0FjdGl2ZSA9IChwYXRoKSA9PgogICAgcGF0aCA9PT0gIi8iID8gbG9jYXRpb24ucGF0aG5hbWUgPT09ICIvIiA6IGxvY2F0aW9uLnBhdGhuYW1lID09PSBwYXRoIHx8IGxvY2F0aW9uLnBhdGhuYW1lLnN0YXJ0c1dpdGgocGF0aCArICIvIik7CgogIGlmIChpc01vYmlsZSkgewogICAgcmV0dXJuICgKICAgICAgPG1haW4KICAgICAgICBjbGFzc05hbWU9ImZsZXgtMSBvdmVyZmxvdy1hdXRvIGJnLXNsYXRlLTUwIgogICAgICAgIHN0eWxlPXt7CiAgICAgICAgICBwYWRkaW5nVG9wOiAnY2FsYyhlbnYoc2FmZS1hcmVhLWluc2V0LXRvcCkgKyAxMnB4KScsCiAgICAgICAgICBwYWRkaW5nQm90dG9tOiAnY2FsYyg0cmVtICsgZW52KHNhZmUtYXJlYS1pbnNldC1ib3R0b20pKScsCiAgICAgICAgfX0KICAgICAgPgogICAgICAgIDxPdXRsZXQgLz4KICAgICAgPC9tYWluPgogICAgKTsKICB9CgogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBoLXNjcmVlbiBiZy1zbGF0ZS01MCBvdmVyZmxvdy1oaWRkZW4iPgogICAgICB7LyogU2lkZWJhciAtIExvY2tlZCB3aWR0aCwgbm8gdHJhbnNpdGlvbnMsIG5vIG1vdmVtZW50ICovfQogICAgICA8YXNpZGUKICAgICAgICBjbGFzc05hbWU9ImZsZXggZmxleC1jb2wgYmctWyMxQjJBNEFdIHRleHQtd2hpdGUgYm9yZGVyLXIgYm9yZGVyLXdoaXRlLzEwIgogICAgICAgIHN0eWxlPXt7IAogICAgICAgICAgd2lkdGg6IGNvbGxhcHNlZCA/IDY0IDogMjI0LAogICAgICAgICAgZmxleFNocmluazogMCwKICAgICAgICAgIGNvbnRhaW46ICdsYXlvdXQnCiAgICAgICAgfX0KICAgICAgPgogICAgICAgIHsvKiBMb2dvIC8gQnJhbmQgKi99CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGJvcmRlci1iIGJvcmRlci13aGl0ZS8xMCBoLTI0IGZsZXgtc2hyaW5rLTAiIHN0eWxlPXt7IHBhZGRpbmc6IGNvbGxhcHNlZCA/ICcwLjc1cmVtJyA6ICcwLjc1cmVtIDFyZW0nIH19PgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIiBzdHlsZT17eyB3aWR0aDogJzEwMCUnLCBqdXN0aWZ5Q29udGVudDogY29sbGFwc2VkID8gJ2NlbnRlcicgOiAnZmxleC1zdGFydCcsIGdhcDogY29sbGFwc2VkID8gMCA6ICcwLjc1cmVtJyB9fT4KICAgICAgICAgICAgPGRpdgogICAgICAgICAgICAgIHN0eWxlPXt7IGhlaWdodDogNTYsIHdpZHRoOiA1NiwgZmxleFNocmluazogMCB9fQogICAgICAgICAgICAgIGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgYmctYW1iZXItNTAwIHJvdW5kZWQtbGcgdGV4dC13aGl0ZSBmb250LWJvbGQgdGV4dC1sZyIKICAgICAgICAgICAgPgogICAgICAgICAgICAgIEVDCiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICB7IWNvbGxhcHNlZCAmJiAoCiAgICAgICAgICAgICAgPGRpdiBzdHlsZT17eyBvdmVyZmxvdzogJ2hpZGRlbicsIHRleHRPdmVyZmxvdzogJ2VsbGlwc2lzJywgd2hpdGVTcGFjZTogJ25vd3JhcCcsIG1pbldpZHRoOiAwIH19PgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtd2hpdGUgZm9udC1ib2xkIHRleHQteHMgbGVhZGluZy10aWdodCI+RUMgQ29uc3RydWN0aW9uPC9kaXY+CiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC13aGl0ZS80MCB0ZXh0LVsxMHB4XSI+TG9zIEFuZ2VsZXMsIENBPC9kaXY+CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICl9CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KCiAgICAgICAgey8qIE5hdiBJdGVtcyAqL30KICAgICAgICA8bmF2IGNsYXNzTmFtZT0iZmxleC0xIHB4LTIgcHktNCBzcGFjZS15LTAuNSBvdmVyZmxvdy1oaWRkZW4iPgogICAgICAgICAge05BVl9JVEVNUy5tYXAoKHsgcGF0aCwgbGFiZWwsIGljb246IEljb24gfSkgPT4gKAogICAgICAgICAgICA8TmF2SXRlbSBrZXk9e3BhdGh9IHBhdGg9e3BhdGh9IGxhYmVsPXtsYWJlbH0gaWNvbj17SWNvbn0gYWN0aXZlPXtpc0FjdGl2ZShwYXRoKX0gY29sbGFwc2VkPXtjb2xsYXBzZWR9IC8+CiAgICAgICAgICApKX0KICAgICAgICA8L25hdj4KCiAgICAgICAgey8qIEZvb3RlciAqL30KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYm9yZGVyLXQgYm9yZGVyLXdoaXRlLzEwIHAtMyBzcGFjZS15LTIiPgogICAgICAgICAgeyFjb2xsYXBzZWQgJiYgY3VycmVudFVzZXIgJiYgKAogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0icHgtMSBwYi0xIj4KICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC13aGl0ZSB0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdHJ1bmNhdGUiPntjdXJyZW50VXNlci5mdWxsX25hbWV9PC9kaXY+CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtd2hpdGUvNDAgdGV4dC1bMTBweF0gdHJ1bmNhdGUgbXQtMC41Ij57Y3VycmVudFVzZXIuZW1haWx9PC9kaXY+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgKX0KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiI+CiAgICAgICAgICAgIDxUaXAgbGFiZWw9e2NvbGxhcHNlZCA/ICJFeHBhbmQgc2lkZWJhciIgOiAiQ29sbGFwc2Ugc2lkZWJhciJ9IHNpZGU9InJpZ2h0Ij4KICAgICAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRDb2xsYXBzZWQoIWNvbGxhcHNlZCl9CiAgICAgICAgICAgICAgICBhcmlhLWxhYmVsPXtjb2xsYXBzZWQgPyAiRXhwYW5kIHNpZGViYXIiIDogIkNvbGxhcHNlIHNpZGViYXIifQogICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciB3LTggaC04IHJvdW5kZWQtbGcgYmctd2hpdGUvOCBob3ZlcjpiZy1hbWJlci02MDAvMjAgdGV4dC13aGl0ZS82MCBob3Zlcjp0ZXh0LWFtYmVyLTQwMCB0cmFuc2l0aW9uLWFsbCBkdXJhdGlvbi0yMDAiCiAgICAgICAgICAgICAgPgogICAgICAgICAgICAgICAge2NvbGxhcHNlZCA/IDxDaGV2cm9uUmlnaHQgY2xhc3NOYW1lPSJ3LTQgaC00IiAvPiA6IDxDaGV2cm9uTGVmdCBjbGFzc05hbWU9InctNCBoLTQiIC8+fQogICAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgICA8L1RpcD4KICAgICAgICAgICAgeyFjb2xsYXBzZWQgJiYgKAogICAgICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IGxvZ291dCgpfQogICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiB0ZXh0LXdoaXRlLzUwIGhvdmVyOnRleHQtd2hpdGUgdGV4dC14cyBmb250LXNlbWlib2xkIHRyYW5zaXRpb24tY29sb3JzIgogICAgICAgICAgICAgID4KICAgICAgICAgICAgICAgIDxMb2dPdXQgY2xhc3NOYW1lPSJ3LTQgaC00IiAvPgogICAgICAgICAgICAgICAgTG9nb3V0CiAgICAgICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICAgICl9CiAgICAgICAgICAgIHtjb2xsYXBzZWQgJiYgKAogICAgICAgICAgICAgIDxUaXAgbGFiZWw9IkxvZ291dCIgc2lkZT0icmlnaHQiPgogICAgICAgICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBsb2dvdXQoKX0KICAgICAgICAgICAgICAgICAgYXJpYS1sYWJlbD0iTG9nb3V0IgogICAgICAgICAgICAgICAgICBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHctOCBoLTggcm91bmRlZC1sZyBiZy13aGl0ZS84IGhvdmVyOmJnLXJlZC01MDAvMjAgdGV4dC13aGl0ZS82MCBob3Zlcjp0ZXh0LXJlZC00MDAgdHJhbnNpdGlvbi1hbGwgZHVyYXRpb24tMjAwIgogICAgICAgICAgICAgICAgPgogICAgICAgICAgICAgICAgICA8TG9nT3V0IGNsYXNzTmFtZT0idy00IGgtNCIgLz4KICAgICAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgICAgIDwvVGlwPgogICAgICAgICAgICApfQogICAgICAgICAgPC9kaXY+CiAgICAgICAgPC9kaXY+CiAgICAgIDwvYXNpZGU+CgogICAgICB7LyogTWFpbiBDb250ZW50IC0gUmVzZXJ2ZWQgc2Nyb2xsYmFyIHNwYWNlLCBpbmRlcGVuZGVudCBzY3JvbGwgKi99CiAgICAgIDxtYWluIGNsYXNzTmFtZT0iZmxleC0xIG92ZXJmbG93LWF1dG8gYmctc2xhdGUtNTAiIHN0eWxlPXt7IHNjcm9sbGJhckd1dHRlcjogJ3N0YWJsZScgfX0+CiAgICAgICAgPE91dGxldCAvPgogICAgICA8L21haW4+CiAgICA8L2Rpdj4KICApOwp9CgovLyBNZW1vaXplIExheW91dCB0byBwcmV2ZW50IHJlbW91bnRpbmcgb24gcm91dGUgY2hhbmdlcwpleHBvcnQgZGVmYXVsdCBSZWFjdC5tZW1vKExheW91dENvbXBvbmVudCk7
+import { Outlet, Link, useLocation } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
+import React from "react";
+import {
+  LayoutDashboard, Users, BarChart2,
+  Settings, ChevronLeft, ChevronRight, LogOut, TrendingUp, Map, FileBarChart, Kanban
+} from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
+import { useIsMobile } from "@/hooks/use-mobile";
+import Tip from "@/components/ui/Tip";
+
+const NAV_ITEMS_ALL = [
+  { path: "/",              label: "Dashboard",     icon: BarChart2 },
+  { path: "/leads",         label: "Active Leads",  icon: Users },
+  { path: "/kanban",        label: "Status Board",  icon: Kanban },
+  { path: "/daily-map",     label: "Appointment Map", icon: Map },
+  { path: "/deals",         label: "Deals",         icon: TrendingUp },
+  { path: "/reports",       label: "Reports",       icon: FileBarChart },
+  { path: "/settings",      label: "Settings",      icon: Settings },
+];
+
+const NAV_ITEMS_SALES_REP = [
+  { path: "/",              label: "Dashboard",     icon: BarChart2 },
+  { path: "/leads",         label: "Active Leads",  icon: Users },
+  { path: "/kanban",        label: "Status Board",  icon: Kanban },
+  { path: "/daily-map",     label: "Appointment Map", icon: Map },
+  { path: "/deals",         label: "Deals",         icon: TrendingUp },
+  { path: "/reports",       label: "Reports",       icon: FileBarChart },
+  { path: "/settings",      label: "Settings",      icon: Settings },
+];
+
+function NavItem({ path, label, icon: Icon, active, collapsed }) {
+  const [tooltipPos, setTooltipPos] = useState(null);
+  const timerRef = useRef(null);
+  const linkRef = useRef(null);
+
+  const handleMouseEnter = () => {
+    if (!collapsed) return;
+    timerRef.current = setTimeout(() => {
+      if (linkRef.current) {
+        const rect = linkRef.current.getBoundingClientRect();
+        setTooltipPos({ top: rect.top + rect.height / 2, left: rect.right + 10 });
+      }
+    }, 300);
+  };
+
+  const handleMouseLeave = () => {
+    clearTimeout(timerRef.current);
+    setTooltipPos(null);
+  };
+
+  return (
+    <>
+      <Link
+        ref={linkRef}
+        to={path}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className={`relative flex items-center gap-3 px-2.5 py-2.5 rounded-lg group
+          ${active
+            ? "bg-amber-600/20 text-amber-400"
+            : "text-white/60 hover:bg-white/8 hover:text-white"
+          }`}
+      >
+        {active && (
+          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-amber-500 rounded-r-full" />
+        )}
+        <Icon
+          className={`w-5 h-5 flex-shrink-0 transition-colors ${active ? "text-amber-400" : "text-white/50 group-hover:text-white"}`}
+          strokeWidth={1.75}
+        />
+        {!collapsed && (
+          <span className={`text-xs font-semibold tracking-wide whitespace-nowrap ${active ? "text-amber-300" : ""}`}>
+            {label}
+          </span>
+        )}
+      </Link>
+      {tooltipPos && createPortal(
+        <div
+          style={{
+            position: 'fixed',
+            top: tooltipPos.top,
+            left: tooltipPos.left,
+            transform: 'translateY(-50%)',
+            zIndex: 99999,
+            pointerEvents: 'none',
+          }}
+          className="bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow-lg shadow-black/30 whitespace-nowrap border border-white/10"
+        >
+          {label}
+        </div>,
+        document.body
+      )}
+    </>
+  );
+}
+
+function LayoutComponent() {
+  const [collapsed, setCollapsed] = useState(true);
+  const location = useLocation();
+  const { user: currentUser, logout } = useAuth();
+  const isMobile = useIsMobile();
+
+  const NAV_ITEMS = currentUser?.role === 'sales_rep' ? NAV_ITEMS_SALES_REP : NAV_ITEMS_ALL;
+
+  const isActive = (path) =>
+    path === "/" ? location.pathname === "/" : location.pathname === path || location.pathname.startsWith(path + "/");
+
+  if (isMobile) {
+    return (
+      <main
+        className="flex-1 overflow-auto bg-slate-50"
+        style={{
+          paddingTop: 'calc(env(safe-area-inset-top) + 12px)',
+          paddingBottom: 'calc(4rem + env(safe-area-inset-bottom))',
+        }}
+      >
+        <Outlet />
+      </main>
+    );
+  }
+
+  return (
+    <div className="flex h-screen bg-slate-50 overflow-hidden">
+      {/* Sidebar - Locked width, no transitions, no movement */}
+      <aside
+        className="flex flex-col bg-[#1B2A4A] text-white border-r border-white/10"
+        style={{ 
+          width: collapsed ? 64 : 224,
+          flexShrink: 0,
+          contain: 'layout'
+        }}
+      >
+        {/* Logo / Brand */}
+        <div className="flex items-center border-b border-white/10 h-24 flex-shrink-0" style={{ padding: collapsed ? '0.75rem' : '0.75rem 1rem' }}>
+          <div className="flex items-center" style={{ width: '100%', justifyContent: collapsed ? 'center' : 'flex-start', gap: collapsed ? 0 : '0.75rem' }}>
+            <div
+              style={{ height: 56, width: 56, flexShrink: 0 }}
+              className="flex items-center justify-center bg-amber-500 rounded-lg text-white font-bold text-lg"
+            >
+              EC
+            </div>
+            {!collapsed && (
+              <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+                <div className="text-white font-bold text-xs leading-tight">EC Construction</div>
+                <div className="text-white/40 text-[10px]">Los Angeles, CA</div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Nav Items */}
+        <nav className="flex-1 px-2 py-4 space-y-0.5 overflow-hidden">
+          {NAV_ITEMS.map(({ path, label, icon: Icon }) => (
+            <NavItem key={path} path={path} label={label} icon={Icon} active={isActive(path)} collapsed={collapsed} />
+          ))}
+        </nav>
+
+        {/* Footer */}
+        <div className="border-t border-white/10 p-3 space-y-2">
+          {!collapsed && currentUser && (
+            <div className="px-1 pb-1">
+              <div className="text-white text-xs font-semibold truncate">{currentUser.full_name}</div>
+              <div className="text-white/40 text-[10px] truncate mt-0.5">{currentUser.email}</div>
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <Tip label={collapsed ? "Expand sidebar" : "Collapse sidebar"} side="right">
+              <button
+                onClick={() => setCollapsed(!collapsed)}
+                aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/8 hover:bg-amber-600/20 text-white/60 hover:text-amber-400 transition-all duration-200"
+              >
+                {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+              </button>
+            </Tip>
+            {!collapsed && (
+              <button
+                onClick={() => logout()}
+                className="flex items-center gap-2 text-white/50 hover:text-white text-xs font-semibold transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
+            )}
+            {collapsed && (
+              <Tip label="Logout" side="right">
+                <button
+                  onClick={() => logout()}
+                  aria-label="Logout"
+                  className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/8 hover:bg-red-500/20 text-white/60 hover:text-red-400 transition-all duration-200"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </Tip>
+            )}
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content - Reserved scrollbar space, independent scroll */}
+      <main className="flex-1 overflow-auto bg-slate-50" style={{ scrollbarGutter: 'stable' }}>
+        <Outlet />
+      </main>
+    </div>
+  );
+}
+
+// Memoize Layout to prevent remounting on route changes
+export default React.memo(LayoutComponent);

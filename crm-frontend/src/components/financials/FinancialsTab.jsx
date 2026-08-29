@@ -1,1 +1,139 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCwgdXNlQ2FsbGJhY2sgfSBmcm9tICJyZWFjdCI7CmltcG9ydCAqIGFzIHJhaWx3YXlEZWFscyBmcm9tICJAL2FwaS9yYWlsd2F5L2RlYWxzIjsKaW1wb3J0ICogYXMgcmFpbHdheURlYWxFeHBlbnNlcyBmcm9tICJAL2FwaS9yYWlsd2F5L2RlYWxFeHBlbnNlcyI7CmltcG9ydCAqIGFzIHJhaWx3YXlEZWFsRXhwZW5zZVBheW1lbnRzIGZyb20gIkAvYXBpL3JhaWx3YXkvZGVhbEV4cGVuc2VQYXltZW50cyI7CmltcG9ydCAqIGFzIHJhaWx3YXlEZWFsQ29tbWlzc2lvbnMgZnJvbSAiQC9hcGkvcmFpbHdheS9kZWFsQ29tbWlzc2lvbnMiOwppbXBvcnQgKiBhcyByYWlsd2F5RGVhbExvYW5QYXltZW50cyBmcm9tICJAL2FwaS9yYWlsd2F5L2RlYWxMb2FuUGF5bWVudHMiOwppbXBvcnQgKiBhcyByYWlsd2F5QWN0aXZpdGllcyBmcm9tICJAL2FwaS9yYWlsd2F5L2FjdGl2aXRpZXMiOwppbXBvcnQgeyB1c2VBdXRoIH0gZnJvbSAiQC9saWIvQXV0aENvbnRleHQiOwppbXBvcnQgeyBjb21wdXRlRmluYW5jaWFscyB9IGZyb20gIkAvbGliL2ZpbmFuY2lhbENhbGMiOwppbXBvcnQgRmluYW5jaWFsU3VtbWFyeSBmcm9tICIuL0ZpbmFuY2lhbFN1bW1hcnkiOwppbXBvcnQgUmV2ZW51ZVNlY3Rpb24gZnJvbSAiLi9SZXZlbnVlU2VjdGlvbiI7CmltcG9ydCBMZWFkQ29zdFNlY3Rpb24gZnJvbSAiLi9MZWFkQ29zdFNlY3Rpb24iOwppbXBvcnQgQ29tbWlzc2lvblNlY3Rpb24gZnJvbSAiLi9Db21taXNzaW9uU2VjdGlvbiI7CmltcG9ydCBFeHBlbnNlc1NlY3Rpb24gZnJvbSAiLi9FeHBlbnNlc1NlY3Rpb24iOwppbXBvcnQgTG9hblBheW1lbnRzU2VjdGlvbiBmcm9tICIuL0xvYW5QYXltZW50c1NlY3Rpb24iOwppbXBvcnQgRmluYW5jaWFsQWN0aXZpdHlTZWN0aW9uIGZyb20gIi4vRmluYW5jaWFsQWN0aXZpdHlTZWN0aW9uIjsKCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIEZpbmFuY2lhbHNUYWIoeyBkZWFsLCBsZWFkLCBpbnZvaWNlcywgc2V0RGVhbCB9KSB7CiAgY29uc3QgeyB1c2VyIH0gPSB1c2VBdXRoKCk7CiAgY29uc3Qgcm9sZSA9IHVzZXI/LnJvbGU7CiAgY29uc3QgaXNBZG1pbiA9IHJvbGUgPT09ICJhZG1pbiI7CiAgY29uc3QgaXNNYW5hZ2VyID0gcm9sZSA9PT0gIm1hbmFnZXIiOwogIGNvbnN0IGlzU2FsZXNSZXAgPSByb2xlID09PSAic2FsZXNfcmVwIjsKICBjb25zdCBjYW5WaWV3RnVsbCA9IGlzQWRtaW4gfHwgaXNNYW5hZ2VyOwogIGNvbnN0IGNhbkVkaXQgPSBpc0FkbWluIHx8IGlzTWFuYWdlcjsKICBjb25zdCBjYW5FZGl0TGVhZENvc3QgPSBpc0FkbWluOwogIGNvbnN0IGNhbkFwcHJvdmVDb21taXNzaW9uID0gaXNBZG1pbjsKICBjb25zdCBjYW5EZWxldGUgPSBpc0FkbWluOwoKICBjb25zdCBbZXhwZW5zZXMsIHNldEV4cGVuc2VzXSA9IHVzZVN0YXRlKFtdKTsKICBjb25zdCBbZXhwZW5zZVBheW1lbnRzLCBzZXRFeHBlbnNlUGF5bWVudHNdID0gdXNlU3RhdGUoW10pOwogIGNvbnN0IFtjb21taXNzaW9ucywgc2V0Q29tbWlzc2lvbnNdID0gdXNlU3RhdGUoW10pOwogIGNvbnN0IFtsb2FuUGF5bWVudHMsIHNldExvYW5QYXltZW50c10gPSB1c2VTdGF0ZShbXSk7CiAgY29uc3QgW2FjdGl2aXRpZXMsIHNldEFjdGl2aXRpZXNdID0gdXNlU3RhdGUoW10pOwogIGNvbnN0IFtsb2FkaW5nLCBzZXRMb2FkaW5nXSA9IHVzZVN0YXRlKHRydWUpOwoKICBjb25zdCBsb2FkID0gdXNlQ2FsbGJhY2soYXN5bmMgKCkgPT4gewogICAgaWYgKCFkZWFsPy5pZCkgcmV0dXJuOwogICAgc2V0TG9hZGluZyh0cnVlKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IFtleFJlcywgcGF5UmVzLCBjb21SZXMsIGxvYW5SZXMsIGFjdFJlc10gPSBhd2FpdCBQcm9taXNlLmFsbChbCiAgICAgICAgY2FuVmlld0Z1bGwgPyByYWlsd2F5RGVhbEV4cGVuc2VzLmxpc3QoeyBkZWFsX2lkOiBkZWFsLmlkIH0pIDogUHJvbWlzZS5yZXNvbHZlKHsgaXRlbXM6IFtdIH0pLAogICAgICAgIGNhblZpZXdGdWxsID8gcmFpbHdheURlYWxFeHBlbnNlUGF5bWVudHMubGlzdCh7IGRlYWxfaWQ6IGRlYWwuaWQgfSkgOiBQcm9taXNlLnJlc29sdmUoeyBpdGVtczogW10gfSksCiAgICAgICAgcmFpbHdheURlYWxDb21taXNzaW9ucy5saXN0KHsgZGVhbF9pZDogZGVhbC5pZCB9KS5jYXRjaCgoKSA9PiAoeyBpdGVtczogW10gfSkpLAogICAgICAgIGNhblZpZXdGdWxsID8gcmFpbHdheURlYWxMb2FuUGF5bWVudHMubGlzdCh7IGRlYWxfaWQ6IGRlYWwuaWQgfSkgOiBQcm9taXNlLnJlc29sdmUoeyBpdGVtczogW10gfSksCiAgICAgICAgY2FuVmlld0Z1bGwgJiYgZGVhbC5sZWFkX2lkID8gcmFpbHdheUFjdGl2aXRpZXMubGlzdCh7IGxlYWRfaWQ6IGRlYWwubGVhZF9pZCB9KS5jYXRjaCgoKSA9PiAoeyBpdGVtczogW10gfSkpIDogUHJvbWlzZS5yZXNvbHZlKHsgaXRlbXM6IFtdIH0pLAogICAgICBdKTsKICAgICAgc2V0RXhwZW5zZXMoZXhSZXMuaXRlbXMgfHwgW10pOwogICAgICBzZXRFeHBlbnNlUGF5bWVudHMocGF5UmVzLml0ZW1zIHx8IFtdKTsKICAgICAgc2V0Q29tbWlzc2lvbnMoY29tUmVzLml0ZW1zIHx8IFtdKTsKICAgICAgc2V0TG9hblBheW1lbnRzKGxvYW5SZXMuaXRlbXMgfHwgW10pOwogICAgICBzZXRBY3Rpdml0aWVzKChhY3RSZXMuaXRlbXMgfHwgW10pLmZpbHRlcigoYSkgPT4gYS5tZXRhZGF0YT8uY2F0ZWdvcnkgPT09ICJmaW5hbmNpYWwiKSk7CiAgICB9IGNhdGNoIHsKICAgICAgLy8gbm9uLWNyaXRpY2FsCiAgICB9IGZpbmFsbHkgewogICAgICBzZXRMb2FkaW5nKGZhbHNlKTsKICAgIH0KICB9LCBbZGVhbD8uaWQsIGRlYWw/LmxlYWRfaWQsIGNhblZpZXdGdWxsXSk7CgogIHVzZUVmZmVjdCgoKSA9PiB7CiAgICBsb2FkKCk7CiAgfSwgW2xvYWRdKTsKCiAgY29uc3QgdXBkYXRlRGVhbCA9IGFzeW5jIChmaWVsZHMpID0+IHsKICAgIGNvbnN0IHVwZGF0ZWQgPSBhd2FpdCByYWlsd2F5RGVhbHMudXBkYXRlKGRlYWwuaWQsIGZpZWxkcyk7CiAgICBzZXREZWFsKHVwZGF0ZWQpOwogICAgcmV0dXJuIHVwZGF0ZWQ7CiAgfTsKCiAgY29uc3QgbG9nQWN0aXZpdHkgPSB1c2VDYWxsYmFjaygKICAgIGFzeW5jIChhY3Rpb24sIHJlY29yZFR5cGUsIGRlc2NyaXB0aW9uLCBleHRyYSA9IHt9KSA9PiB7CiAgICAgIGlmICghZGVhbD8ubGVhZF9pZCkgcmV0dXJuOwogICAgICB0cnkgewogICAgICAgIGF3YWl0IHJhaWx3YXlBY3Rpdml0aWVzLmNyZWF0ZSh7CiAgICAgICAgICBsZWFkX2lkOiBkZWFsLmxlYWRfaWQsCiAgICAgICAgICB0eXBlOiAibm90ZSIsCiAgICAgICAgICB0aW1lc3RhbXA6IG5ldyBEYXRlKCkudG9JU09TdHJpbmcoKSwKICAgICAgICAgIGNvbnRlbnQ6IGRlc2NyaXB0aW9uLAogICAgICAgICAgYXV0aG9yOiB1c2VyPy5lbWFpbCB8fCAic3lzdGVtIiwKICAgICAgICAgIG1ldGFkYXRhOiB7IGNhdGVnb3J5OiAiZmluYW5jaWFsIiwgYWN0aW9uLCByZWNvcmRfdHlwZTogcmVjb3JkVHlwZSwgZGVhbF9pZDogZGVhbC5pZCwgLi4uZXh0cmEgfSwKICAgICAgICAgIHNvdXJjZTogIm1hbnVhbCIsCiAgICAgICAgfSk7CiAgICAgIH0gY2F0Y2ggewogICAgICAgIC8vIG5vbi1jcml0aWNhbCDigJQgZmluYW5jaWFsIGFjdGlvbiBhbHJlYWR5IHN1Y2NlZWRlZAogICAgICB9CiAgICB9LAogICAgW2RlYWw/LmxlYWRfaWQsIGRlYWw/LmlkLCB1c2VyPy5lbWFpbF0KICApOwoKICBjb25zdCBmaW4gPSBjb21wdXRlRmluYW5jaWFscyh7IGRlYWwsIGxlYWQsIGludm9pY2VzLCBleHBlbnNlcywgY29tbWlzc2lvbnMsIGxvYW5QYXltZW50cyB9KTsKCiAgaWYgKGxvYWRpbmcpIHsKICAgIHJldHVybiAoCiAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBweS0xMiI+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9InctOCBoLTggYm9yZGVyLTQgYm9yZGVyLXNsYXRlLTIwMCBib3JkZXItdC1hbWJlci01MDAgcm91bmRlZC1mdWxsIGFuaW1hdGUtc3BpbiIgLz4KICAgICAgPC9kaXY+CiAgICApOwogIH0KCiAgaWYgKGlzU2FsZXNSZXApIHsKICAgIHJldHVybiAoCiAgICAgIDxkaXYgY2xhc3NOYW1lPSJtYXgtdy00eGwgbXgtYXV0byBweC00IG1kOnB4LTYgcHktNSBzcGFjZS15LTUiPgogICAgICAgIDxDb21taXNzaW9uU2VjdGlvbgogICAgICAgICAgZGVhbD17ZGVhbH0KICAgICAgICAgIGNvbW1pc3Npb25zPXtjb21taXNzaW9uc30KICAgICAgICAgIGN0eD17ZmluLmN0eH0KICAgICAgICAgIGNhbkVkaXQ9e2ZhbHNlfQogICAgICAgICAgY2FuQXBwcm92ZT17ZmFsc2V9CiAgICAgICAgICBjYW5EZWxldGU9e2ZhbHNlfQogICAgICAgICAgb25DaGFuZ2U9e2xvYWR9CiAgICAgICAgICBsb2dBY3Rpdml0eT17bG9nQWN0aXZpdHl9CiAgICAgICAgICB1c2VyPXt1c2VyfQogICAgICAgIC8+CiAgICAgIDwvZGl2PgogICAgKTsKICB9CgogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT0ibWF4LXctNHhsIG14LWF1dG8gcHgtNCBtZDpweC02IHB5LTUgc3BhY2UteS01Ij4KICAgICAgPEZpbmFuY2lhbFN1bW1hcnkgZmluPXtmaW59IC8+CiAgICAgIDxSZXZlbnVlU2VjdGlvbiBkZWFsPXtkZWFsfSBmaW49e2Zpbn0gY2FuRWRpdD17Y2FuRWRpdH0gdXBkYXRlRGVhbD17dXBkYXRlRGVhbH0gbG9nQWN0aXZpdHk9e2xvZ0FjdGl2aXR5fSAvPgogICAgICA8TGVhZENvc3RTZWN0aW9uIGRlYWw9e2RlYWx9IGZpbj17ZmlufSBjYW5FZGl0PXtjYW5FZGl0TGVhZENvc3R9IHVwZGF0ZURlYWw9e3VwZGF0ZURlYWx9IGxvZ0FjdGl2aXR5PXtsb2dBY3Rpdml0eX0gLz4KICAgICAgPENvbW1pc3Npb25TZWN0aW9uCiAgICAgICAgZGVhbD17ZGVhbH0KICAgICAgICBjb21taXNzaW9ucz17Y29tbWlzc2lvbnN9CiAgICAgICAgY3R4PXtmaW4uY3R4fQogICAgICAgIGNhbkVkaXQ9e2NhbkVkaXR9CiAgICAgICAgY2FuQXBwcm92ZT17Y2FuQXBwcm92ZUNvbW1pc3Npb259CiAgICAgICAgY2FuRGVsZXRlPXtjYW5EZWxldGV9CiAgICAgICAgb25DaGFuZ2U9e2xvYWR9CiAgICAgICAgbG9nQWN0aXZpdHk9e2xvZ0FjdGl2aXR5fQogICAgICAgIHVzZXI9e3VzZXJ9CiAgICAgIC8+CiAgICAgIDxFeHBlbnNlc1NlY3Rpb24gZGVhbD17ZGVhbH0gZXhwZW5zZXM9e2V4cGVuc2VzfSBwYXltZW50cz17ZXhwZW5zZVBheW1lbnRzfSBjYW5FZGl0PXtjYW5FZGl0fSBjYW5EZWxldGU9e2NhbkRlbGV0ZX0gb25DaGFuZ2U9e2xvYWR9IGxvZ0FjdGl2aXR5PXtsb2dBY3Rpdml0eX0gdXNlcj17dXNlcn0gLz4KICAgICAgPExvYW5QYXltZW50c1NlY3Rpb24gZGVhbD17ZGVhbH0gbG9hblBheW1lbnRzPXtsb2FuUGF5bWVudHN9IGNhbkVkaXQ9e2NhbkVkaXR9IGNhbkRlbGV0ZT17Y2FuRGVsZXRlfSBvbkNoYW5nZT17bG9hZH0gbG9nQWN0aXZpdHk9e2xvZ0FjdGl2aXR5fSB1c2VyPXt1c2VyfSAvPgogICAgICA8RmluYW5jaWFsQWN0aXZpdHlTZWN0aW9uIGFjdGl2aXRpZXM9e2FjdGl2aXRpZXN9IC8+CiAgICA8L2Rpdj4KICApOwp9
+import { useState, useEffect, useCallback } from "react";
+import * as railwayDeals from "@/api/railway/deals";
+import * as railwayDealExpenses from "@/api/railway/dealExpenses";
+import * as railwayDealExpensePayments from "@/api/railway/dealExpensePayments";
+import * as railwayDealCommissions from "@/api/railway/dealCommissions";
+import * as railwayDealLoanPayments from "@/api/railway/dealLoanPayments";
+import * as railwayActivities from "@/api/railway/activities";
+import { useAuth } from "@/lib/AuthContext";
+import { computeFinancials } from "@/lib/financialCalc";
+import FinancialSummary from "./FinancialSummary";
+import RevenueSection from "./RevenueSection";
+import LeadCostSection from "./LeadCostSection";
+import CommissionSection from "./CommissionSection";
+import ExpensesSection from "./ExpensesSection";
+import LoanPaymentsSection from "./LoanPaymentsSection";
+import FinancialActivitySection from "./FinancialActivitySection";
+
+export default function FinancialsTab({ deal, lead, invoices, setDeal }) {
+  const { user } = useAuth();
+  const role = user?.role;
+  const isAdmin = role === "admin";
+  const isManager = role === "manager";
+  const isSalesRep = role === "sales_rep";
+  const canViewFull = isAdmin || isManager;
+  const canEdit = isAdmin || isManager;
+  const canEditLeadCost = isAdmin;
+  const canApproveCommission = isAdmin;
+  const canDelete = isAdmin;
+
+  const [expenses, setExpenses] = useState([]);
+  const [expensePayments, setExpensePayments] = useState([]);
+  const [commissions, setCommissions] = useState([]);
+  const [loanPayments, setLoanPayments] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    if (!deal?.id) return;
+    setLoading(true);
+    try {
+      const [exRes, payRes, comRes, loanRes, actRes] = await Promise.all([
+        canViewFull ? railwayDealExpenses.list({ deal_id: deal.id }) : Promise.resolve({ items: [] }),
+        canViewFull ? railwayDealExpensePayments.list({ deal_id: deal.id }) : Promise.resolve({ items: [] }),
+        railwayDealCommissions.list({ deal_id: deal.id }).catch(() => ({ items: [] })),
+        canViewFull ? railwayDealLoanPayments.list({ deal_id: deal.id }) : Promise.resolve({ items: [] }),
+        canViewFull && deal.lead_id ? railwayActivities.list({ lead_id: deal.lead_id }).catch(() => ({ items: [] })) : Promise.resolve({ items: [] }),
+      ]);
+      setExpenses(exRes.items || []);
+      setExpensePayments(payRes.items || []);
+      setCommissions(comRes.items || []);
+      setLoanPayments(loanRes.items || []);
+      setActivities((actRes.items || []).filter((a) => a.metadata?.category === "financial"));
+    } catch {
+      // non-critical
+    } finally {
+      setLoading(false);
+    }
+  }, [deal?.id, deal?.lead_id, canViewFull]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const updateDeal = async (fields) => {
+    const updated = await railwayDeals.update(deal.id, fields);
+    setDeal(updated);
+    return updated;
+  };
+
+  const logActivity = useCallback(
+    async (action, recordType, description, extra = {}) => {
+      if (!deal?.lead_id) return;
+      try {
+        await railwayActivities.create({
+          lead_id: deal.lead_id,
+          type: "note",
+          timestamp: new Date().toISOString(),
+          content: description,
+          author: user?.email || "system",
+          metadata: { category: "financial", action, record_type: recordType, deal_id: deal.id, ...extra },
+          source: "manual",
+        });
+      } catch {
+        // non-critical — financial action already succeeded
+      }
+    },
+    [deal?.lead_id, deal?.id, user?.email]
+  );
+
+  const fin = computeFinancials({ deal, lead, invoices, expenses, commissions, loanPayments });
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="w-8 h-8 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (isSalesRep) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 md:px-6 py-5 space-y-5">
+        <CommissionSection
+          deal={deal}
+          commissions={commissions}
+          ctx={fin.ctx}
+          canEdit={false}
+          canApprove={false}
+          canDelete={false}
+          onChange={load}
+          logActivity={logActivity}
+          user={user}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 md:px-6 py-5 space-y-5">
+      <FinancialSummary fin={fin} />
+      <RevenueSection deal={deal} fin={fin} canEdit={canEdit} updateDeal={updateDeal} logActivity={logActivity} />
+      <LeadCostSection deal={deal} fin={fin} canEdit={canEditLeadCost} updateDeal={updateDeal} logActivity={logActivity} />
+      <CommissionSection
+        deal={deal}
+        commissions={commissions}
+        ctx={fin.ctx}
+        canEdit={canEdit}
+        canApprove={canApproveCommission}
+        canDelete={canDelete}
+        onChange={load}
+        logActivity={logActivity}
+        user={user}
+      />
+      <ExpensesSection deal={deal} expenses={expenses} payments={expensePayments} canEdit={canEdit} canDelete={canDelete} onChange={load} logActivity={logActivity} user={user} />
+      <LoanPaymentsSection deal={deal} loanPayments={loanPayments} canEdit={canEdit} canDelete={canDelete} onChange={load} logActivity={logActivity} user={user} />
+      <FinancialActivitySection activities={activities} />
+    </div>
+  );
+}

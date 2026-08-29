@@ -1,1 +1,51 @@
-LyoqCiAqIFJpZ2h0UGFuZWxTZWN0aW9uIC0gVW5pZmllZCBoZWFkZXIgZm9yIGFsbCByaWdodC1zaWRlIGxlYWQgcGFuZWxzCiAqIAogKiBFbnN1cmVzIGNvbnNpc3RlbnQ6CiAqIC0gSGVhZGVyIGhlaWdodCAocHgtNCBweS0zKQogKiAtIFRpdGxlIHN0eWxpbmcgKHR5cG9ncmFwaHktY2FyZC10aXRsZSkKICogLSBDb2xsYXBzZSBhcnJvdyBzdHlsZSBhbmQgcG9zaXRpb24KICogLSBDb3VudCBiYWRnZSBwbGFjZW1lbnQgYW5kIHN0eWxlCiAqIC0gQWN0aW9uIGJ1dHRvbiBwb3NpdGlvbmluZwogKi8KCmltcG9ydCB7IENoZXZyb25Eb3duLCBDaGV2cm9uUmlnaHQgfSBmcm9tICJsdWNpZGUtcmVhY3QiOwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gUmlnaHRQYW5lbFNlY3Rpb24oewogIHRpdGxlLAogIGNvdW50LAogIGNvbGxhcHNlZCwKICBvbkNvbGxhcHNlLAogIGFjdGlvbiwKICBjaGlsZHJlbiwKICBpY29uOiBJY29uLAogIGhpZGVIZWFkZXIgPSBmYWxzZSwKfSkgewogIHJldHVybiAoCiAgICA8ZGl2PgogICAgICB7LyogSGVhZGVyIOKAlCBoaWRkZW4gd2hlbiBuZXN0ZWQgaW5zaWRlIGFjY29yZGlvbiAqL30KICAgICAgeyFoaWRlSGVhZGVyICYmICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIHB4LTQgcHktMi41IGhvdmVyOmJnLXNsYXRlLTUwLzUwIHRyYW5zaXRpb24tY29sb3JzIGJvcmRlci1iIGJvcmRlci1zbGF0ZS0xMDAiPgogICAgICAgICAgPGJ1dHRvbiBvbkNsaWNrPXtvbkNvbGxhcHNlfSBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0xLjUgZmxleC0xIG1pbi13LTAgYnRuLWNvbXBhY3QiPgogICAgICAgICAgICB7Y29sbGFwc2VkID8gKAogICAgICAgICAgICAgIDxDaGV2cm9uUmlnaHQgY2xhc3NOYW1lPSJ3LTMgaC0zIHRleHQtc2xhdGUtNDAwIGZsZXgtc2hyaW5rLTAiIC8+CiAgICAgICAgICAgICkgOiAoCiAgICAgICAgICAgICAgPENoZXZyb25Eb3duIGNsYXNzTmFtZT0idy0zIGgtMyB0ZXh0LXNsYXRlLTQwMCBmbGV4LXNocmluay0wIiAvPgogICAgICAgICAgICApfQogICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTcwMCI+e3RpdGxlfTwvc3Bhbj4KICAgICAgICAgICAge2NvdW50ICE9PSB1bmRlZmluZWQgJiYgKAogICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gdGV4dC1zbGF0ZS00MDAgbWwtMC41Ij4oe2NvdW50fSk8L3NwYW4+CiAgICAgICAgICAgICl9CiAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICAgIHthY3Rpb24gJiYgPGRpdiBjbGFzc05hbWU9ImZsZXgtc2hyaW5rLTAiPnthY3Rpb259PC9kaXY+fQogICAgICAgIDwvZGl2PgogICAgICApfQogICAgICB7LyogQ29udGVudCAqL30KICAgICAgeyFjb2xsYXBzZWQgJiYgKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPXtoaWRlSGVhZGVyID8gIiIgOiAiIn0+CiAgICAgICAgICB7Y2hpbGRyZW59CiAgICAgICAgPC9kaXY+CiAgICAgICl9CiAgICA8L2Rpdj4KICApOwp9
+/**
+ * RightPanelSection - Unified header for all right-side lead panels
+ * 
+ * Ensures consistent:
+ * - Header height (px-4 py-3)
+ * - Title styling (typography-card-title)
+ * - Collapse arrow style and position
+ * - Count badge placement and style
+ * - Action button positioning
+ */
+
+import { ChevronDown, ChevronRight } from "lucide-react";
+
+export default function RightPanelSection({
+  title,
+  count,
+  collapsed,
+  onCollapse,
+  action,
+  children,
+  icon: Icon,
+  hideHeader = false,
+}) {
+  return (
+    <div>
+      {/* Header — hidden when nested inside accordion */}
+      {!hideHeader && (
+        <div className="flex items-center justify-between px-4 py-2.5 hover:bg-slate-50/50 transition-colors border-b border-slate-100">
+          <button onClick={onCollapse} className="flex items-center gap-1.5 flex-1 min-w-0 btn-compact">
+            {collapsed ? (
+              <ChevronRight className="w-3 h-3 text-slate-400 flex-shrink-0" />
+            ) : (
+              <ChevronDown className="w-3 h-3 text-slate-400 flex-shrink-0" />
+            )}
+            <span className="text-xs font-semibold text-slate-700">{title}</span>
+            {count !== undefined && (
+              <span className="text-[10px] text-slate-400 ml-0.5">({count})</span>
+            )}
+          </button>
+          {action && <div className="flex-shrink-0">{action}</div>}
+        </div>
+      )}
+      {/* Content */}
+      {!collapsed && (
+        <div className={hideHeader ? "" : ""}>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}

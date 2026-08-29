@@ -1,1 +1,5 @@
-aW1wb3J0ICogYXMgQXNwZWN0UmF0aW9QcmltaXRpdmUgZnJvbSAiQHJhZGl4LXVpL3JlYWN0LWFzcGVjdC1yYXRpbyIKCmNvbnN0IEFzcGVjdFJhdGlvID0gQXNwZWN0UmF0aW9QcmltaXRpdmUuUm9vdAoKZXhwb3J0IHsgQXNwZWN0UmF0aW8gfQo=
+import * as AspectRatioPrimitive from "@radix-ui/react-aspect-ratio"
+
+const AspectRatio = AspectRatioPrimitive.Root
+
+export { AspectRatio }

@@ -1,1 +1,57 @@
-LyoqCiAqIFJpZ2h0U2lkZWJhckFjY29yZGlvbgogKiBBY2NvcmRpb24gd3JhcHBlciBmb3IgdGhlIHJpZ2h0IHNpZGViYXIgcGFuZWxzLgogKiBPbmx5IG9uZSBzZWN0aW9uIG9wZW4gYXQgYSB0aW1lLgogKi8KaW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IENoZXZyb25Eb3duIH0gZnJvbSAibHVjaWRlLXJlYWN0IjsKCmZ1bmN0aW9uIEFjY29yZGlvblNlY3Rpb24oeyBpZCwgdGl0bGUsIGljb246IFNlY3Rpb25JY29uLCBiYWRnZSwgb3BlbklkLCBzZXRPcGVuSWQsIGNoaWxkcmVuIH0pIHsKICBjb25zdCBpc09wZW4gPSBvcGVuSWQgPT09IGlkOwogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT17YGJvcmRlci1iIGJvcmRlci1zbGF0ZS0xMDAgbGFzdDpib3JkZXItYi0wICR7aXNPcGVuID8gImJnLXdoaXRlIiA6ICIifWB9PgogICAgICA8YnV0dG9uCiAgICAgICAgb25DbGljaz17KCkgPT4gc2V0T3BlbklkKGlzT3BlbiA/IG51bGwgOiBpZCl9CiAgICAgICAgY2xhc3NOYW1lPSJ3LWZ1bGwgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIHB4LTQgcHktNCB0ZXh0LWxlZnQgaG92ZXI6Ymctc2xhdGUtNTAgdHJhbnNpdGlvbi1jb2xvcnMgYnRuLWNvbXBhY3QiCiAgICAgID4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTMiPgogICAgICAgICAge1NlY3Rpb25JY29uICYmIDxTZWN0aW9uSWNvbiBjbGFzc05hbWU9InctNSBoLTUgdGV4dC1zbGF0ZS02MDAgZmxleC1zaHJpbmstMCIgLz59CiAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtc20gZm9udC1ib2xkIHRleHQtc2xhdGUtOTAwIj57dGl0bGV9PC9zcGFuPgogICAgICAgICAge2JhZGdlICE9IG51bGwgJiYgYmFkZ2UgPiAwICYmICgKICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJpbmxpbmUtZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgbWluLXctWzIwcHhdIGgtWzIwcHhdIHB4LTEuNSByb3VuZGVkLWZ1bGwgYmctYW1iZXItNjAwIHRleHQtd2hpdGUgdGV4dC1bMTBweF0gZm9udC1ib2xkIj4KICAgICAgICAgICAgICB7YmFkZ2V9CiAgICAgICAgICAgIDwvc3Bhbj4KICAgICAgICAgICl9CiAgICAgICAgPC9kaXY+CiAgICAgICAgPENoZXZyb25Eb3duIGNsYXNzTmFtZT17YHctNSBoLTUgdGV4dC1zbGF0ZS00MDAgdHJhbnNpdGlvbi10cmFuc2Zvcm0gZHVyYXRpb24tMjAwICR7aXNPcGVuID8gInJvdGF0ZS0xODAiIDogIiJ9YH0gLz4KICAgICAgPC9idXR0b24+CiAgICAgIHtpc09wZW4gJiYgKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJib3JkZXItdCBib3JkZXItc2xhdGUtMTAwIj4KICAgICAgICAgIHtjaGlsZHJlbn0KICAgICAgICA8L2Rpdj4KICAgICAgKX0KICAgIDwvZGl2PgogICk7Cn0KCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIFJpZ2h0U2lkZWJhckFjY29yZGlvbih7IHNlY3Rpb25zLCBkZWZhdWx0T3BlbiA9IG51bGwgfSkgewogIGNvbnN0IFtvcGVuSWQsIHNldE9wZW5JZF0gPSB1c2VTdGF0ZShkZWZhdWx0T3Blbik7CgogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT0iYmctd2hpdGUgcm91bmRlZC14bCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCBzaGFkb3ctc20gb3ZlcmZsb3ctaGlkZGVuIj4KICAgICAge3NlY3Rpb25zLm1hcCgoc2VjdGlvbikgPT4gKAogICAgICAgIDxBY2NvcmRpb25TZWN0aW9uCiAgICAgICAgICBrZXk9e3NlY3Rpb24uaWR9CiAgICAgICAgICBpZD17c2VjdGlvbi5pZH0KICAgICAgICAgIHRpdGxlPXtzZWN0aW9uLnRpdGxlfQogICAgICAgICAgaWNvbj17c2VjdGlvbi5pY29ufQogICAgICAgICAgYmFkZ2U9e3NlY3Rpb24uYmFkZ2V9CiAgICAgICAgICBvcGVuSWQ9e29wZW5JZH0KICAgICAgICAgIHNldE9wZW5JZD17c2V0T3BlbklkfQogICAgICAgID4KICAgICAgICAgIHtzZWN0aW9uLmNvbnRlbnR9CiAgICAgICAgPC9BY2NvcmRpb25TZWN0aW9uPgogICAgICApKX0KICAgIDwvZGl2PgogICk7Cn0=
+/**
+ * RightSidebarAccordion
+ * Accordion wrapper for the right sidebar panels.
+ * Only one section open at a time.
+ */
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
+
+function AccordionSection({ id, title, icon: SectionIcon, badge, openId, setOpenId, children }) {
+  const isOpen = openId === id;
+  return (
+    <div className={`border-b border-slate-100 last:border-b-0 ${isOpen ? "bg-white" : ""}`}>
+      <button
+        onClick={() => setOpenId(isOpen ? null : id)}
+        className="w-full flex items-center justify-between px-4 py-4 text-left hover:bg-slate-50 transition-colors btn-compact"
+      >
+        <div className="flex items-center gap-3">
+          {SectionIcon && <SectionIcon className="w-5 h-5 text-slate-600 flex-shrink-0" />}
+          <span className="text-sm font-bold text-slate-900">{title}</span>
+          {badge != null && badge > 0 && (
+            <span className="inline-flex items-center justify-center min-w-[20px] h-[20px] px-1.5 rounded-full bg-amber-600 text-white text-[10px] font-bold">
+              {badge}
+            </span>
+          )}
+        </div>
+        <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+      </button>
+      {isOpen && (
+        <div className="border-t border-slate-100">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function RightSidebarAccordion({ sections, defaultOpen = null }) {
+  const [openId, setOpenId] = useState(defaultOpen);
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      {sections.map((section) => (
+        <AccordionSection
+          key={section.id}
+          id={section.id}
+          title={section.title}
+          icon={section.icon}
+          badge={section.badge}
+          openId={openId}
+          setOpenId={setOpenId}
+        >
+          {section.content}
+        </AccordionSection>
+      ))}
+    </div>
+  );
+}

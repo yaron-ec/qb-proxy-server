@@ -1,1 +1,185 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsgcmFpbHdheVJlcXVlc3QgfSBmcm9tICJAL2xpYi9yYWlsd2F5Q2xpZW50IjsKaW1wb3J0IHsgVW5saW5rLCBDaGVja0NpcmNsZSwgQWxlcnRUcmlhbmdsZSwgTG9hZGVyMiwgRXllLCBFeWVPZmYsIENvcHksIENoZWNrIH0gZnJvbSAibHVjaWRlLXJlYWN0IjsKCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIEhhbmRvZmZBdXRoUGFuZWwoeyBvblN0YXR1c0NoYW5nZSB9KSB7CiAgY29uc3QgW3N0YXR1cywgc2V0U3RhdHVzXSA9IHVzZVN0YXRlKG51bGwpOwogIGNvbnN0IFtsb2FkaW5nLCBzZXRMb2FkaW5nXSA9IHVzZVN0YXRlKHRydWUpOwogIGNvbnN0IFtlcnJvciwgc2V0RXJyb3JdID0gdXNlU3RhdGUobnVsbCk7CiAgY29uc3QgW3Nob3dGb3JtLCBzZXRTaG93Rm9ybV0gPSB1c2VTdGF0ZShmYWxzZSk7CiAgY29uc3QgW3Rva2VuSW5wdXQsIHNldFRva2VuSW5wdXRdID0gdXNlU3RhdGUoJycpOwogIGNvbnN0IFtzaG93VG9rZW4sIHNldFNob3dUb2tlbl0gPSB1c2VTdGF0ZShmYWxzZSk7CiAgY29uc3QgW3Rva2VuaXppbmcsIHNldFRva2VuaXppbmddID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFtjb3BpZWRUb2tlblByZXZpZXcsIHNldENvcGllZFRva2VuUHJldmlld10gPSB1c2VTdGF0ZShmYWxzZSk7CgogIGNvbnN0IGNoZWNrU3RhdHVzID0gYXN5bmMgKCkgPT4gewogICAgc2V0TG9hZGluZyh0cnVlKTsKICAgIHNldEVycm9yKG51bGwpOwogICAgdHJ5IHsKICAgICAgY29uc3QgcmVzID0gYXdhaXQgcmFpbHdheVJlcXVlc3QoJy9oYW5kb2ZmL2F1dGgnLCB7IGFjdGlvbjogJ3N0YXR1cycgfSk7CiAgICAgIHNldFN0YXR1cyhyZXMpOwogICAgICBpZiAob25TdGF0dXNDaGFuZ2UpIG9uU3RhdHVzQ2hhbmdlKHJlcyk7CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIHNldEVycm9yKGUubWVzc2FnZSk7CiAgICAgIHNldFN0YXR1cyhudWxsKTsKICAgIH0gZmluYWxseSB7CiAgICAgIHNldExvYWRpbmcoZmFsc2UpOwogICAgfQogIH07CgogIHVzZUVmZmVjdCgoKSA9PiB7CiAgICBjaGVja1N0YXR1cygpOwogIH0sIFtdKTsKCiAgY29uc3QgaGFuZGxlU3RvcmVUb2tlbiA9IGFzeW5jICgpID0+IHsKICAgIGlmICghdG9rZW5JbnB1dC50cmltKCkpIHsKICAgICAgc2V0RXJyb3IoJ0JlYXJlciB0b2tlbiBjYW5ub3QgYmUgZW1wdHknKTsKICAgICAgcmV0dXJuOwogICAgfQoKICAgIHNldFRva2VuaXppbmcodHJ1ZSk7CiAgICBzZXRFcnJvcihudWxsKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IHJlcyA9IGF3YWl0IHJhaWx3YXlSZXF1ZXN0KCcvaGFuZG9mZi9hdXRoJywgewogICAgICAgIGFjdGlvbjogJ3N0b3JlX3Rva2VuJywKICAgICAgICB0b2tlbjogdG9rZW5JbnB1dCwKICAgICAgfSk7CgogICAgICBpZiAocmVzPy5zdWNjZXNzKSB7CiAgICAgICAgc2V0VG9rZW5JbnB1dCgnJyk7CiAgICAgICAgc2V0U2hvd0Zvcm0oZmFsc2UpOwogICAgICAgIGF3YWl0IGNoZWNrU3RhdHVzKCk7CiAgICAgIH0gZWxzZSB7CiAgICAgICAgc2V0RXJyb3IocmVzPy5lcnJvciB8fCAnRmFpbGVkIHRvIHN0b3JlIHRva2VuJyk7CiAgICAgIH0KICAgIH0gY2F0Y2ggKGUpIHsKICAgICAgc2V0RXJyb3IoZS5tZXNzYWdlKTsKICAgIH0gZmluYWxseSB7CiAgICAgIHNldFRva2VuaXppbmcoZmFsc2UpOwogICAgfQogIH07CgogIGNvbnN0IGhhbmRsZURpc2Nvbm5lY3QgPSBhc3luYyAoKSA9PiB7CiAgICBpZiAoIWNvbmZpcm0oJ0Rpc2Nvbm5lY3QgSGFuZG9mZj8gWW91IHdpbGwgbmVlZCB0byBwcm92aWRlIGEgbmV3IGJlYXJlciB0b2tlbiB0byBzeW5jIGFnYWluLicpKSByZXR1cm47CiAgICBzZXRMb2FkaW5nKHRydWUpOwogICAgdHJ5IHsKICAgICAgYXdhaXQgcmFpbHdheVJlcXVlc3QoJy9oYW5kb2ZmL2F1dGgnLCB7IGFjdGlvbjogJ2Rpc2Nvbm5lY3QnIH0pOwogICAgICBzZXRTdGF0dXMobnVsbCk7CiAgICAgIGlmIChvblN0YXR1c0NoYW5nZSkgb25TdGF0dXNDaGFuZ2UobnVsbCk7CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIHNldEVycm9yKGUubWVzc2FnZSk7CiAgICB9IGZpbmFsbHkgewogICAgICBzZXRMb2FkaW5nKGZhbHNlKTsKICAgIH0KICB9OwoKICBpZiAobG9hZGluZykgewogICAgcmV0dXJuICgKICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLXdoaXRlIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQteGwgcC02IGZsZXggaXRlbXMtY2VudGVyIGdhcC0zIj4KICAgICAgICA8TG9hZGVyMiBjbGFzc05hbWU9InctNSBoLTUgYW5pbWF0ZS1zcGluIHRleHQtc2xhdGUtNDAwIiAvPgogICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1zbSB0ZXh0LXNsYXRlLTUwMCI+Q2hlY2tpbmcgSGFuZG9mZiBjb25uZWN0aW9uLi4uPC9zcGFuPgogICAgICA8L2Rpdj4KICAgICk7CiAgfQoKICBpZiAoc3RhdHVzPy5jb25uZWN0ZWQpIHsKICAgIHJldHVybiAoCiAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1lbWVyYWxkLTUwIGJvcmRlciBib3JkZXItZW1lcmFsZC0yMDAgcm91bmRlZC14bCBwLTQiPgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLXN0YXJ0IGp1c3RpZnktYmV0d2VlbiBnYXAtNCI+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1zdGFydCBnYXAtMyI+CiAgICAgICAgICAgIDxDaGVja0NpcmNsZSBjbGFzc05hbWU9InctNSBoLTUgdGV4dC1lbWVyYWxkLTYwMCBmbGV4LXNocmluay0wIG10LTAuNSIgLz4KICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20gZm9udC1ib2xkIHRleHQtZW1lcmFsZC05MDAiPkNvbm5lY3RlZCB0byBIYW5kb2ZmPC9wPgogICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LWVtZXJhbGQtNzAwIG10LTEiPgogICAgICAgICAgICAgICAgQmVhcmVyIHRva2VuIGF1dGhlbnRpY2F0ZWQuIEF1dG9tYXRpYyBob3VybHkgc3luY3MgYXJlIGVuYWJsZWQuCiAgICAgICAgICAgICAgICB7c3RhdHVzLmNvbm5lY3RlZF9hdCAmJiBgIENvbm5lY3RlZCAke25ldyBEYXRlKHN0YXR1cy5jb25uZWN0ZWRfYXQpLnRvTG9jYWxlRGF0ZVN0cmluZygpfS5gfQogICAgICAgICAgICAgIDwvcD4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgb25DbGljaz17aGFuZGxlRGlzY29ubmVjdH0KICAgICAgICAgICAgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMS41IHRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXJlZC02MDAgaG92ZXI6dGV4dC1yZWQtNzAwIGJvcmRlciBib3JkZXItcmVkLTMwMCByb3VuZGVkIHB4LTMgcHktMS41IGhvdmVyOmJnLXJlZC01MCB0cmFuc2l0aW9uLWNvbG9ycyB3aGl0ZXNwYWNlLW5vd3JhcCIKICAgICAgICAgID4KICAgICAgICAgICAgPFVubGluayBjbGFzc05hbWU9InctMy41IGgtMy41IiAvPiBEaXNjb25uZWN0CiAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CiAgICApOwogIH0KCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1ibHVlLTUwIGJvcmRlciBib3JkZXItYmx1ZS0yMDAgcm91bmRlZC14bCBwLTQgc3BhY2UteS0zIj4KICAgICAgeyFzaG93Rm9ybSA/ICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1zdGFydCBqdXN0aWZ5LWJldHdlZW4gZ2FwLTQiPgogICAgICAgICAgPGRpdj4KICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtYm9sZCB0ZXh0LWJsdWUtOTAwIj5Db25uZWN0IEhhbmRvZmYgQmVhcmVyIFRva2VuPC9wPgogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1ibHVlLTcwMCBtdC0xIj4KICAgICAgICAgICAgICBQYXN0ZSB5b3VyIGJlYXJlciB0b2tlbiBmcm9tIERldlRvb2xzLiBJdCB3aWxsIGJlIHN0b3JlZCBzZWN1cmVseSBhbmQgdXNlZCBmb3IgYXV0b21hdGljIGhvdXJseSBzeW5jcy4KICAgICAgICAgICAgPC9wPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHNldFNob3dGb3JtKHRydWUpfQogICAgICAgICAgICBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIHRleHQtc20gZm9udC1ib2xkIHRleHQtd2hpdGUgYmctYmx1ZS02MDAgaG92ZXI6YmctYmx1ZS03MDAgcm91bmRlZC1sZyBweC00IHB5LTIgdHJhbnNpdGlvbi1jb2xvcnMgd2hpdGVzcGFjZS1ub3dyYXAiCiAgICAgICAgICA+CiAgICAgICAgICAgIEFkZCBUb2tlbgogICAgICAgICAgPC9idXR0b24+CiAgICAgICAgPC9kaXY+CiAgICAgICkgOiAoCiAgICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMyI+CiAgICAgICAgICA8ZGl2PgogICAgICAgICAgICA8bGFiZWwgY2xhc3NOYW1lPSJ0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1ibHVlLTkwMCBibG9jayBtYi0xLjUiPkJlYXJlciBUb2tlbjwvbGFiZWw+CiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJyZWxhdGl2ZSI+CiAgICAgICAgICAgICAgPGlucHV0CiAgICAgICAgICAgICAgICB0eXBlPXtzaG93VG9rZW4gPyAndGV4dCcgOiAncGFzc3dvcmQnfQogICAgICAgICAgICAgICAgdmFsdWU9e3Rva2VuSW5wdXR9CiAgICAgICAgICAgICAgICBvbkNoYW5nZT17ZSA9PiBzZXRUb2tlbklucHV0KGUudGFyZ2V0LnZhbHVlKX0KICAgICAgICAgICAgICAgIHBsYWNlaG9sZGVyPSJCZWFyZXIgZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5Li4uIgogICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJ3LWZ1bGwgYm9yZGVyIGJvcmRlci1ibHVlLTMwMCByb3VuZGVkLWxnIHB4LTMgcHktMiB0ZXh0LXhzIGZvbnQtbW9ubyBiZy13aGl0ZSB0ZXh0LXNsYXRlLTkwMCBwbGFjZWhvbGRlcjp0ZXh0LXNsYXRlLTQwMCBmb2N1czpvdXRsaW5lLW5vbmUgZm9jdXM6cmluZy0yIGZvY3VzOnJpbmctYmx1ZS01MDAvMjAgZm9jdXM6Ym9yZGVyLWJsdWUtNTAwIHByLTEwIgogICAgICAgICAgICAgIC8+CiAgICAgICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICAgICAgdHlwZT0iYnV0dG9uIgogICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0U2hvd1Rva2VuKCFzaG93VG9rZW4pfQogICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJhYnNvbHV0ZSByaWdodC0zIHRvcC0xLzIgLXRyYW5zbGF0ZS15LTEvMiB0ZXh0LXNsYXRlLTQwMCBob3Zlcjp0ZXh0LXNsYXRlLTYwMCIKICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICB7c2hvd1Rva2VuID8gPEV5ZU9mZiBjbGFzc05hbWU9InctNCBoLTQiIC8+IDogPEV5ZSBjbGFzc05hbWU9InctNCBoLTQiIC8+fQogICAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgIHtlcnJvciAmJiAoCiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLXN0YXJ0IGdhcC0yIGJnLXJlZC0xMDAgYm9yZGVyIGJvcmRlci1yZWQtMzAwIHJvdW5kZWQtbGcgcHgtMyBweS0yIj4KICAgICAgICAgICAgICA8QWxlcnRUcmlhbmdsZSBjbGFzc05hbWU9InctNCBoLTQgdGV4dC1yZWQtNjAwIGZsZXgtc2hyaW5rLTAgbXQtMC41IiAvPgogICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtcmVkLTgwMCI+e2Vycm9yfTwvc3Bhbj4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICApfQoKICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGdhcC0yIj4KICAgICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICAgIG9uQ2xpY2s9e2hhbmRsZVN0b3JlVG9rZW59CiAgICAgICAgICAgICAgZGlzYWJsZWQ9e3Rva2VuaXppbmcgfHwgIXRva2VuSW5wdXQudHJpbSgpfQogICAgICAgICAgICAgIGNsYXNzTmFtZT0iZmxleC0xIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGdhcC0yIGJnLWJsdWUtNjAwIHRleHQtd2hpdGUgcHgtNCBweS0yIHRleHQtc20gZm9udC1ib2xkIHJvdW5kZWQtbGcgaG92ZXI6YmctYmx1ZS03MDAgZGlzYWJsZWQ6b3BhY2l0eS01MCB0cmFuc2l0aW9uLWNvbG9ycyIKICAgICAgICAgICAgPgogICAgICAgICAgICAgIHt0b2tlbml6aW5nID8gPExvYWRlcjIgY2xhc3NOYW1lPSJ3LTQgaC00IGFuaW1hdGUtc3BpbiIgLz4gOiA8Q2hlY2sgY2xhc3NOYW1lPSJ3LTQgaC00IiAvPn0KICAgICAgICAgICAgICB7dG9rZW5pemluZyA/ICdWZXJpZnlpbmcuLi4nIDogJ1NhdmUgVG9rZW4nfQogICAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHsKICAgICAgICAgICAgICAgIHNldFNob3dGb3JtKGZhbHNlKTsKICAgICAgICAgICAgICAgIHNldFRva2VuSW5wdXQoJycpOwogICAgICAgICAgICAgICAgc2V0RXJyb3IobnVsbCk7CiAgICAgICAgICAgICAgfX0KICAgICAgICAgICAgICBkaXNhYmxlZD17dG9rZW5pemluZ30KICAgICAgICAgICAgICBjbGFzc05hbWU9ImZsZXgtMSBib3JkZXIgYm9yZGVyLXNsYXRlLTMwMCB0ZXh0LXNsYXRlLTcwMCBweC00IHB5LTIgdGV4dC1zbSBmb250LWJvbGQgcm91bmRlZC1sZyBob3ZlcjpiZy1zbGF0ZS01MCBkaXNhYmxlZDpvcGFjaXR5LTUwIHRyYW5zaXRpb24tY29sb3JzIgogICAgICAgICAgICA+CiAgICAgICAgICAgICAgQ2FuY2VsCiAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgPC9kaXY+CgogICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSB0ZXh0LWJsdWUtNzAwIGJnLWJsdWUtMTAwIHJvdW5kZWQgcHgtMiBweS0xLjUiPgogICAgICAgICAgICDwn5KhIDxzdHJvbmc+SG93IHRvIGdldCB5b3VyIGJlYXJlciB0b2tlbjo8L3N0cm9uZz4gT3BlbiBIYW5kb2ZmIGluIGEgYnJvd3Nlciwgb3BlbiBEZXZUb29scyAoRjEyKSwgZ28gdG8gTmV0d29yayB0YWIsIGZpbHRlciBmb3IgImdyYXBocWwiLCBtYWtlIGFueSByZXF1ZXN0LCBjbGljayBpdCwgc2Nyb2xsIHRvIEF1dGhvcml6YXRpb24gaGVhZGVyIOKAlCBjb3B5IHRoZSBmdWxsICJCZWFyZXIgLi4uIiB2YWx1ZS4KICAgICAgICAgIDwvcD4KICAgICAgICA8L2Rpdj4KICAgICAgKX0KICAgIDwvZGl2PgogICk7Cn0=
+import { useState, useEffect } from "react";
+import { railwayRequest } from "@/lib/railwayClient";
+import { Unlink, CheckCircle, AlertTriangle, Loader2, Eye, EyeOff, Copy, Check } from "lucide-react";
+
+export default function HandoffAuthPanel({ onStatusChange }) {
+  const [status, setStatus] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [tokenInput, setTokenInput] = useState('');
+  const [showToken, setShowToken] = useState(false);
+  const [tokenizing, setTokenizing] = useState(false);
+  const [copiedTokenPreview, setCopiedTokenPreview] = useState(false);
+
+  const checkStatus = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await railwayRequest('/handoff/auth', { action: 'status' });
+      setStatus(res);
+      if (onStatusChange) onStatusChange(res);
+    } catch (e) {
+      setError(e.message);
+      setStatus(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    checkStatus();
+  }, []);
+
+  const handleStoreToken = async () => {
+    if (!tokenInput.trim()) {
+      setError('Bearer token cannot be empty');
+      return;
+    }
+
+    setTokenizing(true);
+    setError(null);
+    try {
+      const res = await railwayRequest('/handoff/auth', {
+        action: 'store_token',
+        token: tokenInput,
+      });
+
+      if (res?.success) {
+        setTokenInput('');
+        setShowForm(false);
+        await checkStatus();
+      } else {
+        setError(res?.error || 'Failed to store token');
+      }
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setTokenizing(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    if (!confirm('Disconnect Handoff? You will need to provide a new bearer token to sync again.')) return;
+    setLoading(true);
+    try {
+      await railwayRequest('/handoff/auth', { action: 'disconnect' });
+      setStatus(null);
+      if (onStatusChange) onStatusChange(null);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-white border border-slate-200 rounded-xl p-6 flex items-center gap-3">
+        <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+        <span className="text-sm text-slate-500">Checking Handoff connection...</span>
+      </div>
+    );
+  }
+
+  if (status?.connected) {
+    return (
+      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-bold text-emerald-900">Connected to Handoff</p>
+              <p className="text-xs text-emerald-700 mt-1">
+                Bearer token authenticated. Automatic hourly syncs are enabled.
+                {status.connected_at && ` Connected ${new Date(status.connected_at).toLocaleDateString()}.`}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleDisconnect}
+            className="flex items-center gap-1.5 text-xs font-semibold text-red-600 hover:text-red-700 border border-red-300 rounded px-3 py-1.5 hover:bg-red-50 transition-colors whitespace-nowrap"
+          >
+            <Unlink className="w-3.5 h-3.5" /> Disconnect
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-3">
+      {!showForm ? (
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-bold text-blue-900">Connect Handoff Bearer Token</p>
+            <p className="text-xs text-blue-700 mt-1">
+              Paste your bearer token from DevTools. It will be stored securely and used for automatic hourly syncs.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg px-4 py-2 transition-colors whitespace-nowrap"
+          >
+            Add Token
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs font-semibold text-blue-900 block mb-1.5">Bearer Token</label>
+            <div className="relative">
+              <input
+                type={showToken ? 'text' : 'password'}
+                value={tokenInput}
+                onChange={e => setTokenInput(e.target.value)}
+                placeholder="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                className="w-full border border-blue-300 rounded-lg px-3 py-2 text-xs font-mono bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowToken(!showToken)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+
+          {error && (
+            <div className="flex items-start gap-2 bg-red-100 border border-red-300 rounded-lg px-3 py-2">
+              <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+              <span className="text-xs font-semibold text-red-800">{error}</span>
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <button
+              onClick={handleStoreToken}
+              disabled={tokenizing || !tokenInput.trim()}
+              className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 text-sm font-bold rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            >
+              {tokenizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+              {tokenizing ? 'Verifying...' : 'Save Token'}
+            </button>
+            <button
+              onClick={() => {
+                setShowForm(false);
+                setTokenInput('');
+                setError(null);
+              }}
+              disabled={tokenizing}
+              className="flex-1 border border-slate-300 text-slate-700 px-4 py-2 text-sm font-bold rounded-lg hover:bg-slate-50 disabled:opacity-50 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+
+          <p className="text-[10px] text-blue-700 bg-blue-100 rounded px-2 py-1.5">
+            💡 <strong>How to get your bearer token:</strong> Open Handoff in a browser, open DevTools (F12), go to Network tab, filter for "graphql", make any request, click it, scroll to Authorization header — copy the full "Bearer ..." value.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}

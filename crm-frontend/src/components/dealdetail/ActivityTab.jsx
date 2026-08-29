@@ -1,1 +1,17 @@
-LyoqCiAqIEFjdGl2aXR5VGFiIOKAlCBwbGFjZWhvbGRlciBmb3IgZnV0dXJlIGFjdGl2aXR5L3RpbWVsaW5lL2F1ZGl0IGxvZy4KICovCmltcG9ydCB7IEVtcHR5U3RhdGUgfSBmcm9tICJAL2NvbXBvbmVudHMvRGVzaWduU3lzdGVtIjsKaW1wb3J0IHsgQ2xvY2sgfSBmcm9tICJsdWNpZGUtcmVhY3QiOwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gQWN0aXZpdHlUYWIoKSB7CiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJtYXgtdy00eGwgbXgtYXV0byBweC00IG1kOnB4LTYgcHktNSI+CiAgICAgIDxFbXB0eVN0YXRlCiAgICAgICAgaWNvbj17Q2xvY2t9CiAgICAgICAgdGl0bGU9IkFjdGl2aXR5IGZlZWQgY29taW5nIHNvb24iCiAgICAgICAgZGVzY3JpcHRpb249IkNhbGwgbG9ncywgZW1haWxzLCBub3RlcywgYW5kIGF1ZGl0IGhpc3Rvcnkgd2lsbCBhcHBlYXIgaGVyZSBpbiBhIGZ1dHVyZSB1cGRhdGUuIgogICAgICAvPgogICAgPC9kaXY+CiAgKTsKfQ==
+/**
+ * ActivityTab — placeholder for future activity/timeline/audit log.
+ */
+import { EmptyState } from "@/components/DesignSystem";
+import { Clock } from "lucide-react";
+
+export default function ActivityTab() {
+  return (
+    <div className="max-w-4xl mx-auto px-4 md:px-6 py-5">
+      <EmptyState
+        icon={Clock}
+        title="Activity feed coming soon"
+        description="Call logs, emails, notes, and audit history will appear here in a future update."
+      />
+    </div>
+  );
+}

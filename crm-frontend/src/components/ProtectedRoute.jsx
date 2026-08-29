@@ -1,1 +1,37 @@
-aW1wb3J0IHsgdXNlRWZmZWN0IH0gZnJvbSAncmVhY3QnOwppbXBvcnQgeyBPdXRsZXQgfSBmcm9tICdyZWFjdC1yb3V0ZXItZG9tJzsKaW1wb3J0IHsgdXNlQXV0aCB9IGZyb20gJ0AvbGliL0F1dGhDb250ZXh0JzsKaW1wb3J0IFVzZXJOb3RSZWdpc3RlcmVkRXJyb3IgZnJvbSAnQC9jb21wb25lbnRzL1VzZXJOb3RSZWdpc3RlcmVkRXJyb3InOwoKY29uc3QgRGVmYXVsdEZhbGxiYWNrID0gKCkgPT4gKAogIDxkaXYgY2xhc3NOYW1lPSJmaXhlZCBpbnNldC0wIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIj4KICAgIDxkaXYgY2xhc3NOYW1lPSJ3LTggaC04IGJvcmRlci00IGJvcmRlci1zbGF0ZS0yMDAgYm9yZGVyLXQtc2xhdGUtODAwIHJvdW5kZWQtZnVsbCBhbmltYXRlLXNwaW4iPjwvZGl2PgogIDwvZGl2PgopOwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gUHJvdGVjdGVkUm91dGUoeyBmYWxsYmFjayA9IDxEZWZhdWx0RmFsbGJhY2sgLz4sIHVuYXV0aGVudGljYXRlZEVsZW1lbnQgfSkgewogIGNvbnN0IHsgaXNBdXRoZW50aWNhdGVkLCBpc0xvYWRpbmdBdXRoLCBhdXRoQ2hlY2tlZCwgYXV0aEVycm9yLCBjaGVja1VzZXJBdXRoIH0gPSB1c2VBdXRoKCk7CgogIHVzZUVmZmVjdCgoKSA9PiB7CiAgICBpZiAoIWF1dGhDaGVja2VkICYmICFpc0xvYWRpbmdBdXRoKSB7CiAgICAgIGNoZWNrVXNlckF1dGgoKTsKICAgIH0KICB9LCBbYXV0aENoZWNrZWQsIGlzTG9hZGluZ0F1dGgsIGNoZWNrVXNlckF1dGhdKTsKCiAgaWYgKGlzTG9hZGluZ0F1dGggfHwgIWF1dGhDaGVja2VkKSB7CiAgICByZXR1cm4gZmFsbGJhY2s7CiAgfQoKICBpZiAoYXV0aEVycm9yKSB7CiAgICBpZiAoYXV0aEVycm9yLnR5cGUgPT09ICd1c2VyX25vdF9yZWdpc3RlcmVkJykgewogICAgICByZXR1cm4gPFVzZXJOb3RSZWdpc3RlcmVkRXJyb3IgLz47CiAgICB9CiAgICByZXR1cm4gdW5hdXRoZW50aWNhdGVkRWxlbWVudDsKICB9CgogIGlmICghaXNBdXRoZW50aWNhdGVkKSB7CiAgICByZXR1cm4gdW5hdXRoZW50aWNhdGVkRWxlbWVudDsKICB9CgogIHJldHVybiA8T3V0bGV0IC8+Owp9Cg==
+import { useEffect } from 'react';
+import { Outlet } from 'react-router-dom';
+import { useAuth } from '@/lib/AuthContext';
+import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+
+const DefaultFallback = () => (
+  <div className="fixed inset-0 flex items-center justify-center">
+    <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+  </div>
+);
+
+export default function ProtectedRoute({ fallback = <DefaultFallback />, unauthenticatedElement }) {
+  const { isAuthenticated, isLoadingAuth, authChecked, authError, checkUserAuth } = useAuth();
+
+  useEffect(() => {
+    if (!authChecked && !isLoadingAuth) {
+      checkUserAuth();
+    }
+  }, [authChecked, isLoadingAuth, checkUserAuth]);
+
+  if (isLoadingAuth || !authChecked) {
+    return fallback;
+  }
+
+  if (authError) {
+    if (authError.type === 'user_not_registered') {
+      return <UserNotRegisteredError />;
+    }
+    return unauthenticatedElement;
+  }
+
+  if (!isAuthenticated) {
+    return unauthenticatedElement;
+  }
+
+  return <Outlet />;
+}

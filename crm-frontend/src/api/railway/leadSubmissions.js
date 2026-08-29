@@ -1,1 +1,16 @@
-LyoqCiAqIHJhaWx3YXkgbGVhZFN1Ym1pc3Npb25zIOKAlCBTdWJtaXNzaW9uIGhpc3RvcnkgQVBJIGNsaWVudC4KICoKICogICBsaXN0KGV4dGVybmFsUmVmKSAgIC0+IHsgaXRlbXMsIHRvdGFsIH0KICogICBjcmVhdGUoZXh0ZXJuYWxSZWYsIGRhdGEpIC0+IHsgc3VibWlzc2lvbiB9CiAqLwoKaW1wb3J0IHsgYXBpQ2FsbCB9IGZyb20gJy4vY2xpZW50JzsKCmV4cG9ydCBmdW5jdGlvbiBsaXN0KGV4dGVybmFsUmVmKSB7CiAgcmV0dXJuIGFwaUNhbGwoYC9hcGkvdjEvbGVhZC1zdWJtaXNzaW9ucy9ieS1leHRlcm5hbC8ke2VuY29kZVVSSUNvbXBvbmVudChleHRlcm5hbFJlZil9YCwgeyBtZXRob2Q6ICdHRVQnIH0pOwp9CgpleHBvcnQgZnVuY3Rpb24gY3JlYXRlKGV4dGVybmFsUmVmLCBkYXRhKSB7CiAgcmV0dXJuIGFwaUNhbGwoYC9hcGkvdjEvbGVhZC1zdWJtaXNzaW9ucy9ieS1leHRlcm5hbC8ke2VuY29kZVVSSUNvbXBvbmVudChleHRlcm5hbFJlZil9YCwgeyBtZXRob2Q6ICdQT1NUJywgYm9keTogZGF0YSB9KTsKfQ==
+/**
+ * railway leadSubmissions — Submission history API client.
+ *
+ *   list(externalRef)   -> { items, total }
+ *   create(externalRef, data) -> { submission }
+ */
+
+import { apiCall } from './client';
+
+export function list(externalRef) {
+  return apiCall(`/api/v1/lead-submissions/by-external/${encodeURIComponent(externalRef)}`, { method: 'GET' });
+}
+
+export function create(externalRef, data) {
+  return apiCall(`/api/v1/lead-submissions/by-external/${encodeURIComponent(externalRef)}`, { method: 'POST', body: data });
+}

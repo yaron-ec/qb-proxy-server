@@ -1,1 +1,14 @@
-aW1wb3J0IHsgY3JlYXRlQ2xpZW50IH0gZnJvbSAnQGJhc2U0NC9zZGsnOwppbXBvcnQgeyBhcHBQYXJhbXMgfSBmcm9tICdAL2xpYi9hcHAtcGFyYW1zJzsKCmNvbnN0IHsgYXBwSWQsIHRva2VuLCBmdW5jdGlvbnNWZXJzaW9uLCBhcHBCYXNlVXJsIH0gPSBhcHBQYXJhbXM7CgovL0NyZWF0ZSBhIGNsaWVudCB3aXRoIGF1dGhlbnRpY2F0aW9uIHJlcXVpcmVkCmV4cG9ydCBjb25zdCBiYXNlNDQgPSBjcmVhdGVDbGllbnQoewogIGFwcElkLAogIHRva2VuLAogIGZ1bmN0aW9uc1ZlcnNpb24sCiAgc2VydmVyVXJsOiAnJywKICByZXF1aXJlc0F1dGg6IGZhbHNlLAogIGFwcEJhc2VVcmwKfSk7Cg==
+import { createClient } from '@base44/sdk';
+import { appParams } from '@/lib/app-params';
+
+const { appId, token, functionsVersion, appBaseUrl } = appParams;
+
+//Create a client with authentication required
+export const base44 = createClient({
+  appId,
+  token,
+  functionsVersion,
+  serverUrl: '',
+  requiresAuth: false,
+  appBaseUrl
+});

@@ -1,1 +1,42 @@
-LyoqCiAqIFVuaWZpZWQgUHJvZmlsZSBDYXJkIENvbXBvbmVudAogKiBGb3IgdXNlciBwcm9maWxlcywgY29udGFjdHMsIHRlYW0gbWVtYmVycwogKi8KCmltcG9ydCB7IENhcmQsIENhcmRIZWFkZXIsIENhcmRDb250ZW50IH0gZnJvbSAiLi9DYXJkIjsKCmV4cG9ydCBmdW5jdGlvbiBQcm9maWxlQ2FyZCh7IG5hbWUsIHN1YnRpdGxlLCBhdmF0YXIsIGNoaWxkcmVuIH0pIHsKICByZXR1cm4gKAogICAgPENhcmQ+CiAgICAgIDxDYXJkSGVhZGVyIGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTMgbWItMyI+CiAgICAgICAge2F2YXRhciAmJiAoCiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idy0xMCBoLTEwIHJvdW5kZWQtbGcgYmctZ3JhZGllbnQtdG8tYnIgZnJvbS1hbWJlci01MDAgdG8tb3JhbmdlLTYwMCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBmbGV4LXNocmluay0wIHRleHQtd2hpdGUgZm9udC1ib2xkIHRleHQtc20iPgogICAgICAgICAgICB7YXZhdGFyfQogICAgICAgICAgPC9kaXY+CiAgICAgICAgKX0KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleC0xIG1pbi13LTAiPgogICAgICAgICAgPGgzIGNsYXNzTmFtZT0idGV4dC1zbSBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtOTAwIHRydW5jYXRlIj57bmFtZX08L2gzPgogICAgICAgICAge3N1YnRpdGxlICYmIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTQwMCB0cnVuY2F0ZSI+e3N1YnRpdGxlfTwvcD59CiAgICAgICAgPC9kaXY+CiAgICAgIDwvQ2FyZEhlYWRlcj4KICAgICAge2NoaWxkcmVuICYmIDxDYXJkQ29udGVudD57Y2hpbGRyZW59PC9DYXJkQ29udGVudD59CiAgICA8L0NhcmQ+CiAgKTsKfQoKZXhwb3J0IGZ1bmN0aW9uIFByb2ZpbGVSb3coeyBpY29uOiBJY29uLCBsYWJlbCwgdmFsdWUsIGVkaXRhYmxlID0gZmFsc2UsIG9uRWRpdCA9IG51bGwgfSkgewogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1zdGFydCBnYXAtMi41IHB5LTIiPgogICAgICB7SWNvbiAmJiA8SWNvbiBjbGFzc05hbWU9InctMy41IGgtMy41IHRleHQtc2xhdGUtMzAwIGZsZXgtc2hyaW5rLTAgbXQtMC41IiAvPn0KICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXgtMSBtaW4tdy0wIj4KICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzEwcHhdIHRleHQtc2xhdGUtNDAwIHVwcGVyY2FzZSB0cmFja2luZy13aWRlciI+e2xhYmVsfTwvcD4KICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS04MDAgZm9udC1tZWRpdW0gYnJlYWstd29yZHMiPnt2YWx1ZSB8fCA8c3BhbiBjbGFzc05hbWU9InRleHQtc2xhdGUtNDAwIj7igJQ8L3NwYW4+fTwvcD4KICAgICAgPC9kaXY+CiAgICAgIHtlZGl0YWJsZSAmJiBvbkVkaXQgJiYgKAogICAgICAgIDxidXR0b24gb25DbGljaz17b25FZGl0fSBjbGFzc05hbWU9InRleHQtc2xhdGUtNDAwIGhvdmVyOnRleHQtYW1iZXItNjAwIHRyYW5zaXRpb24tY29sb3JzIHRleHQteHMgZm9udC1zZW1pYm9sZCI+CiAgICAgICAgICBFZGl0CiAgICAgICAgPC9idXR0b24+CiAgICAgICl9CiAgICA8L2Rpdj4KICApOwp9
+/**
+ * Unified Profile Card Component
+ * For user profiles, contacts, team members
+ */
+
+import { Card, CardHeader, CardContent } from "./Card";
+
+export function ProfileCard({ name, subtitle, avatar, children }) {
+  return (
+    <Card>
+      <CardHeader className="flex items-center gap-3 mb-3">
+        {avatar && (
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center flex-shrink-0 text-white font-bold text-sm">
+            {avatar}
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-semibold text-slate-900 truncate">{name}</h3>
+          {subtitle && <p className="text-xs text-slate-400 truncate">{subtitle}</p>}
+        </div>
+      </CardHeader>
+      {children && <CardContent>{children}</CardContent>}
+    </Card>
+  );
+}
+
+export function ProfileRow({ icon: Icon, label, value, editable = false, onEdit = null }) {
+  return (
+    <div className="flex items-start gap-2.5 py-2">
+      {Icon && <Icon className="w-3.5 h-3.5 text-slate-300 flex-shrink-0 mt-0.5" />}
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] text-slate-400 uppercase tracking-wider">{label}</p>
+        <p className="text-xs text-slate-800 font-medium break-words">{value || <span className="text-slate-400">—</span>}</p>
+      </div>
+      {editable && onEdit && (
+        <button onClick={onEdit} className="text-slate-400 hover:text-amber-600 transition-colors text-xs font-semibold">
+          Edit
+        </button>
+      )}
+    </div>
+  );
+}

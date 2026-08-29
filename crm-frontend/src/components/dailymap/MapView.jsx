@@ -1,1 +1,280 @@
-aW1wb3J0IHsgdXNlRWZmZWN0LCB1c2VTdGF0ZSwgdXNlUmVmLCBDb21wb25lbnQgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IE1hcENvbnRhaW5lciwgVGlsZUxheWVyLCBNYXJrZXIsIFBvcHVwLCB1c2VNYXAgfSBmcm9tICJyZWFjdC1sZWFmbGV0IjsKaW1wb3J0IHsgTGluayB9IGZyb20gInJlYWN0LXJvdXRlci1kb20iOwppbXBvcnQgeyBQaG9uZSwgRXh0ZXJuYWxMaW5rLCBNZXNzYWdlU3F1YXJlLCBOYXZpZ2F0aW9uLCBDbG9jaywgQWxlcnRUcmlhbmdsZSwgUmVmcmVzaEN3IH0gZnJvbSAibHVjaWRlLXJlYWN0IjsKaW1wb3J0IHsgZm10MTIgfSBmcm9tICJAL3BhZ2VzL0RhaWx5TWFwIjsKaW1wb3J0IHsgZm9ybWF0UGhvbmUsIHRvVGl0bGVDYXNlIH0gZnJvbSAiQC9saWIvZm9ybWF0dGVycyI7CmltcG9ydCAibGVhZmxldC9kaXN0L2xlYWZsZXQuY3NzIjsKaW1wb3J0IEwgZnJvbSAibGVhZmxldCI7CgovLyDilIDilIAgTGVhZmxldCBpY29uIGZpeCAoc2FmZSDigJQgcnVucyBhZnRlciBidW5kbGUgbG9hZCwgbm90IGF0IHBhcnNlIHRpbWUpIOKUgOKUgApsZXQgbGVhZmxldEZpeGVkID0gZmFsc2U7CmZ1bmN0aW9uIGVuc3VyZUxlYWZsZXRJY29ucygpIHsKICBpZiAobGVhZmxldEZpeGVkKSByZXR1cm47CiAgbGVhZmxldEZpeGVkID0gdHJ1ZTsKICB0cnkgewogICAgZGVsZXRlIEwuSWNvbi5EZWZhdWx0LnByb3RvdHlwZS5fZ2V0SWNvblVybDsKICAgIEwuSWNvbi5EZWZhdWx0Lm1lcmdlT3B0aW9ucyh7CiAgICAgIGljb25SZXRpbmFVcmw6ICJodHRwczovL3VucGtnLmNvbS9sZWFmbGV0QDEuOS40L2Rpc3QvaW1hZ2VzL21hcmtlci1pY29uLTJ4LnBuZyIsCiAgICAgIGljb25Vcmw6ICJodHRwczovL3VucGtnLmNvbS9sZWFmbGV0QDEuOS40L2Rpc3QvaW1hZ2VzL21hcmtlci1pY29uLnBuZyIsCiAgICAgIHNoYWRvd1VybDogImh0dHBzOi8vdW5wa2cuY29tL2xlYWZsZXRAMS45LjQvZGlzdC9pbWFnZXMvbWFya2VyLXNoYWRvdy5wbmciLAogICAgfSk7CiAgfSBjYXRjaCAoZSkgewogICAgY29uc29sZS53YXJuKCJbTWFwVmlld10gTGVhZmxldCBpY29uIGZpeCBmYWlsZWQ6IiwgZSk7CiAgfQp9CgovLyDilIDilIAgTGVhZmxldCB6LWluZGV4IENTUyAoaW5qZWN0ZWQgc2FmZWx5IGluc2lkZSBjb21wb25lbnQpIOKUgOKUgApjb25zdCBMRUFGTEVUX0NTUyA9IGAubGVhZmxldC1jb250YWluZXIgeyB6LWluZGV4OiAwICFpbXBvcnRhbnQ7IH0gLmxlYWZsZXQtcGFuZSB7IHotaW5kZXg6IDQwMCAhaW1wb3J0YW50OyB9IC5sZWFmbGV0LXRvcCwgLmxlYWZsZXQtYm90dG9tIHsgei1pbmRleDogMTAwMCAhaW1wb3J0YW50OyB9YDsKZnVuY3Rpb24gSW5qZWN0TGVhZmxldENTUygpIHsKICB1c2VFZmZlY3QoKCkgPT4gewogICAgaWYgKGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJsZWFmbGV0LXppbmRleC1maXgiKSkgcmV0dXJuOwogICAgY29uc3QgdGFnID0gZG9jdW1lbnQuY3JlYXRlRWxlbWVudCgic3R5bGUiKTsKICAgIHRhZy5pZCA9ICJsZWFmbGV0LXppbmRleC1maXgiOwogICAgdGFnLnRleHRDb250ZW50ID0gTEVBRkxFVF9DU1M7CiAgICBkb2N1bWVudC5oZWFkLmFwcGVuZENoaWxkKHRhZyk7CiAgfSwgW10pOwogIHJldHVybiBudWxsOwp9CgpmdW5jdGlvbiBjcmVhdGVDb2xvcmVkSWNvbihjb2xvciwgbnVtYmVyKSB7CiAgdHJ5IHsKICAgIGNvbnN0IHNhZmVDb2xvciA9IGNvbG9yIHx8ICIjNkI3MjgwIjsKICAgIGNvbnN0IHN2ZyA9IGA8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjMyIiBoZWlnaHQ9IjQwIiB2aWV3Qm94PSIwIDAgMzIgNDAiPgogICAgICA8cGF0aCBkPSJNMTYgMEM3LjE2MyAwIDAgNy4xNjMgMCAxNmMwIDEwIDE2IDI0IDE2IDI0czE2LTE0IDE2LTI0QzMyIDcuMTYzIDI0LjgzNyAwIDE2IDB6IiBmaWxsPSIke3NhZmVDb2xvcn0iIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSI4IiBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC45Ii8+CiAgICAgIDx0ZXh0IHg9IjE2IiB5PSIyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIke251bWJlciA+IDkgPyA4IDogMTB9IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iJHtzYWZlQ29sb3J9IiBmb250LWZhbWlseT0iQXJpYWwiPiR7bnVtYmVyfTwvdGV4dD4KICAgIDwvc3ZnPmA7CiAgICByZXR1cm4gTC5kaXZJY29uKHsgaHRtbDogc3ZnLCBjbGFzc05hbWU6ICIiLCBpY29uU2l6ZTogWzMyLCA0MF0sIGljb25BbmNob3I6IFsxNiwgNDBdLCBwb3B1cEFuY2hvcjogWzAsIC00MF0gfSk7CiAgfSBjYXRjaCAoZSkgewogICAgY29uc29sZS53YXJuKCJbTWFwVmlld10gY3JlYXRlQ29sb3JlZEljb24gZmFpbGVkOiIsIGUpOwogICAgcmV0dXJuIG5ldyBMLkljb24uRGVmYXVsdCgpOwogIH0KfQoKZnVuY3Rpb24gRml0Qm91bmRzKHsgYXBwb2ludG1lbnRzIH0pIHsKICBjb25zdCBtYXAgPSB1c2VNYXAoKTsKICB1c2VFZmZlY3QoKCkgPT4gewogICAgY29uc3QgdCA9IHNldFRpbWVvdXQoKCkgPT4gewogICAgICB0cnkgewogICAgICAgIG1hcC5pbnZhbGlkYXRlU2l6ZSgpOwogICAgICAgIGNvbnN0IHZhbGlkID0gYXBwb2ludG1lbnRzLmZpbHRlcihhID0+IGEuY29vcmRzPy5sYXQgJiYgYS5jb29yZHM/LmxuZyk7CiAgICAgICAgaWYgKHZhbGlkLmxlbmd0aCA9PT0gMCkgcmV0dXJuOwogICAgICAgIGlmICh2YWxpZC5sZW5ndGggPT09IDEpIHsKICAgICAgICAgIG1hcC5zZXRWaWV3KFt2YWxpZFswXS5jb29yZHMubGF0LCB2YWxpZFswXS5jb29yZHMubG5nXSwgMTMpOwogICAgICAgICAgcmV0dXJuOwogICAgICAgIH0KICAgICAgICBjb25zdCBib3VuZHMgPSBMLmxhdExuZ0JvdW5kcyh2YWxpZC5tYXAoYSA9PiBbYS5jb29yZHMubGF0LCBhLmNvb3Jkcy5sbmddKSk7CiAgICAgICAgbWFwLmZpdEJvdW5kcyhib3VuZHMsIHsgcGFkZGluZzogWzQwLCA0MF0gfSk7CiAgICAgIH0gY2F0Y2ggKGUpIHsKICAgICAgICBjb25zb2xlLndhcm4oIltNYXBWaWV3XSBGaXRCb3VuZHMgZXJyb3I6IiwgZSk7CiAgICAgIH0KICAgIH0sIDE1MCk7CiAgICByZXR1cm4gKCkgPT4gY2xlYXJUaW1lb3V0KHQpOwogIH0sIFthcHBvaW50bWVudHNdKTsKICByZXR1cm4gbnVsbDsKfQoKZnVuY3Rpb24gSW52YWxpZGF0ZU9uTW91bnQoKSB7CiAgY29uc3QgbWFwID0gdXNlTWFwKCk7CiAgdXNlRWZmZWN0KCgpID0+IHsKICAgIHRyeSB7IG1hcC5pbnZhbGlkYXRlU2l6ZSgpOyB9IGNhdGNoIHt9CiAgICBjb25zdCB0ID0gc2V0VGltZW91dCgoKSA9PiB7IHRyeSB7IG1hcC5pbnZhbGlkYXRlU2l6ZSgpOyB9IGNhdGNoIHt9IH0sIDQwMCk7CiAgICByZXR1cm4gKCkgPT4gY2xlYXJUaW1lb3V0KHQpOwogIH0sIFtdKTsKICByZXR1cm4gbnVsbDsKfQoKLy8g4pSA4pSAIEVycm9yIGJvdW5kYXJ5IOKAlCBjYXRjaGVzIGFueSBMZWFmbGV0IGNyYXNoIGFuZCBzaG93cyBhIG1lc3NhZ2Ug4pSA4pSACmNsYXNzIE1hcEVycm9yQm91bmRhcnkgZXh0ZW5kcyBDb21wb25lbnQgewogIGNvbnN0cnVjdG9yKHByb3BzKSB7CiAgICBzdXBlcihwcm9wcyk7CiAgICB0aGlzLnN0YXRlID0geyBoYXNFcnJvcjogZmFsc2UsIGVycm9yOiBudWxsIH07CiAgfQogIHN0YXRpYyBnZXREZXJpdmVkU3RhdGVGcm9tRXJyb3IoZXJyb3IpIHsKICAgIHJldHVybiB7IGhhc0Vycm9yOiB0cnVlLCBlcnJvciB9OwogIH0KICBjb21wb25lbnREaWRDYXRjaChlcnJvciwgaW5mbykgewogICAgY29uc29sZS5lcnJvcigiW01hcFZpZXddIENhdWdodCByZW5kZXIgZXJyb3I6IiwgZXJyb3IsIGluZm8pOwogIH0KICByZW5kZXIoKSB7CiAgICBpZiAodGhpcy5zdGF0ZS5oYXNFcnJvcikgewogICAgICByZXR1cm4gKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGZsZXgtY29sIGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBoLWZ1bGwgYmctc2xhdGUtNTAgcC02IHRleHQtY2VudGVyIGdhcC00Ij4KICAgICAgICAgIDxBbGVydFRyaWFuZ2xlIGNsYXNzTmFtZT0idy0xMCBoLTEwIHRleHQtYW1iZXItNTAwIiAvPgogICAgICAgICAgPGRpdj4KICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNzAwIj5NYXAgZmFpbGVkIHRvIGxvYWQ8L3A+CiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTUwMCBtdC0xIj57dGhpcy5zdGF0ZS5lcnJvcj8ubWVzc2FnZSB8fCAiVW5rbm93biBlcnJvciJ9PC9wPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHRoaXMuc2V0U3RhdGUoeyBoYXNFcnJvcjogZmFsc2UsIGVycm9yOiBudWxsIH0pfQogICAgICAgICAgICBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIHB4LTQgcHktMiBiZy1hbWJlci02MDAgdGV4dC13aGl0ZSB0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgcm91bmRlZC1sZyIKICAgICAgICAgID4KICAgICAgICAgICAgPFJlZnJlc2hDdyBjbGFzc05hbWU9InctNCBoLTQiIC8+IFJldHJ5CiAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICA8L2Rpdj4KICAgICAgKTsKICAgIH0KICAgIHJldHVybiB0aGlzLnByb3BzLmNoaWxkcmVuOwogIH0KfQoKLy8g4pSA4pSAIElubmVyIG1hcCDigJQgcmVuZGVyZWQgb25seSB3aGVuIGhlaWdodCBpcyBjb25maXJtZWQgPiAwIOKUgOKUgApmdW5jdGlvbiBMZWFmbGV0TWFwKHsgYXBwb2ludG1lbnRzLCBzZWxlY3RlZExlYWQsIG9uU2VsZWN0TGVhZCwgb25SZWFzc2lnbiwgY29udGFjdE93bmVycywgdXNlclJvbGUsIG1hcEhlaWdodCB9KSB7CiAgY29uc3QgW3JlYXNzaWduaW5nLCBzZXRSZWFzc2lnbmluZ10gPSB1c2VTdGF0ZShudWxsKTsKCiAgY29uc3QgaGFuZGxlUmVhc3NpZ24gPSBhc3luYyAobGVhZElkLCBuZXdPd25lcikgPT4gewogICAgc2V0UmVhc3NpZ25pbmcobGVhZElkKTsKICAgIGF3YWl0IG9uUmVhc3NpZ24obGVhZElkLCBuZXdPd25lcik7CiAgICBzZXRSZWFzc2lnbmluZyhudWxsKTsKICB9OwoKICAvLyBPbmx5IHVzZSBhcHBvaW50bWVudHMgd2l0aCB2YWxpZCBudW1lcmljIGNvb3JkcwogIGNvbnN0IHZhbGlkQXBwdHMgPSBhcHBvaW50bWVudHMuZmlsdGVyKGEgPT4gewogICAgY29uc3QgbGF0ID0gYS5jb29yZHM/LmxhdDsKICAgIGNvbnN0IGxuZyA9IGEuY29vcmRzPy5sbmc7CiAgICByZXR1cm4gdHlwZW9mIGxhdCA9PT0gIm51bWJlciIgJiYgdHlwZW9mIGxuZyA9PT0gIm51bWJlciIgJiYgIWlzTmFOKGxhdCkgJiYgIWlzTmFOKGxuZyk7CiAgfSk7CgogIGNvbnN0IGNlbnRlciA9IHZhbGlkQXBwdHMubGVuZ3RoID4gMAogICAgPyBbdmFsaWRBcHB0c1swXS5jb29yZHMubGF0LCB2YWxpZEFwcHRzWzBdLmNvb3Jkcy5sbmddCiAgICA6IFszNC4wNTIyMzUsIC0xMTguMjQzNjgzXTsKCiAgLy8gU3RhYmxlIGtleSDigJQgb25seSByZW1vdW50IHdoZW4gdGhlIHNldCBvZiB2YWxpZCBhcHBvaW50bWVudCBJRHMgY2hhbmdlcwogIGNvbnN0IG1hcEtleSA9IHZhbGlkQXBwdHMubWFwKGEgPT4gYS5pZCkuam9pbigiLCIpIHx8ICJlbXB0eS1tYXAiOwoKICByZXR1cm4gKAogICAgPE1hcENvbnRhaW5lcgogICAgICBrZXk9e21hcEtleX0KICAgICAgY2VudGVyPXtjZW50ZXJ9CiAgICAgIHpvb209ezEwfQogICAgICBzdHlsZT17eyBoZWlnaHQ6IG1hcEhlaWdodCwgd2lkdGg6ICIxMDAlIiB9fQogICAgICBjbGFzc05hbWU9InotMCIKICAgID4KICAgICAgPEluamVjdExlYWZsZXRDU1MgLz4KICAgICAgPFRpbGVMYXllcgogICAgICAgIGF0dHJpYnV0aW9uPScmY29weTsgPGEgaHJlZj0iaHR0cHM6Ly93d3cub3BlbnN0cmVldG1hcC5vcmcvY29weXJpZ2h0Ij5PcGVuU3RyZWV0TWFwPC9hPicKICAgICAgICB1cmw9Imh0dHBzOi8ve3N9LnRpbGUub3BlbnN0cmVldG1hcC5vcmcve3p9L3t4fS97eX0ucG5nIgogICAgICAvPgogICAgICA8SW52YWxpZGF0ZU9uTW91bnQgLz4KICAgICAgPEZpdEJvdW5kcyBhcHBvaW50bWVudHM9e2FwcG9pbnRtZW50c30gLz4KCiAgICAgIHt2YWxpZEFwcHRzLm1hcCgoYXBwdCwgaWR4KSA9PiB7CiAgICAgICAgY29uc3QgaWNvbkNvbG9yID0gYXBwdC5jb2xvckNvbmZpZz8uYmcgfHwgIiM2QjcyODAiOwogICAgICAgIGNvbnN0IGljb24gPSBjcmVhdGVDb2xvcmVkSWNvbihpY29uQ29sb3IsIGlkeCArIDEpOwogICAgICAgIHJldHVybiAoCiAgICAgICAgICA8TWFya2VyCiAgICAgICAgICAgIGtleT17YXBwdC5pZH0KICAgICAgICAgICAgcG9zaXRpb249e1thcHB0LmNvb3Jkcy5sYXQsIGFwcHQuY29vcmRzLmxuZ119CiAgICAgICAgICAgIGljb249e2ljb259CiAgICAgICAgICAgIGV2ZW50SGFuZGxlcnM9e3sgY2xpY2s6ICgpID0+IG9uU2VsZWN0TGVhZChhcHB0LmlkID09PSBzZWxlY3RlZExlYWQgPyBudWxsIDogYXBwdC5pZCkgfX0KICAgICAgICAgID4KICAgICAgICAgICAgPFBvcHVwIG1heFdpZHRoPXsyODB9PgogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJwLTEgc3BhY2UteS0yIj4KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiI+CiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ3LTcgaC03IHJvdW5kZWQtZnVsbCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciB0ZXh0LXhzIGZvbnQtYm9sZCB0ZXh0LXdoaXRlIGZsZXgtc2hyaW5rLTAiCiAgICAgICAgICAgICAgICAgICAgc3R5bGU9e3sgYmFja2dyb3VuZDogaWNvbkNvbG9yIH19PgogICAgICAgICAgICAgICAgICAgIHtpZHggKyAxfQogICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9ImZvbnQtYm9sZCB0ZXh0LXNsYXRlLTkwMCB0ZXh0LXNtIj57dG9UaXRsZUNhc2UoYXBwdC5maXJzdF9uYW1lKX0ge3RvVGl0bGVDYXNlKGFwcHQubGFzdF9uYW1lKX08L3A+CiAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNTAwIGZsZXggaXRlbXMtY2VudGVyIGdhcC0xIj4KICAgICAgICAgICAgICAgICAgICAgIDxDbG9jayBjbGFzc05hbWU9InctMyBoLTMiIC8+IHtmbXQxMihhcHB0LmZvbGxvd191cF90aW1lKX0KICAgICAgICAgICAgICAgICAgICA8L3A+CiAgICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgPC9kaXY+CgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMSB0ZXh0LXhzIHRleHQtc2xhdGUtNjAwIGJvcmRlci10IHB0LTIiPgogICAgICAgICAgICAgICAgICA8cD48c3BhbiBjbGFzc05hbWU9ImZvbnQtc2VtaWJvbGQiPkFkZHJlc3M6PC9zcGFuPiB7YXBwdC5mdWxsQWRkcmVzc308L3A+CiAgICAgICAgICAgICAgICAgIHthcHB0LnByb2plY3RfdHlwZSAmJiA8cD48c3BhbiBjbGFzc05hbWU9ImZvbnQtc2VtaWJvbGQiPlByb2plY3Q6PC9zcGFuPiB7YXBwdC5wcm9qZWN0X3R5cGV9PC9wPn0KICAgICAgICAgICAgICAgICAge2FwcHQucGhvbmUgJiYgPHA+PHNwYW4gY2xhc3NOYW1lPSJmb250LXNlbWlib2xkIj5QaG9uZTo8L3NwYW4+IHtmb3JtYXRQaG9uZShhcHB0LnBob25lKX08L3A+fQogICAgICAgICAgICAgICAgICA8cD48c3BhbiBjbGFzc05hbWU9ImZvbnQtc2VtaWJvbGQiPk93bmVyOjwvc3Bhbj4ge2FwcHQuYXNzaWduZWRfcmVwIHx8ICJVbmFzc2lnbmVkIn08L3A+CiAgICAgICAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICAgICAgICB7dXNlclJvbGUgPT09ICJhZG1pbiIgJiYgKAogICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYm9yZGVyLXQgcHQtMiI+CiAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNTAwIG1iLTEiPlJFQVNTSUdOIFRPPC9wPgogICAgICAgICAgICAgICAgICAgIDxzZWxlY3QKICAgICAgICAgICAgICAgICAgICAgIGRlZmF1bHRWYWx1ZT17YXBwdC5hc3NpZ25lZF9yZXAgfHwgIiJ9CiAgICAgICAgICAgICAgICAgICAgICBvbkNoYW5nZT17ZSA9PiBoYW5kbGVSZWFzc2lnbihhcHB0LmlkLCBlLnRhcmdldC52YWx1ZSl9CiAgICAgICAgICAgICAgICAgICAgICBkaXNhYmxlZD17cmVhc3NpZ25pbmcgPT09IGFwcHQuaWR9CiAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkIHB4LTIgcHktMSB0ZXh0LXhzIGZvY3VzOm91dGxpbmUtbm9uZSIKICAgICAgICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICAgICAgICA8b3B0aW9uIHZhbHVlPSIiPuKAlCBVbmFzc2lnbmVkIOKAlDwvb3B0aW9uPgogICAgICAgICAgICAgICAgICAgICAge2NvbnRhY3RPd25lcnMubWFwKG8gPT4gPG9wdGlvbiBrZXk9e299IHZhbHVlPXtvfT57b308L29wdGlvbj4pfQogICAgICAgICAgICAgICAgICAgIDwvc2VsZWN0PgogICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICl9CgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImdyaWQgZ3JpZC1jb2xzLTIgZ2FwLTEuNSBwdC0xIj4KICAgICAgICAgICAgICAgICAgPExpbmsKICAgICAgICAgICAgICAgICAgICB0bz17YC9sZWFkcy8ke2FwcHQuaWR9YH0KICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGdhcC0xIHRleHQteHMgZm9udC1zZW1pYm9sZCBiZy1hbWJlci02MDAgdGV4dC13aGl0ZSBweC0yIHB5LTIgcm91bmRlZCBjb2wtc3Bhbi0yIgogICAgICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICAgICAgPEV4dGVybmFsTGluayBjbGFzc05hbWU9InctMyBoLTMiIC8+IE9wZW4gTGVhZAogICAgICAgICAgICAgICAgICA8L0xpbms+CiAgICAgICAgICAgICAgICAgIHthcHB0LnBob25lICYmICgKICAgICAgICAgICAgICAgICAgICA8YSBocmVmPXtgdGVsOiR7YXBwdC5waG9uZX1gfQogICAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBnYXAtMSB0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgYmctZW1lcmFsZC01MCB0ZXh0LWVtZXJhbGQtNzAwIGJvcmRlciBib3JkZXItZW1lcmFsZC0yMDAgcHgtMiBweS0yIHJvdW5kZWQiPgogICAgICAgICAgICAgICAgICAgICAgPFBob25lIGNsYXNzTmFtZT0idy0zIGgtMyIgLz4gQ2FsbAogICAgICAgICAgICAgICAgICAgIDwvYT4KICAgICAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgICAgICAge2FwcHQucGhvbmUgJiYgKAogICAgICAgICAgICAgICAgICAgIDxhIGhyZWY9e2BzbXM6JHthcHB0LnBob25lfWB9CiAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGdhcC0xIHRleHQteHMgZm9udC1zZW1pYm9sZCBiZy1ibHVlLTUwIHRleHQtYmx1ZS03MDAgYm9yZGVyIGJvcmRlci1ibHVlLTIwMCBweC0yIHB5LTIgcm91bmRlZCI+CiAgICAgICAgICAgICAgICAgICAgICA8TWVzc2FnZVNxdWFyZSBjbGFzc05hbWU9InctMyBoLTMiIC8+IFNNUwogICAgICAgICAgICAgICAgICAgIDwvYT4KICAgICAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgICAgICAge2FwcHQuZnVsbEFkZHJlc3MgJiYgKAogICAgICAgICAgICAgICAgICAgIDxhCiAgICAgICAgICAgICAgICAgICAgICBocmVmPXtgaHR0cHM6Ly93d3cuZ29vZ2xlLmNvbS9tYXBzL3NlYXJjaC8/YXBpPTEmcXVlcnk9JHtlbmNvZGVVUklDb21wb25lbnQoYXBwdC5mdWxsQWRkcmVzcyl9YH0KICAgICAgICAgICAgICAgICAgICAgIHRhcmdldD0iX2JsYW5rIiByZWw9Im5vcmVmZXJyZXIiCiAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGdhcC0xIHRleHQteHMgZm9udC1zZW1pYm9sZCBiZy1zbGF0ZS01MCB0ZXh0LXNsYXRlLTcwMCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCBweC0yIHB5LTIgcm91bmRlZCBjb2wtc3Bhbi0yIgogICAgICAgICAgICAgICAgICAgID4KICAgICAgICAgICAgICAgICAgICAgIDxOYXZpZ2F0aW9uIGNsYXNzTmFtZT0idy0zIGgtMyIgLz4gTmF2aWdhdGUKICAgICAgICAgICAgICAgICAgICA8L2E+CiAgICAgICAgICAgICAgICAgICl9CiAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgPC9Qb3B1cD4KICAgICAgICAgIDwvTWFya2VyPgogICAgICAgICk7CiAgICAgIH0pfQogICAgPC9NYXBDb250YWluZXI+CiAgKTsKfQoKLy8g4pSA4pSAIFB1YmxpYyBleHBvcnQg4oCUIGhhbmRsZXMgaGVpZ2h0IG1lYXN1cmVtZW50ICsgZXJyb3IgYm91bmRhcnkg4pSA4pSACmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIE1hcFZpZXcoeyBhcHBvaW50bWVudHMsIHNlbGVjdGVkTGVhZCwgb25TZWxlY3RMZWFkLCBvblJlYXNzaWduLCBjb250YWN0T3duZXJzLCB1c2VyUm9sZSwgZXhwbGljaXRIZWlnaHQgfSkgewogIC8vIENhbGwgaWNvbiBmaXggc2FmZWx5IGhlcmUgKG5vdCBhdCBtb2R1bGUgcGFyc2UgdGltZSkKICB1c2VFZmZlY3QoKCkgPT4geyBlbnN1cmVMZWFmbGV0SWNvbnMoKTsgfSwgW10pOwoKICAvLyBJZiBhbiBleHBsaWNpdCBwaXhlbCBoZWlnaHQgd2FzIHBhc3NlZCAoZnJvbSBNb2JpbGVNYXBDb250YWluZXIpLCB1c2UgaXQgZGlyZWN0bHkuCiAgLy8gT3RoZXJ3aXNlIGZhbGwgYmFjayB0byAxMDAlIChkZXNrdG9wIHNwbGl0IHZpZXcgd2hlcmUgcGFyZW50IGhhcyByZWFsIGhlaWdodCkuCiAgY29uc3QgbWFwSGVpZ2h0ID0gZXhwbGljaXRIZWlnaHQgPyBgJHtleHBsaWNpdEhlaWdodH1weGAgOiAiMTAwJSI7CgogIC8vIERvbid0IHJlbmRlciBpZiBoZWlnaHQgaXMgZXhwbGljaXRseSAwIOKAlCBMZWFmbGV0IHdpbGwgdGhyb3cKICBpZiAoZXhwbGljaXRIZWlnaHQgIT09IHVuZGVmaW5lZCAmJiBleHBsaWNpdEhlaWdodCA8PSAwKSB7CiAgICByZXR1cm4gKAogICAgICA8ZGl2IHN0eWxlPXt7IGhlaWdodDogIjEwMCUiLCBkaXNwbGF5OiAiZmxleCIsIGFsaWduSXRlbXM6ICJjZW50ZXIiLCBqdXN0aWZ5Q29udGVudDogImNlbnRlciIgfX0+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9InctNiBoLTYgYm9yZGVyLTQgYm9yZGVyLXNsYXRlLTIwMCBib3JkZXItdC1hbWJlci02MDAgcm91bmRlZC1mdWxsIGFuaW1hdGUtc3BpbiIgLz4KICAgICAgPC9kaXY+CiAgICApOwogIH0KCiAgcmV0dXJuICgKICAgIDxkaXYgc3R5bGU9e3sgd2lkdGg6ICIxMDAlIiwgaGVpZ2h0OiBtYXBIZWlnaHQsIG92ZXJmbG93OiAiaGlkZGVuIiB9fT4KICAgICAgPE1hcEVycm9yQm91bmRhcnk+CiAgICAgICAgPExlYWZsZXRNYXAKICAgICAgICAgIGFwcG9pbnRtZW50cz17YXBwb2ludG1lbnRzfQogICAgICAgICAgc2VsZWN0ZWRMZWFkPXtzZWxlY3RlZExlYWR9CiAgICAgICAgICBvblNlbGVjdExlYWQ9e29uU2VsZWN0TGVhZH0KICAgICAgICAgIG9uUmVhc3NpZ249e29uUmVhc3NpZ259CiAgICAgICAgICBjb250YWN0T3duZXJzPXtjb250YWN0T3duZXJzfQogICAgICAgICAgdXNlclJvbGU9e3VzZXJSb2xlfQogICAgICAgICAgbWFwSGVpZ2h0PXttYXBIZWlnaHR9CiAgICAgICAgLz4KICAgICAgPC9NYXBFcnJvckJvdW5kYXJ5PgogICAgPC9kaXY+CiAgKTsKfQ==
+import { useEffect, useState, useRef, Component } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { Link } from "react-router-dom";
+import { Phone, ExternalLink, MessageSquare, Navigation, Clock, AlertTriangle, RefreshCw } from "lucide-react";
+import { fmt12 } from "@/pages/DailyMap";
+import { formatPhone, toTitleCase } from "@/lib/formatters";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+
+// ── Leaflet icon fix (safe — runs after bundle load, not at parse time) ──
+let leafletFixed = false;
+function ensureLeafletIcons() {
+  if (leafletFixed) return;
+  leafletFixed = true;
+  try {
+    delete L.Icon.Default.prototype._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+      iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+      shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+    });
+  } catch (e) {
+    console.warn("[MapView] Leaflet icon fix failed:", e);
+  }
+}
+
+// ── Leaflet z-index CSS (injected safely inside component) ──
+const LEAFLET_CSS = `.leaflet-container { z-index: 0 !important; } .leaflet-pane { z-index: 400 !important; } .leaflet-top, .leaflet-bottom { z-index: 1000 !important; }`;
+function InjectLeafletCSS() {
+  useEffect(() => {
+    if (document.getElementById("leaflet-zindex-fix")) return;
+    const tag = document.createElement("style");
+    tag.id = "leaflet-zindex-fix";
+    tag.textContent = LEAFLET_CSS;
+    document.head.appendChild(tag);
+  }, []);
+  return null;
+}
+
+function createColoredIcon(color, number) {
+  try {
+    const safeColor = color || "#6B7280";
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40">
+      <path d="M16 0C7.163 0 0 7.163 0 16c0 10 16 24 16 24s16-14 16-24C32 7.163 24.837 0 16 0z" fill="${safeColor}" stroke="white" stroke-width="2"/>
+      <circle cx="16" cy="16" r="8" fill="white" opacity="0.9"/>
+      <text x="16" y="20" text-anchor="middle" font-size="${number > 9 ? 8 : 10}" font-weight="bold" fill="${safeColor}" font-family="Arial">${number}</text>
+    </svg>`;
+    return L.divIcon({ html: svg, className: "", iconSize: [32, 40], iconAnchor: [16, 40], popupAnchor: [0, -40] });
+  } catch (e) {
+    console.warn("[MapView] createColoredIcon failed:", e);
+    return new L.Icon.Default();
+  }
+}
+
+function FitBounds({ appointments }) {
+  const map = useMap();
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try {
+        map.invalidateSize();
+        const valid = appointments.filter(a => a.coords?.lat && a.coords?.lng);
+        if (valid.length === 0) return;
+        if (valid.length === 1) {
+          map.setView([valid[0].coords.lat, valid[0].coords.lng], 13);
+          return;
+        }
+        const bounds = L.latLngBounds(valid.map(a => [a.coords.lat, a.coords.lng]));
+        map.fitBounds(bounds, { padding: [40, 40] });
+      } catch (e) {
+        console.warn("[MapView] FitBounds error:", e);
+      }
+    }, 150);
+    return () => clearTimeout(t);
+  }, [appointments]);
+  return null;
+}
+
+function InvalidateOnMount() {
+  const map = useMap();
+  useEffect(() => {
+    try { map.invalidateSize(); } catch {}
+    const t = setTimeout(() => { try { map.invalidateSize(); } catch {} }, 400);
+    return () => clearTimeout(t);
+  }, []);
+  return null;
+}
+
+// ── Error boundary — catches any Leaflet crash and shows a message ──
+class MapErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, info) {
+    console.error("[MapView] Caught render error:", error, info);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full bg-slate-50 p-6 text-center gap-4">
+          <AlertTriangle className="w-10 h-10 text-amber-500" />
+          <div>
+            <p className="font-semibold text-slate-700">Map failed to load</p>
+            <p className="text-xs text-slate-500 mt-1">{this.state.error?.message || "Unknown error"}</p>
+          </div>
+          <button
+            onClick={() => this.setState({ hasError: false, error: null })}
+            className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white text-sm font-semibold rounded-lg"
+          >
+            <RefreshCw className="w-4 h-4" /> Retry
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// ── Inner map — rendered only when height is confirmed > 0 ──
+function LeafletMap({ appointments, selectedLead, onSelectLead, onReassign, contactOwners, userRole, mapHeight }) {
+  const [reassigning, setReassigning] = useState(null);
+
+  const handleReassign = async (leadId, newOwner) => {
+    setReassigning(leadId);
+    await onReassign(leadId, newOwner);
+    setReassigning(null);
+  };
+
+  // Only use appointments with valid numeric coords
+  const validAppts = appointments.filter(a => {
+    const lat = a.coords?.lat;
+    const lng = a.coords?.lng;
+    return typeof lat === "number" && typeof lng === "number" && !isNaN(lat) && !isNaN(lng);
+  });
+
+  const center = validAppts.length > 0
+    ? [validAppts[0].coords.lat, validAppts[0].coords.lng]
+    : [34.052235, -118.243683];
+
+  // Stable key — only remount when the set of valid appointment IDs changes
+  const mapKey = validAppts.map(a => a.id).join(",") || "empty-map";
+
+  return (
+    <MapContainer
+      key={mapKey}
+      center={center}
+      zoom={10}
+      style={{ height: mapHeight, width: "100%" }}
+      className="z-0"
+    >
+      <InjectLeafletCSS />
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      <InvalidateOnMount />
+      <FitBounds appointments={appointments} />
+
+      {validAppts.map((appt, idx) => {
+        const iconColor = appt.colorConfig?.bg || "#6B7280";
+        const icon = createColoredIcon(iconColor, idx + 1);
+        return (
+          <Marker
+            key={appt.id}
+            position={[appt.coords.lat, appt.coords.lng]}
+            icon={icon}
+            eventHandlers={{ click: () => onSelectLead(appt.id === selectedLead ? null : appt.id) }}
+          >
+            <Popup maxWidth={280}>
+              <div className="p-1 space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                    style={{ background: iconColor }}>
+                    {idx + 1}
+                  </div>
+                  <div>
+                    <p className="font-bold text-slate-900 text-sm">{toTitleCase(appt.first_name)} {toTitleCase(appt.last_name)}</p>
+                    <p className="text-xs text-slate-500 flex items-center gap-1">
+                      <Clock className="w-3 h-3" /> {fmt12(appt.follow_up_time)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-1 text-xs text-slate-600 border-t pt-2">
+                  <p><span className="font-semibold">Address:</span> {appt.fullAddress}</p>
+                  {appt.project_type && <p><span className="font-semibold">Project:</span> {appt.project_type}</p>}
+                  {appt.phone && <p><span className="font-semibold">Phone:</span> {formatPhone(appt.phone)}</p>}
+                  <p><span className="font-semibold">Owner:</span> {appt.assigned_rep || "Unassigned"}</p>
+                </div>
+
+                {userRole === "admin" && (
+                  <div className="border-t pt-2">
+                    <p className="text-[10px] font-semibold text-slate-500 mb-1">REASSIGN TO</p>
+                    <select
+                      defaultValue={appt.assigned_rep || ""}
+                      onChange={e => handleReassign(appt.id, e.target.value)}
+                      disabled={reassigning === appt.id}
+                      className="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none"
+                    >
+                      <option value="">— Unassigned —</option>
+                      {contactOwners.map(o => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-1.5 pt-1">
+                  <Link
+                    to={`/leads/${appt.id}`}
+                    className="flex items-center justify-center gap-1 text-xs font-semibold bg-amber-600 text-white px-2 py-2 rounded col-span-2"
+                  >
+                    <ExternalLink className="w-3 h-3" /> Open Lead
+                  </Link>
+                  {appt.phone && (
+                    <a href={`tel:${appt.phone}`}
+                      className="flex items-center justify-center gap-1 text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-2 rounded">
+                      <Phone className="w-3 h-3" /> Call
+                    </a>
+                  )}
+                  {appt.phone && (
+                    <a href={`sms:${appt.phone}`}
+                      className="flex items-center justify-center gap-1 text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 px-2 py-2 rounded">
+                      <MessageSquare className="w-3 h-3" /> SMS
+                    </a>
+                  )}
+                  {appt.fullAddress && (
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(appt.fullAddress)}`}
+                      target="_blank" rel="noreferrer"
+                      className="flex items-center justify-center gap-1 text-xs font-semibold bg-slate-50 text-slate-700 border border-slate-200 px-2 py-2 rounded col-span-2"
+                    >
+                      <Navigation className="w-3 h-3" /> Navigate
+                    </a>
+                  )}
+                </div>
+              </div>
+            </Popup>
+          </Marker>
+        );
+      })}
+    </MapContainer>
+  );
+}
+
+// ── Public export — handles height measurement + error boundary ──
+export default function MapView({ appointments, selectedLead, onSelectLead, onReassign, contactOwners, userRole, explicitHeight }) {
+  // Call icon fix safely here (not at module parse time)
+  useEffect(() => { ensureLeafletIcons(); }, []);
+
+  // If an explicit pixel height was passed (from MobileMapContainer), use it directly.
+  // Otherwise fall back to 100% (desktop split view where parent has real height).
+  const mapHeight = explicitHeight ? `${explicitHeight}px` : "100%";
+
+  // Don't render if height is explicitly 0 — Leaflet will throw
+  if (explicitHeight !== undefined && explicitHeight <= 0) {
+    return (
+      <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div className="w-6 h-6 border-4 border-slate-200 border-t-amber-600 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ width: "100%", height: mapHeight, overflow: "hidden" }}>
+      <MapErrorBoundary>
+        <LeafletMap
+          appointments={appointments}
+          selectedLead={selectedLead}
+          onSelectLead={onSelectLead}
+          onReassign={onReassign}
+          contactOwners={contactOwners}
+          userRole={userRole}
+          mapHeight={mapHeight}
+        />
+      </MapErrorBoundary>
+    </div>
+  );
+}

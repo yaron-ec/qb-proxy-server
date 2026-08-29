@@ -1,1 +1,117 @@
-LyoqCiAqIENvbnRhY3RBY3Rpb25zCiAqCiAqIFJldXNhYmxlIHJvdyBvZiBDYWxsLCBTTVMsIEVtYWlsIGFjdGlvbiBidXR0b25zLgogKgogKiBPbiBtb2JpbGUgdGhlIGJ1dHRvbnMgYXJlIHBsYWluIDxhPiB0YWdzIHdpdGggdGVsOi9zbXM6L21haWx0bzogaHJlZnMgc28KICogdGhlIGJyb3dzZXIgaGFuZHMgdGhlbSBkaXJlY3RseSB0byB0aGUgbmF0aXZlIGRpYWxlci9tZXNzZW5nZXIvbWFpbCBhcHAKICogd2l0aG91dCBhbnkgSmF2YVNjcmlwdCBwb3B1cCB0aGF0IFNhZmFyaS9DaHJvbWUgd291bGQgYmxvY2suCiAqCiAqIFByb3BzOgogKiAgIHBob25lICDigJQgcmF3IHBob25lIHN0cmluZyAob3B0aW9uYWwpCiAqICAgZW1haWwgIOKAlCBlbWFpbCBhZGRyZXNzIChvcHRpb25hbCkKICogICBzaXplICAg4oCUICdzbScgKGRlZmF1bHQsIGZvciBjYXJkcykgfCAnbWQnIChmb3IgZGV0YWlsIHBhbmVscykgfCAnbGcnIChtb2JpbGUgaGVhZGVyKQogKiAgIGxhYmVscyDigJQgc2hvdyB0ZXh0IGxhYmVscyBuZXh0IHRvIGljb25zIChkZWZhdWx0IGZhbHNlKQogKi8KaW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICdyZWFjdCc7CmltcG9ydCB7IFBob25lLCBNZXNzYWdlU3F1YXJlLCBNYWlsIH0gZnJvbSAnbHVjaWRlLXJlYWN0JzsKaW1wb3J0IHsgZm9ybWF0UGhvbmUgfSBmcm9tICdAL2xpYi9mb3JtYXR0ZXJzJzsKaW1wb3J0IHsgY29tcG9zZUVtYWlsLCBpc01vYmlsZURldmljZSB9IGZyb20gJ0AvbGliL2NvbnRhY3RBY3Rpb25zJzsKCmZ1bmN0aW9uIHRvRGlhbGFibGUocGhvbmUpIHsKICBpZiAoIXBob25lKSByZXR1cm4gJyc7CiAgY29uc3QgZGlnaXRzID0gU3RyaW5nKHBob25lKS5yZXBsYWNlKC9cRC9nLCAnJyk7CiAgaWYgKGRpZ2l0cy5sZW5ndGggPT09IDEwKSByZXR1cm4gYCsxJHtkaWdpdHN9YDsKICBpZiAoZGlnaXRzLmxlbmd0aCA9PT0gMTEgJiYgZGlnaXRzWzBdID09PSAnMScpIHJldHVybiBgKyR7ZGlnaXRzfWA7CiAgcmV0dXJuIGRpZ2l0cyA/IGArJHtkaWdpdHN9YCA6ICcnOwp9CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBDb250YWN0QWN0aW9ucyh7IHBob25lLCBlbWFpbCwgc2l6ZSA9ICdzbScsIGxhYmVscyA9IGZhbHNlIH0pIHsKICBjb25zdCBbZmFsbGJhY2tNc2csIHNldEZhbGxiYWNrTXNnXSA9IHVzZVN0YXRlKG51bGwpOwoKICBpZiAoIXBob25lICYmICFlbWFpbCkgcmV0dXJuIG51bGw7CgogIGNvbnN0IGRpYWxhYmxlID0gdG9EaWFsYWJsZShwaG9uZSk7CgogIC8vIFNpemUtc3BlY2lmaWMgY2xhc3NlcwogIGNvbnN0IGljb25TaXplID0gc2l6ZSA9PT0gJ2xnJyA/ICd3LTUgaC01JyA6IHNpemUgPT09ICdtZCcgPyAndy00IGgtNCcgOiAndy0zLjUgaC0zLjUnOwogIGNvbnN0IGJ0bkJhc2UgPSBzaXplID09PSAnbGcnCiAgICA/ICdpbmxpbmUtZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgZ2FwLTIgZmxleC0xIHB5LTIuNSBweC0zIHJvdW5kZWQteGwgdGV4dC1zbSBmb250LXNlbWlib2xkIGJvcmRlci0yIHRyYW5zaXRpb24tY29sb3JzIGFjdGl2ZTpzY2FsZS05NScKICAgIDogc2l6ZSA9PT0gJ21kJwogICAgPyAnaW5saW5lLWZsZXggaXRlbXMtY2VudGVyIGdhcC0xLjUgcHgtMyBweS0yIHJvdW5kZWQtbGcgdGV4dC14cyBmb250LXNlbWlib2xkIGJvcmRlciB0cmFuc2l0aW9uLWNvbG9ycyBhY3RpdmU6c2NhbGUtOTUgYnRuLWNvbXBhY3QnCiAgICA6ICdpbmxpbmUtZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEgcHgtMiBweS0xLjUgcm91bmRlZC1tZCB0ZXh0LVsxMXB4XSBmb250LXNlbWlib2xkIGJvcmRlciB0cmFuc2l0aW9uLWNvbG9ycyBhY3RpdmU6c2NhbGUtOTUgYnRuLWNvbXBhY3QnOwoKICBjb25zdCBzaG93RmFsbGJhY2sgPSAodHlwZSkgPT4gewogICAgY29uc3QgbXNncyA9IHsgY2FsbDogJ1VuYWJsZSB0byBvcGVuIHBob25lIGFwcC4nLCBzbXM6ICdVbmFibGUgdG8gb3BlbiBtZXNzYWdlIGFwcC4nLCBlbWFpbDogJ1VuYWJsZSB0byBvcGVuIGVtYWlsIGFwcC4nIH07CiAgICBzZXRGYWxsYmFja01zZyhtc2dzW3R5cGVdKTsKICAgIHNldFRpbWVvdXQoKCkgPT4gc2V0RmFsbGJhY2tNc2cobnVsbCksIDMwMDApOwogIH07CgogIGNvbnN0IGhhbmRsZUVtYWlsQ2xpY2sgPSAoZSkgPT4gewogICAgZS5wcmV2ZW50RGVmYXVsdCgpOwogICAgZS5zdG9wUHJvcGFnYXRpb24oKTsKICAgIGUubmF0aXZlRXZlbnQ/LnN0b3BJbW1lZGlhdGVQcm9wYWdhdGlvbigpOwogICAgaWYgKCFlbWFpbCkgcmV0dXJuOwogICAgaWYgKGlzTW9iaWxlRGV2aWNlKCkpIHsKICAgICAgd2luZG93LmxvY2F0aW9uLmhyZWYgPSBgbWFpbHRvOiR7ZW1haWx9YDsKICAgIH0gZWxzZSB7CiAgICAgIGNvbnN0IHcgPSB3aW5kb3cub3BlbigKICAgICAgICBgaHR0cHM6Ly9tYWlsLmdvb2dsZS5jb20vbWFpbC8/dmlldz1jbSZmcz0xJnRvPSR7ZW5jb2RlVVJJQ29tcG9uZW50KGVtYWlsKX1gLAogICAgICAgICdfYmxhbmsnLCAnbm9vcGVuZXInCiAgICAgICk7CiAgICAgIGlmICghdykgc2hvd0ZhbGxiYWNrKCdlbWFpbCcpOwogICAgfQogIH07CgogIGNvbnN0IGNvbnRhaW5lckNsYXNzID0gc2l6ZSA9PT0gJ2xnJwogICAgPyAnZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgdy1mdWxsJwogICAgOiAnZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSBmbGV4LXdyYXAnOwoKICByZXR1cm4gKAogICAgPGRpdj4KICAgICAgPGRpdiBjbGFzc05hbWU9e2NvbnRhaW5lckNsYXNzfT4KICAgICAgICB7cGhvbmUgJiYgZGlhbGFibGUgJiYgKAogICAgICAgICAgPD4KICAgICAgICAgICAgey8qIENhbGwg4oCUIHBsYWluIDxhIGhyZWY9InRlbDoiPiBzbyBtb2JpbGUgYnJvd3NlciBoYW5kcyBvZmYgbmF0aXZlbHkgKi99CiAgICAgICAgICAgIDxhCiAgICAgICAgICAgICAgaHJlZj17YHRlbDoke2RpYWxhYmxlfWB9CiAgICAgICAgICAgICAgdGl0bGU9e2BDYWxsICR7Zm9ybWF0UGhvbmUocGhvbmUpfWB9CiAgICAgICAgICAgICAgb25DbGljaz17ZSA9PiBlLnN0b3BQcm9wYWdhdGlvbigpfQogICAgICAgICAgICAgIGNsYXNzTmFtZT17YCR7YnRuQmFzZX0gYmctZ3JlZW4tNTAgYm9yZGVyLWdyZWVuLTIwMCB0ZXh0LWdyZWVuLTcwMCBob3ZlcjpiZy1ncmVlbi0xMDAgaG92ZXI6Ym9yZGVyLWdyZWVuLTQwMGB9CiAgICAgICAgICAgID4KICAgICAgICAgICAgICA8UGhvbmUgY2xhc3NOYW1lPXtpY29uU2l6ZX0gLz4KICAgICAgICAgICAgICB7KGxhYmVscyB8fCBzaXplID09PSAnbGcnKSAmJiA8c3Bhbj5DYWxsPC9zcGFuPn0KICAgICAgICAgICAgPC9hPgoKICAgICAgICAgICAgey8qIFNNUyDigJQgcGxhaW4gPGEgaHJlZj0ic21zOiI+ICovfQogICAgICAgICAgICA8YQogICAgICAgICAgICAgIGhyZWY9e2BzbXM6JHtkaWFsYWJsZX1gfQogICAgICAgICAgICAgIHRpdGxlPXtgVGV4dCAke2Zvcm1hdFBob25lKHBob25lKX1gfQogICAgICAgICAgICAgIG9uQ2xpY2s9e2UgPT4gZS5zdG9wUHJvcGFnYXRpb24oKX0KICAgICAgICAgICAgICBjbGFzc05hbWU9e2Ake2J0bkJhc2V9IGJnLWJsdWUtNTAgYm9yZGVyLWJsdWUtMjAwIHRleHQtYmx1ZS03MDAgaG92ZXI6YmctYmx1ZS0xMDAgaG92ZXI6Ym9yZGVyLWJsdWUtNDAwYH0KICAgICAgICAgICAgPgogICAgICAgICAgICAgIDxNZXNzYWdlU3F1YXJlIGNsYXNzTmFtZT17aWNvblNpemV9IC8+CiAgICAgICAgICAgICAgeyhsYWJlbHMgfHwgc2l6ZSA9PT0gJ2xnJykgJiYgPHNwYW4+VGV4dDwvc3Bhbj59CiAgICAgICAgICAgIDwvYT4KICAgICAgICAgIDwvPgogICAgICAgICl9CgogICAgICAgIHtlbWFpbCAmJiAoCiAgICAgICAgICA8YQogICAgICAgICAgICBocmVmPXtgbWFpbHRvOiR7ZW1haWx9YH0KICAgICAgICAgICAgb25DbGljaz17aGFuZGxlRW1haWxDbGlja30KICAgICAgICAgICAgdGl0bGU9e2BFbWFpbCAke2VtYWlsfWB9CiAgICAgICAgICAgIGNsYXNzTmFtZT17YCR7YnRuQmFzZX0gYmctYW1iZXItNTAgYm9yZGVyLWFtYmVyLTIwMCB0ZXh0LWFtYmVyLTcwMCBob3ZlcjpiZy1hbWJlci0xMDAgaG92ZXI6Ym9yZGVyLWFtYmVyLTQwMGB9CiAgICAgICAgICA+CiAgICAgICAgICAgIDxNYWlsIGNsYXNzTmFtZT17aWNvblNpemV9IC8+CiAgICAgICAgICAgIHsobGFiZWxzIHx8IHNpemUgPT09ICdsZycpICYmIDxzcGFuPkVtYWlsPC9zcGFuPn0KICAgICAgICAgIDwvYT4KICAgICAgICApfQogICAgICA8L2Rpdj4KCiAgICAgIHtmYWxsYmFja01zZyAmJiAoCiAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LVsxMXB4XSB0ZXh0LXJlZC01MDAgbXQtMSI+e2ZhbGxiYWNrTXNnfTwvcD4KICAgICAgKX0KICAgIDwvZGl2PgogICk7Cn0=
+/**
+ * ContactActions
+ *
+ * Reusable row of Call, SMS, Email action buttons.
+ *
+ * On mobile the buttons are plain <a> tags with tel:/sms:/mailto: hrefs so
+ * the browser hands them directly to the native dialer/messenger/mail app
+ * without any JavaScript popup that Safari/Chrome would block.
+ *
+ * Props:
+ *   phone  — raw phone string (optional)
+ *   email  — email address (optional)
+ *   size   — 'sm' (default, for cards) | 'md' (for detail panels) | 'lg' (mobile header)
+ *   labels — show text labels next to icons (default false)
+ */
+import { useState } from 'react';
+import { Phone, MessageSquare, Mail } from 'lucide-react';
+import { formatPhone } from '@/lib/formatters';
+import { composeEmail, isMobileDevice } from '@/lib/contactActions';
+
+function toDialable(phone) {
+  if (!phone) return '';
+  const digits = String(phone).replace(/\D/g, '');
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length === 11 && digits[0] === '1') return `+${digits}`;
+  return digits ? `+${digits}` : '';
+}
+
+export default function ContactActions({ phone, email, size = 'sm', labels = false }) {
+  const [fallbackMsg, setFallbackMsg] = useState(null);
+
+  if (!phone && !email) return null;
+
+  const dialable = toDialable(phone);
+
+  // Size-specific classes
+  const iconSize = size === 'lg' ? 'w-5 h-5' : size === 'md' ? 'w-4 h-4' : 'w-3.5 h-3.5';
+  const btnBase = size === 'lg'
+    ? 'inline-flex items-center justify-center gap-2 flex-1 py-2.5 px-3 rounded-xl text-sm font-semibold border-2 transition-colors active:scale-95'
+    : size === 'md'
+    ? 'inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors active:scale-95 btn-compact'
+    : 'inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-[11px] font-semibold border transition-colors active:scale-95 btn-compact';
+
+  const showFallback = (type) => {
+    const msgs = { call: 'Unable to open phone app.', sms: 'Unable to open message app.', email: 'Unable to open email app.' };
+    setFallbackMsg(msgs[type]);
+    setTimeout(() => setFallbackMsg(null), 3000);
+  };
+
+  const handleEmailClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.nativeEvent?.stopImmediatePropagation();
+    if (!email) return;
+    if (isMobileDevice()) {
+      window.location.href = `mailto:${email}`;
+    } else {
+      const w = window.open(
+        `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}`,
+        '_blank', 'noopener'
+      );
+      if (!w) showFallback('email');
+    }
+  };
+
+  const containerClass = size === 'lg'
+    ? 'flex items-center gap-2 w-full'
+    : 'flex items-center gap-1.5 flex-wrap';
+
+  return (
+    <div>
+      <div className={containerClass}>
+        {phone && dialable && (
+          <>
+            {/* Call — plain <a href="tel:"> so mobile browser hands off natively */}
+            <a
+              href={`tel:${dialable}`}
+              title={`Call ${formatPhone(phone)}`}
+              onClick={e => e.stopPropagation()}
+              className={`${btnBase} bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:border-green-400`}
+            >
+              <Phone className={iconSize} />
+              {(labels || size === 'lg') && <span>Call</span>}
+            </a>
+
+            {/* SMS — plain <a href="sms:"> */}
+            <a
+              href={`sms:${dialable}`}
+              title={`Text ${formatPhone(phone)}`}
+              onClick={e => e.stopPropagation()}
+              className={`${btnBase} bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-400`}
+            >
+              <MessageSquare className={iconSize} />
+              {(labels || size === 'lg') && <span>Text</span>}
+            </a>
+          </>
+        )}
+
+        {email && (
+          <a
+            href={`mailto:${email}`}
+            onClick={handleEmailClick}
+            title={`Email ${email}`}
+            className={`${btnBase} bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100 hover:border-amber-400`}
+          >
+            <Mail className={iconSize} />
+            {(labels || size === 'lg') && <span>Email</span>}
+          </a>
+        )}
+      </div>
+
+      {fallbackMsg && (
+        <p className="text-[11px] text-red-500 mt-1">{fallbackMsg}</p>
+      )}
+    </div>
+  );
+}

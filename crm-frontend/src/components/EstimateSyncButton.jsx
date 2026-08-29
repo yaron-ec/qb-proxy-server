@@ -1,1 +1,41 @@
-aW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICdyZWFjdCc7CmltcG9ydCB7IFJlZnJlc2hDdywgQ2hlY2tDaXJjbGUyLCBBbGVydFRyaWFuZ2xlIH0gZnJvbSAnbHVjaWRlLXJlYWN0JzsKaW1wb3J0IHsgc3luY0xlYWRFc3RpbWF0ZXMsIG5vcm1hbGl6ZUludGVncmF0aW9uRXJyb3IgfSBmcm9tICdAL2xpYi9yYWlsd2F5Q2xpZW50JzsKCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIEVzdGltYXRlU3luY0J1dHRvbih7IGxlYWQgfSkgewogIGNvbnN0IFtzeW5jaW5nLCBzZXRTeW5jaW5nXSA9IHVzZVN0YXRlKGZhbHNlKTsKICBjb25zdCBbcmVzdWx0LCBzZXRSZXN1bHRdID0gdXNlU3RhdGUobnVsbCk7CgogIGNvbnN0IGhhbmRsZVN5bmMgPSBhc3luYyAoKSA9PiB7CiAgICBzZXRTeW5jaW5nKHRydWUpOwogICAgc2V0UmVzdWx0KG51bGwpOwogICAgdHJ5IHsKICAgICAgY29uc3QgZGF0YSA9IGF3YWl0IHN5bmNMZWFkRXN0aW1hdGVzKGxlYWQuaWQpOwogICAgICBjb25zdCBvayA9IGRhdGE/LnN1Y2Nlc3MgIT09IGZhbHNlOwogICAgICBzZXRSZXN1bHQoeyBzdWNjZXNzOiBvaywgbWVzc2FnZTogb2sgPyAoZGF0YT8ubWVzc2FnZSB8fCAnRXN0aW1hdGVzIHN5bmNlZCcpIDogKGRhdGE/LmVycm9yIHx8IGRhdGE/Lm1lc3NhZ2UgfHwgJ1N5bmMgZmFpbGVkJykgfSk7CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIHNldFJlc3VsdCh7IHN1Y2Nlc3M6IGZhbHNlLCBtZXNzYWdlOiBub3JtYWxpemVJbnRlZ3JhdGlvbkVycm9yKGUpIH0pOwogICAgfSBmaW5hbGx5IHsKICAgICAgc2V0U3luY2luZyhmYWxzZSk7CiAgICB9CiAgfTsKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJweC01IHB5LTMgYm9yZGVyLXQgYm9yZGVyLXNsYXRlLTEwMCI+CiAgICAgIDxwIGNsYXNzTmFtZT0ic2lkZWJhci1zZWN0aW9uLWhlYWRlciBtYi0yIj5Fc3RpbWF0ZXM8L3A+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gZ2FwLTMiPgogICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTUwMCI+RXN0aW1hdGUgc3luY2hyb25pemF0aW9uPC9zcGFuPgogICAgICAgIDxidXR0b24gb25DbGljaz17aGFuZGxlU3luY30gZGlzYWJsZWQ9e3N5bmNpbmd9IGNsYXNzTmFtZT0ic2lkZWJhci1hY3Rpb24tYnRuIj4KICAgICAgICAgIDxSZWZyZXNoQ3cgY2xhc3NOYW1lPXtgdy0zIGgtMyAke3N5bmNpbmcgPyAnYW5pbWF0ZS1zcGluJyA6ICcnfWB9IC8+CiAgICAgICAgICB7c3luY2luZyA/ICdTeW5jaW5n4oCmJyA6ICdTeW5jJ30KICAgICAgICA8L2J1dHRvbj4KICAgICAgPC9kaXY+CiAgICAgIHtyZXN1bHQgJiYgKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPXtgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSBtdC0xLjUgdGV4dC1bMTFweF0gZm9udC1tZWRpdW0gJHtyZXN1bHQuc3VjY2VzcyA/ICd0ZXh0LWVtZXJhbGQtNjAwJyA6ICd0ZXh0LXJlZC01MDAnfWB9PgogICAgICAgICAge3Jlc3VsdC5zdWNjZXNzID8gPENoZWNrQ2lyY2xlMiBjbGFzc05hbWU9InctMyBoLTMgZmxleC1zaHJpbmstMCIgLz4gOiA8QWxlcnRUcmlhbmdsZSBjbGFzc05hbWU9InctMyBoLTMgZmxleC1zaHJpbmstMCIgLz59CiAgICAgICAgICA8c3Bhbj57cmVzdWx0Lm1lc3NhZ2V9PC9zcGFuPgogICAgICAgIDwvZGl2PgogICAgICApfQogICAgPC9kaXY+CiAgKTsKfQ==
+import { useState } from 'react';
+import { RefreshCw, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { syncLeadEstimates, normalizeIntegrationError } from '@/lib/railwayClient';
+
+export default function EstimateSyncButton({ lead }) {
+  const [syncing, setSyncing] = useState(false);
+  const [result, setResult] = useState(null);
+
+  const handleSync = async () => {
+    setSyncing(true);
+    setResult(null);
+    try {
+      const data = await syncLeadEstimates(lead.id);
+      const ok = data?.success !== false;
+      setResult({ success: ok, message: ok ? (data?.message || 'Estimates synced') : (data?.error || data?.message || 'Sync failed') });
+    } catch (e) {
+      setResult({ success: false, message: normalizeIntegrationError(e) });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  return (
+    <div className="px-5 py-3 border-t border-slate-100">
+      <p className="sidebar-section-header mb-2">Estimates</p>
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-xs text-slate-500">Estimate synchronization</span>
+        <button onClick={handleSync} disabled={syncing} className="sidebar-action-btn">
+          <RefreshCw className={`w-3 h-3 ${syncing ? 'animate-spin' : ''}`} />
+          {syncing ? 'Syncing…' : 'Sync'}
+        </button>
+      </div>
+      {result && (
+        <div className={`flex items-center gap-1.5 mt-1.5 text-[11px] font-medium ${result.success ? 'text-emerald-600' : 'text-red-500'}`}>
+          {result.success ? <CheckCircle2 className="w-3 h-3 flex-shrink-0" /> : <AlertTriangle className="w-3 h-3 flex-shrink-0" />}
+          <span>{result.message}</span>
+        </div>
+      )}
+    </div>
+  );
+}

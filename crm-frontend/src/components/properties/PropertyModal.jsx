@@ -1,1 +1,115 @@
-aW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IFgsIFNhdmUgfSBmcm9tICJsdWNpZGUtcmVhY3QiOwppbXBvcnQgeyBDQVRFR09SSUVTLCBQUk9QRVJUWV9UWVBFUyB9IGZyb20gIi4vcHJvcGVydHlEZWZpbml0aW9ucyI7CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBQcm9wZXJ0eU1vZGFsKHsgcHJvcGVydHksIG9uU2F2ZSwgb25DbG9zZSB9KSB7CiAgY29uc3QgaXNOZXcgPSAhcHJvcGVydHk/LmlkOwogIGNvbnN0IFtmb3JtLCBzZXRGb3JtXSA9IHVzZVN0YXRlKHsKICAgIGxhYmVsOiBwcm9wZXJ0eT8ubGFiZWwgfHwgIiIsCiAgICB0eXBlOiBwcm9wZXJ0eT8udHlwZSB8fCAidGV4dCIsCiAgICBjYXRlZ29yeTogcHJvcGVydHk/LmNhdGVnb3J5IHx8ICJsZWFkX2luZm8iLAogICAgZGVzY3JpcHRpb246IHByb3BlcnR5Py5kZXNjcmlwdGlvbiB8fCAiIiwKICAgIHJlcXVpcmVkOiBwcm9wZXJ0eT8ucmVxdWlyZWQgfHwgZmFsc2UsCiAgICBlZGl0YWJsZTogcHJvcGVydHk/LmVkaXRhYmxlICE9PSBmYWxzZSwKICAgIGhpZGRlbjogcHJvcGVydHk/LmhpZGRlbiB8fCBmYWxzZSwKICB9KTsKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJmaXhlZCBpbnNldC0wIGJnLWJsYWNrLzQwIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHotNTAiPgogICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctd2hpdGUgcm91bmRlZC14bCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCBzaGFkb3ctMnhsIHctZnVsbCBtYXgtdy1sZyBteC00Ij4KICAgICAgICB7LyogSGVhZGVyICovfQogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gcHgtNiBweS00IGJvcmRlci1iIGJvcmRlci1zbGF0ZS0xMDAiPgogICAgICAgICAgPGgzIGNsYXNzTmFtZT0idGV4dC1zbSBmb250LWJvbGQgdGV4dC1zbGF0ZS04MDAiPntpc05ldyA/ICJDcmVhdGUgUHJvcGVydHkiIDogIkVkaXQgUHJvcGVydHkifTwvaDM+CiAgICAgICAgICA8YnV0dG9uIG9uQ2xpY2s9e29uQ2xvc2V9IGNsYXNzTmFtZT0idGV4dC1zbGF0ZS00MDAgaG92ZXI6dGV4dC1zbGF0ZS02MDAgdHJhbnNpdGlvbi1jb2xvcnMiPgogICAgICAgICAgICA8WCBjbGFzc05hbWU9InctNCBoLTQiIC8+CiAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICA8L2Rpdj4KCiAgICAgICAgey8qIEJvZHkgKi99CiAgICAgICAgPGRpdiBjbGFzc05hbWU9InB4LTYgcHktNSBzcGFjZS15LTQiPgogICAgICAgICAgPGRpdj4KICAgICAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT0iYmxvY2sgdGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNjAwIG1iLTEuNSI+TGFiZWwgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXJlZC01MDAiPio8L3NwYW4+PC9sYWJlbD4KICAgICAgICAgICAgPGlucHV0CiAgICAgICAgICAgICAgdHlwZT0idGV4dCIKICAgICAgICAgICAgICB2YWx1ZT17Zm9ybS5sYWJlbH0KICAgICAgICAgICAgICBvbkNoYW5nZT17ZSA9PiBzZXRGb3JtKHAgPT4gKHsgLi4ucCwgbGFiZWw6IGUudGFyZ2V0LnZhbHVlIH0pKX0KICAgICAgICAgICAgICBwbGFjZWhvbGRlcj0iZS5nLiBQcm9qZWN0IFZhbHVlIgogICAgICAgICAgICAgIGNsYXNzTmFtZT0idy1mdWxsIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgcHgtMyBweS0yLjUgdGV4dC1zbSB0ZXh0LXNsYXRlLTgwMCBmb2N1czpvdXRsaW5lLW5vbmUgZm9jdXM6Ym9yZGVyLW9yYW5nZSB0cmFuc2l0aW9uLWNvbG9ycyIKICAgICAgICAgICAgLz4KICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJncmlkIGdyaWQtY29scy0yIGdhcC0zIj4KICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICA8bGFiZWwgY2xhc3NOYW1lPSJibG9jayB0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS02MDAgbWItMS41Ij5Qcm9wZXJ0eSBUeXBlPC9sYWJlbD4KICAgICAgICAgICAgICA8c2VsZWN0CiAgICAgICAgICAgICAgICB2YWx1ZT17Zm9ybS50eXBlfQogICAgICAgICAgICAgICAgb25DaGFuZ2U9e2UgPT4gc2V0Rm9ybShwID0+ICh7IC4uLnAsIHR5cGU6IGUudGFyZ2V0LnZhbHVlIH0pKX0KICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0idy1mdWxsIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgcHgtMyBweS0yLjUgdGV4dC1zbSB0ZXh0LXNsYXRlLTgwMCBmb2N1czpvdXRsaW5lLW5vbmUgZm9jdXM6Ym9yZGVyLW9yYW5nZSB0cmFuc2l0aW9uLWNvbG9ycyIKICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICB7UFJPUEVSVFlfVFlQRVMubWFwKHQgPT4gPG9wdGlvbiBrZXk9e3QudmFsdWV9IHZhbHVlPXt0LnZhbHVlfT57dC5sYWJlbH08L29wdGlvbj4pfQogICAgICAgICAgICAgIDwvc2VsZWN0PgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICA8bGFiZWwgY2xhc3NOYW1lPSJibG9jayB0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS02MDAgbWItMS41Ij5DYXRlZ29yeTwvbGFiZWw+CiAgICAgICAgICAgICAgPHNlbGVjdAogICAgICAgICAgICAgICAgdmFsdWU9e2Zvcm0uY2F0ZWdvcnl9CiAgICAgICAgICAgICAgICBvbkNoYW5nZT17ZSA9PiBzZXRGb3JtKHAgPT4gKHsgLi4ucCwgY2F0ZWdvcnk6IGUudGFyZ2V0LnZhbHVlIH0pKX0KICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0idy1mdWxsIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgcHgtMyBweS0yLjUgdGV4dC1zbSB0ZXh0LXNsYXRlLTgwMCBmb2N1czpvdXRsaW5lLW5vbmUgZm9jdXM6Ym9yZGVyLW9yYW5nZSB0cmFuc2l0aW9uLWNvbG9ycyIKICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICB7Q0FURUdPUklFUy5tYXAoYyA9PiA8b3B0aW9uIGtleT17Yy5pZH0gdmFsdWU9e2MuaWR9PntjLmxhYmVsfTwvb3B0aW9uPil9CiAgICAgICAgICAgICAgPC9zZWxlY3Q+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgPC9kaXY+CgogICAgICAgICAgPGRpdj4KICAgICAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT0iYmxvY2sgdGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNjAwIG1iLTEuNSI+RGVzY3JpcHRpb24gLyBIZWxwIFRleHQ8L2xhYmVsPgogICAgICAgICAgICA8dGV4dGFyZWEKICAgICAgICAgICAgICB2YWx1ZT17Zm9ybS5kZXNjcmlwdGlvbn0KICAgICAgICAgICAgICBvbkNoYW5nZT17ZSA9PiBzZXRGb3JtKHAgPT4gKHsgLi4ucCwgZGVzY3JpcHRpb246IGUudGFyZ2V0LnZhbHVlIH0pKX0KICAgICAgICAgICAgICBwbGFjZWhvbGRlcj0iRGVzY3JpYmUgd2hhdCB0aGlzIHByb3BlcnR5IGlzIHVzZWQgZm9yLi4uIgogICAgICAgICAgICAgIHJvd3M9ezJ9CiAgICAgICAgICAgICAgY2xhc3NOYW1lPSJ3LWZ1bGwgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBweC0zIHB5LTIuNSB0ZXh0LXNtIHRleHQtc2xhdGUtODAwIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpib3JkZXItb3JhbmdlIHRyYW5zaXRpb24tY29sb3JzIHJlc2l6ZS1ub25lIgogICAgICAgICAgICAvPgogICAgICAgICAgPC9kaXY+CgogICAgICAgICAgey8qIFRvZ2dsZXMgKi99CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ic3BhY2UteS0yLjUgcHQtMSI+CiAgICAgICAgICAgIHtbCiAgICAgICAgICAgICAgeyBrZXk6ICJyZXF1aXJlZCIsIGxhYmVsOiAiUmVxdWlyZWQgZmllbGQiLCBkZXNjOiAiTXVzdCBiZSBmaWxsZWQgd2hlbiBjcmVhdGluZyBhIGxlYWQiIH0sCiAgICAgICAgICAgICAgeyBrZXk6ICJlZGl0YWJsZSIsIGxhYmVsOiAiRWRpdGFibGUgYnkgdXNlcnMiLCBkZXNjOiAiQ2FuIGJlIGNoYW5nZWQgZnJvbSB0aGUgbGVhZCBkZXRhaWwgdmlldyIgfSwKICAgICAgICAgICAgICB7IGtleTogImhpZGRlbiIsICAgbGFiZWw6ICJIaWRkZW4gZnJvbSB2aWV3IiwgZGVzYzogIk9ubHkgdmlzaWJsZSB0byBhZG1pbnMgaW4gdGhpcyBwYW5lbCIgfSwKICAgICAgICAgICAgXS5tYXAoKHsga2V5LCBsYWJlbCwgZGVzYyB9KSA9PiAoCiAgICAgICAgICAgICAgPGxhYmVsIGtleT17a2V5fSBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBnYXAtMyBjdXJzb3ItcG9pbnRlciBncm91cCI+CiAgICAgICAgICAgICAgICA8ZGl2PgogICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1zbSBmb250LW1lZGl1bSB0ZXh0LXNsYXRlLTcwMCI+e2xhYmVsfTwvZGl2PgogICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTQwMCI+e2Rlc2N9PC9kaXY+CiAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgIDxkaXYKICAgICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0Rm9ybShwID0+ICh7IC4uLnAsIFtrZXldOiAhcFtrZXldIH0pKX0KICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPXtgcmVsYXRpdmUgdy0xMCBoLTUgcm91bmRlZC1mdWxsIHRyYW5zaXRpb24tY29sb3JzIGZsZXgtc2hyaW5rLTAgJHtmb3JtW2tleV0gPyAnYmctb3JhbmdlJyA6ICdiZy1zbGF0ZS0yMDAnfWB9CiAgICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPXtgYWJzb2x1dGUgdG9wLTAuNSB3LTQgaC00IGJnLXdoaXRlIHJvdW5kZWQtZnVsbCBzaGFkb3cgdHJhbnNpdGlvbi10cmFuc2Zvcm0gJHtmb3JtW2tleV0gPyAndHJhbnNsYXRlLXgtNScgOiAndHJhbnNsYXRlLXgtMC41J31gfSAvPgogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgPC9sYWJlbD4KICAgICAgICAgICAgKSl9CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KCiAgICAgICAgey8qIEZvb3RlciAqL30KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBqdXN0aWZ5LWVuZCBnYXAtMiBweC02IHBiLTUiPgogICAgICAgICAgPGJ1dHRvbiBvbkNsaWNrPXtvbkNsb3NlfSBjbGFzc05hbWU9ImJvcmRlciBib3JkZXItc2xhdGUtMjAwIHB4LTQgcHktMiB0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS02MDAgcm91bmRlZC1sZyBob3ZlcjpiZy1zbGF0ZS01MCB0cmFuc2l0aW9uLWNvbG9ycyI+CiAgICAgICAgICAgIENhbmNlbAogICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IG9uU2F2ZShmb3JtKX0KICAgICAgICAgICAgZGlzYWJsZWQ9eyFmb3JtLmxhYmVsLnRyaW0oKX0KICAgICAgICAgICAgY2xhc3NOYW1lPSJiZy1vcmFuZ2UgdGV4dC13aGl0ZSBweC01IHB5LTIgdGV4dC1zbSBmb250LWJvbGQgcm91bmRlZC1sZyBob3ZlcjpiZy1vcmFuZ2UvOTAgdHJhbnNpdGlvbi1jb2xvcnMgZGlzYWJsZWQ6b3BhY2l0eS01MCBmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiIKICAgICAgICAgID4KICAgICAgICAgICAgPFNhdmUgY2xhc3NOYW1lPSJ3LTMuNSBoLTMuNSIgLz4KICAgICAgICAgICAge2lzTmV3ID8gIkNyZWF0ZSBQcm9wZXJ0eSIgOiAiU2F2ZSBDaGFuZ2VzIn0KICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KICAgIDwvZGl2PgogICk7Cn0=
+import { useState } from "react";
+import { X, Save } from "lucide-react";
+import { CATEGORIES, PROPERTY_TYPES } from "./propertyDefinitions";
+
+export default function PropertyModal({ property, onSave, onClose }) {
+  const isNew = !property?.id;
+  const [form, setForm] = useState({
+    label: property?.label || "",
+    type: property?.type || "text",
+    category: property?.category || "lead_info",
+    description: property?.description || "",
+    required: property?.required || false,
+    editable: property?.editable !== false,
+    hidden: property?.hidden || false,
+  });
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-2xl w-full max-w-lg mx-4">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+          <h3 className="text-sm font-bold text-slate-800">{isNew ? "Create Property" : "Edit Property"}</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="px-6 py-5 space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Label <span className="text-red-500">*</span></label>
+            <input
+              type="text"
+              value={form.label}
+              onChange={e => setForm(p => ({ ...p, label: e.target.value }))}
+              placeholder="e.g. Project Value"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-orange transition-colors"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Property Type</label>
+              <select
+                value={form.type}
+                onChange={e => setForm(p => ({ ...p, type: e.target.value }))}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-orange transition-colors"
+              >
+                {PROPERTY_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Category</label>
+              <select
+                value={form.category}
+                onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-orange transition-colors"
+              >
+                {CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Description / Help Text</label>
+            <textarea
+              value={form.description}
+              onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
+              placeholder="Describe what this property is used for..."
+              rows={2}
+              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-orange transition-colors resize-none"
+            />
+          </div>
+
+          {/* Toggles */}
+          <div className="space-y-2.5 pt-1">
+            {[
+              { key: "required", label: "Required field", desc: "Must be filled when creating a lead" },
+              { key: "editable", label: "Editable by users", desc: "Can be changed from the lead detail view" },
+              { key: "hidden",   label: "Hidden from view", desc: "Only visible to admins in this panel" },
+            ].map(({ key, label, desc }) => (
+              <label key={key} className="flex items-center justify-between gap-3 cursor-pointer group">
+                <div>
+                  <div className="text-sm font-medium text-slate-700">{label}</div>
+                  <div className="text-xs text-slate-400">{desc}</div>
+                </div>
+                <div
+                  onClick={() => setForm(p => ({ ...p, [key]: !p[key] }))}
+                  className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${form[key] ? 'bg-orange' : 'bg-slate-200'}`}
+                >
+                  <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${form[key] ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                </div>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-end gap-2 px-6 pb-5">
+          <button onClick={onClose} className="border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 rounded-lg hover:bg-slate-50 transition-colors">
+            Cancel
+          </button>
+          <button
+            onClick={() => onSave(form)}
+            disabled={!form.label.trim()}
+            className="bg-orange text-white px-5 py-2 text-sm font-bold rounded-lg hover:bg-orange/90 transition-colors disabled:opacity-50 flex items-center gap-2"
+          >
+            <Save className="w-3.5 h-3.5" />
+            {isNew ? "Create Property" : "Save Changes"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

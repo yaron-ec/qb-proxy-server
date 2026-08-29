@@ -1,1 +1,200 @@
-LyoqCiAqIEFwcG9pbnRtZW50U2xvdFBpY2tlcgogKgogKiBTaG93cyBZYXJvbidzIGNhbGVuZGFyIGF2YWlsYWJpbGl0eSBmb3IgYSBnaXZlbiBkYXRlIGFzIGEgdmlzdWFsIGRheSBzY2hlZHVsZS4KICogQnVzeSBzbG90cyBhcmUgbGFiZWxlZCAiQnVzeSIgKG5vIHByaXZhdGUgZXZlbnQgZGV0YWlscyBleHBvc2VkKS4KICogQXZhaWxhYmxlIHNsb3RzIGFyZSBzZWxlY3RhYmxlLiBUaGUgc2VsZWN0ZWQgc2xvdCBpcyBoaWdobGlnaHRlZC4KICoKICogVXNlcyB0aGUgZXhpc3RpbmcgY2FsZW5kYXJBdmFpbGFiaWxpdHkuZ2V0QmxvY2tlZFNsb3RzKCkg4oCUIHRoZSBzYW1lIHNvdXJjZSBvZgogKiB0cnV0aCB1c2VkIGJ5IHRoZSByZXN0IG9mIHRoZSBDUk0gKEdvb2dsZSBDYWxlbmRhciBmcmVlQnVzeSArIENSTSBtZWV0aW5ncykuCiAqIERvZXMgTk9UIGludmVudCBhIHNlY29uZCBhdmFpbGFiaWxpdHkgYWxnb3JpdGhtLgogKgogKiBUaW1lem9uZTogQW1lcmljYS9Mb3NfQW5nZWxlcyAoaGFuZGxlZCBieSBjYWxlbmRhckF2YWlsYWJpbGl0eS5qcykuCiAqIEFwcG9pbnRtZW50IGR1cmF0aW9uICsgdHJhdmVsIGJ1ZmZlcnM6IDEyMCBtaW4gdG90YWwgd2luZG93ICgxaHIgbWVldGluZyArIDFociBidWZmZXIpCiAqIOKAlCBzYW1lIHJ1bGVzIGFzIHRoZSBleGlzdGluZyBDUk0gYXZhaWxhYmlsaXR5IGNoZWNrLgogKgogKiBZYXJvbidzIGNhbGVuZGFyIGlzIGFsd2F5cyBzaG93biByZWdhcmRsZXNzIG9mIHRoZSBzZWxlY3RlZCByZXAsIHBlciByZXF1aXJlbWVudDoKICogIllhcm9uJ3MgY2FsZW5kYXIgaXMgdGhlIGF2YWlsYWJpbGl0eSBjYWxlbmRhciB0aGF0IG11c3QgYmUgc2hvd24uIgogKi8KaW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCwgdXNlQ2FsbGJhY2sgfSBmcm9tICdyZWFjdCc7CmltcG9ydCB7IENsb2NrLCBMb2FkZXIyLCBBbGVydENpcmNsZSwgQ2hlY2tDaXJjbGUyIH0gZnJvbSAnbHVjaWRlLXJlYWN0JzsKaW1wb3J0IHsgZ2V0QmxvY2tlZFNsb3RzIH0gZnJvbSAnQC9saWIvY2FsZW5kYXJBdmFpbGFiaWxpdHknOwoKLy8gQWx3YXlzIHVzZSBZYXJvbidzIGNhbGVuZGFyIGZvciBhdmFpbGFiaWxpdHksIHJlZ2FyZGxlc3Mgb2Ygc2VsZWN0ZWQgcmVwCmNvbnN0IEFWQUlMQUJJTElUWV9PV05FUiA9ICdZYXJvbiBEcmlsZXZpY2gnOwoKLy8gR2VuZXJhdGUgMzAtbWludXRlIHNsb3RzIGZyb20gODozMCBBTSB0byA2OjMwIFBNIChtYXRjaGVzIGNhbGVuZGFyQXZhaWxhYmlsaXR5LmpzKQpjb25zdCBTTE9UUyA9IFtdOwpmb3IgKGxldCBoID0gODsgaCA8PSAxODsgaCsrKSB7CiAgZm9yIChsZXQgbSA9IDA7IG0gPCA2MDsgbSArPSAzMCkgewogICAgaWYgKGggPT09IDggJiYgbSA9PT0gMCkgY29udGludWU7IC8vIHNraXAgODowMCAoYmVmb3JlIGJ1c2luZXNzIGhvdXJzKQogICAgaWYgKGggPT09IDE4ICYmIG0gPiAzMCkgY29udGludWU7IC8vIHNraXAgYWZ0ZXIgNjozMCBQTQogICAgU0xPVFMucHVzaChgJHtTdHJpbmcoaCkucGFkU3RhcnQoMiwgJzAnKX06JHtTdHJpbmcobSkucGFkU3RhcnQoMiwgJzAnKX1gKTsKICB9Cn0KCmZ1bmN0aW9uIGZtdDEyKHQpIHsKICBjb25zdCBbaCwgbV0gPSB0LnNwbGl0KCc6JykubWFwKE51bWJlcik7CiAgcmV0dXJuIGAke2ggJSAxMiB8fCAxMn06JHtTdHJpbmcobSkucGFkU3RhcnQoMiwgJzAnKX0gJHtoID49IDEyID8gJ1BNJyA6ICdBTSd9YDsKfQoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gQXBwb2ludG1lbnRTbG90UGlja2VyKHsgZGF0ZSwgc2VsZWN0ZWRUaW1lLCBvblNlbGVjdFRpbWUgfSkgewogIGNvbnN0IFtibG9ja2VkU2xvdHMsIHNldEJsb2NrZWRTbG90c10gPSB1c2VTdGF0ZShbXSk7CiAgY29uc3QgW2xvYWRpbmcsIHNldExvYWRpbmddID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFtlcnJvciwgc2V0RXJyb3JdID0gdXNlU3RhdGUobnVsbCk7CgogIGNvbnN0IGxvYWRBdmFpbGFiaWxpdHkgPSB1c2VDYWxsYmFjayhhc3luYyAoZCwgZm9yY2VSZWZyZXNoID0gZmFsc2UpID0+IHsKICAgIGlmICghZCkgewogICAgICBzZXRCbG9ja2VkU2xvdHMoW10pOwogICAgICByZXR1cm47CiAgICB9CiAgICBzZXRMb2FkaW5nKHRydWUpOwogICAgc2V0RXJyb3IobnVsbCk7CiAgICB0cnkgewogICAgICBjb25zdCBkYXRhID0gYXdhaXQgZ2V0QmxvY2tlZFNsb3RzKGQsIEFWQUlMQUJJTElUWV9PV05FUiwgeyBmb3JjZVJlZnJlc2ggfSk7CiAgICAgIHNldEJsb2NrZWRTbG90cyhkYXRhLmJsb2NrZWRfc2xvdHMgfHwgW10pOwogICAgfSBjYXRjaCAoZSkgewogICAgICBzZXRFcnJvcihlLm1lc3NhZ2UgfHwgJ0ZhaWxlZCB0byBsb2FkIGF2YWlsYWJpbGl0eScpOwogICAgICBzZXRCbG9ja2VkU2xvdHMoW10pOwogICAgfSBmaW5hbGx5IHsKICAgICAgc2V0TG9hZGluZyhmYWxzZSk7CiAgICB9CiAgfSwgW10pOwoKICB1c2VFZmZlY3QoKCkgPT4gewogICAgbG9hZEF2YWlsYWJpbGl0eShkYXRlKTsKICB9LCBbZGF0ZSwgbG9hZEF2YWlsYWJpbGl0eV0pOwoKICAvLyBHcm91cCBzbG90cyBpbnRvIG1vcm5pbmcgYW5kIGFmdGVybm9vbiBmb3IgdmlzdWFsIGNsYXJpdHkKICBjb25zdCBtb3JuaW5nU2xvdHMgPSBTTE9UUy5maWx0ZXIocyA9PiBwYXJzZUludChzLnNwbGl0KCc6JylbMF0pIDwgMTIpOwogIGNvbnN0IGFmdGVybm9vblNsb3RzID0gU0xPVFMuZmlsdGVyKHMgPT4gcGFyc2VJbnQocy5zcGxpdCgnOicpWzBdKSA+PSAxMik7CgogIGNvbnN0IHJlbmRlclNsb3QgPSAoc2xvdCkgPT4gewogICAgY29uc3QgaXNCbG9ja2VkID0gYmxvY2tlZFNsb3RzLmluY2x1ZGVzKHNsb3QpOwogICAgY29uc3QgaXNTZWxlY3RlZCA9IHNlbGVjdGVkVGltZSA9PT0gc2xvdDsKCiAgICBpZiAoaXNCbG9ja2VkKSB7CiAgICAgIHJldHVybiAoCiAgICAgICAgPGRpdgogICAgICAgICAga2V5PXtzbG90fQogICAgICAgICAgZGlzYWJsZWQKICAgICAgICAgIGNsYXNzTmFtZT0icHgtMiBweS0yIHRleHQtWzExcHhdIGZvbnQtc2VtaWJvbGQgdGV4dC1jZW50ZXIgcm91bmRlZC1sZyBiZy1zbGF0ZS0xMDAgdGV4dC1zbGF0ZS00MDAgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgY3Vyc29yLW5vdC1hbGxvd2VkIgogICAgICAgID4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBnYXAtMSI+CiAgICAgICAgICAgIDxDbG9jayBjbGFzc05hbWU9InctMi41IGgtMi41IiAvPgogICAgICAgICAgICB7Zm10MTIoc2xvdCl9CiAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1bOXB4XSB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZSI+QnVzeTwvc3Bhbj4KICAgICAgICA8L2Rpdj4KICAgICAgKTsKICAgIH0KCiAgICByZXR1cm4gKAogICAgICA8YnV0dG9uCiAgICAgICAga2V5PXtzbG90fQogICAgICAgIHR5cGU9ImJ1dHRvbiIKICAgICAgICBvbkNsaWNrPXsoKSA9PiBvblNlbGVjdFRpbWUoc2xvdCl9CiAgICAgICAgY2xhc3NOYW1lPXtgcHgtMiBweS0yIHRleHQtWzExcHhdIGZvbnQtc2VtaWJvbGQgdGV4dC1jZW50ZXIgcm91bmRlZC1sZyBib3JkZXIgdHJhbnNpdGlvbi1hbGwgYWN0aXZlOnNjYWxlLTk1ICR7CiAgICAgICAgICBpc1NlbGVjdGVkCiAgICAgICAgICAgID8gJ2JnLWFtYmVyLTYwMCB0ZXh0LXdoaXRlIGJvcmRlci1hbWJlci02MDAgc2hhZG93LXNtIHJpbmctMiByaW5nLWFtYmVyLTMwMCcKICAgICAgICAgICAgOiAnYmctd2hpdGUgdGV4dC1zbGF0ZS03MDAgYm9yZGVyLXNsYXRlLTIwMCBob3Zlcjpib3JkZXItYW1iZXItNDAwIGhvdmVyOmJnLWFtYmVyLTUwJwogICAgICAgIH1gfQogICAgICA+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGdhcC0xIj4KICAgICAgICAgIHtpc1NlbGVjdGVkICYmIDxDaGVja0NpcmNsZTIgY2xhc3NOYW1lPSJ3LTIuNSBoLTIuNSIgLz59CiAgICAgICAgICB7Zm10MTIoc2xvdCl9CiAgICAgICAgPC9kaXY+CiAgICAgICAgPHNwYW4gY2xhc3NOYW1lPXtgdGV4dC1bOXB4XSB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZSAke2lzU2VsZWN0ZWQgPyAndGV4dC1hbWJlci0xMDAnIDogJ3RleHQtZW1lcmFsZC02MDAnfWB9PgogICAgICAgICAge2lzU2VsZWN0ZWQgPyAnU2VsZWN0ZWQnIDogJ0F2YWlsYWJsZSd9CiAgICAgICAgPC9zcGFuPgogICAgICA8L2J1dHRvbj4KICAgICk7CiAgfTsKCiAgaWYgKCFkYXRlKSB7CiAgICByZXR1cm4gKAogICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1jZW50ZXIgcHktNiB0ZXh0LXNtIHRleHQtc2xhdGUtNDAwIj4KICAgICAgICA8Q2xvY2sgY2xhc3NOYW1lPSJ3LTYgaC02IHRleHQtc2xhdGUtMzAwIG14LWF1dG8gbWItMiIgLz4KICAgICAgICBTZWxlY3QgYSBkYXRlIHRvIHZpZXcgWWFyb24ncyBhdmFpbGFiaWxpdHkKICAgICAgPC9kaXY+CiAgICApOwogIH0KCiAgaWYgKGxvYWRpbmcpIHsKICAgIHJldHVybiAoCiAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LWNlbnRlciBweS02Ij4KICAgICAgICA8TG9hZGVyMiBjbGFzc05hbWU9InctNSBoLTUgdGV4dC1hbWJlci01MDAgYW5pbWF0ZS1zcGluIG14LWF1dG8gbWItMiIgLz4KICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS01MDAiPkxvYWRpbmcgWWFyb24ncyBhdmFpbGFiaWxpdHkgZm9yIHtkYXRlfeKApjwvcD4KICAgICAgPC9kaXY+CiAgICApOwogIH0KCiAgaWYgKGVycm9yKSB7CiAgICByZXR1cm4gKAogICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1jZW50ZXIgcHktNiI+CiAgICAgICAgPEFsZXJ0Q2lyY2xlIGNsYXNzTmFtZT0idy01IGgtNSB0ZXh0LXJlZC00MDAgbXgtYXV0byBtYi0yIiAvPgogICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXJlZC02MDAgbWItMiI+e2Vycm9yfTwvcD4KICAgICAgICA8YnV0dG9uCiAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBsb2FkQXZhaWxhYmlsaXR5KGRhdGUsIHRydWUpfQogICAgICAgICAgY2xhc3NOYW1lPSJ0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1hbWJlci02MDAgaG92ZXI6dGV4dC1hbWJlci03MDAgdW5kZXJsaW5lIgogICAgICAgID4KICAgICAgICAgIFJldHJ5CiAgICAgICAgPC9idXR0b24+CiAgICAgIDwvZGl2PgogICAgKTsKICB9CgogIGNvbnN0IGF2YWlsYWJsZUNvdW50ID0gU0xPVFMubGVuZ3RoIC0gYmxvY2tlZFNsb3RzLmxlbmd0aDsKCiAgaWYgKGF2YWlsYWJsZUNvdW50ID09PSAwKSB7CiAgICByZXR1cm4gKAogICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1jZW50ZXIgcHktNiI+CiAgICAgICAgPEFsZXJ0Q2lyY2xlIGNsYXNzTmFtZT0idy01IGgtNSB0ZXh0LWFtYmVyLTQwMCBteC1hdXRvIG1iLTIiIC8+CiAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNjAwIGZvbnQtc2VtaWJvbGQgbWItMSI+Tm8gYXZhaWxhYmxlIHNsb3RzIGZvciB7ZGF0ZX08L3A+CiAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LVsxMXB4XSB0ZXh0LXNsYXRlLTQwMCI+UGxlYXNlIHNlbGVjdCBhIGRpZmZlcmVudCBkYXRlLjwvcD4KICAgICAgPC9kaXY+CiAgICApOwogIH0KCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJzcGFjZS15LTMiPgogICAgICB7LyogU3VtbWFyeSBiYXIgKi99CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gdGV4dC1bMTFweF0gdGV4dC1zbGF0ZS01MDAgcHgtMSI+CiAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNjAwIj5ZYXJvbidzIFNjaGVkdWxlPC9zcGFuPgogICAgICAgIDxzcGFuPnthdmFpbGFibGVDb3VudH0gb2Yge1NMT1RTLmxlbmd0aH0gc2xvdHMgYXZhaWxhYmxlPC9zcGFuPgogICAgICA8L2Rpdj4KCiAgICAgIHsvKiBMZWdlbmQgKi99CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMyB0ZXh0LVsxMHB4XSB0ZXh0LXNsYXRlLTUwMCBweC0xIj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEiPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9InctMi41IGgtMi41IHJvdW5kZWQgYmctd2hpdGUgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAiPjwvZGl2PgogICAgICAgICAgPHNwYW4+QXZhaWxhYmxlPC9zcGFuPgogICAgICAgIDwvZGl2PgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMSI+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idy0yLjUgaC0yLjUgcm91bmRlZCBiZy1zbGF0ZS0xMDAgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAiPjwvZGl2PgogICAgICAgICAgPHNwYW4+QnVzeTwvc3Bhbj4KICAgICAgICA8L2Rpdj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEiPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9InctMi41IGgtMi41IHJvdW5kZWQgYmctYW1iZXItNjAwIj48L2Rpdj4KICAgICAgICAgIDxzcGFuPlNlbGVjdGVkPC9zcGFuPgogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KCiAgICAgIHsvKiBNb3JuaW5nIHNsb3RzICovfQogICAgICA8ZGl2PgogICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gZm9udC1ib2xkIHVwcGVyY2FzZSB0cmFja2luZy13aWRlc3QgdGV4dC1zbGF0ZS00MDAgbWItMS41IHB4LTEiPk1vcm5pbmc8L3A+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImdyaWQgZ3JpZC1jb2xzLTMgc206Z3JpZC1jb2xzLTQgZ2FwLTEuNSI+CiAgICAgICAgICB7bW9ybmluZ1Nsb3RzLm1hcChyZW5kZXJTbG90KX0KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CgogICAgICB7LyogQWZ0ZXJub29uIHNsb3RzICovfQogICAgICA8ZGl2PgogICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gZm9udC1ib2xkIHVwcGVyY2FzZSB0cmFja2luZy13aWRlc3QgdGV4dC1zbGF0ZS00MDAgbWItMS41IHB4LTEiPkFmdGVybm9vbjwvcD4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZ3JpZCBncmlkLWNvbHMtMyBzbTpncmlkLWNvbHMtNCBnYXAtMS41Ij4KICAgICAgICAgIHthZnRlcm5vb25TbG90cy5tYXAocmVuZGVyU2xvdCl9CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CiAgKTsKfQ==
+/**
+ * AppointmentSlotPicker
+ *
+ * Shows Yaron's calendar availability for a given date as a visual day schedule.
+ * Busy slots are labeled "Busy" (no private event details exposed).
+ * Available slots are selectable. The selected slot is highlighted.
+ *
+ * Uses the existing calendarAvailability.getBlockedSlots() — the same source of
+ * truth used by the rest of the CRM (Google Calendar freeBusy + CRM meetings).
+ * Does NOT invent a second availability algorithm.
+ *
+ * Timezone: America/Los_Angeles (handled by calendarAvailability.js).
+ * Appointment duration + travel buffers: 120 min total window (1hr meeting + 1hr buffer)
+ * — same rules as the existing CRM availability check.
+ *
+ * Yaron's calendar is always shown regardless of the selected rep, per requirement:
+ * "Yaron's calendar is the availability calendar that must be shown."
+ */
+import { useState, useEffect, useCallback } from 'react';
+import { Clock, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { getBlockedSlots } from '@/lib/calendarAvailability';
+
+// Always use Yaron's calendar for availability, regardless of selected rep
+const AVAILABILITY_OWNER = 'Yaron Drilevich';
+
+// Generate 30-minute slots from 8:30 AM to 6:30 PM (matches calendarAvailability.js)
+const SLOTS = [];
+for (let h = 8; h <= 18; h++) {
+  for (let m = 0; m < 60; m += 30) {
+    if (h === 8 && m === 0) continue; // skip 8:00 (before business hours)
+    if (h === 18 && m > 30) continue; // skip after 6:30 PM
+    SLOTS.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+  }
+}
+
+function fmt12(t) {
+  const [h, m] = t.split(':').map(Number);
+  return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
+}
+
+export default function AppointmentSlotPicker({ date, selectedTime, onSelectTime }) {
+  const [blockedSlots, setBlockedSlots] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const loadAvailability = useCallback(async (d, forceRefresh = false) => {
+    if (!d) {
+      setBlockedSlots([]);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getBlockedSlots(d, AVAILABILITY_OWNER, { forceRefresh });
+      setBlockedSlots(data.blocked_slots || []);
+    } catch (e) {
+      setError(e.message || 'Failed to load availability');
+      setBlockedSlots([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadAvailability(date);
+  }, [date, loadAvailability]);
+
+  // Group slots into morning and afternoon for visual clarity
+  const morningSlots = SLOTS.filter(s => parseInt(s.split(':')[0]) < 12);
+  const afternoonSlots = SLOTS.filter(s => parseInt(s.split(':')[0]) >= 12);
+
+  const renderSlot = (slot) => {
+    const isBlocked = blockedSlots.includes(slot);
+    const isSelected = selectedTime === slot;
+
+    if (isBlocked) {
+      return (
+        <div
+          key={slot}
+          disabled
+          className="px-2 py-2 text-[11px] font-semibold text-center rounded-lg bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
+        >
+          <div className="flex items-center justify-center gap-1">
+            <Clock className="w-2.5 h-2.5" />
+            {fmt12(slot)}
+          </div>
+          <span className="text-[9px] uppercase tracking-wide">Busy</span>
+        </div>
+      );
+    }
+
+    return (
+      <button
+        key={slot}
+        type="button"
+        onClick={() => onSelectTime(slot)}
+        className={`px-2 py-2 text-[11px] font-semibold text-center rounded-lg border transition-all active:scale-95 ${
+          isSelected
+            ? 'bg-amber-600 text-white border-amber-600 shadow-sm ring-2 ring-amber-300'
+            : 'bg-white text-slate-700 border-slate-200 hover:border-amber-400 hover:bg-amber-50'
+        }`}
+      >
+        <div className="flex items-center justify-center gap-1">
+          {isSelected && <CheckCircle2 className="w-2.5 h-2.5" />}
+          {fmt12(slot)}
+        </div>
+        <span className={`text-[9px] uppercase tracking-wide ${isSelected ? 'text-amber-100' : 'text-emerald-600'}`}>
+          {isSelected ? 'Selected' : 'Available'}
+        </span>
+      </button>
+    );
+  };
+
+  if (!date) {
+    return (
+      <div className="text-center py-6 text-sm text-slate-400">
+        <Clock className="w-6 h-6 text-slate-300 mx-auto mb-2" />
+        Select a date to view Yaron's availability
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="text-center py-6">
+        <Loader2 className="w-5 h-5 text-amber-500 animate-spin mx-auto mb-2" />
+        <p className="text-xs text-slate-500">Loading Yaron's availability for {date}…</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-6">
+        <AlertCircle className="w-5 h-5 text-red-400 mx-auto mb-2" />
+        <p className="text-xs text-red-600 mb-2">{error}</p>
+        <button
+          onClick={() => loadAvailability(date, true)}
+          className="text-xs font-semibold text-amber-600 hover:text-amber-700 underline"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  const availableCount = SLOTS.length - blockedSlots.length;
+
+  if (availableCount === 0) {
+    return (
+      <div className="text-center py-6">
+        <AlertCircle className="w-5 h-5 text-amber-400 mx-auto mb-2" />
+        <p className="text-xs text-slate-600 font-semibold mb-1">No available slots for {date}</p>
+        <p className="text-[11px] text-slate-400">Please select a different date.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* Summary bar */}
+      <div className="flex items-center justify-between text-[11px] text-slate-500 px-1">
+        <span className="font-semibold text-slate-600">Yaron's Schedule</span>
+        <span>{availableCount} of {SLOTS.length} slots available</span>
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center gap-3 text-[10px] text-slate-500 px-1">
+        <div className="flex items-center gap-1">
+          <div className="w-2.5 h-2.5 rounded bg-white border border-slate-200"></div>
+          <span>Available</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2.5 h-2.5 rounded bg-slate-100 border border-slate-200"></div>
+          <span>Busy</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2.5 h-2.5 rounded bg-amber-600"></div>
+          <span>Selected</span>
+        </div>
+      </div>
+
+      {/* Morning slots */}
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5 px-1">Morning</p>
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
+          {morningSlots.map(renderSlot)}
+        </div>
+      </div>
+
+      {/* Afternoon slots */}
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5 px-1">Afternoon</p>
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
+          {afternoonSlots.map(renderSlot)}
+        </div>
+      </div>
+    </div>
+  );
+}

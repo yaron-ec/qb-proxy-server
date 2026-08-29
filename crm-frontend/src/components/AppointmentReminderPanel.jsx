@@ -1,1 +1,108 @@
-aW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICdyZWFjdCc7CmltcG9ydCB7IEFsZXJ0VHJpYW5nbGUsIE1haWwsIENoZWNrQ2lyY2xlMiwgU2VuZCwgQ2xvY2sgfSBmcm9tICdsdWNpZGUtcmVhY3QnOwoKCmZ1bmN0aW9uIGZtdDEyKHQpIHsKICBpZiAoIXQpIHJldHVybiAnJzsKICBjb25zdCBbaCwgbV0gPSBTdHJpbmcodCkuc3BsaXQoJzonKS5tYXAoTnVtYmVyKTsKICByZXR1cm4gYCR7aCAlIDEyIHx8IDEyfToke1N0cmluZyhtKS5wYWRTdGFydCgyLCAnMCcpfSAke2ggPj0gMTIgPyAnUE0nIDogJ0FNJ31gOwp9CgpmdW5jdGlvbiBmb3JtYXREYXRlKGRhdGVTdHIpIHsKICBpZiAoIWRhdGVTdHIpIHJldHVybiAnJzsKICBjb25zdCBbeSwgbW8sIGRdID0gZGF0ZVN0ci5zcGxpdCgnLScpLm1hcChOdW1iZXIpOwogIHJldHVybiBuZXcgRGF0ZSh5LCBtbyAtIDEsIGQpLnRvTG9jYWxlRGF0ZVN0cmluZygnZW4tVVMnLCB7IG1vbnRoOiAnc2hvcnQnLCBkYXk6ICdudW1lcmljJywgeWVhcjogJ251bWVyaWMnIH0pOwp9CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBBcHBvaW50bWVudFJlbWluZGVyUGFuZWwoeyBsZWFkIH0pIHsKICBjb25zdCBbc2VuZGluZywgc2V0U2VuZGluZ10gPSB1c2VTdGF0ZShmYWxzZSk7CiAgY29uc3QgW3Jlc3VsdCwgc2V0UmVzdWx0XSA9IHVzZVN0YXRlKG51bGwpOwoKICBjb25zdCBoYXNGb2xsb3dVcCA9IGxlYWQuZm9sbG93X3VwX2RhdGUgJiYgbGVhZC5mb2xsb3dfdXBfdHlwZTsKICBjb25zdCBhcHB0RGF0ZSA9IGhhc0ZvbGxvd1VwID8gbGVhZC5mb2xsb3dfdXBfZGF0ZSA6IGxlYWQuYXBwb2ludG1lbnRfZGF0ZTsKICBjb25zdCBhcHB0VGltZSA9IGhhc0ZvbGxvd1VwID8gKGxlYWQuZm9sbG93X3VwX3RpbWUgfHwgJycpIDogKGxlYWQuYXBwb2ludG1lbnRfdGltZSB8fCAnJyk7CiAgY29uc3QgYXBwdFR5cGUgPSBoYXNGb2xsb3dVcCA/IGxlYWQuZm9sbG93X3VwX3R5cGUgOiAnTWVldGluZyc7CgogIGlmICghYXBwdERhdGUpIHJldHVybiBudWxsOwogIGNvbnN0IHRvZGF5ID0gbmV3IERhdGUoKS50b0xvY2FsZURhdGVTdHJpbmcoJ2VuLUNBJywgeyB0aW1lWm9uZTogJ0FtZXJpY2EvTG9zX0FuZ2VsZXMnIH0pOwogIGlmIChhcHB0RGF0ZSA8IHRvZGF5KSByZXR1cm4gbnVsbDsKCiAgY29uc3Qgbm9FbWFpbCA9ICFsZWFkLmVtYWlsOwogIGNvbnN0IGRhdGVMYWJlbCA9IGZvcm1hdERhdGUoYXBwdERhdGUpOwogIGNvbnN0IHRpbWVMYWJlbCA9IGZtdDEyKGFwcHRUaW1lKTsKCiAgY29uc3QgaGFuZGxlU2VuZE5vdyA9IGFzeW5jICgpID0+IHsKICAgIHNldFNlbmRpbmcodHJ1ZSk7CiAgICBzZXRSZXN1bHQobnVsbCk7CiAgICB0cnkgewogICAgICBjb25zdCBjbGllbnROYW1lID0gYCR7bGVhZC5maXJzdF9uYW1lIHx8ICcnfSAke2xlYWQubGFzdF9uYW1lIHx8ICcnfWAudHJpbSgpOwogICAgICBjb25zdCBvd25lck5hbWUgPSBsZWFkLmFzc2lnbmVkX3JlcCB8fCAnRUMgQ29uc3RydWN0aW9uIEdyb3VwJzsKICAgICAgY29uc3QgYWRkcmVzcyA9IFtsZWFkLnByb3BlcnR5X2FkZHJlc3MsIGxlYWQuY2l0eV0uZmlsdGVyKEJvb2xlYW4pLmpvaW4oJywgJyk7CiAgICAgIGNvbnN0IHN1YmplY3QgPSBgQXBwb2ludG1lbnQgUmVtaW5kZXIg4oCUIEVDIENvbnN0cnVjdGlvbiBHcm91cGA7CiAgICAgIGNvbnN0IGJvZHkgPSBgPGh0bWw+PGJvZHkgc3R5bGU9ImZvbnQtZmFtaWx5OnNhbnMtc2VyaWY7Y29sb3I6IzFhMWEyZTtwYWRkaW5nOjI0cHg7Ij4KICAgICAgICA8aDIgc3R5bGU9ImNvbG9yOiMwQjJENUM7Ij5VcGNvbWluZyBBcHBvaW50bWVudCBSZW1pbmRlcjwvaDI+CiAgICAgICAgPHA+SGkgJHtsZWFkLmZpcnN0X25hbWUgfHwgJ3RoZXJlJ30sPC9wPgogICAgICAgIDxwPlRoaXMgaXMgYSBmcmllbmRseSByZW1pbmRlciBmcm9tIDxzdHJvbmc+JHtvd25lck5hbWV9PC9zdHJvbmc+IGF0IEVDIENvbnN0cnVjdGlvbiBHcm91cCBhYm91dCB5b3VyIHVwY29taW5nICR7YXBwdFR5cGV9LjwvcD4KICAgICAgICA8dGFibGUgc3R5bGU9ImJhY2tncm91bmQ6I2Y0ZjZmYTtib3JkZXItcmFkaXVzOjhweDtwYWRkaW5nOjIwcHg7bWFyZ2luOjE2cHggMDt3aWR0aDoxMDAlO2JvcmRlci1jb2xsYXBzZTpjb2xsYXBzZTsiPgogICAgICAgICAgJHthcHB0RGF0ZSA/IGA8dHI+PHRkIHN0eWxlPSJwYWRkaW5nOjZweCAwO2ZvbnQtd2VpZ2h0OjYwMDt3aWR0aDoxNDBweDsiPkRhdGU8L3RkPjx0ZD4ke2RhdGVMYWJlbH08L3RkPjwvdHI+YCA6ICcnfQogICAgICAgICAgJHt0aW1lTGFiZWwgPyBgPHRyPjx0ZCBzdHlsZT0icGFkZGluZzo2cHggMDtmb250LXdlaWdodDo2MDA7Ij5UaW1lPC90ZD48dGQ+JHt0aW1lTGFiZWx9PC90ZD48L3RyPmAgOiAnJ30KICAgICAgICAgICR7YWRkcmVzcyA/IGA8dHI+PHRkIHN0eWxlPSJwYWRkaW5nOjZweCAwO2ZvbnQtd2VpZ2h0OjYwMDsiPkFkZHJlc3M8L3RkPjx0ZD4ke2FkZHJlc3N9PC90ZD48L3RyPmAgOiAnJ30KICAgICAgICAgICR7bGVhZC5wcm9qZWN0X3R5cGUgPyBgPHRyPjx0ZCBzdHlsZT0icGFkZGluZzo2cHggMDtmb250LXdlaWdodDo2MDA7Ij5Qcm9qZWN0PC90ZD48dGQ+JHtsZWFkLnByb2plY3RfdHlwZX08L3RkPjwvdHI+YCA6ICcnfQogICAgICAgIDwvdGFibGU+CiAgICAgICAgPHA+SWYgeW91IG5lZWQgdG8gcmVzY2hlZHVsZSwgcGxlYXNlIGNvbnRhY3QgdXMgYXQgKDMxMCkgMzEwLTQxMDguPC9wPgogICAgICAgIDxwPldlIGxvb2sgZm9yd2FyZCB0byBzZWVpbmcgeW91ITxicj48c3Ryb25nPiR7b3duZXJOYW1lfTwvc3Ryb25nPjxicj5FQyBDb25zdHJ1Y3Rpb24gR3JvdXA8L3A+CiAgICAgIDwvYm9keT48L2h0bWw+YDsKCiAgICAgIGNvbnN0IHJlY2lwaWVudHMgPSBbXTsKICAgICAgaWYgKGxlYWQuZW1haWwpIHJlY2lwaWVudHMucHVzaChsZWFkLmVtYWlsKTsKICAgICAgY29uc3Qgb3duZXJFbWFpbCA9ICgoKSA9PiB7IGNvbnN0IGYgPSBvd25lck5hbWUudHJpbSgpLnNwbGl0KC9ccysvKVswXS50b0xvd2VyQ2FzZSgpOyByZXR1cm4gZiA/IGAke2Z9QGVjY29uc3RydWN0aW9uZ3JvdXAuY29tYCA6IG51bGw7IH0pKCk7CiAgICAgIGlmIChvd25lckVtYWlsKSByZWNpcGllbnRzLnB1c2gob3duZXJFbWFpbCk7CiAgICAgIHJlY2lwaWVudHMucHVzaCgnbWljaGVsbGVAZWNjb25zdHJ1Y3Rpb25ncm91cC5jb20nKTsKICAgICAgY29uc3QgdW5pcVJlY2lwaWVudHMgPSBbLi4ubmV3IFNldChyZWNpcGllbnRzKV07CgogICAgICBjb25zdCB7IHNlbmRBcHBvaW50bWVudFJlbWluZGVyIH0gPSBhd2FpdCBpbXBvcnQoJ0AvbGliL2VtYWlsVHJhbnNwb3J0Jyk7CiAgICAgIGNvbnN0IHNlbnQgPSBhd2FpdCBzZW5kQXBwb2ludG1lbnRSZW1pbmRlcih7IHJlY2lwaWVudHM6IHVuaXFSZWNpcGllbnRzLCBzdWJqZWN0LCBodG1sQm9keTogYm9keSwgbGVhZElkOiBsZWFkLmlkLCBhcHB0RGF0ZSwgYXBwdFRpbWUgfSk7CgogICAgICBzZXRSZXN1bHQoeyBzdWNjZXNzOiB0cnVlLCBtZXNzYWdlOiBgUmVtaW5kZXIgc2VudCB0byAke3NlbnR9IHJlY2lwaWVudCR7c2VudCAhPT0gMSA/ICdzJyA6ICcnfS5gIH0pOwogICAgfSBjYXRjaCAoZSkgewogICAgICBzZXRSZXN1bHQoeyBzdWNjZXNzOiBmYWxzZSwgbWVzc2FnZTogZT8ubWVzc2FnZSB8fCBTdHJpbmcoZSkgfSk7CiAgICB9IGZpbmFsbHkgewogICAgICBzZXRTZW5kaW5nKGZhbHNlKTsKICAgIH0KICB9OwoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9InB4LTUgcHktMyBib3JkZXItdCBib3JkZXItc2xhdGUtMTAwIj4KICAgICAgPHAgY2xhc3NOYW1lPSJzaWRlYmFyLXNlY3Rpb24taGVhZGVyIG1iLTIiPkFwcG9pbnRtZW50IFJlbWluZGVyczwvcD4KICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtc3RhcnQganVzdGlmeS1iZXR3ZWVuIGdhcC0zIj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1zdGFydCBnYXAtMS41IG1pbi13LTAiPgogICAgICAgICAgPENsb2NrIGNsYXNzTmFtZT0idy0zLjUgaC0zLjUgdGV4dC1zbGF0ZS00MDAgZmxleC1zaHJpbmstMCBtdC0wLjUiIC8+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibWluLXctMCI+CiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNzAwIGxlYWRpbmctdGlnaHQiPnthcHB0VHlwZX08L3A+CiAgICAgICAgICAgIHsoZGF0ZUxhYmVsIHx8IHRpbWVMYWJlbCkgJiYgKAogICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTUwMCBsZWFkaW5nLXRpZ2h0IG10LTAuNSI+CiAgICAgICAgICAgICAgICB7ZGF0ZUxhYmVsfXt0aW1lTGFiZWwgPyBgIMK3ICR7dGltZUxhYmVsfWAgOiAnJ30KICAgICAgICAgICAgICA8L3A+CiAgICAgICAgICAgICl9CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgICA8YnV0dG9uIG9uQ2xpY2s9e2hhbmRsZVNlbmROb3d9IGRpc2FibGVkPXtzZW5kaW5nfSBjbGFzc05hbWU9InNpZGViYXItYWN0aW9uLWJ0biBmbGV4LXNocmluay0wIG10LTAuNSI+CiAgICAgICAgICA8U2VuZCBjbGFzc05hbWU9e2B3LTMgaC0zICR7c2VuZGluZyA/ICdhbmltYXRlLXB1bHNlJyA6ICcnfWB9IC8+CiAgICAgICAgICB7c2VuZGluZyA/ICdTZW5kaW5n4oCmJyA6ICdTZW5kJ30KICAgICAgICA8L2J1dHRvbj4KICAgICAgPC9kaXY+CgogICAgICB7bm9FbWFpbCAmJiAoCiAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LVsxMXB4XSB0ZXh0LWFtYmVyLTUwMCBtdC0xLjUgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEiPgogICAgICAgICAgPE1haWwgY2xhc3NOYW1lPSJ3LTMgaC0zIGZsZXgtc2hyaW5rLTAiIC8+IE5vIGN1c3RvbWVyIGVtYWlsIOKAlCBzdGFmZiBvbmx5LgogICAgICAgIDwvcD4KICAgICAgKX0KICAgICAge3Jlc3VsdCAmJiAoCiAgICAgICAgPGRpdiBjbGFzc05hbWU9e2BmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMS41IG10LTEuNSB0ZXh0LVsxMXB4XSBmb250LW1lZGl1bSAke3Jlc3VsdC5zdWNjZXNzID8gJ3RleHQtZW1lcmFsZC02MDAnIDogcmVzdWx0LmluZm8gPyAndGV4dC1hbWJlci02MDAnIDogJ3RleHQtcmVkLTUwMCd9YH0+CiAgICAgICAgICB7cmVzdWx0LnN1Y2Nlc3MgPyA8Q2hlY2tDaXJjbGUyIGNsYXNzTmFtZT0idy0zIGgtMyBmbGV4LXNocmluay0wIiAvPiA6IDxBbGVydFRyaWFuZ2xlIGNsYXNzTmFtZT0idy0zIGgtMyBmbGV4LXNocmluay0wIiAvPn0KICAgICAgICAgIDxzcGFuPntyZXN1bHQubWVzc2FnZX08L3NwYW4+CiAgICAgICAgPC9kaXY+CiAgICAgICl9CiAgICA8L2Rpdj4KICApOwp9
+import { useState } from 'react';
+import { AlertTriangle, Mail, CheckCircle2, Send, Clock } from 'lucide-react';
+
+
+function fmt12(t) {
+  if (!t) return '';
+  const [h, m] = String(t).split(':').map(Number);
+  return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const [y, mo, d] = dateStr.split('-').map(Number);
+  return new Date(y, mo - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+export default function AppointmentReminderPanel({ lead }) {
+  const [sending, setSending] = useState(false);
+  const [result, setResult] = useState(null);
+
+  const hasFollowUp = lead.follow_up_date && lead.follow_up_type;
+  const apptDate = hasFollowUp ? lead.follow_up_date : lead.appointment_date;
+  const apptTime = hasFollowUp ? (lead.follow_up_time || '') : (lead.appointment_time || '');
+  const apptType = hasFollowUp ? lead.follow_up_type : 'Meeting';
+
+  if (!apptDate) return null;
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+  if (apptDate < today) return null;
+
+  const noEmail = !lead.email;
+  const dateLabel = formatDate(apptDate);
+  const timeLabel = fmt12(apptTime);
+
+  const handleSendNow = async () => {
+    setSending(true);
+    setResult(null);
+    try {
+      const clientName = `${lead.first_name || ''} ${lead.last_name || ''}`.trim();
+      const ownerName = lead.assigned_rep || 'EC Construction Group';
+      const address = [lead.property_address, lead.city].filter(Boolean).join(', ');
+      const subject = `Appointment Reminder — EC Construction Group`;
+      const body = `<html><body style="font-family:sans-serif;color:#1a1a2e;padding:24px;">
+        <h2 style="color:#0B2D5C;">Upcoming Appointment Reminder</h2>
+        <p>Hi ${lead.first_name || 'there'},</p>
+        <p>This is a friendly reminder from <strong>${ownerName}</strong> at EC Construction Group about your upcoming ${apptType}.</p>
+        <table style="background:#f4f6fa;border-radius:8px;padding:20px;margin:16px 0;width:100%;border-collapse:collapse;">
+          ${apptDate ? `<tr><td style="padding:6px 0;font-weight:600;width:140px;">Date</td><td>${dateLabel}</td></tr>` : ''}
+          ${timeLabel ? `<tr><td style="padding:6px 0;font-weight:600;">Time</td><td>${timeLabel}</td></tr>` : ''}
+          ${address ? `<tr><td style="padding:6px 0;font-weight:600;">Address</td><td>${address}</td></tr>` : ''}
+          ${lead.project_type ? `<tr><td style="padding:6px 0;font-weight:600;">Project</td><td>${lead.project_type}</td></tr>` : ''}
+        </table>
+        <p>If you need to reschedule, please contact us at (310) 310-4108.</p>
+        <p>We look forward to seeing you!<br><strong>${ownerName}</strong><br>EC Construction Group</p>
+      </body></html>`;
+
+      const recipients = [];
+      if (lead.email) recipients.push(lead.email);
+      const ownerEmail = (() => { const f = ownerName.trim().split(/\s+/)[0].toLowerCase(); return f ? `${f}@ecconstructiongroup.com` : null; })();
+      if (ownerEmail) recipients.push(ownerEmail);
+      recipients.push('michelle@ecconstructiongroup.com');
+      const uniqRecipients = [...new Set(recipients)];
+
+      const { sendAppointmentReminder } = await import('@/lib/emailTransport');
+      const sent = await sendAppointmentReminder({ recipients: uniqRecipients, subject, htmlBody: body, leadId: lead.id, apptDate, apptTime });
+
+      setResult({ success: true, message: `Reminder sent to ${sent} recipient${sent !== 1 ? 's' : ''}.` });
+    } catch (e) {
+      setResult({ success: false, message: e?.message || String(e) });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="px-5 py-3 border-t border-slate-100">
+      <p className="sidebar-section-header mb-2">Appointment Reminders</p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-1.5 min-w-0">
+          <Clock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-slate-700 leading-tight">{apptType}</p>
+            {(dateLabel || timeLabel) && (
+              <p className="text-xs text-slate-500 leading-tight mt-0.5">
+                {dateLabel}{timeLabel ? ` · ${timeLabel}` : ''}
+              </p>
+            )}
+          </div>
+        </div>
+        <button onClick={handleSendNow} disabled={sending} className="sidebar-action-btn flex-shrink-0 mt-0.5">
+          <Send className={`w-3 h-3 ${sending ? 'animate-pulse' : ''}`} />
+          {sending ? 'Sending…' : 'Send'}
+        </button>
+      </div>
+
+      {noEmail && (
+        <p className="text-[11px] text-amber-500 mt-1.5 flex items-center gap-1">
+          <Mail className="w-3 h-3 flex-shrink-0" /> No customer email — staff only.
+        </p>
+      )}
+      {result && (
+        <div className={`flex items-center gap-1.5 mt-1.5 text-[11px] font-medium ${result.success ? 'text-emerald-600' : result.info ? 'text-amber-600' : 'text-red-500'}`}>
+          {result.success ? <CheckCircle2 className="w-3 h-3 flex-shrink-0" /> : <AlertTriangle className="w-3 h-3 flex-shrink-0" />}
+          <span>{result.message}</span>
+        </div>
+      )}
+    </div>
+  );
+}

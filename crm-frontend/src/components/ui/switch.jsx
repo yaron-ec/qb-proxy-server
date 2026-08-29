@@ -1,1 +1,22 @@
-aW1wb3J0ICogYXMgUmVhY3QgZnJvbSAicmVhY3QiCmltcG9ydCAqIGFzIFN3aXRjaFByaW1pdGl2ZXMgZnJvbSAiQHJhZGl4LXVpL3JlYWN0LXN3aXRjaCIKCmltcG9ydCB7IGNuIH0gZnJvbSAiQC9saWIvdXRpbHMiCgpjb25zdCBTd2l0Y2ggPSBSZWFjdC5mb3J3YXJkUmVmKCh7IGNsYXNzTmFtZSwgLi4ucHJvcHMgfSwgcmVmKSA9PiAoCiAgPFN3aXRjaFByaW1pdGl2ZXMuUm9vdAogICAgY2xhc3NOYW1lPXtjbigKICAgICAgInBlZXIgaW5saW5lLWZsZXggaC01IHctOSBzaHJpbmstMCBjdXJzb3ItcG9pbnRlciBpdGVtcy1jZW50ZXIgcm91bmRlZC1mdWxsIGJvcmRlci0yIGJvcmRlci10cmFuc3BhcmVudCBzaGFkb3ctc20gdHJhbnNpdGlvbi1jb2xvcnMgZm9jdXMtdmlzaWJsZTpvdXRsaW5lLW5vbmUgZm9jdXMtdmlzaWJsZTpyaW5nLTIgZm9jdXMtdmlzaWJsZTpyaW5nLXJpbmcgZm9jdXMtdmlzaWJsZTpyaW5nLW9mZnNldC0yIGZvY3VzLXZpc2libGU6cmluZy1vZmZzZXQtYmFja2dyb3VuZCBkaXNhYmxlZDpjdXJzb3Itbm90LWFsbG93ZWQgZGlzYWJsZWQ6b3BhY2l0eS01MCBkYXRhLVtzdGF0ZT1jaGVja2VkXTpiZy1wcmltYXJ5IGRhdGEtW3N0YXRlPXVuY2hlY2tlZF06YmctaW5wdXQiLAogICAgICBjbGFzc05hbWUKICAgICl9CiAgICB7Li4ucHJvcHN9CiAgICByZWY9e3JlZn0+CiAgICA8U3dpdGNoUHJpbWl0aXZlcy5UaHVtYgogICAgICBjbGFzc05hbWU9e2NuKAogICAgICAgICJwb2ludGVyLWV2ZW50cy1ub25lIGJsb2NrIGgtNCB3LTQgcm91bmRlZC1mdWxsIGJnLWJhY2tncm91bmQgc2hhZG93LWxnIHJpbmctMCB0cmFuc2l0aW9uLXRyYW5zZm9ybSBkYXRhLVtzdGF0ZT1jaGVja2VkXTp0cmFuc2xhdGUteC00IGRhdGEtW3N0YXRlPXVuY2hlY2tlZF06dHJhbnNsYXRlLXgtMCIKICAgICAgKX0gLz4KICA8L1N3aXRjaFByaW1pdGl2ZXMuUm9vdD4KKSkKU3dpdGNoLmRpc3BsYXlOYW1lID0gU3dpdGNoUHJpbWl0aXZlcy5Sb290LmRpc3BsYXlOYW1lCgpleHBvcnQgeyBTd2l0Y2ggfQo=
+import * as React from "react"
+import * as SwitchPrimitives from "@radix-ui/react-switch"
+
+import { cn } from "@/lib/utils"
+
+const Switch = React.forwardRef(({ className, ...props }, ref) => (
+  <SwitchPrimitives.Root
+    className={cn(
+      "peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input",
+      className
+    )}
+    {...props}
+    ref={ref}>
+    <SwitchPrimitives.Thumb
+      className={cn(
+        "pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0"
+      )} />
+  </SwitchPrimitives.Root>
+))
+Switch.displayName = SwitchPrimitives.Root.displayName
+
+export { Switch }

@@ -1,1 +1,222 @@
-LyoqCiAqIFNoYXJlZCBkYXNoYm9hcmQgbWV0cmljcyDigJQgc2luZ2xlIHNvdXJjZSBvZiB0cnV0aCBmb3IgIlNvbGQgVGhpcyBNb250aCIsCiAqICJSZXZlbnVlIFRoaXMgTW9udGgiLCAiVG90YWwgUmV2ZW51ZSIsICJUb3RhbCBTb2xkIiwgIkF2ZyBEZWFsIFNpemUiLgogKgogKiBVc2VkIGJ5OgogKiAgIC0gRm9sbG93VXBzV2lkZ2V0IChEYXNoYm9hcmQgcGFnZSkg4oCUIGNsaWVudC1zaWRlIGNvbXB1dGF0aW9uCiAqICAgLSBnZXRSZXBvcnRzRGF0YSBiYWNrZW5kIGZ1bmN0aW9uIOKAlCBzZXJ2ZXItc2lkZSBjb21wdXRhdGlvbiAobWlycm9ycyB0aGlzIGxvZ2ljKQogKgogKiBERUZJTklUSU9OUyAoYXV0aG9yaXRhdGl2ZSk6CiAqCiAqICJTb2xkIFRoaXMgTW9udGgiOgogKiAgIC0gbGVhZC5zdGF0dXMgPT09ICdTb2xkJwogKiAgIC0gbGVhZC5zb2xkX2RhdGUgaXMgc2V0IEFORCBmYWxscyB3aXRoaW4gdGhlIGN1cnJlbnQgQW1lcmljYS9Mb3NfQW5nZWxlcyBjYWxlbmRhciBtb250aAogKiAgIC0gRXhjbHVkZWQ6IGxlYWRzIHdpdGhvdXQgc29sZF9kYXRlLCBsZWFkcyB3aXRoIHN0YXR1cyAhPT0gJ1NvbGQnLAogKiAgICAgY2FuY2VsbGVkL2RlbGV0ZWQvZHVwbGljYXRlL3Rlc3QgcmVjb3JkcyAodGhlc2UgaGF2ZSBzdGF0dXMgIT09ICdTb2xkJyBieSBkZWZpbml0aW9uKQogKgogKiAiUmV2ZW51ZSBUaGlzIE1vbnRoIjoKICogICAtIFN1bSBvZiAoZGVhbC5hbW91bnQgfHwgbGVhZC5lc3RpbWF0ZWRfdmFsdWUgfHwgMCkgZm9yIGVhY2ggIlNvbGQgVGhpcyBNb250aCIgbGVhZAogKiAgIC0gUmVwcmVzZW50cyB0aGUgY29udHJhY3QgdmFsdWUgb2YgZGVhbHMgc29sZCB0aGlzIG1vbnRoCiAqICAgLSBVc2VzIGRlYWwuYW1vdW50IChzb3VyY2Ugb2YgdHJ1dGgpIHdoZW4gYXZhaWxhYmxlLCBmYWxscyBiYWNrIHRvIGxlYWQuZXN0aW1hdGVkX3ZhbHVlCiAqCiAqICJUb3RhbCBSZXZlbnVlIjoKICogICAtIFN1bSBvZiAoZGVhbC5hbW91bnQgfHwgbGVhZC5lc3RpbWF0ZWRfdmFsdWUgfHwgMCkgZm9yIEFMTCBzb2xkIGxlYWRzIChhbGwgdGltZSkKICoKICogTW9udGggYm91bmRhcnk6IEFtZXJpY2EvTG9zX0FuZ2VsZXMgKFBhY2lmaWMgVGltZSkKICogICAtIEEgc2FsZSBhdCAxMXBtIFBhY2lmaWMgb24gQXVnIDMxIGNvdW50cyBmb3IgQXVndXN0LCBub3QgU2VwdGVtYmVyLgogKi8KCmV4cG9ydCBjb25zdCBEQVNIQk9BUkRfVElNRVpPTkUgPSAnQW1lcmljYS9Mb3NfQW5nZWxlcyc7CgovKioKICogR2V0IHRoZSB5ZWFyIGFuZCBtb250aCAoMC1pbmRleGVkKSBvZiBhIERhdGUgaW4gQW1lcmljYS9Mb3NfQW5nZWxlcy4KICovCmV4cG9ydCBmdW5jdGlvbiBnZXRMQU1vbnRoUGFydHMoZGF0ZSkgewogIGNvbnN0IHBhcnRzID0gbmV3IEludGwuRGF0ZVRpbWVGb3JtYXQoJ2VuLVVTJywgewogICAgdGltZVpvbmU6IERBU0hCT0FSRF9USU1FWk9ORSwKICAgIHllYXI6ICdudW1lcmljJywKICAgIG1vbnRoOiAnMi1kaWdpdCcsCiAgfSkuZm9ybWF0VG9QYXJ0cyhkYXRlKTsKICBjb25zdCBtYXAgPSB7fTsKICBmb3IgKGNvbnN0IHAgb2YgcGFydHMpIG1hcFtwLnR5cGVdID0gcC52YWx1ZTsKICByZXR1cm4geyB5ZWFyOiBwYXJzZUludChtYXAueWVhciksIG1vbnRoOiBwYXJzZUludChtYXAubW9udGgpIC0gMSB9Owp9CgovKioKICogR2V0IHRoZSBjdXJyZW50IEFtZXJpY2EvTG9zX0FuZ2VsZXMgeWVhciBhbmQgbW9udGguCiAqLwpleHBvcnQgZnVuY3Rpb24gZ2V0Q3VycmVudExBTW9udGgobm93ID0gbmV3IERhdGUoKSkgewogIHJldHVybiBnZXRMQU1vbnRoUGFydHMobm93KTsKfQoKLyoqCiAqIENoZWNrIGlmIGEgc29sZF9kYXRlIGZhbGxzIHdpdGhpbiB0aGUgY3VycmVudCBMQSBtb250aC4KICogSGFuZGxlcyBib3RoIGRhdGUtb25seSBzdHJpbmdzICgiMjAyNi0wOC0xNSIpIGFuZCBJU08gZGF0ZXRpbWUgc3RyaW5ncy4KICovCmV4cG9ydCBmdW5jdGlvbiBpc1NvbGRJbkN1cnJlbnRMQU1vbnRoKHNvbGREYXRlLCBub3cgPSBuZXcgRGF0ZSgpKSB7CiAgaWYgKCFzb2xkRGF0ZSkgcmV0dXJuIGZhbHNlOwogIGNvbnN0IGN1cnJlbnQgPSBnZXRDdXJyZW50TEFNb250aChub3cpOwoKICAvLyBEYXRlLW9ubHkgc3RyaW5nOiBjb21wYXJlIGNhbGVuZGFyIGRhdGUgZGlyZWN0bHkgKG5vIHRpbWV6b25lIGNvbnZlcnNpb24pCiAgaWYgKHR5cGVvZiBzb2xkRGF0ZSA9PT0gJ3N0cmluZycgJiYgIXNvbGREYXRlLmluY2x1ZGVzKCdUJykpIHsKICAgIGNvbnN0IG0gPSBzb2xkRGF0ZS5tYXRjaCgvKFxkezR9KS0oXGR7Mn0pLShcZHsyfSkvKTsKICAgIGlmICghbSkgcmV0dXJuIGZhbHNlOwogICAgcmV0dXJuIHBhcnNlSW50KG1bMV0pID09PSBjdXJyZW50LnllYXIgJiYgcGFyc2VJbnQobVsyXSkgLSAxID09PSBjdXJyZW50Lm1vbnRoOwogIH0KCiAgLy8gSVNPIGRhdGV0aW1lIHN0cmluZzogY29udmVydCB0byBMQSB0aW1lem9uZSBhbmQgY29tcGFyZQogIGNvbnN0IGQgPSBuZXcgRGF0ZShzb2xkRGF0ZSk7CiAgaWYgKGlzTmFOKGQuZ2V0VGltZSgpKSkgcmV0dXJuIGZhbHNlOwogIGNvbnN0IGxhUGFydHMgPSBnZXRMQU1vbnRoUGFydHMoZCk7CiAgcmV0dXJuIGxhUGFydHMueWVhciA9PT0gY3VycmVudC55ZWFyICYmIGxhUGFydHMubW9udGggPT09IGN1cnJlbnQubW9udGg7Cn0KCi8qKgogKiBDb21wdXRlIHRoZSByZXZlbnVlIGZvciBhIHNpbmdsZSBzb2xkIGxlYWQuCiAqIFVzZXMgZGVhbC5hbW91bnQgKHNvdXJjZSBvZiB0cnV0aCkgd2hlbiBhdmFpbGFibGUsIGZhbGxzIGJhY2sgdG8gZXN0aW1hdGVkX3ZhbHVlLgogKi8KZXhwb3J0IGZ1bmN0aW9uIGdldExlYWRSZXZlbnVlKGxlYWQsIGRlYWxNYXApIHsKICBpZiAoIWxlYWQpIHJldHVybiAwOwogIGNvbnN0IGRlYWwgPSBkZWFsTWFwICYmIGRlYWxNYXBbbGVhZC5pZF07CiAgcmV0dXJuIE51bWJlcihkZWFsPy5hbW91bnQgfHwgbGVhZC5lc3RpbWF0ZWRfdmFsdWUgfHwgMCk7Cn0KCi8qKgogKiBDb21wdXRlIGFsbCBkYXNoYm9hcmQgc2FsZXMgbWV0cmljcyBmcm9tIGEgc2V0IG9mIGxlYWRzIGFuZCBkZWFscy4KICoKICogQHBhcmFtIHtBcnJheX0gbGVhZHMgLSBhbGwgbGVhZHMgKGFscmVhZHkgc2NvcGVkIHRvIHRoZSB1c2VyJ3Mgcm9sZSkKICogQHBhcmFtIHtBcnJheX0gZGVhbHMgLSBhbGwgZGVhbHMgKGFscmVhZHkgc2NvcGVkIHRvIHRoZSB1c2VyJ3Mgcm9sZSkKICogQHBhcmFtIHtEYXRlfSBub3cgLSByZWZlcmVuY2UgZGF0ZSAoZGVmYXVsdDogY3VycmVudCB0aW1lKQogKiBAcmV0dXJucyB7eyBzb2xkVGhpc01vbnRoLCByZXZlbnVlVGhpc01vbnRoLCB0b3RhbFNvbGQsIHRvdGFsUmV2ZW51ZSwgYXZnRGVhbFNpemUsIHNvbGRUaGlzTW9udGhMZWFkcyB9fQogKi8KZXhwb3J0IGZ1bmN0aW9uIGNvbXB1dGVTYWxlc01ldHJpY3MobGVhZHMsIGRlYWxzLCBub3cgPSBuZXcgRGF0ZSgpKSB7CiAgLy8gQnVpbGQgZGVhbCBsb29rdXAgbWFwIGJ5IGxlYWRfaWQKICBjb25zdCBkZWFsTWFwID0ge307CiAgZm9yIChjb25zdCBkIG9mIChkZWFscyB8fCBbXSkpIHsKICAgIGlmIChkLmxlYWRfaWQpIGRlYWxNYXBbZC5sZWFkX2lkXSA9IGQ7CiAgfQoKICAvLyBBbGwgc29sZCBsZWFkcwogIGNvbnN0IHNvbGRMZWFkcyA9IChsZWFkcyB8fCBbXSkuZmlsdGVyKGwgPT4gbC5zdGF0dXMgPT09ICdTb2xkJyk7CgogIC8vIFNvbGQgdGhpcyBtb250aCAoTEEgdGltZXpvbmUpCiAgY29uc3Qgc29sZFRoaXNNb250aExlYWRzID0gc29sZExlYWRzLmZpbHRlcihsID0+CiAgICBpc1NvbGRJbkN1cnJlbnRMQU1vbnRoKGwuc29sZF9kYXRlLCBub3cpCiAgKTsKCiAgY29uc3QgcmV2ZW51ZVRoaXNNb250aCA9IHNvbGRUaGlzTW9udGhMZWFkcy5yZWR1Y2UoCiAgICAoc3VtLCBsKSA9PiBzdW0gKyBnZXRMZWFkUmV2ZW51ZShsLCBkZWFsTWFwKSwKICAgIDAKICApOwoKICBjb25zdCB0b3RhbFJldmVudWUgPSBzb2xkTGVhZHMucmVkdWNlKAogICAgKHN1bSwgbCkgPT4gc3VtICsgZ2V0TGVhZFJldmVudWUobCwgZGVhbE1hcCksCiAgICAwCiAgKTsKCiAgY29uc3QgdG90YWxTb2xkID0gc29sZExlYWRzLmxlbmd0aDsKICBjb25zdCBhdmdEZWFsU2l6ZSA9IHRvdGFsU29sZCA+IDAgPyBNYXRoLnJvdW5kKHRvdGFsUmV2ZW51ZSAvIHRvdGFsU29sZCkgOiAwOwoKICByZXR1cm4gewogICAgc29sZFRoaXNNb250aDogc29sZFRoaXNNb250aExlYWRzLmxlbmd0aCwKICAgIHJldmVudWVUaGlzTW9udGgsCiAgICB0b3RhbFNvbGQsCiAgICB0b3RhbFJldmVudWUsCiAgICBhdmdEZWFsU2l6ZSwKICAgIHNvbGRUaGlzTW9udGhMZWFkcywKICB9Owp9CgovKioKICogRm9ybWF0IGN1cnJlbmN5IGNvbnNpc3RlbnRseSBhY3Jvc3MgYWxsIGRhc2hib2FyZCBjb21wb25lbnRzLgogKiAtIFNob3dzICQwIGZvciB6ZXJvL251bGwvdW5kZWZpbmVkIChuZXZlciAi4oCUIikKICogLSBVc2VzIHRob3VzYW5kcyBzZXBhcmF0b3JzCiAqIC0gVXNlcyAwIGRlY2ltYWwgcGxhY2VzIGZvciB3aG9sZSBudW1iZXJzLCAyIGZvciBmcmFjdGlvbmFsCiAqIC0gTmV2ZXIgc2hvd3Mgb25lLWRlY2ltYWwgbGlrZSAkODM4LDY1OS41CiAqLwovKioKICogQ29tcHV0ZSBBTEwgZGVhbC1jZW50cmljIG1ldHJpY3MgZnJvbSBhIHNldCBvZiBkZWFscy4KICoKICogVGhpcyBpcyB0aGUgT05FIGNhbm9uaWNhbCBzb3VyY2Ugb2YgdHJ1dGggZm9yOgogKiAgIC0gdG90YWxSZXZlbnVlLCByZXZlbnVlVGhpc01vbnRoLCByZXZlbnVlVGhpc1llYXIKICogICAtIHNvbGRUaGlzTW9udGgsIHRvdGFsRGVhbHMsIGF2Z0RlYWxTaXplCiAqICAgLSBvcGVuQmFsYW5jZSwgaW5Qcm9ncmVzcwogKgogKiBVc2VkIGJ5OgogKiAgIC0gRGVhbHMuanN4IChLUEkgY2FyZHMpCiAqICAgLSBGb2xsb3dVcHNXaWRnZXQgKERhc2hib2FyZCBzb2xkVGhpc01vbnRoIC8gcmV2ZW51ZVRoaXNNb250aCkKICogICAtIEFueSBvdGhlciBjb25zdW1lciB0aGF0IG5lZWRzIGRlYWwgZmluYW5jaWFsIG1ldHJpY3MKICoKICogQ2Fub25pY2FsIGRlZmluaXRpb25zOgogKiAgICJzb2xkX2RhdGUiID0gZGVhbC5zb2xkX2RhdGUgKE5PVCBjcmVhdGVkX2RhdGUpLiBBIGRlYWwgd2l0aG91dCBzb2xkX2RhdGUKICogICAgIGlzIG5vdCBjb3VudGVkIGFzICJzb2xkIHRoaXMgbW9udGgiIGV2ZW4gaWYgaXQgZXhpc3RzLgogKiAgICJjb250cmFjdCBhbW91bnQiID0gZGVhbC5jb250cmFjdF9hbW91bnQgfHwgZGVhbC5hbW91bnQgKGZhbGxiYWNrKQogKiAgICJiYWxhbmNlIGR1ZSIgPSBkZWFsLmJhbGFuY2VfZHVlLCBvciAoY29udHJhY3RfYW1vdW50IC0gdG90YWxfcGFpZCkgaWYgbnVsbAogKiAgICJpbiBwcm9ncmVzcyIgPSBzdGFnZSBpcyBzZXQgQU5EIG5vdCAnSm9iIENvbXBsZXRlZCcgb3IgJ1NvbGQgLyBFc3RpbWF0ZSBBcHByb3ZlZCcKICoKICogTW9udGgveWVhciBib3VuZGFyeTogQW1lcmljYS9Mb3NfQW5nZWxlcyAoUGFjaWZpYyBUaW1lKQogKgogKiBAcGFyYW0ge0FycmF5fSBkZWFscyAtIHJhdyBkZWFscyBmcm9tIFJhaWx3YXkgQVBJIChtYXkgYmUgcHJlLWZpbHRlcmVkKQogKiBAcGFyYW0ge0RhdGV9IG5vdyAtIHJlZmVyZW5jZSBkYXRlIChkZWZhdWx0OiBjdXJyZW50IHRpbWUpCiAqLwpleHBvcnQgZnVuY3Rpb24gY29tcHV0ZURlYWxNZXRyaWNzKGRlYWxzLCBub3cgPSBuZXcgRGF0ZSgpKSB7CiAgY29uc3QgYWxsRGVhbHMgPSBkZWFscyB8fCBbXTsKICBjb25zdCBjdXJyZW50TEEgPSBnZXRDdXJyZW50TEFNb250aChub3cpOwoKICAvLyBDYW5vbmljYWwgc29sZCBkYXRlOiBwcmVmZXIgYWN0dWFsX3NvbGRfZGF0ZSAodHJhbnNmb3JtZWQpLCB0aGVuIHNvbGRfZGF0ZSAocmF3KQogIGNvbnN0IGdldFNvbGREYXRlID0gKGQpID0+IGQuYWN0dWFsX3NvbGRfZGF0ZSB8fCBkLnNvbGRfZGF0ZTsKCiAgLy8gQ2Fub25pY2FsIGNvbnRyYWN0IGFtb3VudAogIGNvbnN0IGdldERlYWxBbW91bnQgPSAoZCkgPT4gTnVtYmVyKGQuY29udHJhY3RfYW1vdW50IHx8IGQuYW1vdW50IHx8IDApOwoKICAvLyBDYW5vbmljYWwgYmFsYW5jZSBkdWUKICBjb25zdCBnZXREZWFsQmFsYW5jZSA9IChkKSA9PiB7CiAgICBpZiAoZC5iYWxhbmNlX2R1ZSAhPSBudWxsKSByZXR1cm4gTnVtYmVyKGQuYmFsYW5jZV9kdWUpOwogICAgcmV0dXJuIE1hdGgubWF4KDAsIGdldERlYWxBbW91bnQoZCkgLSBOdW1iZXIoZC50b3RhbF9wYWlkIHx8IDApKTsKICB9OwoKICAvLyBTb2xkIHRoaXMgbW9udGggKExBIHRpbWV6b25lKQogIGNvbnN0IHNvbGRUaGlzTW9udGhEZWFscyA9IGFsbERlYWxzLmZpbHRlcihkID0+IHsKICAgIGNvbnN0IHNkID0gZ2V0U29sZERhdGUoZCk7CiAgICByZXR1cm4gc2QgJiYgaXNTb2xkSW5DdXJyZW50TEFNb250aChzZCwgbm93KTsKICB9KTsKCiAgLy8gU29sZCB0aGlzIHllYXIgKExBIHRpbWV6b25lKQogIGNvbnN0IHNvbGRUaGlzWWVhckRlYWxzID0gYWxsRGVhbHMuZmlsdGVyKGQgPT4gewogICAgY29uc3Qgc2QgPSBnZXRTb2xkRGF0ZShkKTsKICAgIGlmICghc2QpIHJldHVybiBmYWxzZTsKICAgIGNvbnN0IG0gPSBTdHJpbmcoc2QpLm1hdGNoKC8oXGR7NH0pLShcZHsyfSktKFxkezJ9KS8pOwogICAgaWYgKCFtKSByZXR1cm4gZmFsc2U7CiAgICByZXR1cm4gcGFyc2VJbnQobVsxXSkgPT09IGN1cnJlbnRMQS55ZWFyOwogIH0pOwoKICBjb25zdCB0b3RhbFJldmVudWUgICAgID0gYWxsRGVhbHMucmVkdWNlKChzLCBkKSA9PiBzICsgZ2V0RGVhbEFtb3VudChkKSwgMCk7CiAgY29uc3QgcmV2ZW51ZVRoaXNNb250aCA9IHNvbGRUaGlzTW9udGhEZWFscy5yZWR1Y2UoKHMsIGQpID0+IHMgKyBnZXREZWFsQW1vdW50KGQpLCAwKTsKICBjb25zdCByZXZlbnVlVGhpc1llYXIgID0gc29sZFRoaXNZZWFyRGVhbHMucmVkdWNlKChzLCBkKSA9PiBzICsgZ2V0RGVhbEFtb3VudChkKSwgMCk7CiAgY29uc3Qgc29sZFRoaXNNb250aCAgICA9IHNvbGRUaGlzTW9udGhEZWFscy5sZW5ndGg7CiAgY29uc3QgdG90YWxEZWFscyAgICAgICA9IGFsbERlYWxzLmxlbmd0aDsKICBjb25zdCBhdmdEZWFsU2l6ZSAgICAgID0gdG90YWxEZWFscyA+IDAgPyBNYXRoLnJvdW5kKHRvdGFsUmV2ZW51ZSAvIHRvdGFsRGVhbHMpIDogMDsKICBjb25zdCBvcGVuQmFsYW5jZSAgICAgID0gYWxsRGVhbHMucmVkdWNlKChzLCBkKSA9PiBzICsgZ2V0RGVhbEJhbGFuY2UoZCksIDApOwogIGNvbnN0IGluUHJvZ3Jlc3MgICAgICAgPSBhbGxEZWFscy5maWx0ZXIoZCA9PgogICAgZC5zdGFnZSAmJiAhWydKb2IgQ29tcGxldGVkJywgJ1NvbGQgLyBFc3RpbWF0ZSBBcHByb3ZlZCddLmluY2x1ZGVzKGQuc3RhZ2UpCiAgKS5sZW5ndGg7CgogIHJldHVybiB7CiAgICB0b3RhbFJldmVudWUsCiAgICByZXZlbnVlVGhpc01vbnRoLAogICAgcmV2ZW51ZVRoaXNZZWFyLAogICAgc29sZFRoaXNNb250aCwKICAgIHRvdGFsRGVhbHMsCiAgICBhdmdEZWFsU2l6ZSwKICAgIG9wZW5CYWxhbmNlLAogICAgaW5Qcm9ncmVzcywKICB9Owp9CgpleHBvcnQgZnVuY3Rpb24gZm9ybWF0RGFzaGJvYXJkQ3VycmVuY3kobikgewogIGlmIChuID09PSBudWxsIHx8IG4gPT09IHVuZGVmaW5lZCB8fCBpc05hTihuKSkgcmV0dXJuICckMCc7CiAgY29uc3QgbnVtID0gTnVtYmVyKG4pOwogIGlmIChudW0gPj0gMTAwMDAwMCkgcmV0dXJuIGAkJHsobnVtIC8gMTAwMDAwMCkudG9GaXhlZCgxKX1NYDsKICBpZiAobnVtID49IDEwMDApIHJldHVybiBgJCR7TWF0aC5yb3VuZChudW0pLnRvTG9jYWxlU3RyaW5nKCdlbi1VUycpfWA7CiAgcmV0dXJuIGAkJHtudW0udG9Mb2NhbGVTdHJpbmcoJ2VuLVVTJywgeyBtaW5pbXVtRnJhY3Rpb25EaWdpdHM6IDAsIG1heGltdW1GcmFjdGlvbkRpZ2l0czogMiB9KX1gOwp9
+/**
+ * Shared dashboard metrics — single source of truth for "Sold This Month",
+ * "Revenue This Month", "Total Revenue", "Total Sold", "Avg Deal Size".
+ *
+ * Used by:
+ *   - FollowUpsWidget (Dashboard page) — client-side computation
+ *   - getReportsData backend function — server-side computation (mirrors this logic)
+ *
+ * DEFINITIONS (authoritative):
+ *
+ * "Sold This Month":
+ *   - lead.status === 'Sold'
+ *   - lead.sold_date is set AND falls within the current America/Los_Angeles calendar month
+ *   - Excluded: leads without sold_date, leads with status !== 'Sold',
+ *     cancelled/deleted/duplicate/test records (these have status !== 'Sold' by definition)
+ *
+ * "Revenue This Month":
+ *   - Sum of (deal.amount || lead.estimated_value || 0) for each "Sold This Month" lead
+ *   - Represents the contract value of deals sold this month
+ *   - Uses deal.amount (source of truth) when available, falls back to lead.estimated_value
+ *
+ * "Total Revenue":
+ *   - Sum of (deal.amount || lead.estimated_value || 0) for ALL sold leads (all time)
+ *
+ * Month boundary: America/Los_Angeles (Pacific Time)
+ *   - A sale at 11pm Pacific on Aug 31 counts for August, not September.
+ */
+
+export const DASHBOARD_TIMEZONE = 'America/Los_Angeles';
+
+/**
+ * Get the year and month (0-indexed) of a Date in America/Los_Angeles.
+ */
+export function getLAMonthParts(date) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: DASHBOARD_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+  }).formatToParts(date);
+  const map = {};
+  for (const p of parts) map[p.type] = p.value;
+  return { year: parseInt(map.year), month: parseInt(map.month) - 1 };
+}
+
+/**
+ * Get the current America/Los_Angeles year and month.
+ */
+export function getCurrentLAMonth(now = new Date()) {
+  return getLAMonthParts(now);
+}
+
+/**
+ * Check if a sold_date falls within the current LA month.
+ * Handles both date-only strings ("2026-08-15") and ISO datetime strings.
+ */
+export function isSoldInCurrentLAMonth(soldDate, now = new Date()) {
+  if (!soldDate) return false;
+  const current = getCurrentLAMonth(now);
+
+  // Date-only string: compare calendar date directly (no timezone conversion)
+  if (typeof soldDate === 'string' && !soldDate.includes('T')) {
+    const m = soldDate.match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return false;
+    return parseInt(m[1]) === current.year && parseInt(m[2]) - 1 === current.month;
+  }
+
+  // ISO datetime string: convert to LA timezone and compare
+  const d = new Date(soldDate);
+  if (isNaN(d.getTime())) return false;
+  const laParts = getLAMonthParts(d);
+  return laParts.year === current.year && laParts.month === current.month;
+}
+
+/**
+ * Compute the revenue for a single sold lead.
+ * Uses deal.amount (source of truth) when available, falls back to estimated_value.
+ */
+export function getLeadRevenue(lead, dealMap) {
+  if (!lead) return 0;
+  const deal = dealMap && dealMap[lead.id];
+  return Number(deal?.amount || lead.estimated_value || 0);
+}
+
+/**
+ * Compute all dashboard sales metrics from a set of leads and deals.
+ *
+ * @param {Array} leads - all leads (already scoped to the user's role)
+ * @param {Array} deals - all deals (already scoped to the user's role)
+ * @param {Date} now - reference date (default: current time)
+ * @returns {{ soldThisMonth, revenueThisMonth, totalSold, totalRevenue, avgDealSize, soldThisMonthLeads }}
+ */
+export function computeSalesMetrics(leads, deals, now = new Date()) {
+  // Build deal lookup map by lead_id
+  const dealMap = {};
+  for (const d of (deals || [])) {
+    if (d.lead_id) dealMap[d.lead_id] = d;
+  }
+
+  // All sold leads
+  const soldLeads = (leads || []).filter(l => l.status === 'Sold');
+
+  // Sold this month (LA timezone)
+  const soldThisMonthLeads = soldLeads.filter(l =>
+    isSoldInCurrentLAMonth(l.sold_date, now)
+  );
+
+  const revenueThisMonth = soldThisMonthLeads.reduce(
+    (sum, l) => sum + getLeadRevenue(l, dealMap),
+    0
+  );
+
+  const totalRevenue = soldLeads.reduce(
+    (sum, l) => sum + getLeadRevenue(l, dealMap),
+    0
+  );
+
+  const totalSold = soldLeads.length;
+  const avgDealSize = totalSold > 0 ? Math.round(totalRevenue / totalSold) : 0;
+
+  return {
+    soldThisMonth: soldThisMonthLeads.length,
+    revenueThisMonth,
+    totalSold,
+    totalRevenue,
+    avgDealSize,
+    soldThisMonthLeads,
+  };
+}
+
+/**
+ * Format currency consistently across all dashboard components.
+ * - Shows $0 for zero/null/undefined (never "—")
+ * - Uses thousands separators
+ * - Uses 0 decimal places for whole numbers, 2 for fractional
+ * - Never shows one-decimal like $838,659.5
+ */
+/**
+ * Compute ALL deal-centric metrics from a set of deals.
+ *
+ * This is the ONE canonical source of truth for:
+ *   - totalRevenue, revenueThisMonth, revenueThisYear
+ *   - soldThisMonth, totalDeals, avgDealSize
+ *   - openBalance, inProgress
+ *
+ * Used by:
+ *   - Deals.jsx (KPI cards)
+ *   - FollowUpsWidget (Dashboard soldThisMonth / revenueThisMonth)
+ *   - Any other consumer that needs deal financial metrics
+ *
+ * Canonical definitions:
+ *   "sold_date" = deal.sold_date (NOT created_date). A deal without sold_date
+ *     is not counted as "sold this month" even if it exists.
+ *   "contract amount" = deal.contract_amount || deal.amount (fallback)
+ *   "balance due" = deal.balance_due, or (contract_amount - total_paid) if null
+ *   "in progress" = stage is set AND not 'Job Completed' or 'Sold / Estimate Approved'
+ *
+ * Month/year boundary: America/Los_Angeles (Pacific Time)
+ *
+ * @param {Array} deals - raw deals from Railway API (may be pre-filtered)
+ * @param {Date} now - reference date (default: current time)
+ */
+export function computeDealMetrics(deals, now = new Date()) {
+  const allDeals = deals || [];
+  const currentLA = getCurrentLAMonth(now);
+
+  // Canonical sold date: prefer actual_sold_date (transformed), then sold_date (raw)
+  const getSoldDate = (d) => d.actual_sold_date || d.sold_date;
+
+  // Canonical contract amount
+  const getDealAmount = (d) => Number(d.contract_amount || d.amount || 0);
+
+  // Canonical balance due
+  const getDealBalance = (d) => {
+    if (d.balance_due != null) return Number(d.balance_due);
+    return Math.max(0, getDealAmount(d) - Number(d.total_paid || 0));
+  };
+
+  // Sold this month (LA timezone)
+  const soldThisMonthDeals = allDeals.filter(d => {
+    const sd = getSoldDate(d);
+    return sd && isSoldInCurrentLAMonth(sd, now);
+  });
+
+  // Sold this year (LA timezone)
+  const soldThisYearDeals = allDeals.filter(d => {
+    const sd = getSoldDate(d);
+    if (!sd) return false;
+    const m = String(sd).match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return false;
+    return parseInt(m[1]) === currentLA.year;
+  });
+
+  const totalRevenue     = allDeals.reduce((s, d) => s + getDealAmount(d), 0);
+  const revenueThisMonth = soldThisMonthDeals.reduce((s, d) => s + getDealAmount(d), 0);
+  const revenueThisYear  = soldThisYearDeals.reduce((s, d) => s + getDealAmount(d), 0);
+  const soldThisMonth    = soldThisMonthDeals.length;
+  const totalDeals       = allDeals.length;
+  const avgDealSize      = totalDeals > 0 ? Math.round(totalRevenue / totalDeals) : 0;
+  const openBalance      = allDeals.reduce((s, d) => s + getDealBalance(d), 0);
+  const inProgress       = allDeals.filter(d =>
+    d.stage && !['Job Completed', 'Sold / Estimate Approved'].includes(d.stage)
+  ).length;
+
+  return {
+    totalRevenue,
+    revenueThisMonth,
+    revenueThisYear,
+    soldThisMonth,
+    totalDeals,
+    avgDealSize,
+    openBalance,
+    inProgress,
+  };
+}
+
+export function formatDashboardCurrency(n) {
+  if (n === null || n === undefined || isNaN(n)) return '$0';
+  const num = Number(n);
+  if (num >= 1000000) return `$${(num / 1000000).toFixed(1)}M`;
+  if (num >= 1000) return `$${Math.round(num).toLocaleString('en-US')}`;
+  return `$${num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+}

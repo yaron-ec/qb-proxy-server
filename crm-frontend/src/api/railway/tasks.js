@@ -1,1 +1,37 @@
-LyoqCiAqIHJhaWx3YXkgdGFza3Mg4oCUIFRhc2sgQ1JVRCBjbGllbnQuCiAqCiAqICAgbGlzdCh7IGxlYWRfaWQsIGRlYWxfaWQsIHN0YXR1cywgbGltaXQgfSkgIC0+IHsgaXRlbXMsIHRvdGFsIH0KICogICBnZXQoaWQpICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC0+IHsgdGFzayB9CiAqICAgY3JlYXRlKGRhdGEpICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAtPiB7IHRhc2sgfQogKiAgIHVwZGF0ZShpZCwgZGF0YSkgICAgICAgICAgICAgICAgICAgICAgICAgICAgLT4geyB0YXNrIH0KICogICByZW1vdmUoaWQpICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC0+IHsgc3VjY2VzcywgaWQgfQogKi8KCmltcG9ydCB7IGFwaUNhbGwgfSBmcm9tICcuL2NsaWVudCc7CgpleHBvcnQgZnVuY3Rpb24gbGlzdChwYXJhbXMgPSB7fSkgewogIGNvbnN0IHFzID0gbmV3IFVSTFNlYXJjaFBhcmFtcygpOwogIGlmIChwYXJhbXMubGVhZF9pZCkgcXMuc2V0KCdsZWFkX2lkJywgcGFyYW1zLmxlYWRfaWQpOwogIGlmIChwYXJhbXMuZGVhbF9pZCkgcXMuc2V0KCdkZWFsX2lkJywgcGFyYW1zLmRlYWxfaWQpOwogIGlmIChwYXJhbXMuc3RhdHVzICYmIHBhcmFtcy5zdGF0dXMgIT09ICdhbGwnKSBxcy5zZXQoJ3N0YXR1cycsIHBhcmFtcy5zdGF0dXMpOwogIGlmIChwYXJhbXMubGltaXQpIHFzLnNldCgnbGltaXQnLCBTdHJpbmcocGFyYW1zLmxpbWl0KSk7CiAgY29uc3QgcSA9IHFzLnRvU3RyaW5nKCk7CiAgcmV0dXJuIGFwaUNhbGwoYC9hcGkvdjEvdGFza3Mke3EgPyBgPyR7cX1gIDogJyd9YCwgeyBtZXRob2Q6ICdHRVQnIH0pOwp9CgpleHBvcnQgZnVuY3Rpb24gZ2V0KGlkKSB7CiAgcmV0dXJuIGFwaUNhbGwoYC9hcGkvdjEvdGFza3MvJHtpZH1gLCB7IG1ldGhvZDogJ0dFVCcgfSk7Cn0KCmV4cG9ydCBmdW5jdGlvbiBjcmVhdGUoZGF0YSkgewogIHJldHVybiBhcGlDYWxsKCcvYXBpL3YxL3Rhc2tzJywgeyBtZXRob2Q6ICdQT1NUJywgYm9keTogZGF0YSB9KTsKfQoKZXhwb3J0IGZ1bmN0aW9uIHVwZGF0ZShpZCwgZGF0YSkgewogIHJldHVybiBhcGlDYWxsKGAvYXBpL3YxL3Rhc2tzLyR7aWR9YCwgeyBtZXRob2Q6ICdQVVQnLCBib2R5OiBkYXRhIH0pOwp9CgpleHBvcnQgZnVuY3Rpb24gcmVtb3ZlKGlkKSB7CiAgcmV0dXJuIGFwaUNhbGwoYC9hcGkvdjEvdGFza3MvJHtpZH1gLCB7IG1ldGhvZDogJ0RFTEVURScgfSk7Cn0=
+/**
+ * railway tasks — Task CRUD client.
+ *
+ *   list({ lead_id, deal_id, status, limit })  -> { items, total }
+ *   get(id)                                     -> { task }
+ *   create(data)                                -> { task }
+ *   update(id, data)                            -> { task }
+ *   remove(id)                                  -> { success, id }
+ */
+
+import { apiCall } from './client';
+
+export function list(params = {}) {
+  const qs = new URLSearchParams();
+  if (params.lead_id) qs.set('lead_id', params.lead_id);
+  if (params.deal_id) qs.set('deal_id', params.deal_id);
+  if (params.status && params.status !== 'all') qs.set('status', params.status);
+  if (params.limit) qs.set('limit', String(params.limit));
+  const q = qs.toString();
+  return apiCall(`/api/v1/tasks${q ? `?${q}` : ''}`, { method: 'GET' });
+}
+
+export function get(id) {
+  return apiCall(`/api/v1/tasks/${id}`, { method: 'GET' });
+}
+
+export function create(data) {
+  return apiCall('/api/v1/tasks', { method: 'POST', body: data });
+}
+
+export function update(id, data) {
+  return apiCall(`/api/v1/tasks/${id}`, { method: 'PUT', body: data });
+}
+
+export function remove(id) {
+  return apiCall(`/api/v1/tasks/${id}`, { method: 'DELETE' });
+}

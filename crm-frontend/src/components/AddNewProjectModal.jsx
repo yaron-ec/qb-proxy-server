@@ -1,1 +1,271 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gInJlYWN0IjsKaW1wb3J0ICogYXMgcmFpbHdheVNldHRpbmdzIGZyb20gIkAvYXBpL3JhaWx3YXkvc2V0dGluZ3MiOwppbXBvcnQgKiBhcyByYWlsd2F5RGVhbHMgZnJvbSAiQC9hcGkvcmFpbHdheS9kZWFscyI7CmltcG9ydCB7IHVzZU5hdmlnYXRlIH0gZnJvbSAicmVhY3Qtcm91dGVyLWRvbSI7CmltcG9ydCB7IFgsIExvYWRlcjIgfSBmcm9tICJsdWNpZGUtcmVhY3QiOwppbXBvcnQgeyBDUk1CdXR0b24sIENSTUZpZWxkTGFiZWwgfSBmcm9tICJAL2NvbXBvbmVudHMvY3JtIjsKCmNvbnN0IE9XTkVSUyA9IFsiWWFyb24gRHJpbGV2aWNoIiwgIkV0aGFuIE1hZ2VuIiwgIk1pY2hlbGxlIl07Cgpjb25zdCBERUZBVUxUX0pPQl9UWVBFUyA9IFsKICAiUm9vZmluZyIsCiAgIktpdGNoZW4gcmVtb2RlbCIsCiAgIkJhdGhyb29tIHJlbW9kZWwiLAogICJBRFUgLyBnYXJhZ2UgY29udmVyc2lvbiIsCiAgIkFkZGl0aW9uIiwKICAiTGFuZHNjYXBpbmcgLyBIYXJkc2NhcGluZyIsCiAgIlBvb2wiLAogICJGbG9vcmluZyIsCiAgIlBhaW50aW5nIiwKICAiV2luZG93cyIsCiAgIkRvb3JzIiwKICAiT3RoZXIiCl07Cgpjb25zdCBnZXRUb2RheURhdGUgPSAoKSA9PiB7CiAgY29uc3QgdG9kYXkgPSBuZXcgRGF0ZSgpOwogIHJldHVybiB0b2RheS50b0lTT1N0cmluZygpLnNwbGl0KCJUIilbMF07Cn07CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBBZGROZXdQcm9qZWN0TW9kYWwoeyBsZWFkLCBjdXJyZW50RGVhbCwgb25DbG9zZSwgb25TdWNjZXNzIH0pIHsKICBjb25zdCBuYXZpZ2F0ZSA9IHVzZU5hdmlnYXRlKCk7CiAgY29uc3QgW2xvYWRpbmcsIHNldExvYWRpbmddID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFtqb2JUeXBlcywgc2V0Sm9iVHlwZXNdID0gdXNlU3RhdGUoREVGQVVMVF9KT0JfVFlQRVMpOwogIGNvbnN0IFtsb2FkRXJyb3IsIHNldExvYWRFcnJvcl0gPSB1c2VTdGF0ZShmYWxzZSk7CiAgY29uc3QgW2Zvcm1EYXRhLCBzZXRGb3JtRGF0YV0gPSB1c2VTdGF0ZSh7CiAgICBzZWxlY3RlZF9qb2JfdHlwZXM6IFtdLAogICAgYW1vdW50OiBjdXJyZW50RGVhbD8uYW1vdW50ID8gTWF0aC5jZWlsKChjdXJyZW50RGVhbC5hbW91bnQgKiAwLjMpKSA6ICIiLAogICAgcHJvcGVydHlfYWRkcmVzczogY3VycmVudERlYWw/LnByb3BlcnR5X2FkZHJlc3MgfHwgbGVhZD8ucHJvcGVydHlfYWRkcmVzcyB8fCAiIiwKICAgIGFzc2lnbmVkX3JlcDogY3VycmVudERlYWw/LmFzc2lnbmVkX3JlcCB8fCBsZWFkPy5hc3NpZ25lZF9yZXAgfHwgIiIsCiAgICBzb2xkX2RhdGU6IGdldFRvZGF5RGF0ZSgpLAogICAgbm90ZXM6ICIiLAogIH0pOwoKICB1c2VFZmZlY3QoKCkgPT4gewogICAgLy8gTG9hZCBqb2IgdHlwZXMgZnJvbSBTZXR0aW5ncyBsaWtlIHRoZSBMZWFkIHBhZ2UgZG9lcwogICAgbGV0IHRpbWVvdXRJZDsKICAgIGNvbnN0IGxvYWRKb2JUeXBlcyA9IGFzeW5jICgpID0+IHsKICAgICAgdHJ5IHsKICAgICAgICB0aW1lb3V0SWQgPSBzZXRUaW1lb3V0KCgpID0+IHsKICAgICAgICAgIHNldExvYWRFcnJvcih0cnVlKTsKICAgICAgICB9LCAzMDAwKTsKCiAgICAgICAgY29uc3Qgc2V0dGluZ3MgPSBhd2FpdCByYWlsd2F5U2V0dGluZ3MuZ2V0KCJhcHBfbGlzdHMiKTsKICAgICAgICBjbGVhclRpbWVvdXQodGltZW91dElkKTsKCiAgICAgICAgaWYgKHNldHRpbmdzICYmIHNldHRpbmdzLnZhbHVlPy5wcm9qZWN0VHlwZXMpIHsKICAgICAgICAgIHNldEpvYlR5cGVzKHNldHRpbmdzLnZhbHVlLnByb2plY3RUeXBlcyk7CiAgICAgICAgICBzZXRMb2FkRXJyb3IoZmFsc2UpOwogICAgICAgIH0gZWxzZSB7CiAgICAgICAgICBzZXRMb2FkRXJyb3IodHJ1ZSk7CiAgICAgICAgfQogICAgICB9IGNhdGNoIChlKSB7CiAgICAgICAgY29uc29sZS5lcnJvcigiRmFpbGVkIHRvIGxvYWQgam9iIHR5cGVzOiIsIGUpOwogICAgICAgIHNldExvYWRFcnJvcih0cnVlKTsKICAgICAgICBjbGVhclRpbWVvdXQodGltZW91dElkKTsKICAgICAgfQogICAgfTsKCiAgICBsb2FkSm9iVHlwZXMoKTsKCiAgICByZXR1cm4gKCkgPT4gY2xlYXJUaW1lb3V0KHRpbWVvdXRJZCk7CiAgfSwgW10pOwoKICBjb25zdCBoYW5kbGVKb2JUeXBlVG9nZ2xlID0gKHR5cGUpID0+IHsKICAgIHNldEZvcm1EYXRhKHByZXYgPT4gKHsKICAgICAgLi4ucHJldiwKICAgICAgc2VsZWN0ZWRfam9iX3R5cGVzOiBwcmV2LnNlbGVjdGVkX2pvYl90eXBlcy5pbmNsdWRlcyh0eXBlKQogICAgICAgID8gcHJldi5zZWxlY3RlZF9qb2JfdHlwZXMuZmlsdGVyKHQgPT4gdCAhPT0gdHlwZSkKICAgICAgICA6IFsuLi5wcmV2LnNlbGVjdGVkX2pvYl90eXBlcywgdHlwZV0KICAgIH0pKTsKICB9OwoKICBjb25zdCBoYW5kbGVTdWJtaXQgPSBhc3luYyAoZSkgPT4gewogICAgZS5wcmV2ZW50RGVmYXVsdCgpOwogICAgaWYgKCFmb3JtRGF0YS5zZWxlY3RlZF9qb2JfdHlwZXMubGVuZ3RoKSB7CiAgICAgIGFsZXJ0KCJQbGVhc2Ugc2VsZWN0IGF0IGxlYXN0IG9uZSBqb2IgdHlwZSIpOwogICAgICByZXR1cm47CiAgICB9CgogICAgc2V0TG9hZGluZyh0cnVlKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IHByb2plY3ROYW1lID0gZm9ybURhdGEuc2VsZWN0ZWRfam9iX3R5cGVzLmpvaW4oIiwgIik7CiAgICAgIGNvbnN0IG5ld0RlYWwgPSBhd2FpdCByYWlsd2F5RGVhbHMuY3JlYXRlKHsKICAgICAgICBsZWFkX2lkOiBsZWFkLmlkLAogICAgICAgIG5hbWU6IHByb2plY3ROYW1lLAogICAgICAgIHByb2plY3RfdHlwZTogcHJvamVjdE5hbWUsCiAgICAgICAgYW1vdW50OiBwYXJzZUZsb2F0KGZvcm1EYXRhLmFtb3VudCkgfHwgMCwKICAgICAgICBwcm9wZXJ0eV9hZGRyZXNzOiBmb3JtRGF0YS5wcm9wZXJ0eV9hZGRyZXNzLAogICAgICAgIGFzc2lnbmVkX3JlcDogZm9ybURhdGEuYXNzaWduZWRfcmVwLAogICAgICAgIHNvbGRfZGF0ZTogZm9ybURhdGEuc29sZF9kYXRlID8gbmV3IERhdGUoZm9ybURhdGEuc29sZF9kYXRlKS50b0lTT1N0cmluZygpIDogbmV3IERhdGUoKS50b0lTT1N0cmluZygpLAogICAgICAgIG5vdGVzOiBmb3JtRGF0YS5ub3RlcywKICAgICAgICBzdGFnZTogIlNvbGQgLyBFc3RpbWF0ZSBBcHByb3ZlZCIsCiAgICAgICAgcGlwZWxpbmU6IGN1cnJlbnREZWFsPy5waXBlbGluZSB8fCAiRGVmYXVsdCBQaXBlbGluZSIsCiAgICAgIH0pOwoKICAgICAgb25TdWNjZXNzPy4obmV3RGVhbCk7CiAgICAgIG5hdmlnYXRlKGAvZGVhbHMvJHtuZXdEZWFsLmlkfWApOwogICAgfSBjYXRjaCAoZSkgewogICAgICBjb25zb2xlLmVycm9yKCJGYWlsZWQgdG8gY3JlYXRlIGRlYWw6IiwgZSk7CiAgICAgIGFsZXJ0KCJGYWlsZWQgdG8gY3JlYXRlIHByb2plY3Q6ICIgKyBlLm1lc3NhZ2UpOwogICAgfSBmaW5hbGx5IHsKICAgICAgc2V0TG9hZGluZyhmYWxzZSk7CiAgICB9CiAgfTsKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJmaXhlZCBpbnNldC0wIGJnLWJsYWNrLzUwIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHotNTAgcC00IiBvbkNsaWNrPXtvbkNsb3NlfT4KICAgICAgPGRpdgogICAgICAgIGNsYXNzTmFtZT0iYmctd2hpdGUgcm91bmRlZC14bCBzaGFkb3cteGwgdy1mdWxsIG1heC13LTJ4bCBtYXgtaC1bOTB2aF0gZmxleCBmbGV4LWNvbCIKICAgICAgICBvbkNsaWNrPXsoZSkgPT4gZS5zdG9wUHJvcGFnYXRpb24oKX0KICAgICAgPgogICAgICAgIHsvKiBIZWFkZXIgKi99CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBweC02IHB5LTQgYm9yZGVyLWIgYm9yZGVyLXNsYXRlLTIwMCBmbGV4LXNocmluay0wIj4KICAgICAgICAgIDxoMiBjbGFzc05hbWU9InRleHQtbGcgZm9udC1ib2xkIHRleHQtc2xhdGUtOTAwIj5BZGQgTmV3IFByb2plY3Q8L2gyPgogICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICBvbkNsaWNrPXtvbkNsb3NlfQogICAgICAgICAgICBjbGFzc05hbWU9InRleHQtc2xhdGUtNDAwIGhvdmVyOnRleHQtc2xhdGUtNjAwIgogICAgICAgICAgPgogICAgICAgICAgICA8WCBjbGFzc05hbWU9InctNSBoLTUiIC8+CiAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICA8L2Rpdj4KCiAgICAgICAgey8qIFNjcm9sbGFibGUgQ29udGVudCAqL30KICAgICAgICAgPGZvcm0gb25TdWJtaXQ9e2hhbmRsZVN1Ym1pdH0gY2xhc3NOYW1lPSJvdmVyZmxvdy15LWF1dG8gZmxleC0xIHB4LTYgcHktNCI+CiAgICAgICAgICAgey8qIEpvYiBUeXBlcyAtIFNhbWUgVUkgYXMgTGVhZCBwYWdlICovfQogICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtYi02Ij4KICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gbWItMiI+CiAgICAgICAgICAgICAgIDxDUk1GaWVsZExhYmVsIGNsYXNzTmFtZT0iYmxvY2siPkpvYiBUeXBlICo8L0NSTUZpZWxkTGFiZWw+CiAgICAgICAgICAgICAgIHtsb2FkRXJyb3IgJiYgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSB0ZXh0LXJlZC01MDAgZm9udC1zZW1pYm9sZCI+VXNpbmcgZGVmYXVsdHM8L3NwYW4+fQogICAgICAgICAgICAgPC9kaXY+CgogICAgICAgICAgICAgey8qIERpc3BsYXkgc2VsZWN0ZWQgYXMgYmFkZ2VzICovfQogICAgICAgICAgICAge2Zvcm1EYXRhLnNlbGVjdGVkX2pvYl90eXBlcy5sZW5ndGggPiAwID8gKAogICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBmbGV4LXdyYXAgZ2FwLTEuNSBtYi0zIj4KICAgICAgICAgICAgICAgICB7Zm9ybURhdGEuc2VsZWN0ZWRfam9iX3R5cGVzLm1hcCh0eXBlID0+ICgKICAgICAgICAgICAgICAgICAgIDxzcGFuIGtleT17dHlwZX0gY2xhc3NOYW1lPSJpbmxpbmUtZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEgdGV4dC14cyBiZy1hbWJlci0xMDAgdGV4dC1hbWJlci05MDAgcHgtMiBweS0xIHJvdW5kZWQiPgogICAgICAgICAgICAgICAgICAgICB7dHlwZX0KICAgICAgICAgICAgICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICAgICAgICAgICAgIHR5cGU9ImJ1dHRvbiIKICAgICAgICAgICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBoYW5kbGVKb2JUeXBlVG9nZ2xlKHR5cGUpfQogICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0ibWwtMC41IGhvdmVyOm9wYWNpdHktNzAiCiAgICAgICAgICAgICAgICAgICAgID4KICAgICAgICAgICAgICAgICAgICAgICDDlwogICAgICAgICAgICAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICAgICAgICAgICAgIDwvc3Bhbj4KICAgICAgICAgICAgICAgICApKX0KICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICApIDogbnVsbH0KCiAgICAgICAgICAgICB7LyogQ2hlY2tib3hlcyAtIExpbWl0ZWQgaGVpZ2h0IHdpdGggc2Nyb2xsICovfQogICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgcC0zIHNwYWNlLXktMiBtYXgtaC01NiBvdmVyZmxvdy15LWF1dG8gYmctd2hpdGUiPgogICAgICAgICAgICAgICB7am9iVHlwZXMubWFwKHR5cGUgPT4gKAogICAgICAgICAgICAgICAgIDxsYWJlbCBrZXk9e3R5cGV9IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTMgcC0yIGhvdmVyOmJnLXNsYXRlLTUwIHJvdW5kZWQgY3Vyc29yLXBvaW50ZXIgdHJhbnNpdGlvbi1jb2xvcnMiPgogICAgICAgICAgICAgICAgICAgPGlucHV0CiAgICAgICAgICAgICAgICAgICAgIHR5cGU9ImNoZWNrYm94IgogICAgICAgICAgICAgICAgICAgICBjaGVja2VkPXtmb3JtRGF0YS5zZWxlY3RlZF9qb2JfdHlwZXMuaW5jbHVkZXModHlwZSl9CiAgICAgICAgICAgICAgICAgICAgIG9uQ2hhbmdlPXsoKSA9PiBoYW5kbGVKb2JUeXBlVG9nZ2xlKHR5cGUpfQogICAgICAgICAgICAgICAgICAgICBkaXNhYmxlZD17bG9hZGluZ30KICAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJ3LTQgaC00IHJvdW5kZWQgYm9yZGVyLXNsYXRlLTMwMCBhY2NlbnQtYW1iZXItNjAwIgogICAgICAgICAgICAgICAgICAgLz4KICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1zbSB0ZXh0LXNsYXRlLTcwMCI+e3R5cGV9PC9zcGFuPgogICAgICAgICAgICAgICAgIDwvbGFiZWw+CiAgICAgICAgICAgICAgICkpfQogICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgPC9kaXY+CgogICAgICAgICAgIHsvKiAyLUNvbHVtbiBMYXlvdXQgKi99CiAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImdyaWQgZ3JpZC1jb2xzLTIgZ2FwLTQgbWItNiI+CiAgICAgICAgICAgICB7LyogQ29udHJhY3QgQW1vdW50ICovfQogICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICAgPENSTUZpZWxkTGFiZWwgY2xhc3NOYW1lPSJibG9jayBtYi0xLjUiPkNvbnRyYWN0IEFtb3VudCAoJCk8L0NSTUZpZWxkTGFiZWw+CiAgICAgICAgICAgICAgIDxpbnB1dAogICAgICAgICAgICAgICAgIHR5cGU9Im51bWJlciIKICAgICAgICAgICAgICAgICB2YWx1ZT17Zm9ybURhdGEuYW1vdW50fQogICAgICAgICAgICAgICAgIG9uQ2hhbmdlPXsoZSkgPT4gc2V0Rm9ybURhdGEoeyAuLi5mb3JtRGF0YSwgYW1vdW50OiBlLnRhcmdldC52YWx1ZSB9KX0KICAgICAgICAgICAgICAgICBwbGFjZWhvbGRlcj0iMCIKICAgICAgICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHB4LTMgcHktMiB0ZXh0LXNtIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1hbWJlci01MDAvMjAiCiAgICAgICAgICAgICAgICAgZGlzYWJsZWQ9e2xvYWRpbmd9CiAgICAgICAgICAgICAgIC8+CiAgICAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICAgICB7LyogU29sZCBEYXRlICovfQogICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICAgPENSTUZpZWxkTGFiZWwgY2xhc3NOYW1lPSJibG9jayBtYi0xLjUiPlNvbGQgRGF0ZTwvQ1JNRmllbGRMYWJlbD4KICAgICAgICAgICAgICAgPGlucHV0CiAgICAgICAgICAgICAgICAgdHlwZT0iZGF0ZSIKICAgICAgICAgICAgICAgICB2YWx1ZT17Zm9ybURhdGEuc29sZF9kYXRlfQogICAgICAgICAgICAgICAgIG9uQ2hhbmdlPXsoZSkgPT4gc2V0Rm9ybURhdGEoeyAuLi5mb3JtRGF0YSwgc29sZF9kYXRlOiBlLnRhcmdldC52YWx1ZSB9KX0KICAgICAgICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHB4LTMgcHktMiB0ZXh0LXNtIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1hbWJlci01MDAvMjAiCiAgICAgICAgICAgICAgICAgZGlzYWJsZWQ9e2xvYWRpbmd9CiAgICAgICAgICAgICAgIC8+CiAgICAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICAgICB7LyogUHJvamVjdCBBZGRyZXNzICovfQogICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICAgPENSTUZpZWxkTGFiZWwgY2xhc3NOYW1lPSJibG9jayBtYi0xLjUiPlByb2plY3QgQWRkcmVzczwvQ1JNRmllbGRMYWJlbD4KICAgICAgICAgICAgICAgPGlucHV0CiAgICAgICAgICAgICAgICAgdHlwZT0idGV4dCIKICAgICAgICAgICAgICAgICB2YWx1ZT17Zm9ybURhdGEucHJvcGVydHlfYWRkcmVzc30KICAgICAgICAgICAgICAgICBvbkNoYW5nZT17KGUpID0+IHNldEZvcm1EYXRhKHsgLi4uZm9ybURhdGEsIHByb3BlcnR5X2FkZHJlc3M6IGUudGFyZ2V0LnZhbHVlIH0pfQogICAgICAgICAgICAgICAgIHBsYWNlaG9sZGVyPXtsZWFkPy5wcm9wZXJ0eV9hZGRyZXNzIHx8ICJFbnRlciBhZGRyZXNzIn0KICAgICAgICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHB4LTMgcHktMiB0ZXh0LXNtIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1hbWJlci01MDAvMjAiCiAgICAgICAgICAgICAgICAgZGlzYWJsZWQ9e2xvYWRpbmd9CiAgICAgICAgICAgICAgIC8+CiAgICAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICAgICB7LyogT3duZXIgKi99CiAgICAgICAgICAgICA8ZGl2PgogICAgICAgICAgICAgICA8Q1JNRmllbGRMYWJlbCBjbGFzc05hbWU9ImJsb2NrIG1iLTEuNSI+T3duZXI8L0NSTUZpZWxkTGFiZWw+CiAgICAgICAgICAgICAgIDxzZWxlY3QKICAgICAgICAgICAgICAgICB2YWx1ZT17Zm9ybURhdGEuYXNzaWduZWRfcmVwfQogICAgICAgICAgICAgICAgIG9uQ2hhbmdlPXsoZSkgPT4gc2V0Rm9ybURhdGEoeyAuLi5mb3JtRGF0YSwgYXNzaWduZWRfcmVwOiBlLnRhcmdldC52YWx1ZSB9KX0KICAgICAgICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHB4LTMgcHktMiB0ZXh0LXNtIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1hbWJlci01MDAvMjAiCiAgICAgICAgICAgICAgICAgZGlzYWJsZWQ9e2xvYWRpbmd9CiAgICAgICAgICAgICAgID4KICAgICAgICAgICAgICAgICA8b3B0aW9uIHZhbHVlPSIiPlNlbGVjdCBvd25lcjwvb3B0aW9uPgogICAgICAgICAgICAgICAgIHtPV05FUlMubWFwKG93bmVyID0+ICgKICAgICAgICAgICAgICAgICAgIDxvcHRpb24ga2V5PXtvd25lcn0gdmFsdWU9e293bmVyfT57b3duZXJ9PC9vcHRpb24+CiAgICAgICAgICAgICAgICAgKSl9CiAgICAgICAgICAgICAgIDwvc2VsZWN0PgogICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgPC9kaXY+CgogICAgICAgICAgIHsvKiBOb3RlcyAtIEZ1bGwgV2lkdGggKi99CiAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9Im1iLTQiPgogICAgICAgICAgICAgPENSTUZpZWxkTGFiZWwgY2xhc3NOYW1lPSJibG9jayBtYi0xLjUiPk5vdGVzPC9DUk1GaWVsZExhYmVsPgogICAgICAgICAgICAgPHRleHRhcmVhCiAgICAgICAgICAgICAgIHZhbHVlPXtmb3JtRGF0YS5ub3Rlc30KICAgICAgICAgICAgICAgb25DaGFuZ2U9eyhlKSA9PiBzZXRGb3JtRGF0YSh7IC4uLmZvcm1EYXRhLCBub3RlczogZS50YXJnZXQudmFsdWUgfSl9CiAgICAgICAgICAgICAgIHBsYWNlaG9sZGVyPSJQcm9qZWN0IG5vdGVzIgogICAgICAgICAgICAgICByb3dzPXszfQogICAgICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHB4LTMgcHktMiB0ZXh0LXNtIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1hbWJlci01MDAvMjAgcmVzaXplLW5vbmUiCiAgICAgICAgICAgICAgIGRpc2FibGVkPXtsb2FkaW5nfQogICAgICAgICAgICAgLz4KICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgPC9mb3JtPgoKICAgICAgICAgey8qIFN0aWNreSBGb290ZXIgKi99CiAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJib3JkZXItdCBib3JkZXItc2xhdGUtMjAwIGJnLXdoaXRlIHB4LTYgcHktNCBmbGV4IGdhcC0yIGZsZXgtc2hyaW5rLTAiPgogICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgIHR5cGU9ImJ1dHRvbiIKICAgICAgICAgICAgIG9uQ2xpY2s9e29uQ2xvc2V9CiAgICAgICAgICAgICBjbGFzc05hbWU9ImZsZXgtMSBweC00IHB5LTIgdGV4dC1zbSBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNzAwIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgaG92ZXI6Ymctc2xhdGUtNTAgdHJhbnNpdGlvbi1jb2xvcnMgZGlzYWJsZWQ6b3BhY2l0eS01MCIKICAgICAgICAgICAgIGRpc2FibGVkPXtsb2FkaW5nfQogICAgICAgICAgID4KICAgICAgICAgICAgIENhbmNlbAogICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgIDxDUk1CdXR0b24KICAgICAgICAgICAgIHR5cGU9InN1Ym1pdCIKICAgICAgICAgICAgIG9uQ2xpY2s9e2hhbmRsZVN1Ym1pdH0KICAgICAgICAgICAgIGNsYXNzTmFtZT0iZmxleC0xIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGdhcC0yIgogICAgICAgICAgICAgZGlzYWJsZWQ9e2xvYWRpbmcgfHwgZm9ybURhdGEuc2VsZWN0ZWRfam9iX3R5cGVzLmxlbmd0aCA9PT0gMH0KICAgICAgICAgICA+CiAgICAgICAgICAgICB7bG9hZGluZyAmJiA8TG9hZGVyMiBjbGFzc05hbWU9InctNCBoLTQgYW5pbWF0ZS1zcGluIiAvPn0KICAgICAgICAgICAgIHtsb2FkaW5nID8gIkNyZWF0aW5nLi4uIiA6ICJDcmVhdGUgUHJvamVjdCJ9CiAgICAgICAgICAgPC9DUk1CdXR0b24+CiAgICAgICAgIDwvZGl2PgogICAgICAgPC9kaXY+CiAgICAgPC9kaXY+CiAgICk7CiAgfQ==
+import { useState, useEffect } from "react";
+import * as railwaySettings from "@/api/railway/settings";
+import * as railwayDeals from "@/api/railway/deals";
+import { useNavigate } from "react-router-dom";
+import { X, Loader2 } from "lucide-react";
+import { CRMButton, CRMFieldLabel } from "@/components/crm";
+
+const OWNERS = ["Yaron Drilevich", "Ethan Magen", "Michelle"];
+
+const DEFAULT_JOB_TYPES = [
+  "Roofing",
+  "Kitchen remodel",
+  "Bathroom remodel",
+  "ADU / garage conversion",
+  "Addition",
+  "Landscaping / Hardscaping",
+  "Pool",
+  "Flooring",
+  "Painting",
+  "Windows",
+  "Doors",
+  "Other"
+];
+
+const getTodayDate = () => {
+  const today = new Date();
+  return today.toISOString().split("T")[0];
+};
+
+export default function AddNewProjectModal({ lead, currentDeal, onClose, onSuccess }) {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [jobTypes, setJobTypes] = useState(DEFAULT_JOB_TYPES);
+  const [loadError, setLoadError] = useState(false);
+  const [formData, setFormData] = useState({
+    selected_job_types: [],
+    amount: currentDeal?.amount ? Math.ceil((currentDeal.amount * 0.3)) : "",
+    property_address: currentDeal?.property_address || lead?.property_address || "",
+    assigned_rep: currentDeal?.assigned_rep || lead?.assigned_rep || "",
+    sold_date: getTodayDate(),
+    notes: "",
+  });
+
+  useEffect(() => {
+    // Load job types from Settings like the Lead page does
+    let timeoutId;
+    const loadJobTypes = async () => {
+      try {
+        timeoutId = setTimeout(() => {
+          setLoadError(true);
+        }, 3000);
+
+        const settings = await railwaySettings.get("app_lists");
+        clearTimeout(timeoutId);
+
+        if (settings && settings.value?.projectTypes) {
+          setJobTypes(settings.value.projectTypes);
+          setLoadError(false);
+        } else {
+          setLoadError(true);
+        }
+      } catch (e) {
+        console.error("Failed to load job types:", e);
+        setLoadError(true);
+        clearTimeout(timeoutId);
+      }
+    };
+
+    loadJobTypes();
+
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  const handleJobTypeToggle = (type) => {
+    setFormData(prev => ({
+      ...prev,
+      selected_job_types: prev.selected_job_types.includes(type)
+        ? prev.selected_job_types.filter(t => t !== type)
+        : [...prev.selected_job_types, type]
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.selected_job_types.length) {
+      alert("Please select at least one job type");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const projectName = formData.selected_job_types.join(", ");
+      const newDeal = await railwayDeals.create({
+        lead_id: lead.id,
+        name: projectName,
+        project_type: projectName,
+        amount: parseFloat(formData.amount) || 0,
+        property_address: formData.property_address,
+        assigned_rep: formData.assigned_rep,
+        sold_date: formData.sold_date ? new Date(formData.sold_date).toISOString() : new Date().toISOString(),
+        notes: formData.notes,
+        stage: "Sold / Estimate Approved",
+        pipeline: currentDeal?.pipeline || "Default Pipeline",
+      });
+
+      onSuccess?.(newDeal);
+      navigate(`/deals/${newDeal.id}`);
+    } catch (e) {
+      console.error("Failed to create deal:", e);
+      alert("Failed to create project: " + e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div
+        className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 flex-shrink-0">
+          <h2 className="text-lg font-bold text-slate-900">Add New Project</h2>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-600"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Scrollable Content */}
+         <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 px-6 py-4">
+           {/* Job Types - Same UI as Lead page */}
+           <div className="mb-6">
+             <div className="flex items-center justify-between mb-2">
+               <CRMFieldLabel className="block">Job Type *</CRMFieldLabel>
+               {loadError && <span className="text-[10px] text-red-500 font-semibold">Using defaults</span>}
+             </div>
+
+             {/* Display selected as badges */}
+             {formData.selected_job_types.length > 0 ? (
+               <div className="flex flex-wrap gap-1.5 mb-3">
+                 {formData.selected_job_types.map(type => (
+                   <span key={type} className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-900 px-2 py-1 rounded">
+                     {type}
+                     <button
+                       type="button"
+                       onClick={() => handleJobTypeToggle(type)}
+                       className="ml-0.5 hover:opacity-70"
+                     >
+                       ×
+                     </button>
+                   </span>
+                 ))}
+               </div>
+             ) : null}
+
+             {/* Checkboxes - Limited height with scroll */}
+             <div className="border border-slate-200 rounded-lg p-3 space-y-2 max-h-56 overflow-y-auto bg-white">
+               {jobTypes.map(type => (
+                 <label key={type} className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded cursor-pointer transition-colors">
+                   <input
+                     type="checkbox"
+                     checked={formData.selected_job_types.includes(type)}
+                     onChange={() => handleJobTypeToggle(type)}
+                     disabled={loading}
+                     className="w-4 h-4 rounded border-slate-300 accent-amber-600"
+                   />
+                   <span className="text-sm text-slate-700">{type}</span>
+                 </label>
+               ))}
+             </div>
+           </div>
+
+           {/* 2-Column Layout */}
+           <div className="grid grid-cols-2 gap-4 mb-6">
+             {/* Contract Amount */}
+             <div>
+               <CRMFieldLabel className="block mb-1.5">Contract Amount ($)</CRMFieldLabel>
+               <input
+                 type="number"
+                 value={formData.amount}
+                 onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                 placeholder="0"
+                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                 disabled={loading}
+               />
+             </div>
+
+             {/* Sold Date */}
+             <div>
+               <CRMFieldLabel className="block mb-1.5">Sold Date</CRMFieldLabel>
+               <input
+                 type="date"
+                 value={formData.sold_date}
+                 onChange={(e) => setFormData({ ...formData, sold_date: e.target.value })}
+                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                 disabled={loading}
+               />
+             </div>
+
+             {/* Project Address */}
+             <div>
+               <CRMFieldLabel className="block mb-1.5">Project Address</CRMFieldLabel>
+               <input
+                 type="text"
+                 value={formData.property_address}
+                 onChange={(e) => setFormData({ ...formData, property_address: e.target.value })}
+                 placeholder={lead?.property_address || "Enter address"}
+                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                 disabled={loading}
+               />
+             </div>
+
+             {/* Owner */}
+             <div>
+               <CRMFieldLabel className="block mb-1.5">Owner</CRMFieldLabel>
+               <select
+                 value={formData.assigned_rep}
+                 onChange={(e) => setFormData({ ...formData, assigned_rep: e.target.value })}
+                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                 disabled={loading}
+               >
+                 <option value="">Select owner</option>
+                 {OWNERS.map(owner => (
+                   <option key={owner} value={owner}>{owner}</option>
+                 ))}
+               </select>
+             </div>
+           </div>
+
+           {/* Notes - Full Width */}
+           <div className="mb-4">
+             <CRMFieldLabel className="block mb-1.5">Notes</CRMFieldLabel>
+             <textarea
+               value={formData.notes}
+               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+               placeholder="Project notes"
+               rows={3}
+               className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 resize-none"
+               disabled={loading}
+             />
+           </div>
+         </form>
+
+         {/* Sticky Footer */}
+         <div className="border-t border-slate-200 bg-white px-6 py-4 flex gap-2 flex-shrink-0">
+           <button
+             type="button"
+             onClick={onClose}
+             className="flex-1 px-4 py-2 text-sm font-semibold text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
+             disabled={loading}
+           >
+             Cancel
+           </button>
+           <CRMButton
+             type="submit"
+             onClick={handleSubmit}
+             className="flex-1 flex items-center justify-center gap-2"
+             disabled={loading || formData.selected_job_types.length === 0}
+           >
+             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+             {loading ? "Creating..." : "Create Project"}
+           </CRMButton>
+         </div>
+       </div>
+     </div>
+   );
+  }

@@ -1,1 +1,157 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gJ3JlYWN0JzsKaW1wb3J0ICogYXMgcmFpbHdheUFwaSBmcm9tICdAL2xpYi9yYWlsd2F5QXBpJzsKaW1wb3J0IHsgYXBpQ2FsbCB9IGZyb20gJ0AvYXBpL3JhaWx3YXkvY2xpZW50JzsKaW1wb3J0IHsgQ2hlY2ssIFgsIENsb2NrIH0gZnJvbSAnbHVjaWRlLXJlYWN0JzsKCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIEFjY2Vzc1JlcXVlc3RzVGFiKCkgewogIGNvbnN0IFtyZXF1ZXN0cywgc2V0UmVxdWVzdHNdID0gdXNlU3RhdGUoW10pOwogIGNvbnN0IFtsb2FkaW5nLCBzZXRMb2FkaW5nXSA9IHVzZVN0YXRlKHRydWUpOwogIGNvbnN0IFtwcm9jZXNzaW5nLCBzZXRQcm9jZXNzaW5nXSA9IHVzZVN0YXRlKG51bGwpOwoKICB1c2VFZmZlY3QoKCkgPT4gewogICAgbG9hZFJlcXVlc3RzKCk7CiAgfSwgW10pOwoKICBjb25zdCBsb2FkUmVxdWVzdHMgPSBhc3luYyAoKSA9PiB7CiAgICB0cnkgewogICAgICBjb25zdCByID0gYXdhaXQgYXBpQ2FsbCgnL2FwaS92MS9hY2Nlc3MtcmVxdWVzdHM/c3RhdHVzPXBlbmRpbmcnLCB7IG1ldGhvZDogJ0dFVCcgfSk7CiAgICAgIGNvbnN0IGRhdGEgPSByLml0ZW1zIHx8IFtdOwogICAgICBzZXRSZXF1ZXN0cyhkYXRhLnNvcnQoKGEsIGIpID0+IG5ldyBEYXRlKGIuY3JlYXRlZF9kYXRlKSAtIG5ldyBEYXRlKGEuY3JlYXRlZF9kYXRlKSkpOwogICAgfSBjYXRjaCAoZSkgewogICAgICBjb25zb2xlLmVycm9yKCdGYWlsZWQgdG8gbG9hZCByZXF1ZXN0czonLCBlKTsKICAgIH0gZmluYWxseSB7CiAgICAgIHNldExvYWRpbmcoZmFsc2UpOwogICAgfQogIH07CgogIGNvbnN0IGhhbmRsZUFwcHJvdmUgPSBhc3luYyAoaWQsIGVtYWlsLCBmdWxsTmFtZSkgPT4gewogICAgaWYgKCFjb25maXJtKGBBcHByb3ZlIGFjY2VzcyBmb3IgJHtmdWxsTmFtZX0/YCkpIHJldHVybjsKICAgIAogICAgc2V0UHJvY2Vzc2luZyhpZCk7CiAgICB0cnkgewogICAgICBjb25zdCBtZVJlc3AgPSBhd2FpdCByYWlsd2F5QXBpLm1lKCk7CiAgICAgIGNvbnN0IHVzZXJFbWFpbCA9IG1lUmVzcC51c2VyPy5lbWFpbCB8fCAnYWRtaW4nOwogICAgICAKICAgICAgLy8gVXBkYXRlIHJlcXVlc3Qgc3RhdHVzCiAgICAgIGF3YWl0IGFwaUNhbGwoYC9hcGkvdjEvYWNjZXNzLXJlcXVlc3RzLyR7aWR9YCwgewogICAgICAgIG1ldGhvZDogJ1BVVCcsCiAgICAgICAgYm9keTogewogICAgICAgICAgc3RhdHVzOiAnYXBwcm92ZWQnLAogICAgICAgICAgcmV2aWV3ZWRfYnk6IHVzZXJFbWFpbCwKICAgICAgICAgIHJldmlld2VkX2F0OiBuZXcgRGF0ZSgpLnRvSVNPU3RyaW5nKCksCiAgICAgICAgfSwKICAgICAgfSk7CgogICAgICAvLyBBZGQgdG8gYWxsb3dsaXN0CiAgICAgIGF3YWl0IGFwaUNhbGwoJy9hcGkvdjEvdXNlci1hbGxvd2xpc3QnLCB7CiAgICAgICAgbWV0aG9kOiAnUE9TVCcsCiAgICAgICAgYm9keTogewogICAgICAgICAgZW1haWw6IGVtYWlsLnRvTG93ZXJDYXNlKCksCiAgICAgICAgICBuYW1lOiBmdWxsTmFtZSwKICAgICAgICAgIHJvbGU6ICdzYWxlc19yZXAnLAogICAgICAgICAgZW5hYmxlZDogdHJ1ZSwKICAgICAgICB9LAogICAgICB9KTsKCiAgICAgIHNldFJlcXVlc3RzKHJlcXVlc3RzLmZpbHRlcihyID0+IHIuaWQgIT09IGlkKSk7CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIGFsZXJ0KCdFcnJvciBhcHByb3ZpbmcgcmVxdWVzdDogJyArIGUubWVzc2FnZSk7CiAgICB9IGZpbmFsbHkgewogICAgICBzZXRQcm9jZXNzaW5nKG51bGwpOwogICAgfQogIH07CgogIGNvbnN0IGhhbmRsZVJlamVjdCA9IGFzeW5jIChpZCwgZnVsbE5hbWUpID0+IHsKICAgIGNvbnN0IG5vdGVzID0gcHJvbXB0KGBSZWplY3QgYWNjZXNzIGZvciAke2Z1bGxOYW1lfT9cblxuT3B0aW9uYWwgbm90ZXM6YCk7CiAgICBpZiAobm90ZXMgPT09IG51bGwpIHJldHVybjsKCiAgICBzZXRQcm9jZXNzaW5nKGlkKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IG1lUmVzcCA9IGF3YWl0IHJhaWx3YXlBcGkubWUoKTsKICAgICAgY29uc3QgdXNlckVtYWlsID0gbWVSZXNwLnVzZXI/LmVtYWlsIHx8ICdhZG1pbic7CiAgICAgIAogICAgICBhd2FpdCBhcGlDYWxsKGAvYXBpL3YxL2FjY2Vzcy1yZXF1ZXN0cy8ke2lkfWAsIHsKICAgICAgICBtZXRob2Q6ICdQVVQnLAogICAgICAgIGJvZHk6IHsKICAgICAgICAgIHN0YXR1czogJ3JlamVjdGVkJywKICAgICAgICAgIHJldmlld2VkX2J5OiB1c2VyRW1haWwsCiAgICAgICAgICByZXZpZXdlZF9hdDogbmV3IERhdGUoKS50b0lTT1N0cmluZygpLAogICAgICAgICAgbm90ZXM6IG5vdGVzLnRyaW0oKSB8fCAnUmVqZWN0ZWQnLAogICAgICAgIH0sCiAgICAgIH0pOwoKICAgICAgc2V0UmVxdWVzdHMocmVxdWVzdHMuZmlsdGVyKHIgPT4gci5pZCAhPT0gaWQpKTsKICAgIH0gY2F0Y2ggKGUpIHsKICAgICAgYWxlcnQoJ0Vycm9yIHJlamVjdGluZyByZXF1ZXN0OiAnICsgZS5tZXNzYWdlKTsKICAgIH0gZmluYWxseSB7CiAgICAgIHNldFByb2Nlc3NpbmcobnVsbCk7CiAgICB9CiAgfTsKCiAgaWYgKGxvYWRpbmcpIHsKICAgIHJldHVybiA8ZGl2IGNsYXNzTmFtZT0icC02IHRleHQtc2xhdGUtNTAwIj5Mb2FkaW5nIHJlcXVlc3RzLi4uPC9kaXY+OwogIH0KCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJtYXgtdy00eGwiPgogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIG1iLTYiPgogICAgICAgIDxoMyBjbGFzc05hbWU9InRleHQtbGcgZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTkwMCI+CiAgICAgICAgICBQZW5kaW5nIEFjY2VzcyBSZXF1ZXN0cwogICAgICAgIDwvaDM+CiAgICAgICAge3JlcXVlc3RzLmxlbmd0aCA+IDAgJiYgKAogICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJiZy1hbWJlci0xMDAgdGV4dC1hbWJlci04MDAgdGV4dC14cyBmb250LXNlbWlib2xkIHB4LTMgcHktMSByb3VuZGVkLWZ1bGwiPgogICAgICAgICAgICB7cmVxdWVzdHMubGVuZ3RofSBwZW5kaW5nCiAgICAgICAgICA8L3NwYW4+CiAgICAgICAgKX0KICAgICAgPC9kaXY+CgogICAgICB7cmVxdWVzdHMubGVuZ3RoID09PSAwID8gKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJjYXJkLXByZW1pdW0gcC04IHRleHQtY2VudGVyIHRleHQtc2xhdGUtNDAwIj4KICAgICAgICAgIDxDbG9jayBjbGFzc05hbWU9InctOCBoLTggbXgtYXV0byBtYi0zIG9wYWNpdHktNTAiIC8+CiAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20iPk5vIHBlbmRpbmcgYWNjZXNzIHJlcXVlc3RzPC9wPgogICAgICAgIDwvZGl2PgogICAgICApIDogKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJzcGFjZS15LTMiPgogICAgICAgICAge3JlcXVlc3RzLm1hcChyZXEgPT4gKAogICAgICAgICAgICA8ZGl2IGtleT17cmVxLmlkfSBjbGFzc05hbWU9ImNhcmQtcHJlbWl1bSBwLTQgYm9yZGVyLWwtNCBib3JkZXItbC1hbWJlci01MDAiPgogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLXN0YXJ0IGp1c3RpZnktYmV0d2VlbiBnYXAtNCI+CiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleC0xIG1pbi13LTAiPgogICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20gZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTkwMCI+e3JlcS5mdWxsX25hbWV9PC9wPgogICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS02MDAgbXQtMSI+e3JlcS5lbWFpbH08L3A+CiAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICB7cmVxLnJlYXNvbiAmJiAoCiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9Im10LTMgcC0yIGJnLXNsYXRlLTUwIHJvdW5kZWQgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAiPgogICAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS02MDAgbWItMSI+UmVhc29uOjwvcD4KICAgICAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTcwMCI+e3JlcS5yZWFzb259PC9wPgogICAgICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgICApfQogICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSB0ZXh0LXNsYXRlLTQwMCBtdC0zIj4KICAgICAgICAgICAgICAgICAgICBSZXF1ZXN0ZWQge25ldyBEYXRlKHJlcS5jcmVhdGVkX2RhdGUpLnRvTG9jYWxlRGF0ZVN0cmluZygpfSBhdCB7bmV3IERhdGUocmVxLmNyZWF0ZWRfZGF0ZSkudG9Mb2NhbGVUaW1lU3RyaW5nKCl9CiAgICAgICAgICAgICAgICAgIDwvcD4KICAgICAgICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGdhcC0yIGZsZXgtc2hyaW5rLTAiPgogICAgICAgICAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gaGFuZGxlQXBwcm92ZShyZXEuaWQsIHJlcS5lbWFpbCwgcmVxLmZ1bGxfbmFtZSl9CiAgICAgICAgICAgICAgICAgICAgZGlzYWJsZWQ9e3Byb2Nlc3NpbmcgPT09IHJlcS5pZH0KICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9InB4LTMgcHktMiBiZy1lbWVyYWxkLTYwMCB0ZXh0LXdoaXRlIHRleHQteHMgZm9udC1zZW1pYm9sZCByb3VuZGVkLWxnIGhvdmVyOmJnLWVtZXJhbGQtNzAwIHRyYW5zaXRpb24tY29sb3JzIGRpc2FibGVkOm9wYWNpdHktNTAgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEiCiAgICAgICAgICAgICAgICAgID4KICAgICAgICAgICAgICAgICAgICA8Q2hlY2sgY2xhc3NOYW1lPSJ3LTMuNSBoLTMuNSIgLz4gQXBwcm92ZQogICAgICAgICAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICAgICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IGhhbmRsZVJlamVjdChyZXEuaWQsIHJlcS5mdWxsX25hbWUpfQogICAgICAgICAgICAgICAgICAgIGRpc2FibGVkPXtwcm9jZXNzaW5nID09PSByZXEuaWR9CiAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJweC0zIHB5LTIgYmctcmVkLTYwMCB0ZXh0LXdoaXRlIHRleHQteHMgZm9udC1zZW1pYm9sZCByb3VuZGVkLWxnIGhvdmVyOmJnLXJlZC03MDAgdHJhbnNpdGlvbi1jb2xvcnMgZGlzYWJsZWQ6b3BhY2l0eS01MCBmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMSIKICAgICAgICAgICAgICAgICAgPgogICAgICAgICAgICAgICAgICAgIDxYIGNsYXNzTmFtZT0idy0zLjUgaC0zLjUiIC8+IFJlamVjdAogICAgICAgICAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICkpfQogICAgICAgIDwvZGl2PgogICAgICApfQogICAgPC9kaXY+CiAgKTsKfQ==
+import { useState, useEffect } from 'react';
+import * as railwayApi from '@/lib/railwayApi';
+import { apiCall } from '@/api/railway/client';
+import { Check, X, Clock } from 'lucide-react';
+
+export default function AccessRequestsTab() {
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(null);
+
+  useEffect(() => {
+    loadRequests();
+  }, []);
+
+  const loadRequests = async () => {
+    try {
+      const r = await apiCall('/api/v1/access-requests?status=pending', { method: 'GET' });
+      const data = r.items || [];
+      setRequests(data.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
+    } catch (e) {
+      console.error('Failed to load requests:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApprove = async (id, email, fullName) => {
+    if (!confirm(`Approve access for ${fullName}?`)) return;
+    
+    setProcessing(id);
+    try {
+      const meResp = await railwayApi.me();
+      const userEmail = meResp.user?.email || 'admin';
+      
+      // Update request status
+      await apiCall(`/api/v1/access-requests/${id}`, {
+        method: 'PUT',
+        body: {
+          status: 'approved',
+          reviewed_by: userEmail,
+          reviewed_at: new Date().toISOString(),
+        },
+      });
+
+      // Add to allowlist
+      await apiCall('/api/v1/user-allowlist', {
+        method: 'POST',
+        body: {
+          email: email.toLowerCase(),
+          name: fullName,
+          role: 'sales_rep',
+          enabled: true,
+        },
+      });
+
+      setRequests(requests.filter(r => r.id !== id));
+    } catch (e) {
+      alert('Error approving request: ' + e.message);
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const handleReject = async (id, fullName) => {
+    const notes = prompt(`Reject access for ${fullName}?\n\nOptional notes:`);
+    if (notes === null) return;
+
+    setProcessing(id);
+    try {
+      const meResp = await railwayApi.me();
+      const userEmail = meResp.user?.email || 'admin';
+      
+      await apiCall(`/api/v1/access-requests/${id}`, {
+        method: 'PUT',
+        body: {
+          status: 'rejected',
+          reviewed_by: userEmail,
+          reviewed_at: new Date().toISOString(),
+          notes: notes.trim() || 'Rejected',
+        },
+      });
+
+      setRequests(requests.filter(r => r.id !== id));
+    } catch (e) {
+      alert('Error rejecting request: ' + e.message);
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  if (loading) {
+    return <div className="p-6 text-slate-500">Loading requests...</div>;
+  }
+
+  return (
+    <div className="max-w-4xl">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-lg font-semibold text-slate-900">
+          Pending Access Requests
+        </h3>
+        {requests.length > 0 && (
+          <span className="bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1 rounded-full">
+            {requests.length} pending
+          </span>
+        )}
+      </div>
+
+      {requests.length === 0 ? (
+        <div className="card-premium p-8 text-center text-slate-400">
+          <Clock className="w-8 h-8 mx-auto mb-3 opacity-50" />
+          <p className="text-sm">No pending access requests</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {requests.map(req => (
+            <div key={req.id} className="card-premium p-4 border-l-4 border-l-amber-500">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-900">{req.full_name}</p>
+                  <p className="text-xs text-slate-600 mt-1">{req.email}</p>
+                  
+                  {req.reason && (
+                    <div className="mt-3 p-2 bg-slate-50 rounded border border-slate-200">
+                      <p className="text-xs font-semibold text-slate-600 mb-1">Reason:</p>
+                      <p className="text-xs text-slate-700">{req.reason}</p>
+                    </div>
+                  )}
+                  
+                  <p className="text-[10px] text-slate-400 mt-3">
+                    Requested {new Date(req.created_date).toLocaleDateString()} at {new Date(req.created_date).toLocaleTimeString()}
+                  </p>
+                </div>
+
+                <div className="flex gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => handleApprove(req.id, req.email, req.full_name)}
+                    disabled={processing === req.id}
+                    className="px-3 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center gap-1"
+                  >
+                    <Check className="w-3.5 h-3.5" /> Approve
+                  </button>
+                  <button
+                    onClick={() => handleReject(req.id, req.full_name)}
+                    disabled={processing === req.id}
+                    className="px-3 py-2 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-1"
+                  >
+                    <X className="w-3.5 h-3.5" /> Reject
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

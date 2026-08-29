@@ -1,1 +1,117 @@
-LyoqCiAqIEVkaXRhYmxlRmllbGRzIOKAlCBzaGFyZWQgZWRpdGFibGUgZmllbGQgY29tcG9uZW50cyBmb3IgRGVhbC9MZWFkIGRldGFpbCB0YWJzLgogKi8KaW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IFBlbmNpbCB9IGZyb20gImx1Y2lkZS1yZWFjdCI7CgpleHBvcnQgZnVuY3Rpb24gRWRpdGFibGVJbmZvUm93KHsgaWNvbjogSWNvbiwgbGFiZWwsIHZhbHVlLCBvblNhdmUsIHNhdmluZywgdHlwZSA9ICJ0ZXh0IiwgaXNSZWFkT25seSA9IGZhbHNlIH0pIHsKICBjb25zdCBbaXNFZGl0aW5nLCBzZXRJc0VkaXRpbmddID0gdXNlU3RhdGUoZmFsc2UpOwoKICBjb25zdCBnZXREaXNwbGF5VmFsdWUgPSAodmFsKSA9PiB7CiAgICBpZiAoQXJyYXkuaXNBcnJheSh2YWwpKSByZXR1cm4gdmFsLmpvaW4oIiwgIik7CiAgICBpZiAoIXZhbCkgcmV0dXJuICIiOwogICAgaWYgKHR5cGUgPT09ICJkYXRlIikgewogICAgICB0cnkgewogICAgICAgIGNvbnN0IGRhdGVTdHIgPSB0eXBlb2YgdmFsID09PSAic3RyaW5nIiA/IHZhbC5zcGxpdCgiVCIpWzBdIDogdmFsOwogICAgICAgIHJldHVybiBuZXcgRGF0ZShkYXRlU3RyICsgIlQwMDowMDowMCIpLnRvTG9jYWxlRGF0ZVN0cmluZygiZW4tVVMiLCB7IG1vbnRoOiAic2hvcnQiLCBkYXk6ICJudW1lcmljIiwgeWVhcjogIm51bWVyaWMiIH0pOwogICAgICB9IGNhdGNoIHsgcmV0dXJuIHZhbDsgfQogICAgfQogICAgcmV0dXJuIHZhbDsKICB9OwoKICBjb25zdCBkaXNwbGF5VmFsdWUgPSBnZXREaXNwbGF5VmFsdWUodmFsdWUpOwogIGNvbnN0IFtlZGl0VmFsdWUsIHNldEVkaXRWYWx1ZV0gPSB1c2VTdGF0ZSgKICAgIHR5cGUgPT09ICJkYXRlIiAmJiB2YWx1ZSA/ICh0eXBlb2YgdmFsdWUgPT09ICJzdHJpbmciID8gdmFsdWUuc3BsaXQoIlQiKVswXSA6IHZhbHVlKSA6IGRpc3BsYXlWYWx1ZQogICk7CgogIGNvbnN0IGhhbmRsZVNhdmUgPSBhc3luYyAoKSA9PiB7CiAgICBhd2FpdCBvblNhdmUoZWRpdFZhbHVlKTsKICAgIHNldElzRWRpdGluZyhmYWxzZSk7CiAgfTsKCiAgaWYgKGlzRWRpdGluZyAmJiAhaXNSZWFkT25seSkgewogICAgcmV0dXJuICgKICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtc3RhcnQgZ2FwLTIuNSI+CiAgICAgICAgPEljb24gY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtc2xhdGUtNDAwIGZsZXgtc2hyaW5rLTAgbXQtMiIgLz4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleC0xIG1pbi13LTAgc3BhY2UteS0xLjUiPgogICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNDAwIHVwcGVyY2FzZSB0cmFja2luZy13aWRlIj57bGFiZWx9PC9wPgogICAgICAgICAgPGlucHV0CiAgICAgICAgICAgIHR5cGU9e3R5cGV9CiAgICAgICAgICAgIHZhbHVlPXtlZGl0VmFsdWV9CiAgICAgICAgICAgIG9uQ2hhbmdlPXtlID0+IHNldEVkaXRWYWx1ZShlLnRhcmdldC52YWx1ZSl9CiAgICAgICAgICAgIGNsYXNzTmFtZT0idy1mdWxsIHB4LTIgcHktMSB0ZXh0LXNtIGJvcmRlciBib3JkZXItYW1iZXItMzAwIHJvdW5kZWQgZm9jdXM6b3V0bGluZS1ub25lIGZvY3VzOnJpbmctMiBmb2N1czpyaW5nLWFtYmVyLTUwMC8yMCIKICAgICAgICAgICAgYXV0b0ZvY3VzCiAgICAgICAgICAvPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZ2FwLTEuNSI+CiAgICAgICAgICAgIDxidXR0b24gb25DbGljaz17aGFuZGxlU2F2ZX0gZGlzYWJsZWQ9e3NhdmluZ30KICAgICAgICAgICAgICBjbGFzc05hbWU9InRleHQteHMgZm9udC1zZW1pYm9sZCBweC0yIHB5LTEgYmctYW1iZXItNjAwIHRleHQtd2hpdGUgcm91bmRlZCBob3ZlcjpiZy1hbWJlci03MDAgZGlzYWJsZWQ6b3BhY2l0eS01MCI+CiAgICAgICAgICAgICAge3NhdmluZyA/ICJTYXZpbmfigKYiIDogIlNhdmUifQogICAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICAgICAgPGJ1dHRvbiBvbkNsaWNrPXsoKSA9PiBzZXRJc0VkaXRpbmcoZmFsc2UpfQogICAgICAgICAgICAgIGNsYXNzTmFtZT0idGV4dC14cyBmb250LXNlbWlib2xkIHB4LTIgcHktMSBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkIGhvdmVyOmJnLXNsYXRlLTUwIj4KICAgICAgICAgICAgICBDYW5jZWwKICAgICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CiAgICApOwogIH0KCiAgcmV0dXJuICgKICAgIDxkaXYKICAgICAgY2xhc3NOYW1lPXtgZmxleCBpdGVtcy1zdGFydCBnYXAtMi41ICR7IWlzUmVhZE9ubHkgPyAiZ3JvdXAgY3Vyc29yLXBvaW50ZXIgaG92ZXI6Ymctc2xhdGUtNTAiIDogIiJ9IHAtMS41IHJvdW5kZWQgLW14LTEuNSB0cmFuc2l0aW9uLWNvbG9yc2B9CiAgICAgIG9uQ2xpY2s9eygpID0+ICFpc1JlYWRPbmx5ICYmIHNldElzRWRpdGluZyh0cnVlKX0KICAgID4KICAgICAgPEljb24gY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtc2xhdGUtNDAwIGZsZXgtc2hyaW5rLTAgbXQtMC41IiAvPgogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleC0xIG1pbi13LTAiPgogICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTQwMCB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZSI+e2xhYmVsfTwvcD4KICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20gdGV4dC1zbGF0ZS05MDAgbXQtMC41IGdyb3VwLWhvdmVyOnRleHQtYW1iZXItNjAwIHRyYW5zaXRpb24tY29sb3JzIj57ZGlzcGxheVZhbHVlIHx8ICLigJQifTwvcD4KICAgICAgPC9kaXY+CiAgICAgIHshaXNSZWFkT25seSAmJiA8UGVuY2lsIGNsYXNzTmFtZT0idy0zIGgtMyB0ZXh0LXNsYXRlLTMwMCBvcGFjaXR5LTAgZ3JvdXAtaG92ZXI6b3BhY2l0eS0xMDAgdHJhbnNpdGlvbi1vcGFjaXR5IGZsZXgtc2hyaW5rLTAgbXQtMSIgLz59CiAgICA8L2Rpdj4KICApOwp9CgpleHBvcnQgZnVuY3Rpb24gRWRpdGFibGVDbGllbnRGaWVsZCh7IGxhYmVsLCB2YWx1ZSwgdHlwZSA9ICJ0ZXh0Iiwgb25TYXZlIH0pIHsKICBjb25zdCBbaXNFZGl0aW5nLCBzZXRJc0VkaXRpbmddID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFtlZGl0VmFsdWUsIHNldEVkaXRWYWx1ZV0gPSB1c2VTdGF0ZSh2YWx1ZSk7CgogIGNvbnN0IGhhbmRsZVNhdmUgPSBhc3luYyAoKSA9PiB7CiAgICBhd2FpdCBvblNhdmUoZWRpdFZhbHVlKTsKICAgIHNldElzRWRpdGluZyhmYWxzZSk7CiAgfTsKCiAgaWYgKGlzRWRpdGluZykgewogICAgcmV0dXJuICgKICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMS41Ij4KICAgICAgICA8aW5wdXQKICAgICAgICAgIHR5cGU9e3R5cGV9CiAgICAgICAgICB2YWx1ZT17ZWRpdFZhbHVlfQogICAgICAgICAgb25DaGFuZ2U9e2UgPT4gc2V0RWRpdFZhbHVlKGUudGFyZ2V0LnZhbHVlKX0KICAgICAgICAgIGNsYXNzTmFtZT0idy1mdWxsIHB4LTIgcHktMSB0ZXh0LXhzIGJvcmRlciBib3JkZXItb3JhbmdlIHJvdW5kZWQgZm9jdXM6b3V0bGluZS1ub25lIGZvY3VzOnJpbmctMiBmb2N1czpyaW5nLW9yYW5nZS8yMCIKICAgICAgICAgIGF1dG9Gb2N1cwogICAgICAgIC8+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZ2FwLTEiPgogICAgICAgICAgPGJ1dHRvbiBvbkNsaWNrPXtoYW5kbGVTYXZlfQogICAgICAgICAgICBjbGFzc05hbWU9InRleHQteHMgZm9udC1zZW1pYm9sZCBweC0yIHB5LTEgYmctb3JhbmdlIHRleHQtd2hpdGUgcm91bmRlZCBob3ZlcjpiZy1vcmFuZ2UvOTAiPgogICAgICAgICAgICBTYXZlCiAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICAgIDxidXR0b24gb25DbGljaz17KCkgPT4geyBzZXRFZGl0VmFsdWUodmFsdWUpOyBzZXRJc0VkaXRpbmcoZmFsc2UpOyB9fQogICAgICAgICAgICBjbGFzc05hbWU9InRleHQteHMgZm9udC1zZW1pYm9sZCBweC0yIHB5LTEgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZCBob3ZlcjpiZy1zbGF0ZS01MCI+CiAgICAgICAgICAgIENhbmNlbAogICAgICAgICAgPC9idXR0b24+CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgogICAgKTsKICB9CgogIHJldHVybiAoCiAgICA8ZGl2IG9uQ2xpY2s9eygpID0+IHNldElzRWRpdGluZyh0cnVlKX0gY2xhc3NOYW1lPSJjdXJzb3ItcG9pbnRlciBob3ZlcjpiZy1zbGF0ZS01MCBwLTEgcm91bmRlZCAtbS0xIHRyYW5zaXRpb24tY29sb3JzIj4KICAgICAge2xhYmVsID09PSAiTmFtZSIgPyAoCiAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS05MDAiPnt2YWx1ZX08L3A+CiAgICAgICkgOiAoCiAgICAgICAgPGEgaHJlZj17YHRlbDoke3ZhbHVlfWB9IG9uQ2xpY2s9e2UgPT4gZS5zdG9wUHJvcGFnYXRpb24oKX0gY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNTAwIGhvdmVyOnRleHQtc2xhdGUtNzAwIGJsb2NrIj57dmFsdWUgfHwgIuKAlCJ9PC9hPgogICAgICApfQogICAgPC9kaXY+CiAgKTsKfQ==
+/**
+ * EditableFields — shared editable field components for Deal/Lead detail tabs.
+ */
+import { useState } from "react";
+import { Pencil } from "lucide-react";
+
+export function EditableInfoRow({ icon: Icon, label, value, onSave, saving, type = "text", isReadOnly = false }) {
+  const [isEditing, setIsEditing] = useState(false);
+
+  const getDisplayValue = (val) => {
+    if (Array.isArray(val)) return val.join(", ");
+    if (!val) return "";
+    if (type === "date") {
+      try {
+        const dateStr = typeof val === "string" ? val.split("T")[0] : val;
+        return new Date(dateStr + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+      } catch { return val; }
+    }
+    return val;
+  };
+
+  const displayValue = getDisplayValue(value);
+  const [editValue, setEditValue] = useState(
+    type === "date" && value ? (typeof value === "string" ? value.split("T")[0] : value) : displayValue
+  );
+
+  const handleSave = async () => {
+    await onSave(editValue);
+    setIsEditing(false);
+  };
+
+  if (isEditing && !isReadOnly) {
+    return (
+      <div className="flex items-start gap-2.5">
+        <Icon className="w-4 h-4 text-slate-400 flex-shrink-0 mt-2" />
+        <div className="flex-1 min-w-0 space-y-1.5">
+          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">{label}</p>
+          <input
+            type={type}
+            value={editValue}
+            onChange={e => setEditValue(e.target.value)}
+            className="w-full px-2 py-1 text-sm border border-amber-300 rounded focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+            autoFocus
+          />
+          <div className="flex gap-1.5">
+            <button onClick={handleSave} disabled={saving}
+              className="text-xs font-semibold px-2 py-1 bg-amber-600 text-white rounded hover:bg-amber-700 disabled:opacity-50">
+              {saving ? "Saving…" : "Save"}
+            </button>
+            <button onClick={() => setIsEditing(false)}
+              className="text-xs font-semibold px-2 py-1 border border-slate-200 rounded hover:bg-slate-50">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`flex items-start gap-2.5 ${!isReadOnly ? "group cursor-pointer hover:bg-slate-50" : ""} p-1.5 rounded -mx-1.5 transition-colors`}
+      onClick={() => !isReadOnly && setIsEditing(true)}
+    >
+      <Icon className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">{label}</p>
+        <p className="text-sm text-slate-900 mt-0.5 group-hover:text-amber-600 transition-colors">{displayValue || "—"}</p>
+      </div>
+      {!isReadOnly && <Pencil className="w-3 h-3 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-1" />}
+    </div>
+  );
+}
+
+export function EditableClientField({ label, value, type = "text", onSave }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(value);
+
+  const handleSave = async () => {
+    await onSave(editValue);
+    setIsEditing(false);
+  };
+
+  if (isEditing) {
+    return (
+      <div className="space-y-1.5">
+        <input
+          type={type}
+          value={editValue}
+          onChange={e => setEditValue(e.target.value)}
+          className="w-full px-2 py-1 text-xs border border-orange rounded focus:outline-none focus:ring-2 focus:ring-orange/20"
+          autoFocus
+        />
+        <div className="flex gap-1">
+          <button onClick={handleSave}
+            className="text-xs font-semibold px-2 py-1 bg-orange text-white rounded hover:bg-orange/90">
+            Save
+          </button>
+          <button onClick={() => { setEditValue(value); setIsEditing(false); }}
+            className="text-xs font-semibold px-2 py-1 border border-slate-200 rounded hover:bg-slate-50">
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div onClick={() => setIsEditing(true)} className="cursor-pointer hover:bg-slate-50 p-1 rounded -m-1 transition-colors">
+      {label === "Name" ? (
+        <p className="text-sm font-semibold text-slate-900">{value}</p>
+      ) : (
+        <a href={`tel:${value}`} onClick={e => e.stopPropagation()} className="text-xs text-slate-500 hover:text-slate-700 block">{value || "—"}</a>
+      )}
+    </div>
+  );
+}

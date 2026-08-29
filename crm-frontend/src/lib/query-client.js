@@ -1,1 +1,11 @@
-aW1wb3J0IHsgUXVlcnlDbGllbnQgfSBmcm9tICdAdGFuc3RhY2svcmVhY3QtcXVlcnknOwoKCmV4cG9ydCBjb25zdCBxdWVyeUNsaWVudEluc3RhbmNlID0gbmV3IFF1ZXJ5Q2xpZW50KHsKCWRlZmF1bHRPcHRpb25zOiB7CgkJcXVlcmllczogewoJCQlyZWZldGNoT25XaW5kb3dGb2N1czogZmFsc2UsCgkJCXJldHJ5OiAxLAoJCX0sCgl9LAp9KTs=
+import { QueryClient } from '@tanstack/react-query';
+
+
+export const queryClientInstance = new QueryClient({
+	defaultOptions: {
+		queries: {
+			refetchOnWindowFocus: false,
+			retry: 1,
+		},
+	},
+});

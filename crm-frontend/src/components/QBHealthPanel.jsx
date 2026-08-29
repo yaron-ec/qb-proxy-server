@@ -1,1 +1,113 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gJ3JlYWN0JzsKaW1wb3J0IHsgcmFpbHdheVJlcXVlc3QgfSBmcm9tICdAL2xpYi9yYWlsd2F5Q2xpZW50JzsKaW1wb3J0IHsgQ2hlY2tDaXJjbGUsIEFsZXJ0VHJpYW5nbGUsIENsb2NrLCBSZWZyZXNoQ3cgfSBmcm9tICdsdWNpZGUtcmVhY3QnOwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gUUJIZWFsdGhQYW5lbCgpIHsKICBjb25zdCBbaGVhbHRoLCBzZXRIZWFsdGhdID0gdXNlU3RhdGUobnVsbCk7CiAgY29uc3QgW2xvYWRpbmcsIHNldExvYWRpbmddID0gdXNlU3RhdGUodHJ1ZSk7CiAgY29uc3QgW2lzRXhwYW5kZWQsIHNldElzRXhwYW5kZWRdID0gdXNlU3RhdGUoZmFsc2UpOwoKICB1c2VFZmZlY3QoKCkgPT4gewogICAgY2hlY2tIZWFsdGgoKTsKICB9LCBbXSk7CgogIGNvbnN0IGNoZWNrSGVhbHRoID0gYXN5bmMgKCkgPT4gewogICAgc2V0TG9hZGluZyh0cnVlKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IHJlcyA9IGF3YWl0IHJhaWx3YXlSZXF1ZXN0KCcvcWIvaGVhbHRoJywge30pOwogICAgICBzZXRIZWFsdGgocmVzKTsKICAgICAgLy8gQXV0by1leHBhbmQgaWYgZXJyb3JzIGRldGVjdGVkCiAgICAgIGlmIChyZXM/LmVycm9ycz8ubGVuZ3RoID4gMCB8fCAhcmVzPy5jb25uZWN0ZWQpIHsKICAgICAgICBzZXRJc0V4cGFuZGVkKHRydWUpOwogICAgICB9CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIHNldEhlYWx0aCh7CiAgICAgICAgY29ubmVjdGVkOiBmYWxzZSwKICAgICAgICBlcnJvcnM6IFtlLm1lc3NhZ2VdLAogICAgICAgIHJlY29tbWVuZGF0aW9uczogWydDaGVjayB5b3VyIGNvbm5lY3Rpb24gYW5kIHRyeSBhZ2FpbiddLAogICAgICB9KTsKICAgICAgc2V0SXNFeHBhbmRlZCh0cnVlKTsKICAgIH0gZmluYWxseSB7CiAgICAgIHNldExvYWRpbmcoZmFsc2UpOwogICAgfQogIH07CgogIGlmIChsb2FkaW5nKSB7CiAgICByZXR1cm4gKAogICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctd2hpdGUgcm91bmRlZCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCBwLTQgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIiPgogICAgICAgIDxSZWZyZXNoQ3cgY2xhc3NOYW1lPSJ3LTQgaC00IGFuaW1hdGUtc3BpbiB0ZXh0LXNsYXRlLTQwMCIgLz4KICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtc20gdGV4dC1zbGF0ZS01MDAiPkNoZWNraW5nIFF1aWNrQm9va3MgaGVhbHRoLi4uPC9zcGFuPgogICAgICA8L2Rpdj4KICAgICk7CiAgfQoKICBpZiAoIWhlYWx0aCkgcmV0dXJuIG51bGw7CgogIGNvbnN0IHN0YXR1c0NvbG9yID0gaGVhbHRoLmNvbm5lY3RlZCA/ICdlbWVyYWxkJyA6IGhlYWx0aC5lcnJvcnM/Lmxlbmd0aCA/ICdyZWQnIDogJ2FtYmVyJzsKICBjb25zdCBzdGF0dXNCZyA9IHsgZW1lcmFsZDogJ2JnLWVtZXJhbGQtNTAnLCByZWQ6ICdiZy1yZWQtNTAnLCBhbWJlcjogJ2JnLWFtYmVyLTUwJyB9W3N0YXR1c0NvbG9yXTsKICBjb25zdCBzdGF0dXNCb3JkZXIgPSB7IGVtZXJhbGQ6ICdib3JkZXItZW1lcmFsZC0yMDAnLCByZWQ6ICdib3JkZXItcmVkLTIwMCcsIGFtYmVyOiAnYm9yZGVyLWFtYmVyLTIwMCcgfVtzdGF0dXNDb2xvcl07CiAgY29uc3Qgc3RhdHVzVGV4dCA9IHsgZW1lcmFsZDogJ3RleHQtZW1lcmFsZC04MDAnLCByZWQ6ICd0ZXh0LXJlZC04MDAnLCBhbWJlcjogJ3RleHQtYW1iZXItODAwJyB9W3N0YXR1c0NvbG9yXTsKICBjb25zdCBzdGF0dXNJY29uID0geyBlbWVyYWxkOiAndGV4dC1lbWVyYWxkLTYwMCcsIHJlZDogJ3RleHQtcmVkLTYwMCcsIGFtYmVyOiAndGV4dC1hbWJlci02MDAnIH1bc3RhdHVzQ29sb3JdOwogIGNvbnN0IFN0YXR1c0ljb24gPSBoZWFsdGguY29ubmVjdGVkID8gQ2hlY2tDaXJjbGUgOiBBbGVydFRyaWFuZ2xlOwoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9e2Byb3VuZGVkIGJvcmRlciBwLTQgJHtzdGF0dXNCZ30gJHtzdGF0dXNCb3JkZXJ9YH0+CiAgICAgIDxidXR0b24KICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRJc0V4cGFuZGVkKCFpc0V4cGFuZGVkKX0KICAgICAgICBjbGFzc05hbWU9InctZnVsbCBmbGV4IGl0ZW1zLXN0YXJ0IGp1c3RpZnktYmV0d2VlbiB0ZXh0LWxlZnQgaG92ZXI6b3BhY2l0eS04MCB0cmFuc2l0aW9uLW9wYWNpdHkiCiAgICAgID4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1zdGFydCBnYXAtMyBmbGV4LTEiPgogICAgICAgICAgPFN0YXR1c0ljb24gY2xhc3NOYW1lPXtgdy01IGgtNSBmbGV4LXNocmluay0wIG10LTAuNSAke3N0YXR1c0ljb259YH0gLz4KICAgICAgICAgIDxkaXY+CiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPXtgZm9udC1ib2xkIHRleHQtc20gJHtzdGF0dXNUZXh0fWB9PgogICAgICAgICAgICAgIHtoZWFsdGguY29ubmVjdGVkID8gJ1F1aWNrQm9va3MgQ29ubmVjdGVkJyA6ICdRdWlja0Jvb2tzIElzc3VlcyBEZXRlY3RlZCd9CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICB7aGVhbHRoLmNvbXBhbnlfaW5mbyAmJiAoCiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9e2B0ZXh0LXhzICR7c3RhdHVzVGV4dH0gbXQtMWB9PgogICAgICAgICAgICAgICAge2hlYWx0aC5jb21wYW55X2luZm8ubmFtZX0gwrcge2hlYWx0aC5lbnZpcm9ubWVudH0KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgKX0KICAgICAgICAgICAge2hlYWx0aC5lcnJvcnMubGVuZ3RoID4gMCAmJiAoCiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9e2B0ZXh0LXhzICR7c3RhdHVzVGV4dH0gbXQtMSBmb250LXNlbWlib2xkYH0+CiAgICAgICAgICAgICAgICB7aGVhbHRoLmVycm9yc1swXX0KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgKX0KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICAgIDxzcGFuIGNsYXNzTmFtZT17YHRleHQtc2xhdGUtNDAwIHRleHQtc20gdHJhbnNpdGlvbi10cmFuc2Zvcm0gJHtpc0V4cGFuZGVkID8gJ3JvdGF0ZS0xODAnIDogJyd9YH0+4pa8PC9zcGFuPgogICAgICA8L2J1dHRvbj4KCiAgICAgIHtpc0V4cGFuZGVkICYmICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibXQtMyBzcGFjZS15LTIgcHQtMyBib3JkZXItdCBib3JkZXItc2xhdGUtMjAwLzUwIj4KCiAgICAgICAgICB7LyogTGFzdCBTeW5jICovfQogICAgICAgICAge2hlYWx0aC5sYXN0X3N1Y2Nlc3NmdWxfc3luYyAmJiAoCiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNjAwIGJnLXdoaXRlLzQwIHJvdW5kZWQgcHgtMyBweS0yIj4KICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZm9udC1zZW1pYm9sZCBmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMSI+CiAgICAgICAgICAgICAgICA8Q2xvY2sgY2xhc3NOYW1lPSJ3LTMgaC0zIiAvPiBMYXN0IFN1Y2Nlc3NmdWwgU3luYwogICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtdC0xIj57bmV3IERhdGUoaGVhbHRoLmxhc3Rfc3VjY2Vzc2Z1bF9zeW5jKS50b0xvY2FsZVN0cmluZygpfTwvZGl2PgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICl9CgogICAgICAgICAgey8qIEVycm9ycyAqL30KICAgICAgICAgIHtoZWFsdGguZXJyb3JzPy5sZW5ndGggPiAwICYmICgKICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLXJlZC0xMDAvNTAgcm91bmRlZCBweC0zIHB5LTIiPgogICAgICAgICAgICAgIHtoZWFsdGguZXJyb3JzLm1hcCgoZXJyLCBpKSA9PiAoCiAgICAgICAgICAgICAgICA8ZGl2IGtleT17aX0gY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtcmVkLTcwMCI+4pyXIHtlcnJ9PC9kaXY+CiAgICAgICAgICAgICAgKSl9CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgKX0KCiAgICAgICAgICB7LyogUmVmcmVzaCBCdXR0b24gKi99CiAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgIG9uQ2xpY2s9e2NoZWNrSGVhbHRofQogICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBtdC0zIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGdhcC0xLjUgdGV4dC14cyBmb250LWJvbGQgcHktMiBiZy1zbGF0ZS0xMDAgcm91bmRlZCBob3ZlcjpiZy1zbGF0ZS0yMDAgdHJhbnNpdGlvbi1jb2xvcnMiCiAgICAgICAgICA+CiAgICAgICAgICAgIDxSZWZyZXNoQ3cgY2xhc3NOYW1lPSJ3LTMgaC0zIiAvPiBSZS1jaGVjayBIZWFsdGgKICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgIDwvZGl2PgogICAgICApfQogICAgPC9kaXY+CiAgKTsKfQ==
+import { useState, useEffect } from 'react';
+import { railwayRequest } from '@/lib/railwayClient';
+import { CheckCircle, AlertTriangle, Clock, RefreshCw } from 'lucide-react';
+
+export default function QBHealthPanel() {
+  const [health, setHealth] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  useEffect(() => {
+    checkHealth();
+  }, []);
+
+  const checkHealth = async () => {
+    setLoading(true);
+    try {
+      const res = await railwayRequest('/qb/health', {});
+      setHealth(res);
+      // Auto-expand if errors detected
+      if (res?.errors?.length > 0 || !res?.connected) {
+        setIsExpanded(true);
+      }
+    } catch (e) {
+      setHealth({
+        connected: false,
+        errors: [e.message],
+        recommendations: ['Check your connection and try again'],
+      });
+      setIsExpanded(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded border border-slate-200 p-4 flex items-center gap-2">
+        <RefreshCw className="w-4 h-4 animate-spin text-slate-400" />
+        <span className="text-sm text-slate-500">Checking QuickBooks health...</span>
+      </div>
+    );
+  }
+
+  if (!health) return null;
+
+  const statusColor = health.connected ? 'emerald' : health.errors?.length ? 'red' : 'amber';
+  const statusBg = { emerald: 'bg-emerald-50', red: 'bg-red-50', amber: 'bg-amber-50' }[statusColor];
+  const statusBorder = { emerald: 'border-emerald-200', red: 'border-red-200', amber: 'border-amber-200' }[statusColor];
+  const statusText = { emerald: 'text-emerald-800', red: 'text-red-800', amber: 'text-amber-800' }[statusColor];
+  const statusIcon = { emerald: 'text-emerald-600', red: 'text-red-600', amber: 'text-amber-600' }[statusColor];
+  const StatusIcon = health.connected ? CheckCircle : AlertTriangle;
+
+  return (
+    <div className={`rounded border p-4 ${statusBg} ${statusBorder}`}>
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-start justify-between text-left hover:opacity-80 transition-opacity"
+      >
+        <div className="flex items-start gap-3 flex-1">
+          <StatusIcon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${statusIcon}`} />
+          <div>
+            <div className={`font-bold text-sm ${statusText}`}>
+              {health.connected ? 'QuickBooks Connected' : 'QuickBooks Issues Detected'}
+            </div>
+            {health.company_info && (
+              <div className={`text-xs ${statusText} mt-1`}>
+                {health.company_info.name} · {health.environment}
+              </div>
+            )}
+            {health.errors.length > 0 && (
+              <div className={`text-xs ${statusText} mt-1 font-semibold`}>
+                {health.errors[0]}
+              </div>
+            )}
+          </div>
+        </div>
+        <span className={`text-slate-400 text-sm transition-transform ${isExpanded ? 'rotate-180' : ''}`}>▼</span>
+      </button>
+
+      {isExpanded && (
+        <div className="mt-3 space-y-2 pt-3 border-t border-slate-200/50">
+
+          {/* Last Sync */}
+          {health.last_successful_sync && (
+            <div className="text-xs text-slate-600 bg-white/40 rounded px-3 py-2">
+              <div className="font-semibold flex items-center gap-1">
+                <Clock className="w-3 h-3" /> Last Successful Sync
+              </div>
+              <div className="mt-1">{new Date(health.last_successful_sync).toLocaleString()}</div>
+            </div>
+          )}
+
+          {/* Errors */}
+          {health.errors?.length > 0 && (
+            <div className="bg-red-100/50 rounded px-3 py-2">
+              {health.errors.map((err, i) => (
+                <div key={i} className="text-xs text-red-700">✗ {err}</div>
+              ))}
+            </div>
+          )}
+
+          {/* Refresh Button */}
+          <button
+            onClick={checkHealth}
+            className="w-full mt-3 flex items-center justify-center gap-1.5 text-xs font-bold py-2 bg-slate-100 rounded hover:bg-slate-200 transition-colors"
+          >
+            <RefreshCw className="w-3 h-3" /> Re-check Health
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}

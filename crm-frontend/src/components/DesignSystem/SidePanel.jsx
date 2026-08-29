@@ -1,1 +1,36 @@
-LyoqCiAqIFNpZGVQYW5lbCDigJQgY29sbGFwc2libGUgcGFuZWwgc2VjdGlvbiB3aXRoIGNvbnNpc3RlbnQgaGVhZGVyLgogKiBVc2VkIGluIHJpZ2h0LXNpZGUgcGFuZWxzIGFuZCB0YWIgY29udGVudCBzZWN0aW9ucy4KICovCmltcG9ydCB7IHVzZVN0YXRlIH0gZnJvbSAicmVhY3QiOwppbXBvcnQgeyBDaGV2cm9uRG93biB9IGZyb20gImx1Y2lkZS1yZWFjdCI7CgpleHBvcnQgZnVuY3Rpb24gU2lkZVBhbmVsKHsgaWNvbjogSWNvbiwgdGl0bGUsIGJhZGdlID0gbnVsbCwgYWN0aW9ucyA9IG51bGwsIGNoaWxkcmVuLCBkZWZhdWx0T3BlbiA9IHRydWUsIGNsYXNzTmFtZSA9ICIiIH0pIHsKICBjb25zdCBbaXNPcGVuLCBzZXRJc09wZW5dID0gdXNlU3RhdGUoZGVmYXVsdE9wZW4pOwoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9e2Bib3JkZXItYiBib3JkZXItc2xhdGUtMTAwICR7Y2xhc3NOYW1lfWB9PgogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIHB4LTQgcHktMi41Ij4KICAgICAgICA8YnV0dG9uCiAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRJc09wZW4oIWlzT3Blbil9CiAgICAgICAgICBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIG1pbi13LTAgZmxleC0xIgogICAgICAgID4KICAgICAgICAgIHtJY29uICYmIDxJY29uIGNsYXNzTmFtZT0idy0zLjUgaC0zLjUgdGV4dC1zbGF0ZS00MDAgZmxleC1zaHJpbmstMCIgLz59CiAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtc20gZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTgwMCB0cnVuY2F0ZSI+e3RpdGxlfTwvc3Bhbj4KICAgICAgICAgIHtiYWRnZSAhPSBudWxsICYmICgKICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSBmb250LWJvbGQgYmctc2xhdGUtMTAwIHRleHQtc2xhdGUtNjAwIHB4LTEuNSBweS0wLjUgcm91bmRlZC1mdWxsIGZsZXgtc2hyaW5rLTAiPgogICAgICAgICAgICAgIHtiYWRnZX0KICAgICAgICAgICAgPC9zcGFuPgogICAgICAgICAgKX0KICAgICAgICA8L2J1dHRvbj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSBmbGV4LXNocmluay0wIj4KICAgICAgICAgIHthY3Rpb25zfQogICAgICAgICAgPGJ1dHRvbiBvbkNsaWNrPXsoKSA9PiBzZXRJc09wZW4oIWlzT3Blbil9IGNsYXNzTmFtZT0idGV4dC1zbGF0ZS00MDAgaG92ZXI6dGV4dC1zbGF0ZS02MDAgYnRuLWNvbXBhY3QgcC0wLjUiPgogICAgICAgICAgICA8Q2hldnJvbkRvd24gY2xhc3NOYW1lPXtgdy0zLjUgaC0zLjUgdHJhbnNpdGlvbi10cmFuc2Zvcm0gJHtpc09wZW4gPyAiIiA6ICItcm90YXRlLTkwIn1gfSAvPgogICAgICAgICAgPC9idXR0b24+CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgogICAgICB7aXNPcGVuICYmIDxkaXY+e2NoaWxkcmVufTwvZGl2Pn0KICAgIDwvZGl2PgogICk7Cn0=
+/**
+ * SidePanel — collapsible panel section with consistent header.
+ * Used in right-side panels and tab content sections.
+ */
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
+
+export function SidePanel({ icon: Icon, title, badge = null, actions = null, children, defaultOpen = true, className = "" }) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  return (
+    <div className={`border-b border-slate-100 ${className}`}>
+      <div className="flex items-center justify-between px-4 py-2.5">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex items-center gap-2 min-w-0 flex-1"
+        >
+          {Icon && <Icon className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />}
+          <span className="text-sm font-semibold text-slate-800 truncate">{title}</span>
+          {badge != null && (
+            <span className="text-[10px] font-bold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full flex-shrink-0">
+              {badge}
+            </span>
+          )}
+        </button>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {actions}
+          <button onClick={() => setIsOpen(!isOpen)} className="text-slate-400 hover:text-slate-600 btn-compact p-0.5">
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isOpen ? "" : "-rotate-90"}`} />
+          </button>
+        </div>
+      </div>
+      {isOpen && <div>{children}</div>}
+    </div>
+  );
+}

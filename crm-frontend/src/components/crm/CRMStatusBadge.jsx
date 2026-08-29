@@ -1,1 +1,18 @@
-aW1wb3J0IHsgc3RhdHVzQmFkZ2UgfSBmcm9tICJAL2xpYi9jcm1EZXNpZ25TeXN0ZW0iOwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gQ1JNU3RhdHVzQmFkZ2UoeyBjaGlsZHJlbiwgdmFyaWFudCA9ICJuZXV0cmFsIiwgaWNvbjogSWNvbiwgY2xhc3NOYW1lID0gIiIgfSkgewogIGNvbnN0IGJhZGdlU3R5bGUgPSB7CiAgICBzdWNjZXNzOiBzdGF0dXNCYWRnZS5zdWNjZXNzLAogICAgd2FybmluZzogc3RhdHVzQmFkZ2Uud2FybmluZywKICAgIGVycm9yOiBzdGF0dXNCYWRnZS5lcnJvciwKICAgIGluZm86IHN0YXR1c0JhZGdlLmluZm8sCiAgICBuZXV0cmFsOiBzdGF0dXNCYWRnZS5uZXV0cmFsLAogIH1bdmFyaWFudF0gfHwgc3RhdHVzQmFkZ2UubmV1dHJhbDsKCiAgcmV0dXJuICgKICAgIDxzcGFuIGNsYXNzTmFtZT17YCR7YmFkZ2VTdHlsZX0gJHtjbGFzc05hbWV9YH0+CiAgICAgIHtJY29uICYmIDxJY29uIGNsYXNzTmFtZT0idy0zIGgtMyIgLz59CiAgICAgIHtjaGlsZHJlbn0KICAgIDwvc3Bhbj4KICApOwp9
+import { statusBadge } from "@/lib/crmDesignSystem";
+
+export default function CRMStatusBadge({ children, variant = "neutral", icon: Icon, className = "" }) {
+  const badgeStyle = {
+    success: statusBadge.success,
+    warning: statusBadge.warning,
+    error: statusBadge.error,
+    info: statusBadge.info,
+    neutral: statusBadge.neutral,
+  }[variant] || statusBadge.neutral;
+
+  return (
+    <span className={`${badgeStyle} ${className}`}>
+      {Icon && <Icon className="w-3 h-3" />}
+      {children}
+    </span>
+  );
+}

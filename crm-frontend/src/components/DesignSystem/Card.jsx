@@ -1,1 +1,36 @@
-LyoqCiAqIFVuaWZpZWQgQ2FyZCBDb21wb25lbnQgU3lzdGVtCiAqIENvbnNpc3RlbnQgcGFkZGluZywgc3BhY2luZywgc2hhZG93cywgYW5kIGJvcmRlcnMKICogVXNlcyBkZXNpZ24gdG9rZW5zIGZvciBwcmVtaXVtIFNhYVMgYXBwZWFyYW5jZQogKi8KCmV4cG9ydCBmdW5jdGlvbiBDYXJkKHsgY2hpbGRyZW4sIGNsYXNzTmFtZSA9ICIiLCBob3ZlciA9IHRydWUgfSkgewogIHJldHVybiAoCiAgICA8ZGl2IAogICAgICBjbGFzc05hbWU9e2BiZy13aGl0ZSByb3VuZGVkLWxnIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHNoYWRvdy1zbSAke2hvdmVyID8gJ2hvdmVyOnNoYWRvdy1tZCBob3Zlcjpib3JkZXItc2xhdGUtMzAwJyA6ICcnfSB0cmFuc2l0aW9uLWFsbCBkdXJhdGlvbi0xNTAgJHtjbGFzc05hbWV9YH0KICAgID4KICAgICAge2NoaWxkcmVufQogICAgPC9kaXY+CiAgKTsKfQoKZXhwb3J0IGZ1bmN0aW9uIENhcmRIZWFkZXIoeyBjaGlsZHJlbiwgY2xhc3NOYW1lID0gIiIgfSkgewogIHJldHVybiA8ZGl2IGNsYXNzTmFtZT17YHB4LTQgcHktMyBib3JkZXItYiBib3JkZXItc2xhdGUtMTAwICR7Y2xhc3NOYW1lfWB9PntjaGlsZHJlbn08L2Rpdj47Cn0KCmV4cG9ydCBmdW5jdGlvbiBDYXJkQ29udGVudCh7IGNoaWxkcmVuLCBjbGFzc05hbWUgPSAiIiB9KSB7CiAgcmV0dXJuIDxkaXYgY2xhc3NOYW1lPXtgcC00ICR7Y2xhc3NOYW1lfWB9PntjaGlsZHJlbn08L2Rpdj47Cn0KCmV4cG9ydCBmdW5jdGlvbiBDYXJkRm9vdGVyKHsgY2hpbGRyZW4sIGNsYXNzTmFtZSA9ICIiIH0pIHsKICByZXR1cm4gPGRpdiBjbGFzc05hbWU9e2BweC00IHB5LTMgYm9yZGVyLXQgYm9yZGVyLXNsYXRlLTEwMCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gZ2FwLTIgJHtjbGFzc05hbWV9YH0+e2NoaWxkcmVufTwvZGl2PjsKfQoKZXhwb3J0IGZ1bmN0aW9uIEtQSUNhcmQoeyBsYWJlbCwgdmFsdWUsIGNvbG9yID0gImJnLXNsYXRlLTUwIiwgdGV4dENvbG9yID0gInRleHQtc2xhdGUtNzAwIiB9KSB7CiAgcmV0dXJuICgKICAgIDxDYXJkIGNsYXNzTmFtZT17YCR7Y29sb3J9IHAtNCBmbGV4IGZsZXgtY29sIGdhcC0yIG1pbi13LTAganVzdGlmeS1jZW50ZXJgfT4KICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNTAwIHVwcGVyY2FzZSB0cmFja2luZy13aWRlIGxlYWRpbmctdGlnaHQgdHJ1bmNhdGUiPntsYWJlbH08L3A+CiAgICAgIDxwIGNsYXNzTmFtZT17YHRleHQtYmFzZSBmb250LWJvbGQgdHJ1bmNhdGUgJHt0ZXh0Q29sb3J9YH0+e3ZhbHVlfTwvcD4KICAgIDwvQ2FyZD4KICApOwp9
+/**
+ * Unified Card Component System
+ * Consistent padding, spacing, shadows, and borders
+ * Uses design tokens for premium SaaS appearance
+ */
+
+export function Card({ children, className = "", hover = true }) {
+  return (
+    <div 
+      className={`bg-white rounded-lg border border-slate-200 shadow-sm ${hover ? 'hover:shadow-md hover:border-slate-300' : ''} transition-all duration-150 ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+export function CardHeader({ children, className = "" }) {
+  return <div className={`px-4 py-3 border-b border-slate-100 ${className}`}>{children}</div>;
+}
+
+export function CardContent({ children, className = "" }) {
+  return <div className={`p-4 ${className}`}>{children}</div>;
+}
+
+export function CardFooter({ children, className = "" }) {
+  return <div className={`px-4 py-3 border-t border-slate-100 flex items-center justify-between gap-2 ${className}`}>{children}</div>;
+}
+
+export function KPICard({ label, value, color = "bg-slate-50", textColor = "text-slate-700" }) {
+  return (
+    <Card className={`${color} p-4 flex flex-col gap-2 min-w-0 justify-center`}>
+      <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide leading-tight truncate">{label}</p>
+      <p className={`text-base font-bold truncate ${textColor}`}>{value}</p>
+    </Card>
+  );
+}

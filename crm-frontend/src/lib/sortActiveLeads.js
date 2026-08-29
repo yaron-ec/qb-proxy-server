@@ -1,1 +1,34 @@
-LyoqCiAqIHNvcnRBY3RpdmVMZWFkcwogKgogKiBTb3J0IGJ5IGZvbGxvd191cF9kYXRlIERFU0Mg4oCUIGZ1cnRoZXN0IGZ1dHVyZSBmaXJzdCwgZW1wdHkgbGFzdC4KICogTm8gcHJpb3JpdHkgYm9vc3RpbmcgZm9yIHRvZGF5L292ZXJkdWUvYXBwb2ludG1lbnRfZGF0ZS4KICovCgpleHBvcnQgZnVuY3Rpb24gcGFyc2VGb2xsb3dVcERhdGUoZGF0ZVN0cikgewogIGlmICghZGF0ZVN0cikgcmV0dXJuIG51bGw7CiAgY29uc3QgbWF0Y2ggPSBTdHJpbmcoZGF0ZVN0cikubWF0Y2goLyhcZHs0fSktKFxkezJ9KS0oXGR7Mn0pLyk7CiAgaWYgKCFtYXRjaCkgcmV0dXJuIG51bGw7CiAgLy8gUmV0dXJuIGFzIGxvY2FsLWRhdGUgbnVtZXJpYzogWVlZWU1NREQgaW50ZWdlciBmb3IgY2xlYW4gY29tcGFyaXNvbgogIHJldHVybiBwYXJzZUludChtYXRjaFsxXSkgKiAxMDAwMCArIHBhcnNlSW50KG1hdGNoWzJdKSAqIDEwMCArIHBhcnNlSW50KG1hdGNoWzNdKTsKfQoKZXhwb3J0IGZ1bmN0aW9uIGdldFRvZGF5TG9jYWwoKSB7CiAgY29uc3Qgbm93ID0gbmV3IERhdGUoKTsKICByZXR1cm4gbm93LmdldEZ1bGxZZWFyKCkgKiAxMDAwMCArIChub3cuZ2V0TW9udGgoKSArIDEpICogMTAwICsgbm93LmdldERhdGUoKTsKfQoKZXhwb3J0IGZ1bmN0aW9uIHNvcnRBY3RpdmVMZWFkcyhsZWFkcykgewogIHJldHVybiBbLi4ubGVhZHNdLnNvcnQoKGEsIGIpID0+IHsKICAgIGNvbnN0IHRzQSA9IHBhcnNlRm9sbG93VXBEYXRlKGEuZm9sbG93X3VwX2RhdGUpOwogICAgY29uc3QgdHNCID0gcGFyc2VGb2xsb3dVcERhdGUoYi5mb2xsb3dfdXBfZGF0ZSk7CgogICAgLy8gRW1wdHkg4oaSIGFsd2F5cyBsYXN0CiAgICBpZiAodHNBID09PSBudWxsICYmIHRzQiA9PT0gbnVsbCkgcmV0dXJuIDA7CiAgICBpZiAodHNBID09PSBudWxsKSByZXR1cm4gMTsKICAgIGlmICh0c0IgPT09IG51bGwpIHJldHVybiAtMTsKCiAgICAvLyBERVNDOiBmdXJ0aGVzdCBmdXR1cmUgZmlyc3QKICAgIHJldHVybiB0c0IgLSB0c0E7CiAgfSk7Cn0=
+/**
+ * sortActiveLeads
+ *
+ * Sort by follow_up_date DESC — furthest future first, empty last.
+ * No priority boosting for today/overdue/appointment_date.
+ */
+
+export function parseFollowUpDate(dateStr) {
+  if (!dateStr) return null;
+  const match = String(dateStr).match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) return null;
+  // Return as local-date numeric: YYYYMMDD integer for clean comparison
+  return parseInt(match[1]) * 10000 + parseInt(match[2]) * 100 + parseInt(match[3]);
+}
+
+export function getTodayLocal() {
+  const now = new Date();
+  return now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
+}
+
+export function sortActiveLeads(leads) {
+  return [...leads].sort((a, b) => {
+    const tsA = parseFollowUpDate(a.follow_up_date);
+    const tsB = parseFollowUpDate(b.follow_up_date);
+
+    // Empty → always last
+    if (tsA === null && tsB === null) return 0;
+    if (tsA === null) return 1;
+    if (tsB === null) return -1;
+
+    // DESC: furthest future first
+    return tsB - tsA;
+  });
+}

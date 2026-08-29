@@ -1,1 +1,107 @@
-LyoqCiAqIGZpbGVVcGxvYWQuanMKICoKICogVXBsb2FkcyBmaWxlcyBzZWN1cmVseSB0aHJvdWdoIHRoZSBSYWlsd2F5IHByb3h5IHNlcnZlci4KICogVGhlIFJhaWx3YXkgcHJveHkgc2VjcmV0IGlzIE5FVkVSIGV4cG9zZWQgdG8gdGhlIGNsaWVudCDigJQgaXQgc3RheXMgc2VydmVyLXNpZGUuCiAqCiAqIEZsb3c6IEJyb3dzZXIg4oaSIFJhaWx3YXkgcHJveHkgL2FwaS9maWxlcy91cGxvYWQg4oaSIFIyL1MzCiAqLwoKaW1wb3J0IHsgcmFpbHdheVJlcXVlc3QgfSBmcm9tICdAL2xpYi9yYWlsd2F5Q2xpZW50JzsKCi8qKgogKiBVcGxvYWQgYSBGaWxlIG9iamVjdCB0byBSMi9TMyB2aWEgdGhlIFJhaWx3YXkgcHJveHkuCiAqIFJldHVybnMgeyB1cmwsIGtleSwgZmlsZU5hbWUsIGNvbnRlbnRUeXBlLCBzaXplIH0KICogVGhyb3dzIG9uIGZhaWx1cmUuCiAqLwpleHBvcnQgYXN5bmMgZnVuY3Rpb24gdXBsb2FkRmlsZVRvU3RvcmFnZShmaWxlKSB7CiAgLy8gU2VuZCB0aGUgZmlsZSBkaXJlY3RseSBhcyBtdWx0aXBhcnQvZm9ybS1kYXRhIHRvIHRoZSBSYWlsd2F5IHByb3h5CiAgY29uc3QgZm9ybURhdGEgPSBuZXcgRm9ybURhdGEoKTsKICBmb3JtRGF0YS5hcHBlbmQoJ2ZpbGUnLCBmaWxlKTsKCiAgY29uc3QgQVBJX0JBU0UgPSBpbXBvcnQubWV0YS5lbnYuVklURV9SQUlMV0FZX0FQSV9VUkwgfHwgJyc7CiAgY29uc3QgUFJPWFlfU0VDUkVUID0gaW1wb3J0Lm1ldGEuZW52LlZJVEVfUFJPWFlfU0VDUkVUIHx8ICcnOwoKICBjb25zdCByZXMgPSBhd2FpdCBmZXRjaChgJHtBUElfQkFTRX0vYXBpL2ZpbGVzL3VwbG9hZGAsIHsKICAgIG1ldGhvZDogJ1BPU1QnLAogICAgaGVhZGVyczogeyAnWC1Qcm94eS1TZWNyZXQnOiBQUk9YWV9TRUNSRVQgfSwKICAgIGJvZHk6IGZvcm1EYXRhLAogIH0pOwoKICBjb25zdCBkYXRhID0gYXdhaXQgcmVzLmpzb24oKTsKICBpZiAoIWRhdGEgfHwgIWRhdGEuc3VjY2VzcyB8fCBkYXRhLmVycm9yKSB7CiAgICB0aHJvdyBuZXcgRXJyb3IoZGF0YT8uZXJyb3IgfHwgJ1VwbG9hZCBmYWlsZWQnKTsKICB9CgogIHJldHVybiB7CiAgICB1cmw6IGRhdGEudXJsLAogICAga2V5OiBkYXRhLmtleSwKICAgIGZpbGVOYW1lOiBkYXRhLmZpbGVOYW1lLAogICAgY29udGVudFR5cGU6IGRhdGEuY29udGVudFR5cGUsCiAgICBzaXplOiBkYXRhLnNpemUsCiAgfTsKfQoKLyoqCiAqIENoZWNrIGlmIGZpbGUgdXBsb2FkIHN0b3JhZ2UgaXMgY29uZmlndXJlZCBvbiB0aGUgcHJveHkuCiAqIFJldHVybnMgeyBjb25maWd1cmVkLCBwcm92aWRlciwgYnVja2V0IH0KICovCmV4cG9ydCBhc3luYyBmdW5jdGlvbiBjaGVja1VwbG9hZFN0b3JhZ2VTdGF0dXMoKSB7CiAgdHJ5IHsKICAgIHJldHVybiBhd2FpdCByYWlsd2F5UmVxdWVzdCgnL2FwaS9maWxlcy9zdGF0dXMnLCB7IG1ldGhvZDogJ0dFVCcgfSk7CiAgfSBjYXRjaCAoZSkgewogICAgcmV0dXJuIHsgY29uZmlndXJlZDogZmFsc2UsIGVycm9yOiBlLm1lc3NhZ2UgfTsKICB9Cn0KCi8qKgogKiBTYWZlbHkgZXh0cmFjdCB0aGUgUjIgb2JqZWN0IGtleSAodXBsb2Fkcy9ZWVlZL01NLy4uLikgZnJvbSBhIHN0b3JlZCBrZXkgb3IKICogYSBsZWdhY3kgbWFsZm9ybWVkIFVSTC4gUmV0dXJucyBudWxsIHdoZW4gbm8gdXBsb2Fkcy8gcG9ydGlvbiBpcyBwcmVzZW50LgogKiBOZXZlciBkZXJpdmVzIGEga2V5IGZyb20gYW4gYXJiaXRyYXJ5IHJlbGF0aXZlIFVSTCB0aGF0IGxhY2tzIHVwbG9hZHMvLgogKi8KZXhwb3J0IGZ1bmN0aW9uIGV4dHJhY3RLZXkodXJsT3JLZXkpIHsKICBpZiAoIXVybE9yS2V5IHx8IHR5cGVvZiB1cmxPcktleSAhPT0gInN0cmluZyIpIHJldHVybiBudWxsOwogIGNvbnN0IGlkeCA9IHVybE9yS2V5LmluZGV4T2YoInVwbG9hZHMvIik7CiAgaWYgKGlkeCA8IDApIHJldHVybiBudWxsOwogIGNvbnN0IGtleSA9IHVybE9yS2V5LnNsaWNlKGlkeCkuc3BsaXQoIj8iKVswXS5zcGxpdCgiIyIpWzBdOwogIHJldHVybiBrZXkuc3RhcnRzV2l0aCgidXBsb2Fkcy8iKSA/IGtleSA6IG51bGw7Cn0KCi8qKgogKiBSZXF1ZXN0IGEgc2hvcnQtbGl2ZWQgcHJlc2lnbmVkIEdFVCBVUkwgZm9yIG9uZSBwcml2YXRlIFIyIG9iamVjdC4KICogZGlzcG9zaXRpb246ICJpbmxpbmUiIChWaWV3KSBvciAiYXR0YWNobWVudCIgKERvd25sb2FkKS4KICovCmV4cG9ydCBhc3luYyBmdW5jdGlvbiBnZXRTaWduZWRGaWxlVXJsKGtleSwgZGlzcG9zaXRpb24gPSAiaW5saW5lIikgewogIGlmICgha2V5IHx8ICFTdHJpbmcoa2V5KS5zdGFydHNXaXRoKCJ1cGxvYWRzLyIpKSB7CiAgICBjb25zdCBkZXJpdmVkID0gZXh0cmFjdEtleShrZXkpOwogICAgaWYgKCFkZXJpdmVkKSB0aHJvdyBuZXcgRXJyb3IoIk5vIHJlY2VpcHQgb2JqZWN0IGtleSBhdmFpbGFibGUuIik7CiAgICBrZXkgPSBkZXJpdmVkOwogIH0KICBjb25zdCBkYXRhID0gYXdhaXQgcmFpbHdheVJlcXVlc3QoJy9hcGkvZmlsZXMvc2lnbmVkLXVybCcsIHsKICAgIG1ldGhvZDogJ1BPU1QnLAogICAgYm9keTogeyBrZXksIGRpc3Bvc2l0aW9uIH0sCiAgfSk7CiAgaWYgKCFkYXRhIHx8IGRhdGEuZXJyb3IgfHwgIWRhdGEudXJsKSB7CiAgICB0aHJvdyBuZXcgRXJyb3IoZGF0YT8uZXJyb3IgfHwgIkNvdWxkIG5vdCBnZW5lcmF0ZSBhIHJlY2VpcHQgbGluay4iKTsKICB9CiAgcmV0dXJuIGRhdGEudXJsOwp9CgovKioKICogRGVsZXRlIG9uZSBSMiBvYmplY3QgdmlhIHRoZSBSYWlsd2F5IHByb3h5LiBBY2NlcHRzIGEgc3RvcmVkIGtleSBvciBhIGxlZ2FjeQogKiBVUkwgY29udGFpbmluZyB1cGxvYWRzLy4gVGhyb3dzIG9uIGZhaWx1cmUuCiAqLwpleHBvcnQgYXN5bmMgZnVuY3Rpb24gZGVsZXRlRmlsZUZyb21TdG9yYWdlKGtleU9yVXJsKSB7CiAgY29uc3Qga2V5ID0gdHlwZW9mIGtleU9yVXJsID09PSAic3RyaW5nIiAmJiBrZXlPclVybC5zdGFydHNXaXRoKCJ1cGxvYWRzLyIpID8ga2V5T3JVcmwgOiBleHRyYWN0S2V5KGtleU9yVXJsKTsKICBpZiAoIWtleSkgewogICAgdGhyb3cgbmV3IEVycm9yKCJObyByZWNlaXB0IG9iamVjdCBrZXkgdG8gZGVsZXRlLiIpOwogIH0KICBjb25zdCBkYXRhID0gYXdhaXQgcmFpbHdheVJlcXVlc3QoJy9hcGkvZmlsZXMvZGVsZXRlJywgewogICAgbWV0aG9kOiAnREVMRVRFJywKICAgIGJvZHk6IHsga2V5IH0sCiAgfSk7CiAgaWYgKCFkYXRhIHx8IGRhdGEuZXJyb3IgfHwgZGF0YS5zdWNjZXNzID09PSBmYWxzZSkgewogICAgdGhyb3cgbmV3IEVycm9yKGRhdGE/LmVycm9yIHx8ICJSZWNlaXB0IGZpbGUgZGVsZXRpb24gZmFpbGVkLiIpOwogIH0KICByZXR1cm4gdHJ1ZTsKfQ==
+/**
+ * fileUpload.js
+ *
+ * Uploads files securely through the Railway proxy server.
+ * The Railway proxy secret is NEVER exposed to the client — it stays server-side.
+ *
+ * Flow: Browser → Railway proxy /api/files/upload → R2/S3
+ */
+
+import { railwayRequest } from '@/lib/railwayClient';
+
+/**
+ * Upload a File object to R2/S3 via the Railway proxy.
+ * Returns { url, key, fileName, contentType, size }
+ * Throws on failure.
+ */
+export async function uploadFileToStorage(file) {
+  // Send the file directly as multipart/form-data to the Railway proxy
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const API_BASE = import.meta.env.VITE_RAILWAY_API_URL || '';
+  const PROXY_SECRET = import.meta.env.VITE_PROXY_SECRET || '';
+
+  const res = await fetch(`${API_BASE}/api/files/upload`, {
+    method: 'POST',
+    headers: { 'X-Proxy-Secret': PROXY_SECRET },
+    body: formData,
+  });
+
+  const data = await res.json();
+  if (!data || !data.success || data.error) {
+    throw new Error(data?.error || 'Upload failed');
+  }
+
+  return {
+    url: data.url,
+    key: data.key,
+    fileName: data.fileName,
+    contentType: data.contentType,
+    size: data.size,
+  };
+}
+
+/**
+ * Check if file upload storage is configured on the proxy.
+ * Returns { configured, provider, bucket }
+ */
+export async function checkUploadStorageStatus() {
+  try {
+    return await railwayRequest('/api/files/status', { method: 'GET' });
+  } catch (e) {
+    return { configured: false, error: e.message };
+  }
+}
+
+/**
+ * Safely extract the R2 object key (uploads/YYYY/MM/...) from a stored key or
+ * a legacy malformed URL. Returns null when no uploads/ portion is present.
+ * Never derives a key from an arbitrary relative URL that lacks uploads/.
+ */
+export function extractKey(urlOrKey) {
+  if (!urlOrKey || typeof urlOrKey !== "string") return null;
+  const idx = urlOrKey.indexOf("uploads/");
+  if (idx < 0) return null;
+  const key = urlOrKey.slice(idx).split("?")[0].split("#")[0];
+  return key.startsWith("uploads/") ? key : null;
+}
+
+/**
+ * Request a short-lived presigned GET URL for one private R2 object.
+ * disposition: "inline" (View) or "attachment" (Download).
+ */
+export async function getSignedFileUrl(key, disposition = "inline") {
+  if (!key || !String(key).startsWith("uploads/")) {
+    const derived = extractKey(key);
+    if (!derived) throw new Error("No receipt object key available.");
+    key = derived;
+  }
+  const data = await railwayRequest('/api/files/signed-url', {
+    method: 'POST',
+    body: { key, disposition },
+  });
+  if (!data || data.error || !data.url) {
+    throw new Error(data?.error || "Could not generate a receipt link.");
+  }
+  return data.url;
+}
+
+/**
+ * Delete one R2 object via the Railway proxy. Accepts a stored key or a legacy
+ * URL containing uploads/. Throws on failure.
+ */
+export async function deleteFileFromStorage(keyOrUrl) {
+  const key = typeof keyOrUrl === "string" && keyOrUrl.startsWith("uploads/") ? keyOrUrl : extractKey(keyOrUrl);
+  if (!key) {
+    throw new Error("No receipt object key to delete.");
+  }
+  const data = await railwayRequest('/api/files/delete', {
+    method: 'DELETE',
+    body: { key },
+  });
+  if (!data || data.error || data.success === false) {
+    throw new Error(data?.error || "Receipt file deletion failed.");
+  }
+  return true;
+}

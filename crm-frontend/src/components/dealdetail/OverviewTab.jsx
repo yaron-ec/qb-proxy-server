@@ -1,1 +1,144 @@
-LyoqCiAqIE92ZXJ2aWV3VGFiIOKAlCBjbGllbnQgaW5mbywgcHJvamVjdCBpbmZvLCBub3RlcywgcGlwZWxpbmUgc3RhZ2VzLgogKi8KaW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsgQ2FsZW5kYXIsIE1hcFBpbiwgVXNlciwgRmlsZVRleHQgfSBmcm9tICJsdWNpZGUtcmVhY3QiOwppbXBvcnQgKiBhcyByYWlsd2F5RGVhbHMgZnJvbSAiQC9hcGkvcmFpbHdheS9kZWFscyI7CmltcG9ydCAqIGFzIHJhaWx3YXlMZWFkcyBmcm9tICJAL2FwaS9yYWlsd2F5L2xlYWRzIjsKaW1wb3J0IHsgRWRpdGFibGVJbmZvUm93LCBFZGl0YWJsZUNsaWVudEZpZWxkIH0gZnJvbSAiLi9FZGl0YWJsZUZpZWxkcyI7CmltcG9ydCBQcm9qZWN0VHlwZVNlbGVjdG9yIGZyb20gIkAvY29tcG9uZW50cy9Qcm9qZWN0VHlwZVNlbGVjdG9yIjsKCmNvbnN0IFBJUEVMSU5FX1NUQUdFUyA9IFsKICAiU29sZCAvIEVzdGltYXRlIEFwcHJvdmVkIiwKICAiRGVwb3NpdCBEdWUiLAogICJEZXBvc2l0IFBhaWQiLAogICJXb3JrIFNjaGVkdWxlZCIsCiAgIldvcmsgU3RhcnRlZCIsCiAgIlByb2dyZXNzIFBheW1lbnQgRHVlIiwKICAiUHJvZ3Jlc3MgUGF5bWVudCBQYWlkIiwKICAiRmluYWwgUGF5bWVudCBEdWUiLAogICJGaW5hbCBQYXltZW50IFBhaWQiLAogICJKb2IgQ29tcGxldGVkIiwKXTsKCmNvbnN0IFNUQUdFX0NPTE9SUyA9IHsKICAiU29sZCAvIEVzdGltYXRlIEFwcHJvdmVkIjogeyBiZzogImJnLWJsdWUtMTAwIiwgICAgdGV4dDogInRleHQtYmx1ZS03MDAiLCAgICBib3JkZXI6ICJib3JkZXItYmx1ZS0yMDAiIH0sCiAgIkRlcG9zaXQgRHVlIjogICAgICAgICAgICAgIHsgYmc6ICJiZy1hbWJlci0xMDAiLCAgIHRleHQ6ICJ0ZXh0LWFtYmVyLTcwMCIsICAgYm9yZGVyOiAiYm9yZGVyLWFtYmVyLTIwMCIgfSwKICAiRGVwb3NpdCBQYWlkIjogICAgICAgICAgICAgeyBiZzogImJnLWVtZXJhbGQtMTAwIiwgdGV4dDogInRleHQtZW1lcmFsZC03MDAiLCBib3JkZXI6ICJib3JkZXItZW1lcmFsZC0yMDAiIH0sCiAgIldvcmsgU2NoZWR1bGVkIjogICAgICAgICAgIHsgYmc6ICJiZy1za3ktMTAwIiwgICAgIHRleHQ6ICJ0ZXh0LXNreS03MDAiLCAgICAgYm9yZGVyOiAiYm9yZGVyLXNreS0yMDAiIH0sCiAgIldvcmsgU3RhcnRlZCI6ICAgICAgICAgICAgIHsgYmc6ICJiZy1pbmRpZ28tMTAwIiwgIHRleHQ6ICJ0ZXh0LWluZGlnby03MDAiLCAgYm9yZGVyOiAiYm9yZGVyLWluZGlnby0yMDAiIH0sCiAgIlByb2dyZXNzIFBheW1lbnQgRHVlIjogICAgIHsgYmc6ICJiZy1vcmFuZ2UtMTAwIiwgIHRleHQ6ICJ0ZXh0LW9yYW5nZS03MDAiLCAgYm9yZGVyOiAiYm9yZGVyLW9yYW5nZS0yMDAiIH0sCiAgIlByb2dyZXNzIFBheW1lbnQgUGFpZCI6ICAgIHsgYmc6ICJiZy10ZWFsLTEwMCIsICAgIHRleHQ6ICJ0ZXh0LXRlYWwtNzAwIiwgICAgYm9yZGVyOiAiYm9yZGVyLXRlYWwtMjAwIiB9LAogICJGaW5hbCBQYXltZW50IER1ZSI6ICAgICAgICB7IGJnOiAiYmctb3JhbmdlLTEwMCIsICB0ZXh0OiAidGV4dC1vcmFuZ2UtNzAwIiwgIGJvcmRlcjogImJvcmRlci1vcmFuZ2UtMjAwIiB9LAogICJGaW5hbCBQYXltZW50IFBhaWQiOiAgICAgICB7IGJnOiAiYmctZW1lcmFsZC0xMDAiLCB0ZXh0OiAidGV4dC1lbWVyYWxkLTcwMCIsIGJvcmRlcjogImJvcmRlci1lbWVyYWxkLTIwMCIgfSwKICAiSm9iIENvbXBsZXRlZCI6ICAgICAgICAgICAgeyBiZzogImJnLWdyZWVuLTEwMCIsICAgdGV4dDogInRleHQtZ3JlZW4tNzAwIiwgICBib3JkZXI6ICJib3JkZXItZ3JlZW4tMjAwIiB9LAp9OwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gT3ZlcnZpZXdUYWIoeyBkZWFsLCBsZWFkLCB1cGRhdGVGaWVsZCwgc2V0RGVhbCwgc2V0TGVhZCwgc2F2aW5nIH0pIHsKICBjb25zdCBnZXRGaWVsZFZhbHVlID0gKGRlYWxGaWVsZCwgbGVhZEZpZWxkKSA9PiBkZWFsRmllbGQgPz8gbGVhZEZpZWxkOwogIGNvbnN0IHN0YWdlSW5kZXggPSBQSVBFTElORV9TVEFHRVMuaW5kZXhPZihkZWFsLnN0YWdlKTsKICBjb25zdCBbbm90ZXNEcmFmdCwgc2V0Tm90ZXNEcmFmdF0gPSB1c2VTdGF0ZShkZWFsLm5vdGVzIHx8ICIiKTsKICB1c2VFZmZlY3QoKCkgPT4geyBzZXROb3Rlc0RyYWZ0KGRlYWwubm90ZXMgfHwgIiIpOyB9LCBbZGVhbC5ub3Rlc10pOwoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9Im1heC13LTR4bCBteC1hdXRvIHB4LTQgbWQ6cHgtNiBweS01IHNwYWNlLXktNSI+CiAgICAgIHsvKiBDbGllbnQgQ2FyZCAqL30KICAgICAgPGRpdiBjbGFzc05hbWU9ImNhcmQtcHJlbWl1bSBwLTQiPgogICAgICAgIDxwIGNsYXNzTmFtZT0idHlwb2dyYXBoeS1zZWN0aW9uLWhlYWRlciBtYi0zIj5DTElFTlQ8L3A+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0zIj4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ3LTEwIGgtMTAgcm91bmRlZC1sZyBiZy1ncmFkaWVudC10by1iciBmcm9tLW9yYW5nZSB0by1hbWJlci02MDAgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgZmxleC1zaHJpbmstMCI+CiAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1zbSBmb250LWJvbGQgdGV4dC13aGl0ZSI+e2xlYWQuZmlyc3RfbmFtZT8uWzBdfXtsZWFkLmxhc3RfbmFtZT8uWzBdfTwvc3Bhbj4KICAgICAgICAgIDwvZGl2PgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXgtMSBtaW4tdy0wIHNwYWNlLXktMSI+CiAgICAgICAgICAgIDxFZGl0YWJsZUNsaWVudEZpZWxkCiAgICAgICAgICAgICAgbGFiZWw9Ik5hbWUiCiAgICAgICAgICAgICAgdmFsdWU9e2Ake2xlYWQuZmlyc3RfbmFtZX0gJHtsZWFkLmxhc3RfbmFtZX1gfQogICAgICAgICAgICAgIG9uU2F2ZT17YXN5bmMgKGZ1bGxOYW1lKSA9PiB7CiAgICAgICAgICAgICAgICBjb25zdCBbZmlyc3QsIC4uLnJlc3RdID0gZnVsbE5hbWUuc3BsaXQoIiAiKTsKICAgICAgICAgICAgICAgIGNvbnN0IGxhc3QgPSByZXN0LmpvaW4oIiAiKTsKICAgICAgICAgICAgICAgIGF3YWl0IHJhaWx3YXlMZWFkcy51cGRhdGUobGVhZC5pZCwgeyBmaXJzdF9uYW1lOiBmaXJzdCwgbGFzdF9uYW1lOiBsYXN0IHx8IGZpcnN0IH0pOwogICAgICAgICAgICAgICAgc2V0TGVhZChwcmV2ID0+ICh7IC4uLnByZXYsIGZpcnN0X25hbWU6IGZpcnN0LCBsYXN0X25hbWU6IGxhc3QgfHwgZmlyc3QgfSkpOwogICAgICAgICAgICAgICAgY29uc3QgbmV3TmFtZSA9IGAke2ZpcnN0fSAke2xhc3QgfHwgZmlyc3R9YDsKICAgICAgICAgICAgICAgIGF3YWl0IHJhaWx3YXlEZWFscy51cGRhdGUoZGVhbC5pZCwgeyBuYW1lOiBuZXdOYW1lIH0pOwogICAgICAgICAgICAgICAgc2V0RGVhbChwcmV2ID0+ICh7IC4uLnByZXYsIG5hbWU6IG5ld05hbWUgfSkpOwogICAgICAgICAgICAgIH19CiAgICAgICAgICAgIC8+CiAgICAgICAgICAgIDxFZGl0YWJsZUNsaWVudEZpZWxkCiAgICAgICAgICAgICAgbGFiZWw9IlBob25lIgogICAgICAgICAgICAgIHZhbHVlPXtsZWFkLnBob25lIHx8ICIifQogICAgICAgICAgICAgIHR5cGU9InRlbCIKICAgICAgICAgICAgICBvblNhdmU9e2FzeW5jIChwaG9uZSkgPT4gewogICAgICAgICAgICAgICAgYXdhaXQgcmFpbHdheUxlYWRzLnVwZGF0ZShsZWFkLmlkLCB7IHBob25lIH0pOwogICAgICAgICAgICAgICAgc2V0TGVhZChwcmV2ID0+ICh7IC4uLnByZXYsIHBob25lIH0pKTsKICAgICAgICAgICAgICB9fQogICAgICAgICAgICAvPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgoKICAgICAgey8qIFByb2plY3QgSW5mbyAqL30KICAgICAgPGRpdiBjbGFzc05hbWU9ImNhcmQtcHJlbWl1bSBwLTQgc3BhY2UteS0zIj4KICAgICAgICA8cCBjbGFzc05hbWU9InR5cG9ncmFwaHktc2VjdGlvbi1oZWFkZXIiPlBST0pFQ1QgSU5GTzwvcD4KICAgICAgICA8RWRpdGFibGVJbmZvUm93IGljb249e01hcFBpbn0gbGFiZWw9IkFkZHJlc3MiIHZhbHVlPXtnZXRGaWVsZFZhbHVlKGRlYWwucHJvcGVydHlfYWRkcmVzcywgbGVhZC5wcm9wZXJ0eV9hZGRyZXNzKX0KICAgICAgICAgIG9uU2F2ZT17diA9PiB1cGRhdGVGaWVsZCgicHJvcGVydHlfYWRkcmVzcyIsIHYpfSBzYXZpbmc9e3NhdmluZyA9PT0gInByb3BlcnR5X2FkZHJlc3MifSAvPgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJncm91cCBjdXJzb3ItcG9pbnRlciBob3ZlcjpiZy1zbGF0ZS01MCBwLTEuNSByb3VuZGVkIC1teC0xLjUgdHJhbnNpdGlvbi1jb2xvcnMiPgogICAgICAgICAgPFByb2plY3RUeXBlU2VsZWN0b3IKICAgICAgICAgICAgdmFsdWU9e2dldEZpZWxkVmFsdWUoZGVhbC5wcm9qZWN0X3R5cGUsIGxlYWQucHJvamVjdF90eXBlIHx8IGxlYWQuam9iX3R5cGUgfHwgbGVhZC5qb2JfdHlwZXMpfQogICAgICAgICAgICBvblNhdmU9e3R5cGVzID0+IHVwZGF0ZUZpZWxkKCJwcm9qZWN0X3R5cGUiLCBBcnJheS5pc0FycmF5KHR5cGVzKSA/IHR5cGVzLmpvaW4oIiwgIikgOiB0eXBlcyl9CiAgICAgICAgICAgIGxhYmVsPSJQcm9qZWN0IFR5cGUiCiAgICAgICAgICAvPgogICAgICAgIDwvZGl2PgogICAgICAgIDxFZGl0YWJsZUluZm9Sb3cgaWNvbj17VXNlcn0gbGFiZWw9Ik93bmVyIC8gU2FsZXMgUmVwIiB2YWx1ZT17Z2V0RmllbGRWYWx1ZShkZWFsLmFzc2lnbmVkX3JlcCwgbGVhZC5hc3NpZ25lZF9yZXApfQogICAgICAgICAgb25TYXZlPXt2ID0+IHVwZGF0ZUZpZWxkKCJhc3NpZ25lZF9yZXAiLCB2KX0gc2F2aW5nPXtzYXZpbmcgPT09ICJhc3NpZ25lZF9yZXAifSAvPgogICAgICAgIDxFZGl0YWJsZUluZm9Sb3cgaWNvbj17Q2FsZW5kYXJ9IGxhYmVsPSJTb2xkIERhdGUiIHZhbHVlPXtnZXRGaWVsZFZhbHVlKGRlYWwuc29sZF9kYXRlLCBsZWFkLnNvbGRfZGF0ZSl9CiAgICAgICAgICB0eXBlPSJkYXRlIiBvblNhdmU9e3YgPT4gdXBkYXRlRmllbGQoInNvbGRfZGF0ZSIsIHYpfSBzYXZpbmc9e3NhdmluZyA9PT0gInNvbGRfZGF0ZSJ9IC8+CiAgICAgICAgPEVkaXRhYmxlSW5mb1JvdyBpY29uPXtGaWxlVGV4dH0gbGFiZWw9IkNvbnRyYWN0IFNpZ25lZCIgdmFsdWU9e2dldEZpZWxkVmFsdWUoZGVhbC5kZXBvc2l0X3BhaWRfZGF0ZSwgbGVhZC5zaWduZWRfY29udHJhY3RfZGF0ZSl9CiAgICAgICAgICB0eXBlPSJkYXRlIiBvblNhdmU9e3YgPT4gdXBkYXRlRmllbGQoImRlcG9zaXRfcGFpZF9kYXRlIiwgdil9IHNhdmluZz17c2F2aW5nID09PSAiZGVwb3NpdF9wYWlkX2RhdGUifSAvPgogICAgICA8L2Rpdj4KCiAgICAgIHsvKiBOb3RlcyAqL30KICAgICAgPGRpdiBjbGFzc05hbWU9ImNhcmQtcHJlbWl1bSBwLTQiPgogICAgICAgIDxwIGNsYXNzTmFtZT0idHlwb2dyYXBoeS1zZWN0aW9uLWhlYWRlciBtYi0yIj5OT1RFUzwvcD4KICAgICAgICA8dGV4dGFyZWEKICAgICAgICAgIHZhbHVlPXtub3Rlc0RyYWZ0fQogICAgICAgICAgb25DaGFuZ2U9e2UgPT4gc2V0Tm90ZXNEcmFmdChlLnRhcmdldC52YWx1ZSl9CiAgICAgICAgICBvbkJsdXI9eygpID0+IHsKICAgICAgICAgICAgaWYgKG5vdGVzRHJhZnQgIT09IChkZWFsLm5vdGVzIHx8ICIiKSkgdXBkYXRlRmllbGQoIm5vdGVzIiwgbm90ZXNEcmFmdCk7CiAgICAgICAgICB9fQogICAgICAgICAgcGxhY2Vob2xkZXI9IlByb2plY3Qgbm90ZXPigKYiCiAgICAgICAgICByb3dzPXs0fQogICAgICAgICAgY2xhc3NOYW1lPSJ3LWZ1bGwgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBweC0zIHB5LTIgdGV4dC1zbSBmb2N1czpvdXRsaW5lLW5vbmUgZm9jdXM6cmluZy0yIGZvY3VzOnJpbmctYW1iZXItNTAwLzIwIHJlc2l6ZS1ub25lIgogICAgICAgIC8+CiAgICAgIDwvZGl2PgoKICAgICAgey8qIFBpcGVsaW5lIFN0YWdlcyAqL30KICAgICAgPGRpdiBjbGFzc05hbWU9ImNhcmQtcHJlbWl1bSBwLTQiPgogICAgICAgIDxwIGNsYXNzTmFtZT0idHlwb2dyYXBoeS1zZWN0aW9uLWhlYWRlciBtYi0zIj5QSVBFTElORTwvcD4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ic3BhY2UteS0yIj4KICAgICAgICAgIHtQSVBFTElORV9TVEFHRVMubWFwKChzdGFnZSwgaSkgPT4gewogICAgICAgICAgICBjb25zdCBpc0FjdGl2ZSA9IGRlYWwuc3RhZ2UgPT09IHN0YWdlOwogICAgICAgICAgICBjb25zdCBpc1Bhc3QgPSBpIDwgc3RhZ2VJbmRleDsKICAgICAgICAgICAgY29uc3Qgc2MgPSBTVEFHRV9DT0xPUlNbc3RhZ2VdOwogICAgICAgICAgICByZXR1cm4gKAogICAgICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgICAgIGtleT17c3RhZ2V9CiAgICAgICAgICAgICAgICBvbkNsaWNrPXthc3luYyAoKSA9PiB7CiAgICAgICAgICAgICAgICAgIGF3YWl0IHVwZGF0ZUZpZWxkKCJzdGFnZSIsIHN0YWdlKTsKICAgICAgICAgICAgICAgICAgc2V0RGVhbChwcmV2ID0+ICh7IC4uLnByZXYsIHN0YWdlIH0pKTsKICAgICAgICAgICAgICAgIH19CiAgICAgICAgICAgICAgICBjbGFzc05hbWU9e2B3LWZ1bGwgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIHB4LTQgcHktMyByb3VuZGVkLWxnIGJvcmRlci0yIHRleHQtc20gZm9udC1zZW1pYm9sZCB0cmFuc2l0aW9uLWFsbCAkewogICAgICAgICAgICAgICAgICBpc0FjdGl2ZSA/IGAke3NjLmJnfSAke3NjLnRleHR9ICR7c2MuYm9yZGVyfSBzaGFkb3ctbWRgCiAgICAgICAgICAgICAgICAgIDogaXNQYXN0ID8gImJnLXNsYXRlLTUwIGJvcmRlci1zbGF0ZS0yMDAgdGV4dC1zbGF0ZS00MDAiCiAgICAgICAgICAgICAgICAgIDogImJnLXdoaXRlIGJvcmRlci1zbGF0ZS0yMDAgdGV4dC1zbGF0ZS02MDAgaG92ZXI6Ym9yZGVyLWFtYmVyLTMwMCIKICAgICAgICAgICAgICAgIH1gfQogICAgICAgICAgICAgID4KICAgICAgICAgICAgICAgIDxzcGFuPntzdGFnZX08L3NwYW4+CiAgICAgICAgICAgICAgICB7aXNBY3RpdmUgJiYgPHNwYW4gY2xhc3NOYW1lPSJ3LTIgaC0yIHJvdW5kZWQtZnVsbCBiZy1jdXJyZW50Ij48L3NwYW4+fQogICAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgICApOwogICAgICAgICAgfSl9CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CiAgKTsKfQ==
+/**
+ * OverviewTab — client info, project info, notes, pipeline stages.
+ */
+import { useState, useEffect } from "react";
+import { Calendar, MapPin, User, FileText } from "lucide-react";
+import * as railwayDeals from "@/api/railway/deals";
+import * as railwayLeads from "@/api/railway/leads";
+import { EditableInfoRow, EditableClientField } from "./EditableFields";
+import ProjectTypeSelector from "@/components/ProjectTypeSelector";
+
+const PIPELINE_STAGES = [
+  "Sold / Estimate Approved",
+  "Deposit Due",
+  "Deposit Paid",
+  "Work Scheduled",
+  "Work Started",
+  "Progress Payment Due",
+  "Progress Payment Paid",
+  "Final Payment Due",
+  "Final Payment Paid",
+  "Job Completed",
+];
+
+const STAGE_COLORS = {
+  "Sold / Estimate Approved": { bg: "bg-blue-100",    text: "text-blue-700",    border: "border-blue-200" },
+  "Deposit Due":              { bg: "bg-amber-100",   text: "text-amber-700",   border: "border-amber-200" },
+  "Deposit Paid":             { bg: "bg-emerald-100", text: "text-emerald-700", border: "border-emerald-200" },
+  "Work Scheduled":           { bg: "bg-sky-100",     text: "text-sky-700",     border: "border-sky-200" },
+  "Work Started":             { bg: "bg-indigo-100",  text: "text-indigo-700",  border: "border-indigo-200" },
+  "Progress Payment Due":     { bg: "bg-orange-100",  text: "text-orange-700",  border: "border-orange-200" },
+  "Progress Payment Paid":    { bg: "bg-teal-100",    text: "text-teal-700",    border: "border-teal-200" },
+  "Final Payment Due":        { bg: "bg-orange-100",  text: "text-orange-700",  border: "border-orange-200" },
+  "Final Payment Paid":       { bg: "bg-emerald-100", text: "text-emerald-700", border: "border-emerald-200" },
+  "Job Completed":            { bg: "bg-green-100",   text: "text-green-700",   border: "border-green-200" },
+};
+
+export default function OverviewTab({ deal, lead, updateField, setDeal, setLead, saving }) {
+  const getFieldValue = (dealField, leadField) => dealField ?? leadField;
+  const stageIndex = PIPELINE_STAGES.indexOf(deal.stage);
+  const [notesDraft, setNotesDraft] = useState(deal.notes || "");
+  useEffect(() => { setNotesDraft(deal.notes || ""); }, [deal.notes]);
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 md:px-6 py-5 space-y-5">
+      {/* Client Card */}
+      <div className="card-premium p-4">
+        <p className="typography-section-header mb-3">CLIENT</p>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange to-amber-600 flex items-center justify-center flex-shrink-0">
+            <span className="text-sm font-bold text-white">{lead.first_name?.[0]}{lead.last_name?.[0]}</span>
+          </div>
+          <div className="flex-1 min-w-0 space-y-1">
+            <EditableClientField
+              label="Name"
+              value={`${lead.first_name} ${lead.last_name}`}
+              onSave={async (fullName) => {
+                const [first, ...rest] = fullName.split(" ");
+                const last = rest.join(" ");
+                await railwayLeads.update(lead.id, { first_name: first, last_name: last || first });
+                setLead(prev => ({ ...prev, first_name: first, last_name: last || first }));
+                const newName = `${first} ${last || first}`;
+                await railwayDeals.update(deal.id, { name: newName });
+                setDeal(prev => ({ ...prev, name: newName }));
+              }}
+            />
+            <EditableClientField
+              label="Phone"
+              value={lead.phone || ""}
+              type="tel"
+              onSave={async (phone) => {
+                await railwayLeads.update(lead.id, { phone });
+                setLead(prev => ({ ...prev, phone }));
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Project Info */}
+      <div className="card-premium p-4 space-y-3">
+        <p className="typography-section-header">PROJECT INFO</p>
+        <EditableInfoRow icon={MapPin} label="Address" value={getFieldValue(deal.property_address, lead.property_address)}
+          onSave={v => updateField("property_address", v)} saving={saving === "property_address"} />
+        <div className="group cursor-pointer hover:bg-slate-50 p-1.5 rounded -mx-1.5 transition-colors">
+          <ProjectTypeSelector
+            value={getFieldValue(deal.project_type, lead.project_type || lead.job_type || lead.job_types)}
+            onSave={types => updateField("project_type", Array.isArray(types) ? types.join(", ") : types)}
+            label="Project Type"
+          />
+        </div>
+        <EditableInfoRow icon={User} label="Owner / Sales Rep" value={getFieldValue(deal.assigned_rep, lead.assigned_rep)}
+          onSave={v => updateField("assigned_rep", v)} saving={saving === "assigned_rep"} />
+        <EditableInfoRow icon={Calendar} label="Sold Date" value={getFieldValue(deal.sold_date, lead.sold_date)}
+          type="date" onSave={v => updateField("sold_date", v)} saving={saving === "sold_date"} />
+        <EditableInfoRow icon={FileText} label="Contract Signed" value={getFieldValue(deal.deposit_paid_date, lead.signed_contract_date)}
+          type="date" onSave={v => updateField("deposit_paid_date", v)} saving={saving === "deposit_paid_date"} />
+      </div>
+
+      {/* Notes */}
+      <div className="card-premium p-4">
+        <p className="typography-section-header mb-2">NOTES</p>
+        <textarea
+          value={notesDraft}
+          onChange={e => setNotesDraft(e.target.value)}
+          onBlur={() => {
+            if (notesDraft !== (deal.notes || "")) updateField("notes", notesDraft);
+          }}
+          placeholder="Project notes…"
+          rows={4}
+          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 resize-none"
+        />
+      </div>
+
+      {/* Pipeline Stages */}
+      <div className="card-premium p-4">
+        <p className="typography-section-header mb-3">PIPELINE</p>
+        <div className="space-y-2">
+          {PIPELINE_STAGES.map((stage, i) => {
+            const isActive = deal.stage === stage;
+            const isPast = i < stageIndex;
+            const sc = STAGE_COLORS[stage];
+            return (
+              <button
+                key={stage}
+                onClick={async () => {
+                  await updateField("stage", stage);
+                  setDeal(prev => ({ ...prev, stage }));
+                }}
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border-2 text-sm font-semibold transition-all ${
+                  isActive ? `${sc.bg} ${sc.text} ${sc.border} shadow-md`
+                  : isPast ? "bg-slate-50 border-slate-200 text-slate-400"
+                  : "bg-white border-slate-200 text-slate-600 hover:border-amber-300"
+                }`}
+              >
+                <span>{stage}</span>
+                {isActive && <span className="w-2 h-2 rounded-full bg-current"></span>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}

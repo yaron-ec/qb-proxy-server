@@ -1,1 +1,154 @@
-aW1wb3J0IHsgWCwgS2V5LCBUYWcsIEluZm8sIFJlZnJlc2hDdywgRXllLCBMb2NrLCBBbGVydFRyaWFuZ2xlLCBDYWxlbmRhciB9IGZyb20gImx1Y2lkZS1yZWFjdCI7CmltcG9ydCB7IENBVEVHT1JJRVMsIFBST1BFUlRZX1RZUEVTIH0gZnJvbSAiLi9wcm9wZXJ0eURlZmluaXRpb25zIjsKCmNvbnN0IFRZUEVfQ09MT1JTID0gewogIHRleHQ6ICJiZy1zbGF0ZS0xMDAgdGV4dC1zbGF0ZS02MDAiLAogIG51bWJlcjogImJnLWJsdWUtMTAwIHRleHQtYmx1ZS03MDAiLAogIGN1cnJlbmN5OiAiYmctZW1lcmFsZC0xMDAgdGV4dC1lbWVyYWxkLTcwMCIsCiAgZGF0ZTogImJnLXB1cnBsZS0xMDAgdGV4dC1wdXJwbGUtNzAwIiwKICBkcm9wZG93bjogImJnLWFtYmVyLTEwMCB0ZXh0LWFtYmVyLTcwMCIsCiAgbXVsdGlfc2VsZWN0OiAiYmctb3JhbmdlLzEwIHRleHQtb3JhbmdlIiwKICBib29sZWFuOiAiYmctcGluay0xMDAgdGV4dC1waW5rLTcwMCIsCiAgdXNlcjogImJnLWN5YW4tMTAwIHRleHQtY3lhbi03MDAiLAp9OwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gUHJvcGVydHlEZXRhaWxQYW5lbCh7IHByb3AsIG9uQ2xvc2UsIG9uRWRpdCB9KSB7CiAgaWYgKCFwcm9wKSByZXR1cm4gbnVsbDsKCiAgY29uc3QgY2F0ZWdvcnkgPSBDQVRFR09SSUVTLmZpbmQoYyA9PiBjLmlkID09PSBwcm9wLmNhdGVnb3J5KTsKICBjb25zdCB0eXBlTGFiZWwgPSBQUk9QRVJUWV9UWVBFUy5maW5kKHQgPT4gdC52YWx1ZSA9PT0gcHJvcC50eXBlKT8ubGFiZWwgfHwgcHJvcC50eXBlOwoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9ImZpeGVkIGluc2V0LTAgei00MCBmbGV4IGp1c3RpZnktZW5kIiBvbkNsaWNrPXtvbkNsb3NlfT4KICAgICAgPGRpdgogICAgICAgIGNsYXNzTmFtZT0idy1mdWxsIG1heC13LW1kIGJnLXdoaXRlIGJvcmRlci1sIGJvcmRlci1zbGF0ZS0yMDAgc2hhZG93LTJ4bCBoLWZ1bGwgb3ZlcmZsb3cteS1hdXRvIGZsZXggZmxleC1jb2wiCiAgICAgICAgb25DbGljaz17ZSA9PiBlLnN0b3BQcm9wYWdhdGlvbigpfQogICAgICA+CiAgICAgICAgey8qIEhlYWRlciAqL30KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1zdGFydCBqdXN0aWZ5LWJldHdlZW4gcHgtNiBweS01IGJvcmRlci1iIGJvcmRlci1zbGF0ZS0xMDAgZmxleC1zaHJpbmstMCI+CiAgICAgICAgICA8ZGl2PgogICAgICAgICAgICA8aDMgY2xhc3NOYW1lPSJ0ZXh0LWJhc2UgZm9udC1ib2xkIHRleHQtc2xhdGUtODAwIj57cHJvcC5sYWJlbH08L2gzPgogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS01MDAgbXQtMC41Ij57Y2F0ZWdvcnk/Lmljb259IHtjYXRlZ29yeT8ubGFiZWx9PC9wPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8YnV0dG9uIG9uQ2xpY2s9e29uQ2xvc2V9IGNsYXNzTmFtZT0icC0xLjUgcm91bmRlZC1sZyB0ZXh0LXNsYXRlLTQwMCBob3Zlcjp0ZXh0LXNsYXRlLTYwMCBob3ZlcjpiZy1zbGF0ZS0xMDAgdHJhbnNpdGlvbi1jb2xvcnMiPgogICAgICAgICAgICA8WCBjbGFzc05hbWU9InctNCBoLTQiIC8+CiAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICA8L2Rpdj4KCiAgICAgICAgey8qIEJvZHkgKi99CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXgtMSBweC02IHB5LTUgc3BhY2UteS02Ij4KCiAgICAgICAgICB7LyogU3lzdGVtIHdhcm5pbmcgKi99CiAgICAgICAgICB7cHJvcC5pc1N5c3RlbSAmJiAoCiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1hbWJlci01MCBib3JkZXIgYm9yZGVyLWFtYmVyLTIwMCByb3VuZGVkLWxnIHB4LTQgcHktMyBmbGV4IGl0ZW1zLXN0YXJ0IGdhcC0yIj4KICAgICAgICAgICAgICA8QWxlcnRUcmlhbmdsZSBjbGFzc05hbWU9InctNCBoLTQgdGV4dC1hbWJlci01MDAgZmxleC1zaHJpbmstMCBtdC0wLjUiIC8+CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQteHMgdGV4dC1hbWJlci03MDAiPgogICAgICAgICAgICAgICAgPHN0cm9uZz5TeXN0ZW0gZmllbGQuPC9zdHJvbmc+IFRoaXMgaXMgYW4gaW50ZXJuYWwgc3luYyBJRCBvciB0aW1lc3RhbXAuIERvIG5vdCBleHBvc2UgdGhpcyB2YWx1ZSB0byBlbmQgdXNlcnMgb3IgbW9kaWZ5IGl0IG1hbnVhbGx5LgogICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICl9CgogICAgICAgICAgey8qIFN0YXR1cyBiYWRnZXMgKi99CiAgICAgICAgICA8ZGl2PgogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzEwcHhdIGZvbnQtYmxhY2sgdXBwZXJjYXNlIHRyYWNraW5nLXdpZGVzdCB0ZXh0LXNsYXRlLTQwMCBtYi0yIj5TdGF0dXM8L3A+CiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGZsZXgtd3JhcCBnYXAtMiI+CiAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPXtgaW5saW5lLWZsZXggaXRlbXMtY2VudGVyIGdhcC0xIHRleHQteHMgZm9udC1zZW1pYm9sZCBweC0yLjUgcHktMSByb3VuZGVkLWZ1bGwgJHtUWVBFX0NPTE9SU1twcm9wLnR5cGVdIHx8IFRZUEVfQ09MT1JTLnRleHR9YH0+CiAgICAgICAgICAgICAgICB7dHlwZUxhYmVsfQogICAgICAgICAgICAgIDwvc3Bhbj4KICAgICAgICAgICAgICB7cHJvcC5yZXF1aXJlZCAmJiA8c3BhbiBjbGFzc05hbWU9ImlubGluZS1mbGV4IGl0ZW1zLWNlbnRlciBnYXAtMSB0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgcHgtMi41IHB5LTEgcm91bmRlZC1mdWxsIGJnLXJlZC01MCB0ZXh0LXJlZC02MDAgYm9yZGVyIGJvcmRlci1yZWQtMTAwIj5SZXF1aXJlZDwvc3Bhbj59CiAgICAgICAgICAgICAge3Byb3AuaGlkZGVuICYmIDxzcGFuIGNsYXNzTmFtZT0iaW5saW5lLWZsZXggaXRlbXMtY2VudGVyIGdhcC0xIHRleHQteHMgZm9udC1zZW1pYm9sZCBweC0yLjUgcHktMSByb3VuZGVkLWZ1bGwgYmctc2xhdGUtMTAwIHRleHQtc2xhdGUtNTAwIj5IaWRkZW48L3NwYW4+fQogICAgICAgICAgICAgIHshcHJvcC5lZGl0YWJsZSAmJiA8c3BhbiBjbGFzc05hbWU9ImlubGluZS1mbGV4IGl0ZW1zLWNlbnRlciBnYXAtMSB0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgcHgtMi41IHB5LTEgcm91bmRlZC1mdWxsIGJnLXNsYXRlLTEwMCB0ZXh0LXNsYXRlLTUwMCI+PExvY2sgY2xhc3NOYW1lPSJ3LTMgaC0zIiAvPlJlYWQtb25seTwvc3Bhbj59CiAgICAgICAgICAgICAge3Byb3Auc3luY2VkICYmIDxzcGFuIGNsYXNzTmFtZT0iaW5saW5lLWZsZXggaXRlbXMtY2VudGVyIGdhcC0xIHRleHQteHMgZm9udC1zZW1pYm9sZCBweC0yLjUgcHktMSByb3VuZGVkLWZ1bGwgYmctYmx1ZS01MCB0ZXh0LWJsdWUtNjAwIj48UmVmcmVzaEN3IGNsYXNzTmFtZT0idy0zIGgtMyIgLz5TeW5jZWQ8L3NwYW4+fQogICAgICAgICAgICAgIHtwcm9wLmlzU3lzdGVtICYmIDxzcGFuIGNsYXNzTmFtZT0iaW5saW5lLWZsZXggaXRlbXMtY2VudGVyIGdhcC0xIHRleHQteHMgZm9udC1zZW1pYm9sZCBweC0yLjUgcHktMSByb3VuZGVkLWZ1bGwgYmctc2xhdGUtMTAwIHRleHQtc2xhdGUtNjAwIj5TeXN0ZW08L3NwYW4+fQogICAgICAgICAgICAgIHtwcm9wLmlzQ3VzdG9tICYmIDxzcGFuIGNsYXNzTmFtZT0iaW5saW5lLWZsZXggaXRlbXMtY2VudGVyIGdhcC0xIHRleHQteHMgZm9udC1zZW1pYm9sZCBweC0yLjUgcHktMSByb3VuZGVkLWZ1bGwgYmctb3JhbmdlLzEwIHRleHQtb3JhbmdlIj5DdXN0b208L3NwYW4+fQogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgIHsvKiBEZXNjcmlwdGlvbiAqL30KICAgICAgICAgIDxkaXY+CiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gZm9udC1ibGFjayB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZXN0IHRleHQtc2xhdGUtNDAwIG1iLTEuNSBmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMS41Ij48SW5mbyBjbGFzc05hbWU9InctMyBoLTMiIC8+IERlc2NyaXB0aW9uPC9wPgogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20gdGV4dC1zbGF0ZS03MDAiPntwcm9wLmRlc2NyaXB0aW9uIHx8ICJObyBkZXNjcmlwdGlvbiBwcm92aWRlZC4ifTwvcD4KICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgIHsvKiBJbnRlcm5hbCBrZXkgKi99CiAgICAgICAgICA8ZGl2PgogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzEwcHhdIGZvbnQtYmxhY2sgdXBwZXJjYXNlIHRyYWNraW5nLXdpZGVzdCB0ZXh0LXNsYXRlLTQwMCBtYi0xLjUgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSI+PEtleSBjbGFzc05hbWU9InctMyBoLTMiIC8+IEludGVybmFsIEtleTwvcD4KICAgICAgICAgICAgPGNvZGUgY2xhc3NOYW1lPSJibG9jayB0ZXh0LXhzIGZvbnQtbW9ubyBiZy1zbGF0ZS01MCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHB4LTMgcHktMiB0ZXh0LXNsYXRlLTcwMCBicmVhay1hbGwiPntwcm9wLmlkfTwvY29kZT4KICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSB0ZXh0LXNsYXRlLTQwMCBtdC0xIj5UaGlzIGtleSBpcyB1c2VkIGludGVybmFsbHkgYW5kIHNob3VsZCBuZXZlciBiZSBzaG93biB0byBlbmQgdXNlcnMuPC9wPgogICAgICAgICAgPC9kaXY+CgogICAgICAgICAgey8qIERldGFpbHMgdGFibGUgKi99CiAgICAgICAgICA8ZGl2PgogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzEwcHhdIGZvbnQtYmxhY2sgdXBwZXJjYXNlIHRyYWNraW5nLXdpZGVzdCB0ZXh0LXNsYXRlLTQwMCBtYi0yIGZsZXggaXRlbXMtY2VudGVyIGdhcC0xLjUiPjxUYWcgY2xhc3NOYW1lPSJ3LTMgaC0zIiAvPiBEZXRhaWxzPC9wPgogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctc2xhdGUtNTAgcm91bmRlZC1sZyBib3JkZXIgYm9yZGVyLXNsYXRlLTEwMCBkaXZpZGUteSBkaXZpZGUtc2xhdGUtMTAwIG92ZXJmbG93LWhpZGRlbiI+CiAgICAgICAgICAgICAge1sKICAgICAgICAgICAgICAgIHsgbGFiZWw6ICJEaXNwbGF5IExhYmVsIiwgdmFsdWU6IHByb3AubGFiZWwgfSwKICAgICAgICAgICAgICAgIHsgbGFiZWw6ICJQcm9wZXJ0eSBUeXBlIiwgdmFsdWU6IHR5cGVMYWJlbCB9LAogICAgICAgICAgICAgICAgeyBsYWJlbDogIkNhdGVnb3J5IiwgdmFsdWU6IGAke2NhdGVnb3J5Py5pY29ufSAke2NhdGVnb3J5Py5sYWJlbH1gIH0sCiAgICAgICAgICAgICAgICB7IGxhYmVsOiAiQWNjZXNzIiwgdmFsdWU6IHByb3AuZWRpdGFibGUgPyAiRWRpdGFibGUgYnkgdXNlcnMiIDogIlJlYWQtb25seSIgfSwKICAgICAgICAgICAgICAgIHsgbGFiZWw6ICJWaXNpYmlsaXR5IiwgdmFsdWU6IHByb3AuaGlkZGVuID8gIkhpZGRlbiBmcm9tIHZpZXciIDogIlZpc2libGUiIH0sCiAgICAgICAgICAgICAgICB7IGxhYmVsOiAiUmVxdWlyZWQiLCB2YWx1ZTogcHJvcC5yZXF1aXJlZCA/ICJZZXMiIDogIk5vIiB9LAogICAgICAgICAgICAgICAgeyBsYWJlbDogIlN5bmNlZCIsIHZhbHVlOiBwcm9wLnN5bmNlZCA/ICJZZXMgKGV4dGVybmFsIHN5c3RlbSkiIDogIk5vIiB9LAogICAgICAgICAgICAgICAgeyBsYWJlbDogIkZpZWxkIFNvdXJjZSIsIHZhbHVlOiBwcm9wLmlzQ3VzdG9tID8gIkN1c3RvbSAoYWRtaW4tY3JlYXRlZCkiIDogcHJvcC5pc1N5c3RlbSA/ICJTeXN0ZW0gKGludGVybmFsKSIgOiAiQnVpbHQtaW4gKExlYWQgc2NoZW1hKSIgfSwKICAgICAgICAgICAgICBdLm1hcChyb3cgPT4gKAogICAgICAgICAgICAgICAgPGRpdiBrZXk9e3Jvdy5sYWJlbH0gY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gcHgtMyBweS0yIj4KICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNTAwIj57cm93LmxhYmVsfTwvc3Bhbj4KICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS04MDAiPntyb3cudmFsdWV9PC9zcGFuPgogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgKSl9CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgPC9kaXY+CgogICAgICAgICAgey8qIFVzYWdlICovfQogICAgICAgICAgPGRpdj4KICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSBmb250LWJsYWNrIHVwcGVyY2FzZSB0cmFja2luZy13aWRlc3QgdGV4dC1zbGF0ZS00MDAgbWItMiBmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMS41Ij48RXllIGNsYXNzTmFtZT0idy0zIGgtMyIgLz4gVXNlZCBJbjwvcD4KICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMSI+CiAgICAgICAgICAgICAge3Byb3AuY2F0ZWdvcnkgPT09ICJsZWFkX2luZm8iICYmIDxVc2FnZVRhZyBsYWJlbD0iTGVhZCBEZXRhaWwgVmlldyIgY29sb3I9ImJsdWUiIC8+fQogICAgICAgICAgICAgIHtwcm9wLmNhdGVnb3J5ID09PSAic2FsZXMiICYmIDxVc2FnZVRhZyBsYWJlbD0iU2FsZXMgUGFuZWwiIGNvbG9yPSJlbWVyYWxkIiAvPn0KICAgICAgICAgICAgICB7cHJvcC5jYXRlZ29yeSA9PT0gInF1aWNrYm9va3MiICYmIDxVc2FnZVRhZyBsYWJlbD0iUXVpY2tCb29rcyBTeW5jIiBjb2xvcj0iYW1iZXIiIC8+fQogICAgICAgICAgICAgIHtwcm9wLmNhdGVnb3J5ID09PSAiaW50ZWdyYXRpb25zIiAmJiA8VXNhZ2VUYWcgbGFiZWw9IkludGVncmF0aW9uIERhc2hib2FyZCIgY29sb3I9InB1cnBsZSIgLz59CiAgICAgICAgICAgICAge3Byb3AuaXNTeXN0ZW0gJiYgPFVzYWdlVGFnIGxhYmVsPSJCYWNrZW5kIFN5bmMgRW5naW5lIiBjb2xvcj0ic2xhdGUiIC8+fQogICAgICAgICAgICAgIHtwcm9wLnN5bmNlZCAmJiA8VXNhZ2VUYWcgbGFiZWw9IkV4dGVybmFsIFN5bmMiIGNvbG9yPSJibHVlIiAvPn0KICAgICAgICAgICAgICB7IXByb3AuY2F0ZWdvcnkgJiYgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNDAwIj5Ob3QgY3VycmVudGx5IHVzZWQgaW4gYW55IHZpZXdzLjwvc3Bhbj59CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgPC9kaXY+CiAgICAgICAgPC9kaXY+CgogICAgICAgIHsvKiBGb290ZXIgYWN0aW9ucyAqL30KICAgICAgICB7IXByb3AuaXNTeXN0ZW0gJiYgKAogICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXgtc2hyaW5rLTAgcHgtNiBweS00IGJvcmRlci10IGJvcmRlci1zbGF0ZS0xMDAgZmxleCBnYXAtMiI+CiAgICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBvbkVkaXQocHJvcCl9CiAgICAgICAgICAgICAgY2xhc3NOYW1lPSJmbGV4LTEgYmctb3JhbmdlIHRleHQtd2hpdGUgcHgtNCBweS0yIHRleHQtc20gZm9udC1ib2xkIHJvdW5kZWQtbGcgaG92ZXI6Ymctb3JhbmdlLzkwIHRyYW5zaXRpb24tY29sb3JzIgogICAgICAgICAgICA+CiAgICAgICAgICAgICAgRWRpdCBQcm9wZXJ0eQogICAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICAgICAgPGJ1dHRvbiBvbkNsaWNrPXtvbkNsb3NlfSBjbGFzc05hbWU9ImJvcmRlciBib3JkZXItc2xhdGUtMjAwIHB4LTQgcHktMiB0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS02MDAgcm91bmRlZC1sZyBob3ZlcjpiZy1zbGF0ZS01MCB0cmFuc2l0aW9uLWNvbG9ycyI+CiAgICAgICAgICAgICAgQ2xvc2UKICAgICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICApfQogICAgICAgIHtwcm9wLmlzU3lzdGVtICYmICgKICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4LXNocmluay0wIHB4LTYgcHktNCBib3JkZXItdCBib3JkZXItc2xhdGUtMTAwIj4KICAgICAgICAgICAgPGJ1dHRvbiBvbkNsaWNrPXtvbkNsb3NlfSBjbGFzc05hbWU9InctZnVsbCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCBweC00IHB5LTIgdGV4dC1zbSBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNjAwIHJvdW5kZWQtbGcgaG92ZXI6Ymctc2xhdGUtNTAgdHJhbnNpdGlvbi1jb2xvcnMiPgogICAgICAgICAgICAgIENsb3NlCiAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgKX0KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KICApOwp9CgpmdW5jdGlvbiBVc2FnZVRhZyh7IGxhYmVsLCBjb2xvciB9KSB7CiAgY29uc3QgY29sb3JzID0gewogICAgYmx1ZTogImJnLWJsdWUtNTAgdGV4dC1ibHVlLTcwMCBib3JkZXItYmx1ZS0xMDAiLAogICAgZW1lcmFsZDogImJnLWVtZXJhbGQtNTAgdGV4dC1lbWVyYWxkLTcwMCBib3JkZXItZW1lcmFsZC0xMDAiLAogICAgYW1iZXI6ICJiZy1hbWJlci01MCB0ZXh0LWFtYmVyLTcwMCBib3JkZXItYW1iZXItMTAwIiwKICAgIHB1cnBsZTogImJnLXB1cnBsZS01MCB0ZXh0LXB1cnBsZS03MDAgYm9yZGVyLXB1cnBsZS0xMDAiLAogICAgc2xhdGU6ICJiZy1zbGF0ZS0xMDAgdGV4dC1zbGF0ZS02MDAgYm9yZGVyLXNsYXRlLTIwMCIsCiAgfTsKICByZXR1cm4gKAogICAgPHNwYW4gY2xhc3NOYW1lPXtgaW5saW5lLWJsb2NrIHRleHQteHMgZm9udC1zZW1pYm9sZCBweC0yLjUgcHktMSByb3VuZGVkLWZ1bGwgYm9yZGVyIG1yLTEgJHtjb2xvcnNbY29sb3JdfWB9PntsYWJlbH08L3NwYW4+CiAgKTsKfQ==
+import { X, Key, Tag, Info, RefreshCw, Eye, Lock, AlertTriangle, Calendar } from "lucide-react";
+import { CATEGORIES, PROPERTY_TYPES } from "./propertyDefinitions";
+
+const TYPE_COLORS = {
+  text: "bg-slate-100 text-slate-600",
+  number: "bg-blue-100 text-blue-700",
+  currency: "bg-emerald-100 text-emerald-700",
+  date: "bg-purple-100 text-purple-700",
+  dropdown: "bg-amber-100 text-amber-700",
+  multi_select: "bg-orange/10 text-orange",
+  boolean: "bg-pink-100 text-pink-700",
+  user: "bg-cyan-100 text-cyan-700",
+};
+
+export default function PropertyDetailPanel({ prop, onClose, onEdit }) {
+  if (!prop) return null;
+
+  const category = CATEGORIES.find(c => c.id === prop.category);
+  const typeLabel = PROPERTY_TYPES.find(t => t.value === prop.type)?.label || prop.type;
+
+  return (
+    <div className="fixed inset-0 z-40 flex justify-end" onClick={onClose}>
+      <div
+        className="w-full max-w-md bg-white border-l border-slate-200 shadow-2xl h-full overflow-y-auto flex flex-col"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between px-6 py-5 border-b border-slate-100 flex-shrink-0">
+          <div>
+            <h3 className="text-base font-bold text-slate-800">{prop.label}</h3>
+            <p className="text-xs text-slate-500 mt-0.5">{category?.icon} {category?.label}</p>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 px-6 py-5 space-y-6">
+
+          {/* System warning */}
+          {prop.isSystem && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+              <div className="text-xs text-amber-700">
+                <strong>System field.</strong> This is an internal sync ID or timestamp. Do not expose this value to end users or modify it manually.
+              </div>
+            </div>
+          )}
+
+          {/* Status badges */}
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Status</p>
+            <div className="flex flex-wrap gap-2">
+              <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${TYPE_COLORS[prop.type] || TYPE_COLORS.text}`}>
+                {typeLabel}
+              </span>
+              {prop.required && <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-red-50 text-red-600 border border-red-100">Required</span>}
+              {prop.hidden && <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-500">Hidden</span>}
+              {!prop.editable && <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-500"><Lock className="w-3 h-3" />Read-only</span>}
+              {prop.synced && <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-600"><RefreshCw className="w-3 h-3" />Synced</span>}
+              {prop.isSystem && <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">System</span>}
+              {prop.isCustom && <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-orange/10 text-orange">Custom</span>}
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5 flex items-center gap-1.5"><Info className="w-3 h-3" /> Description</p>
+            <p className="text-sm text-slate-700">{prop.description || "No description provided."}</p>
+          </div>
+
+          {/* Internal key */}
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5 flex items-center gap-1.5"><Key className="w-3 h-3" /> Internal Key</p>
+            <code className="block text-xs font-mono bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-700 break-all">{prop.id}</code>
+            <p className="text-[10px] text-slate-400 mt-1">This key is used internally and should never be shown to end users.</p>
+          </div>
+
+          {/* Details table */}
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 flex items-center gap-1.5"><Tag className="w-3 h-3" /> Details</p>
+            <div className="bg-slate-50 rounded-lg border border-slate-100 divide-y divide-slate-100 overflow-hidden">
+              {[
+                { label: "Display Label", value: prop.label },
+                { label: "Property Type", value: typeLabel },
+                { label: "Category", value: `${category?.icon} ${category?.label}` },
+                { label: "Access", value: prop.editable ? "Editable by users" : "Read-only" },
+                { label: "Visibility", value: prop.hidden ? "Hidden from view" : "Visible" },
+                { label: "Required", value: prop.required ? "Yes" : "No" },
+                { label: "Synced", value: prop.synced ? "Yes (external system)" : "No" },
+                { label: "Field Source", value: prop.isCustom ? "Custom (admin-created)" : prop.isSystem ? "System (internal)" : "Built-in (Lead schema)" },
+              ].map(row => (
+                <div key={row.label} className="flex items-center justify-between px-3 py-2">
+                  <span className="text-xs text-slate-500">{row.label}</span>
+                  <span className="text-xs font-semibold text-slate-800">{row.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Usage */}
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 flex items-center gap-1.5"><Eye className="w-3 h-3" /> Used In</p>
+            <div className="space-y-1">
+              {prop.category === "lead_info" && <UsageTag label="Lead Detail View" color="blue" />}
+              {prop.category === "sales" && <UsageTag label="Sales Panel" color="emerald" />}
+              {prop.category === "quickbooks" && <UsageTag label="QuickBooks Sync" color="amber" />}
+              {prop.category === "integrations" && <UsageTag label="Integration Dashboard" color="purple" />}
+              {prop.isSystem && <UsageTag label="Backend Sync Engine" color="slate" />}
+              {prop.synced && <UsageTag label="External Sync" color="blue" />}
+              {!prop.category && <span className="text-xs text-slate-400">Not currently used in any views.</span>}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer actions */}
+        {!prop.isSystem && (
+          <div className="flex-shrink-0 px-6 py-4 border-t border-slate-100 flex gap-2">
+            <button
+              onClick={() => onEdit(prop)}
+              className="flex-1 bg-orange text-white px-4 py-2 text-sm font-bold rounded-lg hover:bg-orange/90 transition-colors"
+            >
+              Edit Property
+            </button>
+            <button onClick={onClose} className="border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 rounded-lg hover:bg-slate-50 transition-colors">
+              Close
+            </button>
+          </div>
+        )}
+        {prop.isSystem && (
+          <div className="flex-shrink-0 px-6 py-4 border-t border-slate-100">
+            <button onClick={onClose} className="w-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 rounded-lg hover:bg-slate-50 transition-colors">
+              Close
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function UsageTag({ label, color }) {
+  const colors = {
+    blue: "bg-blue-50 text-blue-700 border-blue-100",
+    emerald: "bg-emerald-50 text-emerald-700 border-emerald-100",
+    amber: "bg-amber-50 text-amber-700 border-amber-100",
+    purple: "bg-purple-50 text-purple-700 border-purple-100",
+    slate: "bg-slate-100 text-slate-600 border-slate-200",
+  };
+  return (
+    <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full border mr-1 ${colors[color]}`}>{label}</span>
+  );
+}

@@ -1,1 +1,219 @@
-aW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICJyZWFjdCI7CmltcG9ydCAqIGFzIHJhaWx3YXlEZWFsQ29tbWlzc2lvbnMgZnJvbSAiQC9hcGkvcmFpbHdheS9kZWFsQ29tbWlzc2lvbnMiOwppbXBvcnQgeyBmb3JtYXRDdXJyZW5jeSwgc2FmZU51bWJlciwgcm91bmQyLCBjb21taXNzaW9uQW1vdW50IH0gZnJvbSAiQC9saWIvZmluYW5jaWFsQ2FsYyI7CmltcG9ydCB7IFBsdXMgfSBmcm9tICJsdWNpZGUtcmVhY3QiOwoKY29uc3QgU1RBVFVTRVMgPSBbIkVzdGltYXRlZCIsICJBcHByb3ZlZCIsICJQYXJ0aWFsbHkgUGFpZCIsICJQYWlkIiwgIkNhbmNlbGxlZCJdOwpjb25zdCBCQVNFUyA9IFsKICB7IHZhbHVlOiAidG90YWxfY29udHJhY3QiLCBsYWJlbDogIlRvdGFsIENvbnRyYWN0IEFtb3VudCIgfSwKICB7IHZhbHVlOiAicGF5bWVudHNfcmVjZWl2ZWQiLCBsYWJlbDogIlBheW1lbnRzIFJlY2VpdmVkIiB9LAogIHsgdmFsdWU6ICJncm9zc19wcm9maXRfYmVmb3JlX2NvbW1pc3Npb24iLCBsYWJlbDogIkdyb3NzIFByb2ZpdCBCZWZvcmUgQ29tbWlzc2lvbiIgfSwKICB7IHZhbHVlOiAiY3VzdG9tIiwgbGFiZWw6ICJDdXN0b20gQmFzZSBBbW91bnQiIH0sCl07CgpmdW5jdGlvbiBTdGF0dXNCYWRnZSh7IHN0YXR1cyB9KSB7CiAgY29uc3QgbWFwID0gewogICAgRXN0aW1hdGVkOiAiYmctc2xhdGUtMTAwIHRleHQtc2xhdGUtNjAwIiwKICAgIEFwcHJvdmVkOiAiYmctYmx1ZS0xMDAgdGV4dC1ibHVlLTcwMCIsCiAgICAiUGFydGlhbGx5IFBhaWQiOiAiYmctYW1iZXItMTAwIHRleHQtYW1iZXItNzAwIiwKICAgIFBhaWQ6ICJiZy1lbWVyYWxkLTEwMCB0ZXh0LWVtZXJhbGQtNzAwIiwKICAgIENhbmNlbGxlZDogImJnLXJvc2UtMTAwIHRleHQtcm9zZS03MDAiLAogIH07CiAgcmV0dXJuIDxzcGFuIGNsYXNzTmFtZT17YHRleHQtWzEwcHhdIGZvbnQtc2VtaWJvbGQgcHgtMS41IHB5LTAuNSByb3VuZGVkLWZ1bGwgJHttYXBbc3RhdHVzXSB8fCAiYmctc2xhdGUtMTAwIHRleHQtc2xhdGUtNjAwIn1gfT57c3RhdHVzfTwvc3Bhbj47Cn0KCmZ1bmN0aW9uIFRvdGFscyh7IGxhYmVsLCB2YWx1ZSB9KSB7CiAgcmV0dXJuICgKICAgIDxkaXY+CiAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gdXBwZXJjYXNlIHRyYWNraW5nLXdpZGUgdGV4dC1zbGF0ZS01MDAgZm9udC1zZW1pYm9sZCI+e2xhYmVsfTwvcD4KICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtYm9sZCB0ZXh0LXNsYXRlLTgwMCI+e3ZhbHVlfTwvcD4KICAgIDwvZGl2PgogICk7Cn0KCmZ1bmN0aW9uIEZpZWxkKHsgbGFiZWwsIGNoaWxkcmVuIH0pIHsKICByZXR1cm4gKAogICAgPGRpdj4KICAgICAgPGxhYmVsIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTUwMCB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZSBibG9jayBtYi0xIj57bGFiZWx9PC9sYWJlbD4KICAgICAge2NoaWxkcmVufQogICAgPC9kaXY+CiAgKTsKfQoKZnVuY3Rpb24gQ29tbWlzc2lvbk1vZGFsKHsgZWRpdGluZywgc2V0RWRpdGluZywgY3R4LCBzYXZpbmcsIG9uU2F2ZSwgb25DbG9zZSB9KSB7CiAgbGV0IGJhc2UgPSBjdHgudG90YWxSZXZlbnVlOwogIGlmIChlZGl0aW5nLmNhbGN1bGF0aW9uX2Jhc2UgPT09ICJwYXltZW50c19yZWNlaXZlZCIpIGJhc2UgPSBjdHgucGF5bWVudHNSZWNlaXZlZDsKICBlbHNlIGlmIChlZGl0aW5nLmNhbGN1bGF0aW9uX2Jhc2UgPT09ICJncm9zc19wcm9maXRfYmVmb3JlX2NvbW1pc3Npb24iKSBiYXNlID0gY3R4Lmdyb3NzUHJvZml0QmVmb3JlQ29tbWlzc2lvbjsKICBlbHNlIGlmIChlZGl0aW5nLmNhbGN1bGF0aW9uX2Jhc2UgPT09ICJjdXN0b20iKSBiYXNlID0gc2FmZU51bWJlcihlZGl0aW5nLmN1c3RvbV9iYXNlX2Ftb3VudCk7CiAgY29uc3QgcHJldmlldyA9CiAgICBlZGl0aW5nLmNvbW1pc3Npb25fdHlwZSA9PT0gImZpeGVkIgogICAgICA/IHNhZmVOdW1iZXIoZWRpdGluZy5jb21taXNzaW9uX2ZpeGVkX2Ftb3VudCkKICAgICAgOiByb3VuZDIoYmFzZSAqIChzYWZlTnVtYmVyKGVkaXRpbmcuY29tbWlzc2lvbl9wZXJjZW50YWdlKSAvIDEwMCkpOwogIGNvbnN0IElOUCA9ICJ3LWZ1bGwgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBweC0yLjUgcHktMiB0ZXh0LXNtIjsKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJmaXhlZCBpbnNldC0wIGJnLWJsYWNrLzQwIHotNTAgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgcC00IiBvbkNsaWNrPXtvbkNsb3NlfT4KICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLXdoaXRlIHJvdW5kZWQtbGcgc2hhZG93LXhsIG1heC13LWxnIHctZnVsbCBtYXgtaC1bOTB2aF0gb3ZlcmZsb3cteS1hdXRvIiBvbkNsaWNrPXsoZSkgPT4gZS5zdG9wUHJvcGFnYXRpb24oKX0+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9InB4LTQgcHktMyBib3JkZXItYiBib3JkZXItc2xhdGUtMTAwIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiI+CiAgICAgICAgICA8aDMgY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtYm9sZCB0ZXh0LXNsYXRlLTgwMCI+e2VkaXRpbmcuaWQgPyAiRWRpdCBDb21taXNzaW9uIiA6ICJBZGQgQ29tbWlzc2lvbiJ9PC9oMz4KICAgICAgICAgIDxidXR0b24gb25DbGljaz17b25DbG9zZX0gY2xhc3NOYW1lPSJ0ZXh0LXNsYXRlLTQwMCBob3Zlcjp0ZXh0LXNsYXRlLTYwMCI+4pyVPC9idXR0b24+CiAgICAgICAgPC9kaXY+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9InAtNCBzcGFjZS15LTMiPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImdyaWQgZ3JpZC1jb2xzLTEgc206Z3JpZC1jb2xzLTIgZ2FwLTMiPgogICAgICAgICAgICA8RmllbGQgbGFiZWw9IlJlY2lwaWVudCBOYW1lIj48aW5wdXQgdmFsdWU9e2VkaXRpbmcucmVjaXBpZW50X25hbWUgfHwgIiJ9IG9uQ2hhbmdlPXsoZSkgPT4gc2V0RWRpdGluZygocCkgPT4gKHsgLi4ucCwgcmVjaXBpZW50X25hbWU6IGUudGFyZ2V0LnZhbHVlIH0pKX0gY2xhc3NOYW1lPXtJTlB9IC8+PC9GaWVsZD4KICAgICAgICAgICAgPEZpZWxkIGxhYmVsPSJSZWNpcGllbnQgVXNlciBJRCAob3B0aW9uYWwpIj48aW5wdXQgdmFsdWU9e2VkaXRpbmcucmVjaXBpZW50X3VzZXJfaWQgfHwgIiJ9IG9uQ2hhbmdlPXsoZSkgPT4gc2V0RWRpdGluZygocCkgPT4gKHsgLi4ucCwgcmVjaXBpZW50X3VzZXJfaWQ6IGUudGFyZ2V0LnZhbHVlIH0pKX0gY2xhc3NOYW1lPXtJTlB9IC8+PC9GaWVsZD4KICAgICAgICAgICAgPEZpZWxkIGxhYmVsPSJUeXBlIj48c2VsZWN0IHZhbHVlPXtlZGl0aW5nLmNvbW1pc3Npb25fdHlwZX0gb25DaGFuZ2U9eyhlKSA9PiBzZXRFZGl0aW5nKChwKSA9PiAoeyAuLi5wLCBjb21taXNzaW9uX3R5cGU6IGUudGFyZ2V0LnZhbHVlIH0pKX0gY2xhc3NOYW1lPXtJTlB9PjxvcHRpb24gdmFsdWU9InBlcmNlbnRhZ2UiPlBlcmNlbnRhZ2U8L29wdGlvbj48b3B0aW9uIHZhbHVlPSJmaXhlZCI+Rml4ZWQ8L29wdGlvbj48L3NlbGVjdD48L0ZpZWxkPgogICAgICAgICAgICA8RmllbGQgbGFiZWw9IkNhbGN1bGF0aW9uIEJhc2UiPjxzZWxlY3QgdmFsdWU9e2VkaXRpbmcuY2FsY3VsYXRpb25fYmFzZX0gb25DaGFuZ2U9eyhlKSA9PiBzZXRFZGl0aW5nKChwKSA9PiAoeyAuLi5wLCBjYWxjdWxhdGlvbl9iYXNlOiBlLnRhcmdldC52YWx1ZSB9KSl9IGNsYXNzTmFtZT17SU5QfT57QkFTRVMubWFwKChiKSA9PiA8b3B0aW9uIGtleT17Yi52YWx1ZX0gdmFsdWU9e2IudmFsdWV9PntiLmxhYmVsfTwvb3B0aW9uPil9PC9zZWxlY3Q+PC9GaWVsZD4KICAgICAgICAgICAge2VkaXRpbmcuY29tbWlzc2lvbl90eXBlID09PSAicGVyY2VudGFnZSIgPyAoCiAgICAgICAgICAgICAgPEZpZWxkIGxhYmVsPSJQZXJjZW50YWdlICglKSI+PGlucHV0IHR5cGU9Im51bWJlciIgc3RlcD0iMC4wMSIgdmFsdWU9e2VkaXRpbmcuY29tbWlzc2lvbl9wZXJjZW50YWdlIHx8ICIifSBvbkNoYW5nZT17KGUpID0+IHNldEVkaXRpbmcoKHApID0+ICh7IC4uLnAsIGNvbW1pc3Npb25fcGVyY2VudGFnZTogZS50YXJnZXQudmFsdWUgfSkpfSBjbGFzc05hbWU9e0lOUH0gLz48L0ZpZWxkPgogICAgICAgICAgICApIDogKAogICAgICAgICAgICAgIDxGaWVsZCBsYWJlbD0iRml4ZWQgQW1vdW50ICgkKSI+PGlucHV0IHR5cGU9Im51bWJlciIgc3RlcD0iMC4wMSIgdmFsdWU9e2VkaXRpbmcuY29tbWlzc2lvbl9maXhlZF9hbW91bnQgfHwgIiJ9IG9uQ2hhbmdlPXsoZSkgPT4gc2V0RWRpdGluZygocCkgPT4gKHsgLi4ucCwgY29tbWlzc2lvbl9maXhlZF9hbW91bnQ6IGUudGFyZ2V0LnZhbHVlIH0pKX0gY2xhc3NOYW1lPXtJTlB9IC8+PC9GaWVsZD4KICAgICAgICAgICAgKX0KICAgICAgICAgICAge2VkaXRpbmcuY2FsY3VsYXRpb25fYmFzZSA9PT0gImN1c3RvbSIgJiYgKAogICAgICAgICAgICAgIDxGaWVsZCBsYWJlbD0iQ3VzdG9tIEJhc2UgQW1vdW50ICgkKSI+PGlucHV0IHR5cGU9Im51bWJlciIgc3RlcD0iMC4wMSIgdmFsdWU9e2VkaXRpbmcuY3VzdG9tX2Jhc2VfYW1vdW50IHx8ICIifSBvbkNoYW5nZT17KGUpID0+IHNldEVkaXRpbmcoKHApID0+ICh7IC4uLnAsIGN1c3RvbV9iYXNlX2Ftb3VudDogZS50YXJnZXQudmFsdWUgfSkpfSBjbGFzc05hbWU9e0lOUH0gLz48L0ZpZWxkPgogICAgICAgICAgICApfQogICAgICAgICAgICA8RmllbGQgbGFiZWw9IlBhaWQgQW1vdW50ICgkKSI+PGlucHV0IHR5cGU9Im51bWJlciIgc3RlcD0iMC4wMSIgdmFsdWU9e2VkaXRpbmcucGFpZF9hbW91bnQgfHwgIiJ9IG9uQ2hhbmdlPXsoZSkgPT4gc2V0RWRpdGluZygocCkgPT4gKHsgLi4ucCwgcGFpZF9hbW91bnQ6IGUudGFyZ2V0LnZhbHVlIH0pKX0gY2xhc3NOYW1lPXtJTlB9IC8+PC9GaWVsZD4KICAgICAgICAgICAgPEZpZWxkIGxhYmVsPSJTdGF0dXMiPjxzZWxlY3QgdmFsdWU9e2VkaXRpbmcuc3RhdHVzfSBvbkNoYW5nZT17KGUpID0+IHNldEVkaXRpbmcoKHApID0+ICh7IC4uLnAsIHN0YXR1czogZS50YXJnZXQudmFsdWUgfSkpfSBjbGFzc05hbWU9e0lOUH0+e1NUQVRVU0VTLm1hcCgocykgPT4gPG9wdGlvbiBrZXk9e3N9IHZhbHVlPXtzfT57c308L29wdGlvbj4pfTwvc2VsZWN0PjwvRmllbGQ+CiAgICAgICAgICAgIDxGaWVsZCBsYWJlbD0iUGFpZCBEYXRlIj48aW5wdXQgdHlwZT0iZGF0ZSIgdmFsdWU9e2VkaXRpbmcucGFpZF9kYXRlIHx8ICIifSBvbkNoYW5nZT17KGUpID0+IHNldEVkaXRpbmcoKHApID0+ICh7IC4uLnAsIHBhaWRfZGF0ZTogZS50YXJnZXQudmFsdWUgfSkpfSBjbGFzc05hbWU9e0lOUH0gLz48L0ZpZWxkPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8RmllbGQgbGFiZWw9Ik5vdGVzIj48dGV4dGFyZWEgdmFsdWU9e2VkaXRpbmcubm90ZXMgfHwgIiJ9IG9uQ2hhbmdlPXsoZSkgPT4gc2V0RWRpdGluZygocCkgPT4gKHsgLi4ucCwgbm90ZXM6IGUudGFyZ2V0LnZhbHVlIH0pKX0gcm93cz17Mn0gY2xhc3NOYW1lPXtgJHtJTlB9IHJlc2l6ZS1ub25lYH0gLz48L0ZpZWxkPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLXNsYXRlLTUwIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgcC0yLjUgdGV4dC14cyI+Q2FsY3VsYXRlZCBBbW91bnQ6IDxzcGFuIGNsYXNzTmFtZT0iZm9udC1ib2xkIj57Zm9ybWF0Q3VycmVuY3kocHJldmlldyl9PC9zcGFuPjwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJweC00IHB5LTMgYm9yZGVyLXQgYm9yZGVyLXNsYXRlLTEwMCBmbGV4IGdhcC0yIGp1c3RpZnktZW5kIj4KICAgICAgICAgIDxidXR0b24gb25DbGljaz17b25DbG9zZX0gY2xhc3NOYW1lPSJweC0zIHB5LTIgdGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNjAwIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGciPkNhbmNlbDwvYnV0dG9uPgogICAgICAgICAgPGJ1dHRvbiBvbkNsaWNrPXtvblNhdmV9IGRpc2FibGVkPXtzYXZpbmd9IGNsYXNzTmFtZT0icHgtMyBweS0yIHRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXdoaXRlIGJnLWFtYmVyLTYwMCBob3ZlcjpiZy1hbWJlci03MDAgcm91bmRlZC1sZyBkaXNhYmxlZDpvcGFjaXR5LTUwIj57c2F2aW5nID8gIlNhdmluZ+KApiIgOiAiU2F2ZSJ9PC9idXR0b24+CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CiAgKTsKfQoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gQ29tbWlzc2lvblNlY3Rpb24oeyBkZWFsLCBjb21taXNzaW9ucywgY3R4LCBjYW5FZGl0LCBjYW5BcHByb3ZlLCBjYW5EZWxldGUsIG9uQ2hhbmdlLCBsb2dBY3Rpdml0eSwgdXNlciB9KSB7CiAgY29uc3QgW2VkaXRpbmcsIHNldEVkaXRpbmddID0gdXNlU3RhdGUobnVsbCk7CiAgY29uc3QgW3NhdmluZywgc2V0U2F2aW5nXSA9IHVzZVN0YXRlKGZhbHNlKTsKCiAgY29uc3QgdmlzaWJsZSA9IHVzZXI/LnJvbGUgPT09ICJzYWxlc19yZXAiCiAgICA/IGNvbW1pc3Npb25zLmZpbHRlcigoYykgPT4gYy5yZWNpcGllbnRfdXNlcl9pZCA9PT0gdXNlci5pZCkKICAgIDogY29tbWlzc2lvbnM7CgogIGNvbnN0IGFjdGl2ZSA9IHZpc2libGUuZmlsdGVyKChjKSA9PiBjLnN0YXR1cyAhPT0gIkNhbmNlbGxlZCIpOwogIGNvbnN0IHRvdGFsQ2FsY3VsYXRlZCA9IHJvdW5kMihhY3RpdmUucmVkdWNlKChzLCBjKSA9PiBzICsgY29tbWlzc2lvbkFtb3VudChjLCBjdHgpLCAwKSk7CiAgY29uc3QgdG90YWxQYWlkID0gcm91bmQyKGFjdGl2ZS5yZWR1Y2UoKHMsIGMpID0+IHMgKyBzYWZlTnVtYmVyKGMucGFpZF9hbW91bnQpLCAwKSk7CiAgY29uc3QgYmFsYW5jZSA9IHJvdW5kMih0b3RhbENhbGN1bGF0ZWQgLSB0b3RhbFBhaWQpOwoKICBjb25zdCBvcGVuQWRkID0gKCkgPT4KICAgIHNldEVkaXRpbmcoeyByZWNpcGllbnRfbmFtZTogIiIsIHJlY2lwaWVudF91c2VyX2lkOiAiIiwgY29tbWlzc2lvbl90eXBlOiAicGVyY2VudGFnZSIsIGNvbW1pc3Npb25fcGVyY2VudGFnZTogIiIsIGNvbW1pc3Npb25fZml4ZWRfYW1vdW50OiAiIiwgY2FsY3VsYXRpb25fYmFzZTogInRvdGFsX2NvbnRyYWN0IiwgY3VzdG9tX2Jhc2VfYW1vdW50OiAiIiwgcGFpZF9hbW91bnQ6ICIiLCBzdGF0dXM6ICJFc3RpbWF0ZWQiLCBwYWlkX2RhdGU6ICIiLCBub3RlczogIiIgfSk7CiAgY29uc3Qgb3BlbkVkaXQgPSAoYykgPT4gc2V0RWRpdGluZyh7IC4uLmMgfSk7CgogIGNvbnN0IHNhdmUgPSBhc3luYyAoKSA9PiB7CiAgICBpZiAoIWVkaXRpbmcpIHJldHVybjsKICAgIHNldFNhdmluZyh0cnVlKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IHBheWxvYWQgPSB7CiAgICAgICAgZGVhbF9pZDogZGVhbC5pZCwKICAgICAgICBsZWFkX2lkOiBkZWFsLmxlYWRfaWQsCiAgICAgICAgcmVjaXBpZW50X25hbWU6IGVkaXRpbmcucmVjaXBpZW50X25hbWUgfHwgIiIsCiAgICAgICAgcmVjaXBpZW50X3VzZXJfaWQ6IGVkaXRpbmcucmVjaXBpZW50X3VzZXJfaWQgfHwgbnVsbCwKICAgICAgICBjb21taXNzaW9uX3R5cGU6IGVkaXRpbmcuY29tbWlzc2lvbl90eXBlLAogICAgICAgIGNvbW1pc3Npb25fcGVyY2VudGFnZTogZWRpdGluZy5jb21taXNzaW9uX3R5cGUgPT09ICJwZXJjZW50YWdlIiA/IHBhcnNlRmxvYXQoZWRpdGluZy5jb21taXNzaW9uX3BlcmNlbnRhZ2UpIHx8IDAgOiAwLAogICAgICAgIGNvbW1pc3Npb25fZml4ZWRfYW1vdW50OiBlZGl0aW5nLmNvbW1pc3Npb25fdHlwZSA9PT0gImZpeGVkIiA/IHBhcnNlRmxvYXQoZWRpdGluZy5jb21taXNzaW9uX2ZpeGVkX2Ftb3VudCkgfHwgMCA6IDAsCiAgICAgICAgY2FsY3VsYXRpb25fYmFzZTogZWRpdGluZy5jYWxjdWxhdGlvbl9iYXNlLAogICAgICAgIGN1c3RvbV9iYXNlX2Ftb3VudDogcGFyc2VGbG9hdChlZGl0aW5nLmN1c3RvbV9iYXNlX2Ftb3VudCkgfHwgMCwKICAgICAgICBwYWlkX2Ftb3VudDogcGFyc2VGbG9hdChlZGl0aW5nLnBhaWRfYW1vdW50KSB8fCAwLAogICAgICAgIHN0YXR1czogZWRpdGluZy5zdGF0dXMsCiAgICAgICAgcGFpZF9kYXRlOiBlZGl0aW5nLnBhaWRfZGF0ZSB8fCBudWxsLAogICAgICAgIG5vdGVzOiBlZGl0aW5nLm5vdGVzIHx8IG51bGwsCiAgICAgICAgdXBkYXRlZF9ieTogdXNlcj8uZW1haWwgfHwgbnVsbCwKICAgICAgfTsKICAgICAgaWYgKGVkaXRpbmcuaWQpIHsKICAgICAgICBhd2FpdCByYWlsd2F5RGVhbENvbW1pc3Npb25zLnVwZGF0ZShlZGl0aW5nLmlkLCBwYXlsb2FkKTsKICAgICAgICBhd2FpdCBsb2dBY3Rpdml0eSgiY29tbWlzc2lvbl9lZGl0ZWQiLCAiRGVhbENvbW1pc3Npb24iLCBgQ29tbWlzc2lvbiBlZGl0ZWQgZm9yICR7ZWRpdGluZy5yZWNpcGllbnRfbmFtZX1gKTsKICAgICAgfSBlbHNlIHsKICAgICAgICBwYXlsb2FkLmNyZWF0ZWRfYnkgPSB1c2VyPy5lbWFpbCB8fCBudWxsOwogICAgICAgIGF3YWl0IHJhaWx3YXlEZWFsQ29tbWlzc2lvbnMuY3JlYXRlKHBheWxvYWQpOwogICAgICAgIGF3YWl0IGxvZ0FjdGl2aXR5KCJjb21taXNzaW9uX2FkZGVkIiwgIkRlYWxDb21taXNzaW9uIiwgYENvbW1pc3Npb24gYWRkZWQgZm9yICR7ZWRpdGluZy5yZWNpcGllbnRfbmFtZX1gKTsKICAgICAgfQogICAgICBzZXRFZGl0aW5nKG51bGwpOwogICAgICBvbkNoYW5nZSgpOwogICAgfSBjYXRjaCAoZSkgewogICAgICBhbGVydCgiRmFpbGVkIHRvIHNhdmUgY29tbWlzc2lvbjogIiArIGUubWVzc2FnZSk7CiAgICB9IGZpbmFsbHkgewogICAgICBzZXRTYXZpbmcoZmFsc2UpOwogICAgfQogIH07CgogIGNvbnN0IGFwcHJvdmUgPSBhc3luYyAoYykgPT4gewogICAgYXdhaXQgcmFpbHdheURlYWxDb21taXNzaW9ucy51cGRhdGUoYy5pZCwgeyBzdGF0dXM6ICJBcHByb3ZlZCIsIHVwZGF0ZWRfYnk6IHVzZXI/LmVtYWlsIH0pOwogICAgYXdhaXQgbG9nQWN0aXZpdHkoImNvbW1pc3Npb25fYXBwcm92ZWQiLCAiRGVhbENvbW1pc3Npb24iLCBgQ29tbWlzc2lvbiBhcHByb3ZlZCBmb3IgJHtjLnJlY2lwaWVudF9uYW1lfWApOwogICAgb25DaGFuZ2UoKTsKICB9OwogIGNvbnN0IG1hcmtQYWlkID0gYXN5bmMgKGMpID0+IHsKICAgIGNvbnN0IGFtdCA9IGNvbW1pc3Npb25BbW91bnQoYywgY3R4KTsKICAgIGF3YWl0IHJhaWx3YXlEZWFsQ29tbWlzc2lvbnMudXBkYXRlKGMuaWQsIHsgc3RhdHVzOiAiUGFpZCIsIHBhaWRfYW1vdW50OiBhbXQsIHBhaWRfZGF0ZTogbmV3IERhdGUoKS50b0lTT1N0cmluZygpLnNsaWNlKDAsIDEwKSwgdXBkYXRlZF9ieTogdXNlcj8uZW1haWwgfSk7CiAgICBhd2FpdCBsb2dBY3Rpdml0eSgiY29tbWlzc2lvbl9wYWlkIiwgIkRlYWxDb21taXNzaW9uIiwgYENvbW1pc3Npb24gbWFya2VkIHBhaWQgZm9yICR7Yy5yZWNpcGllbnRfbmFtZX1gKTsKICAgIG9uQ2hhbmdlKCk7CiAgfTsKICBjb25zdCBkZWwgPSBhc3luYyAoYykgPT4gewogICAgaWYgKCF3aW5kb3cuY29uZmlybSgiRGVsZXRlIHRoaXMgY29tbWlzc2lvbiByZWNvcmQ/IikpIHJldHVybjsKICAgIGF3YWl0IHJhaWx3YXlEZWFsQ29tbWlzc2lvbnMucmVtb3ZlKGMuaWQpOwogICAgYXdhaXQgbG9nQWN0aXZpdHkoImNvbW1pc3Npb25fZGVsZXRlZCIsICJEZWFsQ29tbWlzc2lvbiIsIGBDb21taXNzaW9uIGRlbGV0ZWQgZm9yICR7Yy5yZWNpcGllbnRfbmFtZX1gKTsKICAgIG9uQ2hhbmdlKCk7CiAgfTsKCiAgcmV0dXJuICgKICAgIDxkaXY+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gbWItMiI+CiAgICAgICAgPHAgY2xhc3NOYW1lPSJ0eXBvZ3JhcGh5LXNlY3Rpb24taGVhZGVyIj5TQUxFUyBDT01NSVNTSU9OPC9wPgogICAgICAgIHtjYW5FZGl0ICYmICgKICAgICAgICAgIDxidXR0b24gb25DbGljaz17b3BlbkFkZH0gY2xhc3NOYW1lPSJzaWRlYmFyLWFjdGlvbi1idG4iPjxQbHVzIGNsYXNzTmFtZT0idy0zLjUgaC0zLjUiIC8+IEFkZCBDb21taXNzaW9uPC9idXR0b24+CiAgICAgICAgKX0KICAgICAgPC9kaXY+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJjYXJkLXByZW1pdW0gcC00IHNwYWNlLXktMyI+CiAgICAgICAge3Zpc2libGUubGVuZ3RoID09PSAwID8gKAogICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNDAwIHRleHQtY2VudGVyIHB5LTMiPk5vIGNvbW1pc3Npb24gcmVjb3Jkcy48L3A+CiAgICAgICAgKSA6ICgKICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJzcGFjZS15LTIiPgogICAgICAgICAgICB7dmlzaWJsZS5tYXAoKGMpID0+IHsKICAgICAgICAgICAgICBjb25zdCBhbXQgPSBjb21taXNzaW9uQW1vdW50KGMsIGN0eCk7CiAgICAgICAgICAgICAgcmV0dXJuICgKICAgICAgICAgICAgICAgIDxkaXYga2V5PXtjLmlkfSBjbGFzc05hbWU9ImJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgcC0zIj4KICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBnYXAtMiI+CiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9Im1pbi13LTAiPgogICAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS04MDAgdHJ1bmNhdGUiPntjLnJlY2lwaWVudF9uYW1lIHx8ICLigJQifTwvcD4KICAgICAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1bMTFweF0gdGV4dC1zbGF0ZS01MDAiPgogICAgICAgICAgICAgICAgICAgICAgICB7Yy5jb21taXNzaW9uX3R5cGUgPT09ICJwZXJjZW50YWdlIiA/IGAke2MuY29tbWlzc2lvbl9wZXJjZW50YWdlfSVgIDogZm9ybWF0Q3VycmVuY3koYy5jb21taXNzaW9uX2ZpeGVkX2Ftb3VudCl9IMK3IHtCQVNFUy5maW5kKChiKSA9PiBiLnZhbHVlID09PSBjLmNhbGN1bGF0aW9uX2Jhc2UpPy5sYWJlbCB8fCBjLmNhbGN1bGF0aW9uX2Jhc2V9CiAgICAgICAgICAgICAgICAgICAgICA8L3A+CiAgICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIGZsZXgtc2hyaW5rLTAiPgogICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtYm9sZCB0ZXh0LXNsYXRlLTgwMCI+e2Zvcm1hdEN1cnJlbmN5KGFtdCl9PC9zcGFuPgogICAgICAgICAgICAgICAgICAgICAgPFN0YXR1c0JhZGdlIHN0YXR1cz17Yy5zdGF0dXN9IC8+CiAgICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIG10LTEuNSI+CiAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LVsxMXB4XSB0ZXh0LXNsYXRlLTUwMCI+UGFpZDoge2Zvcm1hdEN1cnJlbmN5KGMucGFpZF9hbW91bnQgfHwgMCl9IMK3IEJhbGFuY2U6IHtmb3JtYXRDdXJyZW5jeShhbXQgLSBzYWZlTnVtYmVyKGMucGFpZF9hbW91bnQpKX08L3NwYW4+CiAgICAgICAgICAgICAgICAgICAge2NhbkVkaXQgJiYgKAogICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0xLjUiPgogICAgICAgICAgICAgICAgICAgICAgICB7Y2FuQXBwcm92ZSAmJiBjLnN0YXR1cyA9PT0gIkVzdGltYXRlZCIgJiYgPGJ1dHRvbiBvbkNsaWNrPXsoKSA9PiBhcHByb3ZlKGMpfSBjbGFzc05hbWU9InRleHQtWzExcHhdIGZvbnQtc2VtaWJvbGQgdGV4dC1lbWVyYWxkLTYwMCBob3ZlcjpiZy1lbWVyYWxkLTUwIHB4LTEuNSBweS0wLjUgcm91bmRlZCI+QXBwcm92ZTwvYnV0dG9uPn0KICAgICAgICAgICAgICAgICAgICAgICAge2NhbkFwcHJvdmUgJiYgYy5zdGF0dXMgIT09ICJQYWlkIiAmJiBjLnN0YXR1cyAhPT0gIkNhbmNlbGxlZCIgJiYgPGJ1dHRvbiBvbkNsaWNrPXsoKSA9PiBtYXJrUGFpZChjKX0gY2xhc3NOYW1lPSJ0ZXh0LVsxMXB4XSBmb250LXNlbWlib2xkIHRleHQtYmx1ZS02MDAgaG92ZXI6YmctYmx1ZS01MCBweC0xLjUgcHktMC41IHJvdW5kZWQiPk1hcmsgUGFpZDwvYnV0dG9uPn0KICAgICAgICAgICAgICAgICAgICAgICAgPGJ1dHRvbiBvbkNsaWNrPXsoKSA9PiBvcGVuRWRpdChjKX0gY2xhc3NOYW1lPSJ0ZXh0LVsxMXB4XSBmb250LXNlbWlib2xkIHRleHQtYW1iZXItNjAwIGhvdmVyOmJnLWFtYmVyLTUwIHB4LTEuNSBweS0wLjUgcm91bmRlZCI+RWRpdDwvYnV0dG9uPgogICAgICAgICAgICAgICAgICAgICAgICB7Y2FuRGVsZXRlICYmIDxidXR0b24gb25DbGljaz17KCkgPT4gZGVsKGMpfSBjbGFzc05hbWU9InRleHQtWzExcHhdIGZvbnQtc2VtaWJvbGQgdGV4dC1yb3NlLTYwMCBob3ZlcjpiZy1yb3NlLTUwIHB4LTEuNSBweS0wLjUgcm91bmRlZCI+RGVsZXRlPC9idXR0b24+fQogICAgICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICApOwogICAgICAgICAgICB9KX0KICAgICAgICAgIDwvZGl2PgogICAgICAgICl9CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImdyaWQgZ3JpZC1jb2xzLTMgZ2FwLTIgcHQtMiBib3JkZXItdCBib3JkZXItc2xhdGUtMTAwIj4KICAgICAgICAgIDxUb3RhbHMgbGFiZWw9IlRvdGFsIENhbGN1bGF0ZWQiIHZhbHVlPXtmb3JtYXRDdXJyZW5jeSh0b3RhbENhbGN1bGF0ZWQpfSAvPgogICAgICAgICAgPFRvdGFscyBsYWJlbD0iVG90YWwgUGFpZCIgdmFsdWU9e2Zvcm1hdEN1cnJlbmN5KHRvdGFsUGFpZCl9IC8+CiAgICAgICAgICA8VG90YWxzIGxhYmVsPSJCYWxhbmNlIiB2YWx1ZT17Zm9ybWF0Q3VycmVuY3koYmFsYW5jZSl9IC8+CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgogICAgICB7ZWRpdGluZyAmJiAoCiAgICAgICAgPENvbW1pc3Npb25Nb2RhbCBlZGl0aW5nPXtlZGl0aW5nfSBzZXRFZGl0aW5nPXtzZXRFZGl0aW5nfSBjdHg9e2N0eH0gc2F2aW5nPXtzYXZpbmd9IG9uU2F2ZT17c2F2ZX0gb25DbG9zZT17KCkgPT4gc2V0RWRpdGluZyhudWxsKX0gLz4KICAgICAgKX0KICAgIDwvZGl2PgogICk7Cn0=
+import { useState } from "react";
+import * as railwayDealCommissions from "@/api/railway/dealCommissions";
+import { formatCurrency, safeNumber, round2, commissionAmount } from "@/lib/financialCalc";
+import { Plus } from "lucide-react";
+
+const STATUSES = ["Estimated", "Approved", "Partially Paid", "Paid", "Cancelled"];
+const BASES = [
+  { value: "total_contract", label: "Total Contract Amount" },
+  { value: "payments_received", label: "Payments Received" },
+  { value: "gross_profit_before_commission", label: "Gross Profit Before Commission" },
+  { value: "custom", label: "Custom Base Amount" },
+];
+
+function StatusBadge({ status }) {
+  const map = {
+    Estimated: "bg-slate-100 text-slate-600",
+    Approved: "bg-blue-100 text-blue-700",
+    "Partially Paid": "bg-amber-100 text-amber-700",
+    Paid: "bg-emerald-100 text-emerald-700",
+    Cancelled: "bg-rose-100 text-rose-700",
+  };
+  return <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${map[status] || "bg-slate-100 text-slate-600"}`}>{status}</span>;
+}
+
+function Totals({ label, value }) {
+  return (
+    <div>
+      <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold">{label}</p>
+      <p className="text-sm font-bold text-slate-800">{value}</p>
+    </div>
+  );
+}
+
+function Field({ label, children }) {
+  return (
+    <div>
+      <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide block mb-1">{label}</label>
+      {children}
+    </div>
+  );
+}
+
+function CommissionModal({ editing, setEditing, ctx, saving, onSave, onClose }) {
+  let base = ctx.totalRevenue;
+  if (editing.calculation_base === "payments_received") base = ctx.paymentsReceived;
+  else if (editing.calculation_base === "gross_profit_before_commission") base = ctx.grossProfitBeforeCommission;
+  else if (editing.calculation_base === "custom") base = safeNumber(editing.custom_base_amount);
+  const preview =
+    editing.commission_type === "fixed"
+      ? safeNumber(editing.commission_fixed_amount)
+      : round2(base * (safeNumber(editing.commission_percentage) / 100));
+  const INP = "w-full border border-slate-200 rounded-lg px-2.5 py-2 text-sm";
+
+  return (
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+          <h3 className="text-sm font-bold text-slate-800">{editing.id ? "Edit Commission" : "Add Commission"}</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">✕</button>
+        </div>
+        <div className="p-4 space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Field label="Recipient Name"><input value={editing.recipient_name || ""} onChange={(e) => setEditing((p) => ({ ...p, recipient_name: e.target.value }))} className={INP} /></Field>
+            <Field label="Recipient User ID (optional)"><input value={editing.recipient_user_id || ""} onChange={(e) => setEditing((p) => ({ ...p, recipient_user_id: e.target.value }))} className={INP} /></Field>
+            <Field label="Type"><select value={editing.commission_type} onChange={(e) => setEditing((p) => ({ ...p, commission_type: e.target.value }))} className={INP}><option value="percentage">Percentage</option><option value="fixed">Fixed</option></select></Field>
+            <Field label="Calculation Base"><select value={editing.calculation_base} onChange={(e) => setEditing((p) => ({ ...p, calculation_base: e.target.value }))} className={INP}>{BASES.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}</select></Field>
+            {editing.commission_type === "percentage" ? (
+              <Field label="Percentage (%)"><input type="number" step="0.01" value={editing.commission_percentage || ""} onChange={(e) => setEditing((p) => ({ ...p, commission_percentage: e.target.value }))} className={INP} /></Field>
+            ) : (
+              <Field label="Fixed Amount ($)"><input type="number" step="0.01" value={editing.commission_fixed_amount || ""} onChange={(e) => setEditing((p) => ({ ...p, commission_fixed_amount: e.target.value }))} className={INP} /></Field>
+            )}
+            {editing.calculation_base === "custom" && (
+              <Field label="Custom Base Amount ($)"><input type="number" step="0.01" value={editing.custom_base_amount || ""} onChange={(e) => setEditing((p) => ({ ...p, custom_base_amount: e.target.value }))} className={INP} /></Field>
+            )}
+            <Field label="Paid Amount ($)"><input type="number" step="0.01" value={editing.paid_amount || ""} onChange={(e) => setEditing((p) => ({ ...p, paid_amount: e.target.value }))} className={INP} /></Field>
+            <Field label="Status"><select value={editing.status} onChange={(e) => setEditing((p) => ({ ...p, status: e.target.value }))} className={INP}>{STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}</select></Field>
+            <Field label="Paid Date"><input type="date" value={editing.paid_date || ""} onChange={(e) => setEditing((p) => ({ ...p, paid_date: e.target.value }))} className={INP} /></Field>
+          </div>
+          <Field label="Notes"><textarea value={editing.notes || ""} onChange={(e) => setEditing((p) => ({ ...p, notes: e.target.value }))} rows={2} className={`${INP} resize-none`} /></Field>
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs">Calculated Amount: <span className="font-bold">{formatCurrency(preview)}</span></div>
+        </div>
+        <div className="px-4 py-3 border-t border-slate-100 flex gap-2 justify-end">
+          <button onClick={onClose} className="px-3 py-2 text-xs font-semibold text-slate-600 border border-slate-200 rounded-lg">Cancel</button>
+          <button onClick={onSave} disabled={saving} className="px-3 py-2 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-lg disabled:opacity-50">{saving ? "Saving…" : "Save"}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function CommissionSection({ deal, commissions, ctx, canEdit, canApprove, canDelete, onChange, logActivity, user }) {
+  const [editing, setEditing] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  const visible = user?.role === "sales_rep"
+    ? commissions.filter((c) => c.recipient_user_id === user.id)
+    : commissions;
+
+  const active = visible.filter((c) => c.status !== "Cancelled");
+  const totalCalculated = round2(active.reduce((s, c) => s + commissionAmount(c, ctx), 0));
+  const totalPaid = round2(active.reduce((s, c) => s + safeNumber(c.paid_amount), 0));
+  const balance = round2(totalCalculated - totalPaid);
+
+  const openAdd = () =>
+    setEditing({ recipient_name: "", recipient_user_id: "", commission_type: "percentage", commission_percentage: "", commission_fixed_amount: "", calculation_base: "total_contract", custom_base_amount: "", paid_amount: "", status: "Estimated", paid_date: "", notes: "" });
+  const openEdit = (c) => setEditing({ ...c });
+
+  const save = async () => {
+    if (!editing) return;
+    setSaving(true);
+    try {
+      const payload = {
+        deal_id: deal.id,
+        lead_id: deal.lead_id,
+        recipient_name: editing.recipient_name || "",
+        recipient_user_id: editing.recipient_user_id || null,
+        commission_type: editing.commission_type,
+        commission_percentage: editing.commission_type === "percentage" ? parseFloat(editing.commission_percentage) || 0 : 0,
+        commission_fixed_amount: editing.commission_type === "fixed" ? parseFloat(editing.commission_fixed_amount) || 0 : 0,
+        calculation_base: editing.calculation_base,
+        custom_base_amount: parseFloat(editing.custom_base_amount) || 0,
+        paid_amount: parseFloat(editing.paid_amount) || 0,
+        status: editing.status,
+        paid_date: editing.paid_date || null,
+        notes: editing.notes || null,
+        updated_by: user?.email || null,
+      };
+      if (editing.id) {
+        await railwayDealCommissions.update(editing.id, payload);
+        await logActivity("commission_edited", "DealCommission", `Commission edited for ${editing.recipient_name}`);
+      } else {
+        payload.created_by = user?.email || null;
+        await railwayDealCommissions.create(payload);
+        await logActivity("commission_added", "DealCommission", `Commission added for ${editing.recipient_name}`);
+      }
+      setEditing(null);
+      onChange();
+    } catch (e) {
+      alert("Failed to save commission: " + e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const approve = async (c) => {
+    await railwayDealCommissions.update(c.id, { status: "Approved", updated_by: user?.email });
+    await logActivity("commission_approved", "DealCommission", `Commission approved for ${c.recipient_name}`);
+    onChange();
+  };
+  const markPaid = async (c) => {
+    const amt = commissionAmount(c, ctx);
+    await railwayDealCommissions.update(c.id, { status: "Paid", paid_amount: amt, paid_date: new Date().toISOString().slice(0, 10), updated_by: user?.email });
+    await logActivity("commission_paid", "DealCommission", `Commission marked paid for ${c.recipient_name}`);
+    onChange();
+  };
+  const del = async (c) => {
+    if (!window.confirm("Delete this commission record?")) return;
+    await railwayDealCommissions.remove(c.id);
+    await logActivity("commission_deleted", "DealCommission", `Commission deleted for ${c.recipient_name}`);
+    onChange();
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <p className="typography-section-header">SALES COMMISSION</p>
+        {canEdit && (
+          <button onClick={openAdd} className="sidebar-action-btn"><Plus className="w-3.5 h-3.5" /> Add Commission</button>
+        )}
+      </div>
+      <div className="card-premium p-4 space-y-3">
+        {visible.length === 0 ? (
+          <p className="text-xs text-slate-400 text-center py-3">No commission records.</p>
+        ) : (
+          <div className="space-y-2">
+            {visible.map((c) => {
+              const amt = commissionAmount(c, ctx);
+              return (
+                <div key={c.id} className="border border-slate-200 rounded-lg p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-800 truncate">{c.recipient_name || "—"}</p>
+                      <p className="text-[11px] text-slate-500">
+                        {c.commission_type === "percentage" ? `${c.commission_percentage}%` : formatCurrency(c.commission_fixed_amount)} · {BASES.find((b) => b.value === c.calculation_base)?.label || c.calculation_base}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="text-sm font-bold text-slate-800">{formatCurrency(amt)}</span>
+                      <StatusBadge status={c.status} />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between mt-1.5">
+                    <span className="text-[11px] text-slate-500">Paid: {formatCurrency(c.paid_amount || 0)} · Balance: {formatCurrency(amt - safeNumber(c.paid_amount))}</span>
+                    {canEdit && (
+                      <div className="flex items-center gap-1.5">
+                        {canApprove && c.status === "Estimated" && <button onClick={() => approve(c)} className="text-[11px] font-semibold text-emerald-600 hover:bg-emerald-50 px-1.5 py-0.5 rounded">Approve</button>}
+                        {canApprove && c.status !== "Paid" && c.status !== "Cancelled" && <button onClick={() => markPaid(c)} className="text-[11px] font-semibold text-blue-600 hover:bg-blue-50 px-1.5 py-0.5 rounded">Mark Paid</button>}
+                        <button onClick={() => openEdit(c)} className="text-[11px] font-semibold text-amber-600 hover:bg-amber-50 px-1.5 py-0.5 rounded">Edit</button>
+                        {canDelete && <button onClick={() => del(c)} className="text-[11px] font-semibold text-rose-600 hover:bg-rose-50 px-1.5 py-0.5 rounded">Delete</button>}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100">
+          <Totals label="Total Calculated" value={formatCurrency(totalCalculated)} />
+          <Totals label="Total Paid" value={formatCurrency(totalPaid)} />
+          <Totals label="Balance" value={formatCurrency(balance)} />
+        </div>
+      </div>
+      {editing && (
+        <CommissionModal editing={editing} setEditing={setEditing} ctx={ctx} saving={saving} onSave={save} onClose={() => setEditing(null)} />
+      )}
+    </div>
+  );
+}

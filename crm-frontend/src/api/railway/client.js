@@ -1,1 +1,93 @@
-LyoqCiAqIHJhaWx3YXkgY2xpZW50IOKAlCBQRVJNQU5FTlQgUmFpbHdheSBBUEkgdHJhbnNwb3J0IGxheWVyLgogKgogKiBDYWxscyB0aGUgUmFpbHdheSBwdWJsaWMgQVBJICgvYXBpL3YxLyopIHVzaW5nIGEgUmFpbHdheSBKV1QgYWNjZXNzIHRva2VuLgogKiBORVZFUiBjb250YWlucyBvciBzZW5kczogR21haWwgT0F1dGgsIEdvb2dsZSB0b2tlbnMsIFBST1hZX1NFQ1JFVCwgb3IgYW55CiAqIHNlcnZlciBzZWNyZXQuIFRoZSBicm93c2VyIG9ubHkgZXZlciBob2xkcyBSYWlsd2F5IGFjY2VzcyArIHJlZnJlc2ggdG9rZW5zLgogKgogKiBUb2tlbiBzdG9yYWdlOiBhY2Nlc3MgKyByZWZyZXNoIGluIGxvY2FsU3RvcmFnZS4gQSA0MDEgdHJpZ2dlcnMgYSBzaW5nbGUKICogcmVmcmVzaCBhdHRlbXB0IHZpYSAvYXBpL3YxL2F1dGgvcmVmcmVzaDsgb24gcmVmcmVzaCBmYWlsdXJlIHRoZSBjYWxsZXIgaXMKICogZXhwZWN0ZWQgdG8gcmUtYXV0aGVudGljYXRlLgogKgogKiBUaGlzIGlzIHRoZSBjYW5vbmljYWwgdHJhbnNwb3J0LiBzcmMvbGliL3JhaWx3YXlBcGkuanMgcmUtZXhwb3J0cyB0aGVzZSBmb3IKICogYmFja3dhcmQgY29tcGF0aWJpbGl0eSB3aXRoIGV4aXN0aW5nIGltcG9ydGVycy4KICovCgppbXBvcnQgeyBSQUlMV0FZX0FQSV9VUkwgYXMgQVBJX1VSTCB9IGZyb20gJ0AvbGliL2FwaUNvbmZpZyc7Cgpjb25zdCBBQ0NFU1NfS0VZID0gJ3JhaWx3YXlfYWNjZXNzX3Rva2VuJzsKY29uc3QgUkVGUkVTSF9LRVkgPSAncmFpbHdheV9yZWZyZXNoX3Rva2VuJzsKCmZ1bmN0aW9uIGdldEFjY2VzcygpIHsgcmV0dXJuIGxvY2FsU3RvcmFnZS5nZXRJdGVtKEFDQ0VTU19LRVkpIHx8ICcnOyB9CmZ1bmN0aW9uIGdldFJlZnJlc2goKSB7IHJldHVybiBsb2NhbFN0b3JhZ2UuZ2V0SXRlbShSRUZSRVNIX0tFWSkgfHwgJyc7IH0KCmV4cG9ydCBmdW5jdGlvbiBzZXRUb2tlbnMoYWNjZXNzLCByZWZyZXNoKSB7CiAgaWYgKGFjY2VzcykgbG9jYWxTdG9yYWdlLnNldEl0ZW0oQUNDRVNTX0tFWSwgYWNjZXNzKTsKICBpZiAocmVmcmVzaCkgbG9jYWxTdG9yYWdlLnNldEl0ZW0oUkVGUkVTSF9LRVksIHJlZnJlc2gpOwp9CgpleHBvcnQgZnVuY3Rpb24gY2xlYXJUb2tlbnMoKSB7CiAgbG9jYWxTdG9yYWdlLnJlbW92ZUl0ZW0oQUNDRVNTX0tFWSk7CiAgbG9jYWxTdG9yYWdlLnJlbW92ZUl0ZW0oUkVGUkVTSF9LRVkpOwp9CgpleHBvcnQgZnVuY3Rpb24gaXNMb2dnZWRJbigpIHsgcmV0dXJuICEhZ2V0QWNjZXNzKCk7IH0KCmV4cG9ydCBmdW5jdGlvbiBnZXRSZWZyZXNoVG9rZW4oKSB7IHJldHVybiBnZXRSZWZyZXNoKCk7IH0KCmV4cG9ydCBmdW5jdGlvbiBnZXRBcGlVcmwoKSB7IHJldHVybiBBUElfVVJMOyB9Cgphc3luYyBmdW5jdGlvbiBwYXJzZShyZXMpIHsKICBjb25zdCBkYXRhID0gYXdhaXQgcmVzLmpzb24oKS5jYXRjaCgoKSA9PiAoe30pKTsKICBpZiAoIXJlcy5vaykgdGhyb3cgT2JqZWN0LmFzc2lnbihuZXcgRXJyb3IoZGF0YT8uZXJyb3IgfHwgYFJhaWx3YXkgQVBJICR7cmVzLnN0YXR1c31gKSwgeyBzdGF0dXM6IHJlcy5zdGF0dXMsIGRhdGEgfSk7CiAgcmV0dXJuIGRhdGE7Cn0KCmFzeW5jIGZ1bmN0aW9uIHJlZnJlc2hTZXNzaW9uKCkgewogIGNvbnN0IHJlZnJlc2ggPSBnZXRSZWZyZXNoKCk7CiAgaWYgKCFyZWZyZXNoKSB7CiAgICAvLyBDbGVhciBzdGFsZSBhY2Nlc3MgdG9rZW4gc28gaXNMb2dnZWRJbigpIHJldHVybnMgZmFsc2Ugb24gbmV4dCBib290LAogICAgLy8gZm9yY2luZyB0aGUgdXNlciBiYWNrIHRvIHRoZSBsb2dpbiBwYWdlIGluc3RlYWQgb2YgbG9vcGluZy4KICAgIGNsZWFyVG9rZW5zKCk7CiAgICBjb25zdCBlcnIgPSBuZXcgRXJyb3IoJ25vIHJlZnJlc2ggdG9rZW4nKTsKICAgIGVyci5zdGF0dXMgPSA0MDE7IC8vIFRyZWF0IGFzIGF1dGhfcmVxdWlyZWQgKG5vdCBuZXR3b3JrX2Vycm9yKSBzbyB0aGUgVUkKICAgICAgICAgICAgICAgICAgICAgIC8vIHJvdXRlcyB0byBsb2dpbiBpbnN0ZWFkIG9mIHNob3dpbmcgIkNvbm5lY3Rpb24gcHJvYmxlbSIuCiAgICB0aHJvdyBlcnI7CiAgfQogIGNvbnN0IHJlcyA9IGF3YWl0IGZldGNoKGAke0FQSV9VUkx9L2FwaS92MS9hdXRoL3JlZnJlc2hgLCB7CiAgICBtZXRob2Q6ICdQT1NUJywKICAgIGhlYWRlcnM6IHsgJ0NvbnRlbnQtVHlwZSc6ICdhcHBsaWNhdGlvbi9qc29uJyB9LAogICAgYm9keTogSlNPTi5zdHJpbmdpZnkoeyByZWZyZXNoIH0pLAogIH0pOwogIGNvbnN0IGRhdGEgPSBhd2FpdCBwYXJzZShyZXMpOwogIGlmIChkYXRhLmFjY2Vzcykgc2V0VG9rZW5zKGRhdGEuYWNjZXNzLCBkYXRhLnJlZnJlc2ggfHwgZ2V0UmVmcmVzaCgpKTsKICByZXR1cm4gZGF0YTsKfQoKLyoqCiAqIEF1dGhlbnRpY2F0ZWQgcmVxdWVzdCB0byAvYXBpL3YxLyouIEF1dG8tcmVmcmVzaGVzIG9uY2Ugb24gNDAxLgogKiBTdXBwb3J0cyBHRVQvUE9TVC9QQVRDSC9QVVQvREVMRVRFLiBPcHRpb25hbCBBYm9ydFNpZ25hbCB2aWEgb3B0cy5zaWduYWwuCiAqLwpleHBvcnQgYXN5bmMgZnVuY3Rpb24gYXBpQ2FsbChwYXRoLCB7IG1ldGhvZCA9ICdQT1NUJywgYm9keSwgc2lnbmFsIH0gPSB7fSkgewogIGlmICghQVBJX1VSTCkgdGhyb3cgbmV3IEVycm9yKCdSYWlsd2F5IEFQSSBVUkwgbm90IGNvbmZpZ3VyZWQgKFZJVEVfUkFJTFdBWV9BUElfVVJMKS4nKTsKICBjb25zdCBkb0ZldGNoID0gKHRva2VuKSA9PiBmZXRjaChgJHtBUElfVVJMfSR7cGF0aH1gLCB7CiAgICBtZXRob2QsCiAgICBoZWFkZXJzOiB7ICdDb250ZW50LVR5cGUnOiAnYXBwbGljYXRpb24vanNvbicsIEF1dGhvcml6YXRpb246IGBCZWFyZXIgJHt0b2tlbn1gIH0sCiAgICBib2R5OiBib2R5ID8gSlNPTi5zdHJpbmdpZnkoYm9keSkgOiB1bmRlZmluZWQsCiAgICBzaWduYWwsCiAgfSk7CgogIGxldCByZXMgPSBhd2FpdCBkb0ZldGNoKGdldEFjY2VzcygpKTsKICBpZiAocmVzLnN0YXR1cyA9PT0gNDAxKSB7CiAgICB0cnkgewogICAgICBhd2FpdCByZWZyZXNoU2Vzc2lvbigpOwogICAgICByZXMgPSBhd2FpdCBkb0ZldGNoKGdldEFjY2VzcygpKTsKICAgIH0gY2F0Y2ggKGUpIHsKICAgICAgY2xlYXJUb2tlbnMoKTsKICAgICAgdGhyb3cgZTsKICAgIH0KICB9CiAgcmV0dXJuIHBhcnNlKHJlcyk7Cn0KCmV4cG9ydCB7IEFQSV9VUkwsIEFDQ0VTU19LRVksIFJFRlJFU0hfS0VZIH07
+/**
+ * railway client — PERMANENT Railway API transport layer.
+ *
+ * Calls the Railway public API (/api/v1/*) using a Railway JWT access token.
+ * NEVER contains or sends: Gmail OAuth, Google tokens, PROXY_SECRET, or any
+ * server secret. The browser only ever holds Railway access + refresh tokens.
+ *
+ * Token storage: access + refresh in localStorage. A 401 triggers a single
+ * refresh attempt via /api/v1/auth/refresh; on refresh failure the caller is
+ * expected to re-authenticate.
+ *
+ * This is the canonical transport. src/lib/railwayApi.js re-exports these for
+ * backward compatibility with existing importers.
+ */
+
+import { RAILWAY_API_URL as API_URL } from '@/lib/apiConfig';
+
+const ACCESS_KEY = 'railway_access_token';
+const REFRESH_KEY = 'railway_refresh_token';
+
+function getAccess() { return localStorage.getItem(ACCESS_KEY) || ''; }
+function getRefresh() { return localStorage.getItem(REFRESH_KEY) || ''; }
+
+export function setTokens(access, refresh) {
+  if (access) localStorage.setItem(ACCESS_KEY, access);
+  if (refresh) localStorage.setItem(REFRESH_KEY, refresh);
+}
+
+export function clearTokens() {
+  localStorage.removeItem(ACCESS_KEY);
+  localStorage.removeItem(REFRESH_KEY);
+}
+
+export function isLoggedIn() { return !!getAccess(); }
+
+export function getRefreshToken() { return getRefresh(); }
+
+export function getApiUrl() { return API_URL; }
+
+async function parse(res) {
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw Object.assign(new Error(data?.error || `Railway API ${res.status}`), { status: res.status, data });
+  return data;
+}
+
+async function refreshSession() {
+  const refresh = getRefresh();
+  if (!refresh) {
+    // Clear stale access token so isLoggedIn() returns false on next boot,
+    // forcing the user back to the login page instead of looping.
+    clearTokens();
+    const err = new Error('no refresh token');
+    err.status = 401; // Treat as auth_required (not network_error) so the UI
+                      // routes to login instead of showing "Connection problem".
+    throw err;
+  }
+  const res = await fetch(`${API_URL}/api/v1/auth/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refresh }),
+  });
+  const data = await parse(res);
+  if (data.access) setTokens(data.access, data.refresh || getRefresh());
+  return data;
+}
+
+/**
+ * Authenticated request to /api/v1/*. Auto-refreshes once on 401.
+ * Supports GET/POST/PATCH/PUT/DELETE. Optional AbortSignal via opts.signal.
+ */
+export async function apiCall(path, { method = 'POST', body, signal } = {}) {
+  if (!API_URL) throw new Error('Railway API URL not configured (VITE_RAILWAY_API_URL).');
+  const doFetch = (token) => fetch(`${API_URL}${path}`, {
+    method,
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: body ? JSON.stringify(body) : undefined,
+    signal,
+  });
+
+  let res = await doFetch(getAccess());
+  if (res.status === 401) {
+    try {
+      await refreshSession();
+      res = await doFetch(getAccess());
+    } catch (e) {
+      clearTokens();
+      throw e;
+    }
+  }
+  return parse(res);
+}
+
+export { API_URL, ACCESS_KEY, REFRESH_KEY };

@@ -1,1 +1,24 @@
-LyoqCiAqIE93bmVyIEVtYWlsIFJlc29sdXRpb24gVXRpbGl0eQogKiAKICogRm9ybWF0OiBmaXJzdF9uYW1lIChsb3dlcmNhc2UpICsgQGVjY29uc3RydWN0aW9uZ3JvdXAuY29tCiAqIAogKiBFeGFtcGxlczoKICogICAiWWFyb24gRHJpbGV2aWNoIiDihpIgInlhcm9uQGVjY29uc3RydWN0aW9uZ3JvdXAuY29tIgogKiAgICJNaWNreSBHYWQiICAgICAgIOKGkiAibWlja3lAZWNjb25zdHJ1Y3Rpb25ncm91cC5jb20iCiAqICAgIk1pY2hlbGxlIiAgICAgICAg4oaSICJtaWNoZWxsZUBlY2NvbnN0cnVjdGlvbmdyb3VwLmNvbSIKICovCgpleHBvcnQgZnVuY3Rpb24gcmVzb2x2ZU93bmVyRW1haWwob3duZXJOYW1lKSB7CiAgaWYgKCFvd25lck5hbWUgfHwgdHlwZW9mIG93bmVyTmFtZSAhPT0gJ3N0cmluZycpIHJldHVybiBudWxsOwogIGNvbnN0IGZpcnN0TmFtZSA9IG93bmVyTmFtZS50cmltKCkuc3BsaXQoL1xzKy8pWzBdLnRvTG93ZXJDYXNlKCk7CiAgaWYgKCFmaXJzdE5hbWUpIHJldHVybiBudWxsOwogIHJldHVybiBgJHtmaXJzdE5hbWV9QGVjY29uc3RydWN0aW9uZ3JvdXAuY29tYDsKfQoKZXhwb3J0IGZ1bmN0aW9uIHZhbGlkYXRlT3duZXJFbWFpbChlbWFpbCkgewogIGlmICghZW1haWwpIHJldHVybiB7IHZhbGlkOiBmYWxzZSwgcmVhc29uOiAnTm8gZW1haWwnIH07CiAgY29uc3QgZW1haWxSZWdleCA9IC9eW2EtekEtWl0rQGVjY29uc3RydWN0aW9uZ3JvdXBcLmNvbSQvOwogIGlmICghZW1haWxSZWdleC50ZXN0KGVtYWlsKSkgcmV0dXJuIHsgdmFsaWQ6IGZhbHNlLCByZWFzb246ICdJbnZhbGlkIGZvcm1hdCAoZXhwZWN0ZWQgZmlyc3RuYW1lQGVjY29uc3RydWN0aW9uZ3JvdXAuY29tKScgfTsKICByZXR1cm4geyB2YWxpZDogdHJ1ZSB9Owp9
+/**
+ * Owner Email Resolution Utility
+ * 
+ * Format: first_name (lowercase) + @ecconstructiongroup.com
+ * 
+ * Examples:
+ *   "Yaron Drilevich" → "yaron@ecconstructiongroup.com"
+ *   "Micky Gad"       → "micky@ecconstructiongroup.com"
+ *   "Michelle"        → "michelle@ecconstructiongroup.com"
+ */
+
+export function resolveOwnerEmail(ownerName) {
+  if (!ownerName || typeof ownerName !== 'string') return null;
+  const firstName = ownerName.trim().split(/\s+/)[0].toLowerCase();
+  if (!firstName) return null;
+  return `${firstName}@ecconstructiongroup.com`;
+}
+
+export function validateOwnerEmail(email) {
+  if (!email) return { valid: false, reason: 'No email' };
+  const emailRegex = /^[a-zA-Z]+@ecconstructiongroup\.com$/;
+  if (!emailRegex.test(email)) return { valid: false, reason: 'Invalid format (expected firstname@ecconstructiongroup.com)' };
+  return { valid: true };
+}

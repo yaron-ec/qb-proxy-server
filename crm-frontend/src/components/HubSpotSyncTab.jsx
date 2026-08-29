@@ -1,1 +1,209 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCwgdXNlQ2FsbGJhY2sgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IHJhaWx3YXlSZXF1ZXN0IH0gZnJvbSAiQC9saWIvcmFpbHdheUNsaWVudCI7CmltcG9ydCB7CiAgRGF0YWJhc2UsIFVzZXJzLCBDaGVja0NpcmNsZSwgQWN0aXZpdHksIENoZXZyb25Eb3duLCBDaGV2cm9uUmlnaHQsCiAgVXNlckNvZywgTG9hZGVyMiwgWAp9IGZyb20gImx1Y2lkZS1yZWFjdCI7CmltcG9ydCB7IFN5bmNTZWN0aW9uLCBTeW5jU2VjdGlvbkhlYWRlciwgU3luY0luZm9Ob3RpY2UsIFN5bmNTdGF0Um93LCBTeW5jQnRuLCBTeW5jUmVzdWx0LCBTdGF0dXNQaWxsIH0gZnJvbSAiLi9TeW5jQ2FyZCI7CmltcG9ydCBPd25lck1hcHBpbmdQYW5lbCBmcm9tICIuL093bmVyTWFwcGluZ1BhbmVsIjsKCmNvbnN0IFNZTkNfRElTQUJMRURfTk9URSA9ICJIdWJTcG90IHN5bmMgd2FzIGRpc2FibGVkIGFmdGVyIG9uZS10aW1lIG1pZ3JhdGlvbi4gQ29udHJhY3RvckZsb3cgaXMgbm93IHRoZSBwcmltYXJ5IENSTS4iOwpjb25zdCBNSUdSQVRJT05fREFURSA9ICJKdW5lIDEsIDIwMjYiOwoKZnVuY3Rpb24gZm10QWJzVGltZShpc28pIHsKICBpZiAoIWlzbykgcmV0dXJuICfigJQnOwogIHJldHVybiBuZXcgRGF0ZShpc28pLnRvTG9jYWxlU3RyaW5nKCdlbi1VUycsIHsgbW9udGg6ICdzaG9ydCcsIGRheTogJ251bWVyaWMnLCBob3VyOiAnMi1kaWdpdCcsIG1pbnV0ZTogJzItZGlnaXQnIH0pOwp9CmZ1bmN0aW9uIGZtdER1cmF0aW9uKG1zKSB7CiAgaWYgKCFtcykgcmV0dXJuICfigJQnOwogIGlmIChtcyA8IDEwMDApIHJldHVybiBgJHttc31tc2A7CiAgaWYgKG1zIDwgNjAwMDApIHJldHVybiBgJHsobXMgLyAxMDAwKS50b0ZpeGVkKDEpfXNgOwogIHJldHVybiBgJHtNYXRoLmZsb29yKG1zIC8gNjAwMDApfW0gJHtNYXRoLnJvdW5kKChtcyAlIDYwMDAwKSAvIDEwMDApfXNgOwp9CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBIdWJTcG90U3luY1RhYigpIHsKICBjb25zdCBbbGl2ZVN0YXRzLCBzZXRMaXZlU3RhdHNdID0gdXNlU3RhdGUobnVsbCk7CiAgY29uc3QgW3N0YXRzTG9hZGluZywgc2V0U3RhdHNMb2FkaW5nXSA9IHVzZVN0YXRlKHRydWUpOwogIGNvbnN0IFtzeW5jSm9icywgc2V0U3luY0pvYnNdID0gdXNlU3RhdGUoW10pOwogIGNvbnN0IFtzaG93SGlzdG9yeSwgc2V0U2hvd0hpc3RvcnldID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFttaWdyYXRpb25SZXN1bHQsIHNldE1pZ3JhdGlvblJlc3VsdF0gPSB1c2VTdGF0ZShudWxsKTsKICBjb25zdCBbbWlncmF0aW9uUnVubmluZywgc2V0TWlncmF0aW9uUnVubmluZ10gPSB1c2VTdGF0ZShmYWxzZSk7CiAgY29uc3QgW3Nob3dSZUVuYWJsZSwgc2V0U2hvd1JlRW5hYmxlXSA9IHVzZVN0YXRlKGZhbHNlKTsKCiAgY29uc3QgZmV0Y2hTdGF0cyA9IHVzZUNhbGxiYWNrKGFzeW5jICgpID0+IHsKICAgIHRyeSB7CiAgICAgIGNvbnN0IGRhdGEgPSBhd2FpdCByYWlsd2F5UmVxdWVzdCgnL2h1YnNwb3Qvc3RhdHMnLCB7fSk7CiAgICAgIGlmIChkYXRhICYmICFkYXRhLmVycm9yKSB7CiAgICAgICAgc2V0TGl2ZVN0YXRzKGRhdGEpOwogICAgICAgIGlmIChkYXRhLnN5bmNfam9icykgc2V0U3luY0pvYnMoZGF0YS5zeW5jX2pvYnMpOwogICAgICB9CiAgICB9IGNhdGNoIChlKSB7IC8qIGluZm9ybWF0aW9uYWwgKi8gfSBmaW5hbGx5IHsKICAgICAgc2V0U3RhdHNMb2FkaW5nKGZhbHNlKTsKICAgIH0KICB9LCBbXSk7CgogIHVzZUVmZmVjdCgoKSA9PiB7IGZldGNoU3RhdHMoKTsgfSwgW2ZldGNoU3RhdHNdKTsKCiAgY29uc3QgcnVuTWlncmF0aW9uID0gYXN5bmMgKCkgPT4gewogICAgc2V0TWlncmF0aW9uUnVubmluZyh0cnVlKTsKICAgIHNldE1pZ3JhdGlvblJlc3VsdChudWxsKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IHJlcyA9IGF3YWl0IHJhaWx3YXlSZXF1ZXN0KCcvaHVic3BvdC9taWdyYXRlLW5ldy1sZWFkcycsIHt9KTsKICAgICAgc2V0TWlncmF0aW9uUmVzdWx0KHJlcyk7CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIHNldE1pZ3JhdGlvblJlc3VsdCh7IGVycm9yOiBlLm1lc3NhZ2UgfSk7CiAgICB9IGZpbmFsbHkgewogICAgICBzZXRNaWdyYXRpb25SdW5uaW5nKGZhbHNlKTsKICAgIH0KICB9OwoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9Im1heC13LTJ4bCBzcGFjZS15LTQiPgoKICAgICAgey8qIOKUgOKUgCBTdGF0dXMgYmFubmVyIChjb21wYWN0LCBub3QgZGFyaykg4pSA4pSAICovfQogICAgICA8U3luY1NlY3Rpb24+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiI+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTMiPgogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idy04IGgtOCByb3VuZGVkLWxnIGJnLXNsYXRlLTEwMCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBmbGV4LXNocmluay0wIj4KICAgICAgICAgICAgICA8WCBjbGFzc05hbWU9InctNCBoLTQgdGV4dC1zbGF0ZS01MDAiIC8+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8ZGl2PgogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiI+CiAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtc20gZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTgwMCI+SHViU3BvdCBTeW5jPC9zcGFuPgogICAgICAgICAgICAgICAgPFN0YXR1c1BpbGwgc3RhdHVzPSJpbmFjdGl2ZSIgLz4KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS01MDAgbXQtMC41Ij57U1lOQ19ESVNBQkxFRF9OT1RFfTwvcD4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibXQtMyBwdC0zIGJvcmRlci10IGJvcmRlci1zbGF0ZS0xMDAgdGV4dC14cyB0ZXh0LXNsYXRlLTQwMCI+CiAgICAgICAgICBEaXNhYmxlZDoge01JR1JBVElPTl9EQVRFfSDCtyBBbGwgYXV0b21hdGlvbnMgYXJjaGl2ZWQgwrcgQ3JlZGVudGlhbHMgcHJlc2VydmVkCiAgICAgICAgPC9kaXY+CiAgICAgIDwvU3luY1NlY3Rpb24+CgogICAgICB7Lyog4pSA4pSAIFN0YXQgcm93IOKUgOKUgCAqL30KICAgICAgPFN5bmNTZWN0aW9uPgogICAgICAgIDxTeW5jU2VjdGlvbkhlYWRlciBpY29uPXtEYXRhYmFzZX0gdGl0bGU9IkRhdGEgT3ZlcnZpZXciIGljb25Db2xvcj0idGV4dC1zbGF0ZS00MDAiIC8+CiAgICAgICAge3N0YXRzTG9hZGluZyA/ICgKICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiB0ZXh0LXNsYXRlLTQwMCB0ZXh0LXhzIj48TG9hZGVyMiBjbGFzc05hbWU9InctMy41IGgtMy41IGFuaW1hdGUtc3BpbiIgLz4gTG9hZGluZyBzdGF0cy4uLjwvZGl2PgogICAgICAgICkgOiAoCiAgICAgICAgICA8U3luY1N0YXRSb3cgaXRlbXM9e1sKICAgICAgICAgICAgeyBsYWJlbDogIkNSTSBMZWFkcyIsIHZhbHVlOiBsaXZlU3RhdHM/LmNybV9sZWFkcz8udG9Mb2NhbGVTdHJpbmcoKSA/PyAn4oCUJywgY29sb3I6ICJzbGF0ZSIgfSwKICAgICAgICAgICAgeyBsYWJlbDogIkh1YlNwb3QgQ29udGFjdHMiLCB2YWx1ZTogbGl2ZVN0YXRzPy50b3RhbF9odWJzcG90X2NvbnRhY3RzPy50b0xvY2FsZVN0cmluZygpID8/ICfigJQnLCBjb2xvcjogImJsdWUiIH0sCiAgICAgICAgICAgIHsgbGFiZWw6ICJNYXRjaGVkIiwgdmFsdWU6IGxpdmVTdGF0cz8ubWF0Y2hlZF9jb250YWN0cz8udG9Mb2NhbGVTdHJpbmcoKSA/PyAn4oCUJywgY29sb3I6ICJncmVlbiIgfSwKICAgICAgICAgIF19IC8+CiAgICAgICAgKX0KICAgICAgPC9TeW5jU2VjdGlvbj4KCiAgICAgIHsvKiDilIDilIAgT25lLVRpbWUgTWlncmF0aW9uIOKUgOKUgCAqL30KICAgICAgPFN5bmNTZWN0aW9uPgogICAgICAgIDxTeW5jU2VjdGlvbkhlYWRlcgogICAgICAgICAgaWNvbj17RGF0YWJhc2V9CiAgICAgICAgICB0aXRsZT0iT25lLVRpbWUgTWlncmF0aW9uIgogICAgICAgICAgaWNvbkNvbG9yPSJ0ZXh0LWFtYmVyLTUwMCIKICAgICAgICAgIGJhZGdlPXt7IGxhYmVsOiAiU2FmZSB0byByZS1ydW4iLCBjbGFzc05hbWU6ICJiZy1zbGF0ZS0xMDAgdGV4dC1zbGF0ZS01MDAiIH19CiAgICAgICAgLz4KICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS01MDAgbWItMyI+CiAgICAgICAgICBQcm90ZWN0cyBhbGwgbGVhZHMgd2l0aCBzdGF0dXMgPHN0cm9uZyBjbGFzc05hbWU9InRleHQtc2xhdGUtNzAwIj4iTmV3Ijwvc3Ryb25nPiBmcm9tIGJlaW5nIG92ZXJ3cml0dGVuIGJ5IEh1YlNwb3QuCiAgICAgICAgICBTZXRzIDxjb2RlIGNsYXNzTmFtZT0iYmctc2xhdGUtMTAwIHB4LTEgcm91bmRlZCB0ZXh0LVsxMHB4XSI+aHVic3BvdF9hdXRob3JpdGF0aXZlX2ZpZWxkcyA9IFtdPC9jb2RlPiBzbyBubyBmaWVsZCBpcyBvd25lZCBieSBIdWJTcG90LgogICAgICAgIDwvcD4KCiAgICAgICAge21pZ3JhdGlvblJlc3VsdCAmJiAhbWlncmF0aW9uUmVzdWx0LmVycm9yICYmICgKICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtYi0zIj4KICAgICAgICAgICAgPFN5bmNSZXN1bHQgc3VjY2VzcyBtZXNzYWdlPXtgJHttaWdyYXRpb25SZXN1bHQudXBkYXRlZH0gbGVhZHMgcHJvdGVjdGVkIMK3ICR7bWlncmF0aW9uUmVzdWx0LmZhaWxlZH0gZmFpbGVkIMK3ICR7bWlncmF0aW9uUmVzdWx0LnRvdGFsX2ZvdW5kfSB0b3RhbCBmb3VuZGB9IC8+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICApfQogICAgICAgIHttaWdyYXRpb25SZXN1bHQ/LmVycm9yICYmICgKICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtYi0zIj4KICAgICAgICAgICAgPFN5bmNSZXN1bHQgc3VjY2Vzcz17ZmFsc2V9IGVycm9yPXttaWdyYXRpb25SZXN1bHQuZXJyb3J9IC8+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICApfQoKICAgICAgICA8U3luY0J0biBvbkNsaWNrPXtydW5NaWdyYXRpb259IGRpc2FibGVkPXttaWdyYXRpb25SdW5uaW5nfSBsb2FkaW5nPXttaWdyYXRpb25SdW5uaW5nfSBpY29uPXtDaGVja0NpcmNsZX0+CiAgICAgICAgICB7bWlncmF0aW9uUnVubmluZyA/ICdSdW5uaW5nLi4uJyA6ICdSdW4gTWlncmF0aW9uJ30KICAgICAgICA8L1N5bmNCdG4+CiAgICAgIDwvU3luY1NlY3Rpb24+CgogICAgICB7Lyog4pSA4pSAIFN5bmMgSGlzdG9yeSDilIDilIAgKi99CiAgICAgIHtzeW5jSm9icy5sZW5ndGggPiAwICYmICgKICAgICAgICA8U3luY1NlY3Rpb24gY2xhc3NOYW1lPSIhcC0wIG92ZXJmbG93LWhpZGRlbiI+CiAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHNldFNob3dIaXN0b3J5KGggPT4gIWgpfQogICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gcHgtNSBweS00IGhvdmVyOmJnLXNsYXRlLTUwIHRyYW5zaXRpb24tY29sb3JzIgogICAgICAgICAgPgogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIiPgogICAgICAgICAgICAgIDxBY3Rpdml0eSBjbGFzc05hbWU9InctNCBoLTQgdGV4dC1zbGF0ZS00MDAiIC8+CiAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS03MDAiPlN5bmMgSGlzdG9yeTwvc3Bhbj4KICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtWzEwcHhdIHRleHQtc2xhdGUtNDAwIGJnLXNsYXRlLTEwMCBweC0yIHB5LTAuNSByb3VuZGVkLWZ1bGwiPntzeW5jSm9icy5sZW5ndGh9IHJ1bnM8L3NwYW4+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICB7c2hvd0hpc3RvcnkgPyA8Q2hldnJvbkRvd24gY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtc2xhdGUtNDAwIiAvPiA6IDxDaGV2cm9uUmlnaHQgY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtc2xhdGUtNDAwIiAvPn0KICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAge3Nob3dIaXN0b3J5ICYmICgKICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJvcmRlci10IGJvcmRlci1zbGF0ZS0xMDAgZGl2aWRlLXkgZGl2aWRlLXNsYXRlLTUwIG1heC1oLTcyIG92ZXJmbG93LXktYXV0byI+CiAgICAgICAgICAgICAge3N5bmNKb2JzLm1hcChqb2IgPT4gPFN5bmNKb2JSb3cga2V5PXtqb2IuaWR9IGpvYj17am9ifSAvPil9CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgKX0KICAgICAgICA8L1N5bmNTZWN0aW9uPgogICAgICApfQoKICAgICAgey8qIOKUgOKUgCBSZS1lbmFibGUg4pSA4pSAICovfQogICAgICA8U3luY1NlY3Rpb24+CiAgICAgICAgPFN5bmNTZWN0aW9uSGVhZGVyIGljb249e1VzZXJDb2d9IHRpdGxlPSJSZS1lbmFibGUgSHViU3BvdCBTeW5jIiBpY29uQ29sb3I9InRleHQtc2xhdGUtNDAwIiAvPgogICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTUwMCBtYi0zIj4KICAgICAgICAgIFRvIHJlLWVuYWJsZSBhdXRvbWF0aWMgc3luYywgY3JlYXRlIGEgbmV3IHNjaGVkdWxlZCBhdXRvbWF0aW9uIHBvaW50ZWQgYXR7IiAifQogICAgICAgICAgPGNvZGUgY2xhc3NOYW1lPSJiZy1zbGF0ZS0xMDAgcHgtMSByb3VuZGVkIHRleHQtWzEwcHhdIj5zeW5jSHViU3BvdENvbnRhY3RzPC9jb2RlPiBpbiB0aGUgQmFzZTQ0IGRhc2hib2FyZC4KICAgICAgICAgIENyZWRlbnRpYWxzIGFuZCBBUEkga2V5IGFyZSBwcmVzZXJ2ZWQuCiAgICAgICAgPC9wPgogICAgICAgIHshc2hvd1JlRW5hYmxlID8gKAogICAgICAgICAgPFN5bmNCdG4gdmFyaWFudD0ic2Vjb25kYXJ5IiBvbkNsaWNrPXsoKSA9PiBzZXRTaG93UmVFbmFibGUodHJ1ZSl9PkhvdyB0byByZS1lbmFibGUg4oaSPC9TeW5jQnRuPgogICAgICAgICkgOiAoCiAgICAgICAgICA8U3luY0luZm9Ob3RpY2UgdmFyaWFudD0ibmV1dHJhbCI+CiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0iZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTcwMCBtYi0yIj5TdGVwcyB0byByZS1lbmFibGU6PC9wPgogICAgICAgICAgICA8b2wgY2xhc3NOYW1lPSJzcGFjZS15LTEgbGlzdC1kZWNpbWFsIGxpc3QtaW5zaWRlIHRleHQtc2xhdGUtNjAwIj4KICAgICAgICAgICAgICA8bGk+R28gdG8gQmFzZTQ0IERhc2hib2FyZCDihpIgQXV0b21hdGlvbnM8L2xpPgogICAgICAgICAgICAgIDxsaT5DcmVhdGUgYSBuZXcgU2NoZWR1bGVkIGF1dG9tYXRpb248L2xpPgogICAgICAgICAgICAgIDxsaT5GdW5jdGlvbjogPGNvZGUgY2xhc3NOYW1lPSJiZy1zbGF0ZS0yMDAgcHgtMSByb3VuZGVkIj5zeW5jSHViU3BvdENvbnRhY3RzPC9jb2RlPjwvbGk+CiAgICAgICAgICAgICAgPGxpPkludGVydmFsOiBldmVyeSAxNSBtaW51dGVzPC9saT4KICAgICAgICAgICAgICA8bGk+VGhlIEhVQlNQT1RfQVBJX0tFWSBzZWNyZXQgaXMgYWxyZWFkeSBzZXQuPC9saT4KICAgICAgICAgICAgPC9vbD4KICAgICAgICAgICAgPGJ1dHRvbiBvbkNsaWNrPXsoKSA9PiBzZXRTaG93UmVFbmFibGUoZmFsc2UpfSBjbGFzc05hbWU9Im10LTIgdGV4dC14cyB0ZXh0LXNsYXRlLTQwMCBob3Zlcjp0ZXh0LXNsYXRlLTYwMCBmb250LXNlbWlib2xkIj5EaXNtaXNzPC9idXR0b24+CiAgICAgICAgICA8L1N5bmNJbmZvTm90aWNlPgogICAgICAgICl9CiAgICAgIDwvU3luY1NlY3Rpb24+CgogICAgICB7Lyog4pSA4pSAIE93bmVyIE1hcHBpbmcg4pSA4pSAICovfQogICAgICA8T3duZXJNYXBwaW5nUGFuZWwgLz4KICAgIDwvZGl2PgogICk7Cn0KCmZ1bmN0aW9uIFN5bmNKb2JSb3coeyBqb2IgfSkgewogIGNvbnN0IGNmZyA9IHsKICAgIGNvbXBsZXRlZDogeyBkb3Q6ICJiZy1lbWVyYWxkLTUwMCIsIHRleHQ6ICJ0ZXh0LWVtZXJhbGQtNzAwIiwgbGFiZWw6ICJDb21wbGV0ZWQiIH0sCiAgICBmYWlsZWQ6ICAgIHsgZG90OiAiYmctcmVkLTUwMCIsICAgICB0ZXh0OiAidGV4dC1yZWQtNzAwIiwgICAgIGxhYmVsOiAiRmFpbGVkIiB9LAogICAgcnVubmluZzogICB7IGRvdDogImJnLWFtYmVyLTQwMCBhbmltYXRlLXB1bHNlIiwgdGV4dDogInRleHQtYW1iZXItNzAwIiwgbGFiZWw6ICJSdW5uaW5nIiB9LAogIH1bam9iLnN0YXR1c10gfHwgeyBkb3Q6ICJiZy1zbGF0ZS0zMDAiLCB0ZXh0OiAidGV4dC1zbGF0ZS01MDAiLCBsYWJlbDogam9iLnN0YXR1cyB9OwoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0zIHB4LTUgcHktMyBob3ZlcjpiZy1zbGF0ZS01MCB0cmFuc2l0aW9uLWNvbG9ycyI+CiAgICAgIDxkaXYgY2xhc3NOYW1lPXtgdy0yIGgtMiByb3VuZGVkLWZ1bGwgZmxleC1zaHJpbmstMCAke2NmZy5kb3R9YH0gLz4KICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXgtMSBtaW4tdy0wIj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIiPgogICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS03MDAgY2FwaXRhbGl6ZSI+e2pvYi5tb2RlfSBzeW5jPC9zcGFuPgogICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPXtgdGV4dC1bMTBweF0gZm9udC1ib2xkICR7Y2ZnLnRleHR9YH0+e2NmZy5sYWJlbH08L3NwYW4+CiAgICAgICAgPC9kaXY+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtWzEwcHhdIHRleHQtc2xhdGUtNDAwIGZsZXggZ2FwLTMgbXQtMC41Ij4KICAgICAgICAgIDxzcGFuPntmbXRBYnNUaW1lKGpvYi5zdGFydGVkX2F0KX08L3NwYW4+CiAgICAgICAgICB7am9iLmR1cmF0aW9uX21zICYmIDxzcGFuPsK3IHtmbXREdXJhdGlvbihqb2IuZHVyYXRpb25fbXMpfTwvc3Bhbj59CiAgICAgICAgICB7am9iLmVycm9yX21lc3NhZ2UgJiYgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXJlZC01MDAgdHJ1bmNhdGUiPntqb2IuZXJyb3JfbWVzc2FnZX08L3NwYW4+fQogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KICAgICAge2pvYi5zdGF0dXMgPT09ICdjb21wbGV0ZWQnICYmICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1yaWdodCBmbGV4LXNocmluay0wIHRleHQtWzEwcHhdIHRleHQtc2xhdGUtNTAwIHNwYWNlLXktMC41Ij4KICAgICAgICAgIDxkaXY+PHNwYW4gY2xhc3NOYW1lPSJmb250LWJvbGQgdGV4dC1lbWVyYWxkLTcwMCI+K3tqb2IuaW1wb3J0ZWRfY291bnQgPz8gMH08L3NwYW4+IG5ldzwvZGl2PgogICAgICAgICAgPGRpdj48c3BhbiBjbGFzc05hbWU9ImZvbnQtYm9sZCB0ZXh0LWJsdWUtNzAwIj57am9iLnVwZGF0ZWRfY291bnQgPz8gMH08L3NwYW4+IHVwZGF0ZWQ8L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgKX0KICAgIDwvZGl2PgogICk7Cn0=
+import { useState, useEffect, useCallback } from "react";
+import { railwayRequest } from "@/lib/railwayClient";
+import {
+  Database, Users, CheckCircle, Activity, ChevronDown, ChevronRight,
+  UserCog, Loader2, X
+} from "lucide-react";
+import { SyncSection, SyncSectionHeader, SyncInfoNotice, SyncStatRow, SyncBtn, SyncResult, StatusPill } from "./SyncCard";
+import OwnerMappingPanel from "./OwnerMappingPanel";
+
+const SYNC_DISABLED_NOTE = "HubSpot sync was disabled after one-time migration. ContractorFlow is now the primary CRM.";
+const MIGRATION_DATE = "June 1, 2026";
+
+function fmtAbsTime(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+function fmtDuration(ms) {
+  if (!ms) return '—';
+  if (ms < 1000) return `${ms}ms`;
+  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+  return `${Math.floor(ms / 60000)}m ${Math.round((ms % 60000) / 1000)}s`;
+}
+
+export default function HubSpotSyncTab() {
+  const [liveStats, setLiveStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [syncJobs, setSyncJobs] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [migrationResult, setMigrationResult] = useState(null);
+  const [migrationRunning, setMigrationRunning] = useState(false);
+  const [showReEnable, setShowReEnable] = useState(false);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const data = await railwayRequest('/hubspot/stats', {});
+      if (data && !data.error) {
+        setLiveStats(data);
+        if (data.sync_jobs) setSyncJobs(data.sync_jobs);
+      }
+    } catch (e) { /* informational */ } finally {
+      setStatsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchStats(); }, [fetchStats]);
+
+  const runMigration = async () => {
+    setMigrationRunning(true);
+    setMigrationResult(null);
+    try {
+      const res = await railwayRequest('/hubspot/migrate-new-leads', {});
+      setMigrationResult(res);
+    } catch (e) {
+      setMigrationResult({ error: e.message });
+    } finally {
+      setMigrationRunning(false);
+    }
+  };
+
+  return (
+    <div className="max-w-2xl space-y-4">
+
+      {/* ── Status banner (compact, not dark) ── */}
+      <SyncSection>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+              <X className="w-4 h-4 text-slate-500" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-slate-800">HubSpot Sync</span>
+                <StatusPill status="inactive" />
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">{SYNC_DISABLED_NOTE}</p>
+            </div>
+          </div>
+        </div>
+        <div className="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-400">
+          Disabled: {MIGRATION_DATE} · All automations archived · Credentials preserved
+        </div>
+      </SyncSection>
+
+      {/* ── Stat row ── */}
+      <SyncSection>
+        <SyncSectionHeader icon={Database} title="Data Overview" iconColor="text-slate-400" />
+        {statsLoading ? (
+          <div className="flex items-center gap-2 text-slate-400 text-xs"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading stats...</div>
+        ) : (
+          <SyncStatRow items={[
+            { label: "CRM Leads", value: liveStats?.crm_leads?.toLocaleString() ?? '—', color: "slate" },
+            { label: "HubSpot Contacts", value: liveStats?.total_hubspot_contacts?.toLocaleString() ?? '—', color: "blue" },
+            { label: "Matched", value: liveStats?.matched_contacts?.toLocaleString() ?? '—', color: "green" },
+          ]} />
+        )}
+      </SyncSection>
+
+      {/* ── One-Time Migration ── */}
+      <SyncSection>
+        <SyncSectionHeader
+          icon={Database}
+          title="One-Time Migration"
+          iconColor="text-amber-500"
+          badge={{ label: "Safe to re-run", className: "bg-slate-100 text-slate-500" }}
+        />
+        <p className="text-xs text-slate-500 mb-3">
+          Protects all leads with status <strong className="text-slate-700">"New"</strong> from being overwritten by HubSpot.
+          Sets <code className="bg-slate-100 px-1 rounded text-[10px]">hubspot_authoritative_fields = []</code> so no field is owned by HubSpot.
+        </p>
+
+        {migrationResult && !migrationResult.error && (
+          <div className="mb-3">
+            <SyncResult success message={`${migrationResult.updated} leads protected · ${migrationResult.failed} failed · ${migrationResult.total_found} total found`} />
+          </div>
+        )}
+        {migrationResult?.error && (
+          <div className="mb-3">
+            <SyncResult success={false} error={migrationResult.error} />
+          </div>
+        )}
+
+        <SyncBtn onClick={runMigration} disabled={migrationRunning} loading={migrationRunning} icon={CheckCircle}>
+          {migrationRunning ? 'Running...' : 'Run Migration'}
+        </SyncBtn>
+      </SyncSection>
+
+      {/* ── Sync History ── */}
+      {syncJobs.length > 0 && (
+        <SyncSection className="!p-0 overflow-hidden">
+          <button
+            onClick={() => setShowHistory(h => !h)}
+            className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Activity className="w-4 h-4 text-slate-400" />
+              <span className="text-sm font-semibold text-slate-700">Sync History</span>
+              <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{syncJobs.length} runs</span>
+            </div>
+            {showHistory ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
+          </button>
+          {showHistory && (
+            <div className="border-t border-slate-100 divide-y divide-slate-50 max-h-72 overflow-y-auto">
+              {syncJobs.map(job => <SyncJobRow key={job.id} job={job} />)}
+            </div>
+          )}
+        </SyncSection>
+      )}
+
+      {/* ── Re-enable ── */}
+      <SyncSection>
+        <SyncSectionHeader icon={UserCog} title="Re-enable HubSpot Sync" iconColor="text-slate-400" />
+        <p className="text-xs text-slate-500 mb-3">
+          To re-enable automatic sync, create a new scheduled automation pointed at{" "}
+          <code className="bg-slate-100 px-1 rounded text-[10px]">syncHubSpotContacts</code> in the Base44 dashboard.
+          Credentials and API key are preserved.
+        </p>
+        {!showReEnable ? (
+          <SyncBtn variant="secondary" onClick={() => setShowReEnable(true)}>How to re-enable →</SyncBtn>
+        ) : (
+          <SyncInfoNotice variant="neutral">
+            <p className="font-semibold text-slate-700 mb-2">Steps to re-enable:</p>
+            <ol className="space-y-1 list-decimal list-inside text-slate-600">
+              <li>Go to Base44 Dashboard → Automations</li>
+              <li>Create a new Scheduled automation</li>
+              <li>Function: <code className="bg-slate-200 px-1 rounded">syncHubSpotContacts</code></li>
+              <li>Interval: every 15 minutes</li>
+              <li>The HUBSPOT_API_KEY secret is already set.</li>
+            </ol>
+            <button onClick={() => setShowReEnable(false)} className="mt-2 text-xs text-slate-400 hover:text-slate-600 font-semibold">Dismiss</button>
+          </SyncInfoNotice>
+        )}
+      </SyncSection>
+
+      {/* ── Owner Mapping ── */}
+      <OwnerMappingPanel />
+    </div>
+  );
+}
+
+function SyncJobRow({ job }) {
+  const cfg = {
+    completed: { dot: "bg-emerald-500", text: "text-emerald-700", label: "Completed" },
+    failed:    { dot: "bg-red-500",     text: "text-red-700",     label: "Failed" },
+    running:   { dot: "bg-amber-400 animate-pulse", text: "text-amber-700", label: "Running" },
+  }[job.status] || { dot: "bg-slate-300", text: "text-slate-500", label: job.status };
+
+  return (
+    <div className="flex items-center gap-3 px-5 py-3 hover:bg-slate-50 transition-colors">
+      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${cfg.dot}`} />
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-slate-700 capitalize">{job.mode} sync</span>
+          <span className={`text-[10px] font-bold ${cfg.text}`}>{cfg.label}</span>
+        </div>
+        <div className="text-[10px] text-slate-400 flex gap-3 mt-0.5">
+          <span>{fmtAbsTime(job.started_at)}</span>
+          {job.duration_ms && <span>· {fmtDuration(job.duration_ms)}</span>}
+          {job.error_message && <span className="text-red-500 truncate">{job.error_message}</span>}
+        </div>
+      </div>
+      {job.status === 'completed' && (
+        <div className="text-right flex-shrink-0 text-[10px] text-slate-500 space-y-0.5">
+          <div><span className="font-bold text-emerald-700">+{job.imported_count ?? 0}</span> new</div>
+          <div><span className="font-bold text-blue-700">{job.updated_count ?? 0}</span> updated</div>
+        </div>
+      )}
+    </div>
+  );
+}

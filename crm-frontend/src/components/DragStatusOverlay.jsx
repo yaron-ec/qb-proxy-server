@@ -1,1 +1,93 @@
-LyoqCiAqIERyYWdTdGF0dXNPdmVybGF5CiAqCiAqIFJlbmRlcnMgYSBmaXhlZCBmdWxsLXNjcmVlbiBvdmVybGF5IHdpdGggc3RhdHVzIGRyb3Agem9uZXMuCiAqIENhbGxlZCBieSB0aGUgZHJhZyBob29rIHdoZW4gYSBkcmFnIGlzIGluIHByb2dyZXNzLgogKi8KaW1wb3J0IHsgdXNlUmVmIH0gZnJvbSAicmVhY3QiOwoKY29uc3QgU1RBVFVTRVMgPSBbCiAgeyBpZDogIk5ldyIsICAgICAgICAgICAgICAgICAgICAgICAgICBsYWJlbDogIk5ldyIsICAgICAgICAgICAgICAgICAgY29sb3I6ICIjNjQ3NDhiIiwgYmc6ICIjZjhmYWZjIiwgYm9yZGVyOiAiI2NiZDVlMSIgfSwKICB7IGlkOiAiTm8gYW5zd2VyIiwgICAgICAgICAgICAgICAgICAgIGxhYmVsOiAiTm8gQW5zd2VyIiwgICAgICAgICAgICBjb2xvcjogIiM5NGEzYjgiLCBiZzogIiNmMWY1ZjkiLCBib3JkZXI6ICIjY2JkNWUxIiB9LAogIHsgaWQ6ICJBbnN3ZXJlZCwgbm8gYXBwb2ludG1lbnQgc2V0IiwgbGFiZWw6ICJBbnN3ZXJlZCIsICAgICAgICAgICAgIGNvbG9yOiAiI2Q5NzcwNiIsIGJnOiAiI2ZmZmJlYiIsIGJvcmRlcjogIiNmY2QzNGQiIH0sCiAgeyBpZDogIkFwcG9pbnRtZW50IHNjaGVkdWxlZCIsICAgICAgICBsYWJlbDogIkFwcHQgU2NoZWR1bGVkIiwgICAgICAgY29sb3I6ICIjMjU2M2ViIiwgYmc6ICIjZWZmNmZmIiwgYm9yZGVyOiAiIzkzYzVmZCIgfSwKICB7IGlkOiAiTm8gc2hvdyIsICAgICAgICAgICAgICAgICAgICAgIGxhYmVsOiAiTm8gU2hvdyIsICAgICAgICAgICAgICBjb2xvcjogIiNmOTczMTYiLCBiZzogIiNmZmY3ZWQiLCBib3JkZXI6ICIjZmRiYTc0IiB9LAogIHsgaWQ6ICJQcm9wb3NhbCBTZW50IiwgICAgICAgICAgICAgICAgbGFiZWw6ICJQcm9wb3NhbCBTZW50IiwgICAgICAgIGNvbG9yOiAiIzdjM2FlZCIsIGJnOiAiI2Y1ZjNmZiIsIGJvcmRlcjogIiNjNGI1ZmQiIH0sCiAgeyBpZDogIlNvbGQiLCAgICAgICAgICAgICAgICAgICAgICAgICBsYWJlbDogIlNvbGQg4pyTIiwgICAgICAgICAgICAgICBjb2xvcjogIiMxNmEzNGEiLCBiZzogIiNmMGZkZjQiLCBib3JkZXI6ICIjODZlZmFjIiB9LAogIHsgaWQ6ICJMb3N0IiwgICAgICAgICAgICAgICAgICAgICAgICAgbGFiZWw6ICJMb3N0IiwgICAgICAgICAgICAgICAgIGNvbG9yOiAiI2RjMjYyNiIsIGJnOiAiI2ZlZjJmMiIsIGJvcmRlcjogIiNmY2E1YTUiIH0sCiAgeyBpZDogIkROUSIsICAgICAgICAgICAgICAgICAgICAgICAgICBsYWJlbDogIkROUSIsICAgICAgICAgICAgICAgICAgY29sb3I6ICIjZWE1ODBjIiwgYmc6ICIjZmZmN2VkIiwgYm9yZGVyOiAiI2ZkYmE3NCIgfSwKXTsKCmV4cG9ydCB7IFNUQVRVU0VTIH07CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBEcmFnU3RhdHVzT3ZlcmxheSh7IGhvdmVyZWRTdGF0dXMsIG9uU3RhdHVzSG92ZXIsIGdob3N0UG9zLCBsZWFkIH0pIHsKICBpZiAoIWxlYWQpIHJldHVybiBudWxsOwoKICByZXR1cm4gKAogICAgPGRpdgogICAgICBjbGFzc05hbWU9ImZpeGVkIGluc2V0LTAgei1bOTk5OF0gZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIiCiAgICAgIHN0eWxlPXt7IGJhY2tncm91bmQ6ICJyZ2JhKDE1LDIzLDQyLDAuNTUpIiwgYmFja2Ryb3BGaWx0ZXI6ICJibHVyKDJweCkiIH19CiAgICA+CiAgICAgIHsvKiBHaG9zdCBjYXJkIGZvbGxvd2luZyBjdXJzb3IgKi99CiAgICAgIHtnaG9zdFBvcyAmJiAoCiAgICAgICAgPGRpdgogICAgICAgICAgY2xhc3NOYW1lPSJmaXhlZCBwb2ludGVyLWV2ZW50cy1ub25lIHotWzk5OTldIHNlbGVjdC1ub25lIgogICAgICAgICAgc3R5bGU9e3sgbGVmdDogZ2hvc3RQb3MueCArIDE0LCB0b3A6IGdob3N0UG9zLnkgLSAyMCwgd2lkdGg6IDIyMCB9fQogICAgICAgID4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy13aGl0ZSByb3VuZGVkLWxnIGJvcmRlci0yIGJvcmRlci1hbWJlci00MDAgc2hhZG93LTJ4bCBweC00IHB5LTMgb3BhY2l0eS05MCByb3RhdGUtMiI+CiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyBmb250LWJvbGQgdGV4dC1zbGF0ZS05MDAgdHJ1bmNhdGUiPgogICAgICAgICAgICAgIHtsZWFkLmZpcnN0X25hbWV9IHtsZWFkLmxhc3RfbmFtZX0KICAgICAgICAgICAgPC9wPgogICAgICAgICAgICB7bGVhZC5wcm9qZWN0X3R5cGUgJiYgKAogICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gdGV4dC1zbGF0ZS01MDAgdHJ1bmNhdGUgbXQtMC41Ij57bGVhZC5wcm9qZWN0X3R5cGV9PC9wPgogICAgICAgICAgICApfQogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzEwcHhdIHRleHQtYW1iZXItNjAwIGZvbnQtc2VtaWJvbGQgbXQtMSI+RHJhZyB0byBhIHN0YXR1cyDihpI8L3A+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgKX0KCiAgICAgIHsvKiBTdGF0dXMgZHJvcCBwYW5lbCAqL30KICAgICAgPGRpdiBjbGFzc05hbWU9InJlbGF0aXZlIHotWzk5OTldIGJnLXdoaXRlIHJvdW5kZWQtMnhsIHNoYWRvdy0yeGwgcC01IG14LTQgc2VsZWN0LW5vbmUiCiAgICAgICAgc3R5bGU9e3sgbWF4V2lkdGg6IDU2MCwgd2lkdGg6ICIxMDAlIiB9fT4KICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgZm9udC1ib2xkIHRleHQtc2xhdGUtNTAwIHVwcGVyY2FzZSB0cmFja2luZy13aWRlc3QgbWItNCB0ZXh0LWNlbnRlciI+CiAgICAgICAgICBEcm9wIG9uIGEgc3RhdHVzIHRvIHVwZGF0ZQogICAgICAgIDwvcD4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZ3JpZCBncmlkLWNvbHMtMyBnYXAtMi41Ij4KICAgICAgICAgIHtTVEFUVVNFUy5tYXAocyA9PiB7CiAgICAgICAgICAgIGNvbnN0IGlzSG92ZXJlZCA9IGhvdmVyZWRTdGF0dXMgPT09IHMuaWQ7CiAgICAgICAgICAgIGNvbnN0IGlzQ3VycmVudCA9IGxlYWQuc3RhdHVzID09PSBzLmlkOwogICAgICAgICAgICByZXR1cm4gKAogICAgICAgICAgICAgIDxkaXYKICAgICAgICAgICAgICAgIGtleT17cy5pZH0KICAgICAgICAgICAgICAgIGRhdGEtc3RhdHVzLXpvbmU9e3MuaWR9CiAgICAgICAgICAgICAgICBvbk1vdXNlRW50ZXI9eygpID0+IG9uU3RhdHVzSG92ZXIocy5pZCl9CiAgICAgICAgICAgICAgICBvbk1vdXNlTGVhdmU9eygpID0+IG9uU3RhdHVzSG92ZXIobnVsbCl9CiAgICAgICAgICAgICAgICBjbGFzc05hbWU9InJvdW5kZWQteGwgYm9yZGVyLTIgZmxleCBmbGV4LWNvbCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgcHktMyBweC0yIHRyYW5zaXRpb24tYWxsIGR1cmF0aW9uLTEwMCBjdXJzb3ItcG9pbnRlciIKICAgICAgICAgICAgICAgIHN0eWxlPXt7CiAgICAgICAgICAgICAgICAgIGJhY2tncm91bmQ6IGlzSG92ZXJlZCA/IHMuY29sb3IgOiBzLmJnLAogICAgICAgICAgICAgICAgICBib3JkZXJDb2xvcjogaXNIb3ZlcmVkID8gcy5jb2xvciA6IChpc0N1cnJlbnQgPyBzLmNvbG9yIDogcy5ib3JkZXIpLAogICAgICAgICAgICAgICAgICBib3hTaGFkb3c6IGlzSG92ZXJlZCA/IGAwIDAgMCAzcHggJHtzLmNvbG9yfTQ0YCA6ICJub25lIiwKICAgICAgICAgICAgICAgICAgdHJhbnNmb3JtOiBpc0hvdmVyZWQgPyAic2NhbGUoMS4wNSkiIDogInNjYWxlKDEpIiwKICAgICAgICAgICAgICAgIH19CiAgICAgICAgICAgICAgPgogICAgICAgICAgICAgICAgPHNwYW4KICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJ0ZXh0LXhzIGZvbnQtYm9sZCB0ZXh0LWNlbnRlciBsZWFkaW5nLXNudWciCiAgICAgICAgICAgICAgICAgIHN0eWxlPXt7IGNvbG9yOiBpc0hvdmVyZWQgPyAiI2ZmZiIgOiBzLmNvbG9yIH19CiAgICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICAgIHtzLmxhYmVsfQogICAgICAgICAgICAgICAgPC9zcGFuPgogICAgICAgICAgICAgICAge2lzQ3VycmVudCAmJiAhaXNIb3ZlcmVkICYmICgKICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LVs5cHhdIGZvbnQtc2VtaWJvbGQgbXQtMSBvcGFjaXR5LTYwIiBzdHlsZT17eyBjb2xvcjogcy5jb2xvciB9fT5jdXJyZW50PC9zcGFuPgogICAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgICAgIHtpc0hvdmVyZWQgJiYgKAogICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtWzEwcHhdIHRleHQtd2hpdGUgZm9udC1ib2xkIG10LTEgb3BhY2l0eS04MCI+4oaTIGRyb3AgaGVyZTwvc3Bhbj4KICAgICAgICAgICAgICAgICl9CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICk7CiAgICAgICAgICB9KX0KICAgICAgICA8L2Rpdj4KICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtY2VudGVyIHRleHQteHMgdGV4dC1zbGF0ZS00MDAgbXQtNCI+UmVsZWFzZSBvdXRzaWRlIHRvIGNhbmNlbDwvcD4KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KICApOwp9
+/**
+ * DragStatusOverlay
+ *
+ * Renders a fixed full-screen overlay with status drop zones.
+ * Called by the drag hook when a drag is in progress.
+ */
+import { useRef } from "react";
+
+const STATUSES = [
+  { id: "New",                          label: "New",                  color: "#64748b", bg: "#f8fafc", border: "#cbd5e1" },
+  { id: "No answer",                    label: "No Answer",            color: "#94a3b8", bg: "#f1f5f9", border: "#cbd5e1" },
+  { id: "Answered, no appointment set", label: "Answered",             color: "#d97706", bg: "#fffbeb", border: "#fcd34d" },
+  { id: "Appointment scheduled",        label: "Appt Scheduled",       color: "#2563eb", bg: "#eff6ff", border: "#93c5fd" },
+  { id: "No show",                      label: "No Show",              color: "#f97316", bg: "#fff7ed", border: "#fdba74" },
+  { id: "Proposal Sent",                label: "Proposal Sent",        color: "#7c3aed", bg: "#f5f3ff", border: "#c4b5fd" },
+  { id: "Sold",                         label: "Sold ✓",               color: "#16a34a", bg: "#f0fdf4", border: "#86efac" },
+  { id: "Lost",                         label: "Lost",                 color: "#dc2626", bg: "#fef2f2", border: "#fca5a5" },
+  { id: "DNQ",                          label: "DNQ",                  color: "#ea580c", bg: "#fff7ed", border: "#fdba74" },
+];
+
+export { STATUSES };
+
+export default function DragStatusOverlay({ hoveredStatus, onStatusHover, ghostPos, lead }) {
+  if (!lead) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-[9998] flex items-center justify-center"
+      style={{ background: "rgba(15,23,42,0.55)", backdropFilter: "blur(2px)" }}
+    >
+      {/* Ghost card following cursor */}
+      {ghostPos && (
+        <div
+          className="fixed pointer-events-none z-[9999] select-none"
+          style={{ left: ghostPos.x + 14, top: ghostPos.y - 20, width: 220 }}
+        >
+          <div className="bg-white rounded-lg border-2 border-amber-400 shadow-2xl px-4 py-3 opacity-90 rotate-2">
+            <p className="text-xs font-bold text-slate-900 truncate">
+              {lead.first_name} {lead.last_name}
+            </p>
+            {lead.project_type && (
+              <p className="text-[10px] text-slate-500 truncate mt-0.5">{lead.project_type}</p>
+            )}
+            <p className="text-[10px] text-amber-600 font-semibold mt-1">Drag to a status →</p>
+          </div>
+        </div>
+      )}
+
+      {/* Status drop panel */}
+      <div className="relative z-[9999] bg-white rounded-2xl shadow-2xl p-5 mx-4 select-none"
+        style={{ maxWidth: 560, width: "100%" }}>
+        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 text-center">
+          Drop on a status to update
+        </p>
+        <div className="grid grid-cols-3 gap-2.5">
+          {STATUSES.map(s => {
+            const isHovered = hoveredStatus === s.id;
+            const isCurrent = lead.status === s.id;
+            return (
+              <div
+                key={s.id}
+                data-status-zone={s.id}
+                onMouseEnter={() => onStatusHover(s.id)}
+                onMouseLeave={() => onStatusHover(null)}
+                className="rounded-xl border-2 flex flex-col items-center justify-center py-3 px-2 transition-all duration-100 cursor-pointer"
+                style={{
+                  background: isHovered ? s.color : s.bg,
+                  borderColor: isHovered ? s.color : (isCurrent ? s.color : s.border),
+                  boxShadow: isHovered ? `0 0 0 3px ${s.color}44` : "none",
+                  transform: isHovered ? "scale(1.05)" : "scale(1)",
+                }}
+              >
+                <span
+                  className="text-xs font-bold text-center leading-snug"
+                  style={{ color: isHovered ? "#fff" : s.color }}
+                >
+                  {s.label}
+                </span>
+                {isCurrent && !isHovered && (
+                  <span className="text-[9px] font-semibold mt-1 opacity-60" style={{ color: s.color }}>current</span>
+                )}
+                {isHovered && (
+                  <span className="text-[10px] text-white font-bold mt-1 opacity-80">↓ drop here</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <p className="text-center text-xs text-slate-400 mt-4">Release outside to cancel</p>
+      </div>
+    </div>
+  );
+}

@@ -1,1 +1,63 @@
-aW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICdyZWFjdCc7CmltcG9ydCB7IGxlYWRzIGFzIHJhaWx3YXlMZWFkcyB9IGZyb20gJ0AvYXBpL3JhaWx3YXknOwppbXBvcnQgeyBDb250YWN0LCBDaGVja0NpcmNsZTIsIEFsZXJ0VHJpYW5nbGUsIENsb2NrLCBSZWZyZXNoQ3cgfSBmcm9tICdsdWNpZGUtcmVhY3QnOwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gR29vZ2xlQ29udGFjdFN5bmNQYW5lbCh7IGxlYWQsIG9uTGVhZFVwZGF0ZSB9KSB7CiAgY29uc3QgW3N5bmNpbmcsIHNldFN5bmNpbmddID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFt0b2FzdCwgc2V0VG9hc3RdID0gdXNlU3RhdGUobnVsbCk7CgogIGlmICghbGVhZC5waG9uZSAmJiAhbGVhZC5lbWFpbCkgcmV0dXJuIG51bGw7CgogIGNvbnN0IHN0YXR1cyA9IGxlYWQuZ29vZ2xlX2NvbnRhY3Rfc3luY19zdGF0dXM7CiAgY29uc3Qgc3luY2VkID0gISFsZWFkLmdvb2dsZV9jb250YWN0X3Jlc291cmNlX25hbWUgJiYgc3RhdHVzID09PSAnc3luY2VkJzsKCiAgY29uc3QgaGFuZGxlU3luYyA9IGFzeW5jICgpID0+IHsKICAgIHNldFN5bmNpbmcodHJ1ZSk7CiAgICBzZXRUb2FzdChudWxsKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IHJlcyA9IGF3YWl0IHJhaWx3YXlMZWFkcy5zeW5jQ29udGFjdChsZWFkLmlkKTsKICAgICAgaWYgKHJlcz8uc3VjY2VzcyA9PT0gZmFsc2UpIHsKICAgICAgICBjb25zdCBlcnJNc2cgPSByZXM/LmVycm9yIHx8ICdTeW5jIGZhaWxlZCc7CiAgICAgICAgc2V0VG9hc3QoeyB0eXBlOiAnZXJyb3InLCBtc2c6IGVyck1zZyB9KTsKICAgICAgICByZXR1cm47CiAgICAgIH0KICAgICAgLy8gUmVmcmVzaCBsZWFkIHRvIGdldCB1cGRhdGVkIHN5bmMgc3RhdHVzCiAgICAgIGNvbnN0IHVwZGF0ZWQgPSBhd2FpdCByYWlsd2F5TGVhZHMuZ2V0QnlFeHRlcm5hbChsZWFkLmlkKTsKICAgICAgb25MZWFkVXBkYXRlPy4odXBkYXRlZD8ubGVhZCk7CiAgICAgIHNldFRvYXN0KHsgdHlwZTogJ3N1Y2Nlc3MnLCBtc2c6IHJlcz8uc3RhdHVzID09PSAncGVuZGluZycgPyAnQ29udGFjdCBtYXJrZWQgZm9yIHN5bmMnIDogJ0NvbnRhY3QgU3luY2VkJyB9KTsKICAgIH0gY2F0Y2ggKGUpIHsKICAgICAgY29uc3QgZXJyTXNnID0gZT8ucmVzcG9uc2U/LmRhdGE/Lm1lc3NhZ2UgfHwgZT8ubWVzc2FnZSB8fCBTdHJpbmcoZSk7CiAgICAgIHNldFRvYXN0KHsgdHlwZTogJ2Vycm9yJywgbXNnOiBlcnJNc2cgfSk7CiAgICB9IGZpbmFsbHkgewogICAgICBzZXRTeW5jaW5nKGZhbHNlKTsKICAgIH0KICB9OwoKICBjb25zdCBTdGF0dXNJY29uID0gc3luY2VkID8gQ2hlY2tDaXJjbGUyIDogc3RhdHVzID09PSAncGVuZGluZycgPyBDbG9jayA6IHN0YXR1cyA9PT0gJ2Vycm9yJyA/IEFsZXJ0VHJpYW5nbGUgOiBDb250YWN0OwogIGNvbnN0IHN0YXR1c1RleHQgPSBzeW5jZWQgPyAnU3luY2VkIHRvIEdvb2dsZSBDb250YWN0cycgOiBzdGF0dXMgPT09ICdwZW5kaW5nJyA/ICdTeW5jIHBlbmRpbmfigKYnIDogc3RhdHVzID09PSAnZXJyb3InID8gJ1N5bmMgZmFpbGVkJyA6ICdOb3Qgc3luY2VkIHlldCc7CiAgY29uc3Qgc3RhdHVzQ29sb3IgPSBzeW5jZWQgPyAndGV4dC1lbWVyYWxkLTYwMCcgOiBzdGF0dXMgPT09ICdlcnJvcicgPyAndGV4dC1yZWQtNTAwJyA6ICd0ZXh0LXNsYXRlLTQwMCc7CgogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT0icHgtNSBweS0zIGJvcmRlci10IGJvcmRlci1zbGF0ZS0xMDAiPgogICAgICA8cCBjbGFzc05hbWU9InNpZGViYXItc2VjdGlvbi1oZWFkZXIgbWItMiI+R29vZ2xlIENvbnRhY3RzPC9wPgogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIGdhcC0zIj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT17YGZsZXggaXRlbXMtY2VudGVyIGdhcC0xLjUgbWluLXctMCAke3N0YXR1c0NvbG9yfWB9PgogICAgICAgICAgPFN0YXR1c0ljb24gY2xhc3NOYW1lPSJ3LTMuNSBoLTMuNSBmbGV4LXNocmluay0wIiAvPgogICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNjAwIj57c3RhdHVzVGV4dH08L3NwYW4+CiAgICAgICAgPC9kaXY+CiAgICAgICAgPGJ1dHRvbiBvbkNsaWNrPXtoYW5kbGVTeW5jfSBkaXNhYmxlZD17c3luY2luZ30gY2xhc3NOYW1lPSJzaWRlYmFyLWFjdGlvbi1idG4iPgogICAgICAgICAgPFJlZnJlc2hDdyBjbGFzc05hbWU9e2B3LTMgaC0zICR7c3luY2luZyA/ICdhbmltYXRlLXNwaW4nIDogJyd9YH0gLz4KICAgICAgICAgIHtzeW5jaW5nID8gJ1N5bmNpbmfigKYnIDogc3luY2VkID8gJ1JlLXN5bmMnIDogJ1N5bmMgTm93J30KICAgICAgICA8L2J1dHRvbj4KICAgICAgPC9kaXY+CiAgICAgIHtzdGF0dXMgPT09ICdlcnJvcicgJiYgbGVhZC5nb29nbGVfY29udGFjdF9zeW5jX2Vycm9yICYmICgKICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzExcHhdIHRleHQtcmVkLTUwMCBtdC0xLjUgbGVhZGluZy1zbnVnIj57bGVhZC5nb29nbGVfY29udGFjdF9zeW5jX2Vycm9yfTwvcD4KICAgICAgKX0KICAgICAge3RvYXN0ICYmICgKICAgICAgICA8cCBjbGFzc05hbWU9e2B0ZXh0LVsxMXB4XSBtdC0xLjUgJHt0b2FzdC50eXBlID09PSAnZXJyb3InID8gJ3RleHQtcmVkLTUwMCcgOiB0b2FzdC50eXBlID09PSAnaW5mbycgPyAndGV4dC1hbWJlci02MDAnIDogJ3RleHQtZW1lcmFsZC02MDAnfWB9PgogICAgICAgICAge3RvYXN0LnR5cGUgPT09ICdlcnJvcicgPyAn4pqgICcgOiB0b2FzdC50eXBlID09PSAnaW5mbycgPyAn4oS5ICcgOiAn4pyTICd9e3RvYXN0Lm1zZ30KICAgICAgICA8L3A+CiAgICAgICl9CiAgICA8L2Rpdj4KICApOwp9
+import { useState } from 'react';
+import { leads as railwayLeads } from '@/api/railway';
+import { Contact, CheckCircle2, AlertTriangle, Clock, RefreshCw } from 'lucide-react';
+
+export default function GoogleContactSyncPanel({ lead, onLeadUpdate }) {
+  const [syncing, setSyncing] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  if (!lead.phone && !lead.email) return null;
+
+  const status = lead.google_contact_sync_status;
+  const synced = !!lead.google_contact_resource_name && status === 'synced';
+
+  const handleSync = async () => {
+    setSyncing(true);
+    setToast(null);
+    try {
+      const res = await railwayLeads.syncContact(lead.id);
+      if (res?.success === false) {
+        const errMsg = res?.error || 'Sync failed';
+        setToast({ type: 'error', msg: errMsg });
+        return;
+      }
+      // Refresh lead to get updated sync status
+      const updated = await railwayLeads.getByExternal(lead.id);
+      onLeadUpdate?.(updated?.lead);
+      setToast({ type: 'success', msg: res?.status === 'pending' ? 'Contact marked for sync' : 'Contact Synced' });
+    } catch (e) {
+      const errMsg = e?.response?.data?.message || e?.message || String(e);
+      setToast({ type: 'error', msg: errMsg });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const StatusIcon = synced ? CheckCircle2 : status === 'pending' ? Clock : status === 'error' ? AlertTriangle : Contact;
+  const statusText = synced ? 'Synced to Google Contacts' : status === 'pending' ? 'Sync pending…' : status === 'error' ? 'Sync failed' : 'Not synced yet';
+  const statusColor = synced ? 'text-emerald-600' : status === 'error' ? 'text-red-500' : 'text-slate-400';
+
+  return (
+    <div className="px-5 py-3 border-t border-slate-100">
+      <p className="sidebar-section-header mb-2">Google Contacts</p>
+      <div className="flex items-center justify-between gap-3">
+        <div className={`flex items-center gap-1.5 min-w-0 ${statusColor}`}>
+          <StatusIcon className="w-3.5 h-3.5 flex-shrink-0" />
+          <span className="text-xs text-slate-600">{statusText}</span>
+        </div>
+        <button onClick={handleSync} disabled={syncing} className="sidebar-action-btn">
+          <RefreshCw className={`w-3 h-3 ${syncing ? 'animate-spin' : ''}`} />
+          {syncing ? 'Syncing…' : synced ? 'Re-sync' : 'Sync Now'}
+        </button>
+      </div>
+      {status === 'error' && lead.google_contact_sync_error && (
+        <p className="text-[11px] text-red-500 mt-1.5 leading-snug">{lead.google_contact_sync_error}</p>
+      )}
+      {toast && (
+        <p className={`text-[11px] mt-1.5 ${toast.type === 'error' ? 'text-red-500' : toast.type === 'info' ? 'text-amber-600' : 'text-emerald-600'}`}>
+          {toast.type === 'error' ? '⚠ ' : toast.type === 'info' ? 'ℹ ' : '✓ '}{toast.msg}
+        </p>
+      )}
+    </div>
+  );
+}

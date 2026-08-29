@@ -1,1 +1,198 @@
-aW1wb3J0IHsgQ2xvY2ssIExvYWRlcjIsIEFsZXJ0Q2lyY2xlLCBDaGVja0NpcmNsZTIsIFNoaWVsZEFsZXJ0IH0gZnJvbSAibHVjaWRlLXJlYWN0IjsKCi8qKgogKiBDYXB0dXJlU2xvdEdyaWQg4oCUIHZpc3VhbCBhcHBvaW50bWVudCB0aW1lIHBpY2tlciBmb3IgdGhlIExlYWQgQ2FwdHVyZSBmb3JtLgogKgogKiBSZW5kZXJzIDMwLW1pbnV0ZSBzbG90cyAoODozMCBBTSDigJMgNjozMCBQTSkgYXMgYSByZXNwb25zaXZlIGdyaWQgd2l0aCB0aHJlZQogKiB2aXNpYmxlIHN0YXRlczogQXZhaWxhYmxlIChzZWxlY3RhYmxlKSwgQmxvY2tlZCAoZGlzYWJsZWQpLCBTZWxlY3RlZC4KICoKICogRGF0YSBzb3VyY2U6IHRoZSBgYmxvY2tlZFNsb3RzYCBhcnJheSBwYXNzZWQgaW4g4oCUIHByb2R1Y2VkIGJ5IHRoZSBleGlzdGluZwogKiBSYWlsd2F5IGF2YWlsYWJpbGl0eSBlbmRwb2ludCAoMWhyLWJlZm9yZSArIGR1cmF0aW9uICsgMWhyLWFmdGVyIGJ1ZmZlciBydWxlKS4KICogVGhpcyBjb21wb25lbnQgZG9lcyBOT1QgaW52ZW50IGl0cyBvd24gYXZhaWxhYmlsaXR5IGxvZ2ljLgogKgogKiBBZG1pbiBvdmVycmlkZSAoY2FuT3ZlcnJpZGU9dHJ1ZSk6CiAqICAgQmxvY2tlZCBzbG90cyByZW1haW4gdmlzdWFsbHkgQkxPQ0tFRCBidXQgZ2FpbiBhbiBleHBsaWNpdCAiT3ZlcnJpZGUiCiAqICAgYWN0aW9uLiBTZWxlY3RpbmcgaXQgZmlyZXMgb25TZWxlY3RUaW1lKHNsb3QsIHsgb3ZlcnJpZGU6dHJ1ZSB9KSBzbyB0aGUKICogICBwYXJlbnQgY2FuIHJlcXVpcmUgYSBjb25maXJtYXRpb24gYmVmb3JlIHN1Ym1pdHRpbmcuIEEgYmxvY2tlZCBzbG90IHRoYXQKICogICBpcyB0aGUgYWN0aXZlIG92ZXJyaWRlIHNlbGVjdGlvbiByZW5kZXJzIGFzIGFtYmVyIHdpdGggYW4gIk92ZXJyaWRlIiBsYWJlbAogKiAgIHNvIHRoZSBkb3VibGUtYm9vayBpcyB2aXN1YWxseSBvYnZpb3VzLiBOb3JtYWwgdXNlcnMgbmV2ZXIgc2VlIHRoZSBhY3Rpb24uCiAqCiAqIE1vYmlsZS1maXJzdDogZ3JpZC1jb2xzLTMgb24gcGhvbmVzLCBncmlkLWNvbHMtNCBvbiBzbSsuCiAqLwpjb25zdCBTTE9UUyA9IFtdOwpmb3IgKGxldCBoID0gODsgaCA8PSAxODsgaCsrKSB7CiAgZm9yIChsZXQgbSA9IDA7IG0gPCA2MDsgbSArPSAzMCkgewogICAgaWYgKGggPT09IDggJiYgbSA9PT0gMCkgY29udGludWU7IC8vIHN0YXJ0IGF0IDg6MzAKICAgIGlmIChoID09PSAxOCAmJiBtID4gMzApIGNvbnRpbnVlOyAvLyBzdG9wIGF0IDY6MzAgUE0KICAgIFNMT1RTLnB1c2goYCR7U3RyaW5nKGgpLnBhZFN0YXJ0KDIsICIwIil9OiR7U3RyaW5nKG0pLnBhZFN0YXJ0KDIsICIwIil9YCk7CiAgfQp9CgpmdW5jdGlvbiBmbXQxMih0KSB7CiAgY29uc3QgW2gsIG1dID0gdC5zcGxpdCgiOiIpLm1hcChOdW1iZXIpOwogIHJldHVybiBgJHtoICUgMTIgfHwgMTJ9OiR7U3RyaW5nKG0pLnBhZFN0YXJ0KDIsICIwIil9ICR7aCA+PSAxMiA/ICJQTSIgOiAiQU0ifWA7Cn0KCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIENhcHR1cmVTbG90R3JpZCh7CiAgZGF0ZSwgc2VsZWN0ZWRUaW1lLCBvblNlbGVjdFRpbWUsIGJsb2NrZWRTbG90cywgbG9hZGluZywgZXJyb3IsIG9uUmV0cnksCiAgY2FuT3ZlcnJpZGUgPSBmYWxzZSwgb3ZlcnJpZGVTZWxlY3RlZCA9IGZhbHNlLAp9KSB7CiAgY29uc3QgbW9ybmluZyA9IFNMT1RTLmZpbHRlcigocykgPT4gcGFyc2VJbnQocy5zcGxpdCgiOiIpWzBdLCAxMCkgPCAxMik7CiAgY29uc3QgYWZ0ZXJub29uID0gU0xPVFMuZmlsdGVyKChzKSA9PiBwYXJzZUludChzLnNwbGl0KCI6IilbMF0sIDEwKSA+PSAxMik7CgogIGlmICghZGF0ZSkgewogICAgcmV0dXJuICgKICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtY2VudGVyIHB5LTYgdGV4dC1zbSB0ZXh0LXNsYXRlLTQwMCI+CiAgICAgICAgPENsb2NrIGNsYXNzTmFtZT0idy02IGgtNiB0ZXh0LXNsYXRlLTMwMCBteC1hdXRvIG1iLTIiIC8+CiAgICAgICAgU2VsZWN0IGEgZGF0ZSB0byB2aWV3IGF2YWlsYWJpbGl0eQogICAgICA8L2Rpdj4KICAgICk7CiAgfQoKICBpZiAobG9hZGluZykgewogICAgcmV0dXJuICgKICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtY2VudGVyIHB5LTYiPgogICAgICAgIDxMb2FkZXIyIGNsYXNzTmFtZT0idy01IGgtNSB0ZXh0LWFtYmVyLTUwMCBhbmltYXRlLXNwaW4gbXgtYXV0byBtYi0yIiAvPgogICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTUwMCI+Q2hlY2tpbmcgYXZhaWxhYmlsaXR54oCmPC9wPgogICAgICA8L2Rpdj4KICAgICk7CiAgfQoKICBpZiAoZXJyb3IpIHsKICAgIHJldHVybiAoCiAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LWNlbnRlciBweS02Ij4KICAgICAgICA8QWxlcnRDaXJjbGUgY2xhc3NOYW1lPSJ3LTUgaC01IHRleHQtcmVkLTQwMCBteC1hdXRvIG1iLTIiIC8+CiAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtcmVkLTYwMCBtYi0yIj57ZXJyb3J9PC9wPgogICAgICAgIHtvblJldHJ5ICYmICgKICAgICAgICAgIDxidXR0b24gdHlwZT0iYnV0dG9uIiBvbkNsaWNrPXtvblJldHJ5fSBjbGFzc05hbWU9InRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LWFtYmVyLTYwMCBob3Zlcjp0ZXh0LWFtYmVyLTcwMCB1bmRlcmxpbmUiPgogICAgICAgICAgICBSZXRyeQogICAgICAgICAgPC9idXR0b24+CiAgICAgICAgKX0KICAgICAgPC9kaXY+CiAgICApOwogIH0KCiAgY29uc3QgcmVuZGVyU2xvdCA9IChzbG90KSA9PiB7CiAgICBjb25zdCBpc0Jsb2NrZWQgPSAoYmxvY2tlZFNsb3RzIHx8IFtdKS5pbmNsdWRlcyhzbG90KTsKICAgIGNvbnN0IGlzU2VsZWN0ZWQgPSBzZWxlY3RlZFRpbWUgPT09IHNsb3Q7CiAgICBjb25zdCBpc092ZXJyaWRlQWN0aXZlID0gb3ZlcnJpZGVTZWxlY3RlZCAmJiBpc1NlbGVjdGVkICYmIGlzQmxvY2tlZDsKCiAgICAvLyBCbG9ja2VkIHNsb3Qg4oCUIGFkbWlucyBnZXQgYW4gZXhwbGljaXQgb3ZlcnJpZGUgYWN0aW9uOyBldmVyeW9uZSBlbHNlCiAgICAvLyBzZWVzIGEgbm9uLXNlbGVjdGFibGUgZGlzYWJsZWQgdGlsZSAodW5jaGFuZ2VkIGJlaGF2aW9yKS4KICAgIGlmIChpc0Jsb2NrZWQpIHsKICAgICAgaWYgKGlzT3ZlcnJpZGVBY3RpdmUpIHsKICAgICAgICByZXR1cm4gKAogICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICBrZXk9e3Nsb3R9CiAgICAgICAgICAgIHR5cGU9ImJ1dHRvbiIKICAgICAgICAgICAgb25DbGljaz17KCkgPT4gb25TZWxlY3RUaW1lKHNsb3QsIHsgb3ZlcnJpZGU6IHRydWUgfSl9CiAgICAgICAgICAgIGNsYXNzTmFtZT0icHgtMiBweS0yIHRleHQtWzExcHhdIGZvbnQtc2VtaWJvbGQgdGV4dC1jZW50ZXIgcm91bmRlZC1sZyBib3JkZXItMiBib3JkZXItYW1iZXItNjAwIGJnLWFtYmVyLTYwMCB0ZXh0LXdoaXRlIHNoYWRvdy1zbSByaW5nLTIgcmluZy1hbWJlci0zMDAgdHJhbnNpdGlvbi1hbGwgYWN0aXZlOnNjYWxlLTk1IgogICAgICAgICAgPgogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgZ2FwLTEiPgogICAgICAgICAgICAgIDxTaGllbGRBbGVydCBjbGFzc05hbWU9InctMi41IGgtMi41IiAvPgogICAgICAgICAgICAgIHtmbXQxMihzbG90KX0KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1bOXB4XSB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZSB0ZXh0LWFtYmVyLTEwMCI+T3ZlcnJpZGU8L3NwYW4+CiAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICApOwogICAgICB9CiAgICAgIGlmIChjYW5PdmVycmlkZSkgewogICAgICAgIHJldHVybiAoCiAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgIGtleT17c2xvdH0KICAgICAgICAgICAgdHlwZT0iYnV0dG9uIgogICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBvblNlbGVjdFRpbWUoc2xvdCwgeyBvdmVycmlkZTogdHJ1ZSB9KX0KICAgICAgICAgICAgY2xhc3NOYW1lPSJweC0yIHB5LTIgdGV4dC1bMTFweF0gZm9udC1zZW1pYm9sZCB0ZXh0LWNlbnRlciByb3VuZGVkLWxnIGJnLXNsYXRlLTEwMCB0ZXh0LXNsYXRlLTUwMCBib3JkZXIgYm9yZGVyLXNsYXRlLTMwMCBib3JkZXItZGFzaGVkIGhvdmVyOmJvcmRlci1hbWJlci00MDAgaG92ZXI6YmctYW1iZXItNTAgdHJhbnNpdGlvbi1hbGwgYWN0aXZlOnNjYWxlLTk1IgogICAgICAgICAgICB0aXRsZT0iQWRtaW4gb3ZlcnJpZGUg4oCUIGRvdWJsZS1ib29rIHRoaXMgc2xvdCIKICAgICAgICAgID4KICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGdhcC0xIj4KICAgICAgICAgICAgICA8Q2xvY2sgY2xhc3NOYW1lPSJ3LTIuNSBoLTIuNSIgLz4KICAgICAgICAgICAgICB7Zm10MTIoc2xvdCl9CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtWzlweF0gdXBwZXJjYXNlIHRyYWNraW5nLXdpZGUgdGV4dC1hbWJlci02MDAgZm9udC1ib2xkIj5CbG9ja2VkIMK3IE92ZXJyaWRlPC9zcGFuPgogICAgICAgICAgPC9idXR0b24+CiAgICAgICAgKTsKICAgICAgfQogICAgICByZXR1cm4gKAogICAgICAgIDxkaXYKICAgICAgICAgIGtleT17c2xvdH0KICAgICAgICAgIGNsYXNzTmFtZT0icHgtMiBweS0yIHRleHQtWzExcHhdIGZvbnQtc2VtaWJvbGQgdGV4dC1jZW50ZXIgcm91bmRlZC1sZyBiZy1zbGF0ZS0xMDAgdGV4dC1zbGF0ZS00MDAgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgY3Vyc29yLW5vdC1hbGxvd2VkIHNlbGVjdC1ub25lIgogICAgICAgICAgYXJpYS1kaXNhYmxlZD0idHJ1ZSIKICAgICAgICA+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgZ2FwLTEiPgogICAgICAgICAgICA8Q2xvY2sgY2xhc3NOYW1lPSJ3LTIuNSBoLTIuNSIgLz4KICAgICAgICAgICAge2ZtdDEyKHNsb3QpfQogICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtWzlweF0gdXBwZXJjYXNlIHRyYWNraW5nLXdpZGUiPkJsb2NrZWQ8L3NwYW4+CiAgICAgICAgPC9kaXY+CiAgICAgICk7CiAgICB9CgogICAgcmV0dXJuICgKICAgICAgPGJ1dHRvbgogICAgICAgIGtleT17c2xvdH0KICAgICAgICB0eXBlPSJidXR0b24iCiAgICAgICAgb25DbGljaz17KCkgPT4gb25TZWxlY3RUaW1lKHNsb3QpfQogICAgICAgIGNsYXNzTmFtZT17YHB4LTIgcHktMiB0ZXh0LVsxMXB4XSBmb250LXNlbWlib2xkIHRleHQtY2VudGVyIHJvdW5kZWQtbGcgYm9yZGVyIHRyYW5zaXRpb24tYWxsIGFjdGl2ZTpzY2FsZS05NSAkewogICAgICAgICAgaXNTZWxlY3RlZCAmJiAhb3ZlcnJpZGVTZWxlY3RlZAogICAgICAgICAgICA/ICJiZy1hbWJlci02MDAgdGV4dC13aGl0ZSBib3JkZXItYW1iZXItNjAwIHNoYWRvdy1zbSByaW5nLTIgcmluZy1hbWJlci0zMDAiCiAgICAgICAgICAgIDogImJnLXdoaXRlIHRleHQtc2xhdGUtNzAwIGJvcmRlci1zbGF0ZS0yMDAgaG92ZXI6Ym9yZGVyLWFtYmVyLTQwMCBob3ZlcjpiZy1hbWJlci01MCIKICAgICAgICB9YH0KICAgICAgPgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBnYXAtMSI+CiAgICAgICAgICB7aXNTZWxlY3RlZCAmJiAhb3ZlcnJpZGVTZWxlY3RlZCAmJiA8Q2hlY2tDaXJjbGUyIGNsYXNzTmFtZT0idy0yLjUgaC0yLjUiIC8+fQogICAgICAgICAge2ZtdDEyKHNsb3QpfQogICAgICAgIDwvZGl2PgogICAgICAgIDxzcGFuIGNsYXNzTmFtZT17YHRleHQtWzlweF0gdXBwZXJjYXNlIHRyYWNraW5nLXdpZGUgJHtpc1NlbGVjdGVkICYmICFvdmVycmlkZVNlbGVjdGVkID8gInRleHQtYW1iZXItMTAwIiA6ICJ0ZXh0LWVtZXJhbGQtNjAwIn1gfT4KICAgICAgICAgIHtpc1NlbGVjdGVkICYmICFvdmVycmlkZVNlbGVjdGVkID8gIlNlbGVjdGVkIiA6ICJBdmFpbGFibGUifQogICAgICAgIDwvc3Bhbj4KICAgICAgPC9idXR0b24+CiAgICApOwogIH07CgogIGNvbnN0IGF2YWlsYWJsZUNvdW50ID0gU0xPVFMubGVuZ3RoIC0gKGJsb2NrZWRTbG90cyB8fCBbXSkubGVuZ3RoOwoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMyI+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gdGV4dC1bMTFweF0gdGV4dC1zbGF0ZS01MDAgcHgtMSI+CiAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNjAwIj5ZYXJvbidzIEF2YWlsYWJpbGl0eTwvc3Bhbj4KICAgICAgICA8c3Bhbj57YXZhaWxhYmxlQ291bnR9IG9mIHtTTE9UUy5sZW5ndGh9IG9wZW48L3NwYW4+CiAgICAgIDwvZGl2PgoKICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0zIHRleHQtWzEwcHhdIHRleHQtc2xhdGUtNTAwIHB4LTEgZmxleC13cmFwIj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEiPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9InctMi41IGgtMi41IHJvdW5kZWQgYmctd2hpdGUgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAiIC8+CiAgICAgICAgICA8c3Bhbj5BdmFpbGFibGU8L3NwYW4+CiAgICAgICAgPC9kaXY+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0xIj4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ3LTIuNSBoLTIuNSByb3VuZGVkIGJnLXNsYXRlLTEwMCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCIgLz4KICAgICAgICAgIDxzcGFuPkJsb2NrZWQ8L3NwYW4+CiAgICAgICAgPC9kaXY+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0xIj4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ3LTIuNSBoLTIuNSByb3VuZGVkIGJnLWFtYmVyLTYwMCIgLz4KICAgICAgICAgIDxzcGFuPlNlbGVjdGVkPC9zcGFuPgogICAgICAgIDwvZGl2PgogICAgICAgIHtjYW5PdmVycmlkZSAmJiAoCiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEgdGV4dC1hbWJlci02MDAgZm9udC1zZW1pYm9sZCI+CiAgICAgICAgICAgIDxTaGllbGRBbGVydCBjbGFzc05hbWU9InctMi41IGgtMi41IiAvPgogICAgICAgICAgICA8c3Bhbj5PdmVycmlkZSBhdmFpbGFibGU8L3NwYW4+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICApfQogICAgICA8L2Rpdj4KCiAgICAgIDxkaXY+CiAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSBmb250LWJvbGQgdXBwZXJjYXNlIHRyYWNraW5nLXdpZGVzdCB0ZXh0LXNsYXRlLTQwMCBtYi0xLjUgcHgtMSI+TW9ybmluZzwvcD4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZ3JpZCBncmlkLWNvbHMtMyBzbTpncmlkLWNvbHMtNCBnYXAtMS41Ij4KICAgICAgICAgIHttb3JuaW5nLm1hcChyZW5kZXJTbG90KX0KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CgogICAgICA8ZGl2PgogICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gZm9udC1ib2xkIHVwcGVyY2FzZSB0cmFja2luZy13aWRlc3QgdGV4dC1zbGF0ZS00MDAgbWItMS41IHB4LTEiPkFmdGVybm9vbjwvcD4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZ3JpZCBncmlkLWNvbHMtMyBzbTpncmlkLWNvbHMtNCBnYXAtMS41Ij4KICAgICAgICAgIHthZnRlcm5vb24ubWFwKHJlbmRlclNsb3QpfQogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KICAgIDwvZGl2PgogICk7Cn0=
+import { Clock, Loader2, AlertCircle, CheckCircle2, ShieldAlert } from "lucide-react";
+
+/**
+ * CaptureSlotGrid — visual appointment time picker for the Lead Capture form.
+ *
+ * Renders 30-minute slots (8:30 AM – 6:30 PM) as a responsive grid with three
+ * visible states: Available (selectable), Blocked (disabled), Selected.
+ *
+ * Data source: the `blockedSlots` array passed in — produced by the existing
+ * Railway availability endpoint (1hr-before + duration + 1hr-after buffer rule).
+ * This component does NOT invent its own availability logic.
+ *
+ * Admin override (canOverride=true):
+ *   Blocked slots remain visually BLOCKED but gain an explicit "Override"
+ *   action. Selecting it fires onSelectTime(slot, { override:true }) so the
+ *   parent can require a confirmation before submitting. A blocked slot that
+ *   is the active override selection renders as amber with an "Override" label
+ *   so the double-book is visually obvious. Normal users never see the action.
+ *
+ * Mobile-first: grid-cols-3 on phones, grid-cols-4 on sm+.
+ */
+const SLOTS = [];
+for (let h = 8; h <= 18; h++) {
+  for (let m = 0; m < 60; m += 30) {
+    if (h === 8 && m === 0) continue; // start at 8:30
+    if (h === 18 && m > 30) continue; // stop at 6:30 PM
+    SLOTS.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+  }
+}
+
+function fmt12(t) {
+  const [h, m] = t.split(":").map(Number);
+  return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
+}
+
+export default function CaptureSlotGrid({
+  date, selectedTime, onSelectTime, blockedSlots, loading, error, onRetry,
+  canOverride = false, overrideSelected = false,
+}) {
+  const morning = SLOTS.filter((s) => parseInt(s.split(":")[0], 10) < 12);
+  const afternoon = SLOTS.filter((s) => parseInt(s.split(":")[0], 10) >= 12);
+
+  if (!date) {
+    return (
+      <div className="text-center py-6 text-sm text-slate-400">
+        <Clock className="w-6 h-6 text-slate-300 mx-auto mb-2" />
+        Select a date to view availability
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="text-center py-6">
+        <Loader2 className="w-5 h-5 text-amber-500 animate-spin mx-auto mb-2" />
+        <p className="text-xs text-slate-500">Checking availability…</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-6">
+        <AlertCircle className="w-5 h-5 text-red-400 mx-auto mb-2" />
+        <p className="text-xs text-red-600 mb-2">{error}</p>
+        {onRetry && (
+          <button type="button" onClick={onRetry} className="text-xs font-semibold text-amber-600 hover:text-amber-700 underline">
+            Retry
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  const renderSlot = (slot) => {
+    const isBlocked = (blockedSlots || []).includes(slot);
+    const isSelected = selectedTime === slot;
+    const isOverrideActive = overrideSelected && isSelected && isBlocked;
+
+    // Blocked slot — admins get an explicit override action; everyone else
+    // sees a non-selectable disabled tile (unchanged behavior).
+    if (isBlocked) {
+      if (isOverrideActive) {
+        return (
+          <button
+            key={slot}
+            type="button"
+            onClick={() => onSelectTime(slot, { override: true })}
+            className="px-2 py-2 text-[11px] font-semibold text-center rounded-lg border-2 border-amber-600 bg-amber-600 text-white shadow-sm ring-2 ring-amber-300 transition-all active:scale-95"
+          >
+            <div className="flex items-center justify-center gap-1">
+              <ShieldAlert className="w-2.5 h-2.5" />
+              {fmt12(slot)}
+            </div>
+            <span className="text-[9px] uppercase tracking-wide text-amber-100">Override</span>
+          </button>
+        );
+      }
+      if (canOverride) {
+        return (
+          <button
+            key={slot}
+            type="button"
+            onClick={() => onSelectTime(slot, { override: true })}
+            className="px-2 py-2 text-[11px] font-semibold text-center rounded-lg bg-slate-100 text-slate-500 border border-slate-300 border-dashed hover:border-amber-400 hover:bg-amber-50 transition-all active:scale-95"
+            title="Admin override — double-book this slot"
+          >
+            <div className="flex items-center justify-center gap-1">
+              <Clock className="w-2.5 h-2.5" />
+              {fmt12(slot)}
+            </div>
+            <span className="text-[9px] uppercase tracking-wide text-amber-600 font-bold">Blocked · Override</span>
+          </button>
+        );
+      }
+      return (
+        <div
+          key={slot}
+          className="px-2 py-2 text-[11px] font-semibold text-center rounded-lg bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed select-none"
+          aria-disabled="true"
+        >
+          <div className="flex items-center justify-center gap-1">
+            <Clock className="w-2.5 h-2.5" />
+            {fmt12(slot)}
+          </div>
+          <span className="text-[9px] uppercase tracking-wide">Blocked</span>
+        </div>
+      );
+    }
+
+    return (
+      <button
+        key={slot}
+        type="button"
+        onClick={() => onSelectTime(slot)}
+        className={`px-2 py-2 text-[11px] font-semibold text-center rounded-lg border transition-all active:scale-95 ${
+          isSelected && !overrideSelected
+            ? "bg-amber-600 text-white border-amber-600 shadow-sm ring-2 ring-amber-300"
+            : "bg-white text-slate-700 border-slate-200 hover:border-amber-400 hover:bg-amber-50"
+        }`}
+      >
+        <div className="flex items-center justify-center gap-1">
+          {isSelected && !overrideSelected && <CheckCircle2 className="w-2.5 h-2.5" />}
+          {fmt12(slot)}
+        </div>
+        <span className={`text-[9px] uppercase tracking-wide ${isSelected && !overrideSelected ? "text-amber-100" : "text-emerald-600"}`}>
+          {isSelected && !overrideSelected ? "Selected" : "Available"}
+        </span>
+      </button>
+    );
+  };
+
+  const availableCount = SLOTS.length - (blockedSlots || []).length;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between text-[11px] text-slate-500 px-1">
+        <span className="font-semibold text-slate-600">Yaron's Availability</span>
+        <span>{availableCount} of {SLOTS.length} open</span>
+      </div>
+
+      <div className="flex items-center gap-3 text-[10px] text-slate-500 px-1 flex-wrap">
+        <div className="flex items-center gap-1">
+          <div className="w-2.5 h-2.5 rounded bg-white border border-slate-200" />
+          <span>Available</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2.5 h-2.5 rounded bg-slate-100 border border-slate-200" />
+          <span>Blocked</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2.5 h-2.5 rounded bg-amber-600" />
+          <span>Selected</span>
+        </div>
+        {canOverride && (
+          <div className="flex items-center gap-1 text-amber-600 font-semibold">
+            <ShieldAlert className="w-2.5 h-2.5" />
+            <span>Override available</span>
+          </div>
+        )}
+      </div>
+
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5 px-1">Morning</p>
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
+          {morning.map(renderSlot)}
+        </div>
+      </div>
+
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5 px-1">Afternoon</p>
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
+          {afternoon.map(renderSlot)}
+        </div>
+      </div>
+    </div>
+  );
+}

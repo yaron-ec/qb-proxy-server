@@ -1,1 +1,228 @@
-LyoqCiAqIEhhbmRvZmZSZXZpZXcg4oCUIFNob3dzIHVubWF0Y2hlZCBhbmQgbmVlZHMtcmV2aWV3IEhhbmRvZmYgZXN0aW1hdGVzLgogKiBBZG1pbnMgY2FuIG1hbnVhbGx5IGF0dGFjaCBhbiBlc3RpbWF0ZSB0byBhIGxlYWQgZnJvbSBoZXJlLgogKi8KaW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsgYXBpQ2FsbCB9IGZyb20gIkAvYXBpL3JhaWx3YXkvY2xpZW50IjsKaW1wb3J0IHsgTGluayB9IGZyb20gInJlYWN0LXJvdXRlci1kb20iOwppbXBvcnQgeyBBcnJvd0xlZnQsIEFsZXJ0VHJpYW5nbGUsIFNlYXJjaCwgQ2hlY2tDaXJjbGUsIExvYWRlcjIsIEZpbGVUZXh0LCBFeHRlcm5hbExpbmsgfSBmcm9tICJsdWNpZGUtcmVhY3QiOwoKY29uc3QgZm10ID0gKGQpID0+IGQKICA/IG5ldyBEYXRlKGQpLnRvTG9jYWxlRGF0ZVN0cmluZygiZW4tVVMiLCB7IG1vbnRoOiAic2hvcnQiLCBkYXk6ICJudW1lcmljIiwgeWVhcjogIm51bWVyaWMiIH0pCiAgOiAi4oCUIjsKCmNvbnN0IGZtdE1vbmV5ID0gKHYpID0+IHYgIT0gbnVsbCAmJiB2ID4gMAogID8gYCQke051bWJlcih2KS50b0xvY2FsZVN0cmluZygiZW4tVVMiLCB7IG1pbmltdW1GcmFjdGlvbkRpZ2l0czogMCB9KX1gCiAgOiAi4oCUIjsKCmNvbnN0IFRBQl9MQUJFTFMgPSB7IG5lZWRzX3JldmlldzogIk5lZWRzIFJldmlldyIsIHVubWF0Y2hlZDogIlVubWF0Y2hlZCIgfTsKCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIEhhbmRvZmZSZXZpZXcoKSB7CiAgY29uc3QgW3RhYiwgc2V0VGFiXSA9IHVzZVN0YXRlKCJuZWVkc19yZXZpZXciKTsKICBjb25zdCBbZXN0aW1hdGVzLCBzZXRFc3RpbWF0ZXNdID0gdXNlU3RhdGUoW10pOwogIGNvbnN0IFtsZWFkcywgc2V0TGVhZHNdID0gdXNlU3RhdGUoW10pOwogIGNvbnN0IFtsb2FkaW5nLCBzZXRMb2FkaW5nXSA9IHVzZVN0YXRlKHRydWUpOwogIGNvbnN0IFthdHRhY2hpbmcsIHNldEF0dGFjaGluZ10gPSB1c2VTdGF0ZShudWxsKTsKICBjb25zdCBbc2VhcmNoLCBzZXRTZWFyY2hdID0gdXNlU3RhdGUoIiIpOwogIGNvbnN0IFtzZWxlY3RlZExlYWQsIHNldFNlbGVjdGVkTGVhZF0gPSB1c2VTdGF0ZSh7fSk7CgogIHVzZUVmZmVjdCgoKSA9PiB7CiAgICBsb2FkKCk7CiAgfSwgW10pOwoKICBjb25zdCBsb2FkID0gYXN5bmMgKCkgPT4gewogICAgc2V0TG9hZGluZyh0cnVlKTsKICAgIGNvbnN0IFtlc3RzLCBsc10gPSBhd2FpdCBQcm9taXNlLmFsbChbCiAgICAgIGFwaUNhbGwoJy9hcGkvdjEvaGFuZG9mZi1lc3RpbWF0ZXM/bGltaXQ9MjAwJywgeyBtZXRob2Q6ICdHRVQnIH0pLnRoZW4ociA9PiBBcnJheS5pc0FycmF5KHIpID8gciA6IChyPy5pdGVtcyB8fCBbXSkpLAogICAgICBhcGlDYWxsKCcvYXBpL3YxL2xlYWRzP2xpbWl0PTUwMCcsIHsgbWV0aG9kOiAnR0VUJyB9KS50aGVuKHIgPT4gQXJyYXkuaXNBcnJheShyKSA/IHIgOiAocj8uaXRlbXMgfHwgW10pKSwKICAgIF0pOwogICAgc2V0RXN0aW1hdGVzKGVzdHMpOwogICAgc2V0TGVhZHMobHMpOwogICAgc2V0TG9hZGluZyhmYWxzZSk7CiAgfTsKCiAgY29uc3QgZmlsdGVyZWQgPSBlc3RpbWF0ZXMuZmlsdGVyKGUgPT4gZS5tYXRjaF9zdGF0dXMgPT09IHRhYik7CiAgY29uc3Qgc2VhcmNoZWQgPSBzZWFyY2gudHJpbSgpCiAgICA/IGZpbHRlcmVkLmZpbHRlcihlID0+CiAgICAgICAgZS5jdXN0b21lcl9uYW1lPy50b0xvd2VyQ2FzZSgpLmluY2x1ZGVzKHNlYXJjaC50b0xvd2VyQ2FzZSgpKSB8fAogICAgICAgIGUuY3VzdG9tZXJfZW1haWw/LnRvTG93ZXJDYXNlKCkuaW5jbHVkZXMoc2VhcmNoLnRvTG93ZXJDYXNlKCkpIHx8CiAgICAgICAgZS5jdXN0b21lcl9waG9uZT8uaW5jbHVkZXMoc2VhcmNoKQogICAgICApCiAgICA6IGZpbHRlcmVkOwoKICBjb25zdCBoYW5kbGVBdHRhY2ggPSBhc3luYyAoZXN0aW1hdGUpID0+IHsKICAgIGNvbnN0IGxlYWRJZCA9IHNlbGVjdGVkTGVhZFtlc3RpbWF0ZS5pZF07CiAgICBpZiAoIWxlYWRJZCkgcmV0dXJuIGFsZXJ0KCJQbGVhc2Ugc2VsZWN0IGEgbGVhZCBmaXJzdC4iKTsKICAgIHNldEF0dGFjaGluZyhlc3RpbWF0ZS5pZCk7CgogICAgY29uc3QgbGVhZCA9IGxlYWRzLmZpbmQobCA9PiBsLmlkID09PSBsZWFkSWQpOwogICAgaWYgKGxlYWQpIHsKICAgICAgLy8gQXR0YWNoIFBERiB0byBsZWFkIGRvY3VtZW50cwogICAgICBpZiAoZXN0aW1hdGUuZG9jdW1lbnRfdXJsKSB7CiAgICAgICAgY29uc3QgdXJscyA9IGxlYWQucGhvdG9fdXJscyB8fCBbXTsKICAgICAgICBpZiAoIXVybHMuaW5jbHVkZXMoZXN0aW1hdGUuZG9jdW1lbnRfdXJsKSkgewogICAgICAgICAgYXdhaXQgYXBpQ2FsbChgL2FwaS92MS9sZWFkcy8ke2xlYWRJZH1gLCB7CiAgICAgICAgICAgIG1ldGhvZDogJ1BVVCcsCiAgICAgICAgICAgIGJvZHk6IHsgcGhvdG9fdXJsczogWy4uLnVybHMsIGVzdGltYXRlLmRvY3VtZW50X3VybF0gfSwKICAgICAgICAgIH0pOwogICAgICAgIH0KICAgICAgfQogICAgfQoKICAgIC8vIE1hcmsgYXMgbWF0Y2hlZAogICAgYXdhaXQgYXBpQ2FsbChgL2FwaS92MS9oYW5kb2ZmLWVzdGltYXRlcy8ke2VzdGltYXRlLmlkfWAsIHsKICAgICAgbWV0aG9kOiAnUFVUJywKICAgICAgYm9keTogeyBtYXRjaF9zdGF0dXM6ICJtYXRjaGVkIiwgbWF0Y2hfbWV0aG9kOiAibWFudWFsIiwgbGVhZF9pZDogbGVhZElkIH0sCiAgICB9KTsKCiAgICBhd2FpdCBsb2FkKCk7CiAgICBzZXRBdHRhY2hpbmcobnVsbCk7CiAgfTsKCiAgY29uc3QgbmVlZHNSZXZpZXdDb3VudCA9IGVzdGltYXRlcy5maWx0ZXIoZSA9PiBlLm1hdGNoX3N0YXR1cyA9PT0gIm5lZWRzX3JldmlldyIpLmxlbmd0aDsKICBjb25zdCB1bm1hdGNoZWRDb3VudCA9IGVzdGltYXRlcy5maWx0ZXIoZSA9PiBlLm1hdGNoX3N0YXR1cyA9PT0gInVubWF0Y2hlZCIpLmxlbmd0aDsKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGZsZXgtY29sIGgtZnVsbCBiZy1bI2Y1ZjhmYV0iPgogICAgICB7LyogSGVhZGVyICovfQogICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctd2hpdGUgYm9yZGVyLWIgYm9yZGVyLXNsYXRlLTIwMCBweC02IHB5LTMgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTQgZmxleC1zaHJpbmstMCI+CiAgICAgICAgPExpbmsgdG89Ii9sZWFkcyIgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMS41IHRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTUwMCBob3Zlcjp0ZXh0LXNsYXRlLTgwMCI+CiAgICAgICAgICA8QXJyb3dMZWZ0IGNsYXNzTmFtZT0idy0zLjUgaC0zLjUiIC8+IENvbnRhY3RzCiAgICAgICAgPC9MaW5rPgogICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1zbGF0ZS0zMDAiPi88L3NwYW4+CiAgICAgICAgPGgxIGNsYXNzTmFtZT0idGV4dC14cyBmb250LWJsYWNrIHRyYWNraW5nLXdpZGVzdCB1cHBlcmNhc2UgdGV4dC1zbGF0ZS03MDAiPkhhbmRvZmYgRXN0aW1hdGVzIOKAlCBSZXZpZXcgUXVldWU8L2gxPgogICAgICA8L2Rpdj4KCiAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4LTEgb3ZlcmZsb3cteS1hdXRvIHAtNiBtYXgtdy00eGwgbXgtYXV0byB3LWZ1bGwgc3BhY2UteS01Ij4KCiAgICAgICAgey8qIFRhYnMgKi99CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZ2FwLTEgYmctd2hpdGUgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZCBwLTEgdy1maXQiPgogICAgICAgICAge1sibmVlZHNfcmV2aWV3IiwgInVubWF0Y2hlZCJdLm1hcCh0ID0+ICgKICAgICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICAgIGtleT17dH0KICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRUYWIodCl9CiAgICAgICAgICAgICAgY2xhc3NOYW1lPXtgcHgtNCBweS0xLjUgdGV4dC14cyBmb250LWJvbGQgcm91bmRlZCB0cmFuc2l0aW9uLWNvbG9ycyBmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMS41ICR7CiAgICAgICAgICAgICAgICB0YWIgPT09IHQgPyAiYmctb3JhbmdlIHRleHQtd2hpdGUiIDogInRleHQtc2xhdGUtNjAwIGhvdmVyOmJnLXNsYXRlLTUwIgogICAgICAgICAgICAgIH1gfQogICAgICAgICAgICA+CiAgICAgICAgICAgICAge3QgPT09ICJuZWVkc19yZXZpZXciICYmIDxBbGVydFRyaWFuZ2xlIGNsYXNzTmFtZT0idy0zIGgtMyIgLz59CiAgICAgICAgICAgICAge1RBQl9MQUJFTFNbdF19CiAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPXtgcHgtMS41IHB5LTAuNSByb3VuZGVkIHRleHQtWzlweF0gZm9udC1ibGFjayAke3RhYiA9PT0gdCA/ICJiZy13aGl0ZS8yMCIgOiAiYmctc2xhdGUtMTAwIHRleHQtc2xhdGUtNTAwIn1gfT4KICAgICAgICAgICAgICAgIHt0ID09PSAibmVlZHNfcmV2aWV3IiA/IG5lZWRzUmV2aWV3Q291bnQgOiB1bm1hdGNoZWRDb3VudH0KICAgICAgICAgICAgICA8L3NwYW4+CiAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgKSl9CiAgICAgICAgPC9kaXY+CgogICAgICAgIHsvKiBTZWFyY2ggKi99CiAgICAgICAgPGRpdiBjbGFzc05hbWU9InJlbGF0aXZlIj4KICAgICAgICAgIDxTZWFyY2ggY2xhc3NOYW1lPSJhYnNvbHV0ZSBsZWZ0LTMgdG9wLTEvMiAtdHJhbnNsYXRlLXktMS8yIHctMy41IGgtMy41IHRleHQtc2xhdGUtNDAwIiAvPgogICAgICAgICAgPGlucHV0CiAgICAgICAgICAgIHR5cGU9InRleHQiCiAgICAgICAgICAgIHBsYWNlaG9sZGVyPSJTZWFyY2ggYnkgbmFtZSwgZW1haWwsIHBob25l4oCmIgogICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBwbC05IHByLTQgcHktMiB0ZXh0LXNtIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQgYmctd2hpdGUgZm9jdXM6b3V0bGluZS1ub25lIGZvY3VzOmJvcmRlci1ibHVlLTQwMCIKICAgICAgICAgICAgdmFsdWU9e3NlYXJjaH0KICAgICAgICAgICAgb25DaGFuZ2U9e2UgPT4gc2V0U2VhcmNoKGUudGFyZ2V0LnZhbHVlKX0KICAgICAgICAgIC8+CiAgICAgICAgPC9kaXY+CgogICAgICAgIHsvKiBJbmZvIGJveCAqL30KICAgICAgICB7dGFiID09PSAibmVlZHNfcmV2aWV3IiAmJiAoCiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctYW1iZXItNTAgYm9yZGVyIGJvcmRlci1hbWJlci0yMDAgcm91bmRlZCBwLTQgdGV4dC1zbSB0ZXh0LWFtYmVyLTcwMCI+CiAgICAgICAgICAgIDxzdHJvbmc+TXVsdGlwbGUgbGVhZHMgbWF0Y2hlZDwvc3Ryb25nPiDigJQgdGhlc2UgZXN0aW1hdGVzIGNvdWxkIG5vdCBiZSBhdXRvLWF0dGFjaGVkLiBTZWxlY3QgdGhlIGNvcnJlY3QgbGVhZCBhbmQgY2xpY2sgIkF0dGFjaCIuCiAgICAgICAgICA8L2Rpdj4KICAgICAgICApfQogICAgICAgIHt0YWIgPT09ICJ1bm1hdGNoZWQiICYmICgKICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1zbGF0ZS01MCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkIHAtNCB0ZXh0LXNtIHRleHQtc2xhdGUtNjAwIj4KICAgICAgICAgICAgTm8gbWF0Y2hpbmcgbGVhZCB3YXMgZm91bmQgYnkgbmFtZSArIHBob25lIG9yIG5hbWUgKyBlbWFpbC4gU2VsZWN0IGEgbGVhZCBtYW51YWxseSB0byBhdHRhY2guCiAgICAgICAgICA8L2Rpdj4KICAgICAgICApfQoKICAgICAgICB7bG9hZGluZyAmJiAoCiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTMgcHktOCB0ZXh0LXNsYXRlLTQwMCB0ZXh0LXNtIj4KICAgICAgICAgICAgPExvYWRlcjIgY2xhc3NOYW1lPSJ3LTQgaC00IGFuaW1hdGUtc3BpbiIgLz4gTG9hZGluZ+KApgogICAgICAgICAgPC9kaXY+CiAgICAgICAgKX0KCiAgICAgICAgeyFsb2FkaW5nICYmIHNlYXJjaGVkLmxlbmd0aCA9PT0gMCAmJiAoCiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0icHktMTIgdGV4dC1jZW50ZXIgdGV4dC1zbGF0ZS00MDAgdGV4dC1zbSI+CiAgICAgICAgICAgIDxDaGVja0NpcmNsZSBjbGFzc05hbWU9InctOCBoLTggdGV4dC1lbWVyYWxkLTMwMCBteC1hdXRvIG1iLTIiIC8+CiAgICAgICAgICAgIHt0YWIgPT09ICJuZWVkc19yZXZpZXciID8gIk5vIGVzdGltYXRlcyBuZWVkIHJldmlldyIgOiAiTm8gdW5tYXRjaGVkIGVzdGltYXRlcyJ9CiAgICAgICAgICA8L2Rpdj4KICAgICAgICApfQoKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ic3BhY2UteS00Ij4KICAgICAgICAgIHtzZWFyY2hlZC5tYXAoZXN0ID0+ICgKICAgICAgICAgICAgPGRpdiBrZXk9e2VzdC5pZH0gY2xhc3NOYW1lPSJiZy13aGl0ZSBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHAtNSBzcGFjZS15LTQiPgogICAgICAgICAgICAgIHsvKiBFc3RpbWF0ZSBpbmZvICovfQogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLXN0YXJ0IGp1c3RpZnktYmV0d2VlbiBnYXAtNCI+CiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1zdGFydCBnYXAtMyI+CiAgICAgICAgICAgICAgICAgIDxGaWxlVGV4dCBjbGFzc05hbWU9InctNSBoLTUgdGV4dC1vcmFuZ2UgZmxleC1zaHJpbmstMCBtdC0wLjUiIC8+CiAgICAgICAgICAgICAgICAgIDxkaXY+CiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtc20gZm9udC1ib2xkIHRleHQtc2xhdGUtODAwIj57ZXN0LmRvY3VtZW50X3RpdGxlIHx8IGVzdC5jdXN0b21lcl9uYW1lfTwvZGl2PgogICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNTAwIG10LTAuNSI+CiAgICAgICAgICAgICAgICAgICAgICB7ZXN0LmN1c3RvbWVyX3Bob25lICYmIDxzcGFuIGNsYXNzTmFtZT0ibXItMiI+8J+TniB7ZXN0LmN1c3RvbWVyX3Bob25lfTwvc3Bhbj59CiAgICAgICAgICAgICAgICAgICAgICB7ZXN0LmN1c3RvbWVyX2VtYWlsICYmIDxzcGFuPuKcie+4jyB7ZXN0LmN1c3RvbWVyX2VtYWlsfTwvc3Bhbj59CiAgICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0zIG10LTEuNSB0ZXh0LXhzIHRleHQtc2xhdGUtNjAwIj4KICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0iZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTgwMCI+e2ZtdE1vbmV5KGVzdC5lc3RpbWF0ZV9hbW91bnQpfTwvc3Bhbj4KICAgICAgICAgICAgICAgICAgICAgIDxzcGFuPntmbXQoZXN0LmVzdGltYXRlX2RhdGUpfTwvc3Bhbj4KICAgICAgICAgICAgICAgICAgICAgIHtlc3QuZXN0aW1hdGVfc3RhdHVzICYmICgKICAgICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ1cHBlcmNhc2UgdGV4dC1bMTBweF0gZm9udC1ib2xkIHRleHQtc2xhdGUtNTAwIj57ZXN0LmVzdGltYXRlX3N0YXR1c308L3NwYW4+CiAgICAgICAgICAgICAgICAgICAgICApfQogICAgICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAge2VzdC5kb2N1bWVudF91cmwgJiYgKAogICAgICAgICAgICAgICAgICA8YQogICAgICAgICAgICAgICAgICAgIGhyZWY9e2VzdC5kb2N1bWVudF91cmx9CiAgICAgICAgICAgICAgICAgICAgdGFyZ2V0PSJfYmxhbmsiCiAgICAgICAgICAgICAgICAgICAgcmVsPSJub3JlZmVycmVyIgogICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEgdGV4dC14cyB0ZXh0LW9yYW5nZSBob3Zlcjp1bmRlcmxpbmUgZmxleC1zaHJpbmstMCIKICAgICAgICAgICAgICAgICAgPgogICAgICAgICAgICAgICAgICAgIDxFeHRlcm5hbExpbmsgY2xhc3NOYW1lPSJ3LTMuNSBoLTMuNSIgLz4gVmlldyBQREYKICAgICAgICAgICAgICAgICAgPC9hPgogICAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICAgICAgey8qIExlYWQgc2VsZWN0b3IgKi99CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0zIj4KICAgICAgICAgICAgICAgIDxzZWxlY3QKICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJmbGV4LTEgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZCBweC0zIHB5LTIgdGV4dC1zbSB0ZXh0LXNsYXRlLTcwMCBiZy13aGl0ZSBmb2N1czpvdXRsaW5lLW5vbmUgZm9jdXM6Ym9yZGVyLWJsdWUtNDAwIgogICAgICAgICAgICAgICAgICB2YWx1ZT17c2VsZWN0ZWRMZWFkW2VzdC5pZF0gfHwgIiJ9CiAgICAgICAgICAgICAgICAgIG9uQ2hhbmdlPXtlID0+IHNldFNlbGVjdGVkTGVhZChwID0+ICh7IC4uLnAsIFtlc3QuaWRdOiBlLnRhcmdldC52YWx1ZSB9KSl9CiAgICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICAgIDxvcHRpb24gdmFsdWU9IiI+4oCUIFNlbGVjdCBhIGxlYWQgdG8gYXR0YWNoIOKAlDwvb3B0aW9uPgogICAgICAgICAgICAgICAgICB7bGVhZHMKICAgICAgICAgICAgICAgICAgICAuZmlsdGVyKGwgPT4gewogICAgICAgICAgICAgICAgICAgICAgLy8gRm9yIG5lZWRzX3Jldmlldzogc2hvdyBhbGw7IGZvciB1bm1hdGNoZWQ6IHNob3cgbmFtZS1zaW1pbGFyIGZpcnN0CiAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gdHJ1ZTsKICAgICAgICAgICAgICAgICAgICB9KQogICAgICAgICAgICAgICAgICAgIC5tYXAobCA9PiAoCiAgICAgICAgICAgICAgICAgICAgICA8b3B0aW9uIGtleT17bC5pZH0gdmFsdWU9e2wuaWR9PgogICAgICAgICAgICAgICAgICAgICAgICB7bC5maXJzdF9uYW1lfSB7bC5sYXN0X25hbWV9CiAgICAgICAgICAgICAgICAgICAgICAgIHtsLnBob25lID8gYCDCtyAke2wucGhvbmV9YCA6ICIifQogICAgICAgICAgICAgICAgICAgICAgICB7bC5lbWFpbCA/IGAgwrcgJHtsLmVtYWlsfWAgOiAiIn0KICAgICAgICAgICAgICAgICAgICAgIDwvb3B0aW9uPgogICAgICAgICAgICAgICAgICAgICkpfQogICAgICAgICAgICAgICAgPC9zZWxlY3Q+CiAgICAgICAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IGhhbmRsZUF0dGFjaChlc3QpfQogICAgICAgICAgICAgICAgICBkaXNhYmxlZD17IXNlbGVjdGVkTGVhZFtlc3QuaWRdIHx8IGF0dGFjaGluZyA9PT0gZXN0LmlkfQogICAgICAgICAgICAgICAgICBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0xLjUgYmctb3JhbmdlIHRleHQtd2hpdGUgcHgtNCBweS0yIHRleHQteHMgZm9udC1ib2xkIHJvdW5kZWQgaG92ZXI6Ymctb3JhbmdlLzkwIHRyYW5zaXRpb24tY29sb3JzIGRpc2FibGVkOm9wYWNpdHktNTAiCiAgICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICAgIHthdHRhY2hpbmcgPT09IGVzdC5pZCA/IDxMb2FkZXIyIGNsYXNzTmFtZT0idy0zLjUgaC0zLjUgYW5pbWF0ZS1zcGluIiAvPiA6IDxDaGVja0NpcmNsZSBjbGFzc05hbWU9InctMy41IGgtMy41IiAvPn0KICAgICAgICAgICAgICAgICAgQXR0YWNoCiAgICAgICAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtWzlweF0gdGV4dC1zbGF0ZS00MDAiPgogICAgICAgICAgICAgICAgU3luY2VkIHtmbXQoZXN0Lmxhc3Rfc3luY2VkX2F0KX0gwrcgSUQ6IHtlc3QuaGFuZG9mZl9lc3RpbWF0ZV9pZH0KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICApKX0KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KICApOwp9
+/**
+ * HandoffReview — Shows unmatched and needs-review Handoff estimates.
+ * Admins can manually attach an estimate to a lead from here.
+ */
+import { useState, useEffect } from "react";
+import { apiCall } from "@/api/railway/client";
+import { Link } from "react-router-dom";
+import { ArrowLeft, AlertTriangle, Search, CheckCircle, Loader2, FileText, ExternalLink } from "lucide-react";
+
+const fmt = (d) => d
+  ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+  : "—";
+
+const fmtMoney = (v) => v != null && v > 0
+  ? `$${Number(v).toLocaleString("en-US", { minimumFractionDigits: 0 })}`
+  : "—";
+
+const TAB_LABELS = { needs_review: "Needs Review", unmatched: "Unmatched" };
+
+export default function HandoffReview() {
+  const [tab, setTab] = useState("needs_review");
+  const [estimates, setEstimates] = useState([]);
+  const [leads, setLeads] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [attaching, setAttaching] = useState(null);
+  const [search, setSearch] = useState("");
+  const [selectedLead, setSelectedLead] = useState({});
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const load = async () => {
+    setLoading(true);
+    const [ests, ls] = await Promise.all([
+      apiCall('/api/v1/handoff-estimates?limit=200', { method: 'GET' }).then(r => Array.isArray(r) ? r : (r?.items || [])),
+      apiCall('/api/v1/leads?limit=500', { method: 'GET' }).then(r => Array.isArray(r) ? r : (r?.items || [])),
+    ]);
+    setEstimates(ests);
+    setLeads(ls);
+    setLoading(false);
+  };
+
+  const filtered = estimates.filter(e => e.match_status === tab);
+  const searched = search.trim()
+    ? filtered.filter(e =>
+        e.customer_name?.toLowerCase().includes(search.toLowerCase()) ||
+        e.customer_email?.toLowerCase().includes(search.toLowerCase()) ||
+        e.customer_phone?.includes(search)
+      )
+    : filtered;
+
+  const handleAttach = async (estimate) => {
+    const leadId = selectedLead[estimate.id];
+    if (!leadId) return alert("Please select a lead first.");
+    setAttaching(estimate.id);
+
+    const lead = leads.find(l => l.id === leadId);
+    if (lead) {
+      // Attach PDF to lead documents
+      if (estimate.document_url) {
+        const urls = lead.photo_urls || [];
+        if (!urls.includes(estimate.document_url)) {
+          await apiCall(`/api/v1/leads/${leadId}`, {
+            method: 'PUT',
+            body: { photo_urls: [...urls, estimate.document_url] },
+          });
+        }
+      }
+    }
+
+    // Mark as matched
+    await apiCall(`/api/v1/handoff-estimates/${estimate.id}`, {
+      method: 'PUT',
+      body: { match_status: "matched", match_method: "manual", lead_id: leadId },
+    });
+
+    await load();
+    setAttaching(null);
+  };
+
+  const needsReviewCount = estimates.filter(e => e.match_status === "needs_review").length;
+  const unmatchedCount = estimates.filter(e => e.match_status === "unmatched").length;
+
+  return (
+    <div className="flex flex-col h-full bg-[#f5f8fa]">
+      {/* Header */}
+      <div className="bg-white border-b border-slate-200 px-6 py-3 flex items-center gap-4 flex-shrink-0">
+        <Link to="/leads" className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800">
+          <ArrowLeft className="w-3.5 h-3.5" /> Contacts
+        </Link>
+        <span className="text-slate-300">/</span>
+        <h1 className="text-xs font-black tracking-widest uppercase text-slate-700">Handoff Estimates — Review Queue</h1>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-6 max-w-4xl mx-auto w-full space-y-5">
+
+        {/* Tabs */}
+        <div className="flex gap-1 bg-white border border-slate-200 rounded p-1 w-fit">
+          {["needs_review", "unmatched"].map(t => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-4 py-1.5 text-xs font-bold rounded transition-colors flex items-center gap-1.5 ${
+                tab === t ? "bg-orange text-white" : "text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              {t === "needs_review" && <AlertTriangle className="w-3 h-3" />}
+              {TAB_LABELS[t]}
+              <span className={`px-1.5 py-0.5 rounded text-[9px] font-black ${tab === t ? "bg-white/20" : "bg-slate-100 text-slate-500"}`}>
+                {t === "needs_review" ? needsReviewCount : unmatchedCount}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search by name, email, phone…"
+            className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded bg-white focus:outline-none focus:border-blue-400"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+
+        {/* Info box */}
+        {tab === "needs_review" && (
+          <div className="bg-amber-50 border border-amber-200 rounded p-4 text-sm text-amber-700">
+            <strong>Multiple leads matched</strong> — these estimates could not be auto-attached. Select the correct lead and click "Attach".
+          </div>
+        )}
+        {tab === "unmatched" && (
+          <div className="bg-slate-50 border border-slate-200 rounded p-4 text-sm text-slate-600">
+            No matching lead was found by name + phone or name + email. Select a lead manually to attach.
+          </div>
+        )}
+
+        {loading && (
+          <div className="flex items-center gap-3 py-8 text-slate-400 text-sm">
+            <Loader2 className="w-4 h-4 animate-spin" /> Loading…
+          </div>
+        )}
+
+        {!loading && searched.length === 0 && (
+          <div className="py-12 text-center text-slate-400 text-sm">
+            <CheckCircle className="w-8 h-8 text-emerald-300 mx-auto mb-2" />
+            {tab === "needs_review" ? "No estimates need review" : "No unmatched estimates"}
+          </div>
+        )}
+
+        <div className="space-y-4">
+          {searched.map(est => (
+            <div key={est.id} className="bg-white border border-slate-200 rounded-lg p-5 space-y-4">
+              {/* Estimate info */}
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <FileText className="w-5 h-5 text-orange flex-shrink-0 mt-0.5" />
+                  <div>
+                    <div className="text-sm font-bold text-slate-800">{est.document_title || est.customer_name}</div>
+                    <div className="text-xs text-slate-500 mt-0.5">
+                      {est.customer_phone && <span className="mr-2">📞 {est.customer_phone}</span>}
+                      {est.customer_email && <span>✉️ {est.customer_email}</span>}
+                    </div>
+                    <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-600">
+                      <span className="font-semibold text-slate-800">{fmtMoney(est.estimate_amount)}</span>
+                      <span>{fmt(est.estimate_date)}</span>
+                      {est.estimate_status && (
+                        <span className="uppercase text-[10px] font-bold text-slate-500">{est.estimate_status}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {est.document_url && (
+                  <a
+                    href={est.document_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1 text-xs text-orange hover:underline flex-shrink-0"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" /> View PDF
+                  </a>
+                )}
+              </div>
+
+              {/* Lead selector */}
+              <div className="flex items-center gap-3">
+                <select
+                  className="flex-1 border border-slate-200 rounded px-3 py-2 text-sm text-slate-700 bg-white focus:outline-none focus:border-blue-400"
+                  value={selectedLead[est.id] || ""}
+                  onChange={e => setSelectedLead(p => ({ ...p, [est.id]: e.target.value }))}
+                >
+                  <option value="">— Select a lead to attach —</option>
+                  {leads
+                    .filter(l => {
+                      // For needs_review: show all; for unmatched: show name-similar first
+                      return true;
+                    })
+                    .map(l => (
+                      <option key={l.id} value={l.id}>
+                        {l.first_name} {l.last_name}
+                        {l.phone ? ` · ${l.phone}` : ""}
+                        {l.email ? ` · ${l.email}` : ""}
+                      </option>
+                    ))}
+                </select>
+                <button
+                  onClick={() => handleAttach(est)}
+                  disabled={!selectedLead[est.id] || attaching === est.id}
+                  className="flex items-center gap-1.5 bg-orange text-white px-4 py-2 text-xs font-bold rounded hover:bg-orange/90 transition-colors disabled:opacity-50"
+                >
+                  {attaching === est.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                  Attach
+                </button>
+              </div>
+
+              <div className="text-[9px] text-slate-400">
+                Synced {fmt(est.last_synced_at)} · ID: {est.handoff_estimate_id}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

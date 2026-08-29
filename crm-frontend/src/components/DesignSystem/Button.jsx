@@ -1,1 +1,57 @@
-LyoqCiAqIFVuaWZpZWQgQnV0dG9uIENvbXBvbmVudCBTeXN0ZW0KICogQ29uc2lzdGVudCBoZWlnaHRzLCByYWRpdXMsIGFuZCBob3ZlciBiZWhhdmlvcgogKiBVc2VzIGRlc2lnbiB0b2tlbnMgZm9yIHN0YW5kYXJkaXphdGlvbgogKi8KCmV4cG9ydCBmdW5jdGlvbiBCdXR0b24oeyBjaGlsZHJlbiwgb25DbGljaywgZGlzYWJsZWQgPSBmYWxzZSwgdmFyaWFudCA9ICJwcmltYXJ5Iiwgc2l6ZSA9ICJtZCIsIGNsYXNzTmFtZSA9ICIiIH0pIHsKICBjb25zdCBiYXNlQ2xhc3MgPSAidHlwb2dyYXBoeS1idXR0b24gdHJhbnNpdGlvbi1hbGwgZHVyYXRpb24tMTUwIHJvdW5kZWQtbGcgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgZ2FwLTIgZGlzYWJsZWQ6b3BhY2l0eS01MCBkaXNhYmxlZDpjdXJzb3Itbm90LWFsbG93ZWQiOwogIAogIGNvbnN0IHNpemVDbGFzcyA9IHsKICAgIHNtOiAiaC04IHB4LTMgdGV4dC14cyIsCiAgICBtZDogImgtMTAgcHgtNCB0ZXh0LXNtIiwKICAgIGxnOiAiaC0xMiBweC02IHRleHQtYmFzZSIsCiAgfVtzaXplXTsKCiAgY29uc3QgdmFyaWFudENsYXNzID0gewogICAgcHJpbWFyeTogICAgImJnLWFtYmVyLTYwMCB0ZXh0LXdoaXRlIGhvdmVyOmJnLWFtYmVyLTcwMCBhY3RpdmU6c2NhbGUtOTUiLAogICAgc2Vjb25kYXJ5OiAgImJnLXNsYXRlLTEwMCB0ZXh0LXNsYXRlLTcwMCBob3ZlcjpiZy1zbGF0ZS0yMDAgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAiLAogICAgZGVzdHJ1Y3RpdmU6ICJiZy1yZWQtNjAwIHRleHQtd2hpdGUgaG92ZXI6YmctcmVkLTcwMCBhY3RpdmU6c2NhbGUtOTUiLAogICAgb3V0bGluZTogICAgImJvcmRlciBib3JkZXItc2xhdGUtMjAwIHRleHQtc2xhdGUtNzAwIGhvdmVyOmJnLXNsYXRlLTUwIiwKICAgIGdob3N0OiAgICAgICJ0ZXh0LXNsYXRlLTYwMCBob3ZlcjpiZy1zbGF0ZS01MCIsCiAgfVt2YXJpYW50XTsKCiAgcmV0dXJuICgKICAgIDxidXR0b24KICAgICAgb25DbGljaz17b25DbGlja30KICAgICAgZGlzYWJsZWQ9e2Rpc2FibGVkfQogICAgICBjbGFzc05hbWU9e2Ake2Jhc2VDbGFzc30gJHtzaXplQ2xhc3N9ICR7dmFyaWFudENsYXNzfSAke2NsYXNzTmFtZX1gfQogICAgPgogICAgICB7Y2hpbGRyZW59CiAgICA8L2J1dHRvbj4KICApOwp9CgpleHBvcnQgZnVuY3Rpb24gSWNvbkJ1dHRvbih7IGNoaWxkcmVuLCBvbkNsaWNrLCBkaXNhYmxlZCA9IGZhbHNlLCBjbGFzc05hbWUgPSAiIiB9KSB7CiAgcmV0dXJuICgKICAgIDxidXR0b24KICAgICAgb25DbGljaz17b25DbGlja30KICAgICAgZGlzYWJsZWQ9e2Rpc2FibGVkfQogICAgICBjbGFzc05hbWU9e2BoLTggdy04IHJvdW5kZWQtbGcgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgdGV4dC1zbGF0ZS02MDAgaG92ZXI6Ymctc2xhdGUtMTAwIHRyYW5zaXRpb24tY29sb3JzIGR1cmF0aW9uLTE1MCBkaXNhYmxlZDpvcGFjaXR5LTUwICR7Y2xhc3NOYW1lfWB9CiAgICA+CiAgICAgIHtjaGlsZHJlbn0KICAgIDwvYnV0dG9uPgogICk7Cn0KCmV4cG9ydCBmdW5jdGlvbiBDb21wYWN0QnV0dG9uKHsgY2hpbGRyZW4sIG9uQ2xpY2ssIGRpc2FibGVkID0gZmFsc2UsIGNsYXNzTmFtZSA9ICIiIH0pIHsKICByZXR1cm4gKAogICAgPGJ1dHRvbgogICAgICBvbkNsaWNrPXtvbkNsaWNrfQogICAgICBkaXNhYmxlZD17ZGlzYWJsZWR9CiAgICAgIGNsYXNzTmFtZT17YHR5cG9ncmFwaHktYnV0dG9uIGgtOCBweC0zIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHRleHQtc2xhdGUtNjAwIHJvdW5kZWQtbGcgaG92ZXI6Ymctc2xhdGUtNTAgdHJhbnNpdGlvbi1jb2xvcnMgZHVyYXRpb24tMTUwIGRpc2FibGVkOm9wYWNpdHktNTAgJHtjbGFzc05hbWV9YH0KICAgID4KICAgICAge2NoaWxkcmVufQogICAgPC9idXR0b24+CiAgKTsKfQ==
+/**
+ * Unified Button Component System
+ * Consistent heights, radius, and hover behavior
+ * Uses design tokens for standardization
+ */
+
+export function Button({ children, onClick, disabled = false, variant = "primary", size = "md", className = "" }) {
+  const baseClass = "typography-button transition-all duration-150 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed";
+  
+  const sizeClass = {
+    sm: "h-8 px-3 text-xs",
+    md: "h-10 px-4 text-sm",
+    lg: "h-12 px-6 text-base",
+  }[size];
+
+  const variantClass = {
+    primary:    "bg-amber-600 text-white hover:bg-amber-700 active:scale-95",
+    secondary:  "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200",
+    destructive: "bg-red-600 text-white hover:bg-red-700 active:scale-95",
+    outline:    "border border-slate-200 text-slate-700 hover:bg-slate-50",
+    ghost:      "text-slate-600 hover:bg-slate-50",
+  }[variant];
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`${baseClass} ${sizeClass} ${variantClass} ${className}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function IconButton({ children, onClick, disabled = false, className = "" }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`h-8 w-8 rounded-lg flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors duration-150 disabled:opacity-50 ${className}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function CompactButton({ children, onClick, disabled = false, className = "" }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`typography-button h-8 px-3 border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors duration-150 disabled:opacity-50 ${className}`}
+    >
+      {children}
+    </button>
+  );
+}

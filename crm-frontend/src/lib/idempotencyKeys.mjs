@@ -1,1 +1,36 @@
-LyoqCiAqIGlkZW1wb3RlbmN5S2V5cyDigJQgUFVSRSwgZGV0ZXJtaW5pc3RpYyBpZGVtcG90ZW5jeS1rZXkgYnVpbGRlcnMgZm9yIGVtYWlsLgogKgogKiBObyB0aW1lc3RhbXBzLCBubyBSTkcsIG5vIHVuc3RhYmxlIFVJIHZhbHVlcy4gVGhlIHNhbWUgbG9naWNhbCBhY3Rpb24gYWx3YXlzCiAqIHByb2R1Y2VzIHRoZSBzYW1lIGtleSwgc28gcmV0cmllcwogKiBhbmQgb3ZlcmxhcHBpbmcgY2FsbHMgZGVkdXBsaWNhdGUgYWdhaW5zdCB0aGUgc2VydmVyJ3MgaWRlbXBvdGVuY3kgY2xhaW0KICogKGVtYWlsX3NlbmRfY2xhaW1zIFVOSVFVRSBpZGVtcG90ZW5jeV9rZXksIHJlbWluZGVyX2NsYWltcyBVTklRVUUKICogcmVtaW5kZXJfa2V5KS4KICoKICogRVNNICgubWpzKSBzbyBpdCBpcyBpbXBvcnRhYmxlIGJ5IGJvdGggdGhlIFZpdGUgZnJvbnRlbmQKICogKHNyYy9saWIvZW1haWxUcmFuc3BvcnQuanMpIGFuZCBOb2RlIHRlc3QgaGFybmVzc2VzCiAqIChzcmMvcHJveHktc2VydmVyL3Rlc3QvaWRlbXBvdGVuY3lLZXlzLnRlc3QuanMgdmlhIGR5bmFtaWMgaW1wb3J0KS4KICoKICogS2V5IHNoYXBlcyAoc3RhYmxlKToKICogICBnZW5lcmljOiAgICAgICAgICAgY3JtLWVtYWlsOntsZWFkSWR9OntyZWNpcGllbnR9OntjbGllbnRSZXF1ZXN0SWR9CiAqICAgaW52b2ljZTogICAgICAgICAgIGludm9pY2UtZW1haWw6e2ludm9pY2VJZH06e3JlY2lwaWVudH06e3ZlcnNpb259CiAqICAgbWFudWFsUmVtaW5kZXI6ICAgIG1hbnVhbC1yZW1pbmRlcjp7bGVhZElkfTp7cmVjaXBpZW50fTp7cmVtaW5kZXJUeXBlfTp7c2NoZWR1bGVkU3RhcnR9CiAqICAgc2NoZWR1bGVkUmVtaW5kZXI6IHNjaGVkdWxlZC1yZW1pbmRlcjp7bGVhZElkfTp7cmVjaXBpZW50fTp7d2luZG93fTp7c2NoZWR1bGVkU3RhcnR9CiAqICAgdGVzdDogICAgICAgICAgICAgIHRlc3QtZW1haWw6e3JlY2lwaWVudH06e25vbmNlfSAgKG5vbmNlIGNhbGxlci1zdXBwbGllZCwgbmV3IHBlciBkZWxpYmVyYXRlIHRlc3QpCiAqLwoKY29uc3QgcyA9ICh2KSA9PiBTdHJpbmcodiA9PSBudWxsID8gJycgOiB2KTsKCmV4cG9ydCBjb25zdCBJZGVtcG90ZW5jeUtleXMgPSB7CiAgZ2VuZXJpYzogKGxlYWRJZCwgcmVjaXBpZW50LCBjbGllbnRSZXF1ZXN0SWQpID0+CiAgICBgY3JtLWVtYWlsOiR7cyhsZWFkSWQpIHx8ICdub2xlYWQnfToke3MocmVjaXBpZW50KSB8fCAnbm9yZWNpcGllbnQnfToke3MoY2xpZW50UmVxdWVzdElkKX1gLAogIGludm9pY2U6IChpbnZvaWNlSWQsIHJlY2lwaWVudCwgdmVyc2lvbikgPT4KICAgIGBpbnZvaWNlLWVtYWlsOiR7cyhpbnZvaWNlSWQpfToke3MocmVjaXBpZW50KX06JHtzKHZlcnNpb24pIHx8ICdub3ZlcnNpb24nfWAsCiAgbWFudWFsUmVtaW5kZXI6IChsZWFkSWQsIHJlY2lwaWVudCwgcmVtaW5kZXJUeXBlLCBzY2hlZHVsZWRTdGFydCkgPT4KICAgIGBtYW51YWwtcmVtaW5kZXI6JHtzKGxlYWRJZCl9OiR7cyhyZWNpcGllbnQpfToke3MocmVtaW5kZXJUeXBlKSB8fCAnbWFudWFsJ306JHtzKHNjaGVkdWxlZFN0YXJ0KX1gLAogIHNjaGVkdWxlZFJlbWluZGVyOiAobGVhZElkLCByZWNpcGllbnQsIHdpbmRvdywgc2NoZWR1bGVkU3RhcnQpID0+CiAgICBgc2NoZWR1bGVkLXJlbWluZGVyOiR7cyhsZWFkSWQpfToke3MocmVjaXBpZW50KX06JHtzKHdpbmRvdyl9OiR7cyhzY2hlZHVsZWRTdGFydCl9YCwKICB0ZXN0OiAocmVjaXBpZW50LCBub25jZSkgPT4gYHRlc3QtZW1haWw6JHtzKHJlY2lwaWVudCl9OiR7cyhub25jZSl9YCwKfTsKCmV4cG9ydCBkZWZhdWx0IElkZW1wb3RlbmN5S2V5czs=
+/**
+ * idempotencyKeys — PURE, deterministic idempotency-key builders for email.
+ *
+ * No timestamps, no RNG, no unstable UI values. The same logical action always
+ * produces the same key, so retries
+ * and overlapping calls deduplicate against the server's idempotency claim
+ * (email_send_claims UNIQUE idempotency_key, reminder_claims UNIQUE
+ * reminder_key).
+ *
+ * ESM (.mjs) so it is importable by both the Vite frontend
+ * (src/lib/emailTransport.js) and Node test harnesses
+ * (src/proxy-server/test/idempotencyKeys.test.js via dynamic import).
+ *
+ * Key shapes (stable):
+ *   generic:           crm-email:{leadId}:{recipient}:{clientRequestId}
+ *   invoice:           invoice-email:{invoiceId}:{recipient}:{version}
+ *   manualReminder:    manual-reminder:{leadId}:{recipient}:{reminderType}:{scheduledStart}
+ *   scheduledReminder: scheduled-reminder:{leadId}:{recipient}:{window}:{scheduledStart}
+ *   test:              test-email:{recipient}:{nonce}  (nonce caller-supplied, new per deliberate test)
+ */
+
+const s = (v) => String(v == null ? '' : v);
+
+export const IdempotencyKeys = {
+  generic: (leadId, recipient, clientRequestId) =>
+    `crm-email:${s(leadId) || 'nolead'}:${s(recipient) || 'norecipient'}:${s(clientRequestId)}`,
+  invoice: (invoiceId, recipient, version) =>
+    `invoice-email:${s(invoiceId)}:${s(recipient)}:${s(version) || 'noversion'}`,
+  manualReminder: (leadId, recipient, reminderType, scheduledStart) =>
+    `manual-reminder:${s(leadId)}:${s(recipient)}:${s(reminderType) || 'manual'}:${s(scheduledStart)}`,
+  scheduledReminder: (leadId, recipient, window, scheduledStart) =>
+    `scheduled-reminder:${s(leadId)}:${s(recipient)}:${s(window)}:${s(scheduledStart)}`,
+  test: (recipient, nonce) => `test-email:${s(recipient)}:${s(nonce)}`,
+};
+
+export default IdempotencyKeys;

@@ -1,1 +1,161 @@
-aW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IHJhaWx3YXlSZXF1ZXN0IH0gZnJvbSAiQC9saWIvcmFpbHdheUNsaWVudCI7CmltcG9ydCB7IFVzZXJDb2csIENoZXZyb25Eb3duLCBDaGV2cm9uUmlnaHQsIExvYWRlcjIsIENoZWNrQ2lyY2xlLCBBbGVydFRyaWFuZ2xlIH0gZnJvbSAibHVjaWRlLXJlYWN0IjsKCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIE93bmVyTWFwcGluZ1BhbmVsKCkgewogIGNvbnN0IFtvcGVuLCBzZXRPcGVuXSA9IHVzZVN0YXRlKGZhbHNlKTsKICBjb25zdCBbcHJvYmluZywgc2V0UHJvYmluZ10gPSB1c2VTdGF0ZShmYWxzZSk7CiAgY29uc3QgW3Byb2JlUmVzdWx0LCBzZXRQcm9iZVJlc3VsdF0gPSB1c2VTdGF0ZShudWxsKTsgLy8geyBvd25lcnM6IHsgaWQ6IHsgbmFtZSwgZW1haWwgfSB9IH0KICBjb25zdCBbb3duZXJNYXAsIHNldE93bmVyTWFwXSA9IHVzZVN0YXRlKHt9KTsgLy8geyBpZDogIk5hbWUiIH0KICBjb25zdCBbc2F2aW5nLCBzZXRTYXZpbmddID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFtzYXZlUmVzdWx0LCBzZXRTYXZlUmVzdWx0XSA9IHVzZVN0YXRlKG51bGwpOwogIGNvbnN0IFtlcnJvciwgc2V0RXJyb3JdID0gdXNlU3RhdGUobnVsbCk7CgogIGNvbnN0IGhhbmRsZVByb2JlID0gYXN5bmMgKCkgPT4gewogICAgc2V0UHJvYmluZyh0cnVlKTsKICAgIHNldEVycm9yKG51bGwpOwogICAgc2V0U2F2ZVJlc3VsdChudWxsKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IGRhdGEgPSBhd2FpdCByYWlsd2F5UmVxdWVzdCgnL293bmVycy9iYWNrZmlsbCcsIHsgcHJvYmU6IHRydWUgfSk7CiAgICAgIGlmIChkYXRhLmVycm9yKSB0aHJvdyBuZXcgRXJyb3IoZGF0YS5lcnJvcik7CiAgICAgIHNldFByb2JlUmVzdWx0KGRhdGEpOwogICAgICAvLyBQcmUtZmlsbCBvd25lck1hcCB3aXRoIGVtcHR5IHN0cmluZ3MKICAgICAgY29uc3QgbWFwID0ge307CiAgICAgIGZvciAoY29uc3QgaWQgb2YgT2JqZWN0LmtleXMoZGF0YS5vd25lcl9pZHMgfHwge30pKSB7CiAgICAgICAgbWFwW2lkXSA9ICcnOwogICAgICB9CiAgICAgIHNldE93bmVyTWFwKG1hcCk7CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIHNldEVycm9yKGUubWVzc2FnZSk7CiAgICB9IGZpbmFsbHkgewogICAgICBzZXRQcm9iaW5nKGZhbHNlKTsKICAgIH0KICB9OwoKICBjb25zdCBoYW5kbGVTYXZlID0gYXN5bmMgKCkgPT4gewogICAgc2V0U2F2aW5nKHRydWUpOwogICAgc2V0RXJyb3IobnVsbCk7CiAgICBzZXRTYXZlUmVzdWx0KG51bGwpOwogICAgdHJ5IHsKICAgICAgY29uc3QgZGF0YSA9IGF3YWl0IHJhaWx3YXlSZXF1ZXN0KCcvb3duZXJzL2JhY2tmaWxsJywgeyBvd25lck1hcCB9KTsKICAgICAgaWYgKGRhdGEuZXJyb3IpIHRocm93IG5ldyBFcnJvcihkYXRhLmVycm9yKTsKICAgICAgc2V0U2F2ZVJlc3VsdChkYXRhKTsKICAgIH0gY2F0Y2ggKGUpIHsKICAgICAgc2V0RXJyb3IoZS5tZXNzYWdlKTsKICAgIH0gZmluYWxseSB7CiAgICAgIHNldFNhdmluZyhmYWxzZSk7CiAgICB9CiAgfTsKCiAgY29uc3Qgb3duZXJJZHMgPSBwcm9iZVJlc3VsdCA/IE9iamVjdC5rZXlzKHByb2JlUmVzdWx0Lm93bmVyX2lkcyB8fCB7fSkgOiBbXTsKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJiZy13aGl0ZSBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLXhsIG92ZXJmbG93LWhpZGRlbiI+CiAgICAgIDxidXR0b24KICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRPcGVuKG8gPT4gIW8pfQogICAgICAgIGNsYXNzTmFtZT0idy1mdWxsIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBweC01IHB5LTQgaG92ZXI6Ymctc2xhdGUtNTAgdHJhbnNpdGlvbi1jb2xvcnMiCiAgICAgID4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIiPgogICAgICAgICAgPFVzZXJDb2cgY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtc2xhdGUtNDAwIiAvPgogICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtYm9sZCB0ZXh0LXNsYXRlLTcwMCI+T3duZXIgTWFwcGluZzwvc3Bhbj4KICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTQwMCBiZy1zbGF0ZS0xMDAgcHgtMiBweS0wLjUgcm91bmRlZC1mdWxsIj5GaXggYXNzaWduZWQgcmVwczwvc3Bhbj4KICAgICAgICA8L2Rpdj4KICAgICAgICB7b3BlbiA/IDxDaGV2cm9uRG93biBjbGFzc05hbWU9InctNCBoLTQgdGV4dC1zbGF0ZS00MDAiIC8+IDogPENoZXZyb25SaWdodCBjbGFzc05hbWU9InctNCBoLTQgdGV4dC1zbGF0ZS00MDAiIC8+fQogICAgICA8L2J1dHRvbj4KCiAgICAgIHtvcGVuICYmICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYm9yZGVyLXQgYm9yZGVyLXNsYXRlLTEwMCBweC01IHB5LTQgc3BhY2UteS00Ij4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTUwMCI+CiAgICAgICAgICAgIFVzZSB0aGlzIHRvb2wgdG8gbWFwIEh1YlNwb3Qgb3duZXIgSURzIHRvIHJlcCBuYW1lcyBhbmQgdXBkYXRlIGFsbCBsZWFkcyBhdCBvbmNlLgogICAgICAgICAgICBTdGVwIDE6IExvYWQgb3duZXJzIGZyb20gSHViU3BvdC4gU3RlcCAyOiBDb25maXJtIG9yIGVkaXQgbmFtZXMuIFN0ZXAgMzogQXBwbHkuCiAgICAgICAgICA8L3A+CgogICAgICAgICAgeyFwcm9iZVJlc3VsdCAmJiAoCiAgICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgICBvbkNsaWNrPXtoYW5kbGVQcm9iZX0KICAgICAgICAgICAgICBkaXNhYmxlZD17cHJvYmluZ30KICAgICAgICAgICAgICBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIGJnLXNsYXRlLTgwMCB0ZXh0LXdoaXRlIHRleHQteHMgZm9udC1ib2xkIHB4LTQgcHktMiByb3VuZGVkLWxnIGhvdmVyOmJnLXNsYXRlLTkwMCBkaXNhYmxlZDpvcGFjaXR5LTUwIHRyYW5zaXRpb24tY29sb3JzIgogICAgICAgICAgICA+CiAgICAgICAgICAgICAge3Byb2JpbmcgPyA8TG9hZGVyMiBjbGFzc05hbWU9InctMy41IGgtMy41IGFuaW1hdGUtc3BpbiIgLz4gOiA8VXNlckNvZyBjbGFzc05hbWU9InctMy41IGgtMy41IiAvPn0KICAgICAgICAgICAgICB7cHJvYmluZyA/ICdMb2FkaW5nIG93bmVycy4uLicgOiAnTG9hZCBIdWJTcG90IE93bmVycyd9CiAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgKX0KCiAgICAgICAgICB7cHJvYmVSZXN1bHQgJiYgb3duZXJJZHMubGVuZ3RoID09PSAwICYmICgKICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtYW1iZXItNzAwIGJnLWFtYmVyLTUwIGJvcmRlciBib3JkZXItYW1iZXItMjAwIHJvdW5kZWQgcHgtMyBweS0yIj4KICAgICAgICAgICAgICBObyBvd25lciBJRHMgZm91bmQgb24gSHViU3BvdCBjb250YWN0cy4KICAgICAgICAgICAgPC9wPgogICAgICAgICAgKX0KCiAgICAgICAgICB7cHJvYmVSZXN1bHQgJiYgb3duZXJJZHMubGVuZ3RoID4gMCAmJiAoCiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJzcGFjZS15LTMiPgogICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNjAwIj4KICAgICAgICAgICAgICAgIEZvdW5kIHtvd25lcklkcy5sZW5ndGh9IHVuaXF1ZSBvd25lciBJRHMg4oCUIGNvbmZpcm0gb3IgZWRpdCB0aGUgbmFtZXMgYmVsb3c6CiAgICAgICAgICAgICAgPC9wPgogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJzcGFjZS15LTIiPgogICAgICAgICAgICAgICAge293bmVySWRzLm1hcChpZCA9PiB7CiAgICAgICAgICAgICAgICAgIGNvbnN0IGluZm8gPSBwcm9iZVJlc3VsdC5vd25lcl9pZHNbaWRdOwogICAgICAgICAgICAgICAgICByZXR1cm4gKAogICAgICAgICAgICAgICAgICAgIDxkaXYga2V5PXtpZH0gY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMyI+CiAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibWluLXctMCBmbGV4LXNocmluay0wIHctMzIiPgogICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTUwMCBmb250LW1vbm8iPklEOiB7aWR9PC9kaXY+CiAgICAgICAgICAgICAgICAgICAgICAgIHtpbmZvPy5zYW1wbGVzPy5sZW5ndGggPiAwICYmICgKICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1bMTBweF0gdGV4dC1zbGF0ZS00MDAgdHJ1bmNhdGUiPntpbmZvLnNhbXBsZXMuam9pbignLCAnKX0gK3tpbmZvLmNvdW50fTwvZGl2PgogICAgICAgICAgICAgICAgICAgICAgICApfQogICAgICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICAgICAgICA8aW5wdXQKICAgICAgICAgICAgICAgICAgICAgICAgdHlwZT0idGV4dCIKICAgICAgICAgICAgICAgICAgICAgICAgdmFsdWU9e293bmVyTWFwW2lkXSB8fCAnJ30KICAgICAgICAgICAgICAgICAgICAgICAgb25DaGFuZ2U9e2UgPT4gc2V0T3duZXJNYXAobSA9PiAoeyAuLi5tLCBbaWRdOiBlLnRhcmdldC52YWx1ZSB9KSl9CiAgICAgICAgICAgICAgICAgICAgICAgIHBsYWNlaG9sZGVyPSJSZXAgbmFtZS4uLiIKICAgICAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJmbGV4LTEgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBweC0zIHB5LTEuNSB0ZXh0LXhzIHRleHQtc2xhdGUtOTAwIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1hbWJlci01MDAvMjAgZm9jdXM6Ym9yZGVyLWFtYmVyLTUwMCIKICAgICAgICAgICAgICAgICAgICAgIC8+CiAgICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICAgICk7CiAgICAgICAgICAgICAgICB9KX0KICAgICAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZ2FwLTIgcHQtMSI+CiAgICAgICAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgICAgICAgIG9uQ2xpY2s9e2hhbmRsZVNhdmV9CiAgICAgICAgICAgICAgICAgIGRpc2FibGVkPXtzYXZpbmd9CiAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgYmctYW1iZXItNjAwIHRleHQtd2hpdGUgdGV4dC14cyBmb250LWJvbGQgcHgtNCBweS0yIHJvdW5kZWQtbGcgaG92ZXI6YmctYW1iZXItNzAwIGRpc2FibGVkOm9wYWNpdHktNTAgdHJhbnNpdGlvbi1jb2xvcnMiCiAgICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICAgIHtzYXZpbmcgPyA8TG9hZGVyMiBjbGFzc05hbWU9InctMy41IGgtMy41IGFuaW1hdGUtc3BpbiIgLz4gOiA8Q2hlY2tDaXJjbGUgY2xhc3NOYW1lPSJ3LTMuNSBoLTMuNSIgLz59CiAgICAgICAgICAgICAgICAgIHtzYXZpbmcgPyAnQXBwbHlpbmcuLi4nIDogJ0FwcGx5IHRvIEFsbCBMZWFkcyd9CiAgICAgICAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4geyBzZXRQcm9iZVJlc3VsdChudWxsKTsgc2V0U2F2ZVJlc3VsdChudWxsKTsgc2V0RXJyb3IobnVsbCk7IH19CiAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTUwMCBob3Zlcjp0ZXh0LXNsYXRlLTcwMCBmb250LXNlbWlib2xkIHB4LTMgcHktMiIKICAgICAgICAgICAgICAgID4KICAgICAgICAgICAgICAgICAgUmVzZXQKICAgICAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICl9CgogICAgICAgICAge3NhdmVSZXN1bHQgJiYgKAogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctZW1lcmFsZC01MCBib3JkZXIgYm9yZGVyLWVtZXJhbGQtMjAwIHJvdW5kZWQtbGcgcHgtNCBweS0zIHNwYWNlLXktMSI+CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIj4KICAgICAgICAgICAgICAgIDxDaGVja0NpcmNsZSBjbGFzc05hbWU9InctNCBoLTQgdGV4dC1lbWVyYWxkLTYwMCIgLz4KICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1zbSBmb250LWJvbGQgdGV4dC1lbWVyYWxkLTgwMCI+RG9uZSE8L3NwYW4+CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQteHMgdGV4dC1lbWVyYWxkLTcwMCBmbGV4IGdhcC00Ij4KICAgICAgICAgICAgICAgIDxzcGFuPuKchSBVcGRhdGVkOiA8c3Ryb25nPntzYXZlUmVzdWx0LnVwZGF0ZWR9PC9zdHJvbmc+PC9zcGFuPgogICAgICAgICAgICAgICAgPHNwYW4+4o+tIFNraXBwZWQ6IDxzdHJvbmc+e3NhdmVSZXN1bHQuc2tpcHBlZH08L3N0cm9uZz48L3NwYW4+CiAgICAgICAgICAgICAgICB7c2F2ZVJlc3VsdC5mYWlsZWQgPiAwICYmIDxzcGFuPuKdjCBGYWlsZWQ6IDxzdHJvbmc+e3NhdmVSZXN1bHQuZmFpbGVkfTwvc3Ryb25nPjwvc3Bhbj59CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgKX0KCiAgICAgICAgICB7ZXJyb3IgJiYgKAogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctcmVkLTUwIGJvcmRlciBib3JkZXItcmVkLTIwMCByb3VuZGVkLWxnIHB4LTQgcHktMyBmbGV4IGl0ZW1zLXN0YXJ0IGdhcC0yIj4KICAgICAgICAgICAgICA8QWxlcnRUcmlhbmdsZSBjbGFzc05hbWU9InctNCBoLTQgdGV4dC1yZWQtNTAwIGZsZXgtc2hyaW5rLTAgbXQtMC41IiAvPgogICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXJlZC03MDAgYnJlYWstYWxsIj57ZXJyb3J9PC9zcGFuPgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICl9CiAgICAgICAgPC9kaXY+CiAgICAgICl9CiAgICA8L2Rpdj4KICApOwp9
+import { useState } from "react";
+import { railwayRequest } from "@/lib/railwayClient";
+import { UserCog, ChevronDown, ChevronRight, Loader2, CheckCircle, AlertTriangle } from "lucide-react";
+
+export default function OwnerMappingPanel() {
+  const [open, setOpen] = useState(false);
+  const [probing, setProbing] = useState(false);
+  const [probeResult, setProbeResult] = useState(null); // { owners: { id: { name, email } } }
+  const [ownerMap, setOwnerMap] = useState({}); // { id: "Name" }
+  const [saving, setSaving] = useState(false);
+  const [saveResult, setSaveResult] = useState(null);
+  const [error, setError] = useState(null);
+
+  const handleProbe = async () => {
+    setProbing(true);
+    setError(null);
+    setSaveResult(null);
+    try {
+      const data = await railwayRequest('/owners/backfill', { probe: true });
+      if (data.error) throw new Error(data.error);
+      setProbeResult(data);
+      // Pre-fill ownerMap with empty strings
+      const map = {};
+      for (const id of Object.keys(data.owner_ids || {})) {
+        map[id] = '';
+      }
+      setOwnerMap(map);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setProbing(false);
+    }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    setError(null);
+    setSaveResult(null);
+    try {
+      const data = await railwayRequest('/owners/backfill', { ownerMap });
+      if (data.error) throw new Error(data.error);
+      setSaveResult(data);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const ownerIds = probeResult ? Object.keys(probeResult.owner_ids || {}) : [];
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <UserCog className="w-4 h-4 text-slate-400" />
+          <span className="text-sm font-bold text-slate-700">Owner Mapping</span>
+          <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">Fix assigned reps</span>
+        </div>
+        {open ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
+      </button>
+
+      {open && (
+        <div className="border-t border-slate-100 px-5 py-4 space-y-4">
+          <p className="text-xs text-slate-500">
+            Use this tool to map HubSpot owner IDs to rep names and update all leads at once.
+            Step 1: Load owners from HubSpot. Step 2: Confirm or edit names. Step 3: Apply.
+          </p>
+
+          {!probeResult && (
+            <button
+              onClick={handleProbe}
+              disabled={probing}
+              className="flex items-center gap-2 bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-slate-900 disabled:opacity-50 transition-colors"
+            >
+              {probing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserCog className="w-3.5 h-3.5" />}
+              {probing ? 'Loading owners...' : 'Load HubSpot Owners'}
+            </button>
+          )}
+
+          {probeResult && ownerIds.length === 0 && (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+              No owner IDs found on HubSpot contacts.
+            </p>
+          )}
+
+          {probeResult && ownerIds.length > 0 && (
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-slate-600">
+                Found {ownerIds.length} unique owner IDs — confirm or edit the names below:
+              </p>
+              <div className="space-y-2">
+                {ownerIds.map(id => {
+                  const info = probeResult.owner_ids[id];
+                  return (
+                    <div key={id} className="flex items-center gap-3">
+                      <div className="min-w-0 flex-shrink-0 w-32">
+                        <div className="text-xs text-slate-500 font-mono">ID: {id}</div>
+                        {info?.samples?.length > 0 && (
+                          <div className="text-[10px] text-slate-400 truncate">{info.samples.join(', ')} +{info.count}</div>
+                        )}
+                      </div>
+                      <input
+                        type="text"
+                        value={ownerMap[id] || ''}
+                        onChange={e => setOwnerMap(m => ({ ...m, [id]: e.target.value }))}
+                        placeholder="Rep name..."
+                        className="flex-1 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="flex items-center gap-2 bg-amber-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-amber-700 disabled:opacity-50 transition-colors"
+                >
+                  {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                  {saving ? 'Applying...' : 'Apply to All Leads'}
+                </button>
+                <button
+                  onClick={() => { setProbeResult(null); setSaveResult(null); setError(null); }}
+                  className="text-xs text-slate-500 hover:text-slate-700 font-semibold px-3 py-2"
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+          )}
+
+          {saveResult && (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 space-y-1">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-emerald-600" />
+                <span className="text-sm font-bold text-emerald-800">Done!</span>
+              </div>
+              <div className="text-xs text-emerald-700 flex gap-4">
+                <span>✅ Updated: <strong>{saveResult.updated}</strong></span>
+                <span>⏭ Skipped: <strong>{saveResult.skipped}</strong></span>
+                {saveResult.failed > 0 && <span>❌ Failed: <strong>{saveResult.failed}</strong></span>}
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+              <span className="text-xs text-red-700 break-all">{error}</span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

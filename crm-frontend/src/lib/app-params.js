@@ -1,1 +1,60 @@
-Y29uc3QgaXNOb2RlID0gdHlwZW9mIHdpbmRvdyA9PT0gJ3VuZGVmaW5lZCc7CmNvbnN0IHdpbmRvd09iaiA9IGlzTm9kZSA/IHsgbG9jYWxTdG9yYWdlOiBuZXcgTWFwKCkgfSA6IHdpbmRvdzsKY29uc3Qgc3RvcmFnZSA9IHdpbmRvd09iai5sb2NhbFN0b3JhZ2U7Cgpjb25zdCB0b1NuYWtlQ2FzZSA9IChzdHIpID0+IHsKCXJldHVybiBzdHIucmVwbGFjZSgvKFtBLVpdKS9nLCAnXyQxJykudG9Mb3dlckNhc2UoKTsKfQoKY29uc3QgZ2V0QXBwUGFyYW1WYWx1ZSA9IChwYXJhbU5hbWUsIHsgZGVmYXVsdFZhbHVlID0gdW5kZWZpbmVkLCByZW1vdmVGcm9tVXJsID0gZmFsc2UgfSA9IHt9KSA9PiB7CglpZiAoaXNOb2RlKSB7CgkJcmV0dXJuIGRlZmF1bHRWYWx1ZTsKCX0KCWNvbnN0IHN0b3JhZ2VLZXkgPSBgYmFzZTQ0XyR7dG9TbmFrZUNhc2UocGFyYW1OYW1lKX1gOwoJY29uc3QgdXJsUGFyYW1zID0gbmV3IFVSTFNlYXJjaFBhcmFtcyh3aW5kb3cubG9jYXRpb24uc2VhcmNoKTsKCWNvbnN0IHNlYXJjaFBhcmFtID0gdXJsUGFyYW1zLmdldChwYXJhbU5hbWUpOwoJaWYgKHJlbW92ZUZyb21VcmwpIHsKCQl1cmxQYXJhbXMuZGVsZXRlKHBhcmFtTmFtZSk7CgkJY29uc3QgbmV3VXJsID0gYCR7d2luZG93LmxvY2F0aW9uLnBhdGhuYW1lfSR7dXJsUGFyYW1zLnRvU3RyaW5nKCkgPyBgPyR7dXJsUGFyYW1zLnRvU3RyaW5nKCl9YCA6ICIiCgkJCX0ke3dpbmRvdy5sb2NhdGlvbi5oYXNofWA7CgkJd2luZG93Lmhpc3RvcnkucmVwbGFjZVN0YXRlKHt9LCBkb2N1bWVudC50aXRsZSwgbmV3VXJsKTsKCX0KCWlmIChzZWFyY2hQYXJhbSkgewoJCXN0b3JhZ2Uuc2V0SXRlbShzdG9yYWdlS2V5LCBzZWFyY2hQYXJhbSk7CgkJcmV0dXJuIHNlYXJjaFBhcmFtOwoJfQoJaWYgKGRlZmF1bHRWYWx1ZSkgewoJCXN0b3JhZ2Uuc2V0SXRlbShzdG9yYWdlS2V5LCBkZWZhdWx0VmFsdWUpOwoJCXJldHVybiBkZWZhdWx0VmFsdWU7Cgl9Cgljb25zdCBzdG9yZWRWYWx1ZSA9IHN0b3JhZ2UuZ2V0SXRlbShzdG9yYWdlS2V5KTsKCWlmIChzdG9yZWRWYWx1ZSkgewoJCXJldHVybiBzdG9yZWRWYWx1ZTsKCX0KCXJldHVybiBudWxsOwp9Cgpjb25zdCBnZXRBcHBQYXJhbXMgPSAoKSA9PiB7CglpZiAoZ2V0QXBwUGFyYW1WYWx1ZSgiY2xlYXJfYWNjZXNzX3Rva2VuIikgPT09ICd0cnVlJykgewoJCXN0b3JhZ2UucmVtb3ZlSXRlbSgnYmFzZTQ0X2FjY2Vzc190b2tlbicpOwoJCXN0b3JhZ2UucmVtb3ZlSXRlbSgndG9rZW4nKTsKCX0KCXJldHVybiB7CgkJYXBwSWQ6IGdldEFwcFBhcmFtVmFsdWUoImFwcF9pZCIsIHsgZGVmYXVsdFZhbHVlOiBpbXBvcnQubWV0YS5lbnYuVklURV9CQVNFNDRfQVBQX0lEIH0pLAoJCXRva2VuOiBnZXRBcHBQYXJhbVZhbHVlKCJhY2Nlc3NfdG9rZW4iLCB7IHJlbW92ZUZyb21Vcmw6IHRydWUgfSksCgkJZnJvbVVybDogZ2V0QXBwUGFyYW1WYWx1ZSgiZnJvbV91cmwiLCB7IGRlZmF1bHRWYWx1ZTogd2luZG93LmxvY2F0aW9uLmhyZWYgfSksCgkJZnVuY3Rpb25zVmVyc2lvbjogZ2V0QXBwUGFyYW1WYWx1ZSgiZnVuY3Rpb25zX3ZlcnNpb24iLCB7IGRlZmF1bHRWYWx1ZTogaW1wb3J0Lm1ldGEuZW52LlZJVEVfQkFTRTQ0X0ZVTkNUSU9OU19WRVJTSU9OIH0pLAoJCWFwcEJhc2VVcmw6IGdldEFwcFBhcmFtVmFsdWUoImFwcF9iYXNlX3VybCIsIHsgZGVmYXVsdFZhbHVlOiBpbXBvcnQubWV0YS5lbnYuVklURV9CQVNFNDRfQVBQX0JBU0VfVVJMIH0pLAoJfQp9CgoKLy8gQmFzZTQ0IEV4aXQgYnVpbGQgZmxhZy4gVHJ1ZSBvbmx5IHdoZW4gYnVpbHQgd2l0aCBgdml0ZSAtLW1vZGUgZXhpdGAKLy8gKGxvYWRzIC5lbnYuZXhpdCDihpIgVklURV9FWElUX0JVSUxEPXRydWUpLiBHYXRlcyB0aGUgUmFpbHdheS1vbmx5IGF1dGggcGF0aAovLyBhbmQgdGhlIG5hdGl2ZSBsb2dpbiBwYWdlLiBUaGUgQmFzZTQ0IGJ1aWxkIGxlYXZlcyB0aGlzIGZhbHNlLCBzbyBhbGwKLy8gZXhpc3RpbmcgQmFzZTQ0IGJlaGF2aW9yIGlzIHVuY2hhbmdlZC4KZXhwb3J0IGNvbnN0IGlzRXhpdEJ1aWxkID0gaW1wb3J0Lm1ldGEuZW52LlZJVEVfRVhJVF9CVUlMRCA9PT0gJ3RydWUnOwoKZXhwb3J0IGNvbnN0IGFwcFBhcmFtcyA9IHsKCS4uLmdldEFwcFBhcmFtcygpCn0=
+const isNode = typeof window === 'undefined';
+const windowObj = isNode ? { localStorage: new Map() } : window;
+const storage = windowObj.localStorage;
+
+const toSnakeCase = (str) => {
+	return str.replace(/([A-Z])/g, '_$1').toLowerCase();
+}
+
+const getAppParamValue = (paramName, { defaultValue = undefined, removeFromUrl = false } = {}) => {
+	if (isNode) {
+		return defaultValue;
+	}
+	const storageKey = `base44_${toSnakeCase(paramName)}`;
+	const urlParams = new URLSearchParams(window.location.search);
+	const searchParam = urlParams.get(paramName);
+	if (removeFromUrl) {
+		urlParams.delete(paramName);
+		const newUrl = `${window.location.pathname}${urlParams.toString() ? `?${urlParams.toString()}` : ""
+			}${window.location.hash}`;
+		window.history.replaceState({}, document.title, newUrl);
+	}
+	if (searchParam) {
+		storage.setItem(storageKey, searchParam);
+		return searchParam;
+	}
+	if (defaultValue) {
+		storage.setItem(storageKey, defaultValue);
+		return defaultValue;
+	}
+	const storedValue = storage.getItem(storageKey);
+	if (storedValue) {
+		return storedValue;
+	}
+	return null;
+}
+
+const getAppParams = () => {
+	if (getAppParamValue("clear_access_token") === 'true') {
+		storage.removeItem('base44_access_token');
+		storage.removeItem('token');
+	}
+	return {
+		appId: getAppParamValue("app_id", { defaultValue: import.meta.env.VITE_BASE44_APP_ID }),
+		token: getAppParamValue("access_token", { removeFromUrl: true }),
+		fromUrl: getAppParamValue("from_url", { defaultValue: window.location.href }),
+		functionsVersion: getAppParamValue("functions_version", { defaultValue: import.meta.env.VITE_BASE44_FUNCTIONS_VERSION }),
+		appBaseUrl: getAppParamValue("app_base_url", { defaultValue: import.meta.env.VITE_BASE44_APP_BASE_URL }),
+	}
+}
+
+
+// Base44 Exit build flag. True only when built with `vite --mode exit`
+// (loads .env.exit → VITE_EXIT_BUILD=true). Gates the Railway-only auth path
+// and the native login page. The Base44 build leaves this false, so all
+// existing Base44 behavior is unchanged.
+export const isExitBuild = import.meta.env.VITE_EXIT_BUILD === 'true';
+
+export const appParams = {
+	...getAppParams()
+}

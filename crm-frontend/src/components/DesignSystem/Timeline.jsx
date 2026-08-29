@@ -1,1 +1,29 @@
-LyoqCiAqIFVuaWZpZWQgVGltZWxpbmUgQ29tcG9uZW50CiAqIEZvciBhY3Rpdml0eSBmZWVkcywgY2FsbCBsb2dzLCBhY3Rpb24gaGlzdG9yaWVzCiAqLwoKZXhwb3J0IGZ1bmN0aW9uIFRpbWVsaW5lRW50cnkoeyBpY29uOiBJY29uLCBsYWJlbCwgdGltZXN0YW1wLCBjaGlsZHJlbiwgbWV0YWRhdGEgPSBudWxsIH0pIHsKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZ2FwLTMgcHktMyBweC0xIj4KICAgICAgey8qIFRpbWVsaW5lIGRvdCAqL30KICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZmxleC1jb2wgaXRlbXMtY2VudGVyIHB0LTEuNSBmbGV4LXNocmluay0wIj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idy0yIGgtMiByb3VuZGVkLWZ1bGwgYmctc2xhdGUtNDAwIiAvPgogICAgICA8L2Rpdj4KCiAgICAgIHsvKiBDb250ZW50ICovfQogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleC0xIG1pbi13LTAgcGItMyBib3JkZXItYiBib3JkZXItc2xhdGUtMTAwIGdyb3VwLWxhc3Q6Ym9yZGVyLTAiPgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWJhc2VsaW5lIGp1c3RpZnktYmV0d2VlbiBnYXAtMiBtYi0wLjUiPgogICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LVsxMXB4XSBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNzAwIj57bGFiZWx9PC9zcGFuPgogICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSB0ZXh0LXNsYXRlLTQwMCB3aGl0ZXNwYWNlLW5vd3JhcCBmbGV4LXNocmluay0wIj57dGltZXN0YW1wfTwvc3Bhbj4KICAgICAgICA8L2Rpdj4KICAgICAgICB7Y2hpbGRyZW4gJiYgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNjAwIGxlYWRpbmctcmVsYXhlZCB3aGl0ZXNwYWNlLXByZS13cmFwIj57Y2hpbGRyZW59PC9wPn0KICAgICAgICB7bWV0YWRhdGEgJiYgPHAgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSB0ZXh0LXNsYXRlLTQwMCBtdC0xIj57bWV0YWRhdGF9PC9wPn0KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KICApOwp9CgpleHBvcnQgZnVuY3Rpb24gVGltZWxpbmVDb250YWluZXIoeyBjaGlsZHJlbiB9KSB7CiAgcmV0dXJuIDxkaXYgY2xhc3NOYW1lPSJzcGFjZS15LXB4Ij57Y2hpbGRyZW59PC9kaXY+Owp9
+/**
+ * Unified Timeline Component
+ * For activity feeds, call logs, action histories
+ */
+
+export function TimelineEntry({ icon: Icon, label, timestamp, children, metadata = null }) {
+  return (
+    <div className="flex gap-3 py-3 px-1">
+      {/* Timeline dot */}
+      <div className="flex flex-col items-center pt-1.5 flex-shrink-0">
+        <div className="w-2 h-2 rounded-full bg-slate-400" />
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0 pb-3 border-b border-slate-100 group-last:border-0">
+        <div className="flex items-baseline justify-between gap-2 mb-0.5">
+          <span className="text-[11px] font-semibold text-slate-700">{label}</span>
+          <span className="text-[10px] text-slate-400 whitespace-nowrap flex-shrink-0">{timestamp}</span>
+        </div>
+        {children && <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">{children}</p>}
+        {metadata && <p className="text-[10px] text-slate-400 mt-1">{metadata}</p>}
+      </div>
+    </div>
+  );
+}
+
+export function TimelineContainer({ children }) {
+  return <div className="space-y-px">{children}</div>;
+}

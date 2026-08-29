@@ -1,1 +1,78 @@
-aW1wb3J0IHsgdXNlRWZmZWN0LCB1c2VSZWYsIHVzZVN0YXRlIH0gZnJvbSAncmVhY3QnOwoKLyoqCiAqIHVzZVB1bGxUb1JlZnJlc2ggLSBOYXRpdmUtc3R5bGUgcHVsbC10by1yZWZyZXNoIGZvciBtb2JpbGUKICogQHBhcmFtIHtGdW5jdGlvbn0gb25SZWZyZXNoIC0gYXN5bmMgZnVuY3Rpb24gdG8gY2FsbCBvbiBwdWxsCiAqIEBwYXJhbSB7T2JqZWN0fSBvcHRpb25zCiAqIEBwYXJhbSB7bnVtYmVyfSBvcHRpb25zLnRocmVzaG9sZCAtIHB4IHRvIHB1bGwgYmVmb3JlIHRyaWdnZXJpbmcgKGRlZmF1bHQgNzIpCiAqLwpleHBvcnQgZnVuY3Rpb24gdXNlUHVsbFRvUmVmcmVzaChvblJlZnJlc2gsIHsgdGhyZXNob2xkID0gNzIgfSA9IHt9KSB7CiAgY29uc3QgW3B1bGxpbmcsIHNldFB1bGxpbmddID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFtyZWZyZXNoaW5nLCBzZXRSZWZyZXNoaW5nXSA9IHVzZVN0YXRlKGZhbHNlKTsKICBjb25zdCBbcHVsbERpc3RhbmNlLCBzZXRQdWxsRGlzdGFuY2VdID0gdXNlU3RhdGUoMCk7CgogIGNvbnN0IHN0YXJ0WSA9IHVzZVJlZihudWxsKTsKICBjb25zdCBjb250YWluZXJSZWYgPSB1c2VSZWYobnVsbCk7CgogIHVzZUVmZmVjdCgoKSA9PiB7CiAgICBjb25zdCBlbCA9IGNvbnRhaW5lclJlZi5jdXJyZW50IHx8IGRvY3VtZW50LmRvY3VtZW50RWxlbWVudDsKCiAgICBjb25zdCBpc0F0VG9wID0gKCkgPT4gewogICAgICAvLyBDaGVjayBpZiB0aGUgc2Nyb2xsYWJsZSBhbmNlc3RvciBpcyBhdCB0aGUgdG9wCiAgICAgIGNvbnN0IHNjcm9sbEVsID0gY29udGFpbmVyUmVmLmN1cnJlbnQgfHwgZG9jdW1lbnQuc2Nyb2xsaW5nRWxlbWVudCB8fCBkb2N1bWVudC5kb2N1bWVudEVsZW1lbnQ7CiAgICAgIHJldHVybiBzY3JvbGxFbC5zY3JvbGxUb3AgPD0gMDsKICAgIH07CgogICAgY29uc3Qgb25Ub3VjaFN0YXJ0ID0gKGUpID0+IHsKICAgICAgaWYgKGlzQXRUb3AoKSkgewogICAgICAgIHN0YXJ0WS5jdXJyZW50ID0gZS50b3VjaGVzWzBdLmNsaWVudFk7CiAgICAgIH0KICAgIH07CgogICAgY29uc3Qgb25Ub3VjaE1vdmUgPSAoZSkgPT4gewogICAgICBpZiAoc3RhcnRZLmN1cnJlbnQgPT09IG51bGwpIHJldHVybjsKICAgICAgY29uc3QgZHkgPSBlLnRvdWNoZXNbMF0uY2xpZW50WSAtIHN0YXJ0WS5jdXJyZW50OwogICAgICBpZiAoZHkgPiAwICYmIGlzQXRUb3AoKSkgewogICAgICAgIC8vIFByZXZlbnQgZGVmYXVsdCBzY3JvbGwgc28gd2UgY29udHJvbCBpdAogICAgICAgIGUucHJldmVudERlZmF1bHQoKTsKICAgICAgICBzZXRQdWxsaW5nKHRydWUpOwogICAgICAgIC8vIEFwcGx5IHJ1YmJlci1iYW5kIGRhbXBpbmcKICAgICAgICBzZXRQdWxsRGlzdGFuY2UoTWF0aC5taW4oZHkgKiAwLjQ1LCB0aHJlc2hvbGQgKiAxLjUpKTsKICAgICAgfSBlbHNlIHsKICAgICAgICBzdGFydFkuY3VycmVudCA9IG51bGw7CiAgICAgICAgc2V0UHVsbGluZyhmYWxzZSk7CiAgICAgICAgc2V0UHVsbERpc3RhbmNlKDApOwogICAgICB9CiAgICB9OwoKICAgIGNvbnN0IG9uVG91Y2hFbmQgPSBhc3luYyAoKSA9PiB7CiAgICAgIGlmIChwdWxsaW5nICYmIHB1bGxEaXN0YW5jZSA+PSB0aHJlc2hvbGQgKiAwLjQ1KSB7CiAgICAgICAgc2V0UmVmcmVzaGluZyh0cnVlKTsKICAgICAgICBzZXRQdWxsaW5nKGZhbHNlKTsKICAgICAgICBzZXRQdWxsRGlzdGFuY2UoMCk7CiAgICAgICAgc3RhcnRZLmN1cnJlbnQgPSBudWxsOwogICAgICAgIHRyeSB7CiAgICAgICAgICBhd2FpdCBvblJlZnJlc2goKTsKICAgICAgICB9IGZpbmFsbHkgewogICAgICAgICAgc2V0UmVmcmVzaGluZyhmYWxzZSk7CiAgICAgICAgfQogICAgICB9IGVsc2UgewogICAgICAgIHNldFB1bGxpbmcoZmFsc2UpOwogICAgICAgIHNldFB1bGxEaXN0YW5jZSgwKTsKICAgICAgICBzdGFydFkuY3VycmVudCA9IG51bGw7CiAgICAgIH0KICAgIH07CgogICAgd2luZG93LmFkZEV2ZW50TGlzdGVuZXIoJ3RvdWNoc3RhcnQnLCBvblRvdWNoU3RhcnQsIHsgcGFzc2l2ZTogdHJ1ZSB9KTsKICAgIHdpbmRvdy5hZGRFdmVudExpc3RlbmVyKCd0b3VjaG1vdmUnLCBvblRvdWNoTW92ZSwgeyBwYXNzaXZlOiBmYWxzZSB9KTsKICAgIHdpbmRvdy5hZGRFdmVudExpc3RlbmVyKCd0b3VjaGVuZCcsIG9uVG91Y2hFbmQsIHsgcGFzc2l2ZTogdHJ1ZSB9KTsKCiAgICByZXR1cm4gKCkgPT4gewogICAgICB3aW5kb3cucmVtb3ZlRXZlbnRMaXN0ZW5lcigndG91Y2hzdGFydCcsIG9uVG91Y2hTdGFydCk7CiAgICAgIHdpbmRvdy5yZW1vdmVFdmVudExpc3RlbmVyKCd0b3VjaG1vdmUnLCBvblRvdWNoTW92ZSk7CiAgICAgIHdpbmRvdy5yZW1vdmVFdmVudExpc3RlbmVyKCd0b3VjaGVuZCcsIG9uVG91Y2hFbmQpOwogICAgfTsKICB9LCBbb25SZWZyZXNoLCBwdWxsaW5nLCBwdWxsRGlzdGFuY2UsIHRocmVzaG9sZF0pOwoKICByZXR1cm4geyBwdWxsaW5nLCByZWZyZXNoaW5nLCBwdWxsRGlzdGFuY2UsIGNvbnRhaW5lclJlZiB9Owp9
+import { useEffect, useRef, useState } from 'react';
+
+/**
+ * usePullToRefresh - Native-style pull-to-refresh for mobile
+ * @param {Function} onRefresh - async function to call on pull
+ * @param {Object} options
+ * @param {number} options.threshold - px to pull before triggering (default 72)
+ */
+export function usePullToRefresh(onRefresh, { threshold = 72 } = {}) {
+  const [pulling, setPulling] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [pullDistance, setPullDistance] = useState(0);
+
+  const startY = useRef(null);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const el = containerRef.current || document.documentElement;
+
+    const isAtTop = () => {
+      // Check if the scrollable ancestor is at the top
+      const scrollEl = containerRef.current || document.scrollingElement || document.documentElement;
+      return scrollEl.scrollTop <= 0;
+    };
+
+    const onTouchStart = (e) => {
+      if (isAtTop()) {
+        startY.current = e.touches[0].clientY;
+      }
+    };
+
+    const onTouchMove = (e) => {
+      if (startY.current === null) return;
+      const dy = e.touches[0].clientY - startY.current;
+      if (dy > 0 && isAtTop()) {
+        // Prevent default scroll so we control it
+        e.preventDefault();
+        setPulling(true);
+        // Apply rubber-band damping
+        setPullDistance(Math.min(dy * 0.45, threshold * 1.5));
+      } else {
+        startY.current = null;
+        setPulling(false);
+        setPullDistance(0);
+      }
+    };
+
+    const onTouchEnd = async () => {
+      if (pulling && pullDistance >= threshold * 0.45) {
+        setRefreshing(true);
+        setPulling(false);
+        setPullDistance(0);
+        startY.current = null;
+        try {
+          await onRefresh();
+        } finally {
+          setRefreshing(false);
+        }
+      } else {
+        setPulling(false);
+        setPullDistance(0);
+        startY.current = null;
+      }
+    };
+
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd, { passive: true });
+
+    return () => {
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [onRefresh, pulling, pullDistance, threshold]);
+
+  return { pulling, refreshing, pullDistance, containerRef };
+}

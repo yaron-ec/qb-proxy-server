@@ -1,1 +1,91 @@
-LyoqCiAqIEtQSUNoaXAg4oCUIGNvbXBhY3QgZmluYW5jaWFsIG1ldHJpYyBjaGlwIGZvciBkYXNoYm9hcmRzIGFuZCBkZXRhaWwgcGFnZXMuCiAqIFZhcmlhbnRzOiBkZWZhdWx0LCBiYWxhbmNlLCBjb2xsZWN0ZWQsIHJlbWFpbmluZywgaW52b2ljZWQKICovCmltcG9ydCB7IHVzZVN0YXRlLCB1c2VFZmZlY3QgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IFBlbmNpbCB9IGZyb20gImx1Y2lkZS1yZWFjdCI7Cgpjb25zdCBmbXRNb25leSA9ICh2KSA9PiB7CiAgY29uc3QgbnVtID0gcGFyc2VGbG9hdCh2KSB8fCAwOwogIHJldHVybiBgJCR7bnVtLnRvTG9jYWxlU3RyaW5nKCJlbi1VUyIsIHsgbWluaW11bUZyYWN0aW9uRGlnaXRzOiAwLCBtYXhpbXVtRnJhY3Rpb25EaWdpdHM6IDAgfSl9YDsKfTsKCmNvbnN0IFZBUklBTlRfU1RZTEVTID0gewogIGRlZmF1bHQ6ICAgImJnLXdoaXRlIGJvcmRlci1zbGF0ZS0yMDAgdGV4dC1zbGF0ZS05MDAiLAogIGJhbGFuY2U6ICAgImJnLWFtYmVyLTUwIGJvcmRlci1hbWJlci0yMDAgdGV4dC1hbWJlci03MDAiLAogIGNvbGxlY3RlZDogImJnLWVtZXJhbGQtNTAgYm9yZGVyLWVtZXJhbGQtMjAwIHRleHQtZW1lcmFsZC03MDAiLAogIHJlbWFpbmluZzogImJnLWJsdWUtNTAgYm9yZGVyLWJsdWUtMjAwIHRleHQtYmx1ZS03MDAiLAogIGludm9pY2VkOiAgImJnLXB1cnBsZS01MCBib3JkZXItcHVycGxlLTIwMCB0ZXh0LXB1cnBsZS03MDAiLAp9OwoKZXhwb3J0IGZ1bmN0aW9uIEtQSUNoaXAoeyBsYWJlbCwgdmFsdWUsIHZhcmlhbnQgPSAiZGVmYXVsdCIsIGVkaXRhYmxlID0gZmFsc2UsIG9uRWRpdCA9IG51bGwsIGNsYXNzTmFtZSA9ICIiIH0pIHsKICByZXR1cm4gKAogICAgPGRpdgogICAgICBjbGFzc05hbWU9e2Byb3VuZGVkLWxnIGJvcmRlciBweC0zIHB5LTIgZmxleCBmbGV4LWNvbCBnYXAtMC41IG1pbi13LVsxMDBweF0gJHtWQVJJQU5UX1NUWUxFU1t2YXJpYW50XSB8fCBWQVJJQU5UX1NUWUxFUy5kZWZhdWx0fSAke2VkaXRhYmxlID8gImN1cnNvci1wb2ludGVyIGhvdmVyOnNoYWRvdy1zbSBncm91cCB0cmFuc2l0aW9uLWFsbCIgOiAiIn0gJHtjbGFzc05hbWV9YH0KICAgICAgb25DbGljaz17KCkgPT4gZWRpdGFibGUgJiYgb25FZGl0Py4oKX0KICAgID4KICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0xIj4KICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzlweF0gZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTQwMCB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZSBsZWFkaW5nLW5vbmUiPntsYWJlbH08L3A+CiAgICAgICAge2VkaXRhYmxlICYmIDxQZW5jaWwgY2xhc3NOYW1lPSJ3LTIgaC0yIHRleHQtc2xhdGUtMzAwIG9wYWNpdHktMCBncm91cC1ob3ZlcjpvcGFjaXR5LTEwMCB0cmFuc2l0aW9uLW9wYWNpdHkiIC8+fQogICAgICA8L2Rpdj4KICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtYm9sZCBsZWFkaW5nLXRpZ2h0Ij57Zm10TW9uZXkodmFsdWUpfTwvcD4KICAgIDwvZGl2PgogICk7Cn0KCmV4cG9ydCBmdW5jdGlvbiBLUElDaGlwR3JvdXAoeyBjaGlwcywgY2xhc3NOYW1lID0gIiIgfSkgewogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT17YGZsZXggZmxleC13cmFwIGdhcC0yICR7Y2xhc3NOYW1lfWB9PgogICAgICB7Y2hpcHMubWFwKChjaGlwLCBpKSA9PiAoCiAgICAgICAgPEtQSUNoaXAga2V5PXtpfSB7Li4uY2hpcH0gLz4KICAgICAgKSl9CiAgICA8L2Rpdj4KICApOwp9CgpleHBvcnQgZnVuY3Rpb24gRWRpdGFibGVLUElDaGlwKHsgbGFiZWwsIHZhbHVlLCB2YXJpYW50ID0gImRlZmF1bHQiLCBvblNhdmUsIGNsYXNzTmFtZSA9ICIiIH0pIHsKICBjb25zdCBbaXNFZGl0aW5nLCBzZXRJc0VkaXRpbmddID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFtlZGl0VmFsdWUsIHNldEVkaXRWYWx1ZV0gPSB1c2VTdGF0ZShTdHJpbmcodmFsdWUgfHwgMCkpOwoKICB1c2VFZmZlY3QoKCkgPT4geyBzZXRFZGl0VmFsdWUoU3RyaW5nKHZhbHVlIHx8IDApKTsgfSwgW3ZhbHVlXSk7CgogIGlmIChpc0VkaXRpbmcpIHsKICAgIHJldHVybiAoCiAgICAgIDxkaXYgY2xhc3NOYW1lPSJyb3VuZGVkLWxnIGJvcmRlci0yIGJvcmRlci1hbWJlci00MDAgYmctd2hpdGUgcHgtMyBweS0yIGZsZXggZmxleC1jb2wgZ2FwLTEuNSBtaW4tdy1bMTIwcHhdIj4KICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzlweF0gZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTUwMCB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZSI+e2xhYmVsfTwvcD4KICAgICAgICA8aW5wdXQKICAgICAgICAgIHR5cGU9Im51bWJlciIKICAgICAgICAgIHZhbHVlPXtlZGl0VmFsdWV9CiAgICAgICAgICBvbkNoYW5nZT17ZSA9PiBzZXRFZGl0VmFsdWUoZS50YXJnZXQudmFsdWUpfQogICAgICAgICAgY2xhc3NOYW1lPSJ3LWZ1bGwgcHgtMiBweS0xIHRleHQteHMgYm9yZGVyIGJvcmRlci1zbGF0ZS0zMDAgcm91bmRlZCBmb2N1czpvdXRsaW5lLW5vbmUgZm9jdXM6cmluZy0xIGZvY3VzOnJpbmctYW1iZXItNTAwIgogICAgICAgICAgYXV0b0ZvY3VzCiAgICAgICAgLz4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBnYXAtMSI+CiAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHsgb25TYXZlKGVkaXRWYWx1ZSk7IHNldElzRWRpdGluZyhmYWxzZSk7IH19CiAgICAgICAgICAgIGNsYXNzTmFtZT0iZmxleC0xIHB4LTIgcHktMSB0ZXh0LVsxMHB4XSBmb250LXNlbWlib2xkIGJnLWFtYmVyLTYwMCB0ZXh0LXdoaXRlIHJvdW5kZWQgaG92ZXI6YmctYW1iZXItNzAwIgogICAgICAgICAgPgogICAgICAgICAgICBTYXZlCiAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgb25DbGljaz17KCkgPT4geyBzZXRFZGl0VmFsdWUoU3RyaW5nKHZhbHVlIHx8IDApKTsgc2V0SXNFZGl0aW5nKGZhbHNlKTsgfX0KICAgICAgICAgICAgY2xhc3NOYW1lPSJmbGV4LTEgcHgtMiBweS0xIHRleHQtWzEwcHhdIGZvbnQtc2VtaWJvbGQgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgdGV4dC1zbGF0ZS02MDAgcm91bmRlZCBob3ZlcjpiZy1zbGF0ZS01MCIKICAgICAgICAgID4KICAgICAgICAgICAgQ2FuY2VsCiAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CiAgICApOwogIH0KCiAgcmV0dXJuICgKICAgIDxLUElDaGlwCiAgICAgIGxhYmVsPXtsYWJlbH0KICAgICAgdmFsdWU9e3ZhbHVlfQogICAgICB2YXJpYW50PXt2YXJpYW50fQogICAgICBlZGl0YWJsZQogICAgICBvbkVkaXQ9eygpID0+IHNldElzRWRpdGluZyh0cnVlKX0KICAgICAgY2xhc3NOYW1lPXtjbGFzc05hbWV9CiAgICAvPgogICk7Cn0=
+/**
+ * KPIChip — compact financial metric chip for dashboards and detail pages.
+ * Variants: default, balance, collected, remaining, invoiced
+ */
+import { useState, useEffect } from "react";
+import { Pencil } from "lucide-react";
+
+const fmtMoney = (v) => {
+  const num = parseFloat(v) || 0;
+  return `$${num.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+};
+
+const VARIANT_STYLES = {
+  default:   "bg-white border-slate-200 text-slate-900",
+  balance:   "bg-amber-50 border-amber-200 text-amber-700",
+  collected: "bg-emerald-50 border-emerald-200 text-emerald-700",
+  remaining: "bg-blue-50 border-blue-200 text-blue-700",
+  invoiced:  "bg-purple-50 border-purple-200 text-purple-700",
+};
+
+export function KPIChip({ label, value, variant = "default", editable = false, onEdit = null, className = "" }) {
+  return (
+    <div
+      className={`rounded-lg border px-3 py-2 flex flex-col gap-0.5 min-w-[100px] ${VARIANT_STYLES[variant] || VARIANT_STYLES.default} ${editable ? "cursor-pointer hover:shadow-sm group transition-all" : ""} ${className}`}
+      onClick={() => editable && onEdit?.()}
+    >
+      <div className="flex items-center gap-1">
+        <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wide leading-none">{label}</p>
+        {editable && <Pencil className="w-2 h-2 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />}
+      </div>
+      <p className="text-sm font-bold leading-tight">{fmtMoney(value)}</p>
+    </div>
+  );
+}
+
+export function KPIChipGroup({ chips, className = "" }) {
+  return (
+    <div className={`flex flex-wrap gap-2 ${className}`}>
+      {chips.map((chip, i) => (
+        <KPIChip key={i} {...chip} />
+      ))}
+    </div>
+  );
+}
+
+export function EditableKPIChip({ label, value, variant = "default", onSave, className = "" }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(String(value || 0));
+
+  useEffect(() => { setEditValue(String(value || 0)); }, [value]);
+
+  if (isEditing) {
+    return (
+      <div className="rounded-lg border-2 border-amber-400 bg-white px-3 py-2 flex flex-col gap-1.5 min-w-[120px]">
+        <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-wide">{label}</p>
+        <input
+          type="number"
+          value={editValue}
+          onChange={e => setEditValue(e.target.value)}
+          className="w-full px-2 py-1 text-xs border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-amber-500"
+          autoFocus
+        />
+        <div className="flex gap-1">
+          <button
+            onClick={() => { onSave(editValue); setIsEditing(false); }}
+            className="flex-1 px-2 py-1 text-[10px] font-semibold bg-amber-600 text-white rounded hover:bg-amber-700"
+          >
+            Save
+          </button>
+          <button
+            onClick={() => { setEditValue(String(value || 0)); setIsEditing(false); }}
+            className="flex-1 px-2 py-1 text-[10px] font-semibold border border-slate-200 text-slate-600 rounded hover:bg-slate-50"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <KPIChip
+      label={label}
+      value={value}
+      variant={variant}
+      editable
+      onEdit={() => setIsEditing(true)}
+      className={className}
+    />
+  );
+}

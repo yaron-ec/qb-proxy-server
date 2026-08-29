@@ -1,1 +1,147 @@
-LyoqCiAqIGNybUVtYWlsVGVtcGxhdGVzIOKAlCBjbGllbnQtc2lkZSBIVE1MIGVtYWlsIHRlbXBsYXRlcyBmb3IgdGhlIFJhaWx3YXkgbWlncmF0aW9uLgogKgogKiBFeGFjdCBjb3BpZXMgb2YgdGhlIEhUTUwgYnJhbmRpbmcgdXNlZCBieSB0aGUgQmFzZTQ0IGZ1bmN0aW9ucyAoc2VuZE1hbnVhbFJlbWluZGVyLAogKiBzZW5kSW52b2ljZUVtYWlsKSBzbyB0aGF0IG1vdmluZyB0aGUgc2VuZCBwYXRoIHRvIFJhaWx3YXkgL2ludGVybmFsL2VtYWlsL3NlbmQKICogY2hhbmdlcyBub3RoaW5nIHRoZSBjdXN0b21lciBzZWVzLgogKgogKiBVc2VkIGJ5IHNyYy9saWIvZW1haWxUcmFuc3BvcnQuanMgd2hlbiBGTE9XX09XTkVSU0hJUCBpcyAncmFpbHdheScuCiAqLwoKY29uc3QgTE9HT19VUkwgPSAnaHR0cHM6Ly9tZWRpYS5iYXNlNDQuY29tL2ltYWdlcy9wdWJsaWMvNjlmNDJjZWU0MWQyOWYzMGJmZjVjMDEzL2NjNWRiNzA1OF9pbWFnZS5wbmcnOwpjb25zdCBOQVZZID0gJyMwQjJENUMnOwpjb25zdCBHT0xEID0gJyNDOUEyMjcnOwpjb25zdCBMSUdIVF9HUkFZID0gJyNGNEY2RkEnOwpjb25zdCBURVhUX0RBUksgPSAnIzFBMUEyRSc7CmNvbnN0IFRFWFRfTVVURUQgPSAnIzZCNzI4MCc7Cgpjb25zdCBCQVNFX0NTUyA9IGAKICAqIHsgbWFyZ2luOjA7cGFkZGluZzowO2JveC1zaXppbmc6Ym9yZGVyLWJveDsgfQogIGJvZHkgeyBmb250LWZhbWlseTotYXBwbGUtc3lzdGVtLEJsaW5rTWFjU3lzdGVtRm9udCwnU2Vnb2UgVUknLFJvYm90bywnSGVsdmV0aWNhIE5ldWUnLEFyaWFsLHNhbnMtc2VyaWY7IGJhY2tncm91bmQ6I0VFRjFGNztjb2xvcjoke1RFWFRfREFSS307cGFkZGluZzozMnB4IDE2cHg7IH0KICAud3JhcHBlciB7IG1heC13aWR0aDo2NTBweDttYXJnaW46MCBhdXRvOyB9CiAgLmhlYWRlciB7IGJhY2tncm91bmQ6I2ZmZjtib3JkZXItcmFkaXVzOjEycHggMTJweCAwIDA7cGFkZGluZzozNnB4IDQ4cHggMjhweDt0ZXh0LWFsaWduOmNlbnRlcjtib3JkZXItYm90dG9tOjNweCBzb2xpZCAke0dPTER9OyB9CiAgLmhlYWRlciBpbWcgeyBtYXgtd2lkdGg6MjYwcHg7aGVpZ2h0OmF1dG87ZGlzcGxheTpibG9jazttYXJnaW46MCBhdXRvOyB9CiAgLmJvZHkgeyBiYWNrZ3JvdW5kOiNmZmY7cGFkZGluZzo0MHB4IDQ4cHg7IH0KICAuZW1haWwtdGl0bGUgeyBmb250LXNpemU6MjJweDtmb250LXdlaWdodDo3MDA7Y29sb3I6JHtOQVZZfTttYXJnaW4tYm90dG9tOjZweDsgfQogIC5lbWFpbC1zdWJ0aXRsZSB7IGZvbnQtc2l6ZToxNHB4O2NvbG9yOiR7VEVYVF9NVVRFRH07bWFyZ2luLWJvdHRvbToyOHB4OyB9CiAgLmdyZWV0aW5nIHsgZm9udC1zaXplOjE2cHg7Y29sb3I6JHtURVhUX0RBUkt9O21hcmdpbi1ib3R0b206MjRweDtsaW5lLWhlaWdodDoxLjc7IH0KICAuZGV0YWlsLWNhcmQgeyBiYWNrZ3JvdW5kOiR7TElHSFRfR1JBWX07Ym9yZGVyLXJhZGl1czoxMHB4O2JvcmRlci1sZWZ0OjRweCBzb2xpZCAke0dPTER9O3BhZGRpbmc6MjRweCAyOHB4O21hcmdpbjoyNHB4IDA7IH0KICAuZGV0YWlsLWNhcmQtdGl0bGUgeyBmb250LXNpemU6MTFweDtmb250LXdlaWdodDo3MDA7dGV4dC10cmFuc2Zvcm06dXBwZXJjYXNlO2xldHRlci1zcGFjaW5nOjEuNXB4O2NvbG9yOiR7R09MRH07bWFyZ2luLWJvdHRvbToxNnB4OyB9CiAgLnJvdyB7IGRpc3BsYXk6ZmxleDthbGlnbi1pdGVtczpmbGV4LXN0YXJ0O3BhZGRpbmc6MTBweCAwO2JvcmRlci1ib3R0b206MXB4IHNvbGlkICNEREUzRUU7IH0KICAucm93Omxhc3QtY2hpbGQgeyBib3JkZXItYm90dG9tOm5vbmU7IH0KICAubGJsIHsgZm9udC1zaXplOjEycHg7Zm9udC13ZWlnaHQ6NjAwO3RleHQtdHJhbnNmb3JtOnVwcGVyY2FzZTtsZXR0ZXItc3BhY2luZzowLjhweDtjb2xvcjoke1RFWFRfTVVURUR9O3dpZHRoOjE2MHB4O2ZsZXgtc2hyaW5rOjA7IH0KICAudmFsIHsgZm9udC1zaXplOjE1cHg7Zm9udC13ZWlnaHQ6NTAwO2NvbG9yOiR7VEVYVF9EQVJLfTtmbGV4OjE7IH0KICAubm90ZS1ib3ggeyBiYWNrZ3JvdW5kOiNGMEY0RkY7Ym9yZGVyLWxlZnQ6NHB4IHNvbGlkICMzQjVGQzA7Ym9yZGVyLXJhZGl1czo4cHg7cGFkZGluZzoyMHB4IDI0cHg7bWFyZ2luOjI0cHggMDsgfQogIC5ub3RlLWxhYmVsIHsgZm9udC1zaXplOjEwcHg7Zm9udC13ZWlnaHQ6NzAwO3RleHQtdHJhbnNmb3JtOnVwcGVyY2FzZTtsZXR0ZXItc3BhY2luZzoxLjVweDtjb2xvcjojM0I1RkMwO21hcmdpbi1ib3R0b206MTBweDsgfQogIC5ub3RpY2UgeyBiYWNrZ3JvdW5kOiNGRkY5RUM7Ym9yZGVyOjFweCBzb2xpZCAjRjBEOThBO2JvcmRlci1yYWRpdXM6OHB4O3BhZGRpbmc6MTZweCAyMHB4O21hcmdpbjoyNHB4IDA7Zm9udC1zaXplOjE0cHg7Y29sb3I6IzdBNUMwMDtsaW5lLWhlaWdodDoxLjY7IH0KICAuY3RhIHsgdGV4dC1hbGlnbjpjZW50ZXI7bWFyZ2luOjMycHggMDsgfQogIC5idG4geyBkaXNwbGF5OmlubGluZS1ibG9jaztiYWNrZ3JvdW5kOiR7TkFWWX07Y29sb3I6I2ZmZiAhaW1wb3J0YW50O3RleHQtZGVjb3JhdGlvbjpub25lO2ZvbnQtc2l6ZToxM3B4O2ZvbnQtd2VpZ2h0OjcwMDtsZXR0ZXItc3BhY2luZzoxLjVweDt0ZXh0LXRyYW5zZm9ybTp1cHBlcmNhc2U7cGFkZGluZzoxNnB4IDMycHg7Ym9yZGVyLXJhZGl1czo2cHg7IH0KICAuZm9vdGVyIHsgYmFja2dyb3VuZDoke05BVll9O2JvcmRlci1yYWRpdXM6MCAwIDEycHggMTJweDtwYWRkaW5nOjI4cHggNDhweDt0ZXh0LWFsaWduOmNlbnRlcjsgfQogIC5mb290ZXItbmFtZSB7IGZvbnQtc2l6ZToxNXB4O2ZvbnQtd2VpZ2h0OjcwMDtjb2xvcjoke0dPTER9O21hcmdpbi1ib3R0b206NnB4OyB9CiAgLmZvb3Rlci1zdWIgeyBmb250LXNpemU6MTJweDtjb2xvcjpyZ2JhKDI1NSwyNTUsMjU1LDAuNjUpO2xpbmUtaGVpZ2h0OjEuODsgfQogIC5mb290ZXItc3ViIGEgeyBjb2xvcjoke0dPTER9O3RleHQtZGVjb3JhdGlvbjpub25lOyB9CmA7CgpmdW5jdGlvbiB3cmFwKGlubmVyKSB7CiAgcmV0dXJuIGA8IURPQ1RZUEUgaHRtbD48aHRtbD48aGVhZD48bWV0YSBjaGFyc2V0PSJVVEYtOCI+PHN0eWxlPiR7QkFTRV9DU1N9PC9zdHlsZT48L2hlYWQ+PGJvZHk+CiAgPGRpdiBjbGFzcz0id3JhcHBlciI+CiAgICA8ZGl2IGNsYXNzPSJoZWFkZXIiPjxpbWcgc3JjPSIke0xPR09fVVJMfSIgYWx0PSJFQyBDb25zdHJ1Y3Rpb24gR3JvdXAiPjwvZGl2PgogICAgPGRpdiBjbGFzcz0iYm9keSI+JHtpbm5lcn08L2Rpdj4KICAgIDxkaXYgY2xhc3M9ImZvb3RlciI+PGRpdiBjbGFzcz0iZm9vdGVyLW5hbWUiPkVDIENvbnN0cnVjdGlvbiBHcm91cDwvZGl2PjxkaXYgY2xhc3M9ImZvb3Rlci1zdWIiPkxpY2Vuc2VkICZhbXA7IEluc3VyZWQgJm5ic3A7wrcmbmJzcDsgU291dGhlcm4gJmFtcDsgTm9ydGhlcm4gQ2FsaWZvcm5pYTxicj48YSBocmVmPSJodHRwczovL2VjY29uc3RydWN0aW9uZ3JvdXAuY29tIj5lY2NvbnN0cnVjdGlvbmdyb3VwLmNvbTwvYT48L2Rpdj48L2Rpdj4KICA8L2Rpdj48L2JvZHk+PC9odG1sPmA7Cn0KCi8qKgogKiBTdGFmZiByZW1pbmRlciBIVE1MIOKAlCBleGFjdCBjb3B5IG9mIHNlbmRNYW51YWxSZW1pbmRlcidzIHN0YWZmRW1haWwgdGVtcGxhdGUuCiAqLwpleHBvcnQgZnVuY3Rpb24gbWFudWFsU3RhZmZSZW1pbmRlckh0bWwoeyBvd25lck5hbWUsIGNsaWVudE5hbWUsIGNsaWVudFBob25lLCBjbGllbnRFbWFpbCwgZGF0ZSwgdGltZSwgYWRkcmVzcywgcHJvamVjdFR5cGUsIG5vdGVzLCBsZWFkSWQsIGNybVVybCB9KSB7CiAgY29uc3QgbWFwc1VybCA9IGFkZHJlc3MgPyBgaHR0cHM6Ly93d3cuZ29vZ2xlLmNvbS9tYXBzL3NlYXJjaC8/YXBpPTEmcXVlcnk9JHtlbmNvZGVVUklDb21wb25lbnQoYWRkcmVzcyl9YCA6IG51bGw7CiAgY29uc3Qgbm90ZXNIdG1sID0gbm90ZXMgPyBgPGRpdiBjbGFzcz0ibm90ZS1ib3giPjxkaXYgY2xhc3M9Im5vdGUtbGFiZWwiPvCfk50gTm90ZXM8L2Rpdj48ZGl2IHN0eWxlPSJmb250LXNpemU6MTRweDtsaW5lLWhlaWdodDoxLjg7d2hpdGUtc3BhY2U6cHJlLXdyYXA7Ij4ke25vdGVzfTwvZGl2PjwvZGl2PmAgOiAnJzsKICBjb25zdCBtYXBzQnRuID0gbWFwc1VybCA/IGA8YSBocmVmPSIke21hcHNVcmx9IiBzdHlsZT0iZGlzcGxheTppbmxpbmUtYmxvY2s7YmFja2dyb3VuZDojZmZmO2NvbG9yOiR7TkFWWX0gIWltcG9ydGFudDt0ZXh0LWRlY29yYXRpb246bm9uZTtmb250LXNpemU6MTNweDtmb250LXdlaWdodDo3MDA7bGV0dGVyLXNwYWNpbmc6MXB4O3RleHQtdHJhbnNmb3JtOnVwcGVyY2FzZTtwYWRkaW5nOjE0cHggMjhweDtib3JkZXItcmFkaXVzOjZweDtib3JkZXI6MnB4IHNvbGlkICR7TkFWWX07bWFyZ2luLWxlZnQ6MTJweDsiPvCfk40gR29vZ2xlIE1hcHM8L2E+YCA6ICcnOwogIGNvbnN0IGxlYWRMaW5rID0gYCR7Y3JtVXJsfS9sZWFkcy8ke2xlYWRJZH1gOwoKICByZXR1cm4gd3JhcChgCiAgICA8ZGl2IGNsYXNzPSJlbWFpbC10aXRsZSI+8J+ThSBNYW51YWwgQXBwb2ludG1lbnQgUmVtaW5kZXI8L2Rpdj4KICAgIDxkaXYgY2xhc3M9ImVtYWlsLXN1YnRpdGxlIj5TZW50IG1hbnVhbGx5IGZyb20gQ1JNIOKAlCBFQyBDb25zdHJ1Y3Rpb24gR3JvdXA8L2Rpdj4KICAgIDxkaXYgY2xhc3M9ImdyZWV0aW5nIj5IZWxsbyAke293bmVyTmFtZX0sPGJyPjxicj5UaGlzIGlzIGEgbWFudWFsIHJlbWluZGVyIGZvciB5b3VyIHVwY29taW5nIGFwcG9pbnRtZW50LiBQbGVhc2UgcmV2aWV3IHRoZSBkZXRhaWxzIGJlbG93LjwvZGl2PgogICAgPGRpdiBjbGFzcz0iZGV0YWlsLWNhcmQiPgogICAgICA8ZGl2IGNsYXNzPSJkZXRhaWwtY2FyZC10aXRsZSI+Q3VzdG9tZXIgJmFtcDsgQXBwb2ludG1lbnQgRGV0YWlsczwvZGl2PgogICAgICA8ZGl2IGNsYXNzPSJyb3ciPjxzcGFuIGNsYXNzPSJsYmwiPvCfkaQgQ3VzdG9tZXI8L3NwYW4+PHNwYW4gY2xhc3M9InZhbCIgc3R5bGU9ImZvbnQtd2VpZ2h0OjcwMDtjb2xvcjoke05BVll9Ij4ke2NsaWVudE5hbWV9PC9zcGFuPjwvZGl2PgogICAgICA8ZGl2IGNsYXNzPSJyb3ciPjxzcGFuIGNsYXNzPSJsYmwiPvCfk4UgRGF0ZTwvc3Bhbj48c3BhbiBjbGFzcz0idmFsIj4ke2RhdGV9PC9zcGFuPjwvZGl2PgogICAgICA8ZGl2IGNsYXNzPSJyb3ciPjxzcGFuIGNsYXNzPSJsYmwiPuKPsCBUaW1lPC9zcGFuPjxzcGFuIGNsYXNzPSJ2YWwiPiR7dGltZX08L3NwYW4+PC9kaXY+CiAgICAgICR7YWRkcmVzcyA/IGA8ZGl2IGNsYXNzPSJyb3ciPjxzcGFuIGNsYXNzPSJsYmwiPvCfk40gQWRkcmVzczwvc3Bhbj48c3BhbiBjbGFzcz0idmFsIj4ke2FkZHJlc3N9PC9zcGFuPjwvZGl2PmAgOiAnJ30KICAgICAgJHtwcm9qZWN0VHlwZSA/IGA8ZGl2IGNsYXNzPSJyb3ciPjxzcGFuIGNsYXNzPSJsYmwiPvCfj5fvuI8gUHJvamVjdDwvc3Bhbj48c3BhbiBjbGFzcz0idmFsIj4ke3Byb2plY3RUeXBlfTwvc3Bhbj48L2Rpdj5gIDogJyd9CiAgICAgIDxkaXYgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9ImxibCI+8J+TniBQaG9uZTwvc3Bhbj48c3BhbiBjbGFzcz0idmFsIj4ke2NsaWVudFBob25lfTwvc3Bhbj48L2Rpdj4KICAgICAgPGRpdiBjbGFzcz0icm93Ij48c3BhbiBjbGFzcz0ibGJsIj7inInvuI8gRW1haWw8L3NwYW4+PHNwYW4gY2xhc3M9InZhbCI+JHtjbGllbnRFbWFpbH08L3NwYW4+PC9kaXY+CiAgICA8L2Rpdj4KICAgICR7bm90ZXNIdG1sfQogICAgPGRpdiBjbGFzcz0iY3RhIj4KICAgICAgPGEgaHJlZj0iJHtsZWFkTGlua30iIGNsYXNzPSJidG4iPk9wZW4gTGVhZCBpbiBDUk08L2E+JHttYXBzQnRufQogICAgPC9kaXY+CiAgYCk7Cn0KCi8qKgogKiBDdXN0b21lciByZW1pbmRlciBIVE1MIOKAlCBleGFjdCBjb3B5IG9mIHNlbmRNYW51YWxSZW1pbmRlcidzIGN1c3RvbWVyRW1haWwgdGVtcGxhdGUuCiAqLwpleHBvcnQgZnVuY3Rpb24gbWFudWFsQ3VzdG9tZXJSZW1pbmRlckh0bWwoeyBmaXJzdE5hbWUsIGRhdGUsIHRpbWUsIGFkZHJlc3MsIHByb2plY3RUeXBlLCBvd25lck5hbWUgfSkgewogIHJldHVybiB3cmFwKGAKICAgIDxkaXYgY2xhc3M9ImVtYWlsLXRpdGxlIj5VcGNvbWluZyBBcHBvaW50bWVudCBSZW1pbmRlcjwvZGl2PgogICAgPGRpdiBjbGFzcz0iZW1haWwtc3VidGl0bGUiPllvdXIgYXBwb2ludG1lbnQgaXMgY29taW5nIHVwIHNvb248L2Rpdj4KICAgIDxkaXYgY2xhc3M9ImdyZWV0aW5nIj5IaSAke2ZpcnN0TmFtZX0sPGJyPjxicj5UaGlzIGlzIGEgcmVtaW5kZXIgZnJvbSA8c3Ryb25nPiR7b3duZXJOYW1lfTwvc3Ryb25nPiBhdCBFQyBDb25zdHJ1Y3Rpb24gR3JvdXAuIFdlJ3JlIGxvb2tpbmcgZm9yd2FyZCB0byBtZWV0aW5nIHdpdGggeW91LjwvZGl2PgogICAgPGRpdiBjbGFzcz0iZGV0YWlsLWNhcmQiPgogICAgICA8ZGl2IGNsYXNzPSJkZXRhaWwtY2FyZC10aXRsZSI+QXBwb2ludG1lbnQgRGV0YWlsczwvZGl2PgogICAgICA8ZGl2IGNsYXNzPSJyb3ciPjxzcGFuIGNsYXNzPSJsYmwiPvCfk4UgRGF0ZTwvc3Bhbj48c3BhbiBjbGFzcz0idmFsIj4ke2RhdGV9PC9zcGFuPjwvZGl2PgogICAgICA8ZGl2IGNsYXNzPSJyb3ciPjxzcGFuIGNsYXNzPSJsYmwiPuKPsCBUaW1lPC9zcGFuPjxzcGFuIGNsYXNzPSJ2YWwiPiR7dGltZX08L3NwYW4+PC9kaXY+CiAgICAgICR7YWRkcmVzcyA/IGA8ZGl2IGNsYXNzPSJyb3ciPjxzcGFuIGNsYXNzPSJsYmwiPvCfk40gQWRkcmVzczwvc3Bhbj48c3BhbiBjbGFzcz0idmFsIj4ke2FkZHJlc3N9PC9zcGFuPjwvZGl2PmAgOiAnJ30KICAgICAgJHtwcm9qZWN0VHlwZSA/IGA8ZGl2IGNsYXNzPSJyb3ciPjxzcGFuIGNsYXNzPSJsYmwiPvCfj5fvuI8gUHJvamVjdDwvc3Bhbj48c3BhbiBjbGFzcz0idmFsIj4ke3Byb2plY3RUeXBlfTwvc3Bhbj48L2Rpdj5gIDogJyd9CiAgICAgIDxkaXYgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9ImxibCI+8J+RpCBSZXA8L3NwYW4+PHNwYW4gY2xhc3M9InZhbCI+JHtvd25lck5hbWV9PC9zcGFuPjwvZGl2PgogICAgPC9kaXY+CiAgICA8ZGl2IGNsYXNzPSJub3RpY2UiPjxzdHJvbmc+SW1wb3J0YW50Ojwvc3Ryb25nPiBQbGVhc2UgZW5zdXJlIGFsbCBkZWNpc2lvbiBtYWtlcnMgYXJlIHByZXNlbnQuIFRvIHJlc2NoZWR1bGUsIGNvbnRhY3QgdXMgYXQgKDMxMCkgMzEwLTQxMDguPC9kaXY+CiAgICA8ZGl2IGNsYXNzPSJjdGEiPjxhIGhyZWY9Imh0dHBzOi8vZWNjb25zdHJ1Y3Rpb25ncm91cC5jb20iIGNsYXNzPSJidG4iPlZpZXcgT3VyIFdvcms8L2E+PC9kaXY+CiAgICA8cCBzdHlsZT0iZm9udC1zaXplOjE0cHg7Y29sb3I6JHtURVhUX01VVEVEfTtsaW5lLWhlaWdodDoxLjc7bWFyZ2luLXRvcDoxNnB4OyI+U2VlIHlvdSBzb29uITxicj48YnI+V2FybSByZWdhcmRzLDxicj48c3Ryb25nIHN0eWxlPSJjb2xvcjoke05BVll9Ij4ke293bmVyTmFtZX08L3N0cm9uZz48YnI+PHNwYW4gc3R5bGU9ImNvbG9yOiR7VEVYVF9NVVRFRH0iPkVDIENvbnN0cnVjdGlvbiBHcm91cDwvc3Bhbj48L3A+CiAgYCk7Cn0KCi8qKgogKiBJbnZvaWNlIGVtYWlsIEhUTUwg4oCUIGZ1bmN0aW9uYWxseSBpZGVudGljYWwgdG8gdGhlIEJhc2U0NCBzZW5kSW52b2ljZUVtYWlsCiAqIHBsYWluLXRleHQgYm9keS4gUmVuZGVycyB0aGUgRVhBQ1Qgc2FtZSB0ZXh0IHRoZSBjdXN0b21lciBzZWVzIGluIHByb2R1Y3Rpb24KICogdG9kYXkgKG5vIGJyYW5kaW5nLCBubyBsb2dvLCBubyBzdHlsZWQgY2FyZHMsIG5vIGZvb3RlciBzdHlsaW5nKS4gV3JhcHBlZCBpbgogKiBtaW5pbWFsIEhUTUwgc28gL2FwaS92MS9lbWFpbHMvc2VuZCdzIGh0bWxCb2R5IGZpZWxkIGNhcnJpZXMgdGhlIHNhbWUgY29udGVudAogKiB0aGUgY3VzdG9tZXIgcmVjZWl2ZWQgZnJvbSB0aGUgQmFzZTQ0IHRleHQvcGxhaW4gTUlNRSBwYXRoLgogKgogKiBQYXJpdHkgcmVmZXJlbmNlOiBiYXNlNDQvZnVuY3Rpb25zL3NlbmRJbnZvaWNlRW1haWwvZW50cnkudHMKICogICBIZWxsbyAke2xlYWQuZmlyc3RfbmFtZX0sCiAqCiAqICAgQXR0YWNoZWQgaXMgeW91ciBpbnZvaWNlIGZyb20gRUMgQ29uc3RydWN0aW9uIEdyb3VwLgogKgogKiAgIEludm9pY2UgIzogJHtpbnZvaWNlLnFiX2ludm9pY2VfbnVtYmVyIHx8IGludm9pY2UuaW52b2ljZV9udW1iZXJ9CiAqICAgQW1vdW50OiAkJHsoaW52b2ljZS5hbW91bnQgfHwgMCkudG9Mb2NhbGVTdHJpbmcoJ2VuLVVTJywgeyBtaW5pbXVtRnJhY3Rpb25EaWdpdHM6IDIgfSl9CiAqICAgUHJvamVjdDogJHtsZWFkLnByb2plY3RfdHlwZSB8fCAnTi9BJ30KICoKICogICBUaGFuayB5b3UsCiAqICAgRUMgQ29uc3RydWN0aW9uIEdyb3VwCiAqLwpleHBvcnQgZnVuY3Rpb24gaW52b2ljZUVtYWlsSHRtbCh7IGZpcnN0TmFtZSwgaW52b2ljZU51bWJlciwgYW1vdW50LCBwcm9qZWN0VHlwZSB9KSB7CiAgY29uc3QgbnVtID0gaW52b2ljZU51bWJlciB8fCAnJzsKICBjb25zdCBhbXQgPSBOdW1iZXIoYW1vdW50IHx8IDApLnRvTG9jYWxlU3RyaW5nKCdlbi1VUycsIHsgbWluaW11bUZyYWN0aW9uRGlnaXRzOiAyIH0pOwogIGNvbnN0IHByb2plY3QgPSBwcm9qZWN0VHlwZSB8fCAnTi9BJzsKICByZXR1cm4gYDxodG1sPjxib2R5PkhlbGxvICR7Zmlyc3ROYW1lIHx8ICcnfSw8YnI+PGJyPkF0dGFjaGVkIGlzIHlvdXIgaW52b2ljZSBmcm9tIEVDIENvbnN0cnVjdGlvbiBHcm91cC48YnI+PGJyPkludm9pY2UgIzogJHtudW19PGJyPkFtb3VudDogJCR7YW10fTxicj5Qcm9qZWN0OiAke3Byb2plY3R9PGJyPjxicj5UaGFuayB5b3UsPGJyPkVDIENvbnN0cnVjdGlvbiBHcm91cDwvYm9keT48L2h0bWw+YDsKfQoKLyoqCiAqIFNpbXBsZSB0ZXN0IGVtYWlsIEhUTUwuCiAqLwpleHBvcnQgZnVuY3Rpb24gdGVzdEVtYWlsSHRtbChub25jZSkgewogIHJldHVybiB3cmFwKGAKICAgIDxkaXYgY2xhc3M9ImVtYWlsLXRpdGxlIj5UZXN0IEVtYWlsIGZyb20gRUMgQ29uc3RydWN0aW9uIEdyb3VwIENSTTwvZGl2PgogICAgPGRpdiBjbGFzcz0iZW1haWwtc3VidGl0bGUiPlJhaWx3YXkgRW1haWwgU2VydmljZSBUZXN0PC9kaXY+CiAgICA8ZGl2IGNsYXNzPSJncmVldGluZyI+VGhpcyBpcyBhIHRlc3QgZW1haWwgZnJvbSB0aGUgRUMgQ29uc3RydWN0aW9uIEdyb3VwIENSTSBzZW50IHZpYSB0aGUgUmFpbHdheSBFbWFpbCBTZXJ2aWNlLjwvZGl2PgogICAgPGRpdiBjbGFzcz0iZGV0YWlsLWNhcmQiPgogICAgICA8ZGl2IGNsYXNzPSJkZXRhaWwtY2FyZC10aXRsZSI+VGVzdCBEZXRhaWxzPC9kaXY+CiAgICAgIDxkaXYgY2xhc3M9InJvdyI+PHNwYW4gY2xhc3M9ImxibCI+Tm9uY2U8L3NwYW4+PHNwYW4gY2xhc3M9InZhbCIgc3R5bGU9ImZvbnQtZmFtaWx5Om1vbm9zcGFjZTsiPiR7bm9uY2UgfHwgJyd9PC9zcGFuPjwvZGl2PgogICAgICA8ZGl2IGNsYXNzPSJyb3ciPjxzcGFuIGNsYXNzPSJsYmwiPlNlbmRlcjwvc3Bhbj48c3BhbiBjbGFzcz0idmFsIj55YXJvbkBlY2NvbnN0cnVjdGlvbmdyb3VwLmNvbTwvc3Bhbj48L2Rpdj4KICAgIDwvZGl2PgogICAgPHAgc3R5bGU9ImZvbnQtc2l6ZToxNHB4O2NvbG9yOiR7VEVYVF9NVVRFRH07bGluZS1oZWlnaHQ6MS43OyI+Tm8gY3VzdG9tZXIgZW1haWwgd2FzIHNlbnQuIFRoaXMgaXMgYSBzZXJ2aWNlIHZlcmlmaWNhdGlvbiBvbmx5LjwvcD4KICBgKTsKfQ==
+/**
+ * crmEmailTemplates — client-side HTML email templates for the Railway migration.
+ *
+ * Exact copies of the HTML branding used by the Base44 functions (sendManualReminder,
+ * sendInvoiceEmail) so that moving the send path to Railway /internal/email/send
+ * changes nothing the customer sees.
+ *
+ * Used by src/lib/emailTransport.js when FLOW_OWNERSHIP is 'railway'.
+ */
+
+const LOGO_URL = 'https://media.base44.com/images/public/69f42cee41d29f30bff5c013/cc5db7058_image.png';
+const NAVY = '#0B2D5C';
+const GOLD = '#C9A227';
+const LIGHT_GRAY = '#F4F6FA';
+const TEXT_DARK = '#1A1A2E';
+const TEXT_MUTED = '#6B7280';
+
+const BASE_CSS = `
+  * { margin:0;padding:0;box-sizing:border-box; }
+  body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif; background:#EEF1F7;color:${TEXT_DARK};padding:32px 16px; }
+  .wrapper { max-width:650px;margin:0 auto; }
+  .header { background:#fff;border-radius:12px 12px 0 0;padding:36px 48px 28px;text-align:center;border-bottom:3px solid ${GOLD}; }
+  .header img { max-width:260px;height:auto;display:block;margin:0 auto; }
+  .body { background:#fff;padding:40px 48px; }
+  .email-title { font-size:22px;font-weight:700;color:${NAVY};margin-bottom:6px; }
+  .email-subtitle { font-size:14px;color:${TEXT_MUTED};margin-bottom:28px; }
+  .greeting { font-size:16px;color:${TEXT_DARK};margin-bottom:24px;line-height:1.7; }
+  .detail-card { background:${LIGHT_GRAY};border-radius:10px;border-left:4px solid ${GOLD};padding:24px 28px;margin:24px 0; }
+  .detail-card-title { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:${GOLD};margin-bottom:16px; }
+  .row { display:flex;align-items:flex-start;padding:10px 0;border-bottom:1px solid #DDE3EE; }
+  .row:last-child { border-bottom:none; }
+  .lbl { font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:${TEXT_MUTED};width:160px;flex-shrink:0; }
+  .val { font-size:15px;font-weight:500;color:${TEXT_DARK};flex:1; }
+  .note-box { background:#F0F4FF;border-left:4px solid #3B5FC0;border-radius:8px;padding:20px 24px;margin:24px 0; }
+  .note-label { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#3B5FC0;margin-bottom:10px; }
+  .notice { background:#FFF9EC;border:1px solid #F0D98A;border-radius:8px;padding:16px 20px;margin:24px 0;font-size:14px;color:#7A5C00;line-height:1.6; }
+  .cta { text-align:center;margin:32px 0; }
+  .btn { display:inline-block;background:${NAVY};color:#fff !important;text-decoration:none;font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:16px 32px;border-radius:6px; }
+  .footer { background:${NAVY};border-radius:0 0 12px 12px;padding:28px 48px;text-align:center; }
+  .footer-name { font-size:15px;font-weight:700;color:${GOLD};margin-bottom:6px; }
+  .footer-sub { font-size:12px;color:rgba(255,255,255,0.65);line-height:1.8; }
+  .footer-sub a { color:${GOLD};text-decoration:none; }
+`;
+
+function wrap(inner) {
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${BASE_CSS}</style></head><body>
+  <div class="wrapper">
+    <div class="header"><img src="${LOGO_URL}" alt="EC Construction Group"></div>
+    <div class="body">${inner}</div>
+    <div class="footer"><div class="footer-name">EC Construction Group</div><div class="footer-sub">Licensed &amp; Insured &nbsp;·&nbsp; Southern &amp; Northern California<br><a href="https://ecconstructiongroup.com">ecconstructiongroup.com</a></div></div>
+  </div></body></html>`;
+}
+
+/**
+ * Staff reminder HTML — exact copy of sendManualReminder's staffEmail template.
+ */
+export function manualStaffReminderHtml({ ownerName, clientName, clientPhone, clientEmail, date, time, address, projectType, notes, leadId, crmUrl }) {
+  const mapsUrl = address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}` : null;
+  const notesHtml = notes ? `<div class="note-box"><div class="note-label">📝 Notes</div><div style="font-size:14px;line-height:1.8;white-space:pre-wrap;">${notes}</div></div>` : '';
+  const mapsBtn = mapsUrl ? `<a href="${mapsUrl}" style="display:inline-block;background:#fff;color:${NAVY} !important;text-decoration:none;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:14px 28px;border-radius:6px;border:2px solid ${NAVY};margin-left:12px;">📍 Google Maps</a>` : '';
+  const leadLink = `${crmUrl}/leads/${leadId}`;
+
+  return wrap(`
+    <div class="email-title">📅 Manual Appointment Reminder</div>
+    <div class="email-subtitle">Sent manually from CRM — EC Construction Group</div>
+    <div class="greeting">Hello ${ownerName},<br><br>This is a manual reminder for your upcoming appointment. Please review the details below.</div>
+    <div class="detail-card">
+      <div class="detail-card-title">Customer &amp; Appointment Details</div>
+      <div class="row"><span class="lbl">👤 Customer</span><span class="val" style="font-weight:700;color:${NAVY}">${clientName}</span></div>
+      <div class="row"><span class="lbl">📅 Date</span><span class="val">${date}</span></div>
+      <div class="row"><span class="lbl">⏰ Time</span><span class="val">${time}</span></div>
+      ${address ? `<div class="row"><span class="lbl">📍 Address</span><span class="val">${address}</span></div>` : ''}
+      ${projectType ? `<div class="row"><span class="lbl">🏗️ Project</span><span class="val">${projectType}</span></div>` : ''}
+      <div class="row"><span class="lbl">📞 Phone</span><span class="val">${clientPhone}</span></div>
+      <div class="row"><span class="lbl">✉️ Email</span><span class="val">${clientEmail}</span></div>
+    </div>
+    ${notesHtml}
+    <div class="cta">
+      <a href="${leadLink}" class="btn">Open Lead in CRM</a>${mapsBtn}
+    </div>
+  `);
+}
+
+/**
+ * Customer reminder HTML — exact copy of sendManualReminder's customerEmail template.
+ */
+export function manualCustomerReminderHtml({ firstName, date, time, address, projectType, ownerName }) {
+  return wrap(`
+    <div class="email-title">Upcoming Appointment Reminder</div>
+    <div class="email-subtitle">Your appointment is coming up soon</div>
+    <div class="greeting">Hi ${firstName},<br><br>This is a reminder from <strong>${ownerName}</strong> at EC Construction Group. We're looking forward to meeting with you.</div>
+    <div class="detail-card">
+      <div class="detail-card-title">Appointment Details</div>
+      <div class="row"><span class="lbl">📅 Date</span><span class="val">${date}</span></div>
+      <div class="row"><span class="lbl">⏰ Time</span><span class="val">${time}</span></div>
+      ${address ? `<div class="row"><span class="lbl">📍 Address</span><span class="val">${address}</span></div>` : ''}
+      ${projectType ? `<div class="row"><span class="lbl">🏗️ Project</span><span class="val">${projectType}</span></div>` : ''}
+      <div class="row"><span class="lbl">👤 Rep</span><span class="val">${ownerName}</span></div>
+    </div>
+    <div class="notice"><strong>Important:</strong> Please ensure all decision makers are present. To reschedule, contact us at (310) 310-4108.</div>
+    <div class="cta"><a href="https://ecconstructiongroup.com" class="btn">View Our Work</a></div>
+    <p style="font-size:14px;color:${TEXT_MUTED};line-height:1.7;margin-top:16px;">See you soon!<br><br>Warm regards,<br><strong style="color:${NAVY}">${ownerName}</strong><br><span style="color:${TEXT_MUTED}">EC Construction Group</span></p>
+  `);
+}
+
+/**
+ * Invoice email HTML — functionally identical to the Base44 sendInvoiceEmail
+ * plain-text body. Renders the EXACT same text the customer sees in production
+ * today (no branding, no logo, no styled cards, no footer styling). Wrapped in
+ * minimal HTML so /api/v1/emails/send's htmlBody field carries the same content
+ * the customer received from the Base44 text/plain MIME path.
+ *
+ * Parity reference: base44/functions/sendInvoiceEmail/entry.ts
+ *   Hello ${lead.first_name},
+ *
+ *   Attached is your invoice from EC Construction Group.
+ *
+ *   Invoice #: ${invoice.qb_invoice_number || invoice.invoice_number}
+ *   Amount: $${(invoice.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+ *   Project: ${lead.project_type || 'N/A'}
+ *
+ *   Thank you,
+ *   EC Construction Group
+ */
+export function invoiceEmailHtml({ firstName, invoiceNumber, amount, projectType }) {
+  const num = invoiceNumber || '';
+  const amt = Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
+  const project = projectType || 'N/A';
+  return `<html><body>Hello ${firstName || ''},<br><br>Attached is your invoice from EC Construction Group.<br><br>Invoice #: ${num}<br>Amount: $${amt}<br>Project: ${project}<br><br>Thank you,<br>EC Construction Group</body></html>`;
+}
+
+/**
+ * Simple test email HTML.
+ */
+export function testEmailHtml(nonce) {
+  return wrap(`
+    <div class="email-title">Test Email from EC Construction Group CRM</div>
+    <div class="email-subtitle">Railway Email Service Test</div>
+    <div class="greeting">This is a test email from the EC Construction Group CRM sent via the Railway Email Service.</div>
+    <div class="detail-card">
+      <div class="detail-card-title">Test Details</div>
+      <div class="row"><span class="lbl">Nonce</span><span class="val" style="font-family:monospace;">${nonce || ''}</span></div>
+      <div class="row"><span class="lbl">Sender</span><span class="val">yaron@ecconstructiongroup.com</span></div>
+    </div>
+    <p style="font-size:14px;color:${TEXT_MUTED};line-height:1.7;">No customer email was sent. This is a service verification only.</p>
+  `);
+}

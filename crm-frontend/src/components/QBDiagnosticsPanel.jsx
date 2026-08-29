@@ -1,1 +1,150 @@
-LyoqCiAqIFFCRGlhZ25vc3RpY3NQYW5lbAogKiBTaG93cyBsaXZlIFFCIGNvbm5lY3Rpb24gZGlhZ25vc3RpY3M6IGVudmlyb25tZW50LCByZWFsbSBJRCwgY29tcGFueSwgZW1haWwsIE9BdXRoIHN0YXR1cy4KICogQWxzbyBleHBsYWlucyBleGFjdGx5IGhvdyB0byBzd2l0Y2ggZnJvbSBTYW5kYm94IHRvIFByb2R1Y3Rpb24uCiAqLwppbXBvcnQgeyB1c2VTdGF0ZSB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsgQ2hldnJvbkRvd24sIENoZXZyb25VcCwgQWxlcnRUcmlhbmdsZSwgQ2hlY2tDaXJjbGUsIEluZm8gfSBmcm9tICJsdWNpZGUtcmVhY3QiOwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gUUJEaWFnbm9zdGljc1BhbmVsKHsgcWJTdGF0dXMsIGNvbXBhbnksIGlzU2FuZGJveCwgaXNDb25uZWN0ZWQgfSkgewogIGNvbnN0IFtleHBhbmRlZCwgc2V0RXhwYW5kZWRdID0gdXNlU3RhdGUodHJ1ZSk7CgogIGNvbnN0IGVudiA9IHFiU3RhdHVzPy5lbnZpcm9ubWVudCB8fCAn4oCUJzsKICBjb25zdCByZWFsbUlkID0gcWJTdGF0dXM/LnJlYWxtX2lkIHx8ICfigJQnOwogIGNvbnN0IGNvbm5lY3RlZEF0ID0gcWJTdGF0dXM/LmNvbm5lY3RlZF9hdCA/IG5ldyBEYXRlKHFiU3RhdHVzLmNvbm5lY3RlZF9hdCkudG9Mb2NhbGVTdHJpbmcoKSA6ICfigJQnOwogIGNvbnN0IHRva2VuRXhwaXJlcyA9IHFiU3RhdHVzPy50b2tlbl9leHBpcmVzX2F0ID8gbmV3IERhdGUocWJTdGF0dXMudG9rZW5fZXhwaXJlc19hdCkudG9Mb2NhbGVTdHJpbmcoKSA6ICfigJQnOwogIGNvbnN0IHJlZnJlc2hFeHBpcmVzID0gcWJTdGF0dXM/LnJlZnJlc2hfZXhwaXJlc19hdCA/IG5ldyBEYXRlKHFiU3RhdHVzLnJlZnJlc2hfZXhwaXJlc19hdCkudG9Mb2NhbGVTdHJpbmcoKSA6ICfigJQnOwogIGNvbnN0IGNvbXBhbnlOYW1lID0gY29tcGFueT8uQ29tcGFueU5hbWUgfHwgJ+KAlCc7CiAgY29uc3QgbGVnYWxOYW1lID0gY29tcGFueT8uTGVnYWxOYW1lIHx8ICfigJQnOwogIGNvbnN0IGVtYWlsID0gY29tcGFueT8uQ3VzdG9tZXJDb21tdW5pY2F0aW9uRW1haWxBZGRyPy5BZGRyZXNzIHx8IGNvbXBhbnk/LkVtYWlsPy5BZGRyZXNzIHx8ICfigJQnOwoKICAvLyBSZWFsbSBJRCBoZXVyaXN0aWM6IEludHVpdCBzYW5kYm94IHJlYWxtIElEcyB0ZW5kIHRvIGJlIHZlcnkgbG9uZyAoMTgrIGRpZ2l0cykuCiAgLy8gUHJvZHVjdGlvbiByZWFsbSBJRHMgYXJlIHR5cGljYWxseSAxMy0xNiBkaWdpdHMuCiAgY29uc3QgcmVhbG1JZE51bSA9IHJlYWxtSWQucmVwbGFjZSgvXEQvZywgJycpOwogIGNvbnN0IHJlYWxtTG9va3NMaWtlUHJvZHVjdGlvbiA9IHJlYWxtSWROdW0ubGVuZ3RoID49IDEzICYmIHJlYWxtSWROdW0ubGVuZ3RoIDw9IDE2OwogIGNvbnN0IHJlYWxtTG9va3NMaWtlU2FuZGJveCA9IHJlYWxtSWROdW0ubGVuZ3RoID4gMTY7CiAgY29uc3QgcmVhbG1FbnZpcm9ubWVudEhpbnQgPSAhaXNDb25uZWN0ZWQgPyBudWxsCiAgICA6IHJlYWxtTG9va3NMaWtlU2FuZGJveCA/ICcobG9va3MgbGlrZSBhIFNhbmRib3ggcmVhbG0gSUQg4oCUIDE4KyBkaWdpdHMpJwogICAgOiByZWFsbUxvb2tzTGlrZVByb2R1Y3Rpb24gPyAnKGxvb2tzIGxpa2UgYSBQcm9kdWN0aW9uIHJlYWxtIElEIOKAlCAxM+KAkzE2IGRpZ2l0cyknCiAgICA6IG51bGw7CgogIGNvbnN0IGVudk1pc21hdGNoID0gaXNDb25uZWN0ZWQgJiYgaXNTYW5kYm94ICYmIHJlYWxtTG9va3NMaWtlUHJvZHVjdGlvbjsKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJiZy13aGl0ZSBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIG92ZXJmbG93LWhpZGRlbiI+CiAgICAgIDxidXR0b24KICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRFeHBhbmRlZChlID0+ICFlKX0KICAgICAgICBjbGFzc05hbWU9InctZnVsbCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gcHgtNSBweS0zIGJnLXNsYXRlLTUwIGJvcmRlci1iIGJvcmRlci1zbGF0ZS0yMDAgaG92ZXI6Ymctc2xhdGUtMTAwIHRyYW5zaXRpb24tY29sb3JzIgogICAgICA+CiAgICAgICAgPGgzIGNsYXNzTmFtZT0idGV4dC1zbSBmb250LWJvbGQgdGV4dC1zbGF0ZS04MDAgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIiPgogICAgICAgICAgPEluZm8gY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtYmx1ZS01MDAiIC8+CiAgICAgICAgICBRdWlja0Jvb2tzIENvbm5lY3Rpb24gRGlhZ25vc3RpY3MKICAgICAgICAgIHtpc0Nvbm5lY3RlZCAmJiAoCiAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT17YHRleHQtWzEwcHhdIGZvbnQtYm9sZCBweC0yIHB5LTAuNSByb3VuZGVkIG1sLTEgJHtpc1NhbmRib3ggPyAnYmctcmVkLTEwMCB0ZXh0LXJlZC03MDAnIDogJ2JnLWVtZXJhbGQtMTAwIHRleHQtZW1lcmFsZC03MDAnfWB9PgogICAgICAgICAgICAgIHtpc1NhbmRib3ggPyAn4pqgIFNBTkRCT1gnIDogJ+KckyBQUk9EVUNUSU9OJ30KICAgICAgICAgICAgPC9zcGFuPgogICAgICAgICAgKX0KICAgICAgICA8L2gzPgogICAgICAgIHtleHBhbmRlZCA/IDxDaGV2cm9uVXAgY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtc2xhdGUtNDAwIiAvPiA6IDxDaGV2cm9uRG93biBjbGFzc05hbWU9InctNCBoLTQgdGV4dC1zbGF0ZS00MDAiIC8+fQogICAgICA8L2J1dHRvbj4KCiAgICAgIHtleHBhbmRlZCAmJiAoCiAgICAgICAgPGRpdiBjbGFzc05hbWU9InAtNSBzcGFjZS15LTUiPgoKICAgICAgICAgIHsvKiDilIDilIAgTElWRSBTVEFUVVMgVEFCTEUg4pSA4pSAICovfQogICAgICAgICAgPGRpdj4KICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIGZvbnQtYm9sZCB0ZXh0LXNsYXRlLTUwMCB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZXIgbWItMiI+TGl2ZSBDb25uZWN0aW9uIFN0YXR1czwvcD4KICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLXNsYXRlLTkwMCByb3VuZGVkLWxnIHAtNCBmb250LW1vbm8gdGV4dC14cyBzcGFjZS15LTEuNSI+CiAgICAgICAgICAgICAgPERpYWdSb3cgbGFiZWw9Ik9BdXRoIFN0YXR1cyIgdmFsdWU9e2lzQ29ubmVjdGVkID8gJ+KckyBDb25uZWN0ZWQnIDogJ+KclyBOb3QgY29ubmVjdGVkJ30gY29sb3I9e2lzQ29ubmVjdGVkID8gJ3RleHQtZW1lcmFsZC00MDAnIDogJ3RleHQtcmVkLTQwMCd9IC8+CiAgICAgICAgICAgICAgPERpYWdSb3cgbGFiZWw9IkVudmlyb25tZW50IChwcm94eSBRQl9FTlZJUk9OTUVOVCkiIHZhbHVlPXtlbnYudG9VcHBlckNhc2UoKX0gY29sb3I9e2lzU2FuZGJveCA/ICd0ZXh0LXJlZC00MDAnIDogJ3RleHQtZW1lcmFsZC00MDAnfSAvPgogICAgICAgICAgICAgIDxEaWFnUm93IGxhYmVsPSJSZWFsbSAvIENvbXBhbnkgSUQiIHZhbHVlPXtyZWFsbUlkfSBjb2xvcj0idGV4dC13aGl0ZSIgaGludD17cmVhbG1FbnZpcm9ubWVudEhpbnR9IC8+CiAgICAgICAgICAgICAgPERpYWdSb3cgbGFiZWw9IkNvbXBhbnkgTmFtZSIgdmFsdWU9e2NvbXBhbnlOYW1lfSBjb2xvcj0idGV4dC13aGl0ZSIgLz4KICAgICAgICAgICAgICA8RGlhZ1JvdyBsYWJlbD0iTGVnYWwgTmFtZSIgdmFsdWU9e2xlZ2FsTmFtZX0gY29sb3I9InRleHQtd2hpdGUiIC8+CiAgICAgICAgICAgICAgPERpYWdSb3cgbGFiZWw9IlFCIEFjY291bnQgRW1haWwiIHZhbHVlPXtlbWFpbH0gY29sb3I9InRleHQtd2hpdGUiIC8+CiAgICAgICAgICAgICAgPERpYWdSb3cgbGFiZWw9IkNvbm5lY3RlZCBBdCIgdmFsdWU9e2Nvbm5lY3RlZEF0fSBjb2xvcj0idGV4dC1zbGF0ZS0zMDAiIC8+CiAgICAgICAgICAgICAgPERpYWdSb3cgbGFiZWw9IkFjY2VzcyBUb2tlbiBFeHBpcmVzIiB2YWx1ZT17dG9rZW5FeHBpcmVzfSBjb2xvcj0idGV4dC1zbGF0ZS0zMDAiIC8+CiAgICAgICAgICAgICAgPERpYWdSb3cgbGFiZWw9IlJlZnJlc2ggVG9rZW4gRXhwaXJlcyIgdmFsdWU9e3JlZnJlc2hFeHBpcmVzfSBjb2xvcj0idGV4dC1zbGF0ZS0zMDAiIC8+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgPC9kaXY+CgogICAgICAgICAgey8qIOKUgOKUgCBFTlZJUk9OTUVOVCBNSVNNQVRDSCBXQVJOSU5HIOKUgOKUgCAqL30KICAgICAgICAgIHtlbnZNaXNtYXRjaCAmJiAoCiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1hbWJlci01MCBib3JkZXIgYm9yZGVyLWFtYmVyLTMwMCByb3VuZGVkLWxnIHAtNCBmbGV4IGdhcC0zIj4KICAgICAgICAgICAgICA8QWxlcnRUcmlhbmdsZSBjbGFzc05hbWU9InctNSBoLTUgdGV4dC1hbWJlci02MDAgZmxleC1zaHJpbmstMCBtdC0wLjUiIC8+CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtc20gdGV4dC1hbWJlci04MDAiPgogICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJmb250LWJvbGQgbWItMSI+4pqgIEVudmlyb25tZW50IE1pc21hdGNoIERldGVjdGVkPC9wPgogICAgICAgICAgICAgICAgPHA+WW91ciBwcm94eSBpcyBjb25maWd1cmVkIGFzIDxzdHJvbmc+U0FOREJPWDwvc3Ryb25nPiBidXQgUmVhbG0gSUQgPGNvZGUgY2xhc3NOYW1lPSJiZy1hbWJlci0xMDAgcHgtMSByb3VuZGVkIj57cmVhbG1JZH08L2NvZGU+IGFwcGVhcnMgdG8gYmUgYSA8c3Ryb25nPlByb2R1Y3Rpb248L3N0cm9uZz4gcmVhbG0gSUQgKDEz4oCTMTYgZGlnaXRzKS4gU2FuZGJveCByZWFsbSBJRHMgZnJvbSBJbnR1aXQgYXJlIHR5cGljYWxseSAxOCsgZGlnaXRzLjwvcD4KICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0ibXQtMSI+VGhpcyBtZWFucyB5b3VyIHByb3h5IGlzIHJvdXRpbmcgQVBJIGNhbGxzIHRvIHRoZSBzYW5kYm94IEFQSSBlbmRwb2ludCBldmVuIHRob3VnaCB5b3UgYXV0aGVudGljYXRlZCB3aXRoIGEgcHJvZHVjdGlvbiBhY2NvdW50LiBEYXRhIHdpbGwgbm90IHN5bmMgY29ycmVjdGx5LjwvcD4KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICApfQoKICAgICAgICAgIHsvKiDilIDilIAgSE9XIFRPIFNXSVRDSCBUTyBQUk9EVUNUSU9OIOKUgOKUgCAqL30KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1ibHVlLTUwIGJvcmRlciBib3JkZXItYmx1ZS0yMDAgcm91bmRlZC1sZyBwLTQgc3BhY2UteS0zIj4KICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtYm9sZCB0ZXh0LWJsdWUtODAwIGZsZXggaXRlbXMtY2VudGVyIGdhcC0yIj4KICAgICAgICAgICAgICA8Q2hlY2tDaXJjbGUgY2xhc3NOYW1lPSJ3LTQgaC00IiAvPiBIb3cgdG8gU3dpdGNoIGZyb20gU2FuZGJveCDihpIgUHJvZHVjdGlvbgogICAgICAgICAgICA8L3A+CiAgICAgICAgICAgIDxvbCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1ibHVlLTkwMCBzcGFjZS15LTIgbGlzdC1ub25lIj4KICAgICAgICAgICAgICA8U3RlcCBuPXsxfSB0aXRsZT0iQ2hhbmdlIFFCX0VOVklST05NRU5UIG9uIHlvdXIgUmFpbHdheSBwcm94eSBzZXJ2ZXIiPgogICAgICAgICAgICAgICAgR28gdG8geW91ciA8c3Ryb25nPlJhaWx3YXkgZGFzaGJvYXJkPC9zdHJvbmc+IOKGkiBzZWxlY3QgdGhlIHByb3h5IHNlcnZpY2Ug4oaSIDxzdHJvbmc+VmFyaWFibGVzPC9zdHJvbmc+IHRhYi4KICAgICAgICAgICAgICAgIENoYW5nZSA8Y29kZSBjbGFzc05hbWU9ImJnLWJsdWUtMTAwIHB4LTEgcm91bmRlZCI+UUJfRU5WSVJPTk1FTlQ8L2NvZGU+IGZyb20gPGNvZGUgY2xhc3NOYW1lPSJiZy1yZWQtMTAwIHRleHQtcmVkLTgwMCBweC0xIHJvdW5kZWQiPnNhbmRib3g8L2NvZGU+IHRvIDxjb2RlIGNsYXNzTmFtZT0iYmctZW1lcmFsZC0xMDAgdGV4dC1lbWVyYWxkLTgwMCBweC0xIHJvdW5kZWQiPnByb2R1Y3Rpb248L2NvZGU+LgogICAgICAgICAgICAgICAgVGhlbiA8c3Ryb25nPnJlZGVwbG95PC9zdHJvbmc+IHRoZSBzZXJ2aWNlIChSYWlsd2F5IG1heSBkbyB0aGlzIGF1dG9tYXRpY2FsbHkgb24gdmFyaWFibGUgc2F2ZSkuCiAgICAgICAgICAgICAgPC9TdGVwPgogICAgICAgICAgICAgIDxTdGVwIG49ezJ9IHRpdGxlPSJWZXJpZnkgUUJfQ0xJRU5UX0lEIGFuZCBRQl9DTElFTlRfU0VDUkVUIGFyZSBQcm9kdWN0aW9uIGNyZWRlbnRpYWxzIj4KICAgICAgICAgICAgICAgIEluIHRoZSA8YSBocmVmPSJodHRwczovL2RldmVsb3Blci5pbnR1aXQuY29tIiB0YXJnZXQ9Il9ibGFuayIgcmVsPSJub3JlZmVycmVyIiBjbGFzc05hbWU9InVuZGVybGluZSBmb250LXNlbWlib2xkIj5JbnR1aXQgRGV2ZWxvcGVyIENvbnNvbGU8L2E+LCBtYWtlIHN1cmUgeW91IGFyZSB1c2luZyB0aGUgPHN0cm9uZz5Qcm9kdWN0aW9uPC9zdHJvbmc+IGFwcCdzIGNyZWRlbnRpYWxzIChub3QgdGhlIFNhbmRib3ggYXBwKS4KICAgICAgICAgICAgICAgIFRoZSBQcm9kdWN0aW9uIGFwcCBoYXMgYSBkaWZmZXJlbnQgQ2xpZW50IElEIGFuZCBTZWNyZXQuCiAgICAgICAgICAgICAgPC9TdGVwPgogICAgICAgICAgICAgIDxTdGVwIG49ezN9IHRpdGxlPSJEaXNjb25uZWN0IHRoZSBjdXJyZW50IChzYW5kYm94KSBjb25uZWN0aW9uIj4KICAgICAgICAgICAgICAgIENsaWNrIHRoZSA8c3Ryb25nPkRpc2Nvbm5lY3Q8L3N0cm9uZz4gYnV0dG9uIG9uIHRoaXMgcGFnZSB0byBjbGVhciB0aGUgc3RvcmVkIHNhbmRib3ggdG9rZW5zIGZyb20gdGhlIHByb3h5LgogICAgICAgICAgICAgIDwvU3RlcD4KICAgICAgICAgICAgICA8U3RlcCBuPXs0fSB0aXRsZT0iUmVjb25uZWN0IHRvIFF1aWNrQm9va3MiPgogICAgICAgICAgICAgICAgQ2xpY2sgPHN0cm9uZz4iQ29ubmVjdCBRdWlja0Jvb2tzIjwvc3Ryb25nPi4gVGhlIE9BdXRoIHBvcHVwIHdpbGwgbm93IHVzZSB0aGUgUHJvZHVjdGlvbiBjcmVkZW50aWFscy4KICAgICAgICAgICAgICAgIFdoZW4gSW50dWl0IGFza3MgeW91IHRvIGxvZyBpbiwgdXNlIHlvdXIgPHN0cm9uZz5Qcm9kdWN0aW9uPC9zdHJvbmc+IFF1aWNrQm9va3MgYWNjb3VudCAobm90IHRoZSBkZXZlbG9wZXIgc2FuZGJveCkuCiAgICAgICAgICAgICAgPC9TdGVwPgogICAgICAgICAgICAgIDxTdGVwIG49ezV9IHRpdGxlPSJWZXJpZnkgdGhlIG5ldyBSZWFsbSBJRCI+CiAgICAgICAgICAgICAgICBBZnRlciByZWNvbm5lY3RpbmcsIHRoaXMgcGFuZWwgd2lsbCBzaG93IHRoZSBuZXcgUmVhbG0gSUQgYW5kIGNvbXBhbnkgbmFtZS4KICAgICAgICAgICAgICAgIFRoZSBlbnZpcm9ubWVudCBzaG91bGQgc2hvdyA8c3Ryb25nIGNsYXNzTmFtZT0idGV4dC1lbWVyYWxkLTcwMCI+4pyTIFBST0RVQ1RJT048L3N0cm9uZz4uCiAgICAgICAgICAgICAgPC9TdGVwPgogICAgICAgICAgICA8L29sPgogICAgICAgICAgPC9kaXY+CgogICAgICAgICAgey8qIOKUgOKUgCBJTVBPUlRBTlQgTk9URSBBQk9VVCBSRUFMTSBJRHMg4pSA4pSAICovfQogICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLXNsYXRlLTUwIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQgcC0zIHRleHQteHMgdGV4dC1zbGF0ZS02MDAgc3BhY2UteS0xIj4KICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJmb250LWJvbGQgdGV4dC1zbGF0ZS03MDAiPkFib3V0IFJlYWxtIElEIHtyZWFsbUlkfTwvcD4KICAgICAgICAgICAgPHA+CiAgICAgICAgICAgICAgUmVhbG0gSUQgPGNvZGUgY2xhc3NOYW1lPSJiZy1zbGF0ZS0yMDAgcHgtMSByb3VuZGVkIGZvbnQtbW9ubyI+e3JlYWxtSWR9PC9jb2RlPiBpcyBhIDxzdHJvbmc+e3JlYWxtTG9va3NMaWtlUHJvZHVjdGlvbiA/ICdQcm9kdWN0aW9uLWxlbmd0aCcgOiAnU2FuZGJveC1sZW5ndGgnfTwvc3Ryb25nPiBpZGVudGlmaWVyICh7cmVhbG1JZE51bS5sZW5ndGh9IGRpZ2l0cykuCiAgICAgICAgICAgICAgSW50dWl0J3Mgc2FuZGJveCByZWFsbSBJRHMgYXNzaWduZWQgdG8gZGV2ZWxvcGVyIGFjY291bnRzIGFyZSB0eXBpY2FsbHkgMTjigJMyMCBkaWdpdHMgbG9uZy4gUHJvZHVjdGlvbiBjb21wYW55IHJlYWxtIElEcyBhcmUgdHlwaWNhbGx5IDEz4oCTMTYgZGlnaXRzLgogICAgICAgICAgICAgIFRoaXMgSUQgPHN0cm9uZz57cmVhbG1Mb29rc0xpa2VQcm9kdWN0aW9uID8gJ2FwcGVhcnMgdG8gYmUgYSBQcm9kdWN0aW9uIHJlYWxtIElEJyA6ICdhcHBlYXJzIHRvIGJlIGEgU2FuZGJveCByZWFsbSBJRCd9PC9zdHJvbmc+LgogICAgICAgICAgICA8L3A+CiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1zbGF0ZS01MDAiPgogICAgICAgICAgICAgIFRoZSBlbnZpcm9ubWVudCBsYWJlbCAoU2FuZGJveC9Qcm9kdWN0aW9uKSBjb21lcyBlbnRpcmVseSBmcm9tIHRoZSA8Y29kZSBjbGFzc05hbWU9ImJnLXNsYXRlLTIwMCBweC0wLjUgcm91bmRlZCI+UUJfRU5WSVJPTk1FTlQ8L2NvZGU+IHZhcmlhYmxlIG9uIHlvdXIgcHJveHkgc2VydmVyIOKAlCBpdCBpcyBOT1QgZGVyaXZlZCBmcm9tIHRoZSByZWFsbSBJRCBpdHNlbGYuIElmIHlvdXIgcHJveHkgc2F5cyAic2FuZGJveCIgYnV0IHlvdSBhdXRoZW50aWNhdGVkIHdpdGggYSBwcm9kdWN0aW9uIGFjY291bnQsIHRoZSBkYXRhIHdpbGwgYmUgd3JvbmcuCiAgICAgICAgICAgIDwvcD4KICAgICAgICAgIDwvZGl2PgoKICAgICAgICA8L2Rpdj4KICAgICAgKX0KICAgIDwvZGl2PgogICk7Cn0KCmZ1bmN0aW9uIERpYWdSb3coeyBsYWJlbCwgdmFsdWUsIGNvbG9yLCBoaW50IH0pIHsKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtYmFzZWxpbmUgZ2FwLTIgZmxleC13cmFwIj4KICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXNsYXRlLTQwMCBtaW4tdy1bMjIwcHhdIGZsZXgtc2hyaW5rLTAiPntsYWJlbH06PC9zcGFuPgogICAgICA8c3BhbiBjbGFzc05hbWU9e2Bmb250LWJvbGQgJHtjb2xvcn1gfT57dmFsdWV9PC9zcGFuPgogICAgICB7aGludCAmJiA8c3BhbiBjbGFzc05hbWU9InRleHQtc2xhdGUtNTAwIHRleHQtWzEwcHhdIj57aGludH08L3NwYW4+fQogICAgPC9kaXY+CiAgKTsKfQoKZnVuY3Rpb24gU3RlcCh7IG4sIHRpdGxlLCBjaGlsZHJlbiB9KSB7CiAgcmV0dXJuICgKICAgIDxsaSBjbGFzc05hbWU9ImZsZXggZ2FwLTMiPgogICAgICA8c3BhbiBjbGFzc05hbWU9ImZsZXgtc2hyaW5rLTAgdy01IGgtNSBiZy1ibHVlLTYwMCB0ZXh0LXdoaXRlIHJvdW5kZWQtZnVsbCB0ZXh0LVsxMHB4XSBmb250LWJsYWNrIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIG10LTAuNSI+e259PC9zcGFuPgogICAgICA8ZGl2PgogICAgICAgIDxwIGNsYXNzTmFtZT0iZm9udC1ib2xkIHRleHQtYmx1ZS05MDAgbWItMC41Ij57dGl0bGV9PC9wPgogICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1ibHVlLTgwMCI+e2NoaWxkcmVufTwvcD4KICAgICAgPC9kaXY+CiAgICA8L2xpPgogICk7Cn0=
+/**
+ * QBDiagnosticsPanel
+ * Shows live QB connection diagnostics: environment, realm ID, company, email, OAuth status.
+ * Also explains exactly how to switch from Sandbox to Production.
+ */
+import { useState } from "react";
+import { ChevronDown, ChevronUp, AlertTriangle, CheckCircle, Info } from "lucide-react";
+
+export default function QBDiagnosticsPanel({ qbStatus, company, isSandbox, isConnected }) {
+  const [expanded, setExpanded] = useState(true);
+
+  const env = qbStatus?.environment || '—';
+  const realmId = qbStatus?.realm_id || '—';
+  const connectedAt = qbStatus?.connected_at ? new Date(qbStatus.connected_at).toLocaleString() : '—';
+  const tokenExpires = qbStatus?.token_expires_at ? new Date(qbStatus.token_expires_at).toLocaleString() : '—';
+  const refreshExpires = qbStatus?.refresh_expires_at ? new Date(qbStatus.refresh_expires_at).toLocaleString() : '—';
+  const companyName = company?.CompanyName || '—';
+  const legalName = company?.LegalName || '—';
+  const email = company?.CustomerCommunicationEmailAddr?.Address || company?.Email?.Address || '—';
+
+  // Realm ID heuristic: Intuit sandbox realm IDs tend to be very long (18+ digits).
+  // Production realm IDs are typically 13-16 digits.
+  const realmIdNum = realmId.replace(/\D/g, '');
+  const realmLooksLikeProduction = realmIdNum.length >= 13 && realmIdNum.length <= 16;
+  const realmLooksLikeSandbox = realmIdNum.length > 16;
+  const realmEnvironmentHint = !isConnected ? null
+    : realmLooksLikeSandbox ? '(looks like a Sandbox realm ID — 18+ digits)'
+    : realmLooksLikeProduction ? '(looks like a Production realm ID — 13–16 digits)'
+    : null;
+
+  const envMismatch = isConnected && isSandbox && realmLooksLikeProduction;
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+      <button
+        onClick={() => setExpanded(e => !e)}
+        className="w-full flex items-center justify-between px-5 py-3 bg-slate-50 border-b border-slate-200 hover:bg-slate-100 transition-colors"
+      >
+        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+          <Info className="w-4 h-4 text-blue-500" />
+          QuickBooks Connection Diagnostics
+          {isConnected && (
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded ml-1 ${isSandbox ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
+              {isSandbox ? '⚠ SANDBOX' : '✓ PRODUCTION'}
+            </span>
+          )}
+        </h3>
+        {expanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+      </button>
+
+      {expanded && (
+        <div className="p-5 space-y-5">
+
+          {/* ── LIVE STATUS TABLE ── */}
+          <div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Live Connection Status</p>
+            <div className="bg-slate-900 rounded-lg p-4 font-mono text-xs space-y-1.5">
+              <DiagRow label="OAuth Status" value={isConnected ? '✓ Connected' : '✗ Not connected'} color={isConnected ? 'text-emerald-400' : 'text-red-400'} />
+              <DiagRow label="Environment (proxy QB_ENVIRONMENT)" value={env.toUpperCase()} color={isSandbox ? 'text-red-400' : 'text-emerald-400'} />
+              <DiagRow label="Realm / Company ID" value={realmId} color="text-white" hint={realmEnvironmentHint} />
+              <DiagRow label="Company Name" value={companyName} color="text-white" />
+              <DiagRow label="Legal Name" value={legalName} color="text-white" />
+              <DiagRow label="QB Account Email" value={email} color="text-white" />
+              <DiagRow label="Connected At" value={connectedAt} color="text-slate-300" />
+              <DiagRow label="Access Token Expires" value={tokenExpires} color="text-slate-300" />
+              <DiagRow label="Refresh Token Expires" value={refreshExpires} color="text-slate-300" />
+            </div>
+          </div>
+
+          {/* ── ENVIRONMENT MISMATCH WARNING ── */}
+          {envMismatch && (
+            <div className="bg-amber-50 border border-amber-300 rounded-lg p-4 flex gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-amber-800">
+                <p className="font-bold mb-1">⚠ Environment Mismatch Detected</p>
+                <p>Your proxy is configured as <strong>SANDBOX</strong> but Realm ID <code className="bg-amber-100 px-1 rounded">{realmId}</code> appears to be a <strong>Production</strong> realm ID (13–16 digits). Sandbox realm IDs from Intuit are typically 18+ digits.</p>
+                <p className="mt-1">This means your proxy is routing API calls to the sandbox API endpoint even though you authenticated with a production account. Data will not sync correctly.</p>
+              </div>
+            </div>
+          )}
+
+          {/* ── HOW TO SWITCH TO PRODUCTION ── */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+            <p className="text-sm font-bold text-blue-800 flex items-center gap-2">
+              <CheckCircle className="w-4 h-4" /> How to Switch from Sandbox → Production
+            </p>
+            <ol className="text-xs text-blue-900 space-y-2 list-none">
+              <Step n={1} title="Change QB_ENVIRONMENT on your Railway proxy server">
+                Go to your <strong>Railway dashboard</strong> → select the proxy service → <strong>Variables</strong> tab.
+                Change <code className="bg-blue-100 px-1 rounded">QB_ENVIRONMENT</code> from <code className="bg-red-100 text-red-800 px-1 rounded">sandbox</code> to <code className="bg-emerald-100 text-emerald-800 px-1 rounded">production</code>.
+                Then <strong>redeploy</strong> the service (Railway may do this automatically on variable save).
+              </Step>
+              <Step n={2} title="Verify QB_CLIENT_ID and QB_CLIENT_SECRET are Production credentials">
+                In the <a href="https://developer.intuit.com" target="_blank" rel="noreferrer" className="underline font-semibold">Intuit Developer Console</a>, make sure you are using the <strong>Production</strong> app's credentials (not the Sandbox app).
+                The Production app has a different Client ID and Secret.
+              </Step>
+              <Step n={3} title="Disconnect the current (sandbox) connection">
+                Click the <strong>Disconnect</strong> button on this page to clear the stored sandbox tokens from the proxy.
+              </Step>
+              <Step n={4} title="Reconnect to QuickBooks">
+                Click <strong>"Connect QuickBooks"</strong>. The OAuth popup will now use the Production credentials.
+                When Intuit asks you to log in, use your <strong>Production</strong> QuickBooks account (not the developer sandbox).
+              </Step>
+              <Step n={5} title="Verify the new Realm ID">
+                After reconnecting, this panel will show the new Realm ID and company name.
+                The environment should show <strong className="text-emerald-700">✓ PRODUCTION</strong>.
+              </Step>
+            </ol>
+          </div>
+
+          {/* ── IMPORTANT NOTE ABOUT REALM IDs ── */}
+          <div className="bg-slate-50 border border-slate-200 rounded p-3 text-xs text-slate-600 space-y-1">
+            <p className="font-bold text-slate-700">About Realm ID {realmId}</p>
+            <p>
+              Realm ID <code className="bg-slate-200 px-1 rounded font-mono">{realmId}</code> is a <strong>{realmLooksLikeProduction ? 'Production-length' : 'Sandbox-length'}</strong> identifier ({realmIdNum.length} digits).
+              Intuit's sandbox realm IDs assigned to developer accounts are typically 18–20 digits long. Production company realm IDs are typically 13–16 digits.
+              This ID <strong>{realmLooksLikeProduction ? 'appears to be a Production realm ID' : 'appears to be a Sandbox realm ID'}</strong>.
+            </p>
+            <p className="text-slate-500">
+              The environment label (Sandbox/Production) comes entirely from the <code className="bg-slate-200 px-0.5 rounded">QB_ENVIRONMENT</code> variable on your proxy server — it is NOT derived from the realm ID itself. If your proxy says "sandbox" but you authenticated with a production account, the data will be wrong.
+            </p>
+          </div>
+
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DiagRow({ label, value, color, hint }) {
+  return (
+    <div className="flex items-baseline gap-2 flex-wrap">
+      <span className="text-slate-400 min-w-[220px] flex-shrink-0">{label}:</span>
+      <span className={`font-bold ${color}`}>{value}</span>
+      {hint && <span className="text-slate-500 text-[10px]">{hint}</span>}
+    </div>
+  );
+}
+
+function Step({ n, title, children }) {
+  return (
+    <li className="flex gap-3">
+      <span className="flex-shrink-0 w-5 h-5 bg-blue-600 text-white rounded-full text-[10px] font-black flex items-center justify-center mt-0.5">{n}</span>
+      <div>
+        <p className="font-bold text-blue-900 mb-0.5">{title}</p>
+        <p className="text-blue-800">{children}</p>
+      </div>
+    </li>
+  );
+}

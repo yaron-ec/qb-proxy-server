@@ -1,1 +1,51 @@
-aW1wb3J0IHsgdXNlVG9hc3QgfSBmcm9tICJAL2NvbXBvbmVudHMvdWkvdXNlLXRvYXN0IjsKaW1wb3J0IHsKICBUb2FzdCwKICBUb2FzdENsb3NlLAogIFRvYXN0RGVzY3JpcHRpb24sCiAgVG9hc3RQcm92aWRlciwKICBUb2FzdFRpdGxlLAogIFRvYXN0Vmlld3BvcnQsCn0gZnJvbSAiQC9jb21wb25lbnRzL3VpL3RvYXN0IjsKaW1wb3J0IHsgWCB9IGZyb20gImx1Y2lkZS1yZWFjdCI7CgpleHBvcnQgZnVuY3Rpb24gVG9hc3RlcigpIHsKICBjb25zdCB7IHRvYXN0cywgZGlzbWlzcywgY2xlYXJBbGwgfSA9IHVzZVRvYXN0KCk7CgogIHJldHVybiAoCiAgICA8VG9hc3RQcm92aWRlcj4KICAgICAge3RvYXN0cy5tYXAoZnVuY3Rpb24gKHsgaWQsIHRpdGxlLCBkZXNjcmlwdGlvbiwgYWN0aW9uLCBvcGVuLCAuLi5wcm9wcyB9KSB7CiAgICAgICAgcmV0dXJuICgKICAgICAgICAgIDxUb2FzdCBrZXk9e2lkfSBkYXRhLXN0YXRlPXtvcGVuID8gIm9wZW4iIDogImNsb3NlZCJ9IHsuLi5wcm9wc30+CiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJncmlkIGdhcC0xIGZsZXgtMSI+CiAgICAgICAgICAgICAge3RpdGxlICYmIDxUb2FzdFRpdGxlPnt0aXRsZX08L1RvYXN0VGl0bGU+fQogICAgICAgICAgICAgIHtkZXNjcmlwdGlvbiAmJiAoCiAgICAgICAgICAgICAgICA8VG9hc3REZXNjcmlwdGlvbj57ZGVzY3JpcHRpb259PC9Ub2FzdERlc2NyaXB0aW9uPgogICAgICAgICAgICAgICl9CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICB7YWN0aW9ufQogICAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gZGlzbWlzcyhpZCl9CiAgICAgICAgICAgICAgY2xhc3NOYW1lPSJhYnNvbHV0ZSByaWdodC0yIHRvcC0yIHJvdW5kZWQtbWQgcC0xIHRleHQtZm9yZWdyb3VuZC81MCBvcGFjaXR5LTAgdHJhbnNpdGlvbi1vcGFjaXR5IGhvdmVyOnRleHQtZm9yZWdyb3VuZCBmb2N1czpvcGFjaXR5LTEwMCBmb2N1czpvdXRsaW5lLW5vbmUgZm9jdXM6cmluZy0yIGdyb3VwLWhvdmVyOm9wYWNpdHktMTAwIgogICAgICAgICAgICAgIGFyaWEtbGFiZWw9IkNsb3NlIG5vdGlmaWNhdGlvbiIKICAgICAgICAgICAgPgogICAgICAgICAgICAgIDxYIGNsYXNzTmFtZT0iaC00IHctNCIgLz4KICAgICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICA8L1RvYXN0PgogICAgICAgICk7CiAgICAgIH0pfQogICAgICAKICAgICAge3RvYXN0cy5sZW5ndGggPiAwICYmICgKICAgICAgICA8YnV0dG9uCiAgICAgICAgICBvbkNsaWNrPXtjbGVhckFsbH0KICAgICAgICAgIGNsYXNzTmFtZT0iZml4ZWQgYm90dG9tLTQgcmlnaHQtNCB0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS01MDAgaG92ZXI6dGV4dC1zbGF0ZS03MDAgYmctd2hpdGUgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZCBweC0zIHB5LTEuNSBob3ZlcjpiZy1zbGF0ZS01MCB0cmFuc2l0aW9uLWNvbG9ycyB6LTUwIgogICAgICAgICAgYXJpYS1sYWJlbD0iQ2xlYXIgYWxsIG5vdGlmaWNhdGlvbnMiCiAgICAgICAgPgogICAgICAgICAgQ2xlYXIgQWxsCiAgICAgICAgPC9idXR0b24+CiAgICAgICl9CiAgICAgIAogICAgICA8VG9hc3RWaWV3cG9ydCAvPgogICAgPC9Ub2FzdFByb3ZpZGVyPgogICk7Cn0=
+import { useToast } from "@/components/ui/use-toast";
+import {
+  Toast,
+  ToastClose,
+  ToastDescription,
+  ToastProvider,
+  ToastTitle,
+  ToastViewport,
+} from "@/components/ui/toast";
+import { X } from "lucide-react";
+
+export function Toaster() {
+  const { toasts, dismiss, clearAll } = useToast();
+
+  return (
+    <ToastProvider>
+      {toasts.map(function ({ id, title, description, action, open, ...props }) {
+        return (
+          <Toast key={id} data-state={open ? "open" : "closed"} {...props}>
+            <div className="grid gap-1 flex-1">
+              {title && <ToastTitle>{title}</ToastTitle>}
+              {description && (
+                <ToastDescription>{description}</ToastDescription>
+              )}
+            </div>
+            {action}
+            <button
+              onClick={() => dismiss(id)}
+              className="absolute right-2 top-2 rounded-md p-1 text-foreground/50 opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none focus:ring-2 group-hover:opacity-100"
+              aria-label="Close notification"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </Toast>
+        );
+      })}
+      
+      {toasts.length > 0 && (
+        <button
+          onClick={clearAll}
+          className="fixed bottom-4 right-4 text-xs font-semibold text-slate-500 hover:text-slate-700 bg-white border border-slate-200 rounded px-3 py-1.5 hover:bg-slate-50 transition-colors z-50"
+          aria-label="Clear all notifications"
+        >
+          Clear All
+        </button>
+      )}
+      
+      <ToastViewport />
+    </ToastProvider>
+  );
+}

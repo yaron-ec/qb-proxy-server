@@ -1,1 +1,28 @@
-InVzZSBjbGllbnQiCgppbXBvcnQgKiBhcyBSZWFjdCBmcm9tICJyZWFjdCIKaW1wb3J0ICogYXMgVG9vbHRpcFByaW1pdGl2ZSBmcm9tICJAcmFkaXgtdWkvcmVhY3QtdG9vbHRpcCIKCmltcG9ydCB7IGNuIH0gZnJvbSAiQC9saWIvdXRpbHMiCgpjb25zdCBUb29sdGlwUHJvdmlkZXIgPSBUb29sdGlwUHJpbWl0aXZlLlByb3ZpZGVyCgpjb25zdCBUb29sdGlwID0gVG9vbHRpcFByaW1pdGl2ZS5Sb290Cgpjb25zdCBUb29sdGlwVHJpZ2dlciA9IFRvb2x0aXBQcmltaXRpdmUuVHJpZ2dlcgoKY29uc3QgVG9vbHRpcENvbnRlbnQgPSBSZWFjdC5mb3J3YXJkUmVmKCh7IGNsYXNzTmFtZSwgc2lkZU9mZnNldCA9IDYsIC4uLnByb3BzIH0sIHJlZikgPT4gKAogIDxUb29sdGlwUHJpbWl0aXZlLlBvcnRhbD4KICAgIDxUb29sdGlwUHJpbWl0aXZlLkNvbnRlbnQKICAgICAgcmVmPXtyZWZ9CiAgICAgIHNpZGVPZmZzZXQ9e3NpZGVPZmZzZXR9CiAgICAgIGNsYXNzTmFtZT17Y24oCiAgICAgICAgInotWzk5OTldIG92ZXJmbG93LWhpZGRlbiByb3VuZGVkLW1kIGJnLXNsYXRlLTkwMCBweC0yLjUgcHktMS41IHRleHQteHMgdGV4dC13aGl0ZSBzaGFkb3ctbGcgc2hhZG93LWJsYWNrLzIwIGFuaW1hdGUtaW4gZmFkZS1pbi0wIHpvb20taW4tOTUgZGF0YS1bc3RhdGU9Y2xvc2VkXTphbmltYXRlLW91dCBkYXRhLVtzdGF0ZT1jbG9zZWRdOmZhZGUtb3V0LTAgZGF0YS1bc3RhdGU9Y2xvc2VkXTp6b29tLW91dC05NSBkYXRhLVtzaWRlPWJvdHRvbV06c2xpZGUtaW4tZnJvbS10b3AtMiBkYXRhLVtzaWRlPWxlZnRdOnNsaWRlLWluLWZyb20tcmlnaHQtMiBkYXRhLVtzaWRlPXJpZ2h0XTpzbGlkZS1pbi1mcm9tLWxlZnQtMiBkYXRhLVtzaWRlPXRvcF06c2xpZGUtaW4tZnJvbS1ib3R0b20tMiBwb2ludGVyLWV2ZW50cy1ub25lIHNlbGVjdC1ub25lIHdoaXRlc3BhY2Utbm93cmFwIiwKICAgICAgICBjbGFzc05hbWUKICAgICAgKX0KICAgICAgey4uLnByb3BzfSAvPgogIDwvVG9vbHRpcFByaW1pdGl2ZS5Qb3J0YWw+CikpClRvb2x0aXBDb250ZW50LmRpc3BsYXlOYW1lID0gVG9vbHRpcFByaW1pdGl2ZS5Db250ZW50LmRpc3BsYXlOYW1lCgpleHBvcnQgeyBUb29sdGlwLCBUb29sdGlwVHJpZ2dlciwgVG9vbHRpcENvbnRlbnQsIFRvb2x0aXBQcm92aWRlciB9
+"use client"
+
+import * as React from "react"
+import * as TooltipPrimitive from "@radix-ui/react-tooltip"
+
+import { cn } from "@/lib/utils"
+
+const TooltipProvider = TooltipPrimitive.Provider
+
+const Tooltip = TooltipPrimitive.Root
+
+const TooltipTrigger = TooltipPrimitive.Trigger
+
+const TooltipContent = React.forwardRef(({ className, sideOffset = 6, ...props }, ref) => (
+  <TooltipPrimitive.Portal>
+    <TooltipPrimitive.Content
+      ref={ref}
+      sideOffset={sideOffset}
+      className={cn(
+        "z-[9999] overflow-hidden rounded-md bg-slate-900 px-2.5 py-1.5 text-xs text-white shadow-lg shadow-black/20 animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 pointer-events-none select-none whitespace-nowrap",
+        className
+      )}
+      {...props} />
+  </TooltipPrimitive.Portal>
+))
+TooltipContent.displayName = TooltipPrimitive.Content.displayName
+
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }

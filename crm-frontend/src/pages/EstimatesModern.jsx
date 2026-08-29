@@ -1,1 +1,174 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCwgdXNlQ2FsbGJhY2sgfSBmcm9tICJyZWFjdCI7CmltcG9ydCAqIGFzIHJhaWx3YXlMZWFkcyBmcm9tICJAL2FwaS9yYWlsd2F5L2xlYWRzIjsKaW1wb3J0IHsgYXBpQ2FsbCB9IGZyb20gIkAvYXBpL3JhaWx3YXkvY2xpZW50IjsKaW1wb3J0IHsgUGx1cywgU2VhcmNoIH0gZnJvbSAibHVjaWRlLXJlYWN0IjsKaW1wb3J0IEVzdGltYXRlQ2FyZCBmcm9tICJAL2NvbXBvbmVudHMvRXN0aW1hdGVDYXJkIjsKaW1wb3J0IFNlbGVjdERpYWxvZyBmcm9tICJAL2NvbXBvbmVudHMvU2VsZWN0RGlhbG9nIjsKaW1wb3J0IHsgdXNlUHVsbFRvUmVmcmVzaCB9IGZyb20gIkAvaG9va3MvdXNlUHVsbFRvUmVmcmVzaCI7CmltcG9ydCBQdWxsVG9SZWZyZXNoSW5kaWNhdG9yIGZyb20gIkAvY29tcG9uZW50cy9QdWxsVG9SZWZyZXNoSW5kaWNhdG9yIjsKCi8vIFFCLW9ubHkgdGVzdC9zYW1wbGUgY3VzdG9tZXIgbmFtZXMgdG8gZXhjbHVkZQpjb25zdCBRQl9PTkxZX05BTUVTID0gWydwYXVsc2VuIG1lZGljYWwgc3VwcGxpZXMnLCAncmVkIHJvY2sgZGluZXInLCAnZ2VldGEga2FsYXBhdGFwdScsICd0ZXN0IGNvbXBhbnknXTsKCmZ1bmN0aW9uIGlzSGFuZG9mZkVzdGltYXRlKGVzdCkgewogIGNvbnN0IHNyYyA9IChlc3Quc291cmNlIHx8ICcnKS50b0xvd2VyQ2FzZSgpOwogIGNvbnN0IGltcG9ydGVkID0gKGVzdC5pbXBvcnRlZF9mcm9tIHx8ICcnKS50b0xvd2VyQ2FzZSgpOwogIGNvbnN0IHRpdGxlID0gKGVzdC50aXRsZSB8fCAnJykudG9Mb3dlckNhc2UoKTsKICAvLyBIYXMgYSBoYW5kb2ZmX2VzdGltYXRlX2lkIG9yIHByb2plY3RfaWQgKHNldCBkdXJpbmcgaGFuZG9mZiBpbXBvcnQpCiAgaWYgKGVzdC5oYW5kb2ZmX2VzdGltYXRlX2lkIHx8IGVzdC5wcm9qZWN0X2lkKSByZXR1cm4gdHJ1ZTsKICBpZiAoc3JjID09PSAnaGFuZG9mZicgfHwgaW1wb3J0ZWQgPT09ICdoYW5kb2ZmJykgcmV0dXJuIHRydWU7CiAgcmV0dXJuIGZhbHNlOwp9CgpmdW5jdGlvbiBpc1FCT25seShlc3QpIHsKICBjb25zdCB0aXRsZSA9IChlc3QudGl0bGUgfHwgJycpLnRvTG93ZXJDYXNlKCk7CiAgLy8gRXhwbGljaXQgUUIgdGVzdCBuYW1lcwogIGlmIChRQl9PTkxZX05BTUVTLnNvbWUobiA9PiB0aXRsZS5pbmNsdWRlcyhuKSkpIHJldHVybiB0cnVlOwogIC8vIEhhcyBhIFFCIGVzdGltYXRlIElEIGJ1dCBubyBoYW5kb2ZmIGxpbmsKICBpZiAoZXN0LnFiX2VzdGltYXRlX2lkICYmICFlc3QuaGFuZG9mZl9lc3RpbWF0ZV9pZCAmJiAhZXN0LnByb2plY3RfaWQpIHsKICAgIGNvbnN0IHNyYyA9IChlc3Quc291cmNlIHx8ICcnKS50b0xvd2VyQ2FzZSgpOwogICAgY29uc3QgaW1wb3J0ZWQgPSAoZXN0LmltcG9ydGVkX2Zyb20gfHwgJycpLnRvTG93ZXJDYXNlKCk7CiAgICBpZiAoc3JjICE9PSAnaGFuZG9mZicgJiYgaW1wb3J0ZWQgIT09ICdoYW5kb2ZmJykgcmV0dXJuIHRydWU7CiAgfQogIHJldHVybiBmYWxzZTsKfQoKZnVuY3Rpb24gZ2V0RXN0aW1hdGVTb3VyY2UoZXN0KSB7CiAgY29uc3Qgc3JjID0gKGVzdC5zb3VyY2UgfHwgJycpLnRvTG93ZXJDYXNlKCk7CiAgY29uc3QgaW1wb3J0ZWQgPSAoZXN0LmltcG9ydGVkX2Zyb20gfHwgJycpLnRvTG93ZXJDYXNlKCk7CiAgaWYgKGVzdC5oYW5kb2ZmX2VzdGltYXRlX2lkIHx8IHNyYyA9PT0gJ2hhbmRvZmYnIHx8IGltcG9ydGVkID09PSAnaGFuZG9mZicpIHJldHVybiAnSGFuZG9mZic7CiAgaWYgKGVzdC5xYl9lc3RpbWF0ZV9pZCkgcmV0dXJuICdRdWlja0Jvb2tzJzsKICByZXR1cm4gJ01hbnVhbCc7Cn0KCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIEVzdGltYXRlc01vZGVybigpIHsKICBjb25zdCBbZXN0aW1hdGVzLCBzZXRFc3RpbWF0ZXNdID0gdXNlU3RhdGUoW10pOwogIGNvbnN0IFtsZWFkcywgc2V0TGVhZHNdID0gdXNlU3RhdGUoe30pOwogIGNvbnN0IFtsb2FkaW5nLCBzZXRMb2FkaW5nXSA9IHVzZVN0YXRlKHRydWUpOwogIGNvbnN0IFtzZWFyY2hUZXJtLCBzZXRTZWFyY2hUZXJtXSA9IHVzZVN0YXRlKCcnKTsKICBjb25zdCBbc3RhdHVzRmlsdGVyLCBzZXRTdGF0dXNGaWx0ZXJdID0gdXNlU3RhdGUoJ2FsbCcpOwogIGNvbnN0IFtzb3VyY2VGaWx0ZXIsIHNldFNvdXJjZUZpbHRlcl0gPSB1c2VTdGF0ZSgnaGFuZG9mZicpOwoKICBjb25zdCBsb2FkRGF0YSA9IHVzZUNhbGxiYWNrKGFzeW5jICgpID0+IHsKICAgIHRyeSB7CiAgICAgIGNvbnN0IFtlc3RzLCBhbGxMZWFkc10gPSBhd2FpdCBQcm9taXNlLmFsbChbCiAgICAgICAgYXBpQ2FsbCgnL2FwaS92MS9lc3RpbWF0ZXM/c29ydD0tdXBkYXRlZF9kYXRlJmxpbWl0PTUwMCcsIHsgbWV0aG9kOiAnR0VUJyB9KS50aGVuKHIgPT4gci5pdGVtcyB8fCBbXSksCiAgICAgICAgcmFpbHdheUxlYWRzLmxpc3QoeyBzb3J0OiAnLXVwZGF0ZWRfZGF0ZScsIGxpbWl0OiA1MDAgfSkudGhlbihyID0+IHIuaXRlbXMgfHwgW10pLAogICAgICBdKTsKICAgICAgc2V0RXN0aW1hdGVzKGVzdHMpOwogICAgICBjb25zdCBsZWFkc01hcCA9IHt9OwogICAgICBhbGxMZWFkcy5mb3JFYWNoKGxlYWQgPT4geyBsZWFkc01hcFtsZWFkLmlkXSA9IGxlYWQ7IH0pOwogICAgICBzZXRMZWFkcyhsZWFkc01hcCk7CiAgICAgIHNldExvYWRpbmcoZmFsc2UpOwogICAgfSBjYXRjaCAoZSkgewogICAgICBjb25zb2xlLmVycm9yKCdFcnJvciBsb2FkaW5nIGRhdGE6JywgZSk7CiAgICAgIHNldExvYWRpbmcoZmFsc2UpOwogICAgfQogIH0sIFtdKTsKCiAgdXNlRWZmZWN0KCgpID0+IHsKICAgIGxvYWREYXRhKCk7CiAgICBjb25zdCBpbnRlcnZhbCA9IHNldEludGVydmFsKCgpID0+IGxvYWREYXRhKCksIDMwMDAwKTsKICAgIHJldHVybiAoKSA9PiBjbGVhckludGVydmFsKGludGVydmFsKTsKICB9LCBbbG9hZERhdGFdKTsKCiAgY29uc3QgeyBwdWxsaW5nLCByZWZyZXNoaW5nLCBwdWxsRGlzdGFuY2UgfSA9IHVzZVB1bGxUb1JlZnJlc2gobG9hZERhdGEpOwoKICAvLyBBbGwgbm9uLVFCLW9ubHkgZXN0aW1hdGVzICh1c2VkIGZvciB0b3RhbCBjb3VudCkKICBjb25zdCBoYW5kb2ZmRXN0aW1hdGVzID0gZXN0aW1hdGVzLmZpbHRlcihlc3QgPT4gIWlzUUJPbmx5KGVzdCkpOwoKICBjb25zdCBmaWx0ZXJlZEVzdGltYXRlcyA9IGhhbmRvZmZFc3RpbWF0ZXMKICAgIC5maWx0ZXIoZXN0ID0+IHsKICAgICAgaWYgKHNvdXJjZUZpbHRlciA9PT0gJ2hhbmRvZmYnKSByZXR1cm4gaXNIYW5kb2ZmRXN0aW1hdGUoZXN0KTsKICAgICAgaWYgKHNvdXJjZUZpbHRlciA9PT0gJ3FiJykgcmV0dXJuIGdldEVzdGltYXRlU291cmNlKGVzdCkgPT09ICdRdWlja0Jvb2tzJyAmJiAhaXNRQk9ubHkoZXN0KTsKICAgICAgaWYgKHNvdXJjZUZpbHRlciA9PT0gJ21hbnVhbCcpIHJldHVybiBnZXRFc3RpbWF0ZVNvdXJjZShlc3QpID09PSAnTWFudWFsJzsKICAgICAgcmV0dXJuIHRydWU7IC8vICdhbGwnCiAgICB9KQogICAgLmZpbHRlcihlc3QgPT4gewogICAgICBjb25zdCBsZWFkID0gbGVhZHNbZXN0LmxlYWRfaWRdOwogICAgICBjb25zdCB0ZXh0ID0gYCR7ZXN0LnRpdGxlIHx8ICcnfSAke2xlYWQ/LmZpcnN0X25hbWUgfHwgJyd9ICR7bGVhZD8ubGFzdF9uYW1lIHx8ICcnfWAudG9Mb3dlckNhc2UoKTsKICAgICAgcmV0dXJuIHRleHQuaW5jbHVkZXMoc2VhcmNoVGVybS50b0xvd2VyQ2FzZSgpKTsKICAgIH0pCiAgICAuZmlsdGVyKGVzdCA9PiBzdGF0dXNGaWx0ZXIgPT09ICdhbGwnIHx8IGVzdC5zdGF0dXMgPT09IHN0YXR1c0ZpbHRlcik7CgogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT0ibWluLWgtc2NyZWVuIGJnLWJhY2tncm91bmQiPgogICAgICA8UHVsbFRvUmVmcmVzaEluZGljYXRvciBwdWxsRGlzdGFuY2U9e3B1bGxEaXN0YW5jZX0gcmVmcmVzaGluZz17cmVmcmVzaGluZ30gLz4KICAgICAgey8qIEhlYWRlciAqL30KICAgICAgPGRpdiBjbGFzc05hbWU9InN0aWNreSB0b3AtMCB6LTQwIGJnLWNhcmQgYm9yZGVyLWIgYm9yZGVyLWJvcmRlciIgc3R5bGU9e3sgcGFkZGluZ1RvcDogJ2VudihzYWZlLWFyZWEtaW5zZXQtdG9wKScgfX0+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9Im1heC13LTd4bCBteC1hdXRvIHB4LTYgcHktNiI+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIG1iLTYiPgogICAgICAgICAgICA8ZGl2PgogICAgICAgICAgICAgIDxoMSBjbGFzc05hbWU9InRleHQtMnhsIGZvbnQtYm9sZCB0ZXh0LWZvcmVncm91bmQgdHJhY2tpbmctdGlnaHQiPkVzdGltYXRlczwvaDE+CiAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIHRleHQtbXV0ZWQtZm9yZWdyb3VuZCBtdC0xIj57ZmlsdGVyZWRFc3RpbWF0ZXMubGVuZ3RofSBvZiB7aGFuZG9mZkVzdGltYXRlcy5sZW5ndGh9IGVzdGltYXRlczwvcD4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgIDxidXR0b24gY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBiZy1hbWJlci02MDAgaG92ZXI6YmctYW1iZXItNzAwIHRleHQtd2hpdGUgcHgtNCBweS0yIHJvdW5kZWQtbGcgZm9udC1zZW1pYm9sZCB0cmFuc2l0aW9uLWFsbCBkdXJhdGlvbi0yMDAgYWN0aXZlOnNjYWxlLTk1Ij4KICAgICAgICAgICAgICA8UGx1cyBjbGFzc05hbWU9InctNCBoLTQiIC8+CiAgICAgICAgICAgICAgTmV3IEVzdGltYXRlCiAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgPC9kaXY+CgogICAgICAgICAgey8qIEZpbHRlcnMgKi99CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBmbGV4LWNvbCBtZDpmbGV4LXJvdyBnYXAtMyI+CiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJyZWxhdGl2ZSBmbGV4LTEgbWF4LXctbWQiPgogICAgICAgICAgICAgIDxTZWFyY2ggY2xhc3NOYW1lPSJhYnNvbHV0ZSBsZWZ0LTMgdG9wLTEvMiB0cmFuc2Zvcm0gLXRyYW5zbGF0ZS15LTEvMiB3LTQgaC00IHRleHQtc2xhdGUtNDAwIiAvPgogICAgICAgICAgICAgIDxpbnB1dAogICAgICAgICAgICAgICAgdHlwZT0idGV4dCIKICAgICAgICAgICAgICAgIHBsYWNlaG9sZGVyPSJTZWFyY2ggZXN0aW1hdGVzLi4uIgogICAgICAgICAgICAgICAgdmFsdWU9e3NlYXJjaFRlcm19CiAgICAgICAgICAgICAgICBvbkNoYW5nZT17KGUpID0+IHNldFNlYXJjaFRlcm0oZS50YXJnZXQudmFsdWUpfQogICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJ3LWZ1bGwgcGwtMTAgcHItNCBweS0yIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgdGV4dC1zbSBmb2N1czpvdXRsaW5lLW5vbmUgZm9jdXM6cmluZy0yIGZvY3VzOnJpbmctYW1iZXItNTAwLzIwIGZvY3VzOmJvcmRlci1hbWJlci01MDAgdHJhbnNpdGlvbi1hbGwiCiAgICAgICAgICAgICAgLz4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgIDxTZWxlY3REaWFsb2cKICAgICAgICAgICAgICB2YWx1ZT17c291cmNlRmlsdGVyfQogICAgICAgICAgICAgIG9uQ2hhbmdlPXtzZXRTb3VyY2VGaWx0ZXJ9CiAgICAgICAgICAgICAgb3B0aW9ucz17WwogICAgICAgICAgICAgICAgeyB2YWx1ZTogImhhbmRvZmYiLCBsYWJlbDogIlNvdXJjZTogSGFuZG9mZiIgfSwKICAgICAgICAgICAgICAgIHsgdmFsdWU6ICJxYiIsIGxhYmVsOiAiU291cmNlOiBRdWlja0Jvb2tzIiB9LAogICAgICAgICAgICAgICAgeyB2YWx1ZTogIm1hbnVhbCIsIGxhYmVsOiAiU291cmNlOiBNYW51YWwiIH0sCiAgICAgICAgICAgICAgICB7IHZhbHVlOiAiYWxsIiwgbGFiZWw6ICJBbGwgU291cmNlcyIgfSwKICAgICAgICAgICAgICBdfQogICAgICAgICAgICAvPgogICAgICAgICAgICA8U2VsZWN0RGlhbG9nCiAgICAgICAgICAgICAgdmFsdWU9e3N0YXR1c0ZpbHRlcn0KICAgICAgICAgICAgICBvbkNoYW5nZT17c2V0U3RhdHVzRmlsdGVyfQogICAgICAgICAgICAgIG9wdGlvbnM9e1sKICAgICAgICAgICAgICAgIHsgdmFsdWU6ICJhbGwiLCBsYWJlbDogIkFsbCBTdGF0dXNlcyIgfSwKICAgICAgICAgICAgICAgIHsgdmFsdWU6ICJEcmFmdCIsIGxhYmVsOiAiRHJhZnQiIH0sCiAgICAgICAgICAgICAgICB7IHZhbHVlOiAiU2VudCIsIGxhYmVsOiAiU2VudCIgfSwKICAgICAgICAgICAgICAgIHsgdmFsdWU6ICJWaWV3ZWQiLCBsYWJlbDogIlZpZXdlZCIgfSwKICAgICAgICAgICAgICAgIHsgdmFsdWU6ICJBY2NlcHRlZCIsIGxhYmVsOiAiQWNjZXB0ZWQiIH0sCiAgICAgICAgICAgICAgICB7IHZhbHVlOiAiRGVjbGluZWQiLCBsYWJlbDogIkRlY2xpbmVkIiB9LAogICAgICAgICAgICAgIF19CiAgICAgICAgICAgIC8+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CgogICAgICB7LyogRXN0aW1hdGVzIEdyaWQgKi99CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJtYXgtdy03eGwgbXgtYXV0byBweC02IHB5LTgiPgogICAgICAgIHtsb2FkaW5nID8gKAogICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHB5LTEyIj4KICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXNsYXRlLTUwMCI+TG9hZGluZyBlc3RpbWF0ZXMuLi48L3NwYW4+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICApIDogZmlsdGVyZWRFc3RpbWF0ZXMubGVuZ3RoID09PSAwID8gKAogICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtY2VudGVyIHB5LTEyIj4KICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNsYXRlLTUwMCI+Tm8gZXN0aW1hdGVzIGZvdW5kPC9wPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgKSA6ICgKICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJncmlkIGdyaWQtY29scy0xIG1kOmdyaWQtY29scy0yIGxnOmdyaWQtY29scy0zIGdhcC02Ij4KICAgICAgICAgICAge2ZpbHRlcmVkRXN0aW1hdGVzLm1hcChlc3RpbWF0ZSA9PiAoCiAgICAgICAgICAgICAgPEVzdGltYXRlQ2FyZCAKICAgICAgICAgICAgICAgIGtleT17ZXN0aW1hdGUuaWR9IAogICAgICAgICAgICAgICAgZXN0aW1hdGU9e2VzdGltYXRlfSAKICAgICAgICAgICAgICAgIGxlYWQ9e2xlYWRzW2VzdGltYXRlLmxlYWRfaWRdfQogICAgICAgICAgICAgICAgc291cmNlPXtnZXRFc3RpbWF0ZVNvdXJjZShlc3RpbWF0ZSl9CiAgICAgICAgICAgICAgLz4KICAgICAgICAgICAgKSl9CiAgICAgICAgICA8L2Rpdj4KICAgICAgICApfQogICAgICA8L2Rpdj4KICAgIDwvZGl2PgogICk7Cn0=
+import { useState, useEffect, useCallback } from "react";
+import * as railwayLeads from "@/api/railway/leads";
+import { apiCall } from "@/api/railway/client";
+import { Plus, Search } from "lucide-react";
+import EstimateCard from "@/components/EstimateCard";
+import SelectDialog from "@/components/SelectDialog";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import PullToRefreshIndicator from "@/components/PullToRefreshIndicator";
+
+// QB-only test/sample customer names to exclude
+const QB_ONLY_NAMES = ['paulsen medical supplies', 'red rock diner', 'geeta kalapatapu', 'test company'];
+
+function isHandoffEstimate(est) {
+  const src = (est.source || '').toLowerCase();
+  const imported = (est.imported_from || '').toLowerCase();
+  const title = (est.title || '').toLowerCase();
+  // Has a handoff_estimate_id or project_id (set during handoff import)
+  if (est.handoff_estimate_id || est.project_id) return true;
+  if (src === 'handoff' || imported === 'handoff') return true;
+  return false;
+}
+
+function isQBOnly(est) {
+  const title = (est.title || '').toLowerCase();
+  // Explicit QB test names
+  if (QB_ONLY_NAMES.some(n => title.includes(n))) return true;
+  // Has a QB estimate ID but no handoff link
+  if (est.qb_estimate_id && !est.handoff_estimate_id && !est.project_id) {
+    const src = (est.source || '').toLowerCase();
+    const imported = (est.imported_from || '').toLowerCase();
+    if (src !== 'handoff' && imported !== 'handoff') return true;
+  }
+  return false;
+}
+
+function getEstimateSource(est) {
+  const src = (est.source || '').toLowerCase();
+  const imported = (est.imported_from || '').toLowerCase();
+  if (est.handoff_estimate_id || src === 'handoff' || imported === 'handoff') return 'Handoff';
+  if (est.qb_estimate_id) return 'QuickBooks';
+  return 'Manual';
+}
+
+export default function EstimatesModern() {
+  const [estimates, setEstimates] = useState([]);
+  const [leads, setLeads] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sourceFilter, setSourceFilter] = useState('handoff');
+
+  const loadData = useCallback(async () => {
+    try {
+      const [ests, allLeads] = await Promise.all([
+        apiCall('/api/v1/estimates?sort=-updated_date&limit=500', { method: 'GET' }).then(r => r.items || []),
+        railwayLeads.list({ sort: '-updated_date', limit: 500 }).then(r => r.items || []),
+      ]);
+      setEstimates(ests);
+      const leadsMap = {};
+      allLeads.forEach(lead => { leadsMap[lead.id] = lead; });
+      setLeads(leadsMap);
+      setLoading(false);
+    } catch (e) {
+      console.error('Error loading data:', e);
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+    const interval = setInterval(() => loadData(), 30000);
+    return () => clearInterval(interval);
+  }, [loadData]);
+
+  const { pulling, refreshing, pullDistance } = usePullToRefresh(loadData);
+
+  // All non-QB-only estimates (used for total count)
+  const handoffEstimates = estimates.filter(est => !isQBOnly(est));
+
+  const filteredEstimates = handoffEstimates
+    .filter(est => {
+      if (sourceFilter === 'handoff') return isHandoffEstimate(est);
+      if (sourceFilter === 'qb') return getEstimateSource(est) === 'QuickBooks' && !isQBOnly(est);
+      if (sourceFilter === 'manual') return getEstimateSource(est) === 'Manual';
+      return true; // 'all'
+    })
+    .filter(est => {
+      const lead = leads[est.lead_id];
+      const text = `${est.title || ''} ${lead?.first_name || ''} ${lead?.last_name || ''}`.toLowerCase();
+      return text.includes(searchTerm.toLowerCase());
+    })
+    .filter(est => statusFilter === 'all' || est.status === statusFilter);
+
+  return (
+    <div className="min-h-screen bg-background">
+      <PullToRefreshIndicator pullDistance={pullDistance} refreshing={refreshing} />
+      {/* Header */}
+      <div className="sticky top-0 z-40 bg-card border-b border-border" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground tracking-tight">Estimates</h1>
+              <p className="text-sm text-muted-foreground mt-1">{filteredEstimates.length} of {handoffEstimates.length} estimates</p>
+            </div>
+            <button className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-200 active:scale-95">
+              <Plus className="w-4 h-4" />
+              New Estimate
+            </button>
+          </div>
+
+          {/* Filters */}
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search estimates..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+              />
+            </div>
+            <SelectDialog
+              value={sourceFilter}
+              onChange={setSourceFilter}
+              options={[
+                { value: "handoff", label: "Source: Handoff" },
+                { value: "qb", label: "Source: QuickBooks" },
+                { value: "manual", label: "Source: Manual" },
+                { value: "all", label: "All Sources" },
+              ]}
+            />
+            <SelectDialog
+              value={statusFilter}
+              onChange={setStatusFilter}
+              options={[
+                { value: "all", label: "All Statuses" },
+                { value: "Draft", label: "Draft" },
+                { value: "Sent", label: "Sent" },
+                { value: "Viewed", label: "Viewed" },
+                { value: "Accepted", label: "Accepted" },
+                { value: "Declined", label: "Declined" },
+              ]}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Estimates Grid */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <span className="text-slate-500">Loading estimates...</span>
+          </div>
+        ) : filteredEstimates.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-slate-500">No estimates found</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredEstimates.map(estimate => (
+              <EstimateCard 
+                key={estimate.id} 
+                estimate={estimate} 
+                lead={leads[estimate.lead_id]}
+                source={getEstimateSource(estimate)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,1 +1,435 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCwgdXNlUmVmIH0gZnJvbSAicmVhY3QiOwppbXBvcnQgeyBhcGlDYWxsIH0gZnJvbSAiQC9hcGkvcmFpbHdheS9jbGllbnQiOwppbXBvcnQgeyByYWlsd2F5UmVxdWVzdCB9IGZyb20gIkAvbGliL3JhaWx3YXlDbGllbnQiOwppbXBvcnQgewogIENoZXZyb25SaWdodCwgQ2hlY2ssIEFsZXJ0Q2lyY2xlLCBMb2FkZXIyLCBVc2VyLCBSZWNlaXB0LAogIENyZWRpdENhcmQsIFJvdGF0ZUNjdywgQ29weSwgQ2xvY2sKfSBmcm9tICJsdWNpZGUtcmVhY3QiOwoKY29uc3QgU1RFUFMgPSBbCiAgeyBpZDogMSwgbGFiZWw6ICJDcmVhdGUgQ3VzdG9tZXIiLCBpY29uOiBVc2VyIH0sCiAgeyBpZDogMiwgbGFiZWw6ICJDcmVhdGUgSW52b2ljZSIsIGljb246IFJlY2VpcHQgfSwKICB7IGlkOiAzLCBsYWJlbDogIlJlY29yZCBQYXltZW50IiwgaWNvbjogQ3JlZGl0Q2FyZCB9LAogIHsgaWQ6IDQsIGxhYmVsOiAiU3luYyBTdGF0dXMiLCBpY29uOiBSb3RhdGVDY3cgfSwKXTsKCmNvbnN0IElOVk9JQ0VfU1RBVEUgPSB7CiAgSURMRTogJ2lkbGUnLAogIExPQURJTkc6ICdsb2FkaW5nJywKICBTVUNDRVNTOiAnc3VjY2VzcycsCiAgRVJST1I6ICdlcnJvcicsCiAgVElNRU9VVDogJ3RpbWVvdXQnLAp9OwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gSW52b2ljZUNyZWF0aW9uRmxvdyh7IGxlYWQsIG9uTGVhZFVwZGF0ZSwgcWJDb25uZWN0ZWQsIGRlYWxJZCwgZGVhbEFtb3VudCwgZGVhbFByb2plY3RUeXBlIH0pIHsKICBjb25zdCBbY3VycmVudFN0ZXAsIHNldEN1cnJlbnRTdGVwXSA9IHVzZVN0YXRlKDEpOwogIGNvbnN0IFtzdGF0ZSwgc2V0U3RhdGVdID0gdXNlU3RhdGUoSU5WT0lDRV9TVEFURS5JRExFKTsKICBjb25zdCBbZXJyb3IsIHNldEVycm9yXSA9IHVzZVN0YXRlKG51bGwpOwogIGNvbnN0IFtzdWNjZXNzLCBzZXRTdWNjZXNzXSA9IHVzZVN0YXRlKG51bGwpOwogIGNvbnN0IFtjb2xsYXBzaW5nLCBzZXRDb2xsYXBzaW5nXSA9IHVzZVN0YXRlKGZhbHNlKTsKICAKICAvLyBUaW1lb3V0ICYgd2F0Y2hkb2cgcHJvdGVjdGlvbgogIGNvbnN0IHRpbWVvdXRSZWYgPSB1c2VSZWYobnVsbCk7CiAgY29uc3Qgd2F0Y2hkb2dSZWYgPSB1c2VSZWYobnVsbCk7CiAgY29uc3QgaXNNb3VudGVkUmVmID0gdXNlUmVmKHRydWUpOwoKICAvLyBDbGVhbnVwIG9uIHVubW91bnQKICB1c2VFZmZlY3QoKCkgPT4gewogICAgcmV0dXJuICgpID0+IHsKICAgICAgaXNNb3VudGVkUmVmLmN1cnJlbnQgPSBmYWxzZTsKICAgICAgaWYgKHRpbWVvdXRSZWYuY3VycmVudCkgY2xlYXJUaW1lb3V0KHRpbWVvdXRSZWYuY3VycmVudCk7CiAgICAgIGlmICh3YXRjaGRvZ1JlZi5jdXJyZW50KSBjbGVhclRpbWVvdXQod2F0Y2hkb2dSZWYuY3VycmVudCk7CiAgICB9OwogIH0sIFtdKTsKCiAgLy8gRGV0ZWN0IGlmIGludm9pY2UgYWxyZWFkeSBleGlzdHMgaW4gUUIgKGF1dG8tcmVjb3ZlcnkpCiAgdXNlRWZmZWN0KCgpID0+IHsKICAgIGlmIChsZWFkLnFiX2ludm9pY2VfaWQgJiYgc3RhdGUgPT09IElOVk9JQ0VfU1RBVEUuTE9BRElORykgewogICAgICBjb25zb2xlLmxvZygnW0ludm9pY2VDcmVhdGlvbkZsb3ddIEF1dG8tcmVjb3Zlcnk6IFFCIGludm9pY2UgZGV0ZWN0ZWQgd2hpbGUgbG9hZGluZycsIGxlYWQucWJfaW52b2ljZV9pZCk7CiAgICAgIGNsZWFyVGltZW91dHMoKTsKICAgICAgaWYgKGlzTW91bnRlZFJlZi5jdXJyZW50KSB7CiAgICAgICAgc2V0U3VjY2Vzcyh7CiAgICAgICAgICBpbnZvaWNlTnVtYmVyOiBsZWFkLnFiX2ludm9pY2VfbnVtYmVyIHx8IGxlYWQucWJfaW52b2ljZV9pZCwKICAgICAgICAgIGludm9pY2VBbW91bnQ6IGxlYWQucWJfaW52b2ljZV9hbW91bnQsCiAgICAgICAgfSk7CiAgICAgICAgc2V0U3RhdGUoSU5WT0lDRV9TVEFURS5TVUNDRVNTKTsKICAgICAgICBzZXRDdXJyZW50U3RlcCgzKTsKICAgICAgfQogICAgfSBlbHNlIGlmIChsZWFkLnFiX2ludm9pY2VfaWQgJiYgc3RhdGUgPT09IElOVk9JQ0VfU1RBVEUuSURMRSkgewogICAgICAvLyBJbnZvaWNlIGV4aXN0cywgc2hvdyBzdWNjZXNzIHN0YXRlCiAgICAgIHNldFN1Y2Nlc3MoewogICAgICAgIGludm9pY2VOdW1iZXI6IGxlYWQucWJfaW52b2ljZV9udW1iZXIgfHwgbGVhZC5xYl9pbnZvaWNlX2lkLAogICAgICAgIGludm9pY2VBbW91bnQ6IGxlYWQucWJfaW52b2ljZV9hbW91bnQsCiAgICAgIH0pOwogICAgICBzZXRDdXJyZW50U3RlcCgzKTsKICAgIH0gZWxzZSBpZiAoIWxlYWQucWJfaW52b2ljZV9pZCAmJiBzdGF0ZSA9PT0gSU5WT0lDRV9TVEFURS5JRExFKSB7CiAgICAgIHNldEN1cnJlbnRTdGVwKDEpOwogICAgICBzZXRTdWNjZXNzKG51bGwpOwogICAgfQogIH0sIFtsZWFkLnFiX2ludm9pY2VfaWQsIGxlYWQucWJfaW52b2ljZV9udW1iZXIsIGxlYWQucWJfaW52b2ljZV9hbW91bnQsIHN0YXRlXSk7CgogIGNvbnN0IGNsZWFyVGltZW91dHMgPSAoKSA9PiB7CiAgICBpZiAodGltZW91dFJlZi5jdXJyZW50KSB7CiAgICAgIGNsZWFyVGltZW91dCh0aW1lb3V0UmVmLmN1cnJlbnQpOwogICAgICB0aW1lb3V0UmVmLmN1cnJlbnQgPSBudWxsOwogICAgfQogICAgaWYgKHdhdGNoZG9nUmVmLmN1cnJlbnQpIHsKICAgICAgY2xlYXJUaW1lb3V0KHdhdGNoZG9nUmVmLmN1cnJlbnQpOwogICAgICB3YXRjaGRvZ1JlZi5jdXJyZW50ID0gbnVsbDsKICAgIH0KICB9OwoKICBjb25zdCByZXNldFN0YXRlID0gKCkgPT4gewogICAgY29uc29sZS5sb2coJ1tJbnZvaWNlQ3JlYXRpb25GbG93XSBSZXNldHRpbmcgc3RhdGUgdG8gSURMRScpOwogICAgY2xlYXJUaW1lb3V0cygpOwogICAgaWYgKGlzTW91bnRlZFJlZi5jdXJyZW50KSB7CiAgICAgIHNldFN0YXRlKElOVk9JQ0VfU1RBVEUuSURMRSk7CiAgICB9CiAgfTsKCiAgY29uc3QgaGFuZGxlQ3JlYXRlSW52b2ljZSA9IGFzeW5jICgpID0+IHsKICAgIGlmIChzdGF0ZSAhPT0gSU5WT0lDRV9TVEFURS5JRExFICYmIHN0YXRlICE9PSBJTlZPSUNFX1NUQVRFLkVSUk9SICYmIHN0YXRlICE9PSBJTlZPSUNFX1NUQVRFLlRJTUVPVVQpIHsKICAgICAgY29uc29sZS5sb2coJ1tJbnZvaWNlQ3JlYXRpb25GbG93XSBBbHJlYWR5IGluIHByb2dyZXNzLCBpZ25vcmluZyBkdXBsaWNhdGUgY2xpY2snKTsKICAgICAgcmV0dXJuOwogICAgfQoKICAgIGNvbnNvbGUubG9nKCdbSW52b2ljZUNyZWF0aW9uRmxvd10gSW52b2ljZSBjcmVhdGlvbiBzdGFydGVkJyk7CiAgICBzZXRFcnJvcihudWxsKTsKICAgIHNldFN1Y2Nlc3MobnVsbCk7CiAgICAKICAgIGlmICghaXNNb3VudGVkUmVmLmN1cnJlbnQpIHJldHVybjsKICAgIHNldFN0YXRlKElOVk9JQ0VfU1RBVEUuTE9BRElORyk7CgogICAgdHJ5IHsKICAgICAgLy8gU2V0IDIwcyB0aW1lb3V0IGZvciBRQiByZXNwb25zZQogICAgICB0aW1lb3V0UmVmLmN1cnJlbnQgPSBzZXRUaW1lb3V0KCgpID0+IHsKICAgICAgICBjb25zb2xlLndhcm4oJ1tJbnZvaWNlQ3JlYXRpb25GbG93XSAyMHMgdGltZW91dCByZWFjaGVkJyk7CiAgICAgICAgaWYgKGlzTW91bnRlZFJlZi5jdXJyZW50KSB7CiAgICAgICAgICBzZXRTdGF0ZShJTlZPSUNFX1NUQVRFLlRJTUVPVVQpOwogICAgICAgICAgc2V0RXJyb3IoJ1F1aWNrQm9va3MgcmVzcG9uc2UgdGltZW91dC4gUGxlYXNlIHRyeSBhZ2Fpbi4nKTsKICAgICAgICB9CiAgICAgIH0sIDIwMDAwKTsKCiAgICAgIC8vIFNldCAzMHMgd2F0Y2hkb2cgdG8gZm9yY2UgcmVzZXQgaWYgc3R1Y2sKICAgICAgd2F0Y2hkb2dSZWYuY3VycmVudCA9IHNldFRpbWVvdXQoKCkgPT4gewogICAgICAgIGNvbnNvbGUud2FybignW0ludm9pY2VDcmVhdGlvbkZsb3ddIDMwcyB3YXRjaGRvZyB0cmlnZ2VyZWQgLSBmb3JjZSByZXNldCcpOwogICAgICAgIGlmIChpc01vdW50ZWRSZWYuY3VycmVudCkgewogICAgICAgICAgc2V0U3RhdGUoSU5WT0lDRV9TVEFURS5JRExFKTsKICAgICAgICAgIHNldEVycm9yKCdPcGVyYXRpb24gdG9vayB0b28gbG9uZy4gUGxlYXNlIHJlZnJlc2ggYW5kIHRyeSBhZ2Fpbi4nKTsKICAgICAgICB9CiAgICAgICAgY2xlYXJUaW1lb3V0cygpOwogICAgICB9LCAzMDAwMCk7CgogICAgICAvLyBTdGVwIDE6IEVuc3VyZSBjdXN0b21lciBleGlzdHMgaW4gUUIKICAgICAgY29uc29sZS5sb2coJ1tJbnZvaWNlQ3JlYXRpb25GbG93XSBTdGFydGluZyBjdXN0b21lciBzeW5jIGZvciBsZWFkOicsIGxlYWQuaWQpOwogICAgICAKICAgICAgaWYgKCFsZWFkLnFiX2N1c3RvbWVyX2lkKSB7CiAgICAgICAgY29uc3QgY3VzdG9tZXJSZXMgPSBhd2FpdCByYWlsd2F5UmVxdWVzdCgnL3FiL3N5bmMtbGVhZCcsIHsgbGVhZCB9KTsKICAgICAgICAKICAgICAgICBpZiAoY3VzdG9tZXJSZXMuc3RhdHVzID09PSAyMDIpIHsKICAgICAgICAgIGxldCBhdHRlbXB0cyA9IDA7CiAgICAgICAgICBsZXQgY3VzdG9tZXJGb3VuZCA9IGZhbHNlOwogICAgICAgICAgCiAgICAgICAgICB3aGlsZSAoYXR0ZW1wdHMgPCAxMCAmJiAhY3VzdG9tZXJGb3VuZCkgewogICAgICAgICAgICBhd2FpdCBuZXcgUHJvbWlzZShyID0+IHNldFRpbWVvdXQociwgNTAwKSk7CiAgICAgICAgICAgIAogICAgICAgICAgICBpZiAoIWlzTW91bnRlZFJlZi5jdXJyZW50KSByZXR1cm47CiAgICAgICAgICAgIAogICAgICAgICAgICBjb25zdCB1cGRhdGVkID0gYXdhaXQgYXBpQ2FsbChgL2FwaS92MS9sZWFkcy8ke2xlYWQuaWR9YCwgeyBtZXRob2Q6ICdHRVQnIH0pOwogICAgICAgICAgICBpZiAodXBkYXRlZC5xYl9jdXN0b21lcl9pZCkgewogICAgICAgICAgICAgIGNvbnNvbGUubG9nKCdbSW52b2ljZUNyZWF0aW9uRmxvd10gQ3VzdG9tZXIgc3luY2VkOicsIHVwZGF0ZWQucWJfY3VzdG9tZXJfaWQpOwogICAgICAgICAgICAgIGN1c3RvbWVyRm91bmQgPSB0cnVlOwogICAgICAgICAgICAgIGJyZWFrOwogICAgICAgICAgICB9CiAgICAgICAgICAgIAogICAgICAgICAgICBpZiAodXBkYXRlZC5xYl9sYXN0X3N5bmNfcmVzdWx0ID09PSAiZXJyb3IiICYmIHVwZGF0ZWQucWJfbGFzdF9lcnJvcikgewogICAgICAgICAgICAgIHRocm93IG5ldyBFcnJvcihgQ3VzdG9tZXIgc3luYyBmYWlsZWQ6ICR7dXBkYXRlZC5xYl9sYXN0X2Vycm9yfWApOwogICAgICAgICAgICB9CiAgICAgICAgICAgIAogICAgICAgICAgICBhdHRlbXB0cysrOwogICAgICAgICAgfQogICAgICAgICAgCiAgICAgICAgICBpZiAoIWN1c3RvbWVyRm91bmQpIHsKICAgICAgICAgICAgdGhyb3cgbmV3IEVycm9yKCJDdXN0b21lciBzeW5jIGlzIHRha2luZyB0b28gbG9uZy4gUGxlYXNlIHRyeSBhZ2Fpbi4iKTsKICAgICAgICAgIH0KICAgICAgICB9IGVsc2UgaWYgKGN1c3RvbWVyUmVzLmRhdGE/LmVycm9yKSB7CiAgICAgICAgICB0aHJvdyBuZXcgRXJyb3IoY3VzdG9tZXJSZXMuZGF0YS5lcnJvcik7CiAgICAgICAgfQogICAgICB9IGVsc2UgewogICAgICAgIGNvbnNvbGUubG9nKCdbSW52b2ljZUNyZWF0aW9uRmxvd10gQ3VzdG9tZXIgYWxyZWFkeSBleGlzdHM6JywgbGVhZC5xYl9jdXN0b21lcl9pZCk7CiAgICAgIH0KCiAgICAgIC8vIFN0ZXAgMjogQ3JlYXRlIGludm9pY2UKICAgICAgY29uc29sZS5sb2coJ1tJbnZvaWNlQ3JlYXRpb25GbG93XSBDcmVhdGluZyBpbnZvaWNlLi4uJyk7CiAgICAgIGNvbnN0IGludm9pY2VSZXMgPSBhd2FpdCByYWlsd2F5UmVxdWVzdCgnL3FiL3N5bmMtbGVhZCcsIHsKICAgICAgICBsZWFkLAogICAgICAgIGFjdGlvbjogJ3N5bmNfaW52b2ljZScsCiAgICAgICAgcHJvamVjdElkOiBsZWFkLmlkLAogICAgICAgIGF1dG9DcmVhdGVDdXN0b21lcjogZmFsc2UsCiAgICAgICAgLi4uKGRlYWxJZCAmJiB7IGRlYWxJZCwgZGVhbEFtb3VudCwgZGVhbFByb2plY3RUeXBlIH0pLAogICAgICB9KTsKCiAgICAgIGlmIChpbnZvaWNlUmVzLnN0YXR1cyA9PT0gMjAyKSB7CiAgICAgICAgbGV0IGF0dGVtcHRzID0gMDsKICAgICAgICBjb25zdCBtYXhBdHRlbXB0cyA9IDIwOwogICAgICAgIGxldCBpbnZvaWNlRm91bmQgPSBmYWxzZTsKCiAgICAgICAgd2hpbGUgKGF0dGVtcHRzIDwgbWF4QXR0ZW1wdHMgJiYgIWludm9pY2VGb3VuZCkgewogICAgICAgICAgYXdhaXQgbmV3IFByb21pc2UociA9PiBzZXRUaW1lb3V0KHIsIDUwMCkpOwogICAgICAgICAgCiAgICAgICAgICBpZiAoIWlzTW91bnRlZFJlZi5jdXJyZW50KSByZXR1cm47CgogICAgICAgICAgY29uc3QgdXBkYXRlZCA9IGF3YWl0IGFwaUNhbGwoYC9hcGkvdjEvbGVhZHMvJHtsZWFkLmlkfWAsIHsgbWV0aG9kOiAnR0VUJyB9KTsKCiAgICAgICAgICBpZiAodXBkYXRlZC5xYl9pbnZvaWNlX2lkKSB7CiAgICAgICAgICAgIGNvbnNvbGUubG9nKCdbSW52b2ljZUNyZWF0aW9uRmxvd10gUUIgcmVzcG9uc2UgcmVjZWl2ZWQgLSBpbnZvaWNlIGNyZWF0ZWQnKTsKICAgICAgICAgICAgb25MZWFkVXBkYXRlPy4odXBkYXRlZCk7CiAgICAgICAgICAgIAogICAgICAgICAgICAvLyBUcmlnZ2VyIFBERiBmZXRjaGluZyBmcm9tIFFCIGluIGJhY2tncm91bmQKICAgICAgICAgICAgcmFpbHdheVJlcXVlc3QoJy9xYi9mZXRjaC1lc3RpbWF0ZS1wZGYnLCB7IGVzdGltYXRlX2lkOiBsZWFkLmlkIH0pLmNhdGNoKGUgPT4gY29uc29sZS53YXJuKCdbSW52b2ljZUNyZWF0aW9uRmxvd10gUERGIGZldGNoIGZhaWxlZDonLCBlLm1lc3NhZ2UpKTsKICAgICAgICAgICAgCiAgICAgICAgICAgIGlmIChpc01vdW50ZWRSZWYuY3VycmVudCkgewogICAgICAgICAgICAgIHNldFN1Y2Nlc3MoewogICAgICAgICAgICAgICAgaW52b2ljZU51bWJlcjogdXBkYXRlZC5xYl9pbnZvaWNlX251bWJlciB8fCB1cGRhdGVkLnFiX2ludm9pY2VfaWQsCiAgICAgICAgICAgICAgICBpbnZvaWNlQW1vdW50OiB1cGRhdGVkLnFiX2ludm9pY2VfYW1vdW50LAogICAgICAgICAgICAgIH0pOwogICAgICAgICAgICAgIGNvbnNvbGUubG9nKCdbSW52b2ljZUNyZWF0aW9uRmxvd10gSW52b2ljZSBVSSB1cGRhdGVkJyk7CiAgICAgICAgICAgICAgc2V0U3RhdGUoSU5WT0lDRV9TVEFURS5TVUNDRVNTKTsKICAgICAgICAgICAgICBzZXRDdXJyZW50U3RlcCgzKTsKICAgICAgICAgICAgICBpbnZvaWNlRm91bmQgPSB0cnVlOwogICAgICAgICAgICAgIGNsZWFyVGltZW91dHMoKTsKICAgICAgICAgICAgICAKICAgICAgICAgICAgICAvLyBBdXRvLWNvbGxhcHNlIGFmdGVyIDMgc2Vjb25kcwogICAgICAgICAgICAgIHNldFRpbWVvdXQoKCkgPT4gewogICAgICAgICAgICAgICAgaWYgKGlzTW91bnRlZFJlZi5jdXJyZW50KSBzZXRDb2xsYXBzaW5nKHRydWUpOwogICAgICAgICAgICAgIH0sIDMwMDApOwogICAgICAgICAgICB9CiAgICAgICAgICAgIHJldHVybjsKICAgICAgICAgIH0KCiAgICAgICAgICBpZiAodXBkYXRlZC5xYl9sYXN0X3N5bmNfcmVzdWx0ID09PSAiZXJyb3IiICYmIHVwZGF0ZWQucWJfbGFzdF9lcnJvcikgewogICAgICAgICAgICB0aHJvdyBuZXcgRXJyb3IodXBkYXRlZC5xYl9sYXN0X2Vycm9yKTsKICAgICAgICAgIH0KCiAgICAgICAgICBhdHRlbXB0cysrOwogICAgICAgIH0KCiAgICAgICAgdGhyb3cgbmV3IEVycm9yKCJJbnZvaWNlIGNyZWF0aW9uIGlzIHRha2luZyB0b28gbG9uZy4gUGxlYXNlIGNoZWNrIFF1aWNrQm9va3MgZGFzaGJvYXJkLiIpOwogICAgICB9IGVsc2UgaWYgKGludm9pY2VSZXMuZGF0YT8uZXJyb3IpIHsKICAgICAgICB0aHJvdyBuZXcgRXJyb3IoaW52b2ljZVJlcy5kYXRhLmVycm9yKTsKICAgICAgfSBlbHNlIHsKICAgICAgICB0aHJvdyBuZXcgRXJyb3IoIlVuZXhwZWN0ZWQgcmVzcG9uc2UgZnJvbSBRdWlja0Jvb2tzIik7CiAgICAgIH0KICAgIH0gY2F0Y2ggKGUpIHsKICAgICAgY29uc29sZS5lcnJvcignW0ludm9pY2VDcmVhdGlvbkZsb3ddIEVycm9yOicsIGUpOwogICAgICBpZiAoaXNNb3VudGVkUmVmLmN1cnJlbnQpIHsKICAgICAgICBzZXRFcnJvcihlLm1lc3NhZ2UgfHwgIkZhaWxlZCB0byBjcmVhdGUgaW52b2ljZSIpOwogICAgICAgIHNldFN0YXRlKElOVk9JQ0VfU1RBVEUuRVJST1IpOwogICAgICAgIHNldEN1cnJlbnRTdGVwKDEpOwogICAgICB9CiAgICB9IGZpbmFsbHkgewogICAgICBjb25zb2xlLmxvZygnW0ludm9pY2VDcmVhdGlvbkZsb3ddIExvYWRpbmcgcmVzZXQgY29tcGxldGUnKTsKICAgICAgY2xlYXJUaW1lb3V0cygpOwogICAgfQogIH07CgogIC8vIERvbid0IHNob3cgaWYgaW52b2ljZSBhbHJlYWR5IGV4aXN0cwogIGlmIChsZWFkLnFiX2ludm9pY2VfaWQgJiYgIWVycm9yICYmICFjb2xsYXBzaW5nKSB7CiAgICByZXR1cm4gbnVsbDsKICB9CgogIGNvbnN0IGlzUmVhZHlUb0NyZWF0ZSA9IHFiQ29ubmVjdGVkICYmIGxlYWQuc3RhdHVzID09PSAiU29sZCI7CiAgY29uc3QgaXNMb2FkaW5nID0gc3RhdGUgPT09IElOVk9JQ0VfU1RBVEUuTE9BRElORzsKICBjb25zdCBpc1RpbWVvdXQgPSBzdGF0ZSA9PT0gSU5WT0lDRV9TVEFURS5USU1FT1VUOwogIAogIGNvbnN0IG1pc3NpbmdJdGVtcyA9IFtdOwogIGlmICghcWJDb25uZWN0ZWQpIG1pc3NpbmdJdGVtcy5wdXNoKCJRdWlja0Jvb2tzIGNvbm5lY3Rpb24iKTsKICBpZiAobGVhZC5zdGF0dXMgIT09ICJTb2xkIikgbWlzc2luZ0l0ZW1zLnB1c2goIkxlYWQgbXVzdCBiZSBtYXJrZWQgYXMgU29sZCIpOwoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9e2BjYXJkLXByZW1pdW0gcC01IHRyYW5zaXRpb24tYWxsIGR1cmF0aW9uLTMwMCAke2NvbGxhcHNpbmcgPyAib3BhY2l0eS0wIHNjYWxlLTk1IiA6ICJvcGFjaXR5LTEwMCBzY2FsZS0xMDAifWB9PgogICAgICB7LyogSGVhZGVyICovfQogICAgICA8ZGl2IGNsYXNzTmFtZT0ibWItNCI+CiAgICAgICAgPGgzIGNsYXNzTmFtZT0idGV4dC14cyBmb250LWJvbGQgdGV4dC1zbGF0ZS05MDAgdXBwZXJjYXNlIHRyYWNraW5nLXdpZGVzdCBtYi0zIj4KICAgICAgICAgIPCfk4sgSW52b2ljZSBXb3JrZmxvdwogICAgICAgIDwvaDM+CiAgICAgIDwvZGl2PgoKICAgICAgey8qIFN1Y2Nlc3MgU3RhdGUgKi99CiAgICAgIHtzdWNjZXNzICYmICFlcnJvciAmJiAoCiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLWVtZXJhbGQtNTAgYm9yZGVyIGJvcmRlci1lbWVyYWxkLTIwMCByb3VuZGVkLWxnIHAtNCBtYi00Ij4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLXN0YXJ0IGdhcC0zIj4KICAgICAgICAgICAgPENoZWNrIGNsYXNzTmFtZT0idy01IGgtNSB0ZXh0LWVtZXJhbGQtNjAwIGZsZXgtc2hyaW5rLTAgbXQtMC41IiAvPgogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleC0xIj4KICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9ImZvbnQtYm9sZCB0ZXh0LWVtZXJhbGQtOTAwIHRleHQtc20iPuKckyBJbnZvaWNlIENyZWF0ZWQgU3VjY2Vzc2Z1bGx5PC9wPgogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtdC0yIHNwYWNlLXktMSB0ZXh0LXhzIHRleHQtZW1lcmFsZC04MDAiPgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBiZy13aGl0ZSByb3VuZGVkIHB4LTIgcHktMSI+CiAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0iZm9udC1zZW1pYm9sZCI+SW52b2ljZSAjOjwvc3Bhbj4KICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIj4KICAgICAgICAgICAgICAgICAgICA8Y29kZSBjbGFzc05hbWU9ImZvbnQtbW9ubyBmb250LWJvbGQiPntzdWNjZXNzLmludm9pY2VOdW1iZXJ9PC9jb2RlPgogICAgICAgICAgICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHsKICAgICAgICAgICAgICAgICAgICAgICAgbmF2aWdhdG9yLmNsaXBib2FyZC53cml0ZVRleHQoU3RyaW5nKHN1Y2Nlc3MuaW52b2ljZU51bWJlcikpOwogICAgICAgICAgICAgICAgICAgICAgfX0KICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0idGV4dC1lbWVyYWxkLTYwMCBob3Zlcjp0ZXh0LWVtZXJhbGQtNzAwIHRyYW5zaXRpb24tY29sb3JzIgogICAgICAgICAgICAgICAgICAgICAgdGl0bGU9IkNvcHkgaW52b2ljZSBudW1iZXIiCiAgICAgICAgICAgICAgICAgICAgPgogICAgICAgICAgICAgICAgICAgICAgPENvcHkgY2xhc3NOYW1lPSJ3LTMgaC0zIiAvPgogICAgICAgICAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBiZy13aGl0ZSByb3VuZGVkIHB4LTIgcHktMSI+CiAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0iZm9udC1zZW1pYm9sZCI+QW1vdW50Ojwvc3Bhbj4KICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJmb250LWJvbGQiPiR7KHN1Y2Nlc3MuaW52b2ljZUFtb3VudCB8fCAwKS50b0xvY2FsZVN0cmluZygiZW4tVVMiLCB7IG1pbmltdW1GcmFjdGlvbkRpZ2l0czogMiB9KX08L3NwYW4+CiAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzExcHhdIHRleHQtZW1lcmFsZC03MDAgbXQtMyBmb250LXNlbWlib2xkIj7wn5GHIFNjcm9sbCBkb3duIHRvIHJlY29yZCBwYXltZW50IOKGkjwvcD4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgKX0KCiAgICAgIHsvKiBFcnJvciBTdGF0ZSAqL30KICAgICAge2Vycm9yICYmICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctcmVkLTUwIGJvcmRlciBib3JkZXItcmVkLTIwMCByb3VuZGVkLWxnIHAtNCBtYi00Ij4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLXN0YXJ0IGdhcC0zIj4KICAgICAgICAgICAgPEFsZXJ0Q2lyY2xlIGNsYXNzTmFtZT0idy01IGgtNSB0ZXh0LXJlZC02MDAgZmxleC1zaHJpbmstMCBtdC0wLjUiIC8+CiAgICAgICAgICAgIDxkaXY+CiAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJmb250LWJvbGQgdGV4dC1yZWQtOTAwIHRleHQtc20iPuKaoCBJbnZvaWNlIENyZWF0aW9uIEZhaWxlZDwvcD4KICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1yZWQtNzAwIG10LTEgZm9udC1tb25vIGJnLXdoaXRlIHJvdW5kZWQgcHgtMiBweS0xIj57ZXJyb3J9PC9wPgogICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1bMTFweF0gdGV4dC1yZWQtNjAwIG10LTIiPkNoZWNrIFFCIGNvbm5lY3Rpb24gb3IgY29udGFjdCBzdXBwb3J0PC9wPgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICApfQoKICAgICAgey8qIE1pc3NpbmcgUHJlcmVxdWlzaXRlcyAqL30KICAgICAgeyFpc1JlYWR5VG9DcmVhdGUgJiYgIXN1Y2Nlc3MgJiYgKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1hbWJlci01MCBib3JkZXIgYm9yZGVyLWFtYmVyLTIwMCByb3VuZGVkLWxnIHAtMyBtYi00Ij4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLXN0YXJ0IGdhcC0yIj4KICAgICAgICAgICAgPEFsZXJ0Q2lyY2xlIGNsYXNzTmFtZT0idy00IGgtNCB0ZXh0LWFtYmVyLTYwMCBmbGV4LXNocmluay0wIG10LTAuNSIgLz4KICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LWFtYmVyLTkwMCI+Q2Fubm90IGNyZWF0ZSBpbnZvaWNlIHlldDo8L3A+CiAgICAgICAgICAgICAgPHVsIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LWFtYmVyLTcwMCBtdC0xIHNwYWNlLXktMC41Ij4KICAgICAgICAgICAgICAgIHttaXNzaW5nSXRlbXMubWFwKChpdGVtKSA9PiAoCiAgICAgICAgICAgICAgICAgIDxsaSBrZXk9e2l0ZW19PuKAoiB7aXRlbX08L2xpPgogICAgICAgICAgICAgICAgKSl9CiAgICAgICAgICAgICAgPC91bD4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgKX0KCiAgICAgIHsvKiBTdGVwIFByb2dyZXNzICovfQogICAgICA8ZGl2IGNsYXNzTmFtZT0ic3BhY2UteS0yIG1iLTUiPgogICAgICAgIHtTVEVQUy5tYXAoKHN0ZXAsIGlkeCkgPT4gewogICAgICAgICAgY29uc3QgSWNvbiA9IHN0ZXAuaWNvbjsKICAgICAgICAgIGNvbnN0IGlzQWN0aXZlID0gc3RlcC5pZCA9PT0gY3VycmVudFN0ZXA7CiAgICAgICAgICBjb25zdCBpc0NvbXBsZXRlID0gc3RlcC5pZCA8IGN1cnJlbnRTdGVwIHx8IChzdWNjZXNzICYmIHN0ZXAuaWQgPD0gMyk7CgogICAgICAgICAgcmV0dXJuICgKICAgICAgICAgICAgPGRpdiBrZXk9e3N0ZXAuaWR9IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTMiPgogICAgICAgICAgICAgIHsvKiBTdGVwIEluZGljYXRvciAqL30KICAgICAgICAgICAgICA8ZGl2CiAgICAgICAgICAgICAgICBjbGFzc05hbWU9e2B3LTggaC04IHJvdW5kZWQtZnVsbCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBmb250LWJvbGQgdGV4dC14cyBmbGV4LXNocmluay0wIHRyYW5zaXRpb24tYWxsICR7CiAgICAgICAgICAgICAgICAgIGlzQ29tcGxldGUKICAgICAgICAgICAgICAgICAgICA/ICJiZy1lbWVyYWxkLTEwMCB0ZXh0LWVtZXJhbGQtNzAwIgogICAgICAgICAgICAgICAgICAgIDogaXNBY3RpdmUKICAgICAgICAgICAgICAgICAgICA/ICJiZy1vcmFuZ2UgdGV4dC13aGl0ZSByaW5nLTIgcmluZy1vcmFuZ2UgcmluZy1vZmZzZXQtMiIKICAgICAgICAgICAgICAgICAgICA6ICJiZy1zbGF0ZS0xMDAgdGV4dC1zbGF0ZS00MDAiCiAgICAgICAgICAgICAgICB9YH0KICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICB7aXNDb21wbGV0ZSA/IDxDaGVjayBjbGFzc05hbWU9InctNCBoLTQiIC8+IDogc3RlcC5pZH0KICAgICAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICAgICAgey8qIFN0ZXAgQ29udGVudCAqL30KICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleC0xIG1pbi13LTAiPgogICAgICAgICAgICAgICAgPHAKICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPXtgdGV4dC14cyBmb250LXNlbWlib2xkIHRyYW5zaXRpb24tY29sb3JzICR7CiAgICAgICAgICAgICAgICAgICAgaXNBY3RpdmUKICAgICAgICAgICAgICAgICAgICAgID8gInRleHQtb3JhbmdlIgogICAgICAgICAgICAgICAgICAgICAgOiBpc0NvbXBsZXRlCiAgICAgICAgICAgICAgICAgICAgICA/ICJ0ZXh0LWVtZXJhbGQtNjAwIgogICAgICAgICAgICAgICAgICAgICAgOiAidGV4dC1zbGF0ZS00MDAiCiAgICAgICAgICAgICAgICAgIH1gfQogICAgICAgICAgICAgICAgPgogICAgICAgICAgICAgICAgICB7c3RlcC5sYWJlbH0KICAgICAgICAgICAgICAgIDwvcD4KICAgICAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICAgICAgey8qIFJpZ2h0IEFycm93IChiZXR3ZWVuIHN0ZXBzKSAqL30KICAgICAgICAgICAgICB7aWR4IDwgU1RFUFMubGVuZ3RoIC0gMSAmJiAoCiAgICAgICAgICAgICAgICA8Q2hldnJvblJpZ2h0CiAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT17YHctNCBoLTQgZmxleC1zaHJpbmstMCB0cmFuc2l0aW9uLWNvbG9ycyAkewogICAgICAgICAgICAgICAgICAgIGlzQ29tcGxldGUgPyAidGV4dC1lbWVyYWxkLTQwMCIgOiAidGV4dC1zbGF0ZS0yMDAiCiAgICAgICAgICAgICAgICAgIH1gfQogICAgICAgICAgICAgICAgLz4KICAgICAgICAgICAgICApfQogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICk7CiAgICAgICAgfSl9CiAgICAgIDwvZGl2PgoKICAgICAgey8qIFByaW1hcnkgQWN0aW9uIEJ1dHRvbiAqL30KICAgICAgeyFzdWNjZXNzICYmICgKICAgICAgICA8YnV0dG9uCiAgICAgICAgICBvbkNsaWNrPXtoYW5kbGVDcmVhdGVJbnZvaWNlfQogICAgICAgICAgZGlzYWJsZWQ9e2lzTG9hZGluZyB8fCAhaXNSZWFkeVRvQ3JlYXRlfQogICAgICAgICAgdGl0bGU9eyFpc1JlYWR5VG9DcmVhdGUgPyAiQ29tcGxldGUgcHJlcmVxdWlzaXRlcyBmaXJzdCIgOiAiIn0KICAgICAgICAgIGNsYXNzTmFtZT17YHctZnVsbCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBnYXAtMiBweC00IHB5LTMgdGV4dC1zbSBmb250LWJvbGQgcm91bmRlZC1sZyB0cmFuc2l0aW9uLWFsbCAkewogICAgICAgICAgICBpc0xvYWRpbmcKICAgICAgICAgICAgICA/ICJiZy15ZWxsb3ctNTAwIHRleHQtd2hpdGUgY3Vyc29yLXdhaXQiCiAgICAgICAgICAgICAgOiBpc1RpbWVvdXQKICAgICAgICAgICAgICA/ICJiZy1vcmFuZ2UgdGV4dC13aGl0ZSBob3ZlcjpzaGFkb3ctbGcgaG92ZXI6c2hhZG93LW9yYW5nZS80MCBhY3RpdmU6c2NhbGUtOTUiCiAgICAgICAgICAgICAgOiBpc1JlYWR5VG9DcmVhdGUKICAgICAgICAgICAgICA/ICJiZy1ncmFkaWVudC10by1yIGZyb20tb3JhbmdlIHRvLWFtYmVyLTYwMCB0ZXh0LXdoaXRlIGhvdmVyOnNoYWRvdy1sZyBob3ZlcjpzaGFkb3ctb3JhbmdlLzQwIGFjdGl2ZTpzY2FsZS05NSIKICAgICAgICAgICAgICA6ICJiZy1zbGF0ZS0xMDAgdGV4dC1zbGF0ZS00MDAgY3Vyc29yLW5vdC1hbGxvd2VkIgogICAgICAgICAgfWB9CiAgICAgICAgPgogICAgICAgICAge2lzTG9hZGluZyA/ICgKICAgICAgICAgICAgPD4KICAgICAgICAgICAgICA8TG9hZGVyMiBjbGFzc05hbWU9InctNCBoLTQgYW5pbWF0ZS1zcGluIiAvPgogICAgICAgICAgICAgIPCfn6EgQ3JlYXRpbmcgSW52b2ljZeKApgogICAgICAgICAgICA8Lz4KICAgICAgICAgICkgOiBpc1RpbWVvdXQgPyAoCiAgICAgICAgICAgIDw+CiAgICAgICAgICAgICAgPENsb2NrIGNsYXNzTmFtZT0idy00IGgtNCIgLz4KICAgICAgICAgICAgICDwn5+gIFJldHJ5IEludm9pY2UgU3luYwogICAgICAgICAgICA8Lz4KICAgICAgICAgICkgOiBlcnJvciA/ICgKICAgICAgICAgICAgPD4KICAgICAgICAgICAgICA8QWxlcnRDaXJjbGUgY2xhc3NOYW1lPSJ3LTQgaC00IiAvPgogICAgICAgICAgICAgIPCflLQgSW52b2ljZSBGYWlsZWQKICAgICAgICAgICAgPC8+CiAgICAgICAgICApIDogKAogICAgICAgICAgICA8PgogICAgICAgICAgICAgIDxSZWNlaXB0IGNsYXNzTmFtZT0idy00IGgtNCIgLz4KICAgICAgICAgICAgICBDcmVhdGUgSW52b2ljZSBpbiBRdWlja0Jvb2tzCiAgICAgICAgICAgIDwvPgogICAgICAgICAgKX0KICAgICAgICA8L2J1dHRvbj4KICAgICAgKX0KCiAgICAgIHsvKiBTdWNjZXNzIC0gU2hvdyBOZXh0IFN0ZXAgKi99CiAgICAgIHtzdWNjZXNzICYmICFlcnJvciAmJiBzdGF0ZSA9PT0gSU5WT0lDRV9TVEFURS5TVUNDRVNTICYmICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgdGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtZW1lcmFsZC03MDAgYmctZW1lcmFsZC01MCByb3VuZGVkLWxnIHB4LTQgcHktMyI+CiAgICAgICAgICA8Q2hlY2sgY2xhc3NOYW1lPSJ3LTQgaC00IiAvPgogICAgICAgICAg8J+foiBJbnZvaWNlIENyZWF0ZWQg4oCiIE5leHQ6IFJlY29yZCBwYXltZW50IGJlbG93IOKGkgogICAgICAgIDwvZGl2PgogICAgICApfQoKICAgICAgey8qIFRpbWVvdXQgLSBTaG93IFJldHJ5ICovfQogICAgICB7aXNUaW1lb3V0ICYmICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgdGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtb3JhbmdlIGJnLW9yYW5nZS8xMCByb3VuZGVkLWxnIHB4LTQgcHktMyI+CiAgICAgICAgICA8Q2xvY2sgY2xhc3NOYW1lPSJ3LTQgaC00IiAvPgogICAgICAgICAg8J+foCBRQiByZXNwb25zZSB0aW1lb3V0IOKAlCB0cnkgYWdhaW4KICAgICAgICA8L2Rpdj4KICAgICAgKX0KCiAgICAgIHsvKiBJbmZvIFRleHQgKi99CiAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gdGV4dC1zbGF0ZS01MDAgbXQtNCBsZWFkaW5nLXJlbGF4ZWQiPgogICAgICAgIDxzdHJvbmc+SG93IGl0IHdvcmtzOjwvc3Ryb25nPiBDcmVhdGUgY3VzdG9tZXIgaW4gUXVpY2tCb29rcywgdGhlbiBnZW5lcmF0ZSBpbnZvaWNlLiBBZnRlciBpbnZvaWNlIGlzIGNyZWF0ZWQsIHlvdSdsbCBiZSBhYmxlIHRvIHJlY29yZCBwYXltZW50cyBiZWxvdy4KICAgICAgPC9wPgogICAgPC9kaXY+CiAgKTsKfQ==
+import { useState, useEffect, useRef } from "react";
+import { apiCall } from "@/api/railway/client";
+import { railwayRequest } from "@/lib/railwayClient";
+import {
+  ChevronRight, Check, AlertCircle, Loader2, User, Receipt,
+  CreditCard, RotateCcw, Copy, Clock
+} from "lucide-react";
+
+const STEPS = [
+  { id: 1, label: "Create Customer", icon: User },
+  { id: 2, label: "Create Invoice", icon: Receipt },
+  { id: 3, label: "Record Payment", icon: CreditCard },
+  { id: 4, label: "Sync Status", icon: RotateCcw },
+];
+
+const INVOICE_STATE = {
+  IDLE: 'idle',
+  LOADING: 'loading',
+  SUCCESS: 'success',
+  ERROR: 'error',
+  TIMEOUT: 'timeout',
+};
+
+export default function InvoiceCreationFlow({ lead, onLeadUpdate, qbConnected, dealId, dealAmount, dealProjectType }) {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [state, setState] = useState(INVOICE_STATE.IDLE);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [collapsing, setCollapsing] = useState(false);
+  
+  // Timeout & watchdog protection
+  const timeoutRef = useRef(null);
+  const watchdogRef = useRef(null);
+  const isMountedRef = useRef(true);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (watchdogRef.current) clearTimeout(watchdogRef.current);
+    };
+  }, []);
+
+  // Detect if invoice already exists in QB (auto-recovery)
+  useEffect(() => {
+    if (lead.qb_invoice_id && state === INVOICE_STATE.LOADING) {
+      console.log('[InvoiceCreationFlow] Auto-recovery: QB invoice detected while loading', lead.qb_invoice_id);
+      clearTimeouts();
+      if (isMountedRef.current) {
+        setSuccess({
+          invoiceNumber: lead.qb_invoice_number || lead.qb_invoice_id,
+          invoiceAmount: lead.qb_invoice_amount,
+        });
+        setState(INVOICE_STATE.SUCCESS);
+        setCurrentStep(3);
+      }
+    } else if (lead.qb_invoice_id && state === INVOICE_STATE.IDLE) {
+      // Invoice exists, show success state
+      setSuccess({
+        invoiceNumber: lead.qb_invoice_number || lead.qb_invoice_id,
+        invoiceAmount: lead.qb_invoice_amount,
+      });
+      setCurrentStep(3);
+    } else if (!lead.qb_invoice_id && state === INVOICE_STATE.IDLE) {
+      setCurrentStep(1);
+      setSuccess(null);
+    }
+  }, [lead.qb_invoice_id, lead.qb_invoice_number, lead.qb_invoice_amount, state]);
+
+  const clearTimeouts = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    if (watchdogRef.current) {
+      clearTimeout(watchdogRef.current);
+      watchdogRef.current = null;
+    }
+  };
+
+  const resetState = () => {
+    console.log('[InvoiceCreationFlow] Resetting state to IDLE');
+    clearTimeouts();
+    if (isMountedRef.current) {
+      setState(INVOICE_STATE.IDLE);
+    }
+  };
+
+  const handleCreateInvoice = async () => {
+    if (state !== INVOICE_STATE.IDLE && state !== INVOICE_STATE.ERROR && state !== INVOICE_STATE.TIMEOUT) {
+      console.log('[InvoiceCreationFlow] Already in progress, ignoring duplicate click');
+      return;
+    }
+
+    console.log('[InvoiceCreationFlow] Invoice creation started');
+    setError(null);
+    setSuccess(null);
+    
+    if (!isMountedRef.current) return;
+    setState(INVOICE_STATE.LOADING);
+
+    try {
+      // Set 20s timeout for QB response
+      timeoutRef.current = setTimeout(() => {
+        console.warn('[InvoiceCreationFlow] 20s timeout reached');
+        if (isMountedRef.current) {
+          setState(INVOICE_STATE.TIMEOUT);
+          setError('QuickBooks response timeout. Please try again.');
+        }
+      }, 20000);
+
+      // Set 30s watchdog to force reset if stuck
+      watchdogRef.current = setTimeout(() => {
+        console.warn('[InvoiceCreationFlow] 30s watchdog triggered - force reset');
+        if (isMountedRef.current) {
+          setState(INVOICE_STATE.IDLE);
+          setError('Operation took too long. Please refresh and try again.');
+        }
+        clearTimeouts();
+      }, 30000);
+
+      // Step 1: Ensure customer exists in QB
+      console.log('[InvoiceCreationFlow] Starting customer sync for lead:', lead.id);
+      
+      if (!lead.qb_customer_id) {
+        const customerRes = await railwayRequest('/qb/sync-lead', { lead });
+        
+        if (customerRes.status === 202) {
+          let attempts = 0;
+          let customerFound = false;
+          
+          while (attempts < 10 && !customerFound) {
+            await new Promise(r => setTimeout(r, 500));
+            
+            if (!isMountedRef.current) return;
+            
+            const updated = await apiCall(`/api/v1/leads/${lead.id}`, { method: 'GET' });
+            if (updated.qb_customer_id) {
+              console.log('[InvoiceCreationFlow] Customer synced:', updated.qb_customer_id);
+              customerFound = true;
+              break;
+            }
+            
+            if (updated.qb_last_sync_result === "error" && updated.qb_last_error) {
+              throw new Error(`Customer sync failed: ${updated.qb_last_error}`);
+            }
+            
+            attempts++;
+          }
+          
+          if (!customerFound) {
+            throw new Error("Customer sync is taking too long. Please try again.");
+          }
+        } else if (customerRes.data?.error) {
+          throw new Error(customerRes.data.error);
+        }
+      } else {
+        console.log('[InvoiceCreationFlow] Customer already exists:', lead.qb_customer_id);
+      }
+
+      // Step 2: Create invoice
+      console.log('[InvoiceCreationFlow] Creating invoice...');
+      const invoiceRes = await railwayRequest('/qb/sync-lead', {
+        lead,
+        action: 'sync_invoice',
+        projectId: lead.id,
+        autoCreateCustomer: false,
+        ...(dealId && { dealId, dealAmount, dealProjectType }),
+      });
+
+      if (invoiceRes.status === 202) {
+        let attempts = 0;
+        const maxAttempts = 20;
+        let invoiceFound = false;
+
+        while (attempts < maxAttempts && !invoiceFound) {
+          await new Promise(r => setTimeout(r, 500));
+          
+          if (!isMountedRef.current) return;
+
+          const updated = await apiCall(`/api/v1/leads/${lead.id}`, { method: 'GET' });
+
+          if (updated.qb_invoice_id) {
+            console.log('[InvoiceCreationFlow] QB response received - invoice created');
+            onLeadUpdate?.(updated);
+            
+            // Trigger PDF fetching from QB in background
+            railwayRequest('/qb/fetch-estimate-pdf', { estimate_id: lead.id }).catch(e => console.warn('[InvoiceCreationFlow] PDF fetch failed:', e.message));
+            
+            if (isMountedRef.current) {
+              setSuccess({
+                invoiceNumber: updated.qb_invoice_number || updated.qb_invoice_id,
+                invoiceAmount: updated.qb_invoice_amount,
+              });
+              console.log('[InvoiceCreationFlow] Invoice UI updated');
+              setState(INVOICE_STATE.SUCCESS);
+              setCurrentStep(3);
+              invoiceFound = true;
+              clearTimeouts();
+              
+              // Auto-collapse after 3 seconds
+              setTimeout(() => {
+                if (isMountedRef.current) setCollapsing(true);
+              }, 3000);
+            }
+            return;
+          }
+
+          if (updated.qb_last_sync_result === "error" && updated.qb_last_error) {
+            throw new Error(updated.qb_last_error);
+          }
+
+          attempts++;
+        }
+
+        throw new Error("Invoice creation is taking too long. Please check QuickBooks dashboard.");
+      } else if (invoiceRes.data?.error) {
+        throw new Error(invoiceRes.data.error);
+      } else {
+        throw new Error("Unexpected response from QuickBooks");
+      }
+    } catch (e) {
+      console.error('[InvoiceCreationFlow] Error:', e);
+      if (isMountedRef.current) {
+        setError(e.message || "Failed to create invoice");
+        setState(INVOICE_STATE.ERROR);
+        setCurrentStep(1);
+      }
+    } finally {
+      console.log('[InvoiceCreationFlow] Loading reset complete');
+      clearTimeouts();
+    }
+  };
+
+  // Don't show if invoice already exists
+  if (lead.qb_invoice_id && !error && !collapsing) {
+    return null;
+  }
+
+  const isReadyToCreate = qbConnected && lead.status === "Sold";
+  const isLoading = state === INVOICE_STATE.LOADING;
+  const isTimeout = state === INVOICE_STATE.TIMEOUT;
+  
+  const missingItems = [];
+  if (!qbConnected) missingItems.push("QuickBooks connection");
+  if (lead.status !== "Sold") missingItems.push("Lead must be marked as Sold");
+
+  return (
+    <div className={`card-premium p-5 transition-all duration-300 ${collapsing ? "opacity-0 scale-95" : "opacity-100 scale-100"}`}>
+      {/* Header */}
+      <div className="mb-4">
+        <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-3">
+          📋 Invoice Workflow
+        </h3>
+      </div>
+
+      {/* Success State */}
+      {success && !error && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 mb-4">
+          <div className="flex items-start gap-3">
+            <Check className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-bold text-emerald-900 text-sm">✓ Invoice Created Successfully</p>
+              <div className="mt-2 space-y-1 text-xs text-emerald-800">
+                <div className="flex items-center justify-between bg-white rounded px-2 py-1">
+                  <span className="font-semibold">Invoice #:</span>
+                  <div className="flex items-center gap-2">
+                    <code className="font-mono font-bold">{success.invoiceNumber}</code>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(String(success.invoiceNumber));
+                      }}
+                      className="text-emerald-600 hover:text-emerald-700 transition-colors"
+                      title="Copy invoice number"
+                    >
+                      <Copy className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between bg-white rounded px-2 py-1">
+                  <span className="font-semibold">Amount:</span>
+                  <span className="font-bold">${(success.invoiceAmount || 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
+                </div>
+              </div>
+              <p className="text-[11px] text-emerald-700 mt-3 font-semibold">👇 Scroll down to record payment →</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-red-900 text-sm">⚠ Invoice Creation Failed</p>
+              <p className="text-xs text-red-700 mt-1 font-mono bg-white rounded px-2 py-1">{error}</p>
+              <p className="text-[11px] text-red-600 mt-2">Check QB connection or contact support</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Missing Prerequisites */}
+      {!isReadyToCreate && !success && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-semibold text-amber-900">Cannot create invoice yet:</p>
+              <ul className="text-xs text-amber-700 mt-1 space-y-0.5">
+                {missingItems.map((item) => (
+                  <li key={item}>• {item}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Step Progress */}
+      <div className="space-y-2 mb-5">
+        {STEPS.map((step, idx) => {
+          const Icon = step.icon;
+          const isActive = step.id === currentStep;
+          const isComplete = step.id < currentStep || (success && step.id <= 3);
+
+          return (
+            <div key={step.id} className="flex items-center gap-3">
+              {/* Step Indicator */}
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0 transition-all ${
+                  isComplete
+                    ? "bg-emerald-100 text-emerald-700"
+                    : isActive
+                    ? "bg-orange text-white ring-2 ring-orange ring-offset-2"
+                    : "bg-slate-100 text-slate-400"
+                }`}
+              >
+                {isComplete ? <Check className="w-4 h-4" /> : step.id}
+              </div>
+
+              {/* Step Content */}
+              <div className="flex-1 min-w-0">
+                <p
+                  className={`text-xs font-semibold transition-colors ${
+                    isActive
+                      ? "text-orange"
+                      : isComplete
+                      ? "text-emerald-600"
+                      : "text-slate-400"
+                  }`}
+                >
+                  {step.label}
+                </p>
+              </div>
+
+              {/* Right Arrow (between steps) */}
+              {idx < STEPS.length - 1 && (
+                <ChevronRight
+                  className={`w-4 h-4 flex-shrink-0 transition-colors ${
+                    isComplete ? "text-emerald-400" : "text-slate-200"
+                  }`}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Primary Action Button */}
+      {!success && (
+        <button
+          onClick={handleCreateInvoice}
+          disabled={isLoading || !isReadyToCreate}
+          title={!isReadyToCreate ? "Complete prerequisites first" : ""}
+          className={`w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold rounded-lg transition-all ${
+            isLoading
+              ? "bg-yellow-500 text-white cursor-wait"
+              : isTimeout
+              ? "bg-orange text-white hover:shadow-lg hover:shadow-orange/40 active:scale-95"
+              : isReadyToCreate
+              ? "bg-gradient-to-r from-orange to-amber-600 text-white hover:shadow-lg hover:shadow-orange/40 active:scale-95"
+              : "bg-slate-100 text-slate-400 cursor-not-allowed"
+          }`}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              🟡 Creating Invoice…
+            </>
+          ) : isTimeout ? (
+            <>
+              <Clock className="w-4 h-4" />
+              🟠 Retry Invoice Sync
+            </>
+          ) : error ? (
+            <>
+              <AlertCircle className="w-4 h-4" />
+              🔴 Invoice Failed
+            </>
+          ) : (
+            <>
+              <Receipt className="w-4 h-4" />
+              Create Invoice in QuickBooks
+            </>
+          )}
+        </button>
+      )}
+
+      {/* Success - Show Next Step */}
+      {success && !error && state === INVOICE_STATE.SUCCESS && (
+        <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 bg-emerald-50 rounded-lg px-4 py-3">
+          <Check className="w-4 h-4" />
+          🟢 Invoice Created • Next: Record payment below →
+        </div>
+      )}
+
+      {/* Timeout - Show Retry */}
+      {isTimeout && (
+        <div className="flex items-center gap-2 text-xs font-semibold text-orange bg-orange/10 rounded-lg px-4 py-3">
+          <Clock className="w-4 h-4" />
+          🟠 QB response timeout — try again
+        </div>
+      )}
+
+      {/* Info Text */}
+      <p className="text-[10px] text-slate-500 mt-4 leading-relaxed">
+        <strong>How it works:</strong> Create customer in QuickBooks, then generate invoice. After invoice is created, you'll be able to record payments below.
+      </p>
+    </div>
+  );
+}

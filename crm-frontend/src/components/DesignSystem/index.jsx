@@ -1,1 +1,50 @@
-LyoqCiAqIFVuaWZpZWQgRGVzaWduIFN5c3RlbQogKiBDZW50cmFsIGV4cG9ydCBmb3IgYWxsIHJldXNhYmxlIGNvbXBvbmVudHMKICovCgovLyBCYWRnZXMKZXhwb3J0IHsgU3RhdHVzQmFkZ2UsIEFjdGlvbkJhZGdlIH0gZnJvbSAnLi9CYWRnZSc7CgovLyBDYXJkcwpleHBvcnQgeyBDYXJkLCBDYXJkSGVhZGVyLCBDYXJkQ29udGVudCwgQ2FyZEZvb3RlciwgS1BJQ2FyZCB9IGZyb20gJy4vQ2FyZCc7CgovLyBJbnB1dHMKZXhwb3J0IHsgVGV4dElucHV0LCBFbWFpbElucHV0LCBTZWxlY3QsIFRleHRBcmVhIH0gZnJvbSAnLi9JbnB1dCc7CgovLyBTZWN0aW9uIEhlYWRlcnMKZXhwb3J0IHsgUGFnZVRpdGxlLCBQYWdlU3VidGl0bGUsIFNlY3Rpb25UaXRsZSwgR3JvdXBMYWJlbCwgSGVscGVyVGV4dCwgTGFiZWwgfSBmcm9tICcuL1NlY3Rpb25IZWFkZXInOwoKLy8gQnV0dG9ucwpleHBvcnQgeyBCdXR0b24sIEljb25CdXR0b24sIENvbXBhY3RCdXR0b24gfSBmcm9tICcuL0J1dHRvbic7CgovLyBBY2NvcmRpb24KZXhwb3J0IHsgQWNjb3JkaW9uSXRlbSwgQWNjb3JkaW9uQ29udGVudCB9IGZyb20gJy4vQWNjb3JkaW9uJzsKCi8vIFRpbWVsaW5lCmV4cG9ydCB7IFRpbWVsaW5lRW50cnksIFRpbWVsaW5lQ29udGFpbmVyIH0gZnJvbSAnLi9UaW1lbGluZSc7CgovLyBQcm9maWxlIENhcmRzCmV4cG9ydCB7IFByb2ZpbGVDYXJkLCBQcm9maWxlUm93IH0gZnJvbSAnLi9Qcm9maWxlQ2FyZCc7CgovLyBFbXB0eSBTdGF0ZXMKZXhwb3J0IHsgRW1wdHlTdGF0ZSwgVGFibGVFbXB0eVN0YXRlIH0gZnJvbSAnLi9FbXB0eVN0YXRlJzsKCi8vIFRhYmxlcwpleHBvcnQgeyBUYWJsZSwgVGFibGVIZWFkZXIsIFRhYmxlUm93LCBUYWJsZUNlbGwgfSBmcm9tICcuL1RhYmxlJzsKCi8vIEFsZXJ0cyAmIEVycm9ycwpleHBvcnQgeyBBbGVydCB9IGZyb20gJy4vQWxlcnQnOwpleHBvcnQgeyBGcmllbmRseUVycm9yLCBub3JtYWxpemVFcnJvciB9IGZyb20gJy4vRnJpZW5kbHlFcnJvcic7CgovLyBUYWJzCmV4cG9ydCB7IFRhYkJhciB9IGZyb20gJy4vVGFiQmFyJzsKCi8vIEtQSSBDaGlwcwpleHBvcnQgeyBLUElDaGlwLCBLUElDaGlwR3JvdXAsIEVkaXRhYmxlS1BJQ2hpcCB9IGZyb20gJy4vS1BJQ2hpcCc7CgovLyBQYXltZW50IFRhYmxlCmV4cG9ydCB7IFBheW1lbnRUYWJsZSB9IGZyb20gJy4vUGF5bWVudFRhYmxlJzsKCi8vIFNpZGUgUGFuZWwKZXhwb3J0IHsgU2lkZVBhbmVsIH0gZnJvbSAnLi9TaWRlUGFuZWwnOw==
+/**
+ * Unified Design System
+ * Central export for all reusable components
+ */
+
+// Badges
+export { StatusBadge, ActionBadge } from './Badge';
+
+// Cards
+export { Card, CardHeader, CardContent, CardFooter, KPICard } from './Card';
+
+// Inputs
+export { TextInput, EmailInput, Select, TextArea } from './Input';
+
+// Section Headers
+export { PageTitle, PageSubtitle, SectionTitle, GroupLabel, HelperText, Label } from './SectionHeader';
+
+// Buttons
+export { Button, IconButton, CompactButton } from './Button';
+
+// Accordion
+export { AccordionItem, AccordionContent } from './Accordion';
+
+// Timeline
+export { TimelineEntry, TimelineContainer } from './Timeline';
+
+// Profile Cards
+export { ProfileCard, ProfileRow } from './ProfileCard';
+
+// Empty States
+export { EmptyState, TableEmptyState } from './EmptyState';
+
+// Tables
+export { Table, TableHeader, TableRow, TableCell } from './Table';
+
+// Alerts & Errors
+export { Alert } from './Alert';
+export { FriendlyError, normalizeError } from './FriendlyError';
+
+// Tabs
+export { TabBar } from './TabBar';
+
+// KPI Chips
+export { KPIChip, KPIChipGroup, EditableKPIChip } from './KPIChip';
+
+// Payment Table
+export { PaymentTable } from './PaymentTable';
+
+// Side Panel
+export { SidePanel } from './SidePanel';

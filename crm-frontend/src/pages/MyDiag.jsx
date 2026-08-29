@@ -1,1 +1,50 @@
-aW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IHVzZUF1dGggfSBmcm9tICJAL2xpYi9BdXRoQ29udGV4dCI7CmltcG9ydCAqIGFzIHJhaWx3YXlMZWFkcyBmcm9tICJAL2FwaS9yYWlsd2F5L2xlYWRzIjsKCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIE15RGlhZygpIHsKICBjb25zdCB7IHVzZXIgfSA9IHVzZUF1dGgoKTsKICBjb25zdCBbcmVzdWx0LCBzZXRSZXN1bHRdID0gdXNlU3RhdGUobnVsbCk7CiAgY29uc3QgW2xvYWRpbmcsIHNldExvYWRpbmddID0gdXNlU3RhdGUoZmFsc2UpOwoKICBjb25zdCBydW4gPSBhc3luYyAoKSA9PiB7CiAgICBzZXRMb2FkaW5nKHRydWUpOwogICAgdHJ5IHsKICAgICAgY29uc3QgcmVzID0gYXdhaXQgcmFpbHdheUxlYWRzLmxpc3QoeyBsaW1pdDogMjAwMCB9KTsKICAgICAgY29uc3QgbGVhZHMgPSByZXMuaXRlbXMgfHwgW107CiAgICAgIHNldFJlc3VsdCh7CiAgICAgICAgdXNlcjogeyBlbWFpbDogdXNlcj8uZW1haWwsIHJvbGU6IHVzZXI/LnJvbGUsIGZ1bGxfbmFtZTogdXNlcj8uZnVsbF9uYW1lIH0sCiAgICAgICAgdG90YWxMZWFkczogbGVhZHMubGVuZ3RoLAogICAgICAgIGZpcnN0NTogbGVhZHMuc2xpY2UoMCwgNSkubWFwKGwgPT4gKHsgaWQ6IGwuaWQsIG5hbWU6IGAke2wuZmlyc3RfbmFtZX0gJHtsLmxhc3RfbmFtZX1gLCBzdGF0dXM6IGwuc3RhdHVzLCBhc3NpZ25lZF9yZXA6IGwuYXNzaWduZWRfcmVwIH0pKSwKICAgICAgfSk7CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIHNldFJlc3VsdCh7IGVycm9yOiBlLm1lc3NhZ2UgfSk7CiAgICB9CiAgICBzZXRMb2FkaW5nKGZhbHNlKTsKICB9OwoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9Im1pbi1oLXNjcmVlbiBiZy1zbGF0ZS01MCBmbGV4IGZsZXgtY29sIGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBwLTgiPgogICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctd2hpdGUgcm91bmRlZC14bCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCBzaGFkb3ctc20gcC04IG1heC13LTJ4bCB3LWZ1bGwiPgogICAgICAgIDxoMSBjbGFzc05hbWU9InRleHQteGwgZm9udC1ib2xkIHRleHQtc2xhdGUtOTAwIG1iLTIiPk15IExlYWRzIERpYWdub3N0aWM8L2gxPgogICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1zbSB0ZXh0LXNsYXRlLTUwMCBtYi02Ij4KICAgICAgICAgIFRoaXMgcnVucyBhcyA8c3Ryb25nPnlvdXI8L3N0cm9uZz4gbG9nZ2VkLWluIHNlc3Npb24gYW5kIHNob3dzIGV4YWN0bHkgd2hhdCB0aGUgZGF0YWJhc2UgcmV0dXJucyBmb3IgeW91ciBhY2NvdW50LgogICAgICAgICAgSGF2ZSA8c3Ryb25nPkV0aGFuPC9zdHJvbmc+IG9wZW4gdGhpcyBwYWdlIHdoaWxlIGxvZ2dlZCBpbiBhcyBoaW1zZWxmLgogICAgICAgIDwvcD4KICAgICAgICA8YnV0dG9uCiAgICAgICAgICBvbkNsaWNrPXtydW59CiAgICAgICAgICBkaXNhYmxlZD17bG9hZGluZ30KICAgICAgICAgIGNsYXNzTmFtZT0iYmctYW1iZXItNjAwIGhvdmVyOmJnLWFtYmVyLTcwMCB0ZXh0LXdoaXRlIGZvbnQtYm9sZCBweC02IHB5LTMgcm91bmRlZC1sZyB0cmFuc2l0aW9uLWNvbG9ycyBkaXNhYmxlZDpvcGFjaXR5LTUwIHctZnVsbCIKICAgICAgICA+CiAgICAgICAgICB7bG9hZGluZyA/ICJSdW5uaW5n4oCmIiA6ICJSdW4gRGlhZ25vc3RpYyBhcyBNZSJ9CiAgICAgICAgPC9idXR0b24+CgogICAgICAgIHtyZXN1bHQgJiYgKAogICAgICAgICAgPGRpdiBjbGFzc05hbWU9Im10LTYgYmctc2xhdGUtOTAwIHRleHQtZ3JlZW4tNDAwIGZvbnQtbW9ubyB0ZXh0LXhzIHJvdW5kZWQtbGcgcC01IG92ZXJmbG93LWF1dG8gbWF4LWgtWzYwdmhdIj4KICAgICAgICAgICAgPHByZT57SlNPTi5zdHJpbmdpZnkocmVzdWx0LCBudWxsLCAyKX08L3ByZT4KICAgICAgICAgIDwvZGl2PgogICAgICAgICl9CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CiAgKTsKfQ==
+import { useState } from "react";
+import { useAuth } from "@/lib/AuthContext";
+import * as railwayLeads from "@/api/railway/leads";
+
+export default function MyDiag() {
+  const { user } = useAuth();
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const run = async () => {
+    setLoading(true);
+    try {
+      const res = await railwayLeads.list({ limit: 2000 });
+      const leads = res.items || [];
+      setResult({
+        user: { email: user?.email, role: user?.role, full_name: user?.full_name },
+        totalLeads: leads.length,
+        first5: leads.slice(0, 5).map(l => ({ id: l.id, name: `${l.first_name} ${l.last_name}`, status: l.status, assigned_rep: l.assigned_rep })),
+      });
+    } catch (e) {
+      setResult({ error: e.message });
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-8">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8 max-w-2xl w-full">
+        <h1 className="text-xl font-bold text-slate-900 mb-2">My Leads Diagnostic</h1>
+        <p className="text-sm text-slate-500 mb-6">
+          This runs as <strong>your</strong> logged-in session and shows exactly what the database returns for your account.
+          Have <strong>Ethan</strong> open this page while logged in as himself.
+        </p>
+        <button
+          onClick={run}
+          disabled={loading}
+          className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-6 py-3 rounded-lg transition-colors disabled:opacity-50 w-full"
+        >
+          {loading ? "Running…" : "Run Diagnostic as Me"}
+        </button>
+
+        {result && (
+          <div className="mt-6 bg-slate-900 text-green-400 font-mono text-xs rounded-lg p-5 overflow-auto max-h-[60vh]">
+            <pre>{JSON.stringify(result, null, 2)}</pre>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

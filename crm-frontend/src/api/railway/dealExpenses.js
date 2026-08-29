@@ -1,1 +1,29 @@
-LyoqCiAqIHJhaWx3YXkgZGVhbCBleHBlbnNlcyDigJQgRGVhbCBFeHBlbnNlIENSVUQgY2xpZW50LgogKi8KaW1wb3J0IHsgYXBpQ2FsbCB9IGZyb20gJy4vY2xpZW50JzsKCmV4cG9ydCBmdW5jdGlvbiBsaXN0KHBhcmFtcyA9IHt9KSB7CiAgY29uc3QgcXMgPSBuZXcgVVJMU2VhcmNoUGFyYW1zKCk7CiAgaWYgKHBhcmFtcy5kZWFsX2lkKSBxcy5zZXQoJ2RlYWxfaWQnLCBwYXJhbXMuZGVhbF9pZCk7CiAgaWYgKHBhcmFtcy5jYXRlZ29yeSAmJiBwYXJhbXMuY2F0ZWdvcnkgIT09ICdhbGwnKSBxcy5zZXQoJ2NhdGVnb3J5JywgcGFyYW1zLmNhdGVnb3J5KTsKICBpZiAocGFyYW1zLnBheW1lbnRfc3RhdHVzICYmIHBhcmFtcy5wYXltZW50X3N0YXR1cyAhPT0gJ2FsbCcpIHFzLnNldCgncGF5bWVudF9zdGF0dXMnLCBwYXJhbXMucGF5bWVudF9zdGF0dXMpOwogIGNvbnN0IHEgPSBxcy50b1N0cmluZygpOwogIHJldHVybiBhcGlDYWxsKGAvYXBpL3YxL2RlYWwtZXhwZW5zZXMke3EgPyBgPyR7cX1gIDogJyd9YCwgeyBtZXRob2Q6ICdHRVQnIH0pOwp9CgpleHBvcnQgZnVuY3Rpb24gZ2V0KGlkKSB7CiAgcmV0dXJuIGFwaUNhbGwoYC9hcGkvdjEvZGVhbC1leHBlbnNlcy8ke2lkfWAsIHsgbWV0aG9kOiAnR0VUJyB9KTsKfQoKZXhwb3J0IGZ1bmN0aW9uIGNyZWF0ZShkYXRhKSB7CiAgcmV0dXJuIGFwaUNhbGwoJy9hcGkvdjEvZGVhbC1leHBlbnNlcycsIHsgbWV0aG9kOiAnUE9TVCcsIGJvZHk6IGRhdGEgfSk7Cn0KCmV4cG9ydCBmdW5jdGlvbiB1cGRhdGUoaWQsIGRhdGEpIHsKICByZXR1cm4gYXBpQ2FsbChgL2FwaS92MS9kZWFsLWV4cGVuc2VzLyR7aWR9YCwgeyBtZXRob2Q6ICdQVVQnLCBib2R5OiBkYXRhIH0pOwp9CgpleHBvcnQgZnVuY3Rpb24gcmVtb3ZlKGlkKSB7CiAgcmV0dXJuIGFwaUNhbGwoYC9hcGkvdjEvZGVhbC1leHBlbnNlcy8ke2lkfWAsIHsgbWV0aG9kOiAnREVMRVRFJyB9KTsKfQ==
+/**
+ * railway deal expenses — Deal Expense CRUD client.
+ */
+import { apiCall } from './client';
+
+export function list(params = {}) {
+  const qs = new URLSearchParams();
+  if (params.deal_id) qs.set('deal_id', params.deal_id);
+  if (params.category && params.category !== 'all') qs.set('category', params.category);
+  if (params.payment_status && params.payment_status !== 'all') qs.set('payment_status', params.payment_status);
+  const q = qs.toString();
+  return apiCall(`/api/v1/deal-expenses${q ? `?${q}` : ''}`, { method: 'GET' });
+}
+
+export function get(id) {
+  return apiCall(`/api/v1/deal-expenses/${id}`, { method: 'GET' });
+}
+
+export function create(data) {
+  return apiCall('/api/v1/deal-expenses', { method: 'POST', body: data });
+}
+
+export function update(id, data) {
+  return apiCall(`/api/v1/deal-expenses/${id}`, { method: 'PUT', body: data });
+}
+
+export function remove(id) {
+  return apiCall(`/api/v1/deal-expenses/${id}`, { method: 'DELETE' });
+}

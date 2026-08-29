@@ -1,1 +1,285 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gInJlYWN0IjsKaW1wb3J0ICogYXMgcmFpbHdheUxlYWRzIGZyb20gIkAvYXBpL3JhaWx3YXkvbGVhZHMiOwppbXBvcnQgKiBhcyByYWlsd2F5SGFuZG9mZkVzdGltYXRlcyBmcm9tICJAL2FwaS9yYWlsd2F5L2hhbmRvZmZFc3RpbWF0ZXMiOwppbXBvcnQgeyBhcGlDYWxsIH0gZnJvbSAiQC9hcGkvcmFpbHdheS9jbGllbnQiOwppbXBvcnQgeyBhcHBQYXJhbXMgfSBmcm9tICJAL2xpYi9hcHAtcGFyYW1zIjsKaW1wb3J0IHsKICBaYXAsIENoZWNrQ2lyY2xlLCBMb2FkZXIyLCBBbGVydFRyaWFuZ2xlLCBVcGxvYWQsIEZpbGVKc29uLAogIExpbmssIENvcHksIENoZWNrLCBDbG9jaywgQ2hldnJvbkRvd24sIENoZXZyb25VcCwgUGxheSwgV2lmaSwgV2lmaU9mZiwgUmVmcmVzaEN3LCBEYXRhYmFzZQp9IGZyb20gImx1Y2lkZS1yZWFjdCI7CmltcG9ydCB7IFN5bmNTZWN0aW9uLCBTeW5jU2VjdGlvbkhlYWRlciwgU3luY0luZm9Ob3RpY2UsIFN5bmNTdGF0Um93LCBTeW5jQnRuLCBTeW5jU3RlcExpc3QgfSBmcm9tICIuL1N5bmNDYXJkIjsKCmZ1bmN0aW9uIGdldFdlYmhvb2tVcmwoKSB7CiAgY29uc3QgYmFzZSA9IGFwcFBhcmFtcy5hcHBCYXNlVXJsIHx8IHdpbmRvdy5sb2NhdGlvbi5vcmlnaW47CiAgcmV0dXJuIGAke2Jhc2V9L2FwaS9mdW5jdGlvbnMvaGFuZG9mZldlYmhvb2tWMmA7Cn0KCi8vIOKUgOKUgOKUgCBXZWJob29rIFNldHVwIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgApmdW5jdGlvbiBXZWJob29rU2V0dXBQYW5lbCgpIHsKICBjb25zdCBbY29waWVkLCBzZXRDb3BpZWRdID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IHdlYmhvb2tVcmwgPSBnZXRXZWJob29rVXJsKCk7CgogIGNvbnN0IGhhbmRsZUNvcHkgPSAoKSA9PiB7CiAgICBuYXZpZ2F0b3IuY2xpcGJvYXJkLndyaXRlVGV4dCh3ZWJob29rVXJsKTsKICAgIHNldENvcGllZCh0cnVlKTsKICAgIHNldFRpbWVvdXQoKCkgPT4gc2V0Q29waWVkKGZhbHNlKSwgMjAwMCk7CiAgfTsKCiAgcmV0dXJuICgKICAgIDxTeW5jU2VjdGlvbj4KICAgICAgPFN5bmNTZWN0aW9uSGVhZGVyIGljb249e0xpbmt9IHRpdGxlPSJXZWJob29rIChBdXRvbWF0aWMgU3luYykiIGljb25Db2xvcj0idGV4dC1ibHVlLTUwMCIKICAgICAgICBiYWRnZT17eyBsYWJlbDogIlJlY29tbWVuZGVkIiwgY2xhc3NOYW1lOiAiYmctYmx1ZS0xMDAgdGV4dC1ibHVlLTcwMCIgfX0gLz4KICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNTAwIG1iLTMiPgogICAgICAgIENvbmZpZ3VyZSB0aGlzIFVSTCBpbiB5b3VyIEhhbmRvZmYgYWNjb3VudCB1bmRlciA8c3Ryb25nIGNsYXNzTmFtZT0idGV4dC1zbGF0ZS03MDAiPlNldHRpbmdzIOKGkiBXZWJob29rczwvc3Ryb25nPi4KICAgICAgICBIYW5kb2ZmIHdpbGwgcHVzaCBuZXcgZXN0aW1hdGVzIGF1dG9tYXRpY2FsbHkgd2hlbmV2ZXIgb25lIGlzIGNyZWF0ZWQgb3IgdXBkYXRlZC4KICAgICAgPC9wPgogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgbWItMyI+CiAgICAgICAgPGNvZGUgY2xhc3NOYW1lPSJmbGV4LTEgdGV4dC14cyBmb250LW1vbm8gYmctc2xhdGUtMTAwIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQgcHgtMyBweS0yIHRleHQtc2xhdGUtNzAwIHRydW5jYXRlIj4KICAgICAgICAgIHt3ZWJob29rVXJsfQogICAgICAgIDwvY29kZT4KICAgICAgICA8U3luY0J0biB2YXJpYW50PSJibHVlIiBvbkNsaWNrPXtoYW5kbGVDb3B5fSBpY29uPXtjb3BpZWQgPyBDaGVjayA6IENvcHl9PgogICAgICAgICAge2NvcGllZCA/ICdDb3BpZWQhJyA6ICdDb3B5J30KICAgICAgICA8L1N5bmNCdG4+CiAgICAgIDwvZGl2PgogICAgICA8U3luY1N0ZXBMaXN0IHZhcmlhbnQ9ImJsdWUiIHN0ZXBzPXtbCiAgICAgICAgJ0xvZyBpbiB0byB5b3VyIEhhbmRvZmYgYWNjb3VudCcsCiAgICAgICAgJ0dvIHRvIFNldHRpbmdzIOKGkiBXZWJob29rcyAob3IgTm90aWZpY2F0aW9ucyknLAogICAgICAgICdBZGQgYSBuZXcgd2ViaG9vayBhbmQgcGFzdGUgdGhlIFVSTCBhYm92ZScsCiAgICAgICAgJ1NlbGVjdCBldmVudHM6IGVzdGltYXRlIGNyZWF0ZWQsIHVwZGF0ZWQsIGFwcHJvdmVkLCBzaWduZWQnLAogICAgICAgICdTYXZlIOKAlCBmdXR1cmUgZXN0aW1hdGVzIHdpbGwgc3luYyBhdXRvbWF0aWNhbGx5JywKICAgICAgXX0gLz4KICAgIDwvU3luY1NlY3Rpb24+CiAgKTsKfQoKLy8g4pSA4pSA4pSAIENTViAvIEpTT04gSW1wb3J0IOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgApmdW5jdGlvbiBDc3ZJbXBvcnRQYW5lbCgpIHsKICBjb25zdCBbaW1wb3J0aW5nLCBzZXRJbXBvcnRpbmddID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFtyZXN1bHQsIHNldFJlc3VsdF0gPSB1c2VTdGF0ZShudWxsKTsKICBjb25zdCBbanNvblRleHQsIHNldEpzb25UZXh0XSA9IHVzZVN0YXRlKCcnKTsKICBjb25zdCBbc2hvd1Bhc3RlLCBzZXRTaG93UGFzdGVdID0gdXNlU3RhdGUoZmFsc2UpOwoKICBjb25zdCBwYXJzZVJvd3MgPSAodGV4dCkgPT4gewogICAgdGV4dCA9IHRleHQudHJpbSgpOwogICAgaWYgKHRleHQuc3RhcnRzV2l0aCgnWycpIHx8IHRleHQuc3RhcnRzV2l0aCgneycpKSB7CiAgICAgIGNvbnN0IHBhcnNlZCA9IEpTT04ucGFyc2UodGV4dCk7CiAgICAgIHJldHVybiBBcnJheS5pc0FycmF5KHBhcnNlZCkgPyBwYXJzZWQgOiBbcGFyc2VkXTsKICAgIH0KICAgIGNvbnN0IGxpbmVzID0gdGV4dC5zcGxpdCgnXG4nKS5maWx0ZXIoQm9vbGVhbik7CiAgICBpZiAobGluZXMubGVuZ3RoIDwgMikgdGhyb3cgbmV3IEVycm9yKCdDU1YgbmVlZHMgYSBoZWFkZXIgcm93IGFuZCBhdCBsZWFzdCBvbmUgZGF0YSByb3cnKTsKICAgIGNvbnN0IGhlYWRlcnMgPSBsaW5lc1swXS5zcGxpdCgnLCcpLm1hcChoID0+IGgudHJpbSgpLnRvTG93ZXJDYXNlKCkucmVwbGFjZSgvW15hLXowLTlfXS9nLCAnXycpKTsKICAgIHJldHVybiBsaW5lcy5zbGljZSgxKS5tYXAobGluZSA9PiB7CiAgICAgIGNvbnN0IHZhbHMgPSBsaW5lLnNwbGl0KCcsJyk7CiAgICAgIGNvbnN0IHJvdyA9IHt9OwogICAgICBoZWFkZXJzLmZvckVhY2goKGgsIGkpID0+IHsgcm93W2hdID0gKHZhbHNbaV0gfHwgJycpLnRyaW0oKS5yZXBsYWNlKC9eInwiJC9nLCAnJyk7IH0pOwogICAgICByZXR1cm4gcm93OwogICAgfSk7CiAgfTsKCiAgY29uc3QgbWFwUm93ID0gKHJvdywgaWR4KSA9PiB7CiAgICBjb25zdCBuYW1lID0gcm93LmN1c3RvbWVyX25hbWUgfHwgcm93LmNsaWVudF9uYW1lIHx8IHJvdy5uYW1lIHx8ICcnOwogICAgY29uc3QgZW1haWwgPSByb3cuY3VzdG9tZXJfZW1haWwgfHwgcm93LmNsaWVudF9lbWFpbCB8fCByb3cuZW1haWwgfHwgJyc7CiAgICBjb25zdCBwaG9uZSA9IHJvdy5jdXN0b21lcl9waG9uZSB8fCByb3cuY2xpZW50X3Bob25lIHx8IHJvdy5waG9uZSB8fCAnJzsKICAgIGNvbnN0IGFtb3VudCA9IHBhcnNlRmxvYXQocm93LmFtb3VudCB8fCByb3cudG90YWwgfHwgcm93LmVzdGltYXRlX2Ftb3VudCB8fCAwKSB8fCAwOwogICAgY29uc3Qgc3RhdHVzID0gcm93LnN0YXR1cyB8fCByb3cuZXN0aW1hdGVfc3RhdHVzIHx8ICd1bmtub3duJzsKICAgIGNvbnN0IGlkID0gU3RyaW5nKHJvdy5pZCB8fCByb3cuZXN0aW1hdGVfaWQgfHwgYGNzdl9pbXBvcnRfJHtEYXRlLm5vdygpfV8ke2lkeH1gKTsKICAgIGNvbnN0IG51bWJlciA9IFN0cmluZyhyb3cubnVtYmVyIHx8IHJvdy5lc3RpbWF0ZV9udW1iZXIgfHwgaWQpOwogICAgY29uc3QgcmF3RGF0ZSA9IHJvdy5kYXRlIHx8IHJvdy5jcmVhdGVkX2F0IHx8IHJvdy5lc3RpbWF0ZV9kYXRlIHx8ICcnOwogICAgY29uc3QgZGF0ZSA9IHJhd0RhdGUgPyByYXdEYXRlLnNsaWNlKDAsIDEwKSA6IG5ldyBEYXRlKCkudG9JU09TdHJpbmcoKS5zbGljZSgwLCAxMCk7CiAgICBpZiAoIW5hbWUpIHJldHVybiBudWxsOwogICAgcmV0dXJuIHsgaGFuZG9mZl9lc3RpbWF0ZV9pZDogaWQsIGhhbmRvZmZfZXN0aW1hdGVfbnVtYmVyOiBudW1iZXIsIGN1c3RvbWVyX25hbWU6IG5hbWUsIGN1c3RvbWVyX2VtYWlsOiBlbWFpbCwgY3VzdG9tZXJfcGhvbmU6IHBob25lLCBlc3RpbWF0ZV9hbW91bnQ6IGFtb3VudCwgZXN0aW1hdGVfc3RhdHVzOiBzdGF0dXMsIGVzdGltYXRlX2RhdGU6IGRhdGUsIGxhc3Rfc3luY2VkX2F0OiBuZXcgRGF0ZSgpLnRvSVNPU3RyaW5nKCksIHNvdXJjZTogJ0hhbmRvZmYnLCBzeW5jX3NvdXJjZTogJ0hhbmRvZmYnLCBtYXRjaF9zdGF0dXM6ICd1bm1hdGNoZWQnLCBtYXRjaF9tZXRob2Q6ICdub25lJyB9OwogIH07CgogIGNvbnN0IGhhbmRsZUZpbGVVcGxvYWQgPSAoZSkgPT4gewogICAgY29uc3QgZmlsZSA9IGUudGFyZ2V0LmZpbGVzPy5bMF07CiAgICBpZiAoIWZpbGUpIHJldHVybjsKICAgIGNvbnN0IHJlYWRlciA9IG5ldyBGaWxlUmVhZGVyKCk7CiAgICByZWFkZXIub25sb2FkID0gKGV2KSA9PiB7IHNldEpzb25UZXh0KGV2LnRhcmdldC5yZXN1bHQpOyBzZXRTaG93UGFzdGUodHJ1ZSk7IH07CiAgICByZWFkZXIucmVhZEFzVGV4dChmaWxlKTsKICB9OwoKICBjb25zdCBoYW5kbGVJbXBvcnQgPSBhc3luYyAoKSA9PiB7CiAgICBpZiAoIWpzb25UZXh0LnRyaW0oKSkgcmV0dXJuOwogICAgc2V0SW1wb3J0aW5nKHRydWUpOwogICAgc2V0UmVzdWx0KG51bGwpOwogICAgbGV0IHJvd3M7CiAgICB0cnkgeyByb3dzID0gcGFyc2VSb3dzKGpzb25UZXh0KTsgfSBjYXRjaCAoZSkgewogICAgICBzZXRSZXN1bHQoeyBzdWNjZXNzOiBmYWxzZSwgZXJyb3I6IGBQYXJzZSBlcnJvcjogJHtlLm1lc3NhZ2V9YCB9KTsKICAgICAgc2V0SW1wb3J0aW5nKGZhbHNlKTsKICAgICAgcmV0dXJuOwogICAgfQogICAgbGV0IGxlYWRzID0gW107CiAgICB0cnkgeyAgICAgbGVhZHMgPSBhd2FpdCByYWlsd2F5TGVhZHMubGlzdCh7IHNvcnQ6ICctY3JlYXRlZF9kYXRlJywgbGltaXQ6IDUwMDAgfSkudGhlbihyID0+IHIuaXRlbXMgfHwgW10pOyB9IGNhdGNoIChlKSB7fQogICAgY29uc3Qgbm9ybVBob25lID0gKHApID0+IChwIHx8ICcnKS5yZXBsYWNlKC9cRC9nLCAnJykuc2xpY2UoLTEwKTsKICAgIGNvbnN0IG5vcm1FbWFpbCA9IChlKSA9PiAoZSB8fCAnJykudG9Mb3dlckNhc2UoKS50cmltKCk7CiAgICBjb25zdCBub3JtTmFtZSA9IChuKSA9PiAobiB8fCAnJykudG9Mb3dlckNhc2UoKS50cmltKCkucmVwbGFjZSgvXHMrL2csICcgJyk7CiAgICBsZXQgaW1wb3J0ZWQgPSAwLCB1cGRhdGVkID0gMCwgc2tpcHBlZCA9IDAsIGZhaWxlZCA9IDA7CiAgICBjb25zdCBlcnJvcnMgPSBbXTsKICAgIGZvciAobGV0IGkgPSAwOyBpIDwgcm93cy5sZW5ndGg7IGkrKykgewogICAgICBjb25zdCByZWNvcmQgPSBtYXBSb3cocm93c1tpXSwgaSk7CiAgICAgIGlmICghcmVjb3JkKSB7IHNraXBwZWQrKzsgY29udGludWU7IH0KICAgICAgY29uc3QgZW0gPSBub3JtRW1haWwocmVjb3JkLmN1c3RvbWVyX2VtYWlsKTsKICAgICAgY29uc3QgcGggPSBub3JtUGhvbmUocmVjb3JkLmN1c3RvbWVyX3Bob25lKTsKICAgICAgY29uc3Qgbm0gPSBub3JtTmFtZShyZWNvcmQuY3VzdG9tZXJfbmFtZSk7CiAgICAgIGZvciAoY29uc3QgbGVhZCBvZiBsZWFkcykgewogICAgICAgIGNvbnN0IGxFbSA9IG5vcm1FbWFpbChsZWFkLmVtYWlsKTsKICAgICAgICBjb25zdCBsUGggPSBub3JtUGhvbmUobGVhZC5waG9uZSk7CiAgICAgICAgY29uc3QgbE5tID0gbm9ybU5hbWUoYCR7bGVhZC5maXJzdF9uYW1lIHx8ICcnfSAke2xlYWQubGFzdF9uYW1lIHx8ICcnfWApOwogICAgICAgIGlmIChlbSAmJiBsRW0gJiYgZW0gPT09IGxFbSkgeyByZWNvcmQubGVhZF9pZCA9IGxlYWQuaWQ7IHJlY29yZC5tYXRjaF9zdGF0dXMgPSAnbWF0Y2hlZCc7IGJyZWFrOyB9CiAgICAgICAgaWYgKHBoICYmIGxQaCAmJiBwaCA9PT0gbFBoKSB7IHJlY29yZC5sZWFkX2lkID0gbGVhZC5pZDsgcmVjb3JkLm1hdGNoX3N0YXR1cyA9ICdtYXRjaGVkJzsgYnJlYWs7IH0KICAgICAgICBpZiAobm0gJiYgbE5tICYmIG5tID09PSBsTm0pIHsgcmVjb3JkLmxlYWRfaWQgPSBsZWFkLmlkOyByZWNvcmQubWF0Y2hfc3RhdHVzID0gJ21hdGNoZWQnOyBicmVhazsgfQogICAgICB9CiAgICAgIHRyeSB7CiAgICAgICAgY29uc3QgZXhpc3RpbmcgPSBhd2FpdCBhcGlDYWxsKGAvYXBpL3YxL2hhbmRvZmYtZXN0aW1hdGVzP2hhbmRvZmZfZXN0aW1hdGVfaWQ9JHtlbmNvZGVVUklDb21wb25lbnQocmVjb3JkLmhhbmRvZmZfZXN0aW1hdGVfaWQpfWAsIHsgbWV0aG9kOiAnR0VUJyB9KS50aGVuKHIgPT4gci5pdGVtcyB8fCBbXSk7CiAgICAgICAgaWYgKGV4aXN0aW5nLmxlbmd0aCA+IDApIHsgYXdhaXQgcmFpbHdheUhhbmRvZmZFc3RpbWF0ZXMudXBkYXRlKGV4aXN0aW5nWzBdLmlkLCByZWNvcmQpOyB1cGRhdGVkKys7IH0KICAgICAgICBlbHNlIHsgYXdhaXQgcmFpbHdheUhhbmRvZmZFc3RpbWF0ZXMuY3JlYXRlKHJlY29yZCk7IGltcG9ydGVkKys7IH0KICAgICAgfSBjYXRjaCAoZSkgeyBmYWlsZWQrKzsgZXJyb3JzLnB1c2goYCR7cmVjb3JkLmN1c3RvbWVyX25hbWV9OiAke2UubWVzc2FnZX1gKTsgfQogICAgfQogICAgc2V0UmVzdWx0KHsgc3VjY2VzczogdHJ1ZSwgdG90YWw6IHJvd3MubGVuZ3RoLCBpbXBvcnRlZCwgdXBkYXRlZCwgc2tpcHBlZCwgZmFpbGVkLCBlcnJvcnMgfSk7CiAgICBzZXRJbXBvcnRpbmcoZmFsc2UpOwogIH07CgogIHJldHVybiAoCiAgICA8U3luY1NlY3Rpb24+CiAgICAgIDxTeW5jU2VjdGlvbkhlYWRlciBpY29uPXtVcGxvYWR9IHRpdGxlPSJDU1YgLyBKU09OIEltcG9ydCIgaWNvbkNvbG9yPSJ0ZXh0LWFtYmVyLTUwMCIgLz4KICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNTAwIG1iLTMiPgogICAgICAgIEV4cG9ydCB5b3VyIGVzdGltYXRlcyBmcm9tIEhhbmRvZmYgYXMgQ1NWIG9yIEpTT04gYW5kIGltcG9ydCB0aGVtIGhlcmUuCiAgICAgICAgUmVjb3JkcyBhcmUgbWF0Y2hlZCBhdXRvbWF0aWNhbGx5IGJ5IGVtYWlsLCBwaG9uZSwgb3IgbmFtZS4KICAgICAgPC9wPgoKICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMyI+CiAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTMgYm9yZGVyLTIgYm9yZGVyLWRhc2hlZCBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgcHgtNCBweS0zIGN1cnNvci1wb2ludGVyIGhvdmVyOmJvcmRlci1ibHVlLTMwMCBob3ZlcjpiZy1ibHVlLTUwLzUwIHRyYW5zaXRpb24tY29sb3JzIj4KICAgICAgICAgIDxGaWxlSnNvbiBjbGFzc05hbWU9InctNCBoLTQgdGV4dC1zbGF0ZS00MDAiIC8+CiAgICAgICAgICA8ZGl2PgogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTcwMCI+VXBsb2FkIENTViBvciBKU09OPC9wPgogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzEwcHhdIHRleHQtc2xhdGUtNDAwIj5TdXBwb3J0cyAuY3N2LCAuanNvbiwgLnR4dDwvcD4KICAgICAgICAgIDwvZGl2PgogICAgICAgICAgPGlucHV0IHR5cGU9ImZpbGUiIGFjY2VwdD0iLmNzdiwuanNvbiwudHh0IiBjbGFzc05hbWU9ImhpZGRlbiIgb25DaGFuZ2U9e2hhbmRsZUZpbGVVcGxvYWR9IC8+CiAgICAgICAgPC9sYWJlbD4KCiAgICAgICAgPGJ1dHRvbiBvbkNsaWNrPXsoKSA9PiBzZXRTaG93UGFzdGUoIXNob3dQYXN0ZSl9CiAgICAgICAgICBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS00MDAgaG92ZXI6dGV4dC1zbGF0ZS02MDAgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEgZm9udC1zZW1pYm9sZCB0cmFuc2l0aW9uLWNvbG9ycyI+CiAgICAgICAgICB7c2hvd1Bhc3RlID8gPENoZXZyb25VcCBjbGFzc05hbWU9InctMy41IGgtMy41IiAvPiA6IDxDaGV2cm9uRG93biBjbGFzc05hbWU9InctMy41IGgtMy41IiAvPn0KICAgICAgICAgIE9yIHBhc3RlIGRhdGEgbWFudWFsbHkKICAgICAgICA8L2J1dHRvbj4KCiAgICAgICAge3Nob3dQYXN0ZSAmJiAoCiAgICAgICAgICA8dGV4dGFyZWEgdmFsdWU9e2pzb25UZXh0fSBvbkNoYW5nZT17ZSA9PiBzZXRKc29uVGV4dChlLnRhcmdldC52YWx1ZSl9CiAgICAgICAgICAgIHBsYWNlaG9sZGVyPXtgUGFzdGUgQ1NWIG9yIEpTT04gaGVyZS4uLlxuXG5DU1Y6IGN1c3RvbWVyX25hbWUsY3VzdG9tZXJfZW1haWwsYW1vdW50LHN0YXR1c1xuSlNPTjogW3siY3VzdG9tZXJfbmFtZSI6IkpvaG4iLCJhbW91bnQiOjE1MDAwfV1gfQogICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBoLTMyIHRleHQteHMgZm9udC1tb25vIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgcHgtMyBweS0yIHRleHQtc2xhdGUtODAwIHBsYWNlaG9sZGVyOnRleHQtc2xhdGUtNDAwIHJlc2l6ZS1ub25lIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1ibHVlLTUwMC8yMCBmb2N1czpib3JkZXItYmx1ZS00MDAiCiAgICAgICAgICAvPgogICAgICAgICl9CgogICAgICAgIHtqc29uVGV4dC50cmltKCkgJiYgKAogICAgICAgICAgPFN5bmNCdG4gb25DbGljaz17aGFuZGxlSW1wb3J0fSBkaXNhYmxlZD17aW1wb3J0aW5nfSBsb2FkaW5nPXtpbXBvcnRpbmd9IGljb249e1phcH0+CiAgICAgICAgICAgIHtpbXBvcnRpbmcgPyAnSW1wb3J0aW5nLi4uJyA6ICdJbXBvcnQgRGF0YSd9CiAgICAgICAgICA8L1N5bmNCdG4+CiAgICAgICAgKX0KICAgICAgPC9kaXY+CgogICAgICB7cmVzdWx0ICYmICgKICAgICAgICByZXN1bHQuc3VjY2VzcyA/ICgKICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtdC0zIj4KICAgICAgICAgICAgPFN5bmNJbmZvTm90aWNlIHZhcmlhbnQ9ImdyZWVuIj4KICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgZm9udC1zZW1pYm9sZCBtYi0yIj48Q2hlY2tDaXJjbGUgY2xhc3NOYW1lPSJ3LTMuNSBoLTMuNSIgLz4gSW1wb3J0IGNvbXBsZXRlPC9kaXY+CiAgICAgICAgICAgICAgPFN5bmNTdGF0Um93IGl0ZW1zPXtbCiAgICAgICAgICAgICAgICB7IGxhYmVsOiAiVG90YWwiLCB2YWx1ZTogcmVzdWx0LnRvdGFsLCBjb2xvcjogInNsYXRlIiB9LAogICAgICAgICAgICAgICAgeyBsYWJlbDogIkltcG9ydGVkIiwgdmFsdWU6IHJlc3VsdC5pbXBvcnRlZCwgY29sb3I6ICJncmVlbiIgfSwKICAgICAgICAgICAgICAgIHsgbGFiZWw6ICJVcGRhdGVkIiwgdmFsdWU6IHJlc3VsdC51cGRhdGVkLCBjb2xvcjogImJsdWUiIH0sCiAgICAgICAgICAgICAgICB7IGxhYmVsOiAiU2tpcHBlZCIsIHZhbHVlOiByZXN1bHQuc2tpcHBlZCwgY29sb3I6ICJhbWJlciIgfSwKICAgICAgICAgICAgICAgIHsgbGFiZWw6ICJGYWlsZWQiLCB2YWx1ZTogcmVzdWx0LmZhaWxlZCwgY29sb3I6IHJlc3VsdC5mYWlsZWQgPiAwID8gInJlZCIgOiAic2xhdGUiIH0sCiAgICAgICAgICAgICAgXX0gLz4KICAgICAgICAgICAgPC9TeW5jSW5mb05vdGljZT4KICAgICAgICAgIDwvZGl2PgogICAgICAgICkgOiAoCiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibXQtMyI+CiAgICAgICAgICAgIDxTeW5jSW5mb05vdGljZSB2YXJpYW50PSJyZWQiPgogICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0iZm9udC1zZW1pYm9sZCI+RXJyb3I6IHtyZXN1bHQuZXJyb3J9PC9zcGFuPgogICAgICAgICAgICA8L1N5bmNJbmZvTm90aWNlPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgKQogICAgICApfQogICAgPC9TeW5jU2VjdGlvbj4KICApOwp9CgovLyDilIDilIDilIAgUmVjZW50IEVzdGltYXRlcyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKZnVuY3Rpb24gUmVjZW50RXN0aW1hdGVzUGFuZWwoKSB7CiAgY29uc3QgW2VzdGltYXRlcywgc2V0RXN0aW1hdGVzXSA9IHVzZVN0YXRlKFtdKTsKICBjb25zdCBbbG9hZGluZywgc2V0TG9hZGluZ10gPSB1c2VTdGF0ZSh0cnVlKTsKCiAgdXNlRWZmZWN0KCgpID0+IHsKICAgIGFwaUNhbGwoJy9hcGkvdjEvaGFuZG9mZi1lc3RpbWF0ZXM/c29ydD0tbGFzdF9zeW5jZWRfYXQmbGltaXQ9MTAnLCB7IG1ldGhvZDogJ0dFVCcgfSkKICAgICAgLnRoZW4ociA9PiBzZXRFc3RpbWF0ZXMoci5pdGVtcyB8fCByIHx8IFtdKSkuY2F0Y2goKCkgPT4ge30pLmZpbmFsbHkoKCkgPT4gc2V0TG9hZGluZyhmYWxzZSkpOwogIH0sIFtdKTsKCiAgaWYgKGxvYWRpbmcgfHwgZXN0aW1hdGVzLmxlbmd0aCA9PT0gMCkgcmV0dXJuIG51bGw7CgogIHJldHVybiAoCiAgICA8U3luY1NlY3Rpb24+CiAgICAgIDxTeW5jU2VjdGlvbkhlYWRlciBpY29uPXtDbG9ja30gdGl0bGU9IlJlY2VudGx5IFN5bmNlZCIgaWNvbkNvbG9yPSJ0ZXh0LXNsYXRlLTQwMCIKICAgICAgICBiYWRnZT17eyBsYWJlbDogYCR7ZXN0aW1hdGVzLmxlbmd0aH0gc2hvd25gLCBjbGFzc05hbWU6ICJiZy1zbGF0ZS0xMDAgdGV4dC1zbGF0ZS01MDAiIH19IC8+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJkaXZpZGUteSBkaXZpZGUtc2xhdGUtMTAwIj4KICAgICAgICB7ZXN0aW1hdGVzLm1hcChlc3QgPT4gKAogICAgICAgICAgPGRpdiBrZXk9e2VzdC5pZH0gY2xhc3NOYW1lPSJweS0yLjUgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIGdhcC0zIj4KICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9Im1pbi13LTAiPgogICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtODAwIHRydW5jYXRlIj57ZXN0LmN1c3RvbWVyX25hbWV9PC9wPgogICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gdGV4dC1zbGF0ZS00MDAiPgogICAgICAgICAgICAgICAge2VzdC5oYW5kb2ZmX2VzdGltYXRlX251bWJlciA/IGAjJHtlc3QuaGFuZG9mZl9lc3RpbWF0ZV9udW1iZXJ9IMK3IGAgOiAnJ30KICAgICAgICAgICAgICAgIHtlc3QuZXN0aW1hdGVfc3RhdHVzfSDCtyB7bmV3IERhdGUoZXN0Lmxhc3Rfc3luY2VkX2F0KS50b0xvY2FsZURhdGVTdHJpbmcoKX0KICAgICAgICAgICAgICA8L3A+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgZmxleC1zaHJpbmstMCI+CiAgICAgICAgICAgICAge2VzdC5lc3RpbWF0ZV9hbW91bnQgPiAwICYmICgKICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC14cyBmb250LWJvbGQgdGV4dC1zbGF0ZS03MDAiPiR7ZXN0LmVzdGltYXRlX2Ftb3VudC50b0xvY2FsZVN0cmluZygpfTwvc3Bhbj4KICAgICAgICAgICAgICApfQogICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT17YHRleHQtWzEwcHhdIGZvbnQtc2VtaWJvbGQgcHgtMiBweS0wLjUgcm91bmRlZC1mdWxsICR7CiAgICAgICAgICAgICAgICBlc3QubWF0Y2hfc3RhdHVzID09PSAnbWF0Y2hlZCcgPyAnYmctZW1lcmFsZC0xMDAgdGV4dC1lbWVyYWxkLTcwMCcgOgogICAgICAgICAgICAgICAgZXN0Lm1hdGNoX3N0YXR1cyA9PT0gJ25lZWRzX3JldmlldycgPyAnYmctYW1iZXItMTAwIHRleHQtYW1iZXItNzAwJyA6CiAgICAgICAgICAgICAgICAnYmctc2xhdGUtMTAwIHRleHQtc2xhdGUtNTAwJwogICAgICAgICAgICAgIH1gfT4KICAgICAgICAgICAgICAgIHtlc3QubWF0Y2hfc3RhdHVzID09PSAnbWF0Y2hlZCcgPyAn4pyTIE1hdGNoZWQnIDogZXN0Lm1hdGNoX3N0YXR1cyA9PT0gJ25lZWRzX3JldmlldycgPyAnUmV2aWV3JyA6ICdVbm1hdGNoZWQnfQogICAgICAgICAgICAgIDwvc3Bhbj4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICApKX0KICAgICAgPC9kaXY+CiAgICA8L1N5bmNTZWN0aW9uPgogICk7Cn0KCi8vIOKUgOKUgOKUgCBNYWluIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgApleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBIYW5kb2ZmSW1wb3J0VGFiKCkgewogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT0ibWF4LXctMnhsIHNwYWNlLXktNCI+CgogICAgICB7LyogU291cmNlIG9mIHRydXRoIG5vdGljZSAqL30KICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtc3RhcnQgZ2FwLTMgYmctYmx1ZS01MCBib3JkZXIgYm9yZGVyLWJsdWUtMjAwIHJvdW5kZWQtbGcgcHgtNCBweS0zIj4KICAgICAgICA8RGF0YWJhc2UgY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtYmx1ZS02MDAgZmxleC1zaHJpbmstMCBtdC0wLjUiIC8+CiAgICAgICAgPGRpdj4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1zbSBmb250LXNlbWlib2xkIHRleHQtYmx1ZS04MDAiPlF1aWNrQm9va3MgaXMgdGhlIHNvdXJjZSBvZiB0cnV0aCBmb3IgZXN0aW1hdGVzPC9wPgogICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtYmx1ZS02MDAgbXQtMC41Ij4KICAgICAgICAgICAgRXN0aW1hdGVzIGZsb3cgZnJvbSBIYW5kb2ZmIOKGkiBRdWlja0Jvb2tzIOKGkiBDUk0gYXV0b21hdGljYWxseSB2aWEgdGhlIFFCIERpcmVjdCBTeW5jLgogICAgICAgICAgICBUaGUgSGFuZG9mZiBBUEkgaXMgbm90IHVzZWQg4oCUIGRpcmVjdCBIYW5kb2ZmIEFQSSBzeW5jIGhhcyBiZWVuIGRpc2FibGVkIGJlY2F1c2UgaXQgcmVxdWlyZWQgYW4gdW5zdGFibGUgc2Vzc2lvbiB0b2tlbi4KICAgICAgICAgIDwvcD4KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CgogICAgICB7LyogSGFuZG9mZi1vbmx5IHByb2plY3RzIG5vdGljZSAqL30KICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtc3RhcnQgZ2FwLTMgYmctYW1iZXItNTAgYm9yZGVyIGJvcmRlci1hbWJlci0yMDAgcm91bmRlZC1sZyBweC00IHB5LTMiPgogICAgICAgIDxBbGVydFRyaWFuZ2xlIGNsYXNzTmFtZT0idy00IGgtNCB0ZXh0LWFtYmVyLTYwMCBmbGV4LXNocmluay0wIG10LTAuNSIgLz4KICAgICAgICA8ZGl2PgogICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgdGV4dC1hbWJlci04MDAiPkhhbmRvZmYgcHJvamVjdCBub3QgaW4gUXVpY2tCb29rcyB5ZXQ/PC9wPgogICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtYW1iZXItNzAwIG10LTAuNSI+CiAgICAgICAgICAgIElmIGEgSGFuZG9mZiBwcm9qZWN0IGhhcyBub3QgYmVlbiBpbnZvaWNlZCBpbiBRdWlja0Jvb2tzLCBpdCB3aWxsIG5vdCBhcHBlYXIgaW4gdGhlIENSTSBhdXRvbWF0aWNhbGx5LgogICAgICAgICAgICBVc2UgdGhlIENTVi9KU09OIGltcG9ydCBiZWxvdyB0byBtYW51YWxseSBicmluZyBpdCBpbiB1bnRpbCBpdCBhcHBlYXJzIGluIFFCLgogICAgICAgICAgPC9wPgogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KCiAgICAgIDxXZWJob29rU2V0dXBQYW5lbCAvPgogICAgICA8Q3N2SW1wb3J0UGFuZWwgLz4KICAgICAgPFJlY2VudEVzdGltYXRlc1BhbmVsIC8+CiAgICA8L2Rpdj4KICApOwp9
+import { useState, useEffect } from "react";
+import * as railwayLeads from "@/api/railway/leads";
+import * as railwayHandoffEstimates from "@/api/railway/handoffEstimates";
+import { apiCall } from "@/api/railway/client";
+import { appParams } from "@/lib/app-params";
+import {
+  Zap, CheckCircle, Loader2, AlertTriangle, Upload, FileJson,
+  Link, Copy, Check, Clock, ChevronDown, ChevronUp, Play, Wifi, WifiOff, RefreshCw, Database
+} from "lucide-react";
+import { SyncSection, SyncSectionHeader, SyncInfoNotice, SyncStatRow, SyncBtn, SyncStepList } from "./SyncCard";
+
+function getWebhookUrl() {
+  const base = appParams.appBaseUrl || window.location.origin;
+  return `${base}/api/functions/handoffWebhookV2`;
+}
+
+// ─── Webhook Setup ────────────────────────────────────────────────────────────
+function WebhookSetupPanel() {
+  const [copied, setCopied] = useState(false);
+  const webhookUrl = getWebhookUrl();
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(webhookUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <SyncSection>
+      <SyncSectionHeader icon={Link} title="Webhook (Automatic Sync)" iconColor="text-blue-500"
+        badge={{ label: "Recommended", className: "bg-blue-100 text-blue-700" }} />
+      <p className="text-xs text-slate-500 mb-3">
+        Configure this URL in your Handoff account under <strong className="text-slate-700">Settings → Webhooks</strong>.
+        Handoff will push new estimates automatically whenever one is created or updated.
+      </p>
+      <div className="flex items-center gap-2 mb-3">
+        <code className="flex-1 text-xs font-mono bg-slate-100 border border-slate-200 rounded px-3 py-2 text-slate-700 truncate">
+          {webhookUrl}
+        </code>
+        <SyncBtn variant="blue" onClick={handleCopy} icon={copied ? Check : Copy}>
+          {copied ? 'Copied!' : 'Copy'}
+        </SyncBtn>
+      </div>
+      <SyncStepList variant="blue" steps={[
+        'Log in to your Handoff account',
+        'Go to Settings → Webhooks (or Notifications)',
+        'Add a new webhook and paste the URL above',
+        'Select events: estimate created, updated, approved, signed',
+        'Save — future estimates will sync automatically',
+      ]} />
+    </SyncSection>
+  );
+}
+
+// ─── CSV / JSON Import ────────────────────────────────────────────────────────
+function CsvImportPanel() {
+  const [importing, setImporting] = useState(false);
+  const [result, setResult] = useState(null);
+  const [jsonText, setJsonText] = useState('');
+  const [showPaste, setShowPaste] = useState(false);
+
+  const parseRows = (text) => {
+    text = text.trim();
+    if (text.startsWith('[') || text.startsWith('{')) {
+      const parsed = JSON.parse(text);
+      return Array.isArray(parsed) ? parsed : [parsed];
+    }
+    const lines = text.split('\n').filter(Boolean);
+    if (lines.length < 2) throw new Error('CSV needs a header row and at least one data row');
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_'));
+    return lines.slice(1).map(line => {
+      const vals = line.split(',');
+      const row = {};
+      headers.forEach((h, i) => { row[h] = (vals[i] || '').trim().replace(/^"|"$/g, ''); });
+      return row;
+    });
+  };
+
+  const mapRow = (row, idx) => {
+    const name = row.customer_name || row.client_name || row.name || '';
+    const email = row.customer_email || row.client_email || row.email || '';
+    const phone = row.customer_phone || row.client_phone || row.phone || '';
+    const amount = parseFloat(row.amount || row.total || row.estimate_amount || 0) || 0;
+    const status = row.status || row.estimate_status || 'unknown';
+    const id = String(row.id || row.estimate_id || `csv_import_${Date.now()}_${idx}`);
+    const number = String(row.number || row.estimate_number || id);
+    const rawDate = row.date || row.created_at || row.estimate_date || '';
+    const date = rawDate ? rawDate.slice(0, 10) : new Date().toISOString().slice(0, 10);
+    if (!name) return null;
+    return { handoff_estimate_id: id, handoff_estimate_number: number, customer_name: name, customer_email: email, customer_phone: phone, estimate_amount: amount, estimate_status: status, estimate_date: date, last_synced_at: new Date().toISOString(), source: 'Handoff', sync_source: 'Handoff', match_status: 'unmatched', match_method: 'none' };
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => { setJsonText(ev.target.result); setShowPaste(true); };
+    reader.readAsText(file);
+  };
+
+  const handleImport = async () => {
+    if (!jsonText.trim()) return;
+    setImporting(true);
+    setResult(null);
+    let rows;
+    try { rows = parseRows(jsonText); } catch (e) {
+      setResult({ success: false, error: `Parse error: ${e.message}` });
+      setImporting(false);
+      return;
+    }
+    let leads = [];
+    try {     leads = await railwayLeads.list({ sort: '-created_date', limit: 5000 }).then(r => r.items || []); } catch (e) {}
+    const normPhone = (p) => (p || '').replace(/\D/g, '').slice(-10);
+    const normEmail = (e) => (e || '').toLowerCase().trim();
+    const normName = (n) => (n || '').toLowerCase().trim().replace(/\s+/g, ' ');
+    let imported = 0, updated = 0, skipped = 0, failed = 0;
+    const errors = [];
+    for (let i = 0; i < rows.length; i++) {
+      const record = mapRow(rows[i], i);
+      if (!record) { skipped++; continue; }
+      const em = normEmail(record.customer_email);
+      const ph = normPhone(record.customer_phone);
+      const nm = normName(record.customer_name);
+      for (const lead of leads) {
+        const lEm = normEmail(lead.email);
+        const lPh = normPhone(lead.phone);
+        const lNm = normName(`${lead.first_name || ''} ${lead.last_name || ''}`);
+        if (em && lEm && em === lEm) { record.lead_id = lead.id; record.match_status = 'matched'; break; }
+        if (ph && lPh && ph === lPh) { record.lead_id = lead.id; record.match_status = 'matched'; break; }
+        if (nm && lNm && nm === lNm) { record.lead_id = lead.id; record.match_status = 'matched'; break; }
+      }
+      try {
+        const existing = await apiCall(`/api/v1/handoff-estimates?handoff_estimate_id=${encodeURIComponent(record.handoff_estimate_id)}`, { method: 'GET' }).then(r => r.items || []);
+        if (existing.length > 0) { await railwayHandoffEstimates.update(existing[0].id, record); updated++; }
+        else { await railwayHandoffEstimates.create(record); imported++; }
+      } catch (e) { failed++; errors.push(`${record.customer_name}: ${e.message}`); }
+    }
+    setResult({ success: true, total: rows.length, imported, updated, skipped, failed, errors });
+    setImporting(false);
+  };
+
+  return (
+    <SyncSection>
+      <SyncSectionHeader icon={Upload} title="CSV / JSON Import" iconColor="text-amber-500" />
+      <p className="text-xs text-slate-500 mb-3">
+        Export your estimates from Handoff as CSV or JSON and import them here.
+        Records are matched automatically by email, phone, or name.
+      </p>
+
+      <div className="space-y-3">
+        <label className="flex items-center gap-3 border-2 border-dashed border-slate-200 rounded-lg px-4 py-3 cursor-pointer hover:border-blue-300 hover:bg-blue-50/50 transition-colors">
+          <FileJson className="w-4 h-4 text-slate-400" />
+          <div>
+            <p className="text-xs font-semibold text-slate-700">Upload CSV or JSON</p>
+            <p className="text-[10px] text-slate-400">Supports .csv, .json, .txt</p>
+          </div>
+          <input type="file" accept=".csv,.json,.txt" className="hidden" onChange={handleFileUpload} />
+        </label>
+
+        <button onClick={() => setShowPaste(!showPaste)}
+          className="text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1 font-semibold transition-colors">
+          {showPaste ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          Or paste data manually
+        </button>
+
+        {showPaste && (
+          <textarea value={jsonText} onChange={e => setJsonText(e.target.value)}
+            placeholder={`Paste CSV or JSON here...\n\nCSV: customer_name,customer_email,amount,status\nJSON: [{"customer_name":"John","amount":15000}]`}
+            className="w-full h-32 text-xs font-mono border border-slate-200 rounded-lg px-3 py-2 text-slate-800 placeholder:text-slate-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+          />
+        )}
+
+        {jsonText.trim() && (
+          <SyncBtn onClick={handleImport} disabled={importing} loading={importing} icon={Zap}>
+            {importing ? 'Importing...' : 'Import Data'}
+          </SyncBtn>
+        )}
+      </div>
+
+      {result && (
+        result.success ? (
+          <div className="mt-3">
+            <SyncInfoNotice variant="green">
+              <div className="flex items-center gap-2 font-semibold mb-2"><CheckCircle className="w-3.5 h-3.5" /> Import complete</div>
+              <SyncStatRow items={[
+                { label: "Total", value: result.total, color: "slate" },
+                { label: "Imported", value: result.imported, color: "green" },
+                { label: "Updated", value: result.updated, color: "blue" },
+                { label: "Skipped", value: result.skipped, color: "amber" },
+                { label: "Failed", value: result.failed, color: result.failed > 0 ? "red" : "slate" },
+              ]} />
+            </SyncInfoNotice>
+          </div>
+        ) : (
+          <div className="mt-3">
+            <SyncInfoNotice variant="red">
+              <span className="font-semibold">Error: {result.error}</span>
+            </SyncInfoNotice>
+          </div>
+        )
+      )}
+    </SyncSection>
+  );
+}
+
+// ─── Recent Estimates ─────────────────────────────────────────────────────────
+function RecentEstimatesPanel() {
+  const [estimates, setEstimates] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiCall('/api/v1/handoff-estimates?sort=-last_synced_at&limit=10', { method: 'GET' })
+      .then(r => setEstimates(r.items || r || [])).catch(() => {}).finally(() => setLoading(false));
+  }, []);
+
+  if (loading || estimates.length === 0) return null;
+
+  return (
+    <SyncSection>
+      <SyncSectionHeader icon={Clock} title="Recently Synced" iconColor="text-slate-400"
+        badge={{ label: `${estimates.length} shown`, className: "bg-slate-100 text-slate-500" }} />
+      <div className="divide-y divide-slate-100">
+        {estimates.map(est => (
+          <div key={est.id} className="py-2.5 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-slate-800 truncate">{est.customer_name}</p>
+              <p className="text-[10px] text-slate-400">
+                {est.handoff_estimate_number ? `#${est.handoff_estimate_number} · ` : ''}
+                {est.estimate_status} · {new Date(est.last_synced_at).toLocaleDateString()}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {est.estimate_amount > 0 && (
+                <span className="text-xs font-bold text-slate-700">${est.estimate_amount.toLocaleString()}</span>
+              )}
+              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                est.match_status === 'matched' ? 'bg-emerald-100 text-emerald-700' :
+                est.match_status === 'needs_review' ? 'bg-amber-100 text-amber-700' :
+                'bg-slate-100 text-slate-500'
+              }`}>
+                {est.match_status === 'matched' ? '✓ Matched' : est.match_status === 'needs_review' ? 'Review' : 'Unmatched'}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </SyncSection>
+  );
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
+export default function HandoffImportTab() {
+  return (
+    <div className="max-w-2xl space-y-4">
+
+      {/* Source of truth notice */}
+      <div className="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
+        <Database className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-sm font-semibold text-blue-800">QuickBooks is the source of truth for estimates</p>
+          <p className="text-xs text-blue-600 mt-0.5">
+            Estimates flow from Handoff → QuickBooks → CRM automatically via the QB Direct Sync.
+            The Handoff API is not used — direct Handoff API sync has been disabled because it required an unstable session token.
+          </p>
+        </div>
+      </div>
+
+      {/* Handoff-only projects notice */}
+      <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
+        <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-sm font-semibold text-amber-800">Handoff project not in QuickBooks yet?</p>
+          <p className="text-xs text-amber-700 mt-0.5">
+            If a Handoff project has not been invoiced in QuickBooks, it will not appear in the CRM automatically.
+            Use the CSV/JSON import below to manually bring it in until it appears in QB.
+          </p>
+        </div>
+      </div>
+
+      <WebhookSetupPanel />
+      <CsvImportPanel />
+      <RecentEstimatesPanel />
+    </div>
+  );
+}

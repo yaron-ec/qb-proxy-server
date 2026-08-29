@@ -1,1 +1,48 @@
-LyoqCiAqIHJhaWx3YXkgZGVhbHMg4oCUIFNhbGVzIChEZWFsKSBDUlVEIGNsaWVudCAoU3RhZ2UgMiwgUmFpbHdheS1uYXRpdmUpLgogKgogKiAgIGxpc3QoeyBzdGFnZSwgbGVhZElkLCBhc3NpZ25lZFJlcCwgc2VhcmNoLCBzb3J0LCBsaW1pdCB9KSAtPiB7IGl0ZW1zLCB0b3RhbCB9CiAqICAgZ2V0KGlkKSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAtPiB7IGRlYWwgfQogKiAgIGNyZWF0ZShkYXRhKSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAtPiB7IGRlYWwgfQogKiAgIHVwZGF0ZShpZCwgZGF0YSkgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgLT4geyBkZWFsIH0KICogICByZW1vdmUoaWQpICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgLT4geyBzdWNjZXNzLCBpZCB9CiAqCiAqIENBTk9OSUNBTCBJRHMgYXJlIFJhaWx3YXkgVVVJRHM6IGRlYWwuaWQgYW5kIGRlYWwubGVhZF9pZCAoYSBSYWlsd2F5IExlYWQgVVVJRCkuCiAqIExlZ2FjeSBCYXNlNDQgSURzIChsZWdhY3lfYmFzZTQ0X2lkLCBsZWdhY3lfYmFzZTQ0X2xlYWRfaWQpIGFyZSBvcHRpb25hbAogKiBtaWdyYXRpb24gbWV0YWRhdGEgb24gY3JlYXRlIGFuZCBhcmUgcmV0dXJuZWQgaW4gcmVzcG9uc2VzLCBidXQgYXJlIE5FVkVSCiAqIHJlcXVpcmVkIGZvciBub3JtYWwgQ1JVRCBhbmQgY2Fubm90IGJlIGNoYW5nZWQgYWZ0ZXIgY3JlYXRlLgogKgogKiBIaXRzIHRoZSBSYWlsd2F5IC9hcGkvdjEvZGVhbHMgQ1JVRCBzdXJmYWNlLiBUaGUgZnJvbnRlbmQgaXMgTk9UIHN3aXRjaGVkIHRvCiAqIHRoaXMgY2xpZW50IHlldCAoU3RhZ2UgNCk7IGl0IGlzIHByb3ZpZGVkIG5vdyBzbyB0aGUgc3dhcCBpcyBhIG9uZS1saW5lIGltcG9ydAogKiBjaGFuZ2UgcGVyIHBhZ2UuIEV4aXN0aW5nIHBhZ2VzIGtlZXAgY2FsbGluZyBiYXNlNDQuZnVuY3Rpb25zLmludm9rZSgnZ2V0U29sZERlYWxzJykKICogdW50aWwgU3RhZ2UgNCDigJQgbm8gYmVoYXZpb3IgY2hhbmdlIGluIHRoaXMgc3RhZ2UuCiAqLwppbXBvcnQgeyBhcGlDYWxsIH0gZnJvbSAnLi9jbGllbnQnOwoKZXhwb3J0IGZ1bmN0aW9uIGxpc3QocGFyYW1zID0ge30pIHsKICBjb25zdCBxcyA9IG5ldyBVUkxTZWFyY2hQYXJhbXMoKTsKICBpZiAocGFyYW1zLnN0YWdlICYmIHBhcmFtcy5zdGFnZSAhPT0gJ2FsbCcpIHFzLnNldCgnc3RhZ2UnLCBwYXJhbXMuc3RhZ2UpOwogIGlmIChwYXJhbXMubGVhZElkKSBxcy5zZXQoJ2xlYWRfaWQnLCBwYXJhbXMubGVhZElkKTsKICBpZiAocGFyYW1zLmFzc2lnbmVkUmVwICYmIHBhcmFtcy5hc3NpZ25lZFJlcCAhPT0gJ2FsbCcpIHFzLnNldCgnYXNzaWduZWRfcmVwJywgcGFyYW1zLmFzc2lnbmVkUmVwKTsKICBpZiAocGFyYW1zLnNlYXJjaCkgcXMuc2V0KCdzZWFyY2gnLCBwYXJhbXMuc2VhcmNoKTsKICBpZiAocGFyYW1zLnNvcnQpIHFzLnNldCgnc29ydCcsIHBhcmFtcy5zb3J0KTsKICBpZiAocGFyYW1zLmxpbWl0KSBxcy5zZXQoJ2xpbWl0JywgU3RyaW5nKHBhcmFtcy5saW1pdCkpOwogIGNvbnN0IHEgPSBxcy50b1N0cmluZygpOwogIHJldHVybiBhcGlDYWxsKGAvYXBpL3YxL2RlYWxzJHtxID8gYD8ke3F9YCA6ICcnfWAsIHsgbWV0aG9kOiAnR0VUJyB9KTsKfQoKZXhwb3J0IGZ1bmN0aW9uIGdldChpZCkgewogIHJldHVybiBhcGlDYWxsKGAvYXBpL3YxL2RlYWxzLyR7aWR9YCwgeyBtZXRob2Q6ICdHRVQnIH0pOwp9CgpleHBvcnQgZnVuY3Rpb24gY3JlYXRlKGRhdGEpIHsKICByZXR1cm4gYXBpQ2FsbCgnL2FwaS92MS9kZWFscycsIHsgbWV0aG9kOiAnUE9TVCcsIGJvZHk6IGRhdGEgfSk7Cn0KCmV4cG9ydCBmdW5jdGlvbiB1cGRhdGUoaWQsIGRhdGEpIHsKICByZXR1cm4gYXBpQ2FsbChgL2FwaS92MS9kZWFscy8ke2lkfWAsIHsgbWV0aG9kOiAnUFVUJywgYm9keTogZGF0YSB9KTsKfQoKZXhwb3J0IGZ1bmN0aW9uIHJlbW92ZShpZCkgewogIHJldHVybiBhcGlDYWxsKGAvYXBpL3YxL2RlYWxzLyR7aWR9YCwgeyBtZXRob2Q6ICdERUxFVEUnIH0pOwp9
+/**
+ * railway deals — Sales (Deal) CRUD client (Stage 2, Railway-native).
+ *
+ *   list({ stage, leadId, assignedRep, search, sort, limit }) -> { items, total }
+ *   get(id)                                                    -> { deal }
+ *   create(data)                                              -> { deal }
+ *   update(id, data)                                           -> { deal }
+ *   remove(id)                                                -> { success, id }
+ *
+ * CANONICAL IDs are Railway UUIDs: deal.id and deal.lead_id (a Railway Lead UUID).
+ * Legacy Base44 IDs (legacy_base44_id, legacy_base44_lead_id) are optional
+ * migration metadata on create and are returned in responses, but are NEVER
+ * required for normal CRUD and cannot be changed after create.
+ *
+ * Hits the Railway /api/v1/deals CRUD surface. The frontend is NOT switched to
+ * this client yet (Stage 4); it is provided now so the swap is a one-line import
+ * change per page. Existing pages keep calling base44.functions.invoke('getSoldDeals')
+ * until Stage 4 — no behavior change in this stage.
+ */
+import { apiCall } from './client';
+
+export function list(params = {}) {
+  const qs = new URLSearchParams();
+  if (params.stage && params.stage !== 'all') qs.set('stage', params.stage);
+  if (params.leadId) qs.set('lead_id', params.leadId);
+  if (params.assignedRep && params.assignedRep !== 'all') qs.set('assigned_rep', params.assignedRep);
+  if (params.search) qs.set('search', params.search);
+  if (params.sort) qs.set('sort', params.sort);
+  if (params.limit) qs.set('limit', String(params.limit));
+  const q = qs.toString();
+  return apiCall(`/api/v1/deals${q ? `?${q}` : ''}`, { method: 'GET' });
+}
+
+export function get(id) {
+  return apiCall(`/api/v1/deals/${id}`, { method: 'GET' });
+}
+
+export function create(data) {
+  return apiCall('/api/v1/deals', { method: 'POST', body: data });
+}
+
+export function update(id, data) {
+  return apiCall(`/api/v1/deals/${id}`, { method: 'PUT', body: data });
+}
+
+export function remove(id) {
+  return apiCall(`/api/v1/deals/${id}`, { method: 'DELETE' });
+}

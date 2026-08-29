@@ -1,1 +1,11 @@
-LyoqCiAqIHJhaWx3YXkgb3duZXJzIOKAlCBTYWxlcy1yZXAgLyBvd25lciBkaXJlY3RvcnkgY2xpZW50IChSMUEgZm91bmRhdGlvbikuCiAqCiAqICAgbGlzdCgpIC0+IHsgaXRlbXMgfSAgKGFjdGl2ZSBvd25lcnMgd2l0aCBkaXNwbGF5X25hbWUgKyBlbWFpbCkKICovCgppbXBvcnQgeyBhcGlDYWxsIH0gZnJvbSAnLi9jbGllbnQnOwoKZXhwb3J0IGZ1bmN0aW9uIGxpc3QoKSB7CiAgcmV0dXJuIGFwaUNhbGwoJy9hcGkvdjEvb3duZXJzJywgeyBtZXRob2Q6ICdHRVQnIH0pOwp9
+/**
+ * railway owners — Sales-rep / owner directory client (R1A foundation).
+ *
+ *   list() -> { items }  (active owners with display_name + email)
+ */
+
+import { apiCall } from './client';
+
+export function list() {
+  return apiCall('/api/v1/owners', { method: 'GET' });
+}

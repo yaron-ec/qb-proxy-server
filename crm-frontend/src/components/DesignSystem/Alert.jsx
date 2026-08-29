@@ -1,1 +1,46 @@
-LyoqCiAqIEFsZXJ0IOKAlCBmcmllbmRseSBhbGVydCBiYW5uZXIgd2l0aCBleHBhbmRhYmxlIGRldGFpbHMKICogVmFyaWFudHM6IGluZm8sIHdhcm5pbmcsIGVycm9yLCBzdWNjZXNzCiAqLwppbXBvcnQgeyB1c2VTdGF0ZSB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsgQWxlcnRDaXJjbGUsIEFsZXJ0VHJpYW5nbGUsIENoZWNrQ2lyY2xlLCBJbmZvLCBDaGV2cm9uRG93biB9IGZyb20gImx1Y2lkZS1yZWFjdCI7Cgpjb25zdCBWQVJJQU5UX0NPTkZJRyA9IHsKICBpbmZvOiAgICB7IGljb246IEluZm8sICAgICAgICAgIGJnOiAiYmctYmx1ZS01MCIsICAgIGJvcmRlcjogImJvcmRlci1ibHVlLTIwMCIsICAgIHRleHQ6ICJ0ZXh0LWJsdWUtODAwIiwgICAgaWNvbkNvbG9yOiAidGV4dC1ibHVlLTUwMCIgfSwKICB3YXJuaW5nOiB7IGljb246IEFsZXJ0VHJpYW5nbGUsIGJnOiAiYmctYW1iZXItNTAiLCAgIGJvcmRlcjogImJvcmRlci1hbWJlci0yMDAiLCAgIHRleHQ6ICJ0ZXh0LWFtYmVyLTgwMCIsICAgaWNvbkNvbG9yOiAidGV4dC1hbWJlci01MDAiIH0sCiAgZXJyb3I6ICAgeyBpY29uOiBBbGVydENpcmNsZSwgICBiZzogImJnLXJlZC01MCIsICAgICBib3JkZXI6ICJib3JkZXItcmVkLTIwMCIsICAgICB0ZXh0OiAidGV4dC1yZWQtNzAwIiwgICAgIGljb25Db2xvcjogInRleHQtcmVkLTUwMCIgfSwKICBzdWNjZXNzOiB7IGljb246IENoZWNrQ2lyY2xlLCAgIGJnOiAiYmctZW1lcmFsZC01MCIsIGJvcmRlcjogImJvcmRlci1lbWVyYWxkLTIwMCIsIHRleHQ6ICJ0ZXh0LWVtZXJhbGQtODAwIiwgaWNvbkNvbG9yOiAidGV4dC1lbWVyYWxkLTUwMCIgfSwKfTsKCmV4cG9ydCBmdW5jdGlvbiBBbGVydCh7IHZhcmlhbnQgPSAiaW5mbyIsIHRpdGxlLCBjaGlsZHJlbiwgZGV0YWlscyA9IG51bGwsIGFjdGlvbiA9IG51bGwsIGNsYXNzTmFtZSA9ICIiIH0pIHsKICBjb25zdCBbc2hvd0RldGFpbHMsIHNldFNob3dEZXRhaWxzXSA9IHVzZVN0YXRlKGZhbHNlKTsKICBjb25zdCBjb25maWcgPSBWQVJJQU5UX0NPTkZJR1t2YXJpYW50XSB8fCBWQVJJQU5UX0NPTkZJRy5pbmZvOwogIGNvbnN0IEljb24gPSBjb25maWcuaWNvbjsKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPXtgcm91bmRlZC1sZyBib3JkZXIgJHtjb25maWcuYm9yZGVyfSAke2NvbmZpZy5iZ30gcHgtMyBweS0yLjUgJHtjbGFzc05hbWV9YH0+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLXN0YXJ0IGdhcC0yIj4KICAgICAgICA8SWNvbiBjbGFzc05hbWU9e2B3LTMuNSBoLTMuNSAke2NvbmZpZy5pY29uQ29sb3J9IGZsZXgtc2hyaW5rLTAgbXQtMC41YH0gLz4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleC0xIG1pbi13LTAiPgogICAgICAgICAge3RpdGxlICYmIDxwIGNsYXNzTmFtZT17YHRleHQteHMgZm9udC1zZW1pYm9sZCAke2NvbmZpZy50ZXh0fWB9Pnt0aXRsZX08L3A+fQogICAgICAgICAge2NoaWxkcmVuICYmIDxwIGNsYXNzTmFtZT17YHRleHQteHMgJHtjb25maWcudGV4dH0gbXQtMC41IGxlYWRpbmctc251Z2B9PntjaGlsZHJlbn08L3A+fQogICAgICAgICAge2RldGFpbHMgJiYgKAogICAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0U2hvd0RldGFpbHMoIXNob3dEZXRhaWxzKX0KICAgICAgICAgICAgICBjbGFzc05hbWU9e2B0ZXh0LVsxMHB4XSAke2NvbmZpZy5pY29uQ29sb3J9IGhvdmVyOnVuZGVybGluZSBtdC0xIGZsZXggaXRlbXMtY2VudGVyIGdhcC0wLjVgfQogICAgICAgICAgICA+CiAgICAgICAgICAgICAgPENoZXZyb25Eb3duIGNsYXNzTmFtZT17YHctMi41IGgtMi41IHRyYW5zaXRpb24tdHJhbnNmb3JtICR7c2hvd0RldGFpbHMgPyAicm90YXRlLTE4MCIgOiAiIn1gfSAvPgogICAgICAgICAgICAgIERldGFpbHMKICAgICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICApfQogICAgICAgICAge3Nob3dEZXRhaWxzICYmIGRldGFpbHMgJiYgKAogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzEwcHhdIG10LTEgZm9udC1tb25vIGJyZWFrLWFsbCBvcGFjaXR5LTYwIGxlYWRpbmctdGlnaHQgbWF4LWgtMjQgb3ZlcmZsb3cteS1hdXRvIj4KICAgICAgICAgICAgICB7dHlwZW9mIGRldGFpbHMgPT09ICJzdHJpbmciID8gZGV0YWlscy5zbGljZSgwLCAzMDApIDogSlNPTi5zdHJpbmdpZnkoZGV0YWlscywgbnVsbCwgMil9CiAgICAgICAgICAgIDwvcD4KICAgICAgICAgICl9CiAgICAgICAgICB7YWN0aW9uICYmIDxkaXYgY2xhc3NOYW1lPSJtdC0xLjUiPnthY3Rpb259PC9kaXY+fQogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KICAgIDwvZGl2PgogICk7Cn0=
+/**
+ * Alert — friendly alert banner with expandable details
+ * Variants: info, warning, error, success
+ */
+import { useState } from "react";
+import { AlertCircle, AlertTriangle, CheckCircle, Info, ChevronDown } from "lucide-react";
+
+const VARIANT_CONFIG = {
+  info:    { icon: Info,          bg: "bg-blue-50",    border: "border-blue-200",    text: "text-blue-800",    iconColor: "text-blue-500" },
+  warning: { icon: AlertTriangle, bg: "bg-amber-50",   border: "border-amber-200",   text: "text-amber-800",   iconColor: "text-amber-500" },
+  error:   { icon: AlertCircle,   bg: "bg-red-50",     border: "border-red-200",     text: "text-red-700",     iconColor: "text-red-500" },
+  success: { icon: CheckCircle,   bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-800", iconColor: "text-emerald-500" },
+};
+
+export function Alert({ variant = "info", title, children, details = null, action = null, className = "" }) {
+  const [showDetails, setShowDetails] = useState(false);
+  const config = VARIANT_CONFIG[variant] || VARIANT_CONFIG.info;
+  const Icon = config.icon;
+
+  return (
+    <div className={`rounded-lg border ${config.border} ${config.bg} px-3 py-2.5 ${className}`}>
+      <div className="flex items-start gap-2">
+        <Icon className={`w-3.5 h-3.5 ${config.iconColor} flex-shrink-0 mt-0.5`} />
+        <div className="flex-1 min-w-0">
+          {title && <p className={`text-xs font-semibold ${config.text}`}>{title}</p>}
+          {children && <p className={`text-xs ${config.text} mt-0.5 leading-snug`}>{children}</p>}
+          {details && (
+            <button
+              onClick={() => setShowDetails(!showDetails)}
+              className={`text-[10px] ${config.iconColor} hover:underline mt-1 flex items-center gap-0.5`}
+            >
+              <ChevronDown className={`w-2.5 h-2.5 transition-transform ${showDetails ? "rotate-180" : ""}`} />
+              Details
+            </button>
+          )}
+          {showDetails && details && (
+            <p className="text-[10px] mt-1 font-mono break-all opacity-60 leading-tight max-h-24 overflow-y-auto">
+              {typeof details === "string" ? details.slice(0, 300) : JSON.stringify(details, null, 2)}
+            </p>
+          )}
+          {action && <div className="mt-1.5">{action}</div>}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,1 +1,191 @@
-Ly8gVG9hc3Qgc3lzdGVtIHdpdGggYXV0by1kaXNtaXNzLCBkZWR1cGxpY2F0aW9uLCBtYXggMyB2aXNpYmxlLCBzbW9vdGggYW5pbWF0aW9ucwppbXBvcnQgeyB1c2VTdGF0ZSwgdXNlRWZmZWN0IH0gZnJvbSAicmVhY3QiOwoKY29uc3QgVE9BU1RfTUFYX1ZJU0lCTEUgPSAzOwpjb25zdCBBTklNQVRJT05fREVMQVkgPSA1MDA7IC8vIG1zIGZvciBmYWRlLW91dCBiZWZvcmUgcmVtb3ZhbAoKY29uc3QgYWN0aW9uVHlwZXMgPSB7CiAgQUREX1RPQVNUOiAiQUREX1RPQVNUIiwKICBVUERBVEVfVE9BU1Q6ICJVUERBVEVfVE9BU1QiLAogIERJU01JU1NfVE9BU1Q6ICJESVNNSVNTX1RPQVNUIiwKICBSRU1PVkVfVE9BU1Q6ICJSRU1PVkVfVE9BU1QiLAogIENMRUFSX0FMTDogIkNMRUFSX0FMTCIsCn07CgpsZXQgY291bnQgPSAwOwoKZnVuY3Rpb24gZ2VuSWQoKSB7CiAgY291bnQgPSAoY291bnQgKyAxKSAlIE51bWJlci5NQVhfVkFMVUU7CiAgcmV0dXJuIGNvdW50LnRvU3RyaW5nKCk7Cn0KCmNvbnN0IHRvYXN0VGltZXJzID0gbmV3IE1hcCgpOyAvLyBtYXBzIHRvYXN0SWQgLT4geyBkaXNtaXNzVGltZXIsIHJlbW92ZVRpbWVyIH0KCmNvbnN0IHNjaGVkdWxlQXV0b0Rpc21pc3MgPSAodG9hc3RJZCwgdmFyaWFudCkgPT4gewogIGxldCBkZWxheSA9IDUwMDA7IC8vIGRlZmF1bHQ6IDVzCiAgaWYgKHZhcmlhbnQgPT09ICJkZXN0cnVjdGl2ZSIpIGRlbGF5ID0gMDsgLy8gbWFudWFsIG9ubHkKICBlbHNlIGlmIChTdHJpbmcodmFyaWFudCkuaW5jbHVkZXMoIndhcm5pbmciKSkgZGVsYXkgPSA4MDAwOwoKICBpZiAoZGVsYXkgPiAwKSB7CiAgICBjb25zdCB0aW1lciA9IHNldFRpbWVvdXQoKCkgPT4gewogICAgICBkaXNwYXRjaCh7IHR5cGU6IGFjdGlvblR5cGVzLkRJU01JU1NfVE9BU1QsIHRvYXN0SWQgfSk7CiAgICB9LCBkZWxheSk7CiAgICAKICAgIGNvbnN0IGV4aXN0aW5nID0gdG9hc3RUaW1lcnMuZ2V0KHRvYXN0SWQpIHx8IHt9OwogICAgdG9hc3RUaW1lcnMuc2V0KHRvYXN0SWQsIHsgLi4uZXhpc3RpbmcsIGRpc21pc3NUaW1lcjogdGltZXIgfSk7CiAgfQp9OwoKY29uc3QgY2xlYXJBdXRvVGltZXJzID0gKHRvYXN0SWQpID0+IHsKICBjb25zdCB0aW1lcnMgPSB0b2FzdFRpbWVycy5nZXQodG9hc3RJZCk7CiAgaWYgKHRpbWVycykgewogICAgaWYgKHRpbWVycy5kaXNtaXNzVGltZXIpIGNsZWFyVGltZW91dCh0aW1lcnMuZGlzbWlzc1RpbWVyKTsKICAgIGlmICh0aW1lcnMucmVtb3ZlVGltZXIpIGNsZWFyVGltZW91dCh0aW1lcnMucmVtb3ZlVGltZXIpOwogICAgdG9hc3RUaW1lcnMuZGVsZXRlKHRvYXN0SWQpOwogIH0KfTsKCmV4cG9ydCBjb25zdCByZWR1Y2VyID0gKHN0YXRlLCBhY3Rpb24pID0+IHsKICBzd2l0Y2ggKGFjdGlvbi50eXBlKSB7CiAgICBjYXNlIGFjdGlvblR5cGVzLkFERF9UT0FTVDogewogICAgICBjb25zdCBuZXdUb2FzdCA9IGFjdGlvbi50b2FzdDsKICAgICAgY29uc3QgZGVkdXAgPSBzdGF0ZS50b2FzdHMuZmluZCh0ID0+IHQuZGVkdXBfa2V5ICYmIHQuZGVkdXBfa2V5ID09PSBuZXdUb2FzdC5kZWR1cF9rZXkpOwogICAgICAKICAgICAgaWYgKGRlZHVwKSB7CiAgICAgICAgLy8gVXBkYXRlIGV4aXN0aW5nIHRvYXN0IGluc3RlYWQgb2YgY3JlYXRpbmcgbmV3IG9uZQogICAgICAgIHJldHVybiB7CiAgICAgICAgICAuLi5zdGF0ZSwKICAgICAgICAgIHRvYXN0czogc3RhdGUudG9hc3RzLm1hcCh0ID0+CiAgICAgICAgICAgIHQuaWQgPT09IGRlZHVwLmlkCiAgICAgICAgICAgICAgPyB7IC4uLmRlZHVwLCAuLi5uZXdUb2FzdCwgaWQ6IGRlZHVwLmlkLCBvcGVuOiB0cnVlIH0KICAgICAgICAgICAgICA6IHQKICAgICAgICAgICksCiAgICAgICAgfTsKICAgICAgfQoKICAgICAgLy8gUHJlcGVuZCBuZXcgdG9hc3QgYW5kIGtlZXAgb25seSBtb3N0IHJlY2VudCBUT0FTVF9NQVhfVklTSUJMRQogICAgICByZXR1cm4gewogICAgICAgIC4uLnN0YXRlLAogICAgICAgIHRvYXN0czogW25ld1RvYXN0LCAuLi5zdGF0ZS50b2FzdHNdLnNsaWNlKDAsIFRPQVNUX01BWF9WSVNJQkxFKSwKICAgICAgfTsKICAgIH0KCiAgICBjYXNlIGFjdGlvblR5cGVzLlVQREFURV9UT0FTVDoKICAgICAgcmV0dXJuIHsKICAgICAgICAuLi5zdGF0ZSwKICAgICAgICB0b2FzdHM6IHN0YXRlLnRvYXN0cy5tYXAoKHQpID0+CiAgICAgICAgICB0LmlkID09PSBhY3Rpb24udG9hc3QuaWQgPyB7IC4uLnQsIC4uLmFjdGlvbi50b2FzdCB9IDogdAogICAgICAgICksCiAgICAgIH07CgogICAgY2FzZSBhY3Rpb25UeXBlcy5ESVNNSVNTX1RPQVNUOiB7CiAgICAgIGNvbnN0IHsgdG9hc3RJZCB9ID0gYWN0aW9uOwogICAgICBjbGVhckF1dG9UaW1lcnModG9hc3RJZCk7CgogICAgICAvLyBNYXJrIGFzIGNsb3NlZCBhbmQgc2NoZWR1bGUgcmVtb3ZhbCBhZnRlciBhbmltYXRpb24KICAgICAgY29uc3QgdXBkYXRlZCA9IHN0YXRlLnRvYXN0cy5tYXAoKHQpID0+CiAgICAgICAgdC5pZCA9PT0gdG9hc3RJZCA/IHsgLi4udCwgb3BlbjogZmFsc2UgfSA6IHQKICAgICAgKTsKCiAgICAgIGlmICh0b2FzdElkKSB7CiAgICAgICAgY29uc3QgdGltZXIgPSBzZXRUaW1lb3V0KCgpID0+IHsKICAgICAgICAgIGRpc3BhdGNoKHsKICAgICAgICAgICAgdHlwZTogYWN0aW9uVHlwZXMuUkVNT1ZFX1RPQVNULAogICAgICAgICAgICB0b2FzdElkLAogICAgICAgICAgfSk7CiAgICAgICAgfSwgQU5JTUFUSU9OX0RFTEFZKTsKICAgICAgICAKICAgICAgICBjb25zdCBleGlzdGluZyA9IHRvYXN0VGltZXJzLmdldCh0b2FzdElkKSB8fCB7fTsKICAgICAgICB0b2FzdFRpbWVycy5zZXQodG9hc3RJZCwgeyAuLi5leGlzdGluZywgcmVtb3ZlVGltZXI6IHRpbWVyIH0pOwogICAgICB9CgogICAgICByZXR1cm4geyAuLi5zdGF0ZSwgdG9hc3RzOiB1cGRhdGVkIH07CiAgICB9CgogICAgY2FzZSBhY3Rpb25UeXBlcy5SRU1PVkVfVE9BU1Q6CiAgICAgIGNsZWFyQXV0b1RpbWVycyhhY3Rpb24udG9hc3RJZCk7CiAgICAgIHJldHVybiB7CiAgICAgICAgLi4uc3RhdGUsCiAgICAgICAgdG9hc3RzOiBzdGF0ZS50b2FzdHMuZmlsdGVyKCh0KSA9PiB0LmlkICE9PSBhY3Rpb24udG9hc3RJZCksCiAgICAgIH07CgogICAgY2FzZSBhY3Rpb25UeXBlcy5DTEVBUl9BTEw6CiAgICAgIHN0YXRlLnRvYXN0cy5mb3JFYWNoKHQgPT4gY2xlYXJBdXRvVGltZXJzKHQuaWQpKTsKICAgICAgcmV0dXJuIHsgLi4uc3RhdGUsIHRvYXN0czogW10gfTsKCiAgICBkZWZhdWx0OgogICAgICByZXR1cm4gc3RhdGU7CiAgfQp9OwoKY29uc3QgbGlzdGVuZXJzID0gW107CgpsZXQgbWVtb3J5U3RhdGUgPSB7IHRvYXN0czogW10gfTsKCmZ1bmN0aW9uIGRpc3BhdGNoKGFjdGlvbikgewogIG1lbW9yeVN0YXRlID0gcmVkdWNlcihtZW1vcnlTdGF0ZSwgYWN0aW9uKTsKICBsaXN0ZW5lcnMuZm9yRWFjaCgobGlzdGVuZXIpID0+IHsKICAgIGxpc3RlbmVyKG1lbW9yeVN0YXRlKTsKICB9KTsKfQoKZnVuY3Rpb24gdG9hc3QoeyBkZWR1cF9rZXksIHZhcmlhbnQgPSAiZGVmYXVsdCIsIC4uLnByb3BzIH0pIHsKICBjb25zdCBpZCA9IGdlbklkKCk7CgogIGNvbnN0IHVwZGF0ZSA9IChwcm9wcykgPT4KICAgIGRpc3BhdGNoKHsKICAgICAgdHlwZTogYWN0aW9uVHlwZXMuVVBEQVRFX1RPQVNULAogICAgICB0b2FzdDogeyAuLi5wcm9wcywgaWQgfSwKICAgIH0pOwoKICBjb25zdCBkaXNtaXNzID0gKCkgPT4KICAgIGRpc3BhdGNoKHsgdHlwZTogYWN0aW9uVHlwZXMuRElTTUlTU19UT0FTVCwgdG9hc3RJZDogaWQgfSk7CgogIGRpc3BhdGNoKHsKICAgIHR5cGU6IGFjdGlvblR5cGVzLkFERF9UT0FTVCwKICAgIHRvYXN0OiB7CiAgICAgIC4uLnByb3BzLAogICAgICBpZCwKICAgICAgZGVkdXBfa2V5LAogICAgICB2YXJpYW50LAogICAgICBvcGVuOiB0cnVlLAogICAgICBvbk9wZW5DaGFuZ2U6IChvcGVuKSA9PiB7CiAgICAgICAgaWYgKCFvcGVuKSBkaXNtaXNzKCk7CiAgICAgIH0sCiAgICB9LAogIH0pOwoKICAvLyBTY2hlZHVsZSBhdXRvLWRpc21pc3MgYmFzZWQgb24gdmFyaWFudAogIHNjaGVkdWxlQXV0b0Rpc21pc3MoaWQsIHZhcmlhbnQpOwoKICByZXR1cm4gewogICAgaWQsCiAgICBkaXNtaXNzLAogICAgdXBkYXRlLAogIH07Cn0KCmZ1bmN0aW9uIHVzZVRvYXN0KCkgewogIGNvbnN0IFtzdGF0ZSwgc2V0U3RhdGVdID0gdXNlU3RhdGUobWVtb3J5U3RhdGUpOwoKICB1c2VFZmZlY3QoKCkgPT4gewogICAgbGlzdGVuZXJzLnB1c2goc2V0U3RhdGUpOwogICAgcmV0dXJuICgpID0+IHsKICAgICAgY29uc3QgaW5kZXggPSBsaXN0ZW5lcnMuaW5kZXhPZihzZXRTdGF0ZSk7CiAgICAgIGlmIChpbmRleCA+IC0xKSB7CiAgICAgICAgbGlzdGVuZXJzLnNwbGljZShpbmRleCwgMSk7CiAgICAgIH0KICAgIH07CiAgfSwgW3N0YXRlXSk7CgogIGNvbnN0IGNsZWFyQWxsID0gKCkgPT4gZGlzcGF0Y2goeyB0eXBlOiBhY3Rpb25UeXBlcy5DTEVBUl9BTEwgfSk7CgogIHJldHVybiB7CiAgICAuLi5zdGF0ZSwKICAgIHRvYXN0LAogICAgZGlzbWlzczogKHRvYXN0SWQpID0+IGRpc3BhdGNoKHsgdHlwZTogYWN0aW9uVHlwZXMuRElTTUlTU19UT0FTVCwgdG9hc3RJZCB9KSwKICAgIGNsZWFyQWxsLAogIH07Cn0KCmV4cG9ydCB7IHVzZVRvYXN0LCB0b2FzdCB9Ow==
+// Toast system with auto-dismiss, deduplication, max 3 visible, smooth animations
+import { useState, useEffect } from "react";
+
+const TOAST_MAX_VISIBLE = 3;
+const ANIMATION_DELAY = 500; // ms for fade-out before removal
+
+const actionTypes = {
+  ADD_TOAST: "ADD_TOAST",
+  UPDATE_TOAST: "UPDATE_TOAST",
+  DISMISS_TOAST: "DISMISS_TOAST",
+  REMOVE_TOAST: "REMOVE_TOAST",
+  CLEAR_ALL: "CLEAR_ALL",
+};
+
+let count = 0;
+
+function genId() {
+  count = (count + 1) % Number.MAX_VALUE;
+  return count.toString();
+}
+
+const toastTimers = new Map(); // maps toastId -> { dismissTimer, removeTimer }
+
+const scheduleAutoDismiss = (toastId, variant) => {
+  let delay = 5000; // default: 5s
+  if (variant === "destructive") delay = 0; // manual only
+  else if (String(variant).includes("warning")) delay = 8000;
+
+  if (delay > 0) {
+    const timer = setTimeout(() => {
+      dispatch({ type: actionTypes.DISMISS_TOAST, toastId });
+    }, delay);
+    
+    const existing = toastTimers.get(toastId) || {};
+    toastTimers.set(toastId, { ...existing, dismissTimer: timer });
+  }
+};
+
+const clearAutoTimers = (toastId) => {
+  const timers = toastTimers.get(toastId);
+  if (timers) {
+    if (timers.dismissTimer) clearTimeout(timers.dismissTimer);
+    if (timers.removeTimer) clearTimeout(timers.removeTimer);
+    toastTimers.delete(toastId);
+  }
+};
+
+export const reducer = (state, action) => {
+  switch (action.type) {
+    case actionTypes.ADD_TOAST: {
+      const newToast = action.toast;
+      const dedup = state.toasts.find(t => t.dedup_key && t.dedup_key === newToast.dedup_key);
+      
+      if (dedup) {
+        // Update existing toast instead of creating new one
+        return {
+          ...state,
+          toasts: state.toasts.map(t =>
+            t.id === dedup.id
+              ? { ...dedup, ...newToast, id: dedup.id, open: true }
+              : t
+          ),
+        };
+      }
+
+      // Prepend new toast and keep only most recent TOAST_MAX_VISIBLE
+      return {
+        ...state,
+        toasts: [newToast, ...state.toasts].slice(0, TOAST_MAX_VISIBLE),
+      };
+    }
+
+    case actionTypes.UPDATE_TOAST:
+      return {
+        ...state,
+        toasts: state.toasts.map((t) =>
+          t.id === action.toast.id ? { ...t, ...action.toast } : t
+        ),
+      };
+
+    case actionTypes.DISMISS_TOAST: {
+      const { toastId } = action;
+      clearAutoTimers(toastId);
+
+      // Mark as closed and schedule removal after animation
+      const updated = state.toasts.map((t) =>
+        t.id === toastId ? { ...t, open: false } : t
+      );
+
+      if (toastId) {
+        const timer = setTimeout(() => {
+          dispatch({
+            type: actionTypes.REMOVE_TOAST,
+            toastId,
+          });
+        }, ANIMATION_DELAY);
+        
+        const existing = toastTimers.get(toastId) || {};
+        toastTimers.set(toastId, { ...existing, removeTimer: timer });
+      }
+
+      return { ...state, toasts: updated };
+    }
+
+    case actionTypes.REMOVE_TOAST:
+      clearAutoTimers(action.toastId);
+      return {
+        ...state,
+        toasts: state.toasts.filter((t) => t.id !== action.toastId),
+      };
+
+    case actionTypes.CLEAR_ALL:
+      state.toasts.forEach(t => clearAutoTimers(t.id));
+      return { ...state, toasts: [] };
+
+    default:
+      return state;
+  }
+};
+
+const listeners = [];
+
+let memoryState = { toasts: [] };
+
+function dispatch(action) {
+  memoryState = reducer(memoryState, action);
+  listeners.forEach((listener) => {
+    listener(memoryState);
+  });
+}
+
+function toast({ dedup_key, variant = "default", ...props }) {
+  const id = genId();
+
+  const update = (props) =>
+    dispatch({
+      type: actionTypes.UPDATE_TOAST,
+      toast: { ...props, id },
+    });
+
+  const dismiss = () =>
+    dispatch({ type: actionTypes.DISMISS_TOAST, toastId: id });
+
+  dispatch({
+    type: actionTypes.ADD_TOAST,
+    toast: {
+      ...props,
+      id,
+      dedup_key,
+      variant,
+      open: true,
+      onOpenChange: (open) => {
+        if (!open) dismiss();
+      },
+    },
+  });
+
+  // Schedule auto-dismiss based on variant
+  scheduleAutoDismiss(id, variant);
+
+  return {
+    id,
+    dismiss,
+    update,
+  };
+}
+
+function useToast() {
+  const [state, setState] = useState(memoryState);
+
+  useEffect(() => {
+    listeners.push(setState);
+    return () => {
+      const index = listeners.indexOf(setState);
+      if (index > -1) {
+        listeners.splice(index, 1);
+      }
+    };
+  }, [state]);
+
+  const clearAll = () => dispatch({ type: actionTypes.CLEAR_ALL });
+
+  return {
+    ...state,
+    toast,
+    dismiss: (toastId) => dispatch({ type: actionTypes.DISMISS_TOAST, toastId }),
+    clearAll,
+  };
+}
+
+export { useToast, toast };

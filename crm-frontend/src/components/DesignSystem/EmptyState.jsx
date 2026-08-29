@@ -1,1 +1,29 @@
-LyoqCiAqIFVuaWZpZWQgRW1wdHkgU3RhdGUgQ29tcG9uZW50IFN5c3RlbQogKiBQcmVtaXVtIGFwcGVhcmFuY2Ugd2l0aCBpY29ucyBhbmQgY2xlYXIgbWVzc2FnaW5nCiAqLwoKaW1wb3J0IHsgQ2FyZCB9IGZyb20gIi4vQ2FyZCI7CgpleHBvcnQgZnVuY3Rpb24gRW1wdHlTdGF0ZSh7IGljb246IEljb24sIHRpdGxlLCBkZXNjcmlwdGlvbiwgYWN0aW9uID0gbnVsbCB9KSB7CiAgcmV0dXJuICgKICAgIDxDYXJkIGNsYXNzTmFtZT0icHktMTIgcHgtNiB0ZXh0LWNlbnRlciI+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGZsZXgtY29sIGl0ZW1zLWNlbnRlciBnYXAtNCBtYXgtdy1zbSBteC1hdXRvIj4KICAgICAgICB7SWNvbiAmJiA8SWNvbiBjbGFzc05hbWU9InctMTQgaC0xNCB0ZXh0LXNsYXRlLTIwMCIgLz59CiAgICAgICAgPGRpdj4KICAgICAgICAgIDxoMyBjbGFzc05hbWU9InR5cG9ncmFwaHktZW1wdHktc3RhdGUtdGl0bGUgbWItMSI+e3RpdGxlfTwvaDM+CiAgICAgICAgICB7ZGVzY3JpcHRpb24gJiYgPHAgY2xhc3NOYW1lPSJ0eXBvZ3JhcGh5LWhlbHBlci10ZXh0Ij57ZGVzY3JpcHRpb259PC9wPn0KICAgICAgICA8L2Rpdj4KICAgICAgICB7YWN0aW9uICYmIDxkaXYgY2xhc3NOYW1lPSJwdC0zIj57YWN0aW9ufTwvZGl2Pn0KICAgICAgPC9kaXY+CiAgICA8L0NhcmQ+CiAgKTsKfQoKZXhwb3J0IGZ1bmN0aW9uIFRhYmxlRW1wdHlTdGF0ZSh7IG1lc3NhZ2UgPSAiTm8gZGF0YSBmb3VuZCIgfSkgewogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT0icHktMTYgdGV4dC1jZW50ZXIgdHlwb2dyYXBoeS1oZWxwZXItdGV4dCI+CiAgICAgIHttZXNzYWdlfQogICAgPC9kaXY+CiAgKTsKfQ==
+/**
+ * Unified Empty State Component System
+ * Premium appearance with icons and clear messaging
+ */
+
+import { Card } from "./Card";
+
+export function EmptyState({ icon: Icon, title, description, action = null }) {
+  return (
+    <Card className="py-12 px-6 text-center">
+      <div className="flex flex-col items-center gap-4 max-w-sm mx-auto">
+        {Icon && <Icon className="w-14 h-14 text-slate-200" />}
+        <div>
+          <h3 className="typography-empty-state-title mb-1">{title}</h3>
+          {description && <p className="typography-helper-text">{description}</p>}
+        </div>
+        {action && <div className="pt-3">{action}</div>}
+      </div>
+    </Card>
+  );
+}
+
+export function TableEmptyState({ message = "No data found" }) {
+  return (
+    <div className="py-16 text-center typography-helper-text">
+      {message}
+    </div>
+  );
+}

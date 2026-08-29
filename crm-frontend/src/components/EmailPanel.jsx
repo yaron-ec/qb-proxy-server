@@ -1,1 +1,144 @@
-aW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IHJhaWx3YXlSZXF1ZXN0IH0gZnJvbSAiQC9saWIvcmFpbHdheUNsaWVudCI7CmltcG9ydCB7IFNlbmQsIFJlZnJlc2hDdywgTWFpbCwgRXh0ZXJuYWxMaW5rIH0gZnJvbSAibHVjaWRlLXJlYWN0IjsKCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIEVtYWlsUGFuZWwoeyBsZWFkIH0pIHsKICBjb25zdCBbZW1haWxzLCBzZXRFbWFpbHNdID0gdXNlU3RhdGUoW10pOwogIGNvbnN0IFtmZXRjaGluZywgc2V0RmV0Y2hpbmddID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFtoYXNGZXRjaGVkLCBzZXRIYXNGZXRjaGVkXSA9IHVzZVN0YXRlKGZhbHNlKTsKCiAgLy8gQ29tcG9zZQogIGNvbnN0IFtjb21wb3NpbmcsIHNldENvbXBvc2luZ10gPSB1c2VTdGF0ZShmYWxzZSk7CiAgY29uc3QgW3N1YmplY3QsIHNldFN1YmplY3RdID0gdXNlU3RhdGUoIiIpOwogIGNvbnN0IFtlbWFpbEJvZHksIHNldEVtYWlsQm9keV0gPSB1c2VTdGF0ZSgiIik7CiAgY29uc3QgW3NlbmRpbmcsIHNldFNlbmRpbmddID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFtzZW50U3VjY2Vzcywgc2V0U2VudFN1Y2Nlc3NdID0gdXNlU3RhdGUoZmFsc2UpOwogIC8vIFN0YWJsZSBpZGVtcG90ZW5jeSBpZCBwZXIgY29tcG9zZSBhY3Rpb246IGdlbmVyYXRlZCB3aGVuIHRoZSB1c2VyIG9wZW5zCiAgLy8gdGhlIGNvbXBvc2UgZm9ybSwgcmV1c2VkIGZvciByZXRyaWVzIG9mIHRoYXQgc2FtZSBzZW5kLCByZWdlbmVyYXRlZCBvbgogIC8vIHRoZSBuZXh0IGNvbXBvc2Ugb3Blbi4gUGFzc2VkIHRvIHRoZSB0cmFuc3BvcnQgYWRhcHRlciBzbyByZXRyaWVzIGFuZAogIC8vIG92ZXJsYXBwaW5nIGNhbGxzIGRlZHVwbGljYXRlIGFnYWluc3QgdGhlIHNlcnZlciBjbGFpbS4KICBjb25zdCBbY2xpZW50UmVxdWVzdElkLCBzZXRDbGllbnRSZXF1ZXN0SWRdID0gdXNlU3RhdGUoIiIpOwoKICBjb25zdCBmZXRjaEVtYWlscyA9IGFzeW5jICgpID0+IHsKICAgIHNldEZldGNoaW5nKHRydWUpOwogICAgdHJ5IHsKICAgICAgY29uc3QgZGF0YSA9IGF3YWl0IHJhaWx3YXlSZXF1ZXN0KCcvZ21haWwvZmV0Y2gtZW1haWxzJywgeyBsZWFkRW1haWw6IGxlYWQuZW1haWwgfSk7CiAgICAgIHNldEVtYWlscyhkYXRhPy5lbWFpbHMgfHwgW10pOwogICAgfSBjYXRjaCB7CiAgICAgIHNldEVtYWlscyhbXSk7CiAgICB9CiAgICBzZXRIYXNGZXRjaGVkKHRydWUpOwogICAgc2V0RmV0Y2hpbmcoZmFsc2UpOwogIH07CgogIGNvbnN0IHNlbmRFbWFpbCA9IGFzeW5jICgpID0+IHsKICAgIGlmICghc3ViamVjdC50cmltKCkgfHwgIWVtYWlsQm9keS50cmltKCkpIHJldHVybjsKICAgIHNldFNlbmRpbmcodHJ1ZSk7CiAgICBjb25zdCB7IHNlbmRHZW5lcmljRW1haWwgfSA9IGF3YWl0IGltcG9ydCgnQC9saWIvZW1haWxUcmFuc3BvcnQnKTsKICAgIGF3YWl0IHNlbmRHZW5lcmljRW1haWwoeyB0bzogbGVhZC5lbWFpbCwgc3ViamVjdCwgaHRtbEJvZHk6IGVtYWlsQm9keSwgbGVhZElkOiBsZWFkLmlkLCBjbGllbnRSZXF1ZXN0SWQgfSkuY2F0Y2goKCkgPT4ge30pOwogICAgc2V0U2VudFN1Y2Nlc3ModHJ1ZSk7CiAgICBzZXRTZW5kaW5nKGZhbHNlKTsKICAgIHNldFRpbWVvdXQoKCkgPT4gewogICAgICBzZXRDb21wb3NpbmcoZmFsc2UpOwogICAgICBzZXRTZW50U3VjY2VzcyhmYWxzZSk7CiAgICAgIHNldFN1YmplY3QoIiIpOwogICAgICBzZXRFbWFpbEJvZHkoIiIpOwogICAgICBmZXRjaEVtYWlscygpOwogICAgfSwgMTUwMCk7CiAgfTsKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJwLTQgc3BhY2UteS0zIj4KICAgICAgey8qIENvbXBvc2UgYnV0dG9uICovfQogICAgICA8YnV0dG9uCiAgICAgICAgb25DbGljaz17KCkgPT4gewogICAgICAgICAgc2V0Q29tcG9zaW5nKHYgPT4geyBpZiAoIXYpIHNldENsaWVudFJlcXVlc3RJZChjcnlwdG8ucmFuZG9tVVVJRCgpKTsgcmV0dXJuICF2OyB9KTsKICAgICAgICB9fQogICAgICAgIGNsYXNzTmFtZT0idy1mdWxsIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGdhcC0yIGJnLW9yYW5nZSB0ZXh0LXdoaXRlIHB4LTMgcHktMiB0ZXh0LXhzIGZvbnQtYm9sZCByb3VuZGVkIGhvdmVyOmJnLW9yYW5nZS85MCB0cmFuc2l0aW9uLWNvbG9ycyIKICAgICAgPgogICAgICAgIDxTZW5kIGNsYXNzTmFtZT0idy0zLjUgaC0zLjUiIC8+CiAgICAgICAge2NvbXBvc2luZyA/ICJDYW5jZWwiIDogYFNlbmQgRW1haWwgdG8gJHtsZWFkLmZpcnN0X25hbWV9YH0KICAgICAgPC9idXR0b24+CgogICAgICB7LyogQ29tcG9zZSBmb3JtICovfQogICAgICB7Y29tcG9zaW5nICYmICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZCBwLTMgc3BhY2UteS0yIGJnLXNsYXRlLTUwIj4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSBmb250LWJvbGQgdXBwZXJjYXNlIHRyYWNraW5nLXdpZGVzdCB0ZXh0LXNsYXRlLTUwMCBtYi0xIj4KICAgICAgICAgICAgVG86IHtsZWFkLmVtYWlsfQogICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8aW5wdXQKICAgICAgICAgICAgdHlwZT0idGV4dCIKICAgICAgICAgICAgcGxhY2Vob2xkZXI9IlN1YmplY3QgKiIKICAgICAgICAgICAgY2xhc3NOYW1lPSJ3LWZ1bGwgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZCBweC0zIHB5LTIgdGV4dC1zbSBmb2N1czpvdXRsaW5lLW5vbmUgZm9jdXM6Ym9yZGVyLWJsdWUtNDAwIGJnLXdoaXRlIgogICAgICAgICAgICB2YWx1ZT17c3ViamVjdH0KICAgICAgICAgICAgb25DaGFuZ2U9e2UgPT4gc2V0U3ViamVjdChlLnRhcmdldC52YWx1ZSl9CiAgICAgICAgICAvPgogICAgICAgICAgPHRleHRhcmVhCiAgICAgICAgICAgIHBsYWNlaG9sZGVyPSJNZXNzYWdlICoiCiAgICAgICAgICAgIHJvd3M9ezV9CiAgICAgICAgICAgIGNsYXNzTmFtZT0idy1mdWxsIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQgcHgtMyBweS0yIHRleHQtc20gcmVzaXplLW5vbmUgZm9jdXM6b3V0bGluZS1ub25lIGZvY3VzOmJvcmRlci1ibHVlLTQwMCBiZy13aGl0ZSIKICAgICAgICAgICAgdmFsdWU9e2VtYWlsQm9keX0KICAgICAgICAgICAgb25DaGFuZ2U9e2UgPT4gc2V0RW1haWxCb2R5KGUudGFyZ2V0LnZhbHVlKX0KICAgICAgICAgIC8+CiAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgIG9uQ2xpY2s9e3NlbmRFbWFpbH0KICAgICAgICAgICAgZGlzYWJsZWQ9e3NlbmRpbmcgfHwgc2VudFN1Y2Nlc3MgfHwgIXN1YmplY3QudHJpbSgpIHx8ICFlbWFpbEJvZHkudHJpbSgpfQogICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBnYXAtMiBiZy1vcmFuZ2UgdGV4dC13aGl0ZSBweC0zIHB5LTIgdGV4dC14cyBmb250LWJvbGQgcm91bmRlZCBob3ZlcjpiZy1vcmFuZ2UvOTAgdHJhbnNpdGlvbi1jb2xvcnMgZGlzYWJsZWQ6b3BhY2l0eS01MCIKICAgICAgICAgID4KICAgICAgICAgICAge3NlbnRTdWNjZXNzID8gKAogICAgICAgICAgICAgICLinJMgU2VudCEiCiAgICAgICAgICAgICkgOiBzZW5kaW5nID8gKAogICAgICAgICAgICAgIDw+PGRpdiBjbGFzc05hbWU9InctMyBoLTMgYm9yZGVyLTIgYm9yZGVyLXdoaXRlIGJvcmRlci10LXRyYW5zcGFyZW50IHJvdW5kZWQtZnVsbCBhbmltYXRlLXNwaW4iIC8+U2VuZGluZy4uLjwvPgogICAgICAgICAgICApIDogKAogICAgICAgICAgICAgIDw+PFNlbmQgY2xhc3NOYW1lPSJ3LTMgaC0zIiAvPlNlbmQ8Lz4KICAgICAgICAgICAgKX0KICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgIDwvZGl2PgogICAgICApfQoKICAgICAgey8qIEZldGNoIGJ1dHRvbiAqL30KICAgICAgPGJ1dHRvbgogICAgICAgIG9uQ2xpY2s9e2ZldGNoRW1haWxzfQogICAgICAgIGRpc2FibGVkPXtmZXRjaGluZ30KICAgICAgICBjbGFzc05hbWU9InctZnVsbCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBnYXAtMiBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCB0ZXh0LXNsYXRlLTYwMCBweC0zIHB5LTIgdGV4dC14cyBmb250LWJvbGQgcm91bmRlZCBob3ZlcjpiZy1zbGF0ZS01MCB0cmFuc2l0aW9uLWNvbG9ycyBkaXNhYmxlZDpvcGFjaXR5LTUwIgogICAgICA+CiAgICAgICAgPFJlZnJlc2hDdyBjbGFzc05hbWU9e2B3LTMuNSBoLTMuNSAke2ZldGNoaW5nID8gImFuaW1hdGUtc3BpbiIgOiAiIn1gfSAvPgogICAgICAgIHtoYXNGZXRjaGVkID8gIlJlZnJlc2ggRW1haWxzIiA6ICJMb2FkIEVtYWlscyBmcm9tIEdtYWlsIn0KICAgICAgPC9idXR0b24+CgogICAgICB7LyogRW1haWwgbGlzdCAqL30KICAgICAge2hhc0ZldGNoZWQgJiYgKAogICAgICAgIGVtYWlscy5sZW5ndGggPT09IDAgPyAoCiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0icHktNiB0ZXh0LWNlbnRlciB0ZXh0LXNsYXRlLTQwMCB0ZXh0LXhzIj4KICAgICAgICAgICAgPE1haWwgY2xhc3NOYW1lPSJ3LTggaC04IG14LWF1dG8gbWItMiB0ZXh0LXNsYXRlLTMwMCIgLz4KICAgICAgICAgICAgTm8gZW1haWxzIGZvdW5kIHdpdGgge2xlYWQuZW1haWx9CiAgICAgICAgICA8L2Rpdj4KICAgICAgICApIDogKAogICAgICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMiBtYXgtaC04MCBvdmVyZmxvdy15LWF1dG8iPgogICAgICAgICAgICB7ZW1haWxzLm1hcCgoZW1haWwpID0+ICgKICAgICAgICAgICAgICA8ZGl2IGtleT17ZW1haWwuaWR9IGNsYXNzTmFtZT0iYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZCBwLTMgdGV4dC14cyBob3ZlcjpiZy1zbGF0ZS01MCB0cmFuc2l0aW9uLWNvbG9ycyI+CiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTgwMCB0cnVuY2F0ZSI+e2VtYWlsLnN1YmplY3R9PC9kaXY+CiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1bMTBweF0gdGV4dC1zbGF0ZS01MDAgbXQtMC41IHRydW5jYXRlIj57ZW1haWwuZnJvbX08L2Rpdj4KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSB0ZXh0LXNsYXRlLTQwMCBtdC0wLjUiPgogICAgICAgICAgICAgICAgICB7ZW1haWwuZGF0ZSA/IG5ldyBEYXRlKGVtYWlsLmRhdGUpLnRvTG9jYWxlRGF0ZVN0cmluZygnZW4tVVMnLCB7IG1vbnRoOiAnc2hvcnQnLCBkYXk6ICdudW1lcmljJywgeWVhcjogJ251bWVyaWMnIH0pIDogJyd9CiAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgIHtlbWFpbC5zbmlwcGV0ICYmICgKICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtc2xhdGUtNTAwIG10LTEuNSBsaW5lLWNsYW1wLTIgbGVhZGluZy1yZWxheGVkIj57ZW1haWwuc25pcHBldH08L2Rpdj4KICAgICAgICAgICAgICAgICl9CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICkpfQogICAgICAgICAgPC9kaXY+CiAgICAgICAgKQogICAgICApfQoKICAgICAgPGEKICAgICAgICBocmVmPSJodHRwczovL21haWwuZ29vZ2xlLmNvbSIKICAgICAgICB0YXJnZXQ9Il9ibGFuayIKICAgICAgICByZWw9Im5vcmVmZXJyZXIiCiAgICAgICAgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBnYXAtMS41IHctZnVsbCB0ZXh0LWNlbnRlciB0ZXh0LXNsYXRlLTQwMCB0ZXh0LVsxMHB4XSBmb250LXNlbWlib2xkIGhvdmVyOnRleHQtc2xhdGUtNjAwIHRyYW5zaXRpb24tY29sb3JzIgogICAgICA+CiAgICAgICAgPEV4dGVybmFsTGluayBjbGFzc05hbWU9InctMyBoLTMiIC8+T3BlbiBHbWFpbAogICAgICA8L2E+CiAgICA8L2Rpdj4KICApOwp9
+import { useState } from "react";
+import { railwayRequest } from "@/lib/railwayClient";
+import { Send, RefreshCw, Mail, ExternalLink } from "lucide-react";
+
+export default function EmailPanel({ lead }) {
+  const [emails, setEmails] = useState([]);
+  const [fetching, setFetching] = useState(false);
+  const [hasFetched, setHasFetched] = useState(false);
+
+  // Compose
+  const [composing, setComposing] = useState(false);
+  const [subject, setSubject] = useState("");
+  const [emailBody, setEmailBody] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sentSuccess, setSentSuccess] = useState(false);
+  // Stable idempotency id per compose action: generated when the user opens
+  // the compose form, reused for retries of that same send, regenerated on
+  // the next compose open. Passed to the transport adapter so retries and
+  // overlapping calls deduplicate against the server claim.
+  const [clientRequestId, setClientRequestId] = useState("");
+
+  const fetchEmails = async () => {
+    setFetching(true);
+    try {
+      const data = await railwayRequest('/gmail/fetch-emails', { leadEmail: lead.email });
+      setEmails(data?.emails || []);
+    } catch {
+      setEmails([]);
+    }
+    setHasFetched(true);
+    setFetching(false);
+  };
+
+  const sendEmail = async () => {
+    if (!subject.trim() || !emailBody.trim()) return;
+    setSending(true);
+    const { sendGenericEmail } = await import('@/lib/emailTransport');
+    await sendGenericEmail({ to: lead.email, subject, htmlBody: emailBody, leadId: lead.id, clientRequestId }).catch(() => {});
+    setSentSuccess(true);
+    setSending(false);
+    setTimeout(() => {
+      setComposing(false);
+      setSentSuccess(false);
+      setSubject("");
+      setEmailBody("");
+      fetchEmails();
+    }, 1500);
+  };
+
+  return (
+    <div className="p-4 space-y-3">
+      {/* Compose button */}
+      <button
+        onClick={() => {
+          setComposing(v => { if (!v) setClientRequestId(crypto.randomUUID()); return !v; });
+        }}
+        className="w-full flex items-center justify-center gap-2 bg-orange text-white px-3 py-2 text-xs font-bold rounded hover:bg-orange/90 transition-colors"
+      >
+        <Send className="w-3.5 h-3.5" />
+        {composing ? "Cancel" : `Send Email to ${lead.first_name}`}
+      </button>
+
+      {/* Compose form */}
+      {composing && (
+        <div className="border border-slate-200 rounded p-3 space-y-2 bg-slate-50">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
+            To: {lead.email}
+          </div>
+          <input
+            type="text"
+            placeholder="Subject *"
+            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white"
+            value={subject}
+            onChange={e => setSubject(e.target.value)}
+          />
+          <textarea
+            placeholder="Message *"
+            rows={5}
+            className="w-full border border-slate-200 rounded px-3 py-2 text-sm resize-none focus:outline-none focus:border-blue-400 bg-white"
+            value={emailBody}
+            onChange={e => setEmailBody(e.target.value)}
+          />
+          <button
+            onClick={sendEmail}
+            disabled={sending || sentSuccess || !subject.trim() || !emailBody.trim()}
+            className="w-full flex items-center justify-center gap-2 bg-orange text-white px-3 py-2 text-xs font-bold rounded hover:bg-orange/90 transition-colors disabled:opacity-50"
+          >
+            {sentSuccess ? (
+              "✓ Sent!"
+            ) : sending ? (
+              <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />Sending...</>
+            ) : (
+              <><Send className="w-3 h-3" />Send</>
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* Fetch button */}
+      <button
+        onClick={fetchEmails}
+        disabled={fetching}
+        className="w-full flex items-center justify-center gap-2 border border-slate-200 text-slate-600 px-3 py-2 text-xs font-bold rounded hover:bg-slate-50 transition-colors disabled:opacity-50"
+      >
+        <RefreshCw className={`w-3.5 h-3.5 ${fetching ? "animate-spin" : ""}`} />
+        {hasFetched ? "Refresh Emails" : "Load Emails from Gmail"}
+      </button>
+
+      {/* Email list */}
+      {hasFetched && (
+        emails.length === 0 ? (
+          <div className="py-6 text-center text-slate-400 text-xs">
+            <Mail className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+            No emails found with {lead.email}
+          </div>
+        ) : (
+          <div className="space-y-2 max-h-80 overflow-y-auto">
+            {emails.map((email) => (
+              <div key={email.id} className="border border-slate-200 rounded p-3 text-xs hover:bg-slate-50 transition-colors">
+                <div className="font-semibold text-slate-800 truncate">{email.subject}</div>
+                <div className="text-[10px] text-slate-500 mt-0.5 truncate">{email.from}</div>
+                <div className="text-[10px] text-slate-400 mt-0.5">
+                  {email.date ? new Date(email.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
+                </div>
+                {email.snippet && (
+                  <div className="text-slate-500 mt-1.5 line-clamp-2 leading-relaxed">{email.snippet}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        )
+      )}
+
+      <a
+        href="https://mail.google.com"
+        target="_blank"
+        rel="noreferrer"
+        className="flex items-center justify-center gap-1.5 w-full text-center text-slate-400 text-[10px] font-semibold hover:text-slate-600 transition-colors"
+      >
+        <ExternalLink className="w-3 h-3" />Open Gmail
+      </a>
+    </div>
+  );
+}

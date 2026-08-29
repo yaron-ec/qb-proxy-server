@@ -1,1 +1,41 @@
-aW1wb3J0IFJlYWN0IGZyb20gJ3JlYWN0JzsKaW1wb3J0IHsgdXNlQXV0aCB9IGZyb20gJ0AvbGliL0F1dGhDb250ZXh0JzsKaW1wb3J0IHsgTG9jaywgTWFpbCwgTG9nT3V0IH0gZnJvbSAnbHVjaWRlLXJlYWN0JzsKCmNvbnN0IFVzZXJOb3RSZWdpc3RlcmVkRXJyb3IgPSAoeyBhdXRoRXJyb3IsIHVzZXIgfSkgPT4gewogIGNvbnN0IHsgbG9nb3V0IH0gPSB1c2VBdXRoKCk7CiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGZsZXgtY29sIGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBtaW4taC1zY3JlZW4gYmctc2xhdGUtNTAgcC00Ij4KICAgICAgPGRpdiBjbGFzc05hbWU9Im1heC13LXNtIHctZnVsbCBiZy13aGl0ZSByb3VuZGVkLTJ4bCBzaGFkb3ctbGcgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcC04IHRleHQtY2VudGVyIj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iaW5saW5lLWZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHctMTQgaC0xNCBtYi01IHJvdW5kZWQtZnVsbCBiZy1hbWJlci0xMDAiPgogICAgICAgICAgPExvY2sgY2xhc3NOYW1lPSJ3LTcgaC03IHRleHQtYW1iZXItNjAwIiAvPgogICAgICAgIDwvZGl2PgogICAgICAgIDxoMSBjbGFzc05hbWU9InRleHQteGwgZm9udC1ib2xkIHRleHQtc2xhdGUtOTAwIG1iLTIiPkFjY291bnQgTm90IFNldCBVcDwvaDE+CiAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIHRleHQtc2xhdGUtNjAwIG1iLTEiPgogICAgICAgICAge3VzZXI/LmVtYWlsICYmIDxzcGFuIGNsYXNzTmFtZT0iZm9udC1tZWRpdW0gdGV4dC1zbGF0ZS04MDAiPnt1c2VyLmVtYWlsfTwvc3Bhbj59CiAgICAgICAgPC9wPgogICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1zbSB0ZXh0LXNsYXRlLTUwMCBtYi02IG10LTMiPgogICAgICAgICAgWW91ciBhY2NvdW50IGhhcyBub3QgYmVlbiBzZXQgdXAgeWV0LjxiciAvPgogICAgICAgICAgQ29udGFjdCB5b3VyIGFkbWluaXN0cmF0b3IgdG8gY3JlYXRlIHlvdXIgYWNjb3VudC4KICAgICAgICA8L3A+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLXNsYXRlLTUwIHJvdW5kZWQteGwgcC00IG1iLTYgdGV4dC1sZWZ0Ij4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNjAwIG1iLTIgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSI+CiAgICAgICAgICAgIDxNYWlsIGNsYXNzTmFtZT0idy0zLjUgaC0zLjUiIC8+IENvbnRhY3QgQWRtaW4KICAgICAgICAgIDwvcD4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTUwMCI+CiAgICAgICAgICAgIHlhcm9uQGVjY29uc3RydWN0aW9uZ3JvdXAuY29tPGJyIC8+CiAgICAgICAgICAgIG1pY2hlbGxlQGVjY29uc3RydWN0aW9uZ3JvdXAuY29tCiAgICAgICAgICA8L3A+CiAgICAgICAgPC9kaXY+CiAgICAgICAgPGJ1dHRvbgogICAgICAgICAgb25DbGljaz17KCkgPT4gbG9nb3V0KCl9CiAgICAgICAgICBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIHctZnVsbCBqdXN0aWZ5LWNlbnRlciBweC00IHB5LTIuNSBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHRleHQtc20gZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTYwMCBob3ZlcjpiZy1zbGF0ZS01MCB0cmFuc2l0aW9uLWNvbG9ycyIKICAgICAgICA+CiAgICAgICAgICA8TG9nT3V0IGNsYXNzTmFtZT0idy00IGgtNCIgLz4gU2lnbiBvdXQKICAgICAgICA8L2J1dHRvbj4KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KICApOwp9OwoKZXhwb3J0IGRlZmF1bHQgVXNlck5vdFJlZ2lzdGVyZWRFcnJvcjs=
+import React from 'react';
+import { useAuth } from '@/lib/AuthContext';
+import { Lock, Mail, LogOut } from 'lucide-react';
+
+const UserNotRegisteredError = ({ authError, user }) => {
+  const { logout } = useAuth();
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 p-4">
+      <div className="max-w-sm w-full bg-white rounded-2xl shadow-lg border border-slate-200 p-8 text-center">
+        <div className="inline-flex items-center justify-center w-14 h-14 mb-5 rounded-full bg-amber-100">
+          <Lock className="w-7 h-7 text-amber-600" />
+        </div>
+        <h1 className="text-xl font-bold text-slate-900 mb-2">Account Not Set Up</h1>
+        <p className="text-sm text-slate-600 mb-1">
+          {user?.email && <span className="font-medium text-slate-800">{user.email}</span>}
+        </p>
+        <p className="text-sm text-slate-500 mb-6 mt-3">
+          Your account has not been set up yet.<br />
+          Contact your administrator to create your account.
+        </p>
+        <div className="bg-slate-50 rounded-xl p-4 mb-6 text-left">
+          <p className="text-xs font-semibold text-slate-600 mb-2 flex items-center gap-1.5">
+            <Mail className="w-3.5 h-3.5" /> Contact Admin
+          </p>
+          <p className="text-xs text-slate-500">
+            yaron@ecconstructiongroup.com<br />
+            michelle@ecconstructiongroup.com
+          </p>
+        </div>
+        <button
+          onClick={() => logout()}
+          className="flex items-center gap-2 w-full justify-center px-4 py-2.5 border border-slate-200 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+        >
+          <LogOut className="w-4 h-4" /> Sign out
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default UserNotRegisteredError;

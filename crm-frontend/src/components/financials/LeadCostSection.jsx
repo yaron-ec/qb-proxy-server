@@ -1,1 +1,162 @@
-aW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IGZvcm1hdEN1cnJlbmN5LCBzYWZlTnVtYmVyLCByb3VuZDIgfSBmcm9tICJAL2xpYi9maW5hbmNpYWxDYWxjIjsKCmNvbnN0IEJBU0VTID0gWwogIHsgdmFsdWU6ICJ0b3RhbF9jb250cmFjdCIsIGxhYmVsOiAiVG90YWwgQ29udHJhY3QgQW1vdW50IiB9LAogIHsgdmFsdWU6ICJwYXltZW50c19yZWNlaXZlZCIsIGxhYmVsOiAiUGF5bWVudHMgUmVjZWl2ZWQiIH0sCiAgeyB2YWx1ZTogImdyb3NzX3Byb2ZpdF9iZWZvcmVfbGVhZF9jb3N0IiwgbGFiZWw6ICJHcm9zcyBQcm9maXQgQmVmb3JlIExlYWQgQ29zdCIgfSwKICB7IHZhbHVlOiAiY3VzdG9tIiwgbGFiZWw6ICJDdXN0b20gQmFzZSBBbW91bnQiIH0sCl07CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBMZWFkQ29zdFNlY3Rpb24oeyBkZWFsLCBmaW4sIGNhbkVkaXQsIHVwZGF0ZURlYWwsIGxvZ0FjdGl2aXR5IH0pIHsKICBjb25zdCBbZm9ybSwgc2V0Rm9ybV0gPSB1c2VTdGF0ZSh7CiAgICBsZWFkX2Nvc3RfdHlwZTogZGVhbD8ubGVhZF9jb3N0X3R5cGUgfHwgInBlcmNlbnRhZ2UiLAogICAgbGVhZF9jb3N0X3BlcmNlbnRhZ2U6IGRlYWw/LmxlYWRfY29zdF9wZXJjZW50YWdlID8/ICIiLAogICAgbGVhZF9jb3N0X2ZpeGVkX2Ftb3VudDogZGVhbD8ubGVhZF9jb3N0X2ZpeGVkX2Ftb3VudCA/PyAiIiwKICAgIGxlYWRfY29zdF9jYWxjdWxhdGlvbl9iYXNlOiBkZWFsPy5sZWFkX2Nvc3RfY2FsY3VsYXRpb25fYmFzZSB8fCAidG90YWxfY29udHJhY3QiLAogICAgbGVhZF9jb3N0X2N1c3RvbV9iYXNlX2Ftb3VudDogZGVhbD8ubGVhZF9jb3N0X2N1c3RvbV9iYXNlX2Ftb3VudCA/PyAiIiwKICAgIGxlYWRfY29zdF9ub3RlczogZGVhbD8ubGVhZF9jb3N0X25vdGVzIHx8ICIiLAogIH0pOwogIGNvbnN0IFtzYXZpbmcsIHNldFNhdmluZ10gPSB1c2VTdGF0ZShmYWxzZSk7CgogIGNvbnN0IGJhc2VMYWJlbCA9IEJBU0VTLmZpbmQoKGIpID0+IGIudmFsdWUgPT09IGZvcm0ubGVhZF9jb3N0X2NhbGN1bGF0aW9uX2Jhc2UpPy5sYWJlbCB8fCAiIjsKICBsZXQgYmFzZVZhbHVlID0gZmluLnRvdGFsUmV2ZW51ZTsKICBpZiAoZm9ybS5sZWFkX2Nvc3RfY2FsY3VsYXRpb25fYmFzZSA9PT0gInBheW1lbnRzX3JlY2VpdmVkIikgYmFzZVZhbHVlID0gZmluLnBheW1lbnRzUmVjZWl2ZWQ7CiAgZWxzZSBpZiAoZm9ybS5sZWFkX2Nvc3RfY2FsY3VsYXRpb25fYmFzZSA9PT0gImdyb3NzX3Byb2ZpdF9iZWZvcmVfbGVhZF9jb3N0IikgYmFzZVZhbHVlID0gZmluLnRvdGFsUmV2ZW51ZTsKICBlbHNlIGlmIChmb3JtLmxlYWRfY29zdF9jYWxjdWxhdGlvbl9iYXNlID09PSAiY3VzdG9tIikgYmFzZVZhbHVlID0gc2FmZU51bWJlcihmb3JtLmxlYWRfY29zdF9jdXN0b21fYmFzZV9hbW91bnQpOwoKICBjb25zdCBwcmV2aWV3Q29zdCA9CiAgICBmb3JtLmxlYWRfY29zdF90eXBlID09PSAiZml4ZWQiCiAgICAgID8gc2FmZU51bWJlcihmb3JtLmxlYWRfY29zdF9maXhlZF9hbW91bnQpCiAgICAgIDogcm91bmQyKGJhc2VWYWx1ZSAqIChzYWZlTnVtYmVyKGZvcm0ubGVhZF9jb3N0X3BlcmNlbnRhZ2UpIC8gMTAwKSk7CiAgY29uc3QgcHJldmlld0NvbXBhbnkgPSByb3VuZDIoZmluLnRvdGFsUmV2ZW51ZSAtIHByZXZpZXdDb3N0KTsKCiAgY29uc3Qgc2F2ZSA9IGFzeW5jICgpID0+IHsKICAgIHNldFNhdmluZyh0cnVlKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IGZpZWxkcyA9IHsKICAgICAgICBsZWFkX2Nvc3RfdHlwZTogZm9ybS5sZWFkX2Nvc3RfdHlwZSwKICAgICAgICBsZWFkX2Nvc3RfcGVyY2VudGFnZTogZm9ybS5sZWFkX2Nvc3RfdHlwZSA9PT0gInBlcmNlbnRhZ2UiID8gcGFyc2VGbG9hdChmb3JtLmxlYWRfY29zdF9wZXJjZW50YWdlKSB8fCAwIDogMCwKICAgICAgICBsZWFkX2Nvc3RfZml4ZWRfYW1vdW50OiBmb3JtLmxlYWRfY29zdF90eXBlID09PSAiZml4ZWQiID8gcGFyc2VGbG9hdChmb3JtLmxlYWRfY29zdF9maXhlZF9hbW91bnQpIHx8IDAgOiAwLAogICAgICAgIGxlYWRfY29zdF9jYWxjdWxhdGlvbl9iYXNlOiBmb3JtLmxlYWRfY29zdF9jYWxjdWxhdGlvbl9iYXNlLAogICAgICAgIGxlYWRfY29zdF9jdXN0b21fYmFzZV9hbW91bnQ6IHBhcnNlRmxvYXQoZm9ybS5sZWFkX2Nvc3RfY3VzdG9tX2Jhc2VfYW1vdW50KSB8fCAwLAogICAgICAgIGxlYWRfY29zdF9ub3RlczogZm9ybS5sZWFkX2Nvc3Rfbm90ZXMgfHwgbnVsbCwKICAgICAgICBsZWFkX2Nvc3RfYW1vdW50OiBwcmV2aWV3Q29zdCwKICAgICAgICBjb21wYW55X3NoYXJlX2Ftb3VudDogcHJldmlld0NvbXBhbnksCiAgICAgIH07CiAgICAgIGF3YWl0IHVwZGF0ZURlYWwoZmllbGRzKTsKICAgICAgYXdhaXQgbG9nQWN0aXZpdHkoCiAgICAgICAgImxlYWRfY29zdF9jaGFuZ2VkIiwKICAgICAgICAiRGVhbCIsCiAgICAgICAgYExlYWQgY29zdCB1cGRhdGVkIHRvICR7Zm9ybWF0Q3VycmVuY3kocHJldmlld0Nvc3QpfSAoJHtmb3JtLmxlYWRfY29zdF90eXBlID09PSAicGVyY2VudGFnZSIgPyBmb3JtLmxlYWRfY29zdF9wZXJjZW50YWdlICsgIiUiIDogImZpeGVkIn0pYAogICAgICApOwogICAgfSBmaW5hbGx5IHsKICAgICAgc2V0U2F2aW5nKGZhbHNlKTsKICAgIH0KICB9OwoKICByZXR1cm4gKAogICAgPGRpdj4KICAgICAgPHAgY2xhc3NOYW1lPSJ0eXBvZ3JhcGh5LXNlY3Rpb24taGVhZGVyIG1iLTIiPkxFQUQgQ09TVCAmIENPTVBBTlkgU1BMSVQ8L3A+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJjYXJkLXByZW1pdW0gcC00IHNwYWNlLXktMyI+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImdyaWQgZ3JpZC1jb2xzLTEgc206Z3JpZC1jb2xzLTIgZ2FwLTMiPgogICAgICAgICAgPGRpdj4KICAgICAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTUwMCB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZSBibG9jayBtYi0xIj5DYWxjdWxhdGlvbiBUeXBlPC9sYWJlbD4KICAgICAgICAgICAgPHNlbGVjdAogICAgICAgICAgICAgIHZhbHVlPXtmb3JtLmxlYWRfY29zdF90eXBlfQogICAgICAgICAgICAgIG9uQ2hhbmdlPXsoZSkgPT4gc2V0Rm9ybSgocCkgPT4gKHsgLi4ucCwgbGVhZF9jb3N0X3R5cGU6IGUudGFyZ2V0LnZhbHVlIH0pKX0KICAgICAgICAgICAgICBkaXNhYmxlZD17IWNhbkVkaXR9CiAgICAgICAgICAgICAgY2xhc3NOYW1lPSJ3LWZ1bGwgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBweC0yLjUgcHktMiB0ZXh0LXNtIgogICAgICAgICAgICA+CiAgICAgICAgICAgICAgPG9wdGlvbiB2YWx1ZT0icGVyY2VudGFnZSI+UGVyY2VudGFnZTwvb3B0aW9uPgogICAgICAgICAgICAgIDxvcHRpb24gdmFsdWU9ImZpeGVkIj5GaXhlZCBBbW91bnQ8L29wdGlvbj4KICAgICAgICAgICAgPC9zZWxlY3Q+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDxkaXY+CiAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9InRleHQtWzEwcHhdIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS01MDAgdXBwZXJjYXNlIHRyYWNraW5nLXdpZGUgYmxvY2sgbWItMSI+Q2FsY3VsYXRpb24gQmFzZTwvbGFiZWw+CiAgICAgICAgICAgIDxzZWxlY3QKICAgICAgICAgICAgICB2YWx1ZT17Zm9ybS5sZWFkX2Nvc3RfY2FsY3VsYXRpb25fYmFzZX0KICAgICAgICAgICAgICBvbkNoYW5nZT17KGUpID0+IHNldEZvcm0oKHApID0+ICh7IC4uLnAsIGxlYWRfY29zdF9jYWxjdWxhdGlvbl9iYXNlOiBlLnRhcmdldC52YWx1ZSB9KSl9CiAgICAgICAgICAgICAgZGlzYWJsZWQ9eyFjYW5FZGl0IHx8IGZvcm0ubGVhZF9jb3N0X3R5cGUgPT09ICJmaXhlZCJ9CiAgICAgICAgICAgICAgY2xhc3NOYW1lPSJ3LWZ1bGwgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBweC0yLjUgcHktMiB0ZXh0LXNtIgogICAgICAgICAgICA+CiAgICAgICAgICAgICAge0JBU0VTLm1hcCgoYikgPT4gKAogICAgICAgICAgICAgICAgPG9wdGlvbiBrZXk9e2IudmFsdWV9IHZhbHVlPXtiLnZhbHVlfT57Yi5sYWJlbH08L29wdGlvbj4KICAgICAgICAgICAgICApKX0KICAgICAgICAgICAgPC9zZWxlY3Q+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KCiAgICAgICAge2Zvcm0ubGVhZF9jb3N0X3R5cGUgPT09ICJwZXJjZW50YWdlIiA/ICgKICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJncmlkIGdyaWQtY29scy0xIHNtOmdyaWQtY29scy0yIGdhcC0zIj4KICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICA8bGFiZWwgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNTAwIHVwcGVyY2FzZSB0cmFja2luZy13aWRlIGJsb2NrIG1iLTEiPkxlYWQgQ29zdCBQZXJjZW50YWdlICglKTwvbGFiZWw+CiAgICAgICAgICAgICAgPGlucHV0CiAgICAgICAgICAgICAgICB0eXBlPSJudW1iZXIiCiAgICAgICAgICAgICAgICBzdGVwPSIwLjAxIgogICAgICAgICAgICAgICAgdmFsdWU9e2Zvcm0ubGVhZF9jb3N0X3BlcmNlbnRhZ2V9CiAgICAgICAgICAgICAgICBvbkNoYW5nZT17KGUpID0+IHNldEZvcm0oKHApID0+ICh7IC4uLnAsIGxlYWRfY29zdF9wZXJjZW50YWdlOiBlLnRhcmdldC52YWx1ZSB9KSl9CiAgICAgICAgICAgICAgICBkaXNhYmxlZD17IWNhbkVkaXR9CiAgICAgICAgICAgICAgICBwbGFjZWhvbGRlcj0iZS5nLiAxMi41IgogICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJ3LWZ1bGwgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBweC0yLjUgcHktMiB0ZXh0LXNtIgogICAgICAgICAgICAgIC8+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICB7Zm9ybS5sZWFkX2Nvc3RfY2FsY3VsYXRpb25fYmFzZSA9PT0gImN1c3RvbSIgJiYgKAogICAgICAgICAgICAgIDxkaXY+CiAgICAgICAgICAgICAgICA8bGFiZWwgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNTAwIHVwcGVyY2FzZSB0cmFja2luZy13aWRlIGJsb2NrIG1iLTEiPkN1c3RvbSBCYXNlIEFtb3VudCAoJCk8L2xhYmVsPgogICAgICAgICAgICAgICAgPGlucHV0CiAgICAgICAgICAgICAgICAgIHR5cGU9Im51bWJlciIKICAgICAgICAgICAgICAgICAgc3RlcD0iMC4wMSIKICAgICAgICAgICAgICAgICAgdmFsdWU9e2Zvcm0ubGVhZF9jb3N0X2N1c3RvbV9iYXNlX2Ftb3VudH0KICAgICAgICAgICAgICAgICAgb25DaGFuZ2U9eyhlKSA9PiBzZXRGb3JtKChwKSA9PiAoeyAuLi5wLCBsZWFkX2Nvc3RfY3VzdG9tX2Jhc2VfYW1vdW50OiBlLnRhcmdldC52YWx1ZSB9KSl9CiAgICAgICAgICAgICAgICAgIGRpc2FibGVkPXshY2FuRWRpdH0KICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJ3LWZ1bGwgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBweC0yLjUgcHktMiB0ZXh0LXNtIgogICAgICAgICAgICAgICAgLz4KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgKX0KICAgICAgICAgIDwvZGl2PgogICAgICAgICkgOiAoCiAgICAgICAgICA8ZGl2PgogICAgICAgICAgICA8bGFiZWwgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNTAwIHVwcGVyY2FzZSB0cmFja2luZy13aWRlIGJsb2NrIG1iLTEiPkxlYWQgQ29zdCBGaXhlZCBBbW91bnQgKCQpPC9sYWJlbD4KICAgICAgICAgICAgPGlucHV0CiAgICAgICAgICAgICAgdHlwZT0ibnVtYmVyIgogICAgICAgICAgICAgIHN0ZXA9IjAuMDEiCiAgICAgICAgICAgICAgdmFsdWU9e2Zvcm0ubGVhZF9jb3N0X2ZpeGVkX2Ftb3VudH0KICAgICAgICAgICAgICBvbkNoYW5nZT17KGUpID0+IHNldEZvcm0oKHApID0+ICh7IC4uLnAsIGxlYWRfY29zdF9maXhlZF9hbW91bnQ6IGUudGFyZ2V0LnZhbHVlIH0pKX0KICAgICAgICAgICAgICBkaXNhYmxlZD17IWNhbkVkaXR9CiAgICAgICAgICAgICAgY2xhc3NOYW1lPSJ3LWZ1bGwgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBweC0yLjUgcHktMiB0ZXh0LXNtIgogICAgICAgICAgICAvPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgKX0KCiAgICAgICAgPGRpdj4KICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9InRleHQtWzEwcHhdIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS01MDAgdXBwZXJjYXNlIHRyYWNraW5nLXdpZGUgYmxvY2sgbWItMSI+Tm90ZXM8L2xhYmVsPgogICAgICAgICAgPHRleHRhcmVhCiAgICAgICAgICAgIHZhbHVlPXtmb3JtLmxlYWRfY29zdF9ub3Rlc30KICAgICAgICAgICAgb25DaGFuZ2U9eyhlKSA9PiBzZXRGb3JtKChwKSA9PiAoeyAuLi5wLCBsZWFkX2Nvc3Rfbm90ZXM6IGUudGFyZ2V0LnZhbHVlIH0pKX0KICAgICAgICAgICAgZGlzYWJsZWQ9eyFjYW5FZGl0fQogICAgICAgICAgICByb3dzPXsyfQogICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHB4LTIuNSBweS0yIHRleHQtc20gcmVzaXplLW5vbmUiCiAgICAgICAgICAvPgogICAgICAgIDwvZGl2PgoKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctc2xhdGUtNTAgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBwLTMgdGV4dC14cyBzcGFjZS15LTEiPgogICAgICAgICAgPHA+Q2FsY3VsYXRpb24gQmFzZTogPHNwYW4gY2xhc3NOYW1lPSJmb250LXNlbWlib2xkIj57YmFzZUxhYmVsfTwvc3Bhbj4g4oCUIHtmb3JtYXRDdXJyZW5jeShiYXNlVmFsdWUpfTwvcD4KICAgICAgICAgIHtmb3JtLmxlYWRfY29zdF90eXBlID09PSAicGVyY2VudGFnZSIgJiYgPHA+TGVhZCBDb3N0OiB7Zm9ybS5sZWFkX2Nvc3RfcGVyY2VudGFnZSB8fCAwfSU8L3A+fQogICAgICAgICAgPHA+TGVhZCBDb3N0IEFtb3VudDogPHNwYW4gY2xhc3NOYW1lPSJmb250LXNlbWlib2xkIj57Zm9ybWF0Q3VycmVuY3kocHJldmlld0Nvc3QpfTwvc3Bhbj48L3A+CiAgICAgICAgICA8cD5Db21wYW55IFNoYXJlIEJlZm9yZSBPdGhlciBFeHBlbnNlczogPHNwYW4gY2xhc3NOYW1lPSJmb250LXNlbWlib2xkIj57Zm9ybWF0Q3VycmVuY3kocHJldmlld0NvbXBhbnkpfTwvc3Bhbj48L3A+CiAgICAgICAgPC9kaXY+CgogICAgICAgIHtjYW5FZGl0ICYmICgKICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgb25DbGljaz17c2F2ZX0KICAgICAgICAgICAgZGlzYWJsZWQ9e3NhdmluZ30KICAgICAgICAgICAgY2xhc3NOYW1lPSJweC0zIHB5LTIgdGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtd2hpdGUgYmctYW1iZXItNjAwIGhvdmVyOmJnLWFtYmVyLTcwMCByb3VuZGVkLWxnIGRpc2FibGVkOm9wYWNpdHktNTAiCiAgICAgICAgICA+CiAgICAgICAgICAgIHtzYXZpbmcgPyAiU2F2aW5n4oCmIiA6ICJTYXZlIExlYWQgQ29zdCJ9CiAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICApfQogICAgICA8L2Rpdj4KICAgIDwvZGl2PgogICk7Cn0=
+import { useState } from "react";
+import { formatCurrency, safeNumber, round2 } from "@/lib/financialCalc";
+
+const BASES = [
+  { value: "total_contract", label: "Total Contract Amount" },
+  { value: "payments_received", label: "Payments Received" },
+  { value: "gross_profit_before_lead_cost", label: "Gross Profit Before Lead Cost" },
+  { value: "custom", label: "Custom Base Amount" },
+];
+
+export default function LeadCostSection({ deal, fin, canEdit, updateDeal, logActivity }) {
+  const [form, setForm] = useState({
+    lead_cost_type: deal?.lead_cost_type || "percentage",
+    lead_cost_percentage: deal?.lead_cost_percentage ?? "",
+    lead_cost_fixed_amount: deal?.lead_cost_fixed_amount ?? "",
+    lead_cost_calculation_base: deal?.lead_cost_calculation_base || "total_contract",
+    lead_cost_custom_base_amount: deal?.lead_cost_custom_base_amount ?? "",
+    lead_cost_notes: deal?.lead_cost_notes || "",
+  });
+  const [saving, setSaving] = useState(false);
+
+  const baseLabel = BASES.find((b) => b.value === form.lead_cost_calculation_base)?.label || "";
+  let baseValue = fin.totalRevenue;
+  if (form.lead_cost_calculation_base === "payments_received") baseValue = fin.paymentsReceived;
+  else if (form.lead_cost_calculation_base === "gross_profit_before_lead_cost") baseValue = fin.totalRevenue;
+  else if (form.lead_cost_calculation_base === "custom") baseValue = safeNumber(form.lead_cost_custom_base_amount);
+
+  const previewCost =
+    form.lead_cost_type === "fixed"
+      ? safeNumber(form.lead_cost_fixed_amount)
+      : round2(baseValue * (safeNumber(form.lead_cost_percentage) / 100));
+  const previewCompany = round2(fin.totalRevenue - previewCost);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const fields = {
+        lead_cost_type: form.lead_cost_type,
+        lead_cost_percentage: form.lead_cost_type === "percentage" ? parseFloat(form.lead_cost_percentage) || 0 : 0,
+        lead_cost_fixed_amount: form.lead_cost_type === "fixed" ? parseFloat(form.lead_cost_fixed_amount) || 0 : 0,
+        lead_cost_calculation_base: form.lead_cost_calculation_base,
+        lead_cost_custom_base_amount: parseFloat(form.lead_cost_custom_base_amount) || 0,
+        lead_cost_notes: form.lead_cost_notes || null,
+        lead_cost_amount: previewCost,
+        company_share_amount: previewCompany,
+      };
+      await updateDeal(fields);
+      await logActivity(
+        "lead_cost_changed",
+        "Deal",
+        `Lead cost updated to ${formatCurrency(previewCost)} (${form.lead_cost_type === "percentage" ? form.lead_cost_percentage + "%" : "fixed"})`
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div>
+      <p className="typography-section-header mb-2">LEAD COST & COMPANY SPLIT</p>
+      <div className="card-premium p-4 space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide block mb-1">Calculation Type</label>
+            <select
+              value={form.lead_cost_type}
+              onChange={(e) => setForm((p) => ({ ...p, lead_cost_type: e.target.value }))}
+              disabled={!canEdit}
+              className="w-full border border-slate-200 rounded-lg px-2.5 py-2 text-sm"
+            >
+              <option value="percentage">Percentage</option>
+              <option value="fixed">Fixed Amount</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide block mb-1">Calculation Base</label>
+            <select
+              value={form.lead_cost_calculation_base}
+              onChange={(e) => setForm((p) => ({ ...p, lead_cost_calculation_base: e.target.value }))}
+              disabled={!canEdit || form.lead_cost_type === "fixed"}
+              className="w-full border border-slate-200 rounded-lg px-2.5 py-2 text-sm"
+            >
+              {BASES.map((b) => (
+                <option key={b.value} value={b.value}>{b.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {form.lead_cost_type === "percentage" ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide block mb-1">Lead Cost Percentage (%)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={form.lead_cost_percentage}
+                onChange={(e) => setForm((p) => ({ ...p, lead_cost_percentage: e.target.value }))}
+                disabled={!canEdit}
+                placeholder="e.g. 12.5"
+                className="w-full border border-slate-200 rounded-lg px-2.5 py-2 text-sm"
+              />
+            </div>
+            {form.lead_cost_calculation_base === "custom" && (
+              <div>
+                <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide block mb-1">Custom Base Amount ($)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={form.lead_cost_custom_base_amount}
+                  onChange={(e) => setForm((p) => ({ ...p, lead_cost_custom_base_amount: e.target.value }))}
+                  disabled={!canEdit}
+                  className="w-full border border-slate-200 rounded-lg px-2.5 py-2 text-sm"
+                />
+              </div>
+            )}
+          </div>
+        ) : (
+          <div>
+            <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide block mb-1">Lead Cost Fixed Amount ($)</label>
+            <input
+              type="number"
+              step="0.01"
+              value={form.lead_cost_fixed_amount}
+              onChange={(e) => setForm((p) => ({ ...p, lead_cost_fixed_amount: e.target.value }))}
+              disabled={!canEdit}
+              className="w-full border border-slate-200 rounded-lg px-2.5 py-2 text-sm"
+            />
+          </div>
+        )}
+
+        <div>
+          <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide block mb-1">Notes</label>
+          <textarea
+            value={form.lead_cost_notes}
+            onChange={(e) => setForm((p) => ({ ...p, lead_cost_notes: e.target.value }))}
+            disabled={!canEdit}
+            rows={2}
+            className="w-full border border-slate-200 rounded-lg px-2.5 py-2 text-sm resize-none"
+          />
+        </div>
+
+        <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs space-y-1">
+          <p>Calculation Base: <span className="font-semibold">{baseLabel}</span> — {formatCurrency(baseValue)}</p>
+          {form.lead_cost_type === "percentage" && <p>Lead Cost: {form.lead_cost_percentage || 0}%</p>}
+          <p>Lead Cost Amount: <span className="font-semibold">{formatCurrency(previewCost)}</span></p>
+          <p>Company Share Before Other Expenses: <span className="font-semibold">{formatCurrency(previewCompany)}</span></p>
+        </div>
+
+        {canEdit && (
+          <button
+            onClick={save}
+            disabled={saving}
+            className="px-3 py-2 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-lg disabled:opacity-50"
+          >
+            {saving ? "Saving…" : "Save Lead Cost"}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}

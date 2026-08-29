@@ -1,1 +1,75 @@
-aW1wb3J0IHsgdXNlTG9jYXRpb24gfSBmcm9tICdyZWFjdC1yb3V0ZXItZG9tJzsKaW1wb3J0ICogYXMgcmFpbHdheUFwaSBmcm9tICdAL2xpYi9yYWlsd2F5QXBpJzsKaW1wb3J0IHsgdXNlUXVlcnkgfSBmcm9tICdAdGFuc3RhY2svcmVhY3QtcXVlcnknOwoKCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIFBhZ2VOb3RGb3VuZCh7fSkgewogICAgY29uc3QgbG9jYXRpb24gPSB1c2VMb2NhdGlvbigpOwogICAgY29uc3QgcGFnZU5hbWUgPSBsb2NhdGlvbi5wYXRobmFtZS5zdWJzdHJpbmcoMSk7CgogICAgY29uc3QgeyBkYXRhOiBhdXRoRGF0YSwgaXNGZXRjaGVkIH0gPSB1c2VRdWVyeSh7CiAgICAgICAgcXVlcnlLZXk6IFsndXNlciddLAogICAgICAgIHF1ZXJ5Rm46IGFzeW5jICgpID0+IHsKICAgICAgICAgICAgdHJ5IHsKICAgICAgICAgICAgICAgIGNvbnN0IHsgdXNlciB9ID0gYXdhaXQgcmFpbHdheUFwaS5tZSgpOwogICAgICAgICAgICAgICAgcmV0dXJuIHsgdXNlciwgaXNBdXRoZW50aWNhdGVkOiB0cnVlIH07CiAgICAgICAgICAgIH0gY2F0Y2ggKGVycm9yKSB7CiAgICAgICAgICAgICAgICByZXR1cm4geyB1c2VyOiBudWxsLCBpc0F1dGhlbnRpY2F0ZWQ6IGZhbHNlIH07CiAgICAgICAgICAgIH0KICAgICAgICB9CiAgICB9KTsKICAgIAogICAgcmV0dXJuICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibWluLWgtc2NyZWVuIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHAtNiBiZy1zbGF0ZS01MCI+CiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtYXgtdy1tZCB3LWZ1bGwiPgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtY2VudGVyIHNwYWNlLXktNiI+CiAgICAgICAgICAgICAgICAgICAgey8qIDQwNCBFcnJvciBDb2RlICovfQogICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJzcGFjZS15LTIiPgogICAgICAgICAgICAgICAgICAgICAgICA8aDEgY2xhc3NOYW1lPSJ0ZXh0LTd4bCBmb250LWxpZ2h0IHRleHQtc2xhdGUtMzAwIj40MDQ8L2gxPgogICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iaC0wLjUgdy0xNiBiZy1zbGF0ZS0yMDAgbXgtYXV0byI+PC9kaXY+CiAgICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgey8qIE1haW4gTWVzc2FnZSAqL30KICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ic3BhY2UteS0zIj4KICAgICAgICAgICAgICAgICAgICAgICAgPGgyIGNsYXNzTmFtZT0idGV4dC0yeGwgZm9udC1tZWRpdW0gdGV4dC1zbGF0ZS04MDAiPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgUGFnZSBOb3QgRm91bmQKICAgICAgICAgICAgICAgICAgICAgICAgPC9oMj4KICAgICAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNsYXRlLTYwMCBsZWFkaW5nLXJlbGF4ZWQiPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgVGhlIHBhZ2UgPHNwYW4gY2xhc3NOYW1lPSJmb250LW1lZGl1bSB0ZXh0LXNsYXRlLTcwMCI+IntwYWdlTmFtZX0iPC9zcGFuPiBjb3VsZCBub3QgYmUgZm91bmQgaW4gdGhpcyBhcHBsaWNhdGlvbi4KICAgICAgICAgICAgICAgICAgICAgICAgPC9wPgogICAgICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgIHsvKiBBZG1pbiBOb3RlICovfQogICAgICAgICAgICAgICAgICAgIHtpc0ZldGNoZWQgJiYgYXV0aERhdGEuaXNBdXRoZW50aWNhdGVkICYmIGF1dGhEYXRhLnVzZXI/LnJvbGUgPT09ICdhZG1pbicgJiYgKAogICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibXQtOCBwLTQgYmctc2xhdGUtMTAwIHJvdW5kZWQtbGcgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAiPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtc3RhcnQgc3BhY2UteC0zIj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleC1zaHJpbmstMCB3LTUgaC01IHJvdW5kZWQtZnVsbCBiZy1vcmFuZ2UtMTAwIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIG10LTAuNSI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ3LTIgaC0yIHJvdW5kZWQtZnVsbCBiZy1vcmFuZ2UtNDAwIj48L2Rpdj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1sZWZ0IHNwYWNlLXktMSI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1zbSBmb250LW1lZGl1bSB0ZXh0LXNsYXRlLTcwMCI+QWRtaW4gTm90ZTwvcD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIHRleHQtc2xhdGUtNjAwIGxlYWRpbmctcmVsYXhlZCI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBUaGlzIGNvdWxkIG1lYW4gdGhhdCB0aGUgQUkgaGFzbid0IGltcGxlbWVudGVkIHRoaXMgcGFnZSB5ZXQuIEFzayBpdCB0byBpbXBsZW1lbnQgaXQgaW4gdGhlIGNoYXQuCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvcD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgICApfQogICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgIHsvKiBBY3Rpb24gQnV0dG9uICovfQogICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJwdC02Ij4KICAgICAgICAgICAgICAgICAgICAgICAgPGJ1dHRvbiAKICAgICAgICAgICAgICAgICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHdpbmRvdy5sb2NhdGlvbi5ocmVmID0gJy8nfSAKICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0iaW5saW5lLWZsZXggaXRlbXMtY2VudGVyIHB4LTQgcHktMiB0ZXh0LXNtIGZvbnQtbWVkaXVtIHRleHQtc2xhdGUtNzAwIGJnLXdoaXRlIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgaG92ZXI6Ymctc2xhdGUtNTAgaG92ZXI6Ym9yZGVyLXNsYXRlLTMwMCB0cmFuc2l0aW9uLWNvbG9ycyBkdXJhdGlvbi0yMDAgZm9jdXM6b3V0bGluZS1ub25lIGZvY3VzOnJpbmctMiBmb2N1czpyaW5nLW9mZnNldC0yIGZvY3VzOnJpbmctc2xhdGUtNTAwIgogICAgICAgICAgICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8c3ZnIGNsYXNzTmFtZT0idy00IGgtNCBtci0yIiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8cGF0aCBzdHJva2VMaW5lY2FwPSJyb3VuZCIgc3Ryb2tlTGluZWpvaW49InJvdW5kIiBzdHJva2VXaWR0aD17Mn0gZD0iTTMgMTJsMi0ybTAgMGw3LTcgNyA3TTUgMTB2MTBhMSAxIDAgMDAxIDFoM20xMC0xMWwyIDJtLTItMnYxMGExIDEgMCAwMS0xIDFoLTNtLTYgMGExIDEgMCAwMDEtMXYtNGExIDEgMCAwMTEtMWgyYTEgMSAwIDAxMSAxdjRhMSAxIDAgMDAxIDFtLTYgMGg2IiAvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9zdmc+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICBHbyBIb21lCiAgICAgICAgICAgICAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgogICAgKQp9
+import { useLocation } from 'react-router-dom';
+import * as railwayApi from '@/lib/railwayApi';
+import { useQuery } from '@tanstack/react-query';
+
+
+export default function PageNotFound({}) {
+    const location = useLocation();
+    const pageName = location.pathname.substring(1);
+
+    const { data: authData, isFetched } = useQuery({
+        queryKey: ['user'],
+        queryFn: async () => {
+            try {
+                const { user } = await railwayApi.me();
+                return { user, isAuthenticated: true };
+            } catch (error) {
+                return { user: null, isAuthenticated: false };
+            }
+        }
+    });
+    
+    return (
+        <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50">
+            <div className="max-w-md w-full">
+                <div className="text-center space-y-6">
+                    {/* 404 Error Code */}
+                    <div className="space-y-2">
+                        <h1 className="text-7xl font-light text-slate-300">404</h1>
+                        <div className="h-0.5 w-16 bg-slate-200 mx-auto"></div>
+                    </div>
+                    
+                    {/* Main Message */}
+                    <div className="space-y-3">
+                        <h2 className="text-2xl font-medium text-slate-800">
+                            Page Not Found
+                        </h2>
+                        <p className="text-slate-600 leading-relaxed">
+                            The page <span className="font-medium text-slate-700">"{pageName}"</span> could not be found in this application.
+                        </p>
+                    </div>
+                    
+                    {/* Admin Note */}
+                    {isFetched && authData.isAuthenticated && authData.user?.role === 'admin' && (
+                        <div className="mt-8 p-4 bg-slate-100 rounded-lg border border-slate-200">
+                            <div className="flex items-start space-x-3">
+                                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center mt-0.5">
+                                    <div className="w-2 h-2 rounded-full bg-orange-400"></div>
+                                </div>
+                                <div className="text-left space-y-1">
+                                    <p className="text-sm font-medium text-slate-700">Admin Note</p>
+                                    <p className="text-sm text-slate-600 leading-relaxed">
+                                        This could mean that the AI hasn't implemented this page yet. Ask it to implement it in the chat.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Action Button */}
+                    <div className="pt-6">
+                        <button 
+                            onClick={() => window.location.href = '/'} 
+                            className="inline-flex items-center px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500"
+                        >
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                            </svg>
+                            Go Home
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}

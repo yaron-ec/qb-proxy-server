@@ -1,1 +1,48 @@
-LyoqCiAqIExlYWQgUXVhbGl0eSBWYWxpZGF0aW9uCiAqIAogKiBBIGxlYWQgaXMgY29uc2lkZXJlZCAiY29tcGxldGUiICh2YWxpZCBmb3IgYWN0aXZlIHBpcGVsaW5lKSBpZiBpdCBoYXM6CiAqIC0gKE5hbWUpIEFORCAoUGhvbmUgT1IgRW1haWwpCiAqIC0gT1IgUGhvbmUgKyBFbWFpbCAoZXZlbiB3aXRob3V0IG5hbWUpCiAqIC0gT1IgUGhvbmUgYWxvbmUKICogCiAqIEludmFsaWQgbGVhZHMgaGF2ZToKICogLSBKdXN0IG5hbWUKICogLSBKdXN0IGVtYWlsCiAqIC0gTWlzc2luZyBhbGwgY29udGFjdCBpbmZvCiAqLwoKZXhwb3J0IGNvbnN0IGlzQ29tcGxldGVMZWFkcyA9IChsZWFkKSA9PiB7CiAgY29uc3QgaGFzRmlyc3ROYW1lID0gbGVhZC5maXJzdF9uYW1lICYmIGxlYWQuZmlyc3RfbmFtZS50cmltKCkgIT09ICcnOwogIGNvbnN0IGhhc0xhc3ROYW1lID0gbGVhZC5sYXN0X25hbWUgJiYgbGVhZC5sYXN0X25hbWUudHJpbSgpICE9PSAnJzsKICBjb25zdCBoYXNOYW1lID0gaGFzRmlyc3ROYW1lIHx8IGhhc0xhc3ROYW1lOwogIAogIGNvbnN0IGhhc1Bob25lID0gbGVhZC5waG9uZSAmJiBsZWFkLnBob25lLnRyaW0oKSAhPT0gJyc7CiAgY29uc3QgaGFzRW1haWwgPSBsZWFkLmVtYWlsICYmIGxlYWQuZW1haWwudHJpbSgpICE9PSAnJzsKCiAgLy8gVmFsaWQgY29tYmluYXRpb25zOgogIC8vIDEuIEhhcyBuYW1lIEFORCBhdCBsZWFzdCBwaG9uZSBvciBlbWFpbAogIGlmIChoYXNOYW1lICYmIChoYXNQaG9uZSB8fCBoYXNFbWFpbCkpIHJldHVybiB0cnVlOwogIAogIC8vIDIuIEhhcyBib3RoIHBob25lIGFuZCBlbWFpbCAoZXZlbiB3aXRob3V0IG5hbWUpCiAgaWYgKGhhc1Bob25lICYmIGhhc0VtYWlsKSByZXR1cm4gdHJ1ZTsKICAKICAvLyAzLiBIYXMgcGhvbmUgYWxvbmUKICBpZiAoaGFzUGhvbmUpIHJldHVybiB0cnVlOwoKICAvLyBFdmVyeXRoaW5nIGVsc2UgaXMgaW5jb21wbGV0ZQogIHJldHVybiBmYWxzZTsKfTsKCmV4cG9ydCBjb25zdCBnZXRMZWFkUXVhbGl0eVNjb3JlID0gKGxlYWQpID0+IHsKICBsZXQgc2NvcmUgPSAwOwogIAogIGlmIChsZWFkLmZpcnN0X25hbWUgJiYgbGVhZC5maXJzdF9uYW1lLnRyaW0oKSAhPT0gJycpIHNjb3JlICs9IDE7CiAgaWYgKGxlYWQubGFzdF9uYW1lICYmIGxlYWQubGFzdF9uYW1lLnRyaW0oKSAhPT0gJycpIHNjb3JlICs9IDE7CiAgaWYgKGxlYWQucGhvbmUgJiYgbGVhZC5waG9uZS50cmltKCkgIT09ICcnKSBzY29yZSArPSAyOyAvLyBQaG9uZSBpcyBoaWdoIHZhbHVlCiAgaWYgKGxlYWQuZW1haWwgJiYgbGVhZC5lbWFpbC50cmltKCkgIT09ICcnKSBzY29yZSArPSAyOyAvLyBFbWFpbCBpcyBoaWdoIHZhbHVlCiAgaWYgKGxlYWQucHJvamVjdF90eXBlKSBzY29yZSArPSAxOwogIGlmIChsZWFkLmVzdGltYXRlZF92YWx1ZSkgc2NvcmUgKz0gMTsKICAKICByZXR1cm4gc2NvcmU7Cn07
+/**
+ * Lead Quality Validation
+ * 
+ * A lead is considered "complete" (valid for active pipeline) if it has:
+ * - (Name) AND (Phone OR Email)
+ * - OR Phone + Email (even without name)
+ * - OR Phone alone
+ * 
+ * Invalid leads have:
+ * - Just name
+ * - Just email
+ * - Missing all contact info
+ */
+
+export const isCompleteLeads = (lead) => {
+  const hasFirstName = lead.first_name && lead.first_name.trim() !== '';
+  const hasLastName = lead.last_name && lead.last_name.trim() !== '';
+  const hasName = hasFirstName || hasLastName;
+  
+  const hasPhone = lead.phone && lead.phone.trim() !== '';
+  const hasEmail = lead.email && lead.email.trim() !== '';
+
+  // Valid combinations:
+  // 1. Has name AND at least phone or email
+  if (hasName && (hasPhone || hasEmail)) return true;
+  
+  // 2. Has both phone and email (even without name)
+  if (hasPhone && hasEmail) return true;
+  
+  // 3. Has phone alone
+  if (hasPhone) return true;
+
+  // Everything else is incomplete
+  return false;
+};
+
+export const getLeadQualityScore = (lead) => {
+  let score = 0;
+  
+  if (lead.first_name && lead.first_name.trim() !== '') score += 1;
+  if (lead.last_name && lead.last_name.trim() !== '') score += 1;
+  if (lead.phone && lead.phone.trim() !== '') score += 2; // Phone is high value
+  if (lead.email && lead.email.trim() !== '') score += 2; // Email is high value
+  if (lead.project_type) score += 1;
+  if (lead.estimated_value) score += 1;
+  
+  return score;
+};

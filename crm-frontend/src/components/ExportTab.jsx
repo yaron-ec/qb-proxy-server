@@ -1,1 +1,214 @@
-aW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICJyZWFjdCI7CmltcG9ydCAqIGFzIHJhaWx3YXlMZWFkcyBmcm9tICJAL2FwaS9yYWlsd2F5L2xlYWRzIjsKaW1wb3J0ICogYXMgcmFpbHdheURlYWxzIGZyb20gIkAvYXBpL3JhaWx3YXkvZGVhbHMiOwppbXBvcnQgeyBEb3dubG9hZCwgTG9hZGVyMiwgQ2hlY2tDaXJjbGUsIFVzZXJzLCBUcmVuZGluZ1VwLCBGaWxlVGV4dCB9IGZyb20gImx1Y2lkZS1yZWFjdCI7CgpmdW5jdGlvbiB0b0NTVihyb3dzKSB7CiAgaWYgKCFyb3dzLmxlbmd0aCkgcmV0dXJuICIiOwogIGNvbnN0IGhlYWRlcnMgPSBPYmplY3Qua2V5cyhyb3dzWzBdKTsKICBjb25zdCBlc2NhcGUgPSAodikgPT4gewogICAgaWYgKHYgPT0gbnVsbCkgcmV0dXJuICIiOwogICAgY29uc3QgcyA9IFN0cmluZyh2KS5yZXBsYWNlKC8iL2csICciIicpOwogICAgcmV0dXJuIHMuaW5jbHVkZXMoIiwiKSB8fCBzLmluY2x1ZGVzKCJcbiIpIHx8IHMuaW5jbHVkZXMoJyInKSA/IGAiJHtzfSJgIDogczsKICB9OwogIHJldHVybiBbaGVhZGVycy5qb2luKCIsIiksIC4uLnJvd3MubWFwKHIgPT4gaGVhZGVycy5tYXAoaCA9PiBlc2NhcGUocltoXSkpLmpvaW4oIiwiKSldLmpvaW4oIlxuIik7Cn0KCmZ1bmN0aW9uIGRvd25sb2FkQ1NWKGZpbGVuYW1lLCBjc3YpIHsKICBjb25zdCBibG9iID0gbmV3IEJsb2IoW2Nzdl0sIHsgdHlwZTogInRleHQvY3N2O2NoYXJzZXQ9dXRmLTg7IiB9KTsKICBjb25zdCB1cmwgPSBVUkwuY3JlYXRlT2JqZWN0VVJMKGJsb2IpOwogIGNvbnN0IGEgPSBkb2N1bWVudC5jcmVhdGVFbGVtZW50KCJhIik7CiAgYS5ocmVmID0gdXJsOwogIGEuZG93bmxvYWQgPSBmaWxlbmFtZTsKICBhLmNsaWNrKCk7CiAgVVJMLnJldm9rZU9iamVjdFVSTCh1cmwpOwp9Cgpjb25zdCBFWFBPUlRTID0gWwogIHsKICAgIGtleTogImxlYWRzIiwKICAgIGxhYmVsOiAiTGVhZHMiLAogICAgZGVzY3JpcHRpb246ICJBbGwgY29udGFjdHMg4oCUIG5hbWUsIGVtYWlsLCBwaG9uZSwgYWRkcmVzcywgc3RhdHVzLCBzb3VyY2UsIGFzc2lnbmVkIHJlcCwgZGF0ZXMiLAogICAgaWNvbjogVXNlcnMsCiAgICBjb2xvcjogImJsdWUiLAogICAgZmV0Y2g6IGFzeW5jICgpID0+IHsgY29uc3QgcmVzID0gYXdhaXQgcmFpbHdheUxlYWRzLmxpc3QoeyBzb3J0OiAnLWNyZWF0ZWRfZGF0ZScsIGxpbWl0OiA1MDAwIH0pOyByZXR1cm4gcmVzLml0ZW1zIHx8IFtdOyB9LAogICAgbWFwOiAobCkgPT4gKHsKICAgICAgaWQ6IGwuaWQsCiAgICAgIGZpcnN0X25hbWU6IGwuZmlyc3RfbmFtZSwKICAgICAgbGFzdF9uYW1lOiBsLmxhc3RfbmFtZSwKICAgICAgZW1haWw6IGwuZW1haWwgfHwgIiIsCiAgICAgIHBob25lOiBsLnBob25lIHx8ICIiLAogICAgICBwcm9wZXJ0eV9hZGRyZXNzOiBsLnByb3BlcnR5X2FkZHJlc3MgfHwgIiIsCiAgICAgIGNpdHk6IGwuY2l0eSB8fCAiIiwKICAgICAgc3RhdHVzOiBsLnN0YXR1cyB8fCAiIiwKICAgICAgbGVhZF9zY29yZTogbC5sZWFkX3Njb3JlIHx8IDAsCiAgICAgIHNvdXJjZTogbC5zb3VyY2UgfHwgIiIsCiAgICAgIGFzc2lnbmVkX3JlcDogbC5hc3NpZ25lZF9yZXAgfHwgIiIsCiAgICAgIHByb2plY3RfdHlwZTogbC5wcm9qZWN0X3R5cGUgfHwgIiIsCiAgICAgIGJ1ZGdldF9yYW5nZTogbC5idWRnZXRfcmFuZ2UgfHwgIiIsCiAgICAgIGFwcG9pbnRtZW50X2RhdGU6IGwuYXBwb2ludG1lbnRfZGF0ZSB8fCAiIiwKICAgICAgZm9sbG93X3VwX2RhdGU6IGwuZm9sbG93X3VwX2RhdGUgfHwgIiIsCiAgICAgIG5vdGVzOiBsLm5vdGVzIHx8ICIiLAogICAgICBjcmVhdGVkX2RhdGU6IGwuY3JlYXRlZF9kYXRlID8gbmV3IERhdGUobC5jcmVhdGVkX2RhdGUpLnRvTG9jYWxlRGF0ZVN0cmluZygpIDogIiIsCiAgICB9KSwKICAgIGZpbGVuYW1lOiAoKSA9PiBgbGVhZHNfJHtuZXcgRGF0ZSgpLnRvSVNPU3RyaW5nKCkuc2xpY2UoMCwxMCl9LmNzdmAsCiAgfSwKICB7CiAgICBrZXk6ICJkZWFscyIsCiAgICBsYWJlbDogIkRlYWxzIiwKICAgIGRlc2NyaXB0aW9uOiAiQWxsIGRlYWxzIOKAlCBuYW1lLCBzdGFnZSwgYW1vdW50LCBwYXltZW50IG1pbGVzdG9uZXMsIGRhdGVzIiwKICAgIGljb246IFRyZW5kaW5nVXAsCiAgICBjb2xvcjogImFtYmVyIiwKICAgIGZldGNoOiBhc3luYyAoKSA9PiB7IGNvbnN0IHJlcyA9IGF3YWl0IHJhaWx3YXlEZWFscy5saXN0KHsgc29ydDogJy1jcmVhdGVkX2RhdGUnLCBsaW1pdDogNTAwMCB9KTsgcmV0dXJuIHJlcy5pdGVtcyB8fCBbXTsgfSwKICAgIG1hcDogKGQpID0+ICh7CiAgICAgIGlkOiBkLmlkLAogICAgICBsZWFkX2lkOiBkLmxlYWRfaWQgfHwgIiIsCiAgICAgIG5hbWU6IGQubmFtZSB8fCAiIiwKICAgICAgc3RhZ2U6IGQuc3RhZ2UgfHwgIiIsCiAgICAgIGFtb3VudDogZC5hbW91bnQgfHwgMCwKICAgICAgcGlwZWxpbmU6IGQucGlwZWxpbmUgfHwgIiIsCiAgICAgIGNsb3NlX2RhdGU6IGQuY2xvc2VfZGF0ZSB8fCAiIiwKICAgICAgd29ya19zdGFydF9kYXRlOiBkLndvcmtfc3RhcnRfZGF0ZSB8fCAiIiwKICAgICAgd29ya19lbmRfZGF0ZTogZC53b3JrX2VuZF9kYXRlIHx8ICIiLAogICAgICBkZXBvc2l0X2Ftb3VudDogZC5kZXBvc2l0X2Ftb3VudCB8fCAwLAogICAgICBkZXBvc2l0X3BhaWQ6IGQuZGVwb3NpdF9wYWlkIHx8IDAsCiAgICAgIGRlcG9zaXRfcGFpZF9kYXRlOiBkLmRlcG9zaXRfcGFpZF9kYXRlIHx8ICIiLAogICAgICBwcm9ncmVzc19wYXltZW50X2Ftb3VudDogZC5wcm9ncmVzc19wYXltZW50X2Ftb3VudCB8fCAwLAogICAgICBwcm9ncmVzc19wYXltZW50X3BhaWQ6IGQucHJvZ3Jlc3NfcGF5bWVudF9wYWlkIHx8IDAsCiAgICAgIGZpbmFsX3BheW1lbnRfYW1vdW50OiBkLmZpbmFsX3BheW1lbnRfYW1vdW50IHx8IDAsCiAgICAgIGZpbmFsX3BheW1lbnRfcGFpZDogZC5maW5hbF9wYXltZW50X3BhaWQgfHwgMCwKICAgICAgY3JlYXRlZF9kYXRlOiBkLmNyZWF0ZWRfZGF0ZSA/IG5ldyBEYXRlKGQuY3JlYXRlZF9kYXRlKS50b0xvY2FsZURhdGVTdHJpbmcoKSA6ICIiLAogICAgfSksCiAgICBmaWxlbmFtZTogKCkgPT4gYGRlYWxzXyR7bmV3IERhdGUoKS50b0lTT1N0cmluZygpLnNsaWNlKDAsMTApfS5jc3ZgLAogIH0sCiAgewogICAga2V5OiAiZXN0aW1hdGVzIiwKICAgIGxhYmVsOiAiRXN0aW1hdGVzIiwKICAgIGRlc2NyaXB0aW9uOiAiQWxsIGVzdGltYXRlcyDigJQgdGl0bGUsIHN0YXR1cywgdG90YWwsIFFCIGluZm8sIGxlYWQvcHJvamVjdCBsaW5rcyIsCiAgICBpY29uOiBGaWxlVGV4dCwKICAgIGNvbG9yOiAiZW1lcmFsZCIsCiAgICBmZXRjaDogYXN5bmMgKCkgPT4geyByZXR1cm4gW107IH0sCiAgICBtYXA6IChlKSA9PiAoewogICAgICBpZDogZS5pZCwKICAgICAgbGVhZF9pZDogZS5sZWFkX2lkIHx8ICIiLAogICAgICBwcm9qZWN0X2lkOiBlLnByb2plY3RfaWQgfHwgIiIsCiAgICAgIHRpdGxlOiBlLnRpdGxlIHx8ICIiLAogICAgICBzdGF0dXM6IGUuc3RhdHVzIHx8ICIiLAogICAgICBzdWJ0b3RhbDogZS5zdWJ0b3RhbCB8fCAwLAogICAgICBtYXJrdXBfcGN0OiBlLm1hcmt1cF9wY3QgfHwgMCwKICAgICAgdG90YWw6IGUudG90YWwgfHwgMCwKICAgICAgZGVwb3NpdF9hbW91bnQ6IGUuZGVwb3NpdF9hbW91bnQgfHwgMCwKICAgICAgdmFsaWRfdW50aWw6IGUudmFsaWRfdW50aWwgfHwgIiIsCiAgICAgIHFiX2VzdGltYXRlX2lkOiBlLnFiX2VzdGltYXRlX2lkIHx8ICIiLAogICAgICBxYl9lc3RpbWF0ZV9udW1iZXI6IGUucWJfZXN0aW1hdGVfbnVtYmVyIHx8ICIiLAogICAgICBxYl9zdGF0dXM6IGUucWJfc3RhdHVzIHx8ICIiLAogICAgICBub3RlczogZS5ub3RlcyB8fCAiIiwKICAgICAgY3JlYXRlZF9kYXRlOiBlLmNyZWF0ZWRfZGF0ZSA/IG5ldyBEYXRlKGUuY3JlYXRlZF9kYXRlKS50b0xvY2FsZURhdGVTdHJpbmcoKSA6ICIiLAogICAgfSksCiAgICBmaWxlbmFtZTogKCkgPT4gYGVzdGltYXRlc18ke25ldyBEYXRlKCkudG9JU09TdHJpbmcoKS5zbGljZSgwLDEwKX0uY3N2YCwKICB9LApdOwoKY29uc3QgQ09MT1JfTUFQID0gewogIGJsdWU6ICAgIHsgYmc6ICJiZy1ibHVlLTUwIiwgICAgYm9yZGVyOiAiYm9yZGVyLWJsdWUtMjAwIiwgICAgaWNvbjogImJnLWJsdWUtMTAwIHRleHQtYmx1ZS02MDAiLCAgICBidG46ICJiZy1ibHVlLTYwMCBob3ZlcjpiZy1ibHVlLTcwMCIgfSwKICBhbWJlcjogICB7IGJnOiAiYmctYW1iZXItNTAiLCAgIGJvcmRlcjogImJvcmRlci1hbWJlci0yMDAiLCAgIGljb246ICJiZy1hbWJlci0xMDAgdGV4dC1hbWJlci02MDAiLCAgIGJ0bjogImJnLWFtYmVyLTYwMCBob3ZlcjpiZy1hbWJlci03MDAiIH0sCiAgZW1lcmFsZDogeyBiZzogImJnLWVtZXJhbGQtNTAiLCBib3JkZXI6ICJib3JkZXItZW1lcmFsZC0yMDAiLCBpY29uOiAiYmctZW1lcmFsZC0xMDAgdGV4dC1lbWVyYWxkLTYwMCIsIGJ0bjogImJnLWVtZXJhbGQtNjAwIGhvdmVyOmJnLWVtZXJhbGQtNzAwIiB9LAp9OwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gRXhwb3J0VGFiKCkgewogIGNvbnN0IFtsb2FkaW5nS2V5LCBzZXRMb2FkaW5nS2V5XSA9IHVzZVN0YXRlKG51bGwpOwogIGNvbnN0IFtkb25lS2V5LCBzZXREb25lS2V5XSA9IHVzZVN0YXRlKG51bGwpOwoKICBjb25zdCBoYW5kbGVFeHBvcnQgPSBhc3luYyAoZXhwKSA9PiB7CiAgICBzZXRMb2FkaW5nS2V5KGV4cC5rZXkpOwogICAgc2V0RG9uZUtleShudWxsKTsKICAgIGNvbnN0IGRhdGEgPSBhd2FpdCBleHAuZmV0Y2goKTsKICAgIGNvbnN0IHJvd3MgPSBkYXRhLm1hcChleHAubWFwKTsKICAgIGNvbnN0IGNzdiA9IHRvQ1NWKHJvd3MpOwogICAgZG93bmxvYWRDU1YoZXhwLmZpbGVuYW1lKCksIGNzdik7CiAgICBzZXRMb2FkaW5nS2V5KG51bGwpOwogICAgc2V0RG9uZUtleShleHAua2V5KTsKICAgIHNldFRpbWVvdXQoKCkgPT4gc2V0RG9uZUtleShudWxsKSwgMzAwMCk7CiAgfTsKCiAgY29uc3QgaGFuZGxlRXhwb3J0QWxsID0gYXN5bmMgKCkgPT4gewogICAgc2V0TG9hZGluZ0tleSgiYWxsIik7CiAgICBzZXREb25lS2V5KG51bGwpOwogICAgY29uc3QgW2xlYWRzLCBkZWFscywgZXN0aW1hdGVzXSA9IGF3YWl0IFByb21pc2UuYWxsKEVYUE9SVFMubWFwKGUgPT4gZS5mZXRjaCgpKSk7CiAgICBjb25zdCBkYXRhc2V0cyA9IFsKICAgICAgeyBuYW1lOiAiTGVhZHMiLCByb3dzOiBsZWFkcy5tYXAoRVhQT1JUU1swXS5tYXApIH0sCiAgICAgIHsgbmFtZTogIkRlYWxzIiwgcm93czogZGVhbHMubWFwKEVYUE9SVFNbMV0ubWFwKSB9LAogICAgICB7IG5hbWU6ICJFc3RpbWF0ZXMiLCByb3dzOiBlc3RpbWF0ZXMubWFwKEVYUE9SVFNbMl0ubWFwKSB9LAogICAgXTsKICAgIC8vIEJ1aWxkIGEgY29tYmluZWQgQ1NWIHdpdGggc2VjdGlvbiBoZWFkZXJzCiAgICBjb25zdCBzZWN0aW9ucyA9IGRhdGFzZXRzLm1hcCgoeyBuYW1lLCByb3dzIH0pID0+IHsKICAgICAgaWYgKCFyb3dzLmxlbmd0aCkgcmV0dXJuIGAjICR7bmFtZX1cbihubyBkYXRhKVxuYDsKICAgICAgcmV0dXJuIGAjICR7bmFtZX1cbiR7dG9DU1Yocm93cyl9XG5gOwogICAgfSk7CiAgICBkb3dubG9hZENTVihgY3JtX2V4cG9ydF8ke25ldyBEYXRlKCkudG9JU09TdHJpbmcoKS5zbGljZSgwLDEwKX0uY3N2YCwgc2VjdGlvbnMuam9pbigiXG4iKSk7CiAgICBzZXRMb2FkaW5nS2V5KG51bGwpOwogICAgc2V0RG9uZUtleSgiYWxsIik7CiAgICBzZXRUaW1lb3V0KCgpID0+IHNldERvbmVLZXkobnVsbCksIDMwMDApOwogIH07CgogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT0ic3BhY2UteS01IG1heC13LTJ4bCI+CiAgICAgIHsvKiBFeHBvcnQgQWxsICovfQogICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctd2hpdGUgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC14bCBwLTUgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIGdhcC00Ij4KICAgICAgICA8ZGl2PgogICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtYm9sZCB0ZXh0LXNsYXRlLTgwMCI+RXhwb3J0IEV2ZXJ5dGhpbmc8L3A+CiAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS01MDAgbXQtMC41Ij5Eb3dubG9hZHMgbGVhZHMsIGRlYWxzICYgZXN0aW1hdGVzIGluIGEgc2luZ2xlIENTViBmaWxlPC9wPgogICAgICAgIDwvZGl2PgogICAgICAgIDxidXR0b24KICAgICAgICAgIG9uQ2xpY2s9e2hhbmRsZUV4cG9ydEFsbH0KICAgICAgICAgIGRpc2FibGVkPXshIWxvYWRpbmdLZXl9CiAgICAgICAgICBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIHB4LTQgcHktMi41IHRleHQtc20gZm9udC1ib2xkIHRleHQtd2hpdGUgYmctc2xhdGUtODAwIGhvdmVyOmJnLXNsYXRlLTkwMCBkaXNhYmxlZDpvcGFjaXR5LTUwIHJvdW5kZWQtbGcgdHJhbnNpdGlvbi1jb2xvcnMgd2hpdGVzcGFjZS1ub3dyYXAiCiAgICAgICAgPgogICAgICAgICAge2xvYWRpbmdLZXkgPT09ICJhbGwiCiAgICAgICAgICAgID8gPExvYWRlcjIgY2xhc3NOYW1lPSJ3LTQgaC00IGFuaW1hdGUtc3BpbiIgLz4KICAgICAgICAgICAgOiBkb25lS2V5ID09PSAiYWxsIgogICAgICAgICAgICA/IDxDaGVja0NpcmNsZSBjbGFzc05hbWU9InctNCBoLTQiIC8+CiAgICAgICAgICAgIDogPERvd25sb2FkIGNsYXNzTmFtZT0idy00IGgtNCIgLz59CiAgICAgICAgICB7bG9hZGluZ0tleSA9PT0gImFsbCIgPyAiRXhwb3J0aW5nLi4uIiA6IGRvbmVLZXkgPT09ICJhbGwiID8gIkRvd25sb2FkZWQhIiA6ICJFeHBvcnQgQWxsIn0KICAgICAgICA8L2J1dHRvbj4KICAgICAgPC9kaXY+CgogICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgZm9udC1zZW1pYm9sZCB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZXN0IHRleHQtc2xhdGUtNDAwIHB4LTEiPk9yIGV4cG9ydCBpbmRpdmlkdWFsbHk8L3A+CgogICAgICB7LyogSW5kaXZpZHVhbCBleHBvcnRzICovfQogICAgICA8ZGl2IGNsYXNzTmFtZT0ic3BhY2UteS0zIj4KICAgICAgICB7RVhQT1JUUy5tYXAoKGV4cCkgPT4gewogICAgICAgICAgY29uc3QgYyA9IENPTE9SX01BUFtleHAuY29sb3JdOwogICAgICAgICAgY29uc3QgSWNvbiA9IGV4cC5pY29uOwogICAgICAgICAgY29uc3QgaXNMb2FkaW5nID0gbG9hZGluZ0tleSA9PT0gZXhwLmtleTsKICAgICAgICAgIGNvbnN0IGlzRG9uZSA9IGRvbmVLZXkgPT09IGV4cC5rZXk7CiAgICAgICAgICByZXR1cm4gKAogICAgICAgICAgICA8ZGl2IGtleT17ZXhwLmtleX0gY2xhc3NOYW1lPXtgJHtjLmJnfSBib3JkZXIgJHtjLmJvcmRlcn0gcm91bmRlZC14bCBwLTQgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIGdhcC00YH0+CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0zIj4KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPXtgdy05IGgtOSByb3VuZGVkLWxnICR7Yy5pY29ufSBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBmbGV4LXNocmluay0wYH0+CiAgICAgICAgICAgICAgICAgIDxJY29uIGNsYXNzTmFtZT0idy00IGgtNCIgLz4KICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtYm9sZCB0ZXh0LXNsYXRlLTgwMCI+e2V4cC5sYWJlbH08L3A+CiAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTUwMCBtdC0wLjUiPntleHAuZGVzY3JpcHRpb259PC9wPgogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gaGFuZGxlRXhwb3J0KGV4cCl9CiAgICAgICAgICAgICAgICBkaXNhYmxlZD17ISFsb2FkaW5nS2V5fQogICAgICAgICAgICAgICAgY2xhc3NOYW1lPXtgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSBweC0zIHB5LTIgdGV4dC14cyBmb250LWJvbGQgdGV4dC13aGl0ZSAke2MuYnRufSBkaXNhYmxlZDpvcGFjaXR5LTUwIHJvdW5kZWQtbGcgdHJhbnNpdGlvbi1jb2xvcnMgd2hpdGVzcGFjZS1ub3dyYXBgfQogICAgICAgICAgICAgID4KICAgICAgICAgICAgICAgIHtpc0xvYWRpbmcKICAgICAgICAgICAgICAgICAgPyA8TG9hZGVyMiBjbGFzc05hbWU9InctMy41IGgtMy41IGFuaW1hdGUtc3BpbiIgLz4KICAgICAgICAgICAgICAgICAgOiBpc0RvbmUKICAgICAgICAgICAgICAgICAgPyA8Q2hlY2tDaXJjbGUgY2xhc3NOYW1lPSJ3LTMuNSBoLTMuNSIgLz4KICAgICAgICAgICAgICAgICAgOiA8RG93bmxvYWQgY2xhc3NOYW1lPSJ3LTMuNSBoLTMuNSIgLz59CiAgICAgICAgICAgICAgICB7aXNMb2FkaW5nID8gIkV4cG9ydGluZy4uLiIgOiBpc0RvbmUgPyAiRG93bmxvYWRlZCEiIDogIkV4cG9ydCBDU1YifQogICAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICk7CiAgICAgICAgfSl9CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CiAgKTsKfQ==
+import { useState } from "react";
+import * as railwayLeads from "@/api/railway/leads";
+import * as railwayDeals from "@/api/railway/deals";
+import { Download, Loader2, CheckCircle, Users, TrendingUp, FileText } from "lucide-react";
+
+function toCSV(rows) {
+  if (!rows.length) return "";
+  const headers = Object.keys(rows[0]);
+  const escape = (v) => {
+    if (v == null) return "";
+    const s = String(v).replace(/"/g, '""');
+    return s.includes(",") || s.includes("\n") || s.includes('"') ? `"${s}"` : s;
+  };
+  return [headers.join(","), ...rows.map(r => headers.map(h => escape(r[h])).join(","))].join("\n");
+}
+
+function downloadCSV(filename, csv) {
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+const EXPORTS = [
+  {
+    key: "leads",
+    label: "Leads",
+    description: "All contacts — name, email, phone, address, status, source, assigned rep, dates",
+    icon: Users,
+    color: "blue",
+    fetch: async () => { const res = await railwayLeads.list({ sort: '-created_date', limit: 5000 }); return res.items || []; },
+    map: (l) => ({
+      id: l.id,
+      first_name: l.first_name,
+      last_name: l.last_name,
+      email: l.email || "",
+      phone: l.phone || "",
+      property_address: l.property_address || "",
+      city: l.city || "",
+      status: l.status || "",
+      lead_score: l.lead_score || 0,
+      source: l.source || "",
+      assigned_rep: l.assigned_rep || "",
+      project_type: l.project_type || "",
+      budget_range: l.budget_range || "",
+      appointment_date: l.appointment_date || "",
+      follow_up_date: l.follow_up_date || "",
+      notes: l.notes || "",
+      created_date: l.created_date ? new Date(l.created_date).toLocaleDateString() : "",
+    }),
+    filename: () => `leads_${new Date().toISOString().slice(0,10)}.csv`,
+  },
+  {
+    key: "deals",
+    label: "Deals",
+    description: "All deals — name, stage, amount, payment milestones, dates",
+    icon: TrendingUp,
+    color: "amber",
+    fetch: async () => { const res = await railwayDeals.list({ sort: '-created_date', limit: 5000 }); return res.items || []; },
+    map: (d) => ({
+      id: d.id,
+      lead_id: d.lead_id || "",
+      name: d.name || "",
+      stage: d.stage || "",
+      amount: d.amount || 0,
+      pipeline: d.pipeline || "",
+      close_date: d.close_date || "",
+      work_start_date: d.work_start_date || "",
+      work_end_date: d.work_end_date || "",
+      deposit_amount: d.deposit_amount || 0,
+      deposit_paid: d.deposit_paid || 0,
+      deposit_paid_date: d.deposit_paid_date || "",
+      progress_payment_amount: d.progress_payment_amount || 0,
+      progress_payment_paid: d.progress_payment_paid || 0,
+      final_payment_amount: d.final_payment_amount || 0,
+      final_payment_paid: d.final_payment_paid || 0,
+      created_date: d.created_date ? new Date(d.created_date).toLocaleDateString() : "",
+    }),
+    filename: () => `deals_${new Date().toISOString().slice(0,10)}.csv`,
+  },
+  {
+    key: "estimates",
+    label: "Estimates",
+    description: "All estimates — title, status, total, QB info, lead/project links",
+    icon: FileText,
+    color: "emerald",
+    fetch: async () => { return []; },
+    map: (e) => ({
+      id: e.id,
+      lead_id: e.lead_id || "",
+      project_id: e.project_id || "",
+      title: e.title || "",
+      status: e.status || "",
+      subtotal: e.subtotal || 0,
+      markup_pct: e.markup_pct || 0,
+      total: e.total || 0,
+      deposit_amount: e.deposit_amount || 0,
+      valid_until: e.valid_until || "",
+      qb_estimate_id: e.qb_estimate_id || "",
+      qb_estimate_number: e.qb_estimate_number || "",
+      qb_status: e.qb_status || "",
+      notes: e.notes || "",
+      created_date: e.created_date ? new Date(e.created_date).toLocaleDateString() : "",
+    }),
+    filename: () => `estimates_${new Date().toISOString().slice(0,10)}.csv`,
+  },
+];
+
+const COLOR_MAP = {
+  blue:    { bg: "bg-blue-50",    border: "border-blue-200",    icon: "bg-blue-100 text-blue-600",    btn: "bg-blue-600 hover:bg-blue-700" },
+  amber:   { bg: "bg-amber-50",   border: "border-amber-200",   icon: "bg-amber-100 text-amber-600",   btn: "bg-amber-600 hover:bg-amber-700" },
+  emerald: { bg: "bg-emerald-50", border: "border-emerald-200", icon: "bg-emerald-100 text-emerald-600", btn: "bg-emerald-600 hover:bg-emerald-700" },
+};
+
+export default function ExportTab() {
+  const [loadingKey, setLoadingKey] = useState(null);
+  const [doneKey, setDoneKey] = useState(null);
+
+  const handleExport = async (exp) => {
+    setLoadingKey(exp.key);
+    setDoneKey(null);
+    const data = await exp.fetch();
+    const rows = data.map(exp.map);
+    const csv = toCSV(rows);
+    downloadCSV(exp.filename(), csv);
+    setLoadingKey(null);
+    setDoneKey(exp.key);
+    setTimeout(() => setDoneKey(null), 3000);
+  };
+
+  const handleExportAll = async () => {
+    setLoadingKey("all");
+    setDoneKey(null);
+    const [leads, deals, estimates] = await Promise.all(EXPORTS.map(e => e.fetch()));
+    const datasets = [
+      { name: "Leads", rows: leads.map(EXPORTS[0].map) },
+      { name: "Deals", rows: deals.map(EXPORTS[1].map) },
+      { name: "Estimates", rows: estimates.map(EXPORTS[2].map) },
+    ];
+    // Build a combined CSV with section headers
+    const sections = datasets.map(({ name, rows }) => {
+      if (!rows.length) return `# ${name}\n(no data)\n`;
+      return `# ${name}\n${toCSV(rows)}\n`;
+    });
+    downloadCSV(`crm_export_${new Date().toISOString().slice(0,10)}.csv`, sections.join("\n"));
+    setLoadingKey(null);
+    setDoneKey("all");
+    setTimeout(() => setDoneKey(null), 3000);
+  };
+
+  return (
+    <div className="space-y-5 max-w-2xl">
+      {/* Export All */}
+      <div className="bg-white border border-slate-200 rounded-xl p-5 flex items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-bold text-slate-800">Export Everything</p>
+          <p className="text-xs text-slate-500 mt-0.5">Downloads leads, deals & estimates in a single CSV file</p>
+        </div>
+        <button
+          onClick={handleExportAll}
+          disabled={!!loadingKey}
+          className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-white bg-slate-800 hover:bg-slate-900 disabled:opacity-50 rounded-lg transition-colors whitespace-nowrap"
+        >
+          {loadingKey === "all"
+            ? <Loader2 className="w-4 h-4 animate-spin" />
+            : doneKey === "all"
+            ? <CheckCircle className="w-4 h-4" />
+            : <Download className="w-4 h-4" />}
+          {loadingKey === "all" ? "Exporting..." : doneKey === "all" ? "Downloaded!" : "Export All"}
+        </button>
+      </div>
+
+      <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 px-1">Or export individually</p>
+
+      {/* Individual exports */}
+      <div className="space-y-3">
+        {EXPORTS.map((exp) => {
+          const c = COLOR_MAP[exp.color];
+          const Icon = exp.icon;
+          const isLoading = loadingKey === exp.key;
+          const isDone = doneKey === exp.key;
+          return (
+            <div key={exp.key} className={`${c.bg} border ${c.border} rounded-xl p-4 flex items-center justify-between gap-4`}>
+              <div className="flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-lg ${c.icon} flex items-center justify-center flex-shrink-0`}>
+                  <Icon className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-800">{exp.label}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{exp.description}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => handleExport(exp)}
+                disabled={!!loadingKey}
+                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-white ${c.btn} disabled:opacity-50 rounded-lg transition-colors whitespace-nowrap`}
+              >
+                {isLoading
+                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  : isDone
+                  ? <CheckCircle className="w-3.5 h-3.5" />
+                  : <Download className="w-3.5 h-3.5" />}
+                {isLoading ? "Exporting..." : isDone ? "Downloaded!" : "Export CSV"}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

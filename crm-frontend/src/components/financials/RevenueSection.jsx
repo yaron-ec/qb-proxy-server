@@ -1,1 +1,87 @@
-aW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IGZvcm1hdEN1cnJlbmN5IH0gZnJvbSAiQC9saWIvZmluYW5jaWFsQ2FsYyI7CgpmdW5jdGlvbiBSb3coeyBsYWJlbCwgdmFsdWUsIHN5bmNlZCwgYm9sZCB9KSB7CiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gZ2FwLTIiPgogICAgICA8c3BhbiBjbGFzc05hbWU9e2B0ZXh0LXNtICR7Ym9sZCA/ICJmb250LXNlbWlib2xkIHRleHQtc2xhdGUtODAwIiA6ICJ0ZXh0LXNsYXRlLTYwMCJ9YH0+e2xhYmVsfTwvc3Bhbj4KICAgICAgPHNwYW4gY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiI+CiAgICAgICAge3N5bmNlZCAmJiAoCiAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtWzEwcHhdIGZvbnQtc2VtaWJvbGQgdGV4dC1lbWVyYWxkLTYwMCBiZy1lbWVyYWxkLTUwIGJvcmRlciBib3JkZXItZW1lcmFsZC0xMDAgcHgtMS41IHB5LTAuNSByb3VuZGVkLWZ1bGwgd2hpdGVzcGFjZS1ub3dyYXAiPgogICAgICAgICAgICBTeW5jZWQgZnJvbSBRdWlja0Jvb2tzCiAgICAgICAgICA8L3NwYW4+CiAgICAgICAgKX0KICAgICAgICA8c3BhbiBjbGFzc05hbWU9e2B0ZXh0LXNtICR7Ym9sZCA/ICJmb250LWJvbGQgdGV4dC1zbGF0ZS05MDAiIDogInRleHQtc2xhdGUtODAwIn1gfT57dmFsdWV9PC9zcGFuPgogICAgICA8L3NwYW4+CiAgICA8L2Rpdj4KICApOwp9CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBSZXZlbnVlU2VjdGlvbih7IGRlYWwsIGZpbiwgY2FuRWRpdCwgdXBkYXRlRGVhbCwgbG9nQWN0aXZpdHkgfSkgewogIGNvbnN0IFtjaGFuZ2VPcmRlcnMsIHNldENoYW5nZU9yZGVyc10gPSB1c2VTdGF0ZShkZWFsPy5maW5hbmNpYWxfY2hhbmdlX29yZGVyc19hbW91bnQgPz8gIiIpOwogIGNvbnN0IFttYW51YWxBZGosIHNldE1hbnVhbEFkal0gPSB1c2VTdGF0ZShkZWFsPy5maW5hbmNpYWxfbWFudWFsX3JldmVudWVfYWRqdXN0bWVudCA/PyAiIik7CiAgY29uc3QgW3NhdmluZywgc2V0U2F2aW5nXSA9IHVzZVN0YXRlKG51bGwpOwoKICBjb25zdCBzYXZlID0gYXN5bmMgKGZpZWxkLCB2YWx1ZSwgbGFiZWwpID0+IHsKICAgIHNldFNhdmluZyhmaWVsZCk7CiAgICB0cnkgewogICAgICBhd2FpdCB1cGRhdGVEZWFsKHsgW2ZpZWxkXTogdmFsdWUgPT09ICIiID8gMCA6IHBhcnNlRmxvYXQodmFsdWUpIHx8IDAgfSk7CiAgICAgIGF3YWl0IGxvZ0FjdGl2aXR5KCJyZXZlbnVlX2FkanVzdGVkIiwgIkRlYWwiLCBgJHtsYWJlbH0gdXBkYXRlZCB0byAke3ZhbHVlIHx8IDB9YCk7CiAgICB9IGZpbmFsbHkgewogICAgICBzZXRTYXZpbmcobnVsbCk7CiAgICB9CiAgfTsKCiAgcmV0dXJuICgKICAgIDxkaXY+CiAgICAgIDxwIGNsYXNzTmFtZT0idHlwb2dyYXBoeS1zZWN0aW9uLWhlYWRlciBtYi0yIj5SRVZFTlVFPC9wPgogICAgICA8ZGl2IGNsYXNzTmFtZT0iY2FyZC1wcmVtaXVtIHAtNCBzcGFjZS15LTIuNSI+CiAgICAgICAgPFJvdyBsYWJlbD0iT3JpZ2luYWwgQ29udHJhY3QgQW1vdW50IiB2YWx1ZT17Zm9ybWF0Q3VycmVuY3koZmluLmNvbnRyYWN0QW1vdW50KX0gc3luY2VkPXtmaW4uaGFzUUJ9IC8+CiAgICAgICAgPFJvdyBsYWJlbD0iQXBwcm92ZWQgQ2hhbmdlIE9yZGVycyIgdmFsdWU9e2Zvcm1hdEN1cnJlbmN5KGZpbi5jaGFuZ2VPcmRlcnMpfSAvPgogICAgICAgIDxSb3cgbGFiZWw9IlRvdGFsIENvbnRyYWN0IEFtb3VudCIgdmFsdWU9e2Zvcm1hdEN1cnJlbmN5KGZpbi50b3RhbFJldmVudWUpfSBib2xkIC8+CiAgICAgICAgPFJvdyBsYWJlbD0iUGF5bWVudHMgUmVjZWl2ZWQiIHZhbHVlPXtmb3JtYXRDdXJyZW5jeShmaW4ucGF5bWVudHNSZWNlaXZlZCl9IHN5bmNlZD17ZmluLmhhc1FCfSAvPgogICAgICAgIDxSb3cgbGFiZWw9IkN1c3RvbWVyIEJhbGFuY2UgUmVtYWluaW5nIiB2YWx1ZT17Zm9ybWF0Q3VycmVuY3koZmluLnJlbWFpbmluZ0N1c3RvbWVyQmFsYW5jZSl9IGJvbGQgLz4KCiAgICAgICAge2NhbkVkaXQgJiYgKAogICAgICAgICAgPGRpdiBjbGFzc05hbWU9InB0LTMgbXQtMSBib3JkZXItdCBib3JkZXItc2xhdGUtMTAwIHNwYWNlLXktMyI+CiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gZm9udC1zZW1pYm9sZCB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZXIgdGV4dC1zbGF0ZS01MDAiPk1hbnVhbCBBZGp1c3RtZW50cyAoc3RvcmVkIHNlcGFyYXRlbHkpPC9wPgogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZ3JpZCBncmlkLWNvbHMtMSBzbTpncmlkLWNvbHMtMiBnYXAtMyI+CiAgICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9InRleHQtWzEwcHhdIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS01MDAgdXBwZXJjYXNlIHRyYWNraW5nLXdpZGUgYmxvY2sgbWItMSI+QXBwcm92ZWQgQ2hhbmdlIE9yZGVycyAoJCk8L2xhYmVsPgogICAgICAgICAgICAgICAgPGlucHV0CiAgICAgICAgICAgICAgICAgIHR5cGU9Im51bWJlciIKICAgICAgICAgICAgICAgICAgc3RlcD0iMC4wMSIKICAgICAgICAgICAgICAgICAgdmFsdWU9e2NoYW5nZU9yZGVyc30KICAgICAgICAgICAgICAgICAgb25DaGFuZ2U9eyhlKSA9PiBzZXRDaGFuZ2VPcmRlcnMoZS50YXJnZXQudmFsdWUpfQogICAgICAgICAgICAgICAgICBvbkJsdXI9eygpID0+IHsKICAgICAgICAgICAgICAgICAgICBpZiAoU3RyaW5nKGNoYW5nZU9yZGVycykgIT09IFN0cmluZyhkZWFsPy5maW5hbmNpYWxfY2hhbmdlX29yZGVyc19hbW91bnQgPz8gIiIpKSB7CiAgICAgICAgICAgICAgICAgICAgICBzYXZlKCJmaW5hbmNpYWxfY2hhbmdlX29yZGVyc19hbW91bnQiLCBjaGFuZ2VPcmRlcnMsICJDaGFuZ2Ugb3JkZXJzIik7CiAgICAgICAgICAgICAgICAgICAgfQogICAgICAgICAgICAgICAgICB9fQogICAgICAgICAgICAgICAgICBkaXNhYmxlZD17c2F2aW5nID09PSAiZmluYW5jaWFsX2NoYW5nZV9vcmRlcnNfYW1vdW50In0KICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJ3LWZ1bGwgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBweC0yLjUgcHktMiB0ZXh0LXNtIgogICAgICAgICAgICAgICAgLz4KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICA8ZGl2PgogICAgICAgICAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTUwMCB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZSBibG9jayBtYi0xIj5NYW51YWwgUmV2ZW51ZSBBZGp1c3RtZW50ICgkKTwvbGFiZWw+CiAgICAgICAgICAgICAgICA8aW5wdXQKICAgICAgICAgICAgICAgICAgdHlwZT0ibnVtYmVyIgogICAgICAgICAgICAgICAgICBzdGVwPSIwLjAxIgogICAgICAgICAgICAgICAgICB2YWx1ZT17bWFudWFsQWRqfQogICAgICAgICAgICAgICAgICBvbkNoYW5nZT17KGUpID0+IHNldE1hbnVhbEFkaihlLnRhcmdldC52YWx1ZSl9CiAgICAgICAgICAgICAgICAgIG9uQmx1cj17KCkgPT4gewogICAgICAgICAgICAgICAgICAgIGlmIChTdHJpbmcobWFudWFsQWRqKSAhPT0gU3RyaW5nKGRlYWw/LmZpbmFuY2lhbF9tYW51YWxfcmV2ZW51ZV9hZGp1c3RtZW50ID8/ICIiKSkgewogICAgICAgICAgICAgICAgICAgICAgc2F2ZSgiZmluYW5jaWFsX21hbnVhbF9yZXZlbnVlX2FkanVzdG1lbnQiLCBtYW51YWxBZGosICJNYW51YWwgcmV2ZW51ZSBhZGp1c3RtZW50Iik7CiAgICAgICAgICAgICAgICAgICAgfQogICAgICAgICAgICAgICAgICB9fQogICAgICAgICAgICAgICAgICBkaXNhYmxlZD17c2F2aW5nID09PSAiZmluYW5jaWFsX21hbnVhbF9yZXZlbnVlX2FkanVzdG1lbnQifQogICAgICAgICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHB4LTIuNSBweS0yIHRleHQtc20iCiAgICAgICAgICAgICAgICAvPgogICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDwvZGl2PgogICAgICAgICl9CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CiAgKTsKfQ==
+import { useState } from "react";
+import { formatCurrency } from "@/lib/financialCalc";
+
+function Row({ label, value, synced, bold }) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <span className={`text-sm ${bold ? "font-semibold text-slate-800" : "text-slate-600"}`}>{label}</span>
+      <span className="flex items-center gap-2">
+        {synced && (
+          <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+            Synced from QuickBooks
+          </span>
+        )}
+        <span className={`text-sm ${bold ? "font-bold text-slate-900" : "text-slate-800"}`}>{value}</span>
+      </span>
+    </div>
+  );
+}
+
+export default function RevenueSection({ deal, fin, canEdit, updateDeal, logActivity }) {
+  const [changeOrders, setChangeOrders] = useState(deal?.financial_change_orders_amount ?? "");
+  const [manualAdj, setManualAdj] = useState(deal?.financial_manual_revenue_adjustment ?? "");
+  const [saving, setSaving] = useState(null);
+
+  const save = async (field, value, label) => {
+    setSaving(field);
+    try {
+      await updateDeal({ [field]: value === "" ? 0 : parseFloat(value) || 0 });
+      await logActivity("revenue_adjusted", "Deal", `${label} updated to ${value || 0}`);
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  return (
+    <div>
+      <p className="typography-section-header mb-2">REVENUE</p>
+      <div className="card-premium p-4 space-y-2.5">
+        <Row label="Original Contract Amount" value={formatCurrency(fin.contractAmount)} synced={fin.hasQB} />
+        <Row label="Approved Change Orders" value={formatCurrency(fin.changeOrders)} />
+        <Row label="Total Contract Amount" value={formatCurrency(fin.totalRevenue)} bold />
+        <Row label="Payments Received" value={formatCurrency(fin.paymentsReceived)} synced={fin.hasQB} />
+        <Row label="Customer Balance Remaining" value={formatCurrency(fin.remainingCustomerBalance)} bold />
+
+        {canEdit && (
+          <div className="pt-3 mt-1 border-t border-slate-100 space-y-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Manual Adjustments (stored separately)</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide block mb-1">Approved Change Orders ($)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={changeOrders}
+                  onChange={(e) => setChangeOrders(e.target.value)}
+                  onBlur={() => {
+                    if (String(changeOrders) !== String(deal?.financial_change_orders_amount ?? "")) {
+                      save("financial_change_orders_amount", changeOrders, "Change orders");
+                    }
+                  }}
+                  disabled={saving === "financial_change_orders_amount"}
+                  className="w-full border border-slate-200 rounded-lg px-2.5 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide block mb-1">Manual Revenue Adjustment ($)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={manualAdj}
+                  onChange={(e) => setManualAdj(e.target.value)}
+                  onBlur={() => {
+                    if (String(manualAdj) !== String(deal?.financial_manual_revenue_adjustment ?? "")) {
+                      save("financial_manual_revenue_adjustment", manualAdj, "Manual revenue adjustment");
+                    }
+                  }}
+                  disabled={saving === "financial_manual_revenue_adjustment"}
+                  className="w-full border border-slate-200 rounded-lg px-2.5 py-2 text-sm"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

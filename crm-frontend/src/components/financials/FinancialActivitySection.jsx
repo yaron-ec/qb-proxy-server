@@ -1,1 +1,48 @@
-aW1wb3J0IHsgZm9ybWF0RGF0ZSB9IGZyb20gIkAvbGliL2ZpbmFuY2lhbENhbGMiOwoKY29uc3QgQUNUSU9OX0xBQkVMUyA9IHsKICBleHBlbnNlX2FkZGVkOiAiRXhwZW5zZSBBZGRlZCIsCiAgZXhwZW5zZV9lZGl0ZWQ6ICJFeHBlbnNlIEVkaXRlZCIsCiAgZXhwZW5zZV9kZWxldGVkOiAiRXhwZW5zZSBEZWxldGVkIiwKICBleHBlbnNlX3BheW1lbnRfYWRkZWQ6ICJWZW5kb3IgUGF5bWVudCBBZGRlZCIsCiAgbG9hbl9wYXltZW50X2FkZGVkOiAiTG9hbiBQYXltZW50IEFkZGVkIiwKICBsb2FuX3BheW1lbnRfZWRpdGVkOiAiTG9hbiBQYXltZW50IEVkaXRlZCIsCiAgbG9hbl9wYXltZW50X2RlbGV0ZWQ6ICJMb2FuIFBheW1lbnQgRGVsZXRlZCIsCiAgbGVhZF9jb3N0X2NoYW5nZWQ6ICJMZWFkIENvc3QgQ2hhbmdlZCIsCiAgY29tbWlzc2lvbl9hZGRlZDogIkNvbW1pc3Npb24gQWRkZWQiLAogIGNvbW1pc3Npb25fZWRpdGVkOiAiQ29tbWlzc2lvbiBFZGl0ZWQiLAogIGNvbW1pc3Npb25fYXBwcm92ZWQ6ICJDb21taXNzaW9uIEFwcHJvdmVkIiwKICBjb21taXNzaW9uX3BhaWQ6ICJDb21taXNzaW9uIE1hcmtlZCBQYWlkIiwKICBjb21taXNzaW9uX2RlbGV0ZWQ6ICJDb21taXNzaW9uIERlbGV0ZWQiLAogIHJldmVudWVfYWRqdXN0ZWQ6ICJSZXZlbnVlIE1hbnVhbGx5IEFkanVzdGVkIiwKfTsKCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIEZpbmFuY2lhbEFjdGl2aXR5U2VjdGlvbih7IGFjdGl2aXRpZXMgfSkgewogIGNvbnN0IHNvcnRlZCA9IFsuLi5hY3Rpdml0aWVzXS5zb3J0KChhLCBiKSA9PiAoYi50aW1lc3RhbXAgfHwgIiIpLmxvY2FsZUNvbXBhcmUoYS50aW1lc3RhbXAgfHwgIiIpKTsKICByZXR1cm4gKAogICAgPGRpdj4KICAgICAgPHAgY2xhc3NOYW1lPSJ0eXBvZ3JhcGh5LXNlY3Rpb24taGVhZGVyIG1iLTIiPkFDVElWSVRZIEhJU1RPUlk8L3A+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJjYXJkLXByZW1pdW0gcC00Ij4KICAgICAgICB7c29ydGVkLmxlbmd0aCA9PT0gMCA/ICgKICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTQwMCB0ZXh0LWNlbnRlciBweS0zIj5ObyBmaW5hbmNpYWwgYWN0aXZpdHkgeWV0LjwvcD4KICAgICAgICApIDogKAogICAgICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMiI+CiAgICAgICAgICAgIHtzb3J0ZWQubWFwKChhKSA9PiAoCiAgICAgICAgICAgICAgPGRpdiBrZXk9e2EuaWR9IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1zdGFydCBnYXAtMyB0ZXh0LXhzIGJvcmRlci1iIGJvcmRlci1zbGF0ZS01MCBwYi0yIGxhc3Q6Ym9yZGVyLTAgbGFzdDpwYi0wIj4KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4LTEgbWluLXctMCI+CiAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0iZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTgwMCI+e0FDVElPTl9MQUJFTFNbYS5tZXRhZGF0YT8uYWN0aW9uXSB8fCBhLm1ldGFkYXRhPy5hY3Rpb24gfHwgIkFjdGl2aXR5In08L3A+CiAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1zbGF0ZS02MDAiPnthLmNvbnRlbnR9PC9wPgogICAgICAgICAgICAgICAgICB7YS5tZXRhZGF0YT8ucmVjb3JkX3R5cGUgJiYgPHAgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSB0ZXh0LXNsYXRlLTQwMCBtdC0wLjUiPnthLm1ldGFkYXRhLnJlY29yZF90eXBlfTwvcD59CiAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LXJpZ2h0IGZsZXgtc2hyaW5rLTAiPgogICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc2xhdGUtNTAwIj57YS5hdXRob3IgfHwgIuKAlCJ9PC9wPgogICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzEwcHhdIHRleHQtc2xhdGUtNDAwIj57Zm9ybWF0RGF0ZShhLnRpbWVzdGFtcCl9PC9wPgogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICkpfQogICAgICAgICAgPC9kaXY+CiAgICAgICAgKX0KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KICApOwp9
+import { formatDate } from "@/lib/financialCalc";
+
+const ACTION_LABELS = {
+  expense_added: "Expense Added",
+  expense_edited: "Expense Edited",
+  expense_deleted: "Expense Deleted",
+  expense_payment_added: "Vendor Payment Added",
+  loan_payment_added: "Loan Payment Added",
+  loan_payment_edited: "Loan Payment Edited",
+  loan_payment_deleted: "Loan Payment Deleted",
+  lead_cost_changed: "Lead Cost Changed",
+  commission_added: "Commission Added",
+  commission_edited: "Commission Edited",
+  commission_approved: "Commission Approved",
+  commission_paid: "Commission Marked Paid",
+  commission_deleted: "Commission Deleted",
+  revenue_adjusted: "Revenue Manually Adjusted",
+};
+
+export default function FinancialActivitySection({ activities }) {
+  const sorted = [...activities].sort((a, b) => (b.timestamp || "").localeCompare(a.timestamp || ""));
+  return (
+    <div>
+      <p className="typography-section-header mb-2">ACTIVITY HISTORY</p>
+      <div className="card-premium p-4">
+        {sorted.length === 0 ? (
+          <p className="text-xs text-slate-400 text-center py-3">No financial activity yet.</p>
+        ) : (
+          <div className="space-y-2">
+            {sorted.map((a) => (
+              <div key={a.id} className="flex items-start gap-3 text-xs border-b border-slate-50 pb-2 last:border-0 last:pb-0">
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-slate-800">{ACTION_LABELS[a.metadata?.action] || a.metadata?.action || "Activity"}</p>
+                  <p className="text-slate-600">{a.content}</p>
+                  {a.metadata?.record_type && <p className="text-[10px] text-slate-400 mt-0.5">{a.metadata.record_type}</p>}
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-slate-500">{a.author || "—"}</p>
+                  <p className="text-[10px] text-slate-400">{formatDate(a.timestamp)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

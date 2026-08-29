@@ -1,1 +1,50 @@
-aW1wb3J0ICogYXMgUmVhY3QgZnJvbSAicmVhY3QiCgppbXBvcnQgeyBjbiB9IGZyb20gIkAvbGliL3V0aWxzIgoKY29uc3QgQ2FyZCA9IFJlYWN0LmZvcndhcmRSZWYoKHsgY2xhc3NOYW1lLCAuLi5wcm9wcyB9LCByZWYpID0+ICgKICA8ZGl2CiAgICByZWY9e3JlZn0KICAgIGNsYXNzTmFtZT17Y24oInJvdW5kZWQteGwgYm9yZGVyIGJnLWNhcmQgdGV4dC1jYXJkLWZvcmVncm91bmQgc2hhZG93IiwgY2xhc3NOYW1lKX0KICAgIHsuLi5wcm9wc30gLz4KKSkKQ2FyZC5kaXNwbGF5TmFtZSA9ICJDYXJkIgoKY29uc3QgQ2FyZEhlYWRlciA9IFJlYWN0LmZvcndhcmRSZWYoKHsgY2xhc3NOYW1lLCAuLi5wcm9wcyB9LCByZWYpID0+ICgKICA8ZGl2CiAgICByZWY9e3JlZn0KICAgIGNsYXNzTmFtZT17Y24oImZsZXggZmxleC1jb2wgc3BhY2UteS0xLjUgcC02IiwgY2xhc3NOYW1lKX0KICAgIHsuLi5wcm9wc30gLz4KKSkKQ2FyZEhlYWRlci5kaXNwbGF5TmFtZSA9ICJDYXJkSGVhZGVyIgoKY29uc3QgQ2FyZFRpdGxlID0gUmVhY3QuZm9yd2FyZFJlZigoeyBjbGFzc05hbWUsIC4uLnByb3BzIH0sIHJlZikgPT4gKAogIDxkaXYKICAgIHJlZj17cmVmfQogICAgY2xhc3NOYW1lPXtjbigiZm9udC1zZW1pYm9sZCBsZWFkaW5nLW5vbmUgdHJhY2tpbmctdGlnaHQiLCBjbGFzc05hbWUpfQogICAgey4uLnByb3BzfSAvPgopKQpDYXJkVGl0bGUuZGlzcGxheU5hbWUgPSAiQ2FyZFRpdGxlIgoKY29uc3QgQ2FyZERlc2NyaXB0aW9uID0gUmVhY3QuZm9yd2FyZFJlZigoeyBjbGFzc05hbWUsIC4uLnByb3BzIH0sIHJlZikgPT4gKAogIDxkaXYKICAgIHJlZj17cmVmfQogICAgY2xhc3NOYW1lPXtjbigidGV4dC1zbSB0ZXh0LW11dGVkLWZvcmVncm91bmQiLCBjbGFzc05hbWUpfQogICAgey4uLnByb3BzfSAvPgopKQpDYXJkRGVzY3JpcHRpb24uZGlzcGxheU5hbWUgPSAiQ2FyZERlc2NyaXB0aW9uIgoKY29uc3QgQ2FyZENvbnRlbnQgPSBSZWFjdC5mb3J3YXJkUmVmKCh7IGNsYXNzTmFtZSwgLi4ucHJvcHMgfSwgcmVmKSA9PiAoCiAgPGRpdiByZWY9e3JlZn0gY2xhc3NOYW1lPXtjbigicC02IHB0LTAiLCBjbGFzc05hbWUpfSB7Li4ucHJvcHN9IC8+CikpCkNhcmRDb250ZW50LmRpc3BsYXlOYW1lID0gIkNhcmRDb250ZW50IgoKY29uc3QgQ2FyZEZvb3RlciA9IFJlYWN0LmZvcndhcmRSZWYoKHsgY2xhc3NOYW1lLCAuLi5wcm9wcyB9LCByZWYpID0+ICgKICA8ZGl2CiAgICByZWY9e3JlZn0KICAgIGNsYXNzTmFtZT17Y24oImZsZXggaXRlbXMtY2VudGVyIHAtNiBwdC0wIiwgY2xhc3NOYW1lKX0KICAgIHsuLi5wcm9wc30gLz4KKSkKQ2FyZEZvb3Rlci5kaXNwbGF5TmFtZSA9ICJDYXJkRm9vdGVyIgoKZXhwb3J0IHsgQ2FyZCwgQ2FyZEhlYWRlciwgQ2FyZEZvb3RlciwgQ2FyZFRpdGxlLCBDYXJkRGVzY3JpcHRpb24sIENhcmRDb250ZW50IH0K
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+const Card = React.forwardRef(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("rounded-xl border bg-card text-card-foreground shadow", className)}
+    {...props} />
+))
+Card.displayName = "Card"
+
+const CardHeader = React.forwardRef(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    {...props} />
+))
+CardHeader.displayName = "CardHeader"
+
+const CardTitle = React.forwardRef(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("font-semibold leading-none tracking-tight", className)}
+    {...props} />
+))
+CardTitle.displayName = "CardTitle"
+
+const CardDescription = React.forwardRef(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props} />
+))
+CardDescription.displayName = "CardDescription"
+
+const CardContent = React.forwardRef(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+))
+CardContent.displayName = "CardContent"
+
+const CardFooter = React.forwardRef(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex items-center p-6 pt-0", className)}
+    {...props} />
+))
+CardFooter.displayName = "CardFooter"
+
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }

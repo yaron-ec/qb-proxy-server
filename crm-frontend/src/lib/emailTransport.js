@@ -1,1 +1,465 @@
-LyoqCiAqIGVtYWlsVHJhbnNwb3J0IOKAlCB0aGUgU0lOR0xFIHNoYXJlZCBmcm9udGVuZCBlbWFpbCB0cmFuc3BvcnQgYWRhcHRlci4KICoKICogTUlHUkFUSU9OLU9XTkVSU0hJUCBNT0RFTCAoQXBwcm9hY2ggQSDigJQgTk8gYnJvd3NlciBkZWxlZ2F0aW9uKToKICogICBFYWNoIGVtYWlsIGZsb3cgaXMgb3duZWQgYnkgZXhhY3RseSBPTkUgYmFja2VuZCwgZGVjbGFyZWQgaW4gRkxPV19PV05FUlNISVAKICogICBiZWxvdy4gVGhlIGFkYXB0ZXIgY2FsbHMgdGhhdCBiYWNrZW5kIERJUkVDVExZOgogKiAgICAgLSAnYmFzZTQ0JyAgLT4gdGhlIGV4aXN0aW5nIEJhc2U0NCBmdW5jdGlvbiAodW5jaGFuZ2VkIHByb2R1Y3Rpb24gcGF0aCkuCiAqICAgICAtICdyYWlsd2F5JyAtPiBSYWlsd2F5IFBPU1QgL2FwaS92MS9lbWFpbHMvc2VuZCAoSldULWF1dGhlbnRpY2F0ZWQpLgogKiAgIFRoZSBicm93c2VyIG5ldmVyIHJlY2VpdmVzIGBkZWxlZ2F0ZTp0cnVlYCBhbmQgbmV2ZXIgY2FsbHMgQmFzZTQ0IGFmdGVyCiAqICAgUmFpbHdheSBkZWNpZGVkLiBUaGVyZSBpcyBubyBydW50aW1lIHR3by1iYWNrZW5kIGRlbGVnYXRpb24gcHJvdG9jb2wuIEF0CiAqICAgY3V0b3ZlciBhIGZsb3cncyBvd25lciBmbGlwcyB0byAncmFpbHdheScgaGVyZSBBTkQgaXRzIEJhc2U0NCB0cmlnZ2VyLwogKiAgIGF1dG9tYXRpb24gaXMgZGlzYWJsZWQgaW4gdGhlIHNhbWUgY2hhbmdlLgogKgogKiAgIFdoaWxlIGEgZmxvdyBpcyAnYmFzZTQ0JyB0aGUgVUkgY2FsbHMgdGhlIEJhc2U0NCBmdW5jdGlvbiBkaXJlY3RseSAodG9kYXkncwogKiAgIGJlaGF2aW9yKS4gV2hpbGUgJ3JhaWx3YXknIHRoZSBVSSBjYWxscyBSYWlsd2F5IG9ubHkuIFRoZSBicm93c2VyIGRvZXMgbm90CiAqICAgImFzayBSYWlsd2F5IHRoZW4gZGVsZWdhdGUgdG8gQmFzZTQ0Ii4KICoKICogICBSYWlsd2F5LWJvdW5kIGZsb3dzIGNhbGwgUE9TVCAvYXBpL3YxL2VtYWlscy9zZW5kIHdpdGggYSBSYWlsd2F5IEpXVAogKiAgIChBdXRob3JpemF0aW9uOiBCZWFyZXIgPGp3dD4pLiBObyBYLVByb3h5LVNlY3JldCwgbm8gVklURV9RQl9QUk9YWV9TRUNSRVQKICogICBpcyBldmVyIHNlbnQgZnJvbSB0aGUgYnJvd3Nlci4gVGhlIEpXVCBpcyBwcm92aXNpb25lZCBvbiBmaXJzdCBzZW5kIHZpYQogKiAgIG1pZ3JhdGVGcm9tQmFzZTQ0IChCYXNlNDQgdG9rZW4g4oaSIFJhaWx3YXkgSldUIGV4Y2hhbmdlKS4gSWYgYSBSYWlsd2F5CiAqICAgZXJyb3Igb2NjdXJzIHRoZSBhZGFwdGVyIHRocm93czsgaXQgTkVWRVIgc2lsZW50bHkgZmFsbHMgYmFjayB0byBCYXNlNDQKICogICAocHJldmVudHMgZHVwbGljYXRlIHNlbmRzKS4KICoKICogSURFTVBPVEVOQ1k6CiAqICAgS2V5cyBhcmUgZGV0ZXJtaW5pc3RpYyAoc3JjL2xpYi9pZGVtcG90ZW5jeUtleXMubWpzKTogbm8gRGF0ZS5ub3csIG5vCiAqICAgTWF0aC5yYW5kb20sIG5vIGNyeXB0by5yYW5kb21VVUlELiBHZW5lcmljIHNlbmQgUkVRVUlSRVMgYSBzdGFibGUKICogICBjbGllbnRSZXF1ZXN0SWQ7IGFic2VudCAtPiB0aHJvd3MgKG5vIHNpbGVudCByYW5kb20gZmFsbGJhY2spLgogKgogKiBTQUZFIExPR0dJTkc6CiAqICAgTG9ncyByZXF1ZXN0IElELCBpZGVtcG90ZW5jeSBrZXksIHJlY2lwaWVudCBjb3VudCwgUmFpbHdheSByZXNwb25zZSBzdGF0dXMsCiAqICAgR21haWwgbWVzc2FnZSBJRCwgYW5kIHdoZXRoZXIgdGhlIHJlcXVlc3Qgd2FzIGlkZW1wb3RlbnQuIE5ldmVyIGxvZ3MKICogICBQUk9YWV9TRUNSRVQsIE9BdXRoIHRva2VucywgR21haWwgY2xpZW50IHNlY3JldCwgY29tcGxldGUgZW1haWwgYm9keSwgb3IKICogICBzZW5zaXRpdmUgY3VzdG9tZXIgZGF0YS4KICovCmltcG9ydCAqIGFzIHJhaWx3YXlBcGkgZnJvbSAnQC9saWIvcmFpbHdheUFwaSc7CmltcG9ydCB7IGFwcFBhcmFtcyB9IGZyb20gJ0AvbGliL2FwcC1wYXJhbXMnOwppbXBvcnQgeyBJZGVtcG90ZW5jeUtleXMgfSBmcm9tICdAL2xpYi9pZGVtcG90ZW5jeUtleXMnOwppbXBvcnQgewogIG1hbnVhbFN0YWZmUmVtaW5kZXJIdG1sLAogIG1hbnVhbEN1c3RvbWVyUmVtaW5kZXJIdG1sLAogIGludm9pY2VFbWFpbEh0bWwsCiAgdGVzdEVtYWlsSHRtbCwKfSBmcm9tICdAL2xpYi9jcm1FbWFpbFRlbXBsYXRlcyc7CmltcG9ydCAqIGFzIHJhaWx3YXlMZWFkcyBmcm9tICdAL2FwaS9yYWlsd2F5L2xlYWRzJzsKaW1wb3J0ICogYXMgcmFpbHdheUFjdGl2aXRpZXMgZnJvbSAnQC9hcGkvcmFpbHdheS9hY3Rpdml0aWVzJzsKaW1wb3J0ICogYXMgcmFpbHdheUludm9pY2VzIGZyb20gJ0AvYXBpL3JhaWx3YXkvaW52b2ljZXMnOwppbXBvcnQgKiBhcyByYWlsd2F5TGVhZEF0dGFjaG1lbnRzIGZyb20gJ0AvYXBpL3JhaWx3YXkvbGVhZEF0dGFjaG1lbnRzJzsKaW1wb3J0IHsgUkFJTFdBWV9BUElfVVJMIH0gZnJvbSAnQC9saWIvYXBpQ29uZmlnJzsKCmV4cG9ydCB7IElkZW1wb3RlbmN5S2V5cyB9OwoKLy8g4pSA4pSAIFNhZmUgbG9nZ2luZyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKLy8gR2VuZXJhdGVzIGEgc2hvcnQgcmVxdWVzdCBJRCBmb3IgY29ycmVsYXRpb24uIERvZXMgTk9UIGV4cG9zZSBzZWNyZXRzIG9yIFBJSS4KbGV0IF9yZXFDb3VudGVyID0gMDsKZnVuY3Rpb24gbmV4dFJlcUlkKCkgeyBfcmVxQ291bnRlciA9IChfcmVxQ291bnRlciArIDEpICUgMWU5OyByZXR1cm4gYGNybS1lbWFpbC0ke0RhdGUubm93KCkudG9TdHJpbmcoMzYpfS0ke19yZXFDb3VudGVyfWA7IH0KCmZ1bmN0aW9uIHNhZmVMb2coZXZlbnQsIGRhdGEpIHsKICB0cnkgewogICAgY29uc3QgcGF5bG9hZCA9IHsgZXZlbnQsIHRzOiBuZXcgRGF0ZSgpLnRvSVNPU3RyaW5nKCksIC4uLmRhdGEgfTsKICAgIC8vIE5ldmVyIGluY2x1ZGU6IFBST1hZX1NFQ1JFVCwgdG9rZW5zLCBmdWxsIGJvZHksIGN1c3RvbWVyIFBJSSBiZXlvbmQgY291bnQKICAgIGNvbnNvbGUubG9nKEpTT04uc3RyaW5naWZ5KHBheWxvYWQpKTsKICB9IGNhdGNoIChfKSB7IC8qIG5ldmVyIGxldCBsb2dnaW5nIHRocm93ICovIH0KfQoKLy8g4pSA4pSAIFBlci1mbG93IG93bmVyc2hpcCDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKLy8gVGhpcyBpcyB0aGUgc2luZ2xlIGN1dG92ZXIgc3dpdGNoLiBBbGwgZmxvd3MgYXJlIG5vdyAncmFpbHdheScg4oCUIGVtYWlsIGdvZXMKLy8gdGhyb3VnaCBQT1NUIC9hcGkvdjEvZW1haWxzL3NlbmQgd2l0aCBhIFJhaWx3YXkgSldULiBUaGUgJ2Jhc2U0NCcgYnJhbmNoZXMKLy8gYXJlIGtlcHQgYXMgZmFsbGJhY2sgY29kZSAobm90IGRlbGV0ZWQpIGJ1dCBhcmUgTk9UIHVzZWQuCmV4cG9ydCBjb25zdCBGTE9XX09XTkVSU0hJUCA9IHsKICBHRU5FUklDOiAncmFpbHdheScsCiAgSU5WT0lDRTogJ3JhaWx3YXknLAogIE1BTlVBTF9SRU1JTkRFUjogJ3JhaWx3YXknLAogIEFQUE9JTlRNRU5UX1JFTUlOREVSX1BBTkVMOiAncmFpbHdheScsCiAgVEVTVDogJ3JhaWx3YXknLAogIC8vIFNjaGVkdWxlZC9waG9uZS90YXNrIHJlbWluZGVycyBhcmUgTk9UIHVzZXItdHJpZ2dlcmVkIGZyb20gdGhlIGJyb3dzZXIg4oCUCiAgLy8gdGhleSBydW4gb24gdGhlIFJhaWx3YXkgY3JvbiB3b3JrZXIsIGdhdGVkIGJ5IEVNQUlMXypfVFJBTlNQT1JULiBObwogIC8vIGJyb3dzZXIgc2VuZCBwYXRoIGV4aXN0cyBmb3IgdGhlbSwgc28gdGhleSBhcmUgbm90IGxpc3RlZCBoZXJlLgp9OwoKLy8g4pSA4pSAIFJhaWx3YXkgL2FwaS92MS9lbWFpbHMvc2VuZCBoZWxwZXIgKEpXVC1hdXRoZW50aWNhdGVkKSDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKLyoqCiAqIFNlbmQgb25lIGVtYWlsIHRocm91Z2ggUmFpbHdheSBQT1NUIC9hcGkvdjEvZW1haWxzL3NlbmQgd2l0aCBhIFJhaWx3YXkgSldULgogKiBObyBYLVByb3h5LVNlY3JldCBpcyBzZW50IGZyb20gdGhlIGJyb3dzZXIuIFRoZSBKV1QgaXMgcHJvdmlzaW9uZWQgb24gZmlyc3QKICogc2VuZCB2aWEgbWlncmF0ZUZyb21CYXNlNDQgKEJhc2U0NCB0b2tlbiDihpIgUmFpbHdheSBKV1QgZXhjaGFuZ2UpLgogKiBAcmV0dXJucyB7IG9rLCBnbWFpbE1lc3NhZ2VJZCwgaWRlbXBvdGVudCwgY2xhaW1JZCB9CiAqIEB0aHJvd3Mgb24gYW55IGVycm9yIOKAlCBORVZFUiBmYWxscyBiYWNrIHRvIEJhc2U0NCAocHJldmVudHMgZHVwbGljYXRlIHNlbmRzKS4KICovCmFzeW5jIGZ1bmN0aW9uIHNlbmRWaWFSYWlsd2F5KHsgdG8sIGNjLCByZXBseVRvLCBzdWJqZWN0LCBodG1sQm9keSwgYXR0YWNobWVudHMsIGlkZW1wb3RlbmN5S2V5LCByb2xlIH0pIHsKICBpZiAoIWlkZW1wb3RlbmN5S2V5KSB0aHJvdyBuZXcgRXJyb3IoJ3NlbmRWaWFSYWlsd2F5OiBpZGVtcG90ZW5jeUtleSBpcyByZXF1aXJlZCcpOwogIGNvbnN0IHJlcUlkID0gbmV4dFJlcUlkKCk7CiAgY29uc3QgdG9MaXN0ID0gQXJyYXkuaXNBcnJheSh0bykgPyB0by5maWx0ZXIoQm9vbGVhbikgOiBbdG9dLmZpbHRlcihCb29sZWFuKTsKICBjb25zdCBjY0xpc3QgPSBBcnJheS5pc0FycmF5KGNjKSA/IGNjLmZpbHRlcihCb29sZWFuKSA6IChjYyA/IFtjY10gOiBbXSk7CgogIC8vIEVuc3VyZSBSYWlsd2F5IEpXVCBzZXNzaW9uIGV4aXN0cyAocHJvdmlzaW9ucyBvbiBmaXJzdCBzZW5kIHZpYSBCYXNlNDQKICAvLyB0b2tlbiBleGNoYW5nZSDigJQgYnJvd3NlciBuZXZlciBob2xkcyBQUk9YWV9TRUNSRVQsIG9ubHkgdGhlIFJhaWx3YXkgSldUKS4KICBpZiAoIXJhaWx3YXlBcGkuaXNMb2dnZWRJbigpKSB7CiAgICBpZiAoIWFwcFBhcmFtcy50b2tlbikgdGhyb3cgbmV3IEVycm9yKCdSYWlsd2F5IHNlc3Npb24gbm90IGVzdGFibGlzaGVkIOKAlCBzaWduIGluIHRvIHNlbmQgZW1haWwnKTsKICAgIGF3YWl0IHJhaWx3YXlBcGkubWlncmF0ZUZyb21CYXNlNDQoYXBwUGFyYW1zLnRva2VuKTsKICB9CgogIHNhZmVMb2coJ3JhaWx3YXlfc2VuZF9zdGFydCcsIHsKICAgIHJlcUlkLAogICAgaWRlbXBvdGVuY3lLZXksCiAgICByZWNpcGllbnRDb3VudDogdG9MaXN0Lmxlbmd0aCwKICAgIGNjQ291bnQ6IGNjTGlzdC5sZW5ndGgsCiAgICBoYXNBdHRhY2htZW50czogISEoYXR0YWNobWVudHMgJiYgYXR0YWNobWVudHMubGVuZ3RoKSwKICAgIHJvbGU6IHJvbGUgfHwgJ2dlbmVyaWMnLAogIH0pOwoKICBjb25zdCBib2R5ID0gewogICAgdG86IHRvTGlzdCwKICAgIHN1YmplY3QsCiAgICBodG1sQm9keSwKICAgIGlkZW1wb3RlbmN5S2V5LAogIH07CiAgaWYgKGNjTGlzdC5sZW5ndGgpIGJvZHkuY2MgPSBjY0xpc3Q7CiAgaWYgKHJlcGx5VG8pIGJvZHkucmVwbHlUbyA9IHJlcGx5VG87CiAgaWYgKGF0dGFjaG1lbnRzICYmIGF0dGFjaG1lbnRzLmxlbmd0aCkgYm9keS5hdHRhY2htZW50cyA9IGF0dGFjaG1lbnRzOwogIC8vIC9hcGkvdjEvZW1haWxzL3NlbmQgZGVyaXZlcyByb2xlIGZyb20gbWV0YWRhdGEudGVtcGxhdGVfa2V5IChub3QgYSB0b3AtbGV2ZWwgcm9sZSBmaWVsZCkKICBpZiAocm9sZSkgYm9keS5tZXRhZGF0YSA9IHsgdGVtcGxhdGVfa2V5OiByb2xlIH07CgogIGxldCByZXN1bHQ7CiAgdHJ5IHsKICAgIHJlc3VsdCA9IGF3YWl0IHJhaWx3YXlBcGkuYXBpQ2FsbCgnL2FwaS92MS9lbWFpbHMvc2VuZCcsIHsgYm9keSB9KTsKICB9IGNhdGNoIChlKSB7CiAgICBzYWZlTG9nKCdyYWlsd2F5X3NlbmRfZXJyb3InLCB7CiAgICAgIHJlcUlkLAogICAgICBpZGVtcG90ZW5jeUtleSwKICAgICAgc3RhdHVzOiBlLnN0YXR1cyB8fCBudWxsLAogICAgICBlcnJvcjogU3RyaW5nKGUubWVzc2FnZSB8fCBlKS5zbGljZSgwLCAyMDApLAogICAgfSk7CiAgICB0aHJvdyBlOwogIH0KCiAgc2FmZUxvZygncmFpbHdheV9zZW5kX29rJywgewogICAgcmVxSWQsCiAgICBpZGVtcG90ZW5jeUtleSwKICAgIG9rOiAhIXJlc3VsdC5vaywKICAgIGlkZW1wb3RlbnQ6ICEhcmVzdWx0LmlkZW1wb3RlbnQsCiAgICBnbWFpbE1lc3NhZ2VJZDogcmVzdWx0LmdtYWlsTWVzc2FnZUlkIHx8IG51bGwsCiAgICBjbGFpbUlkOiByZXN1bHQuY2xhaW1JZCB8fCBudWxsLAogIH0pOwoKICByZXR1cm4gcmVzdWx0Owp9CgovLyDilIDilIAgSGVscGVycyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKZnVuY3Rpb24gcHJpbWFyeVJlY2lwaWVudCh0bykgeyByZXR1cm4gQXJyYXkuaXNBcnJheSh0bykgPyB0b1swXSA6IHRvOyB9CmZ1bmN0aW9uIGZpcnN0QXR0YWNobWVudChhdHRhY2htZW50cykgeyByZXR1cm4gQXJyYXkuaXNBcnJheShhdHRhY2htZW50cykgPyBhdHRhY2htZW50c1swXSA6IGF0dGFjaG1lbnRzOyB9Cgpjb25zdCBNSUNIRUxMRV9FTUFJTCA9ICdtaWNoZWxsZUBlY2NvbnN0cnVjdGlvbmdyb3VwLmNvbSc7CmNvbnN0IFlBUk9OX0VNQUlMID0gJ3lhcm9uQGVjY29uc3RydWN0aW9uZ3JvdXAuY29tJzsKY29uc3QgQ1JNX1BVQkxJQ19VUkwgPSAodHlwZW9mIHdpbmRvdyAhPT0gJ3VuZGVmaW5lZCcgJiYgd2luZG93LmxvY2F0aW9uICYmIHdpbmRvdy5sb2NhdGlvbi5vcmlnaW4pIHx8ICdodHRwczovL2NybS5lY2NvbnN0cnVjdGlvbmdyb3VwLmNvbSc7CgpmdW5jdGlvbiByZXNvbHZlT3duZXJFbWFpbChvd25lck5hbWUpIHsKICBpZiAoIW93bmVyTmFtZSkgcmV0dXJuIE1JQ0hFTExFX0VNQUlMOwogIGNvbnN0IGZpcnN0ID0gU3RyaW5nKG93bmVyTmFtZSkudHJpbSgpLnNwbGl0KC9ccysvKVswXS50b0xvd2VyQ2FzZSgpOwogIGlmIChmaXJzdCA9PT0gJ21pY2tleScgfHwgZmlyc3QgPT09ICdtaWNreScpIHJldHVybiAnbWlja3lAZWNjb25zdHJ1Y3Rpb25ncm91cC5jb20nOwogIHJldHVybiBmaXJzdCA/IGAke2ZpcnN0fUBlY2NvbnN0cnVjdGlvbmdyb3VwLmNvbWAgOiBNSUNIRUxMRV9FTUFJTDsKfQoKZnVuY3Rpb24gZm10MTIodCkgewogIGlmICghdCkgcmV0dXJuICcnOwogIGNvbnN0IGNsZWFuID0gU3RyaW5nKHQpLnJlcGxhY2UoL1xzKihBTXxQTSkvaSwgJycpLnRyaW0oKTsKICBjb25zdCBbaCwgbV0gPSBjbGVhbi5zcGxpdCgnOicpLm1hcChOdW1iZXIpOwogIGlmIChpc05hTihoKSkgcmV0dXJuIHQ7CiAgcmV0dXJuIGAke2ggJSAxMiB8fCAxMn06JHtTdHJpbmcobSB8fCAwKS5wYWRTdGFydCgyLCAnMCcpfSAke2ggPj0gMTIgPyAnUE0nIDogJ0FNJ31gOwp9CgpmdW5jdGlvbiBmb3JtYXREYXRlKGRhdGVTdHIpIHsKICBpZiAoIWRhdGVTdHIpIHJldHVybiAnJzsKICBjb25zdCBbeSwgbW8sIGRdID0gZGF0ZVN0ci5zcGxpdCgnLScpLm1hcChOdW1iZXIpOwogIHJldHVybiBuZXcgRGF0ZSh5LCBtbyAtIDEsIGQpLnRvTG9jYWxlRGF0ZVN0cmluZygnZW4tVVMnLCB7CiAgICB3ZWVrZGF5OiAnbG9uZycsIG1vbnRoOiAnbG9uZycsIGRheTogJ251bWVyaWMnLCB5ZWFyOiAnbnVtZXJpYycsCiAgfSk7Cn0KCi8vIOKUgOKUgCBHRU5FUklDIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgApleHBvcnQgYXN5bmMgZnVuY3Rpb24gc2VuZEdlbmVyaWNFbWFpbCh7IHRvLCBjYywgcmVwbHlUbywgc3ViamVjdCwgaHRtbEJvZHksIGF0dGFjaG1lbnRzLCBsZWFkSWQsIGNsaWVudFJlcXVlc3RJZCwgbWV0YWRhdGEgfSkgewogIGlmICghdG8gfHwgIXN1YmplY3QgfHwgIWh0bWxCb2R5KSB0aHJvdyBuZXcgRXJyb3IoJ3RvLCBzdWJqZWN0LCBodG1sQm9keSByZXF1aXJlZCcpOwogIGNvbnN0IHJlY2lwaWVudCA9IHByaW1hcnlSZWNpcGllbnQodG8pOwogIGNvbnN0IGtleSA9IChtZXRhZGF0YSAmJiBtZXRhZGF0YS5pZGVtcG90ZW5jeUtleSkgfHwgSWRlbXBvdGVuY3lLZXlzLmdlbmVyaWMobGVhZElkLCByZWNpcGllbnQsIGNsaWVudFJlcXVlc3RJZCk7CiAgaWYgKCFjbGllbnRSZXF1ZXN0SWQgJiYgIShtZXRhZGF0YSAmJiBtZXRhZGF0YS5pZGVtcG90ZW5jeUtleSkpIHsKICAgIHRocm93IG5ldyBFcnJvcignc2VuZEdlbmVyaWNFbWFpbDogY2xpZW50UmVxdWVzdElkIChzdGFibGUgcGVyIGxvZ2ljYWwgYWN0aW9uKSBpcyByZXF1aXJlZCBmb3IgaWRlbXBvdGVuY3knKTsKICB9CgogIGlmIChGTE9XX09XTkVSU0hJUC5HRU5FUklDID09PSAncmFpbHdheScpIHsKICAgIGNvbnN0IGF0dCA9IGZpcnN0QXR0YWNobWVudChhdHRhY2htZW50cyk7CiAgICByZXR1cm4gc2VuZFZpYVJhaWx3YXkoewogICAgICB0bzogcmVjaXBpZW50LCBjYywgcmVwbHlUbywgc3ViamVjdCwgaHRtbEJvZHksCiAgICAgIGF0dGFjaG1lbnRzOiBhdHQgPyBbYXR0XSA6IHVuZGVmaW5lZCwKICAgICAgaWRlbXBvdGVuY3lLZXk6IGtleSwgcm9sZTogJ2dlbmVyaWMnLAogICAgfSk7CiAgfQogIC8vIEJhc2U0NCBmYWxsYmFjayByZW1vdmVkIOKAlCBhbGwgZmxvd3MgYXJlIFJhaWx3YXktb3duZWQuCiAgdGhyb3cgbmV3IEVycm9yKCdHRU5FUklDIGVtYWlsIGZsb3cgaXMgUmFpbHdheS1vd25lZDsgQmFzZTQ0IGZhbGxiYWNrIGhhcyBiZWVuIHJlbW92ZWQuJyk7Cn0KCi8vIOKUgOKUgCBJTlZPSUNFIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgApleHBvcnQgYXN5bmMgZnVuY3Rpb24gc2VuZEludm9pY2VFbWFpbChpbnZvaWNlSWQsIHsgcmVjaXBpZW50LCB2ZXJzaW9uIH0gPSB7fSkgewogIGlmIChGTE9XX09XTkVSU0hJUC5JTlZPSUNFID09PSAncmFpbHdheScpIHsKICAgIC8vIENsaWVudC1zaWRlIGRhdGEgbG9va3VwIHZpYSBSYWlsd2F5IEFQSSAocmVwbGFjZXMgQmFzZTQ0IGVudGl0eSByZWFkcykKICAgIGNvbnN0IGludm9pY2VSZXMgPSBhd2FpdCByYWlsd2F5SW52b2ljZXMuZ2V0KGludm9pY2VJZCk7CiAgICBjb25zdCBpbnZvaWNlID0gaW52b2ljZVJlcz8uaW52b2ljZSB8fCBpbnZvaWNlUmVzOwogICAgaWYgKCFpbnZvaWNlKSB0aHJvdyBuZXcgRXJyb3IoJ0ludm9pY2Ugbm90IGZvdW5kJyk7CiAgICBjb25zdCBsZWFkUmVzID0gaW52b2ljZS5sZWFkX2lkID8gYXdhaXQgcmFpbHdheUxlYWRzLmdldChpbnZvaWNlLmxlYWRfaWQpIDogbnVsbDsKICAgIGNvbnN0IGxlYWQgPSBsZWFkUmVzPy5sZWFkIHx8IGxlYWRSZXM7CiAgICBpZiAoIWxlYWQpIHRocm93IG5ldyBFcnJvcignTGVhZCBub3QgZm91bmQgZm9yIGludm9pY2UnKTsKCiAgICAvLyBDb2xsZWN0IHJlY2lwaWVudHMg4oCUIEN1c3RvbWVyICYgU2FsZXMgUmVwIG9ubHkgKE5PVCBvZmZpY2UpLCBzYW1lIGFzIEJhc2U0NAogICAgY29uc3QgcmVjaXBpZW50cyA9IFtdOwogICAgaWYgKGxlYWQuZW1haWwpIHJlY2lwaWVudHMucHVzaChsZWFkLmVtYWlsKTsKICAgIGlmIChsZWFkLmFzc2lnbmVkX3JlcCAmJiBsZWFkLmFzc2lnbmVkX3JlcCAhPT0gbGVhZC5lbWFpbCkgewogICAgICBjb25zdCBvd25lckVtYWlsID0gcmVzb2x2ZU93bmVyRW1haWwobGVhZC5hc3NpZ25lZF9yZXApOwogICAgICBpZiAob3duZXJFbWFpbCAmJiAhcmVjaXBpZW50cy5pbmNsdWRlcyhvd25lckVtYWlsKSkgcmVjaXBpZW50cy5wdXNoKG93bmVyRW1haWwpOwogICAgfQogICAgaWYgKHJlY2lwaWVudCkgewogICAgICAvLyBPdmVycmlkZSB3aXRoIGV4cGxpY2l0IHJlY2lwaWVudCBpZiBwcm92aWRlZAogICAgICByZWNpcGllbnRzLmxlbmd0aCA9IDA7CiAgICAgIHJlY2lwaWVudHMucHVzaChyZWNpcGllbnQpOwogICAgfQogICAgaWYgKHJlY2lwaWVudHMubGVuZ3RoID09PSAwKSB0aHJvdyBuZXcgRXJyb3IoJ05vIGN1c3RvbWVyIG9yIHNhbGVzIHJlcCBlbWFpbCBmb3VuZCcpOwoKICAgIC8vIEZldGNoIFFCIFBERiB2aWEgUmFpbHdheSBwcm94eSAobm8gQmFzZTQ0IGZ1bmN0aW9uIGNhbGwpCiAgICBsZXQgYXR0YWNobWVudCA9IG51bGw7CiAgICB0cnkgewogICAgICBjb25zdCBwcm94eVVybCA9IFJBSUxXQVlfQVBJX1VSTDsKICAgICAgaWYgKHByb3h5VXJsICYmIGludm9pY2UucWJfaW52b2ljZV9pZCkgewogICAgICAgIGNvbnN0IHBkZlJlcyA9IGF3YWl0IGZldGNoKGAke3Byb3h5VXJsfS9pbnZvaWNlcy8ke2ludm9pY2UucWJfaW52b2ljZV9pZH0vcGRmYCwgewogICAgICAgICAgaGVhZGVyczogeyAnWC1Qcm94eS1TZWNyZXQnOiAnJywgQWNjZXB0OiAnYXBwbGljYXRpb24vcGRmJyB9LAogICAgICAgIH0pOwogICAgICAgIGlmIChwZGZSZXMub2spIHsKICAgICAgICAgIGNvbnN0IGJ1ZiA9IGF3YWl0IHBkZlJlcy5hcnJheUJ1ZmZlcigpOwogICAgICAgICAgYXR0YWNobWVudCA9IHsKICAgICAgICAgICAgZmlsZW5hbWU6IGBJbnZvaWNlLSR7aW52b2ljZS5xYl9pbnZvaWNlX251bWJlciB8fCBpbnZvaWNlLnFiX2ludm9pY2VfaWR9LnBkZmAsCiAgICAgICAgICAgIGNvbnRlbnRUeXBlOiAnYXBwbGljYXRpb24vcGRmJywKICAgICAgICAgICAgY29udGVudEJhc2U2NDogYnRvYShTdHJpbmcuZnJvbUNoYXJDb2RlKC4uLm5ldyBVaW50OEFycmF5KGJ1ZikpKSwKICAgICAgICAgIH07CiAgICAgICAgfQogICAgICB9CiAgICB9IGNhdGNoIChwZGZFcnJvcikgewogICAgICBjb25zb2xlLndhcm4oJ1tlbWFpbFRyYW5zcG9ydF0gRmFpbGVkIHRvIGZldGNoIGludm9pY2UgUERGOicsIHBkZkVycm9yLm1lc3NhZ2UpOwogICAgfQoKICAgIGNvbnN0IGludm9pY2VOdW1iZXIgPSBpbnZvaWNlLnFiX2ludm9pY2VfbnVtYmVyIHx8IGludm9pY2UuaW52b2ljZV9udW1iZXI7CiAgICBjb25zdCBzdWJqZWN0ID0gYEVDIENvbnN0cnVjdGlvbiBHcm91cCBJbnZvaWNlICMke2ludm9pY2VOdW1iZXJ9YDsKICAgIGNvbnN0IGh0bWxCb2R5ID0gaW52b2ljZUVtYWlsSHRtbCh7CiAgICAgIGZpcnN0TmFtZTogbGVhZC5maXJzdF9uYW1lLAogICAgICBpbnZvaWNlTnVtYmVyLAogICAgICBhbW91bnQ6IGludm9pY2UuYW1vdW50LAogICAgICBwcm9qZWN0VHlwZTogbGVhZC5wcm9qZWN0X3R5cGUsCiAgICB9KTsKCiAgICAvLyBTZW5kIHRvIGVhY2ggcmVjaXBpZW50IHNlcGFyYXRlbHkgKHByZXNlcnZlcyBwZXItcmVjaXBpZW50IGlkZW1wb3RlbmN5KQogICAgY29uc3QgcmVzdWx0cyA9IFtdOwogICAgZm9yIChjb25zdCB0byBvZiByZWNpcGllbnRzKSB7CiAgICAgIGNvbnN0IGtleSA9IElkZW1wb3RlbmN5S2V5cy5pbnZvaWNlKGludm9pY2VJZCwgdG8sIHZlcnNpb24pOwogICAgICB0cnkgewogICAgICAgIGNvbnN0IHIgPSBhd2FpdCBzZW5kVmlhUmFpbHdheSh7CiAgICAgICAgICB0bywgc3ViamVjdCwgaHRtbEJvZHksCiAgICAgICAgICBhdHRhY2htZW50czogYXR0YWNobWVudCA/IFthdHRhY2htZW50XSA6IHVuZGVmaW5lZCwKICAgICAgICAgIGlkZW1wb3RlbmN5S2V5OiBrZXksIHJvbGU6ICdpbnZvaWNlJywKICAgICAgICB9KTsKICAgICAgICByZXN1bHRzLnB1c2goeyBlbWFpbDogdG8sIG9rOiAhIXIub2ssIGdtYWlsTWVzc2FnZUlkOiByLmdtYWlsTWVzc2FnZUlkLCBpZGVtcG90ZW50OiByLmlkZW1wb3RlbnQgfSk7CiAgICAgIH0gY2F0Y2ggKGUpIHsKICAgICAgICByZXN1bHRzLnB1c2goeyBlbWFpbDogdG8sIG9rOiBmYWxzZSwgZXJyb3I6IGUubWVzc2FnZSB9KTsKICAgICAgfQogICAgfQoKICAgIC8vIFVwZGF0ZSBpbnZvaWNlIHdpdGggZW1haWwgc3RhdHVzIHZpYSBSYWlsd2F5IEFQSQogICAgY29uc3QgYWxsT2sgPSByZXN1bHRzLmV2ZXJ5KHIgPT4gci5vayk7CiAgICBjb25zdCBmYWlsZWRSZWNpcGllbnRzID0gcmVzdWx0cy5maWx0ZXIociA9PiAhci5vayk7CiAgICBjb25zdCBlbWFpbFN0YXR1cyA9IGZhaWxlZFJlY2lwaWVudHMubGVuZ3RoID09PSAwID8gJ3NlbnQnIDogJ2ZhaWxlZCc7CiAgICBjb25zdCBlbWFpbEVycm9yID0gZmFpbGVkUmVjaXBpZW50cy5sZW5ndGggPiAwCiAgICAgID8gYEZhaWxlZCB0byBzZW5kIHRvOiAke2ZhaWxlZFJlY2lwaWVudHMubWFwKHIgPT4gci5lbWFpbCkuam9pbignLCAnKX1gCiAgICAgIDogbnVsbDsKICAgIHRyeSB7CiAgICAgIGF3YWl0IHJhaWx3YXlJbnZvaWNlcy51cGRhdGUoaW52b2ljZUlkLCB7CiAgICAgICAgZW1haWxfc2VudF9kYXRlOiBuZXcgRGF0ZSgpLnRvSVNPU3RyaW5nKCksCiAgICAgICAgZW1haWxfcmVjaXBpZW50czogcmVjaXBpZW50cywKICAgICAgICBlbWFpbF9kZWxpdmVyeV9zdGF0dXM6IGVtYWlsU3RhdHVzLAogICAgICAgIGVtYWlsX2Vycm9yOiBlbWFpbEVycm9yLAogICAgICAgIGVtYWlsX3Jlc2VuZF9jb3VudDogKGludm9pY2UuZW1haWxfcmVzZW5kX2NvdW50IHx8IDApICsgMSwKICAgICAgfSk7CiAgICB9IGNhdGNoIChlKSB7IGNvbnNvbGUud2FybignW2VtYWlsVHJhbnNwb3J0XSBGYWlsZWQgdG8gdXBkYXRlIGludm9pY2UgZW1haWwgc3RhdHVzOicsIGUubWVzc2FnZSk7IH0KCiAgICAvLyBTYXZlIFBERiB0byBsZWFkIGF0dGFjaG1lbnRzIHZpYSBSYWlsd2F5IEFQSQogICAgaWYgKGF0dGFjaG1lbnQgJiYgcmVzdWx0cy5zb21lKHIgPT4gci5vaykpIHsKICAgICAgdHJ5IHsKICAgICAgICBjb25zdCBkYXRhVXJsID0gYGRhdGE6YXBwbGljYXRpb24vcGRmO2Jhc2U2NCwke2F0dGFjaG1lbnQuY29udGVudEJhc2U2NH1gOwogICAgICAgIGF3YWl0IHJhaWx3YXlMZWFkQXR0YWNobWVudHMuY3JlYXRlKHsKICAgICAgICAgIGxlYWRfaWQ6IGludm9pY2UubGVhZF9pZCwKICAgICAgICAgIGZpbGVfbmFtZTogYXR0YWNobWVudC5maWxlbmFtZSwKICAgICAgICAgIGZpbGVfdXJsOiBkYXRhVXJsLAogICAgICAgICAgZmlsZV90eXBlOiAnYXBwbGljYXRpb24vcGRmJywKICAgICAgICAgIHVwbG9hZGVkX2J5OiAnc3lzdGVtJywKICAgICAgICAgIHFiX2ludm9pY2VfaWQ6IGludm9pY2UucWJfaW52b2ljZV9pZCwKICAgICAgICAgIHFiX2ludm9pY2VfbnVtYmVyOiBpbnZvaWNlLnFiX2ludm9pY2VfbnVtYmVyLAogICAgICAgICAgaW52b2ljZV9hbW91bnQ6IGludm9pY2UuYW1vdW50LAogICAgICAgICAgaW52b2ljZV9kYXRlOiBuZXcgRGF0ZSgpLnRvSVNPU3RyaW5nKCkuc3BsaXQoJ1QnKVswXSwKICAgICAgICB9KTsKICAgICAgfSBjYXRjaCAoYXR0YWNoRXJyb3IpIHsKICAgICAgICBjb25zb2xlLndhcm4oJ1tlbWFpbFRyYW5zcG9ydF0gRmFpbGVkIHRvIHNhdmUgUERGIGF0dGFjaG1lbnQ6JywgYXR0YWNoRXJyb3IubWVzc2FnZSk7CiAgICAgIH0KICAgIH0KCiAgICByZXR1cm4gewogICAgICBzdWNjZXNzOiBhbGxPaywKICAgICAgc2VudF90bzogcmVzdWx0cy5maWx0ZXIociA9PiByLm9rKS5sZW5ndGgsCiAgICAgIHRvdGFsOiByZWNpcGllbnRzLmxlbmd0aCwKICAgICAgZmFpbGVkOiBmYWlsZWRSZWNpcGllbnRzLAogICAgICBhdHRhY2hlZDogISFhdHRhY2htZW50LAogICAgfTsKICB9CiAgLy8gQmFzZTQ0IGZhbGxiYWNrIHJlbW92ZWQg4oCUIGFsbCBmbG93cyBhcmUgUmFpbHdheS1vd25lZC4KICB0aHJvdyBuZXcgRXJyb3IoJ0lOVk9JQ0UgZW1haWwgZmxvdyBpcyBSYWlsd2F5LW93bmVkOyBCYXNlNDQgZmFsbGJhY2sgaGFzIGJlZW4gcmVtb3ZlZC4nKTsKfQoKLy8g4pSA4pSAIE1BTlVBTCBSRU1JTkRFUiDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIHNlbmRNYW51YWxSZW1pbmRlcihsZWFkSWQsIHsgc2NoZWR1bGVkU3RhcnQgfSA9IHt9KSB7CiAgaWYgKEZMT1dfT1dORVJTSElQLk1BTlVBTF9SRU1JTkRFUiA9PT0gJ3JhaWx3YXknKSB7CiAgICAvLyBDbGllbnQtc2lkZSBkYXRhIGxvb2t1cCB2aWEgUmFpbHdheSBBUEkgKHJlcGxhY2VzIEJhc2U0NCBlbnRpdHkgcmVhZCkKICAgIGNvbnN0IGxlYWRSZXMgPSBhd2FpdCByYWlsd2F5TGVhZHMuZ2V0KGxlYWRJZCk7CiAgICBjb25zdCBsZWFkID0gbGVhZFJlcz8ubGVhZCB8fCBsZWFkUmVzOwogICAgaWYgKCFsZWFkKSB0aHJvdyBuZXcgRXJyb3IoJ0xlYWQgbm90IGZvdW5kJyk7CgogICAgY29uc3QgaGFzRm9sbG93VXAgPSBsZWFkLmZvbGxvd191cF9kYXRlICYmIGxlYWQuZm9sbG93X3VwX3R5cGU7CiAgICBjb25zdCBhcHB0RGF0ZSA9IGhhc0ZvbGxvd1VwID8gbGVhZC5mb2xsb3dfdXBfZGF0ZSA6IGxlYWQuYXBwb2ludG1lbnRfZGF0ZTsKICAgIGNvbnN0IGFwcHRUaW1lID0gaGFzRm9sbG93VXAgPyAobGVhZC5mb2xsb3dfdXBfdGltZSB8fCAnMDk6MDAnKSA6IChsZWFkLmFwcG9pbnRtZW50X3RpbWUgfHwgJzA5OjAwJyk7CiAgICBpZiAoIWFwcHREYXRlKSB0aHJvdyBuZXcgRXJyb3IoJ05vIGFwcG9pbnRtZW50IGRhdGUgb24gdGhpcyBsZWFkJyk7CgogICAgY29uc3QgY2xpZW50TmFtZSA9IGAke2xlYWQuZmlyc3RfbmFtZSB8fCAnJ30gJHtsZWFkLmxhc3RfbmFtZSB8fCAnJ31gLnRyaW0oKTsKICAgIGNvbnN0IG93bmVyTmFtZSA9IGxlYWQuYXNzaWduZWRfcmVwIHx8ICdZYXJvbiBEcmlsZXZpY2gnOwogICAgY29uc3Qgb3duZXJFbWFpbCA9IHJlc29sdmVPd25lckVtYWlsKGxlYWQuYXNzaWduZWRfcmVwKTsKICAgIGNvbnN0IGFkZHJlc3MgPSBbbGVhZC5wcm9wZXJ0eV9hZGRyZXNzLCBsZWFkLmNpdHldLmZpbHRlcihCb29sZWFuKS5qb2luKCcsICcpIHx8ICcnOwogICAgY29uc3QgZGF0ZUZvcm1hdHRlZCA9IGZvcm1hdERhdGUoYXBwdERhdGUpOwogICAgY29uc3QgdGltZUZvcm1hdHRlZCA9IGZtdDEyKGFwcHRUaW1lKTsKCiAgICBjb25zdCBzdGFmZlJlY2lwaWVudHMgPSBBcnJheS5mcm9tKG5ldyBTZXQoW293bmVyRW1haWwsIE1JQ0hFTExFX0VNQUlMLCBZQVJPTl9FTUFJTF0pKTsKICAgIGNvbnN0IHN0YWZmU3ViamVjdCA9IGBNYW51YWwgUmVtaW5kZXI6ICR7Y2xpZW50TmFtZX0g4oCUICR7ZGF0ZUZvcm1hdHRlZH0gYXQgJHt0aW1lRm9ybWF0dGVkfWA7CiAgICBjb25zdCBzdGFmZkh0bWwgPSBtYW51YWxTdGFmZlJlbWluZGVySHRtbCh7CiAgICAgIG93bmVyTmFtZSwgY2xpZW50TmFtZSwKICAgICAgY2xpZW50UGhvbmU6IGxlYWQucGhvbmUgfHwgJ04vQScsCiAgICAgIGNsaWVudEVtYWlsOiBsZWFkLmVtYWlsIHx8ICdOL0EnLAogICAgICBkYXRlOiBkYXRlRm9ybWF0dGVkLCB0aW1lOiB0aW1lRm9ybWF0dGVkLAogICAgICBhZGRyZXNzLCBwcm9qZWN0VHlwZTogbGVhZC5wcm9qZWN0X3R5cGUgfHwgJycsCiAgICAgIG5vdGVzOiBsZWFkLm5vdGVzIHx8ICcnLCBsZWFkSWQ6IGxlYWQuaWQsIGNybVVybDogQ1JNX1BVQkxJQ19VUkwsCiAgICB9KTsKCiAgICBjb25zdCByZXN1bHRzID0geyBzdGFmZjogW10sIGN1c3RvbWVyOiBudWxsIH07CgogICAgLy8gU2VuZCB0byBhbGwgc3RhZmYKICAgIGZvciAoY29uc3QgcmVjaXBpZW50IG9mIHN0YWZmUmVjaXBpZW50cykgewogICAgICBjb25zdCBrZXkgPSBJZGVtcG90ZW5jeUtleXMubWFudWFsUmVtaW5kZXIobGVhZElkLCByZWNpcGllbnQsICdzdGFmZicsIHNjaGVkdWxlZFN0YXJ0IHx8IGFwcHREYXRlKTsKICAgICAgdHJ5IHsKICAgICAgICBjb25zdCByID0gYXdhaXQgc2VuZFZpYVJhaWx3YXkoewogICAgICAgICAgdG86IHJlY2lwaWVudCwgc3ViamVjdDogc3RhZmZTdWJqZWN0LCBodG1sQm9keTogc3RhZmZIdG1sLAogICAgICAgICAgaWRlbXBvdGVuY3lLZXk6IGtleSwgcm9sZTogJ3N0YWZmJywKICAgICAgICB9KTsKICAgICAgICByZXN1bHRzLnN0YWZmLnB1c2goeyBlbWFpbDogcmVjaXBpZW50LCBzdGF0dXM6ICdzZW50Jywgb2s6ICEhci5vaywgZ21haWxNZXNzYWdlSWQ6IHIuZ21haWxNZXNzYWdlSWQgfSk7CiAgICAgIH0gY2F0Y2ggKGUpIHsKICAgICAgICByZXN1bHRzLnN0YWZmLnB1c2goeyBlbWFpbDogcmVjaXBpZW50LCBzdGF0dXM6ICdmYWlsZWQnLCBlcnJvcjogZS5tZXNzYWdlIH0pOwogICAgICB9CiAgICB9CgogICAgLy8gU2VuZCB0byBjdXN0b21lciBpZiBlbWFpbCBleGlzdHMgYW5kIG5vdCBvcHRlZCBvdXQKICAgIGlmIChsZWFkLmN1c3RvbWVyX3JlbWluZGVyc19kaXNhYmxlZCkgewogICAgICByZXN1bHRzLmN1c3RvbWVyID0geyBzdGF0dXM6ICdza2lwcGVkJywgcmVhc29uOiAnY3VzdG9tZXIgb3B0ZWQgb3V0JyB9OwogICAgfSBlbHNlIGlmIChsZWFkLmVtYWlsKSB7CiAgICAgIGNvbnN0IGN1c3RTdWJqZWN0ID0gYEFwcG9pbnRtZW50IFJlbWluZGVyIOKAlCBFQyBDb25zdHJ1Y3Rpb24gR3JvdXBgOwogICAgICBjb25zdCBjdXN0SHRtbCA9IG1hbnVhbEN1c3RvbWVyUmVtaW5kZXJIdG1sKHsKICAgICAgICBmaXJzdE5hbWU6IGxlYWQuZmlyc3RfbmFtZSB8fCAndGhlcmUnLAogICAgICAgIGRhdGU6IGRhdGVGb3JtYXR0ZWQsIHRpbWU6IHRpbWVGb3JtYXR0ZWQsCiAgICAgICAgYWRkcmVzcywgcHJvamVjdFR5cGU6IGxlYWQucHJvamVjdF90eXBlIHx8ICcnLAogICAgICAgIG93bmVyTmFtZSwKICAgICAgfSk7CiAgICAgIGNvbnN0IGtleSA9IElkZW1wb3RlbmN5S2V5cy5tYW51YWxSZW1pbmRlcihsZWFkSWQsIGxlYWQuZW1haWwsICdjdXN0b21lcicsIHNjaGVkdWxlZFN0YXJ0IHx8IGFwcHREYXRlKTsKICAgICAgdHJ5IHsKICAgICAgICBjb25zdCByID0gYXdhaXQgc2VuZFZpYVJhaWx3YXkoewogICAgICAgICAgdG86IGxlYWQuZW1haWwsCiAgICAgICAgICBjYzogW01JQ0hFTExFX0VNQUlMLCBZQVJPTl9FTUFJTF0sCiAgICAgICAgICByZXBseVRvOiBvd25lckVtYWlsLAogICAgICAgICAgc3ViamVjdDogY3VzdFN1YmplY3QsIGh0bWxCb2R5OiBjdXN0SHRtbCwKICAgICAgICAgIGlkZW1wb3RlbmN5S2V5OiBrZXksIHJvbGU6ICdjdXN0b21lcicsCiAgICAgICAgfSk7CiAgICAgICAgcmVzdWx0cy5jdXN0b21lciA9IHsgZW1haWw6IGxlYWQuZW1haWwsIHN0YXR1czogJ3NlbnQnLCBvazogISFyLm9rLCBnbWFpbE1lc3NhZ2VJZDogci5nbWFpbE1lc3NhZ2VJZCB9OwogICAgICB9IGNhdGNoIChlKSB7CiAgICAgICAgcmVzdWx0cy5jdXN0b21lciA9IHsgZW1haWw6IGxlYWQuZW1haWwsIHN0YXR1czogJ2ZhaWxlZCcsIGVycm9yOiBlLm1lc3NhZ2UgfTsKICAgICAgfQogICAgfSBlbHNlIHsKICAgICAgcmVzdWx0cy5jdXN0b21lciA9IHsgc3RhdHVzOiAnc2tpcHBlZCcsIHJlYXNvbjogJ05vIGVtYWlsIGFkZHJlc3Mgb24gbGVhZCcgfTsKICAgIH0KCiAgICAvLyBMb2cgdG8gQWN0aXZpdHkgZm9yIGF1ZGl0IHRyYWlsIChzYW1lIGFzIEJhc2U0NCBmdW5jdGlvbikKICAgIGNvbnN0IHN0YWZmU2VudCA9IHJlc3VsdHMuc3RhZmYuZmlsdGVyKHIgPT4gci5zdGF0dXMgPT09ICdzZW50JykubGVuZ3RoOwogICAgY29uc3Qgc3RhZmZGYWlsZWQgPSByZXN1bHRzLnN0YWZmLmZpbHRlcihyID0+IHIuc3RhdHVzID09PSAnZmFpbGVkJykubGVuZ3RoOwogICAgY29uc3QgYWxsT2sgPSBzdGFmZkZhaWxlZCA9PT0gMCAmJiByZXN1bHRzLmN1c3RvbWVyPy5zdGF0dXMgIT09ICdmYWlsZWQnOwogICAgY29uc3Qgc3VtbWFyeSA9IFsKICAgICAgYFN0YWZmOiAke3N0YWZmU2VudH0vJHtyZXN1bHRzLnN0YWZmLmxlbmd0aH0gc2VudGAsCiAgICAgIHJlc3VsdHMuY3VzdG9tZXI/LnN0YXR1cyA9PT0gJ3NlbnQnID8gJ0N1c3RvbWVyOiBzZW50JyA6CiAgICAgIHJlc3VsdHMuY3VzdG9tZXI/LnN0YXR1cyA9PT0gJ3NraXBwZWQnID8gYEN1c3RvbWVyOiBza2lwcGVkICgke3Jlc3VsdHMuY3VzdG9tZXIucmVhc29ufSlgIDoKICAgICAgcmVzdWx0cy5jdXN0b21lcj8uc3RhdHVzID09PSAnZmFpbGVkJyA/IGBDdXN0b21lcjogZmFpbGVkIOKAlCAke3Jlc3VsdHMuY3VzdG9tZXIuZXJyb3J9YCA6ICcnLAogICAgXS5maWx0ZXIoQm9vbGVhbikuam9pbignIMK3ICcpOwoKICAgIGF3YWl0IHJhaWx3YXlBY3Rpdml0aWVzLmNyZWF0ZSh7CiAgICAgIGxlYWRfaWQ6IGxlYWRJZCwKICAgICAgdHlwZTogJ25vdGUnLAogICAgICBjb250ZW50OiBgTUFOVUFMX1JFTUlOREVSX1NFTlQ6ICR7c3VtbWFyeX1gLAogICAgICBhdXRob3I6ICdTeXN0ZW0nLAogICAgICBzb3VyY2U6ICdtYW51YWwnLAogICAgfSkuY2F0Y2goKCkgPT4ge30pOwoKICAgIHJldHVybiB7IGRhdGE6IHsgc3VjY2VzczogYWxsT2ssIG1lc3NhZ2U6IHN1bW1hcnksIHJlc3VsdHMgfSB9OwogIH0KICAvLyBCYXNlNDQgZmFsbGJhY2sgcmVtb3ZlZCDigJQgYWxsIGZsb3dzIGFyZSBSYWlsd2F5LW93bmVkLgogIHRocm93IG5ldyBFcnJvcignTUFOVUFMX1JFTUlOREVSIGVtYWlsIGZsb3cgaXMgUmFpbHdheS1vd25lZDsgQmFzZTQ0IGZhbGxiYWNrIGhhcyBiZWVuIHJlbW92ZWQuJyk7Cn0KCi8vIOKUgOKUgCBBUFBPSU5UTUVOVCBSRU1JTkRFUiBQQU5FTCDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIHNlbmRBcHBvaW50bWVudFJlbWluZGVyKHsgcmVjaXBpZW50cywgc3ViamVjdCwgaHRtbEJvZHksIGxlYWRJZCwgYXBwdERhdGUsIGFwcHRUaW1lIH0pIHsKICBjb25zdCBsaXN0ID0gWy4uLm5ldyBTZXQoKHJlY2lwaWVudHMgfHwgW10pLmZpbHRlcihCb29sZWFuKSldOwogIGNvbnN0IGNsaWVudFJlcXVlc3RJZCA9IGBhcHB0OiR7bGVhZElkIHx8ICdub2xlYWQnfToke2FwcHREYXRlIHx8ICcnfToke2FwcHRUaW1lIHx8ICcnfWA7CiAgbGV0IHNlbnQgPSAwOwogIGZvciAoY29uc3QgdG8gb2YgbGlzdCkgewogICAgdHJ5IHsKICAgICAgaWYgKEZMT1dfT1dORVJTSElQLkFQUE9JTlRNRU5UX1JFTUlOREVSX1BBTkVMID09PSAncmFpbHdheScpIHsKICAgICAgICBhd2FpdCBzZW5kVmlhUmFpbHdheSh7CiAgICAgICAgICB0bywgc3ViamVjdCwgaHRtbEJvZHksCiAgICAgICAgICBpZGVtcG90ZW5jeUtleTogSWRlbXBvdGVuY3lLZXlzLmdlbmVyaWMobGVhZElkIHx8ICdhcHB0LXBhbmVsJywgdG8sIGNsaWVudFJlcXVlc3RJZCksCiAgICAgICAgICByb2xlOiAnYXBwb2ludG1lbnQtcmVtaW5kZXInLAogICAgICAgIH0pOwogICAgICB9IGVsc2UgewogICAgICAgIC8vIEJhc2U0NCBmYWxsYmFjayByZW1vdmVkIOKAlCBhbGwgZmxvd3MgYXJlIFJhaWx3YXktb3duZWQuCiAgICAgICAgdGhyb3cgbmV3IEVycm9yKCdBUFBPSU5UTUVOVF9SRU1JTkRFUiBlbWFpbCBmbG93IGlzIFJhaWx3YXktb3duZWQuJyk7CiAgICAgIH0KICAgICAgc2VudCsrOwogICAgfSBjYXRjaCAoXykgeyAvKiBwZXItcmVjaXBpZW50IGJlc3QtZWZmb3J0ICovIH0KICB9CiAgcmV0dXJuIHNlbnQ7Cn0KCi8vIOKUgOKUgCBURVNUIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgApleHBvcnQgYXN5bmMgZnVuY3Rpb24gc2VuZFRlc3RFbWFpbCh0bywgbm9uY2UpIHsKICBpZiAoRkxPV19PV05FUlNISVAuVEVTVCA9PT0gJ3JhaWx3YXknKSB7CiAgICBjb25zdCBrZXkgPSBJZGVtcG90ZW5jeUtleXMudGVzdCh0bywgbm9uY2UpOwogICAgY29uc3QgaHRtbEJvZHkgPSB0ZXN0RW1haWxIdG1sKG5vbmNlKTsKICAgIHJldHVybiBzZW5kVmlhUmFpbHdheSh7CiAgICAgIHRvLCBzdWJqZWN0OiAnRUMgQ29uc3RydWN0aW9uIEdyb3VwIOKAlCBUZXN0IEVtYWlsJywKICAgICAgaHRtbEJvZHksIGlkZW1wb3RlbmN5S2V5OiBrZXksIHJvbGU6ICd0ZXN0JywKICAgIH0pOwogIH0KICAvLyBCYXNlNDQgZmFsbGJhY2sgcmVtb3ZlZCDigJQgYWxsIGZsb3dzIGFyZSBSYWlsd2F5LW93bmVkLgogIHRocm93IG5ldyBFcnJvcignVEVTVCBlbWFpbCBmbG93IGlzIFJhaWx3YXktb3duZWQ7IEJhc2U0NCBmYWxsYmFjayBoYXMgYmVlbiByZW1vdmVkLicpOwp9CgpleHBvcnQgZGVmYXVsdCB7CiAgSWRlbXBvdGVuY3lLZXlzLAogIEZMT1dfT1dORVJTSElQLAogIHNlbmRHZW5lcmljRW1haWwsCiAgc2VuZEludm9pY2VFbWFpbCwKICBzZW5kTWFudWFsUmVtaW5kZXIsCiAgc2VuZEFwcG9pbnRtZW50UmVtaW5kZXIsCiAgc2VuZFRlc3RFbWFpbCwKfTs=
+/**
+ * emailTransport — the SINGLE shared frontend email transport adapter.
+ *
+ * MIGRATION-OWNERSHIP MODEL (Approach A — NO browser delegation):
+ *   Each email flow is owned by exactly ONE backend, declared in FLOW_OWNERSHIP
+ *   below. The adapter calls that backend DIRECTLY:
+ *     - 'base44'  -> the existing Base44 function (unchanged production path).
+ *     - 'railway' -> Railway POST /api/v1/emails/send (JWT-authenticated).
+ *   The browser never receives `delegate:true` and never calls Base44 after
+ *   Railway decided. There is no runtime two-backend delegation protocol. At
+ *   cutover a flow's owner flips to 'railway' here AND its Base44 trigger/
+ *   automation is disabled in the same change.
+ *
+ *   While a flow is 'base44' the UI calls the Base44 function directly (today's
+ *   behavior). While 'railway' the UI calls Railway only. The browser does not
+ *   "ask Railway then delegate to Base44".
+ *
+ *   Railway-bound flows call POST /api/v1/emails/send with a Railway JWT
+ *   (Authorization: Bearer <jwt>). No X-Proxy-Secret, no VITE_QB_PROXY_SECRET
+ *   is ever sent from the browser. The JWT is provisioned on first send via
+ *   migrateFromBase44 (Base44 token → Railway JWT exchange). If a Railway
+ *   error occurs the adapter throws; it NEVER silently falls back to Base44
+ *   (prevents duplicate sends).
+ *
+ * IDEMPOTENCY:
+ *   Keys are deterministic (src/lib/idempotencyKeys.mjs): no Date.now, no
+ *   Math.random, no crypto.randomUUID. Generic send REQUIRES a stable
+ *   clientRequestId; absent -> throws (no silent random fallback).
+ *
+ * SAFE LOGGING:
+ *   Logs request ID, idempotency key, recipient count, Railway response status,
+ *   Gmail message ID, and whether the request was idempotent. Never logs
+ *   PROXY_SECRET, OAuth tokens, Gmail client secret, complete email body, or
+ *   sensitive customer data.
+ */
+import * as railwayApi from '@/lib/railwayApi';
+import { appParams } from '@/lib/app-params';
+import { IdempotencyKeys } from '@/lib/idempotencyKeys';
+import {
+  manualStaffReminderHtml,
+  manualCustomerReminderHtml,
+  invoiceEmailHtml,
+  testEmailHtml,
+} from '@/lib/crmEmailTemplates';
+import * as railwayLeads from '@/api/railway/leads';
+import * as railwayActivities from '@/api/railway/activities';
+import * as railwayInvoices from '@/api/railway/invoices';
+import * as railwayLeadAttachments from '@/api/railway/leadAttachments';
+import { RAILWAY_API_URL } from '@/lib/apiConfig';
+
+export { IdempotencyKeys };
+
+// ── Safe logging ────────────────────────────────────────────────────────────
+// Generates a short request ID for correlation. Does NOT expose secrets or PII.
+let _reqCounter = 0;
+function nextReqId() { _reqCounter = (_reqCounter + 1) % 1e9; return `crm-email-${Date.now().toString(36)}-${_reqCounter}`; }
+
+function safeLog(event, data) {
+  try {
+    const payload = { event, ts: new Date().toISOString(), ...data };
+    // Never include: PROXY_SECRET, tokens, full body, customer PII beyond count
+    console.log(JSON.stringify(payload));
+  } catch (_) { /* never let logging throw */ }
+}
+
+// ── Per-flow ownership ──────────────────────────────────────────────────────
+// This is the single cutover switch. All flows are now 'railway' — email goes
+// through POST /api/v1/emails/send with a Railway JWT. The 'base44' branches
+// are kept as fallback code (not deleted) but are NOT used.
+export const FLOW_OWNERSHIP = {
+  GENERIC: 'railway',
+  INVOICE: 'railway',
+  MANUAL_REMINDER: 'railway',
+  APPOINTMENT_REMINDER_PANEL: 'railway',
+  TEST: 'railway',
+  // Scheduled/phone/task reminders are NOT user-triggered from the browser —
+  // they run on the Railway cron worker, gated by EMAIL_*_TRANSPORT. No
+  // browser send path exists for them, so they are not listed here.
+};
+
+// ── Railway /api/v1/emails/send helper (JWT-authenticated) ──────────────────
+/**
+ * Send one email through Railway POST /api/v1/emails/send with a Railway JWT.
+ * No X-Proxy-Secret is sent from the browser. The JWT is provisioned on first
+ * send via migrateFromBase44 (Base44 token → Railway JWT exchange).
+ * @returns { ok, gmailMessageId, idempotent, claimId }
+ * @throws on any error — NEVER falls back to Base44 (prevents duplicate sends).
+ */
+async function sendViaRailway({ to, cc, replyTo, subject, htmlBody, attachments, idempotencyKey, role }) {
+  if (!idempotencyKey) throw new Error('sendViaRailway: idempotencyKey is required');
+  const reqId = nextReqId();
+  const toList = Array.isArray(to) ? to.filter(Boolean) : [to].filter(Boolean);
+  const ccList = Array.isArray(cc) ? cc.filter(Boolean) : (cc ? [cc] : []);
+
+  // Ensure Railway JWT session exists (provisions on first send via Base44
+  // token exchange — browser never holds PROXY_SECRET, only the Railway JWT).
+  if (!railwayApi.isLoggedIn()) {
+    if (!appParams.token) throw new Error('Railway session not established — sign in to send email');
+    await railwayApi.migrateFromBase44(appParams.token);
+  }
+
+  safeLog('railway_send_start', {
+    reqId,
+    idempotencyKey,
+    recipientCount: toList.length,
+    ccCount: ccList.length,
+    hasAttachments: !!(attachments && attachments.length),
+    role: role || 'generic',
+  });
+
+  const body = {
+    to: toList,
+    subject,
+    htmlBody,
+    idempotencyKey,
+  };
+  if (ccList.length) body.cc = ccList;
+  if (replyTo) body.replyTo = replyTo;
+  if (attachments && attachments.length) body.attachments = attachments;
+  // /api/v1/emails/send derives role from metadata.template_key (not a top-level role field)
+  if (role) body.metadata = { template_key: role };
+
+  let result;
+  try {
+    result = await railwayApi.apiCall('/api/v1/emails/send', { body });
+  } catch (e) {
+    safeLog('railway_send_error', {
+      reqId,
+      idempotencyKey,
+      status: e.status || null,
+      error: String(e.message || e).slice(0, 200),
+    });
+    throw e;
+  }
+
+  safeLog('railway_send_ok', {
+    reqId,
+    idempotencyKey,
+    ok: !!result.ok,
+    idempotent: !!result.idempotent,
+    gmailMessageId: result.gmailMessageId || null,
+    claimId: result.claimId || null,
+  });
+
+  return result;
+}
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+function primaryRecipient(to) { return Array.isArray(to) ? to[0] : to; }
+function firstAttachment(attachments) { return Array.isArray(attachments) ? attachments[0] : attachments; }
+
+const MICHELLE_EMAIL = 'michelle@ecconstructiongroup.com';
+const YARON_EMAIL = 'yaron@ecconstructiongroup.com';
+const CRM_PUBLIC_URL = (typeof window !== 'undefined' && window.location && window.location.origin) || 'https://crm.ecconstructiongroup.com';
+
+function resolveOwnerEmail(ownerName) {
+  if (!ownerName) return MICHELLE_EMAIL;
+  const first = String(ownerName).trim().split(/\s+/)[0].toLowerCase();
+  if (first === 'mickey' || first === 'micky') return 'micky@ecconstructiongroup.com';
+  return first ? `${first}@ecconstructiongroup.com` : MICHELLE_EMAIL;
+}
+
+function fmt12(t) {
+  if (!t) return '';
+  const clean = String(t).replace(/\s*(AM|PM)/i, '').trim();
+  const [h, m] = clean.split(':').map(Number);
+  if (isNaN(h)) return t;
+  return `${h % 12 || 12}:${String(m || 0).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const [y, mo, d] = dateStr.split('-').map(Number);
+  return new Date(y, mo - 1, d).toLocaleDateString('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+  });
+}
+
+// ── GENERIC ─────────────────────────────────────────────────────────────────
+export async function sendGenericEmail({ to, cc, replyTo, subject, htmlBody, attachments, leadId, clientRequestId, metadata }) {
+  if (!to || !subject || !htmlBody) throw new Error('to, subject, htmlBody required');
+  const recipient = primaryRecipient(to);
+  const key = (metadata && metadata.idempotencyKey) || IdempotencyKeys.generic(leadId, recipient, clientRequestId);
+  if (!clientRequestId && !(metadata && metadata.idempotencyKey)) {
+    throw new Error('sendGenericEmail: clientRequestId (stable per logical action) is required for idempotency');
+  }
+
+  if (FLOW_OWNERSHIP.GENERIC === 'railway') {
+    const att = firstAttachment(attachments);
+    return sendViaRailway({
+      to: recipient, cc, replyTo, subject, htmlBody,
+      attachments: att ? [att] : undefined,
+      idempotencyKey: key, role: 'generic',
+    });
+  }
+  // Base44 fallback removed — all flows are Railway-owned.
+  throw new Error('GENERIC email flow is Railway-owned; Base44 fallback has been removed.');
+}
+
+// ── INVOICE ──────────────────────────────────────────────────────────────────
+export async function sendInvoiceEmail(invoiceId, { recipient, version } = {}) {
+  if (FLOW_OWNERSHIP.INVOICE === 'railway') {
+    // Client-side data lookup via Railway API (replaces Base44 entity reads)
+    const invoiceRes = await railwayInvoices.get(invoiceId);
+    const invoice = invoiceRes?.invoice || invoiceRes;
+    if (!invoice) throw new Error('Invoice not found');
+    const leadRes = invoice.lead_id ? await railwayLeads.get(invoice.lead_id) : null;
+    const lead = leadRes?.lead || leadRes;
+    if (!lead) throw new Error('Lead not found for invoice');
+
+    // Collect recipients — Customer & Sales Rep only (NOT office), same as Base44
+    const recipients = [];
+    if (lead.email) recipients.push(lead.email);
+    if (lead.assigned_rep && lead.assigned_rep !== lead.email) {
+      const ownerEmail = resolveOwnerEmail(lead.assigned_rep);
+      if (ownerEmail && !recipients.includes(ownerEmail)) recipients.push(ownerEmail);
+    }
+    if (recipient) {
+      // Override with explicit recipient if provided
+      recipients.length = 0;
+      recipients.push(recipient);
+    }
+    if (recipients.length === 0) throw new Error('No customer or sales rep email found');
+
+    // Fetch QB PDF via Railway proxy (no Base44 function call)
+    let attachment = null;
+    try {
+      const proxyUrl = RAILWAY_API_URL;
+      if (proxyUrl && invoice.qb_invoice_id) {
+        const pdfRes = await fetch(`${proxyUrl}/invoices/${invoice.qb_invoice_id}/pdf`, {
+          headers: { 'X-Proxy-Secret': '', Accept: 'application/pdf' },
+        });
+        if (pdfRes.ok) {
+          const buf = await pdfRes.arrayBuffer();
+          attachment = {
+            filename: `Invoice-${invoice.qb_invoice_number || invoice.qb_invoice_id}.pdf`,
+            contentType: 'application/pdf',
+            contentBase64: btoa(String.fromCharCode(...new Uint8Array(buf))),
+          };
+        }
+      }
+    } catch (pdfError) {
+      console.warn('[emailTransport] Failed to fetch invoice PDF:', pdfError.message);
+    }
+
+    const invoiceNumber = invoice.qb_invoice_number || invoice.invoice_number;
+    const subject = `EC Construction Group Invoice #${invoiceNumber}`;
+    const htmlBody = invoiceEmailHtml({
+      firstName: lead.first_name,
+      invoiceNumber,
+      amount: invoice.amount,
+      projectType: lead.project_type,
+    });
+
+    // Send to each recipient separately (preserves per-recipient idempotency)
+    const results = [];
+    for (const to of recipients) {
+      const key = IdempotencyKeys.invoice(invoiceId, to, version);
+      try {
+        const r = await sendViaRailway({
+          to, subject, htmlBody,
+          attachments: attachment ? [attachment] : undefined,
+          idempotencyKey: key, role: 'invoice',
+        });
+        results.push({ email: to, ok: !!r.ok, gmailMessageId: r.gmailMessageId, idempotent: r.idempotent });
+      } catch (e) {
+        results.push({ email: to, ok: false, error: e.message });
+      }
+    }
+
+    // Update invoice with email status via Railway API
+    const allOk = results.every(r => r.ok);
+    const failedRecipients = results.filter(r => !r.ok);
+    const emailStatus = failedRecipients.length === 0 ? 'sent' : 'failed';
+    const emailError = failedRecipients.length > 0
+      ? `Failed to send to: ${failedRecipients.map(r => r.email).join(', ')}`
+      : null;
+    try {
+      await railwayInvoices.update(invoiceId, {
+        email_sent_date: new Date().toISOString(),
+        email_recipients: recipients,
+        email_delivery_status: emailStatus,
+        email_error: emailError,
+        email_resend_count: (invoice.email_resend_count || 0) + 1,
+      });
+    } catch (e) { console.warn('[emailTransport] Failed to update invoice email status:', e.message); }
+
+    // Save PDF to lead attachments via Railway API
+    if (attachment && results.some(r => r.ok)) {
+      try {
+        const dataUrl = `data:application/pdf;base64,${attachment.contentBase64}`;
+        await railwayLeadAttachments.create({
+          lead_id: invoice.lead_id,
+          file_name: attachment.filename,
+          file_url: dataUrl,
+          file_type: 'application/pdf',
+          uploaded_by: 'system',
+          qb_invoice_id: invoice.qb_invoice_id,
+          qb_invoice_number: invoice.qb_invoice_number,
+          invoice_amount: invoice.amount,
+          invoice_date: new Date().toISOString().split('T')[0],
+        });
+      } catch (attachError) {
+        console.warn('[emailTransport] Failed to save PDF attachment:', attachError.message);
+      }
+    }
+
+    return {
+      success: allOk,
+      sent_to: results.filter(r => r.ok).length,
+      total: recipients.length,
+      failed: failedRecipients,
+      attached: !!attachment,
+    };
+  }
+  // Base44 fallback removed — all flows are Railway-owned.
+  throw new Error('INVOICE email flow is Railway-owned; Base44 fallback has been removed.');
+}
+
+// ── MANUAL REMINDER ──────────────────────────────────────────────────────────
+export async function sendManualReminder(leadId, { scheduledStart } = {}) {
+  if (FLOW_OWNERSHIP.MANUAL_REMINDER === 'railway') {
+    // Client-side data lookup via Railway API (replaces Base44 entity read)
+    const leadRes = await railwayLeads.get(leadId);
+    const lead = leadRes?.lead || leadRes;
+    if (!lead) throw new Error('Lead not found');
+
+    const hasFollowUp = lead.follow_up_date && lead.follow_up_type;
+    const apptDate = hasFollowUp ? lead.follow_up_date : lead.appointment_date;
+    const apptTime = hasFollowUp ? (lead.follow_up_time || '09:00') : (lead.appointment_time || '09:00');
+    if (!apptDate) throw new Error('No appointment date on this lead');
+
+    const clientName = `${lead.first_name || ''} ${lead.last_name || ''}`.trim();
+    const ownerName = lead.assigned_rep || 'Yaron Drilevich';
+    const ownerEmail = resolveOwnerEmail(lead.assigned_rep);
+    const address = [lead.property_address, lead.city].filter(Boolean).join(', ') || '';
+    const dateFormatted = formatDate(apptDate);
+    const timeFormatted = fmt12(apptTime);
+
+    const staffRecipients = Array.from(new Set([ownerEmail, MICHELLE_EMAIL, YARON_EMAIL]));
+    const staffSubject = `Manual Reminder: ${clientName} — ${dateFormatted} at ${timeFormatted}`;
+    const staffHtml = manualStaffReminderHtml({
+      ownerName, clientName,
+      clientPhone: lead.phone || 'N/A',
+      clientEmail: lead.email || 'N/A',
+      date: dateFormatted, time: timeFormatted,
+      address, projectType: lead.project_type || '',
+      notes: lead.notes || '', leadId: lead.id, crmUrl: CRM_PUBLIC_URL,
+    });
+
+    const results = { staff: [], customer: null };
+
+    // Send to all staff
+    for (const recipient of staffRecipients) {
+      const key = IdempotencyKeys.manualReminder(leadId, recipient, 'staff', scheduledStart || apptDate);
+      try {
+        const r = await sendViaRailway({
+          to: recipient, subject: staffSubject, htmlBody: staffHtml,
+          idempotencyKey: key, role: 'staff',
+        });
+        results.staff.push({ email: recipient, status: 'sent', ok: !!r.ok, gmailMessageId: r.gmailMessageId });
+      } catch (e) {
+        results.staff.push({ email: recipient, status: 'failed', error: e.message });
+      }
+    }
+
+    // Send to customer if email exists and not opted out
+    if (lead.customer_reminders_disabled) {
+      results.customer = { status: 'skipped', reason: 'customer opted out' };
+    } else if (lead.email) {
+      const custSubject = `Appointment Reminder — EC Construction Group`;
+      const custHtml = manualCustomerReminderHtml({
+        firstName: lead.first_name || 'there',
+        date: dateFormatted, time: timeFormatted,
+        address, projectType: lead.project_type || '',
+        ownerName,
+      });
+      const key = IdempotencyKeys.manualReminder(leadId, lead.email, 'customer', scheduledStart || apptDate);
+      try {
+        const r = await sendViaRailway({
+          to: lead.email,
+          cc: [MICHELLE_EMAIL, YARON_EMAIL],
+          replyTo: ownerEmail,
+          subject: custSubject, htmlBody: custHtml,
+          idempotencyKey: key, role: 'customer',
+        });
+        results.customer = { email: lead.email, status: 'sent', ok: !!r.ok, gmailMessageId: r.gmailMessageId };
+      } catch (e) {
+        results.customer = { email: lead.email, status: 'failed', error: e.message };
+      }
+    } else {
+      results.customer = { status: 'skipped', reason: 'No email address on lead' };
+    }
+
+    // Log to Activity for audit trail (same as Base44 function)
+    const staffSent = results.staff.filter(r => r.status === 'sent').length;
+    const staffFailed = results.staff.filter(r => r.status === 'failed').length;
+    const allOk = staffFailed === 0 && results.customer?.status !== 'failed';
+    const summary = [
+      `Staff: ${staffSent}/${results.staff.length} sent`,
+      results.customer?.status === 'sent' ? 'Customer: sent' :
+      results.customer?.status === 'skipped' ? `Customer: skipped (${results.customer.reason})` :
+      results.customer?.status === 'failed' ? `Customer: failed — ${results.customer.error}` : '',
+    ].filter(Boolean).join(' · ');
+
+    await railwayActivities.create({
+      lead_id: leadId,
+      type: 'note',
+      content: `MANUAL_REMINDER_SENT: ${summary}`,
+      author: 'System',
+      source: 'manual',
+    }).catch(() => {});
+
+    return { data: { success: allOk, message: summary, results } };
+  }
+  // Base44 fallback removed — all flows are Railway-owned.
+  throw new Error('MANUAL_REMINDER email flow is Railway-owned; Base44 fallback has been removed.');
+}
+
+// ── APPOINTMENT REMINDER PANEL ───────────────────────────────────────────────
+export async function sendAppointmentReminder({ recipients, subject, htmlBody, leadId, apptDate, apptTime }) {
+  const list = [...new Set((recipients || []).filter(Boolean))];
+  const clientRequestId = `appt:${leadId || 'nolead'}:${apptDate || ''}:${apptTime || ''}`;
+  let sent = 0;
+  for (const to of list) {
+    try {
+      if (FLOW_OWNERSHIP.APPOINTMENT_REMINDER_PANEL === 'railway') {
+        await sendViaRailway({
+          to, subject, htmlBody,
+          idempotencyKey: IdempotencyKeys.generic(leadId || 'appt-panel', to, clientRequestId),
+          role: 'appointment-reminder',
+        });
+      } else {
+        // Base44 fallback removed — all flows are Railway-owned.
+        throw new Error('APPOINTMENT_REMINDER email flow is Railway-owned.');
+      }
+      sent++;
+    } catch (_) { /* per-recipient best-effort */ }
+  }
+  return sent;
+}
+
+// ── TEST ─────────────────────────────────────────────────────────────────────
+export async function sendTestEmail(to, nonce) {
+  if (FLOW_OWNERSHIP.TEST === 'railway') {
+    const key = IdempotencyKeys.test(to, nonce);
+    const htmlBody = testEmailHtml(nonce);
+    return sendViaRailway({
+      to, subject: 'EC Construction Group — Test Email',
+      htmlBody, idempotencyKey: key, role: 'test',
+    });
+  }
+  // Base44 fallback removed — all flows are Railway-owned.
+  throw new Error('TEST email flow is Railway-owned; Base44 fallback has been removed.');
+}
+
+export default {
+  IdempotencyKeys,
+  FLOW_OWNERSHIP,
+  sendGenericEmail,
+  sendInvoiceEmail,
+  sendManualReminder,
+  sendAppointmentReminder,
+  sendTestEmail,
+};

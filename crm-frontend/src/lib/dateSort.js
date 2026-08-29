@@ -1,1 +1,90 @@
-LyoqCiAqIFVuaXZlcnNhbCBEYXRlIFNvcnRpbmcgVXRpbGl0eQogKiAKICogRW5zdXJlcyBjb25zaXN0ZW50LCBwcmVkaWN0YWJsZSBkYXRlLWJhc2VkIHNvcnRpbmcgYWNyb3NzIHRoZSBDUk06CiAqIC0gVXBjb21pbmcgZGF0ZXMgZmlyc3QgKGNsb3Nlc3QgdG8gdG9kYXkpCiAqIC0gRnV0dXJlIGRhdGVzIGFmdGVyCiAqIC0gUGFzdC9leHBpcmVkIGRhdGVzIGFmdGVyIGZ1dHVyZSBkYXRlcwogKiAtIEVtcHR5L251bGwgZGF0ZXMgYWx3YXlzIGxhc3QKICovCgpleHBvcnQgY29uc3Qgc29ydEJ5RGF0ZUZpZWxkID0gKGl0ZW1zLCBkYXRlRmllbGROYW1lKSA9PiB7CiAgY29uc3QgdG9kYXkgPSBuZXcgRGF0ZSgpOwogIHRvZGF5LnNldEhvdXJzKDAsIDAsIDAsIDApOwoKICByZXR1cm4gWy4uLml0ZW1zXS5zb3J0KChhLCBiKSA9PiB7CiAgICBjb25zdCBkYXRlQSA9IGFbZGF0ZUZpZWxkTmFtZV0gPyBuZXcgRGF0ZShhW2RhdGVGaWVsZE5hbWVdKSA6IG51bGw7CiAgICBjb25zdCBkYXRlQiA9IGJbZGF0ZUZpZWxkTmFtZV0gPyBuZXcgRGF0ZShiW2RhdGVGaWVsZE5hbWVdKSA6IG51bGw7CgogICAgLy8gQm90aCBoYXZlIGRhdGVzCiAgICBpZiAoZGF0ZUEgJiYgZGF0ZUIpIHsKICAgICAgY29uc3QgaXNBRnV0dXJlID0gZGF0ZUEgPj0gdG9kYXk7CiAgICAgIGNvbnN0IGlzQkZ1dHVyZSA9IGRhdGVCID49IHRvZGF5OwoKICAgICAgLy8gQm90aCBmdXR1cmU6IHNvcnQgYXNjZW5kaW5nIChjbG9zZXN0IGZpcnN0KQogICAgICBpZiAoaXNBRnV0dXJlICYmIGlzQkZ1dHVyZSkgewogICAgICAgIHJldHVybiAoZGF0ZUEgLSBkYXRlQikgLyAoMTAwMCAqIDYwICogNjAgKiAyNCk7CiAgICAgIH0KCiAgICAgIC8vIEJvdGggcGFzdDogc29ydCBkZXNjZW5kaW5nIChtb3N0IHJlY2VudCBmaXJzdCkKICAgICAgaWYgKCFpc0FGdXR1cmUgJiYgIWlzQkZ1dHVyZSkgewogICAgICAgIHJldHVybiAoZGF0ZUIgLSBkYXRlQSkgLyAoMTAwMCAqIDYwICogNjAgKiAyNCk7CiAgICAgIH0KCiAgICAgIC8vIE9uZSBmdXR1cmUsIG9uZSBwYXN0OiBmdXR1cmUgY29tZXMgZmlyc3QKICAgICAgcmV0dXJuIGlzQUZ1dHVyZSA/IC0xIDogMTsKICAgIH0KCiAgICAvLyBPbmx5IEEgaGFzIGRhdGUgKGNvbWVzIGZpcnN0KQogICAgaWYgKGRhdGVBICYmICFkYXRlQikgcmV0dXJuIC0xOwoKICAgIC8vIE9ubHkgQiBoYXMgZGF0ZSAoY29tZXMgZmlyc3QpCiAgICBpZiAoIWRhdGVBICYmIGRhdGVCKSByZXR1cm4gMTsKCiAgICAvLyBOZWl0aGVyIGhhcyBkYXRlIChtYWludGFpbiBvcmlnaW5hbCBvcmRlcikKICAgIHJldHVybiAwOwogIH0pOwp9OwoKZXhwb3J0IGNvbnN0IHNvcnRCeU11bHRpcGxlRGF0ZUZpZWxkcyA9IChpdGVtcywgZGF0ZUZpZWxkTmFtZXMpID0+IHsKICBjb25zdCB0b2RheSA9IG5ldyBEYXRlKCk7CiAgdG9kYXkuc2V0SG91cnMoMCwgMCwgMCwgMCk7CgogIHJldHVybiBbLi4uaXRlbXNdLnNvcnQoKGEsIGIpID0+IHsKICAgIC8vIEZvciBlYWNoIGZpZWxkLCBmaW5kIHRoZSBjbG9zZXN0IHVwY29taW5nIGRhdGUKICAgIGNvbnN0IGdldENsb3Nlc3REYXRlID0gKGl0ZW0pID0+IHsKICAgICAgbGV0IGNsb3Nlc3REYXRlID0gbnVsbDsKICAgICAgbGV0IGNsb3Nlc3REYXlzID0gSW5maW5pdHk7CgogICAgICBkYXRlRmllbGROYW1lcy5mb3JFYWNoKGZpZWxkTmFtZSA9PiB7CiAgICAgICAgY29uc3QgZGF0ZSA9IGl0ZW1bZmllbGROYW1lXSA/IG5ldyBEYXRlKGl0ZW1bZmllbGROYW1lXSkgOiBudWxsOwogICAgICAgIGlmIChkYXRlKSB7CiAgICAgICAgICBjb25zdCBkYXlzID0gZGF0ZSA+PSB0b2RheSA/IChkYXRlIC0gdG9kYXkpIC8gKDEwMDAgKiA2MCAqIDYwICogMjQpIDogSW5maW5pdHkgKyAoZGF0ZSAtIHRvZGF5KSAvICgxMDAwICogNjAgKiA2MCAqIDI0KTsKICAgICAgICAgIGlmIChkYXlzIDwgY2xvc2VzdERheXMpIHsKICAgICAgICAgICAgY2xvc2VzdERheXMgPSBkYXlzOwogICAgICAgICAgICBjbG9zZXN0RGF0ZSA9IGRhdGU7CiAgICAgICAgICB9CiAgICAgICAgfQogICAgICB9KTsKCiAgICAgIHJldHVybiB7IGRhdGU6IGNsb3Nlc3REYXRlLCBkYXlzOiBjbG9zZXN0RGF5cyB9OwogICAgfTsKCiAgICBjb25zdCByZXN1bHRBID0gZ2V0Q2xvc2VzdERhdGUoYSk7CiAgICBjb25zdCByZXN1bHRCID0gZ2V0Q2xvc2VzdERhdGUoYik7CgogICAgLy8gQm90aCBoYXZlIGRhdGVzCiAgICBpZiAocmVzdWx0QS5kYXRlICYmIHJlc3VsdEIuZGF0ZSkgewogICAgICByZXR1cm4gcmVzdWx0QS5kYXlzIC0gcmVzdWx0Qi5kYXlzOwogICAgfQoKICAgIC8vIE9ubHkgQSBoYXMgZGF0ZQogICAgaWYgKHJlc3VsdEEuZGF0ZSAmJiAhcmVzdWx0Qi5kYXRlKSByZXR1cm4gLTE7CgogICAgLy8gT25seSBCIGhhcyBkYXRlCiAgICBpZiAoIXJlc3VsdEEuZGF0ZSAmJiByZXN1bHRCLmRhdGUpIHJldHVybiAxOwoKICAgIC8vIE5laXRoZXIgaGFzIGRhdGUKICAgIHJldHVybiAwOwogIH0pOwp9Ow==
+/**
+ * Universal Date Sorting Utility
+ * 
+ * Ensures consistent, predictable date-based sorting across the CRM:
+ * - Upcoming dates first (closest to today)
+ * - Future dates after
+ * - Past/expired dates after future dates
+ * - Empty/null dates always last
+ */
+
+export const sortByDateField = (items, dateFieldName) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return [...items].sort((a, b) => {
+    const dateA = a[dateFieldName] ? new Date(a[dateFieldName]) : null;
+    const dateB = b[dateFieldName] ? new Date(b[dateFieldName]) : null;
+
+    // Both have dates
+    if (dateA && dateB) {
+      const isAFuture = dateA >= today;
+      const isBFuture = dateB >= today;
+
+      // Both future: sort ascending (closest first)
+      if (isAFuture && isBFuture) {
+        return (dateA - dateB) / (1000 * 60 * 60 * 24);
+      }
+
+      // Both past: sort descending (most recent first)
+      if (!isAFuture && !isBFuture) {
+        return (dateB - dateA) / (1000 * 60 * 60 * 24);
+      }
+
+      // One future, one past: future comes first
+      return isAFuture ? -1 : 1;
+    }
+
+    // Only A has date (comes first)
+    if (dateA && !dateB) return -1;
+
+    // Only B has date (comes first)
+    if (!dateA && dateB) return 1;
+
+    // Neither has date (maintain original order)
+    return 0;
+  });
+};
+
+export const sortByMultipleDateFields = (items, dateFieldNames) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return [...items].sort((a, b) => {
+    // For each field, find the closest upcoming date
+    const getClosestDate = (item) => {
+      let closestDate = null;
+      let closestDays = Infinity;
+
+      dateFieldNames.forEach(fieldName => {
+        const date = item[fieldName] ? new Date(item[fieldName]) : null;
+        if (date) {
+          const days = date >= today ? (date - today) / (1000 * 60 * 60 * 24) : Infinity + (date - today) / (1000 * 60 * 60 * 24);
+          if (days < closestDays) {
+            closestDays = days;
+            closestDate = date;
+          }
+        }
+      });
+
+      return { date: closestDate, days: closestDays };
+    };
+
+    const resultA = getClosestDate(a);
+    const resultB = getClosestDate(b);
+
+    // Both have dates
+    if (resultA.date && resultB.date) {
+      return resultA.days - resultB.days;
+    }
+
+    // Only A has date
+    if (resultA.date && !resultB.date) return -1;
+
+    // Only B has date
+    if (!resultA.date && resultB.date) return 1;
+
+    // Neither has date
+    return 0;
+  });
+};

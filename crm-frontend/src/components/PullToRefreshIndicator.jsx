@@ -1,1 +1,42 @@
-aW1wb3J0IHsgUmVmcmVzaEN3IH0gZnJvbSAnbHVjaWRlLXJlYWN0JzsKCi8qKgogKiBTaG93cyBhIHB1bGwtdG8tcmVmcmVzaCBpbmRpY2F0b3IgYXQgdGhlIHRvcCBvZiB0aGUgcGFnZS4KICogQHBhcmFtIHtudW1iZXJ9IHB1bGxEaXN0YW5jZSAtIGN1cnJlbnQgZHJhZyBkaXN0YW5jZSBpbiBweAogKiBAcGFyYW0ge2Jvb2xlYW59IHJlZnJlc2hpbmcgLSB0cnVlIHdoaWxlIHRoZSByZWZyZXNoIGlzIGluIHByb2dyZXNzCiAqIEBwYXJhbSB7bnVtYmVyfSB0aHJlc2hvbGQgLSBkaXN0YW5jZSBhdCB3aGljaCByZWZyZXNoIHRyaWdnZXJzCiAqLwpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBQdWxsVG9SZWZyZXNoSW5kaWNhdG9yKHsgcHVsbERpc3RhbmNlLCByZWZyZXNoaW5nLCB0aHJlc2hvbGQgPSA3MiB9KSB7CiAgY29uc3QgcHJvZ3Jlc3MgPSBNYXRoLm1pbihwdWxsRGlzdGFuY2UgLyAodGhyZXNob2xkICogMC40NSksIDEpOwogIGNvbnN0IHRyaWdnZXJlZCA9IHByb2dyZXNzID49IDE7CgogIGlmICghcmVmcmVzaGluZyAmJiBwdWxsRGlzdGFuY2UgPD0gMCkgcmV0dXJuIG51bGw7CgogIHJldHVybiAoCiAgICA8ZGl2CiAgICAgIGNsYXNzTmFtZT0iZml4ZWQgdG9wLTAgbGVmdC0wIHJpZ2h0LTAgei01MCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBwb2ludGVyLWV2ZW50cy1ub25lIgogICAgICBzdHlsZT17ewogICAgICAgIGhlaWdodDogcmVmcmVzaGluZyA/IDQ4IDogTWF0aC5tYXgocHVsbERpc3RhbmNlLCAwKSwKICAgICAgICB0cmFuc2l0aW9uOiByZWZyZXNoaW5nID8gJ2hlaWdodCAwLjJzIGVhc2UnIDogJ25vbmUnLAogICAgICB9fQogICAgPgogICAgICA8ZGl2CiAgICAgICAgY2xhc3NOYW1lPXtgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgcHgtNCBweS0xLjUgcm91bmRlZC1mdWxsIHRleHQteHMgZm9udC1zZW1pYm9sZCBzaGFkb3ctbWQgdHJhbnNpdGlvbi1hbGwgJHsKICAgICAgICAgIHRyaWdnZXJlZCB8fCByZWZyZXNoaW5nCiAgICAgICAgICAgID8gJ2JnLWFtYmVyLTYwMCB0ZXh0LXdoaXRlIHNjYWxlLTEwMCBvcGFjaXR5LTEwMCcKICAgICAgICAgICAgOiAnYmctd2hpdGUgdGV4dC1zbGF0ZS02MDAgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgb3BhY2l0eS05MCcKICAgICAgICB9YH0KICAgICAgICBzdHlsZT17ewogICAgICAgICAgdHJhbnNmb3JtOiBgc2NhbGUoJHswLjcgKyBwcm9ncmVzcyAqIDAuM30pYCwKICAgICAgICAgIG9wYWNpdHk6IE1hdGgubWluKHByb2dyZXNzICogMiwgMSksCiAgICAgICAgfX0KICAgICAgPgogICAgICAgIDxSZWZyZXNoQ3cKICAgICAgICAgIGNsYXNzTmFtZT17YHctMy41IGgtMy41ICR7cmVmcmVzaGluZyA/ICdhbmltYXRlLXNwaW4nIDogJyd9YH0KICAgICAgICAgIHN0eWxlPXt7IHRyYW5zZm9ybTogcmVmcmVzaGluZyA/IHVuZGVmaW5lZCA6IGByb3RhdGUoJHtwcm9ncmVzcyAqIDM2MH1kZWcpYCB9fQogICAgICAgIC8+CiAgICAgICAgPHNwYW4+e3JlZnJlc2hpbmcgPyAnUmVmcmVzaGluZ+KApicgOiB0cmlnZ2VyZWQgPyAnUmVsZWFzZSB0byByZWZyZXNoJyA6ICdQdWxsIHRvIHJlZnJlc2gnfTwvc3Bhbj4KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KICApOwp9
+import { RefreshCw } from 'lucide-react';
+
+/**
+ * Shows a pull-to-refresh indicator at the top of the page.
+ * @param {number} pullDistance - current drag distance in px
+ * @param {boolean} refreshing - true while the refresh is in progress
+ * @param {number} threshold - distance at which refresh triggers
+ */
+export default function PullToRefreshIndicator({ pullDistance, refreshing, threshold = 72 }) {
+  const progress = Math.min(pullDistance / (threshold * 0.45), 1);
+  const triggered = progress >= 1;
+
+  if (!refreshing && pullDistance <= 0) return null;
+
+  return (
+    <div
+      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center pointer-events-none"
+      style={{
+        height: refreshing ? 48 : Math.max(pullDistance, 0),
+        transition: refreshing ? 'height 0.2s ease' : 'none',
+      }}
+    >
+      <div
+        className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold shadow-md transition-all ${
+          triggered || refreshing
+            ? 'bg-amber-600 text-white scale-100 opacity-100'
+            : 'bg-white text-slate-600 border border-slate-200 opacity-90'
+        }`}
+        style={{
+          transform: `scale(${0.7 + progress * 0.3})`,
+          opacity: Math.min(progress * 2, 1),
+        }}
+      >
+        <RefreshCw
+          className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`}
+          style={{ transform: refreshing ? undefined : `rotate(${progress * 360}deg)` }}
+        />
+        <span>{refreshing ? 'Refreshing…' : triggered ? 'Release to refresh' : 'Pull to refresh'}</span>
+      </div>
+    </div>
+  );
+}

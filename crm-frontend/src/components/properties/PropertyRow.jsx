@@ -1,1 +1,132 @@
-aW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IFBlbmNpbCwgTW9yZVZlcnRpY2FsLCBDb3B5LCBBcmNoaXZlLCBFeWVPZmYsIEZvbGRlcklucHV0LCBMb2NrLCBVbmxvY2ssIEV5ZSwgUmVmcmVzaEN3LCBBbGVydFRyaWFuZ2xlIH0gZnJvbSAibHVjaWRlLXJlYWN0IjsKaW1wb3J0IHsgUFJPUEVSVFlfVFlQRVMsIENBVEVHT1JJRVMgfSBmcm9tICIuL3Byb3BlcnR5RGVmaW5pdGlvbnMiOwoKY29uc3QgVFlQRV9DT0xPUlMgPSB7CiAgdGV4dDogICAgICAgICAiYmctc2xhdGUtMTAwIHRleHQtc2xhdGUtNjAwIiwKICBudW1iZXI6ICAgICAgICJiZy1ibHVlLTEwMCB0ZXh0LWJsdWUtNzAwIiwKICBjdXJyZW5jeTogICAgICJiZy1lbWVyYWxkLTEwMCB0ZXh0LWVtZXJhbGQtNzAwIiwKICBkYXRlOiAgICAgICAgICJiZy1wdXJwbGUtMTAwIHRleHQtcHVycGxlLTcwMCIsCiAgZHJvcGRvd246ICAgICAiYmctYW1iZXItMTAwIHRleHQtYW1iZXItNzAwIiwKICBtdWx0aV9zZWxlY3Q6ICJiZy1vcmFuZ2UvMTAgdGV4dC1vcmFuZ2UiLAogIGJvb2xlYW46ICAgICAgImJnLXBpbmstMTAwIHRleHQtcGluay03MDAiLAogIHVzZXI6ICAgICAgICAgImJnLWN5YW4tMTAwIHRleHQtY3lhbi03MDAiLAp9OwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gUHJvcGVydHlSb3coeyBwcm9wLCBvbkVkaXQsIG9uRHVwbGljYXRlLCBvbkFyY2hpdmUsIG9uVG9nZ2xlSGlkZSwgb25Nb3ZlQ2F0ZWdvcnksIG9uT3BlbkRldGFpbCwgaXNDdXN0b20gfSkgewogIGNvbnN0IFttZW51T3Blbiwgc2V0TWVudU9wZW5dID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IHR5cGVMYWJlbCA9IFBST1BFUlRZX1RZUEVTLmZpbmQodCA9PiB0LnZhbHVlID09PSBwcm9wLnR5cGUpPy5sYWJlbCB8fCBwcm9wLnR5cGU7CgogIGNvbnN0IGhhbmRsZU1lbnVBY3Rpb24gPSAoYWN0aW9uKSA9PiB7CiAgICBzZXRNZW51T3BlbihmYWxzZSk7CiAgICBhY3Rpb24oKTsKICB9OwoKICByZXR1cm4gKAogICAgPGRpdgogICAgICBjbGFzc05hbWU9e2BmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMyBweC00IHB5LTMgaG92ZXI6Ymctc2xhdGUtNTAvNzAgdHJhbnNpdGlvbi1jb2xvcnMgZ3JvdXAgY3Vyc29yLXBvaW50ZXIgJHtwcm9wLmhpZGRlbiA/ICdvcGFjaXR5LTYwJyA6ICcnfWB9CiAgICAgIG9uQ2xpY2s9eygpID0+IG9uT3BlbkRldGFpbChwcm9wKX0KICAgID4KICAgICAgey8qIExhYmVsICsgZGVzY3JpcHRpb24gKyBiYWRnZXMgKi99CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4LTEgbWluLXctMCI+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIGZsZXgtd3JhcCI+CiAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtc20gZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTgwMCI+e3Byb3AubGFiZWx9PC9zcGFuPgogICAgICAgICAgey8qIEJhZGdlcyAqL30KICAgICAgICAgIHtwcm9wLnJlcXVpcmVkICYmIDxCYWRnZSBjb2xvcj0icmVkIiBsYWJlbD0iUmVxdWlyZWQiIC8+fQogICAgICAgICAge3Byb3AuaGlkZGVuICYmIDxCYWRnZSBjb2xvcj0ic2xhdGUiIGxhYmVsPSJIaWRkZW4iIC8+fQogICAgICAgICAgeyFwcm9wLmVkaXRhYmxlICYmIDxCYWRnZSBjb2xvcj0ic2xhdGUiIGxhYmVsPSJSZWFkLW9ubHkiIGljb249ezxMb2NrIGNsYXNzTmFtZT0idy0yLjUgaC0yLjUiIC8+fSAvPn0KICAgICAgICAgIHtwcm9wLnN5bmNlZCAmJiA8QmFkZ2UgY29sb3I9ImJsdWUiIGxhYmVsPSJTeW5jZWQiIGljb249ezxSZWZyZXNoQ3cgY2xhc3NOYW1lPSJ3LTIuNSBoLTIuNSIgLz59IC8+fQogICAgICAgICAge3Byb3AuaXNTeXN0ZW0gJiYgPEJhZGdlIGNvbG9yPSJhbWJlciIgbGFiZWw9IlN5c3RlbSIgaWNvbj17PEFsZXJ0VHJpYW5nbGUgY2xhc3NOYW1lPSJ3LTIuNSBoLTIuNSIgLz59IC8+fQogICAgICAgICAge2lzQ3VzdG9tICYmIDxCYWRnZSBjb2xvcj0ib3JhbmdlIiBsYWJlbD0iQ3VzdG9tIiAvPn0KICAgICAgICA8L2Rpdj4KICAgICAgICB7cHJvcC5kZXNjcmlwdGlvbiAmJiAoCiAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS00MDAgbXQtMC41IHRydW5jYXRlIG1heC13LXNtIj57cHJvcC5kZXNjcmlwdGlvbn08L3A+CiAgICAgICAgKX0KICAgICAgPC9kaXY+CgogICAgICB7LyogVHlwZSBiYWRnZSAqL30KICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXgtc2hyaW5rLTAgdy0yOCB0ZXh0LXJpZ2h0Ij4KICAgICAgICA8c3BhbiBjbGFzc05hbWU9e2BpbmxpbmUtYmxvY2sgdGV4dC1bMTFweF0gZm9udC1zZW1pYm9sZCBweC0yLjUgcHktMSByb3VuZGVkLWZ1bGwgJHtUWVBFX0NPTE9SU1twcm9wLnR5cGVdIHx8IFRZUEVfQ09MT1JTLnRleHR9YH0+CiAgICAgICAgICB7dHlwZUxhYmVsfQogICAgICAgIDwvc3Bhbj4KICAgICAgPC9kaXY+CgogICAgICB7LyogRWRpdGFibGUgKi99CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4LXNocmluay0wIHctMjAgZmxleCBqdXN0aWZ5LWNlbnRlciI+CiAgICAgICAge3Byb3AuZWRpdGFibGUgPyAoCiAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0xIHRleHQteHMgdGV4dC1lbWVyYWxkLTYwMCBmb250LW1lZGl1bSI+PFVubG9jayBjbGFzc05hbWU9InctMyBoLTMiIC8+RWRpdGFibGU8L3NwYW4+CiAgICAgICAgKSA6ICgKICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEgdGV4dC14cyB0ZXh0LXNsYXRlLTQwMCBmb250LW1lZGl1bSI+PExvY2sgY2xhc3NOYW1lPSJ3LTMgaC0zIiAvPlJlYWQtb25seTwvc3Bhbj4KICAgICAgICApfQogICAgICA8L2Rpdj4KCiAgICAgIHsvKiBWaXNpYmlsaXR5ICovfQogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleC1zaHJpbmstMCB3LTIwIGZsZXgganVzdGlmeS1jZW50ZXIiPgogICAgICAgIHtwcm9wLmhpZGRlbiA/ICgKICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEgdGV4dC14cyB0ZXh0LXNsYXRlLTQwMCBmb250LW1lZGl1bSI+PEV5ZU9mZiBjbGFzc05hbWU9InctMyBoLTMiIC8+SGlkZGVuPC9zcGFuPgogICAgICAgICkgOiAoCiAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0xIHRleHQteHMgdGV4dC1zbGF0ZS01MDAgZm9udC1tZWRpdW0iPjxFeWUgY2xhc3NOYW1lPSJ3LTMgaC0zIiAvPlZpc2libGU8L3NwYW4+CiAgICAgICAgKX0KICAgICAgPC9kaXY+CgogICAgICB7LyogMy1kb3QgYWN0aW9ucyBtZW51ICovfQogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleC1zaHJpbmstMCByZWxhdGl2ZSIgb25DbGljaz17ZSA9PiBlLnN0b3BQcm9wYWdhdGlvbigpfT4KICAgICAgICA8YnV0dG9uCiAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRNZW51T3BlbihvID0+ICFvKX0KICAgICAgICAgIGNsYXNzTmFtZT0icC0xLjUgcm91bmRlZC1sZyB0ZXh0LXNsYXRlLTQwMCBob3Zlcjp0ZXh0LXNsYXRlLTYwMCBob3ZlcjpiZy1zbGF0ZS0xMDAgdHJhbnNpdGlvbi1jb2xvcnMgb3BhY2l0eS0wIGdyb3VwLWhvdmVyOm9wYWNpdHktMTAwIgogICAgICAgID4KICAgICAgICAgIDxNb3JlVmVydGljYWwgY2xhc3NOYW1lPSJ3LTQgaC00IiAvPgogICAgICAgIDwvYnV0dG9uPgogICAgICAgIHttZW51T3BlbiAmJiAoCiAgICAgICAgICA8PgogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZml4ZWQgaW5zZXQtMCB6LTEwIiBvbkNsaWNrPXsoKSA9PiBzZXRNZW51T3BlbihmYWxzZSl9IC8+CiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJhYnNvbHV0ZSByaWdodC0wIHRvcC04IGJnLXdoaXRlIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQteGwgc2hhZG93LXhsIHotMjAgcHktMS41IG1pbi13LTQ0Ij4KICAgICAgICAgICAgICA8TWVudUl0ZW0gaWNvbj17PFBlbmNpbCBjbGFzc05hbWU9InctMy41IGgtMy41IiAvPn0gbGFiZWw9IkVkaXQiIG9uQ2xpY2s9eygpID0+IGhhbmRsZU1lbnVBY3Rpb24oKCkgPT4gb25FZGl0KHByb3ApKX0gLz4KICAgICAgICAgICAgICA8TWVudUl0ZW0gaWNvbj17PENvcHkgY2xhc3NOYW1lPSJ3LTMuNSBoLTMuNSIgLz59IGxhYmVsPSJEdXBsaWNhdGUiIG9uQ2xpY2s9eygpID0+IGhhbmRsZU1lbnVBY3Rpb24oKCkgPT4gb25EdXBsaWNhdGUocHJvcCkpfSAvPgogICAgICAgICAgICAgIDxNZW51SXRlbQogICAgICAgICAgICAgICAgaWNvbj17PEV5ZU9mZiBjbGFzc05hbWU9InctMy41IGgtMy41IiAvPn0KICAgICAgICAgICAgICAgIGxhYmVsPXtwcm9wLmhpZGRlbiA/ICJNYWtlIFZpc2libGUiIDogIkhpZGUifQogICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gaGFuZGxlTWVudUFjdGlvbigoKSA9PiBvblRvZ2dsZUhpZGUocHJvcCkpfQogICAgICAgICAgICAgIC8+CiAgICAgICAgICAgICAgeyFwcm9wLmlzU3lzdGVtICYmICgKICAgICAgICAgICAgICAgIDxNZW51SXRlbSBpY29uPXs8Rm9sZGVySW5wdXQgY2xhc3NOYW1lPSJ3LTMuNSBoLTMuNSIgLz59IGxhYmVsPSJNb3ZlIENhdGVnb3J5IiBvbkNsaWNrPXsoKSA9PiBoYW5kbGVNZW51QWN0aW9uKCgpID0+IG9uTW92ZUNhdGVnb3J5KHByb3ApKX0gLz4KICAgICAgICAgICAgICApfQogICAgICAgICAgICAgIHshcHJvcC5pc1N5c3RlbSAmJiAoCiAgICAgICAgICAgICAgICA8PgogICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYm9yZGVyLXQgYm9yZGVyLXNsYXRlLTEwMCBteS0xIiAvPgogICAgICAgICAgICAgICAgICA8TWVudUl0ZW0gaWNvbj17PEFyY2hpdmUgY2xhc3NOYW1lPSJ3LTMuNSBoLTMuNSIgLz59IGxhYmVsPSJBcmNoaXZlIiBvbkNsaWNrPXsoKSA9PiBoYW5kbGVNZW51QWN0aW9uKCgpID0+IG9uQXJjaGl2ZShwcm9wKSl9IGNvbG9yPSJ0ZXh0LXJlZC01MDAiIC8+CiAgICAgICAgICAgICAgICA8Lz4KICAgICAgICAgICAgICApfQogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDwvPgogICAgICAgICl9CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CiAgKTsKfQoKZnVuY3Rpb24gQmFkZ2UoeyBjb2xvciwgbGFiZWwsIGljb24gfSkgewogIGNvbnN0IGNvbG9ycyA9IHsKICAgIHJlZDogICAgImJnLXJlZC01MCB0ZXh0LXJlZC02MDAgYm9yZGVyLXJlZC0xMDAiLAogICAgc2xhdGU6ICAiYmctc2xhdGUtMTAwIHRleHQtc2xhdGUtNTAwIGJvcmRlci1zbGF0ZS0yMDAiLAogICAgYmx1ZTogICAiYmctYmx1ZS01MCB0ZXh0LWJsdWUtNjAwIGJvcmRlci1ibHVlLTEwMCIsCiAgICBhbWJlcjogICJiZy1hbWJlci01MCB0ZXh0LWFtYmVyLTYwMCBib3JkZXItYW1iZXItMTAwIiwKICAgIG9yYW5nZTogImJnLW9yYW5nZS8xMCB0ZXh0LW9yYW5nZSBib3JkZXItb3JhbmdlLzIwIiwKICB9OwogIHJldHVybiAoCiAgICA8c3BhbiBjbGFzc05hbWU9e2BpbmxpbmUtZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEgdGV4dC1bMTBweF0gZm9udC1zZW1pYm9sZCBweC0xLjUgcHktMC41IHJvdW5kZWQgYm9yZGVyICR7Y29sb3JzW2NvbG9yXX1gfT4KICAgICAge2ljb259e2xhYmVsfQogICAgPC9zcGFuPgogICk7Cn0KCmZ1bmN0aW9uIE1lbnVJdGVtKHsgaWNvbiwgbGFiZWwsIG9uQ2xpY2ssIGNvbG9yID0gInRleHQtc2xhdGUtNzAwIiB9KSB7CiAgcmV0dXJuICgKICAgIDxidXR0b24KICAgICAgb25DbGljaz17b25DbGlja30KICAgICAgY2xhc3NOYW1lPXtgdy1mdWxsIGZsZXggaXRlbXMtY2VudGVyIGdhcC0yLjUgcHgtNCBweS0yIHRleHQteHMgZm9udC1zZW1pYm9sZCBob3ZlcjpiZy1zbGF0ZS01MCB0cmFuc2l0aW9uLWNvbG9ycyAke2NvbG9yfWB9CiAgICA+CiAgICAgIHtpY29ufXtsYWJlbH0KICAgIDwvYnV0dG9uPgogICk7Cn0=
+import { useState } from "react";
+import { Pencil, MoreVertical, Copy, Archive, EyeOff, FolderInput, Lock, Unlock, Eye, RefreshCw, AlertTriangle } from "lucide-react";
+import { PROPERTY_TYPES, CATEGORIES } from "./propertyDefinitions";
+
+const TYPE_COLORS = {
+  text:         "bg-slate-100 text-slate-600",
+  number:       "bg-blue-100 text-blue-700",
+  currency:     "bg-emerald-100 text-emerald-700",
+  date:         "bg-purple-100 text-purple-700",
+  dropdown:     "bg-amber-100 text-amber-700",
+  multi_select: "bg-orange/10 text-orange",
+  boolean:      "bg-pink-100 text-pink-700",
+  user:         "bg-cyan-100 text-cyan-700",
+};
+
+export default function PropertyRow({ prop, onEdit, onDuplicate, onArchive, onToggleHide, onMoveCategory, onOpenDetail, isCustom }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const typeLabel = PROPERTY_TYPES.find(t => t.value === prop.type)?.label || prop.type;
+
+  const handleMenuAction = (action) => {
+    setMenuOpen(false);
+    action();
+  };
+
+  return (
+    <div
+      className={`flex items-center gap-3 px-4 py-3 hover:bg-slate-50/70 transition-colors group cursor-pointer ${prop.hidden ? 'opacity-60' : ''}`}
+      onClick={() => onOpenDetail(prop)}
+    >
+      {/* Label + description + badges */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-sm font-semibold text-slate-800">{prop.label}</span>
+          {/* Badges */}
+          {prop.required && <Badge color="red" label="Required" />}
+          {prop.hidden && <Badge color="slate" label="Hidden" />}
+          {!prop.editable && <Badge color="slate" label="Read-only" icon={<Lock className="w-2.5 h-2.5" />} />}
+          {prop.synced && <Badge color="blue" label="Synced" icon={<RefreshCw className="w-2.5 h-2.5" />} />}
+          {prop.isSystem && <Badge color="amber" label="System" icon={<AlertTriangle className="w-2.5 h-2.5" />} />}
+          {isCustom && <Badge color="orange" label="Custom" />}
+        </div>
+        {prop.description && (
+          <p className="text-xs text-slate-400 mt-0.5 truncate max-w-sm">{prop.description}</p>
+        )}
+      </div>
+
+      {/* Type badge */}
+      <div className="flex-shrink-0 w-28 text-right">
+        <span className={`inline-block text-[11px] font-semibold px-2.5 py-1 rounded-full ${TYPE_COLORS[prop.type] || TYPE_COLORS.text}`}>
+          {typeLabel}
+        </span>
+      </div>
+
+      {/* Editable */}
+      <div className="flex-shrink-0 w-20 flex justify-center">
+        {prop.editable ? (
+          <span className="flex items-center gap-1 text-xs text-emerald-600 font-medium"><Unlock className="w-3 h-3" />Editable</span>
+        ) : (
+          <span className="flex items-center gap-1 text-xs text-slate-400 font-medium"><Lock className="w-3 h-3" />Read-only</span>
+        )}
+      </div>
+
+      {/* Visibility */}
+      <div className="flex-shrink-0 w-20 flex justify-center">
+        {prop.hidden ? (
+          <span className="flex items-center gap-1 text-xs text-slate-400 font-medium"><EyeOff className="w-3 h-3" />Hidden</span>
+        ) : (
+          <span className="flex items-center gap-1 text-xs text-slate-500 font-medium"><Eye className="w-3 h-3" />Visible</span>
+        )}
+      </div>
+
+      {/* 3-dot actions menu */}
+      <div className="flex-shrink-0 relative" onClick={e => e.stopPropagation()}>
+        <button
+          onClick={() => setMenuOpen(o => !o)}
+          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors opacity-0 group-hover:opacity-100"
+        >
+          <MoreVertical className="w-4 h-4" />
+        </button>
+        {menuOpen && (
+          <>
+            <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
+            <div className="absolute right-0 top-8 bg-white border border-slate-200 rounded-xl shadow-xl z-20 py-1.5 min-w-44">
+              <MenuItem icon={<Pencil className="w-3.5 h-3.5" />} label="Edit" onClick={() => handleMenuAction(() => onEdit(prop))} />
+              <MenuItem icon={<Copy className="w-3.5 h-3.5" />} label="Duplicate" onClick={() => handleMenuAction(() => onDuplicate(prop))} />
+              <MenuItem
+                icon={<EyeOff className="w-3.5 h-3.5" />}
+                label={prop.hidden ? "Make Visible" : "Hide"}
+                onClick={() => handleMenuAction(() => onToggleHide(prop))}
+              />
+              {!prop.isSystem && (
+                <MenuItem icon={<FolderInput className="w-3.5 h-3.5" />} label="Move Category" onClick={() => handleMenuAction(() => onMoveCategory(prop))} />
+              )}
+              {!prop.isSystem && (
+                <>
+                  <div className="border-t border-slate-100 my-1" />
+                  <MenuItem icon={<Archive className="w-3.5 h-3.5" />} label="Archive" onClick={() => handleMenuAction(() => onArchive(prop))} color="text-red-500" />
+                </>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Badge({ color, label, icon }) {
+  const colors = {
+    red:    "bg-red-50 text-red-600 border-red-100",
+    slate:  "bg-slate-100 text-slate-500 border-slate-200",
+    blue:   "bg-blue-50 text-blue-600 border-blue-100",
+    amber:  "bg-amber-50 text-amber-600 border-amber-100",
+    orange: "bg-orange/10 text-orange border-orange/20",
+  };
+  return (
+    <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded border ${colors[color]}`}>
+      {icon}{label}
+    </span>
+  );
+}
+
+function MenuItem({ icon, label, onClick, color = "text-slate-700" }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold hover:bg-slate-50 transition-colors ${color}`}
+    >
+      {icon}{label}
+    </button>
+  );
+}

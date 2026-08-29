@@ -1,1 +1,28 @@
-LyoqCiAqIHJhaWx3YXkgZGVhbCBjb21taXNzaW9ucyDigJQgRGVhbCBDb21taXNzaW9uIENSVUQgY2xpZW50LgogKi8KaW1wb3J0IHsgYXBpQ2FsbCB9IGZyb20gJy4vY2xpZW50JzsKCmV4cG9ydCBmdW5jdGlvbiBsaXN0KHBhcmFtcyA9IHt9KSB7CiAgY29uc3QgcXMgPSBuZXcgVVJMU2VhcmNoUGFyYW1zKCk7CiAgaWYgKHBhcmFtcy5kZWFsX2lkKSBxcy5zZXQoJ2RlYWxfaWQnLCBwYXJhbXMuZGVhbF9pZCk7CiAgaWYgKHBhcmFtcy5yZWNpcGllbnRfdXNlcl9pZCkgcXMuc2V0KCdyZWNpcGllbnRfdXNlcl9pZCcsIHBhcmFtcy5yZWNpcGllbnRfdXNlcl9pZCk7CiAgY29uc3QgcSA9IHFzLnRvU3RyaW5nKCk7CiAgcmV0dXJuIGFwaUNhbGwoYC9hcGkvdjEvZGVhbC1jb21taXNzaW9ucyR7cSA/IGA/JHtxfWAgOiAnJ31gLCB7IG1ldGhvZDogJ0dFVCcgfSk7Cn0KCmV4cG9ydCBmdW5jdGlvbiBnZXQoaWQpIHsKICByZXR1cm4gYXBpQ2FsbChgL2FwaS92MS9kZWFsLWNvbW1pc3Npb25zLyR7aWR9YCwgeyBtZXRob2Q6ICdHRVQnIH0pOwp9CgpleHBvcnQgZnVuY3Rpb24gY3JlYXRlKGRhdGEpIHsKICByZXR1cm4gYXBpQ2FsbCgnL2FwaS92MS9kZWFsLWNvbW1pc3Npb25zJywgeyBtZXRob2Q6ICdQT1NUJywgYm9keTogZGF0YSB9KTsKfQoKZXhwb3J0IGZ1bmN0aW9uIHVwZGF0ZShpZCwgZGF0YSkgewogIHJldHVybiBhcGlDYWxsKGAvYXBpL3YxL2RlYWwtY29tbWlzc2lvbnMvJHtpZH1gLCB7IG1ldGhvZDogJ1BVVCcsIGJvZHk6IGRhdGEgfSk7Cn0KCmV4cG9ydCBmdW5jdGlvbiByZW1vdmUoaWQpIHsKICByZXR1cm4gYXBpQ2FsbChgL2FwaS92MS9kZWFsLWNvbW1pc3Npb25zLyR7aWR9YCwgeyBtZXRob2Q6ICdERUxFVEUnIH0pOwp9
+/**
+ * railway deal commissions — Deal Commission CRUD client.
+ */
+import { apiCall } from './client';
+
+export function list(params = {}) {
+  const qs = new URLSearchParams();
+  if (params.deal_id) qs.set('deal_id', params.deal_id);
+  if (params.recipient_user_id) qs.set('recipient_user_id', params.recipient_user_id);
+  const q = qs.toString();
+  return apiCall(`/api/v1/deal-commissions${q ? `?${q}` : ''}`, { method: 'GET' });
+}
+
+export function get(id) {
+  return apiCall(`/api/v1/deal-commissions/${id}`, { method: 'GET' });
+}
+
+export function create(data) {
+  return apiCall('/api/v1/deal-commissions', { method: 'POST', body: data });
+}
+
+export function update(id, data) {
+  return apiCall(`/api/v1/deal-commissions/${id}`, { method: 'PUT', body: data });
+}
+
+export function remove(id) {
+  return apiCall(`/api/v1/deal-commissions/${id}`, { method: 'DELETE' });
+}

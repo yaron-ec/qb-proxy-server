@@ -1,1 +1,216 @@
-LyoqCiAqIEVzdGltYXRlU3luY0RpYWdub3N0aWNzIOKAlCBTaG93IHN5bmMgc3RhdHVzIGZvciBlYWNoIGVzdGltYXRlCiAqIERpc3BsYXlzOiBIYW5kb2ZmIOKGkiBRQiDihpIgQmFzZTQ0IGZsb3cgZm9yIGV2ZXJ5IGVzdGltYXRlCiAqLwoKaW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gInJlYWN0IjsKaW1wb3J0ICogYXMgcmFpbHdheUhhbmRvZmZFc3RpbWF0ZXMgZnJvbSAiQC9hcGkvcmFpbHdheS9oYW5kb2ZmRXN0aW1hdGVzIjsKaW1wb3J0IHsgQ2hlY2tDaXJjbGUsIEFsZXJ0Q2lyY2xlLCBMb2FkZXIyLCBDaGV2cm9uRG93biwgQ2hldnJvblJpZ2h0LCBFeWUgfSBmcm9tICJsdWNpZGUtcmVhY3QiOwoKY29uc3QgU3RhdHVzSWNvbiA9ICh7IGV4aXN0cywgc3RhdHVzIH0pID0+IHsKICBpZiAoc3RhdHVzID09PSAnbG9hZGluZycpIHJldHVybiA8TG9hZGVyMiBjbGFzc05hbWU9InctNCBoLTQgdGV4dC1ibHVlLTUwMCBhbmltYXRlLXNwaW4iIC8+OwogIGlmIChleGlzdHMpIHJldHVybiA8Q2hlY2tDaXJjbGUgY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtZW1lcmFsZC01MDAiIC8+OwogIHJldHVybiA8QWxlcnRDaXJjbGUgY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtcmVkLTUwMCIgLz47Cn07CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBFc3RpbWF0ZVN5bmNEaWFnbm9zdGljcygpIHsKICBjb25zdCBbZXN0aW1hdGVzLCBzZXRFc3RpbWF0ZXNdID0gdXNlU3RhdGUoW10pOwogIGNvbnN0IFtkaWFnbm9zdGljcywgc2V0RGlhZ25vc3RpY3NdID0gdXNlU3RhdGUoe30pOwogIGNvbnN0IFtsb2FkaW5nLCBzZXRMb2FkaW5nXSA9IHVzZVN0YXRlKHRydWUpOwogIGNvbnN0IFtleHBhbmRlZCwgc2V0RXhwYW5kZWRdID0gdXNlU3RhdGUoe30pOwoKICB1c2VFZmZlY3QoKCkgPT4gewogICAgbG9hZERpYWdub3N0aWNzKCk7CiAgICAvLyBBdXRvLXJlZnJlc2ggZXZlcnkgMzAgc2Vjb25kcwogICAgY29uc3QgdGltZXIgPSBzZXRJbnRlcnZhbChsb2FkRGlhZ25vc3RpY3MsIDMwMDAwKTsKICAgIHJldHVybiAoKSA9PiBjbGVhckludGVydmFsKHRpbWVyKTsKICB9LCBbXSk7CgogIGNvbnN0IGxvYWREaWFnbm9zdGljcyA9IGFzeW5jICgpID0+IHsKICAgIHRyeSB7CiAgICAgIC8vIEZldGNoIGFsbCBIYW5kb2ZmRXN0aW1hdGVzCiAgICAgIGNvbnN0IHJlc3VsdCA9IGF3YWl0IHJhaWx3YXlIYW5kb2ZmRXN0aW1hdGVzLmxpc3QoKTsKICAgICAgY29uc3QgaGFuZG9mZkVzdHMgPSByZXN1bHQuaXRlbXMgfHwgW107CiAgICAgIHNldEVzdGltYXRlcyhoYW5kb2ZmRXN0cyk7CgogICAgICAvLyBGb3IgZWFjaCBlc3RpbWF0ZSwgY2hlY2sgUUIgc3RhdHVzCiAgICAgIGNvbnN0IGRpYWdzID0ge307CiAgICAgIGZvciAoY29uc3QgZXN0IG9mIGhhbmRvZmZFc3RzKSB7CiAgICAgICAgZGlhZ3NbZXN0LmlkXSA9IHsKICAgICAgICAgIGhhbmRvZmZfaWQ6IGVzdC5oYW5kb2ZmX2VzdGltYXRlX2lkLAogICAgICAgICAgaGFuZG9mZl9leGlzdHM6ICEhZXN0LmhhbmRvZmZfZXN0aW1hdGVfaWQsCiAgICAgICAgICBxYl9leGlzdHM6ICEhZXN0LnFiX2VzdGltYXRlX2lkLAogICAgICAgICAgcWJfZXN0aW1hdGVfaWQ6IGVzdC5xYl9lc3RpbWF0ZV9pZCwKICAgICAgICAgIHFiX2VzdGltYXRlX251bWJlcjogZXN0LnFiX2VzdGltYXRlX251bWJlciwKICAgICAgICAgIGJhc2U0NF9pbXBvcnRlZDogISFlc3QubGVhZF9pZCwKICAgICAgICAgIG1hdGNoZWRfbGVhZF9pZDogZXN0LmxlYWRfaWQsCiAgICAgICAgICBtYXRjaGVkOiBlc3QubWF0Y2hfc3RhdHVzID09PSAnbWF0Y2hlZCcsCiAgICAgICAgICBtYXRjaF9zdGF0dXM6IGVzdC5tYXRjaF9zdGF0dXMsCiAgICAgICAgICBtYXRjaF9tZXRob2Q6IGVzdC5tYXRjaF9tZXRob2QsCiAgICAgICAgICByZWFzb246IGVzdC5tYXRjaF9zdGF0dXMgPT09ICd1bm1hdGNoZWQnID8gJ05vIGNvbmZpZGVudCBtYXRjaCBmb3VuZCcgOiBlc3QubWF0Y2hfc3RhdHVzID09PSAnbmVlZHNfcmV2aWV3JyA/ICdNdWx0aXBsZSBwb3RlbnRpYWwgbWF0Y2hlcycgOiAnTWF0Y2hlZCcsCiAgICAgICAgICBhbW91bnQ6IGVzdC5lc3RpbWF0ZV9hbW91bnQsCiAgICAgICAgICBzdGF0dXM6IGVzdC5lc3RpbWF0ZV9zdGF0dXMsCiAgICAgICAgICBkYXRlOiBlc3QuZXN0aW1hdGVfZGF0ZSwKICAgICAgICAgIGN1c3RvbWVyX25hbWU6IGVzdC5jdXN0b21lcl9uYW1lLAogICAgICAgIH07CiAgICAgIH0KICAgICAgc2V0RGlhZ25vc3RpY3MoZGlhZ3MpOwogICAgICBzZXRMb2FkaW5nKGZhbHNlKTsKICAgIH0gY2F0Y2ggKGUpIHsKICAgICAgY29uc29sZS5lcnJvcignW0VzdGltYXRlU3luY0RpYWdub3N0aWNzXSBMb2FkIGZhaWxlZDonLCBlLm1lc3NhZ2UpOwogICAgICBzZXRMb2FkaW5nKGZhbHNlKTsKICAgIH0KICB9OwoKICBjb25zdCB0b2dnbGVFeHBhbmRlZCA9IChlc3RJZCkgPT4gewogICAgc2V0RXhwYW5kZWQocHJldiA9PiAoeyAuLi5wcmV2LCBbZXN0SWRdOiAhcHJldltlc3RJZF0gfSkpOwogIH07CgogIGlmIChsb2FkaW5nKSB7CiAgICByZXR1cm4gKAogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgcC02Ij4KICAgICAgICA8TG9hZGVyMiBjbGFzc05hbWU9InctNSBoLTUgYW5pbWF0ZS1zcGluIHRleHQtYmx1ZS01MDAgbXItMiIgLz4KICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtc20gdGV4dC1zbGF0ZS02MDAiPkxvYWRpbmcgZGlhZ25vc3RpY3MuLi48L3NwYW4+CiAgICAgIDwvZGl2PgogICAgKTsKICB9CgogIGlmIChlc3RpbWF0ZXMubGVuZ3RoID09PSAwKSB7CiAgICByZXR1cm4gKAogICAgICA8ZGl2IGNsYXNzTmFtZT0icC02IHRleHQtY2VudGVyIHRleHQtc20gdGV4dC1zbGF0ZS01MDAiPgogICAgICAgIE5vIGVzdGltYXRlcyBzeW5jZWQgeWV0LiBXaGVuIEhhbmRvZmYgc2VuZHMgYW4gZXN0aW1hdGUsIGl0IHdpbGwgYXBwZWFyIGhlcmUuCiAgICAgIDwvZGl2PgogICAgKTsKICB9CgogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT0ic3BhY2UteS0yIj4KICAgICAge2VzdGltYXRlcy5tYXAoZXN0ID0+IHsKICAgICAgICBjb25zdCBkaWFnID0gZGlhZ25vc3RpY3NbZXN0LmlkXTsKICAgICAgICBpZiAoIWRpYWcpIHJldHVybiBudWxsOwoKICAgICAgICBjb25zdCBpc0V4cGFuZGVkID0gZXhwYW5kZWRbZXN0LmlkXTsKICAgICAgICBjb25zdCBpc01hdGNoZWQgPSBkaWFnLm1hdGNoZWQ7CiAgICAgICAgY29uc3QgY29sb3IgPSBpc01hdGNoZWQgPyAnYm9yZGVyLWVtZXJhbGQtMjAwIGJnLWVtZXJhbGQtNTAnIDogZGlhZy5tYXRjaF9zdGF0dXMgPT09ICduZWVkc19yZXZpZXcnID8gJ2JvcmRlci1hbWJlci0yMDAgYmctYW1iZXItNTAnIDogJ2JvcmRlci1yZWQtMjAwIGJnLXJlZC01MCc7CgogICAgICAgIHJldHVybiAoCiAgICAgICAgICA8ZGl2IGtleT17ZXN0LmlkfSBjbGFzc05hbWU9e2Bib3JkZXIgcm91bmRlZC1sZyAke2NvbG9yfSBvdmVyZmxvdy1oaWRkZW5gfT4KICAgICAgICAgICAgey8qIEhlYWRlciAqL30KICAgICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHRvZ2dsZUV4cGFuZGVkKGVzdC5pZCl9CiAgICAgICAgICAgICAgY2xhc3NOYW1lPSJ3LWZ1bGwgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTMgcC0zIGhvdmVyOm9wYWNpdHktOTAgdHJhbnNpdGlvbi1vcGFjaXR5IHRleHQtbGVmdCIKICAgICAgICAgICAgPgogICAgICAgICAgICAgIHtpc0V4cGFuZGVkID8gKAogICAgICAgICAgICAgICAgPENoZXZyb25Eb3duIGNsYXNzTmFtZT0idy00IGgtNCB0ZXh0LXNsYXRlLTQwMCBmbGV4LXNocmluay0wIiAvPgogICAgICAgICAgICAgICkgOiAoCiAgICAgICAgICAgICAgICA8Q2hldnJvblJpZ2h0IGNsYXNzTmFtZT0idy00IGgtNCB0ZXh0LXNsYXRlLTQwMCBmbGV4LXNocmluay0wIiAvPgogICAgICAgICAgICAgICl9CgogICAgICAgICAgICAgIHsvKiBFc3RpbWF0ZSBJbmZvICovfQogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4LTEgbWluLXctMCI+CiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgbWItMSI+CiAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0iZm9udC1zZW1pYm9sZCB0ZXh0LXNtIj4KICAgICAgICAgICAgICAgICAgICB7ZGlhZy5jdXN0b21lcl9uYW1lfSDCtyAke2RpYWcuYW1vdW50Py50b0xvY2FsZVN0cmluZygpIHx8ICfigJQnfQogICAgICAgICAgICAgICAgICA8L3NwYW4+CiAgICAgICAgICAgICAgICAgIHtpc01hdGNoZWQgJiYgKAogICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gYmctZW1lcmFsZC0xMDAgdGV4dC1lbWVyYWxkLTcwMCBweC0yIHB5LTAuNSByb3VuZGVkIGZvbnQtc2VtaWJvbGQiPgogICAgICAgICAgICAgICAgICAgICAg4pyTIE1hdGNoZWQKICAgICAgICAgICAgICAgICAgICA8L3NwYW4+CiAgICAgICAgICAgICAgICAgICl9CiAgICAgICAgICAgICAgICAgIHtkaWFnLm1hdGNoX3N0YXR1cyA9PT0gJ25lZWRzX3JldmlldycgJiYgKAogICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gYmctYW1iZXItMTAwIHRleHQtYW1iZXItNzAwIHB4LTIgcHktMC41IHJvdW5kZWQgZm9udC1zZW1pYm9sZCI+CiAgICAgICAgICAgICAgICAgICAgICDimqAgTmVlZHMgUmV2aWV3CiAgICAgICAgICAgICAgICAgICAgPC9zcGFuPgogICAgICAgICAgICAgICAgICApfQogICAgICAgICAgICAgICAgICB7IWlzTWF0Y2hlZCAmJiBkaWFnLm1hdGNoX3N0YXR1cyAhPT0gJ25lZWRzX3JldmlldycgJiYgKAogICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gYmctcmVkLTEwMCB0ZXh0LXJlZC03MDAgcHgtMiBweS0wLjUgcm91bmRlZCBmb250LXNlbWlib2xkIj4KICAgICAgICAgICAgICAgICAgICAgIOKclyBVbm1hdGNoZWQKICAgICAgICAgICAgICAgICAgICA8L3NwYW4+CiAgICAgICAgICAgICAgICAgICl9CiAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNjAwIj4KICAgICAgICAgICAgICAgICAgRXN0OiB7ZGlhZy5xYl9lc3RpbWF0ZV9udW1iZXIgfHwgZXN0LnFiX2VzdGltYXRlX251bWJlciB8fCAnTi9BJ30gwrcge2RpYWcuc3RhdHVzIHx8ICdEcmFmdCd9IMK3IHtkaWFnLmRhdGUgPyBuZXcgRGF0ZShkaWFnLmRhdGUpLnRvTG9jYWxlRGF0ZVN0cmluZygpIDogJ+KAlCd9CiAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICAgICAgey8qIFN0YXR1cyBGbG93ICovfQogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiB0ZXh0LXhzIGZsZXgtc2hyaW5rLTAiPgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0xIj4KICAgICAgICAgICAgICAgICAgPFN0YXR1c0ljb24gZXhpc3RzPXtkaWFnLmhhbmRvZmZfZXhpc3RzfSAvPgogICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtWzEwcHhdIj5IYW5kb2ZmPC9zcGFuPgogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtc2xhdGUtNDAwIj7ihpI8L3NwYW4+CiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEiPgogICAgICAgICAgICAgICAgICA8U3RhdHVzSWNvbiBleGlzdHM9e2RpYWcucWJfZXhpc3RzfSAvPgogICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtWzEwcHhdIj5RQjwvc3Bhbj4KICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXNsYXRlLTQwMCI+4oaSPC9zcGFuPgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0xIj4KICAgICAgICAgICAgICAgICAgPFN0YXR1c0ljb24gZXhpc3RzPXtkaWFnLmJhc2U0NF9pbXBvcnRlZH0gLz4KICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSI+QmFzZTQ0PC9zcGFuPgogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgIDwvYnV0dG9uPgoKICAgICAgICAgICAgey8qIERldGFpbHMgKi99CiAgICAgICAgICAgIHtpc0V4cGFuZGVkICYmICgKICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYm9yZGVyLXQgYm9yZGVyLWN1cnJlbnQgYm9yZGVyLW9wYWNpdHktMjAgcC0zIHNwYWNlLXktMiBiZy13aGl0ZS81MCB0ZXh0LXhzIj4KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJncmlkIGdyaWQtY29scy0yIGdhcC0yIj4KICAgICAgICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTcwMCI+SGFuZG9mZiBJRDwvZGl2PgogICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LXNsYXRlLTYwMCBmb250LW1vbm8gdGV4dC1bMTBweF0gYnJlYWstYWxsIj57ZGlhZy5oYW5kb2ZmX2lkIHx8ICfigJQnfTwvZGl2PgogICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTcwMCI+UUIgRXN0aW1hdGUgSUQ8L2Rpdj4KICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1zbGF0ZS02MDAgZm9udC1tb25vIHRleHQtWzEwcHhdIGJyZWFrLWFsbCI+e2RpYWcucWJfZXN0aW1hdGVfaWQgfHwgJ+KAlCd9PC9kaXY+CiAgICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgICA8ZGl2PgogICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNzAwIj5RQiBEb2MgTnVtYmVyPC9kaXY+CiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtc2xhdGUtNjAwIGZvbnQtbW9ubyI+e2RpYWcucWJfZXN0aW1hdGVfbnVtYmVyIHx8ICfigJQnfTwvZGl2PgogICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTcwMCI+TWF0Y2hlZCBMZWFkPC9kaXY+CiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtc2xhdGUtNjAwIGZvbnQtbW9ubyI+e2RpYWcubWF0Y2hlZF9sZWFkX2lkID8gZGlhZy5tYXRjaGVkX2xlYWRfaWQuc2xpY2UoMCwgOCkgKyAn4oCmJyA6ICfigJQnfTwvZGl2PgogICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPXtgcm91bmRlZCBwLTIgJHtpc01hdGNoZWQgPyAnYmctZW1lcmFsZC0xMDAgdGV4dC1lbWVyYWxkLTgwMCcgOiBkaWFnLm1hdGNoX3N0YXR1cyA9PT0gJ25lZWRzX3JldmlldycgPyAnYmctYW1iZXItMTAwIHRleHQtYW1iZXItODAwJyA6ICdiZy1yZWQtMTAwIHRleHQtcmVkLTgwMCd9YH0+CiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmb250LXNlbWlib2xkIj5NYXRjaCBTdGF0dXM8L2Rpdj4KICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtWzExcHhdIG10LTEiPntkaWFnLnJlYXNvbn08L2Rpdj4KICAgICAgICAgICAgICAgICAge2RpYWcubWF0Y2hfbWV0aG9kICYmICgKICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1bMTBweF0gbXQtMSI+TWV0aG9kOiA8c3BhbiBjbGFzc05hbWU9ImZvbnQtc2VtaWJvbGQiPntkaWFnLm1hdGNoX21ldGhvZH08L3NwYW4+PC9kaXY+CiAgICAgICAgICAgICAgICAgICl9CiAgICAgICAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICAgICAgICA8ZGl2PgogICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTcwMCI+Q3VzdG9tZXIgSW5mbzwvZGl2PgogICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1zbGF0ZS02MDAgdGV4dC1bMTBweF0gc3BhY2UteS0wLjUgbXQtMSI+CiAgICAgICAgICAgICAgICAgICAgPGRpdj7wn5OnIHtlc3QuY3VzdG9tZXJfZW1haWwgfHwgJ+KAlCd9PC9kaXY+CiAgICAgICAgICAgICAgICAgICAgPGRpdj7wn5OxIHtlc3QuY3VzdG9tZXJfcGhvbmUgfHwgJ+KAlCd9PC9kaXY+CiAgICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgPC9kaXY+CgogICAgICAgICAgICAgICAge2VzdC5kb2N1bWVudF91cmwgJiYgKAogICAgICAgICAgICAgICAgICA8ZGl2PgogICAgICAgICAgICAgICAgICAgIDxhCiAgICAgICAgICAgICAgICAgICAgICBocmVmPXtlc3QuZG9jdW1lbnRfdXJsfQogICAgICAgICAgICAgICAgICAgICAgdGFyZ2V0PSJfYmxhbmsiCiAgICAgICAgICAgICAgICAgICAgICByZWw9Im5vcmVmZXJyZXIiCiAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9ImlubGluZS1mbGV4IGl0ZW1zLWNlbnRlciBnYXAtMSB0ZXh0LWJsdWUtNjAwIGhvdmVyOnVuZGVybGluZSBmb250LXNlbWlib2xkIgogICAgICAgICAgICAgICAgICAgID4KICAgICAgICAgICAgICAgICAgICAgIDxFeWUgY2xhc3NOYW1lPSJ3LTMgaC0zIiAvPiBWaWV3IFBERgogICAgICAgICAgICAgICAgICAgIDwvYT4KICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICApfQoKICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LVs5cHhdIHRleHQtc2xhdGUtNTAwIGJvcmRlci10IGJvcmRlci1jdXJyZW50IGJvcmRlci1vcGFjaXR5LTIwIHB0LTIiPgogICAgICAgICAgICAgICAgICBMYXN0IHN5bmNlZDoge2VzdC5sYXN0X3N5bmNlZF9hdCA/IG5ldyBEYXRlKGVzdC5sYXN0X3N5bmNlZF9hdCkudG9Mb2NhbGVTdHJpbmcoKSA6ICfigJQnfQogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICl9CiAgICAgICAgICA8L2Rpdj4KICAgICAgICApOwogICAgICB9KX0KICAgIDwvZGl2PgogICk7Cn0=
+/**
+ * EstimateSyncDiagnostics — Show sync status for each estimate
+ * Displays: Handoff → QB → Base44 flow for every estimate
+ */
+
+import { useState, useEffect } from "react";
+import * as railwayHandoffEstimates from "@/api/railway/handoffEstimates";
+import { CheckCircle, AlertCircle, Loader2, ChevronDown, ChevronRight, Eye } from "lucide-react";
+
+const StatusIcon = ({ exists, status }) => {
+  if (status === 'loading') return <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />;
+  if (exists) return <CheckCircle className="w-4 h-4 text-emerald-500" />;
+  return <AlertCircle className="w-4 h-4 text-red-500" />;
+};
+
+export default function EstimateSyncDiagnostics() {
+  const [estimates, setEstimates] = useState([]);
+  const [diagnostics, setDiagnostics] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState({});
+
+  useEffect(() => {
+    loadDiagnostics();
+    // Auto-refresh every 30 seconds
+    const timer = setInterval(loadDiagnostics, 30000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const loadDiagnostics = async () => {
+    try {
+      // Fetch all HandoffEstimates
+      const result = await railwayHandoffEstimates.list();
+      const handoffEsts = result.items || [];
+      setEstimates(handoffEsts);
+
+      // For each estimate, check QB status
+      const diags = {};
+      for (const est of handoffEsts) {
+        diags[est.id] = {
+          handoff_id: est.handoff_estimate_id,
+          handoff_exists: !!est.handoff_estimate_id,
+          qb_exists: !!est.qb_estimate_id,
+          qb_estimate_id: est.qb_estimate_id,
+          qb_estimate_number: est.qb_estimate_number,
+          base44_imported: !!est.lead_id,
+          matched_lead_id: est.lead_id,
+          matched: est.match_status === 'matched',
+          match_status: est.match_status,
+          match_method: est.match_method,
+          reason: est.match_status === 'unmatched' ? 'No confident match found' : est.match_status === 'needs_review' ? 'Multiple potential matches' : 'Matched',
+          amount: est.estimate_amount,
+          status: est.estimate_status,
+          date: est.estimate_date,
+          customer_name: est.customer_name,
+        };
+      }
+      setDiagnostics(diags);
+      setLoading(false);
+    } catch (e) {
+      console.error('[EstimateSyncDiagnostics] Load failed:', e.message);
+      setLoading(false);
+    }
+  };
+
+  const toggleExpanded = (estId) => {
+    setExpanded(prev => ({ ...prev, [estId]: !prev[estId] }));
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-6">
+        <Loader2 className="w-5 h-5 animate-spin text-blue-500 mr-2" />
+        <span className="text-sm text-slate-600">Loading diagnostics...</span>
+      </div>
+    );
+  }
+
+  if (estimates.length === 0) {
+    return (
+      <div className="p-6 text-center text-sm text-slate-500">
+        No estimates synced yet. When Handoff sends an estimate, it will appear here.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {estimates.map(est => {
+        const diag = diagnostics[est.id];
+        if (!diag) return null;
+
+        const isExpanded = expanded[est.id];
+        const isMatched = diag.matched;
+        const color = isMatched ? 'border-emerald-200 bg-emerald-50' : diag.match_status === 'needs_review' ? 'border-amber-200 bg-amber-50' : 'border-red-200 bg-red-50';
+
+        return (
+          <div key={est.id} className={`border rounded-lg ${color} overflow-hidden`}>
+            {/* Header */}
+            <button
+              onClick={() => toggleExpanded(est.id)}
+              className="w-full flex items-center gap-3 p-3 hover:opacity-90 transition-opacity text-left"
+            >
+              {isExpanded ? (
+                <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              ) : (
+                <ChevronRight className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              )}
+
+              {/* Estimate Info */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-semibold text-sm">
+                    {diag.customer_name} · ${diag.amount?.toLocaleString() || '—'}
+                  </span>
+                  {isMatched && (
+                    <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-semibold">
+                      ✓ Matched
+                    </span>
+                  )}
+                  {diag.match_status === 'needs_review' && (
+                    <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-semibold">
+                      ⚠ Needs Review
+                    </span>
+                  )}
+                  {!isMatched && diag.match_status !== 'needs_review' && (
+                    <span className="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded font-semibold">
+                      ✗ Unmatched
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-slate-600">
+                  Est: {diag.qb_estimate_number || est.qb_estimate_number || 'N/A'} · {diag.status || 'Draft'} · {diag.date ? new Date(diag.date).toLocaleDateString() : '—'}
+                </div>
+              </div>
+
+              {/* Status Flow */}
+              <div className="flex items-center gap-2 text-xs flex-shrink-0">
+                <div className="flex items-center gap-1">
+                  <StatusIcon exists={diag.handoff_exists} />
+                  <span className="text-[10px]">Handoff</span>
+                </div>
+                <span className="text-slate-400">→</span>
+                <div className="flex items-center gap-1">
+                  <StatusIcon exists={diag.qb_exists} />
+                  <span className="text-[10px]">QB</span>
+                </div>
+                <span className="text-slate-400">→</span>
+                <div className="flex items-center gap-1">
+                  <StatusIcon exists={diag.base44_imported} />
+                  <span className="text-[10px]">Base44</span>
+                </div>
+              </div>
+            </button>
+
+            {/* Details */}
+            {isExpanded && (
+              <div className="border-t border-current border-opacity-20 p-3 space-y-2 bg-white/50 text-xs">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <div className="font-semibold text-slate-700">Handoff ID</div>
+                    <div className="text-slate-600 font-mono text-[10px] break-all">{diag.handoff_id || '—'}</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-slate-700">QB Estimate ID</div>
+                    <div className="text-slate-600 font-mono text-[10px] break-all">{diag.qb_estimate_id || '—'}</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-slate-700">QB Doc Number</div>
+                    <div className="text-slate-600 font-mono">{diag.qb_estimate_number || '—'}</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-slate-700">Matched Lead</div>
+                    <div className="text-slate-600 font-mono">{diag.matched_lead_id ? diag.matched_lead_id.slice(0, 8) + '…' : '—'}</div>
+                  </div>
+                </div>
+
+                <div className={`rounded p-2 ${isMatched ? 'bg-emerald-100 text-emerald-800' : diag.match_status === 'needs_review' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'}`}>
+                  <div className="font-semibold">Match Status</div>
+                  <div className="text-[11px] mt-1">{diag.reason}</div>
+                  {diag.match_method && (
+                    <div className="text-[10px] mt-1">Method: <span className="font-semibold">{diag.match_method}</span></div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="font-semibold text-slate-700">Customer Info</div>
+                  <div className="text-slate-600 text-[10px] space-y-0.5 mt-1">
+                    <div>📧 {est.customer_email || '—'}</div>
+                    <div>📱 {est.customer_phone || '—'}</div>
+                  </div>
+                </div>
+
+                {est.document_url && (
+                  <div>
+                    <a
+                      href={est.document_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 text-blue-600 hover:underline font-semibold"
+                    >
+                      <Eye className="w-3 h-3" /> View PDF
+                    </a>
+                  </div>
+                )}
+
+                <div className="text-[9px] text-slate-500 border-t border-current border-opacity-20 pt-2">
+                  Last synced: {est.last_synced_at ? new Date(est.last_synced_at).toLocaleString() : '—'}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}

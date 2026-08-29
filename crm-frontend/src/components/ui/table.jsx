@@ -1,1 +1,86 @@
-aW1wb3J0ICogYXMgUmVhY3QgZnJvbSAicmVhY3QiCgppbXBvcnQgeyBjbiB9IGZyb20gIkAvbGliL3V0aWxzIgoKY29uc3QgVGFibGUgPSBSZWFjdC5mb3J3YXJkUmVmKCh7IGNsYXNzTmFtZSwgLi4ucHJvcHMgfSwgcmVmKSA9PiAoCiAgPGRpdiBjbGFzc05hbWU9InJlbGF0aXZlIHctZnVsbCBvdmVyZmxvdy1hdXRvIj4KICAgIDx0YWJsZQogICAgICByZWY9e3JlZn0KICAgICAgY2xhc3NOYW1lPXtjbigidy1mdWxsIGNhcHRpb24tYm90dG9tIHRleHQtc20iLCBjbGFzc05hbWUpfQogICAgICB7Li4ucHJvcHN9IC8+CiAgPC9kaXY+CikpClRhYmxlLmRpc3BsYXlOYW1lID0gIlRhYmxlIgoKY29uc3QgVGFibGVIZWFkZXIgPSBSZWFjdC5mb3J3YXJkUmVmKCh7IGNsYXNzTmFtZSwgLi4ucHJvcHMgfSwgcmVmKSA9PiAoCiAgPHRoZWFkIHJlZj17cmVmfSBjbGFzc05hbWU9e2NuKCJbJl90cl06Ym9yZGVyLWIiLCBjbGFzc05hbWUpfSB7Li4ucHJvcHN9IC8+CikpClRhYmxlSGVhZGVyLmRpc3BsYXlOYW1lID0gIlRhYmxlSGVhZGVyIgoKY29uc3QgVGFibGVCb2R5ID0gUmVhY3QuZm9yd2FyZFJlZigoeyBjbGFzc05hbWUsIC4uLnByb3BzIH0sIHJlZikgPT4gKAogIDx0Ym9keQogICAgcmVmPXtyZWZ9CiAgICBjbGFzc05hbWU9e2NuKCJbJl90cjpsYXN0LWNoaWxkXTpib3JkZXItMCIsIGNsYXNzTmFtZSl9CiAgICB7Li4ucHJvcHN9IC8+CikpClRhYmxlQm9keS5kaXNwbGF5TmFtZSA9ICJUYWJsZUJvZHkiCgpjb25zdCBUYWJsZUZvb3RlciA9IFJlYWN0LmZvcndhcmRSZWYoKHsgY2xhc3NOYW1lLCAuLi5wcm9wcyB9LCByZWYpID0+ICgKICA8dGZvb3QKICAgIHJlZj17cmVmfQogICAgY2xhc3NOYW1lPXtjbigiYm9yZGVyLXQgYmctbXV0ZWQvNTAgZm9udC1tZWRpdW0gWyY+dHJdOmxhc3Q6Ym9yZGVyLWItMCIsIGNsYXNzTmFtZSl9CiAgICB7Li4ucHJvcHN9IC8+CikpClRhYmxlRm9vdGVyLmRpc3BsYXlOYW1lID0gIlRhYmxlRm9vdGVyIgoKY29uc3QgVGFibGVSb3cgPSBSZWFjdC5mb3J3YXJkUmVmKCh7IGNsYXNzTmFtZSwgLi4ucHJvcHMgfSwgcmVmKSA9PiAoCiAgPHRyCiAgICByZWY9e3JlZn0KICAgIGNsYXNzTmFtZT17Y24oCiAgICAgICJib3JkZXItYiB0cmFuc2l0aW9uLWNvbG9ycyBob3ZlcjpiZy1tdXRlZC81MCBkYXRhLVtzdGF0ZT1zZWxlY3RlZF06YmctbXV0ZWQiLAogICAgICBjbGFzc05hbWUKICAgICl9CiAgICB7Li4ucHJvcHN9IC8+CikpClRhYmxlUm93LmRpc3BsYXlOYW1lID0gIlRhYmxlUm93IgoKY29uc3QgVGFibGVIZWFkID0gUmVhY3QuZm9yd2FyZFJlZigoeyBjbGFzc05hbWUsIC4uLnByb3BzIH0sIHJlZikgPT4gKAogIDx0aAogICAgcmVmPXtyZWZ9CiAgICBjbGFzc05hbWU9e2NuKAogICAgICAiaC0xMCBweC0yIHRleHQtbGVmdCBhbGlnbi1taWRkbGUgZm9udC1tZWRpdW0gdGV4dC1tdXRlZC1mb3JlZ3JvdW5kIFsmOmhhcyhbcm9sZT1jaGVja2JveF0pXTpwci0wIFsmPltyb2xlPWNoZWNrYm94XV06dHJhbnNsYXRlLXktWzJweF0iLAogICAgICBjbGFzc05hbWUKICAgICl9CiAgICB7Li4ucHJvcHN9IC8+CikpClRhYmxlSGVhZC5kaXNwbGF5TmFtZSA9ICJUYWJsZUhlYWQiCgpjb25zdCBUYWJsZUNlbGwgPSBSZWFjdC5mb3J3YXJkUmVmKCh7IGNsYXNzTmFtZSwgLi4ucHJvcHMgfSwgcmVmKSA9PiAoCiAgPHRkCiAgICByZWY9e3JlZn0KICAgIGNsYXNzTmFtZT17Y24oCiAgICAgICJwLTIgYWxpZ24tbWlkZGxlIFsmOmhhcyhbcm9sZT1jaGVja2JveF0pXTpwci0wIFsmPltyb2xlPWNoZWNrYm94XV06dHJhbnNsYXRlLXktWzJweF0iLAogICAgICBjbGFzc05hbWUKICAgICl9CiAgICB7Li4ucHJvcHN9IC8+CikpClRhYmxlQ2VsbC5kaXNwbGF5TmFtZSA9ICJUYWJsZUNlbGwiCgpjb25zdCBUYWJsZUNhcHRpb24gPSBSZWFjdC5mb3J3YXJkUmVmKCh7IGNsYXNzTmFtZSwgLi4ucHJvcHMgfSwgcmVmKSA9PiAoCiAgPGNhcHRpb24KICAgIHJlZj17cmVmfQogICAgY2xhc3NOYW1lPXtjbigibXQtNCB0ZXh0LXNtIHRleHQtbXV0ZWQtZm9yZWdyb3VuZCIsIGNsYXNzTmFtZSl9CiAgICB7Li4ucHJvcHN9IC8+CikpClRhYmxlQ2FwdGlvbi5kaXNwbGF5TmFtZSA9ICJUYWJsZUNhcHRpb24iCgpleHBvcnQgewogIFRhYmxlLAogIFRhYmxlSGVhZGVyLAogIFRhYmxlQm9keSwKICBUYWJsZUZvb3RlciwKICBUYWJsZUhlYWQsCiAgVGFibGVSb3csCiAgVGFibGVDZWxsLAogIFRhYmxlQ2FwdGlvbiwKfQo=
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+const Table = React.forwardRef(({ className, ...props }, ref) => (
+  <div className="relative w-full overflow-auto">
+    <table
+      ref={ref}
+      className={cn("w-full caption-bottom text-sm", className)}
+      {...props} />
+  </div>
+))
+Table.displayName = "Table"
+
+const TableHeader = React.forwardRef(({ className, ...props }, ref) => (
+  <thead ref={ref} className={cn("[&_tr]:border-b", className)} {...props} />
+))
+TableHeader.displayName = "TableHeader"
+
+const TableBody = React.forwardRef(({ className, ...props }, ref) => (
+  <tbody
+    ref={ref}
+    className={cn("[&_tr:last-child]:border-0", className)}
+    {...props} />
+))
+TableBody.displayName = "TableBody"
+
+const TableFooter = React.forwardRef(({ className, ...props }, ref) => (
+  <tfoot
+    ref={ref}
+    className={cn("border-t bg-muted/50 font-medium [&>tr]:last:border-b-0", className)}
+    {...props} />
+))
+TableFooter.displayName = "TableFooter"
+
+const TableRow = React.forwardRef(({ className, ...props }, ref) => (
+  <tr
+    ref={ref}
+    className={cn(
+      "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
+      className
+    )}
+    {...props} />
+))
+TableRow.displayName = "TableRow"
+
+const TableHead = React.forwardRef(({ className, ...props }, ref) => (
+  <th
+    ref={ref}
+    className={cn(
+      "h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+      className
+    )}
+    {...props} />
+))
+TableHead.displayName = "TableHead"
+
+const TableCell = React.forwardRef(({ className, ...props }, ref) => (
+  <td
+    ref={ref}
+    className={cn(
+      "p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+      className
+    )}
+    {...props} />
+))
+TableCell.displayName = "TableCell"
+
+const TableCaption = React.forwardRef(({ className, ...props }, ref) => (
+  <caption
+    ref={ref}
+    className={cn("mt-4 text-sm text-muted-foreground", className)}
+    {...props} />
+))
+TableCaption.displayName = "TableCaption"
+
+export {
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableCaption,
+}

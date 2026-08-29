@@ -1,1 +1,204 @@
-LyoqCiAqIGxlYWRSZWdpb25BbmFseXRpY3MgLSBMb2FkIGFsbCBsZWFkcyBhbmQgYnVpbGQgcmVnaW9uL3llYXIvbW9udGgvY2l0eSBicmVha2Rvd24KICogCiAqIFVzZXMgcGFnaW5hdGlvbiB0byBsb2FkIEFMTCBsZWFkcywgY2xhc3NpZmllcyBieSByZWdpb24gYW5kIGRhdGUsCiAqIHJldHVybnMgbmVzdGVkIHN0cnVjdHVyZSB3aXRoIGRldGFpbGVkIGFnZ3JlZ2F0aW9ucwogKi8KCmltcG9ydCAqIGFzIHJhaWx3YXlMZWFkcyBmcm9tICdAL2FwaS9yYWlsd2F5L2xlYWRzJzsKCmNvbnN0IE1PTlRIX05BTUVTID0gWwogICdKYW51YXJ5JywgJ0ZlYnJ1YXJ5JywgJ01hcmNoJywgJ0FwcmlsJywgJ01heScsICdKdW5lJywKICAnSnVseScsICdBdWd1c3QnLCAnU2VwdGVtYmVyJywgJ09jdG9iZXInLCAnTm92ZW1iZXInLCAnRGVjZW1iZXInCl07Cgpjb25zdCBOT1JUSEVSTl9DQSA9IFsKICAnU2FuIEZyYW5jaXNjbycsICdPYWtsYW5kJywgJ0JlcmtlbGV5JywgJ1NhbiBKb3NlJywgJ1BhbG8gQWx0bycsICdTdW5ueXZhbGUnLAogICdNb3VudGFpbiBWaWV3JywgJ0hheXdhcmQnLCAnRnJlbW9udCcsICdEYWx5IENpdHknLCAnVmFsbGVqbycsICdDb25jb3JkJywKICAnV2FsbnV0IENyZWVrJywgJ1NhY3JhbWVudG8nLCAnU3RvY2t0b24nLCAnTW9kZXN0bycsICdNZXJjZWQnLCAnRnJlc25vJywKICAnVmlzYWxpYScsICdCYWtlcnNmaWVsZCcsICdTYW4gTHVpcyBPYmlzcG8nLCAnU2FudGEgQ3J1eicsICdTYWxpbmFzJywKICAnTW9udGVyZXknLCAnS2luZyBDaXR5JywgJ0NvYWxpbmdhJywgJ1JpZGdlY3Jlc3QnLCAnS2VybiBDb3VudHknLCAnVHVsYXJlIENvdW50eScsCiAgJ0lueW8gQ291bnR5JywgJ01vbm8gQ291bnR5JywgJ0tpbmdzIENvdW50eScsICdJb25lJywgJ0FtYWRvcicKXTsKCmNvbnN0IFNPVVRIRVJOX0NBID0gWwogICdMb3MgQW5nZWxlcycsICdTYW4gRGllZ28nLCAnQW5haGVpbScsICdMb25nIEJlYWNoJywgJ1JpdmVyc2lkZScsICdJcnZpbmUnLAogICdTYW50YSBBbmEnLCAnT3huYXJkJywgJ1RvcnJhbmNlJywgJ1Bhc2FkZW5hJywgJ1ZlbnR1cmEnLCAnSHVudGluZ3RvbiBCZWFjaCcsCiAgJ0dsZW5kYWxlJywgJ09jZWFuc2lkZScsICdPbnRhcmlvJywgJ0ZvbnRhbmEnLCAnU2FudGEgQmFyYmFyYScsICdUaG91c2FuZCBPYWtzJywKICAnTW9yZW5vIFZhbGxleScsICdNdXJyaWV0YScsICdUZW1lY3VsYScsICdWaWN0b3J2aWxsZScsICdQYWxtZGFsZScsICdMYW5jYXN0ZXInLAogICdSYW5jaG8gQ3VjYW1vbmdhJywgJ0Nvcm9uYScsICdDb3N0YSBNZXNhJywgJ0Z1bGxlcnRvbicsICdOb3J3YWxrJywgJ0dhcmRlbiBHcm92ZScsCiAgJ0h1bnRpbmd0b24gUGFyaycsICdTYW50YSBNb25pY2EnLCAnTWFsaWJ1JywgJ09qYWknLCAnQ2FtYXJpbGxvJywgJ1BvcnQgSHVlbmVtZScsCiAgJ1NpbWkgVmFsbGV5JywgJ0Fnb3VyYSBIaWxscycsICdDYWxhYmFzYXMnLCAnV2VzdGxha2UgVmlsbGFnZScsICdOZXdidXJ5IFBhcmsnCl07CgpmdW5jdGlvbiBjbGFzc2lmeVJlZ2lvbihjaXR5KSB7CiAgaWYgKCFjaXR5KSByZXR1cm4gbnVsbDsKICAKICBjb25zdCBjaXR5Tm9ybSA9IGNpdHkudG9Mb3dlckNhc2UoKS50cmltKCk7CiAgCiAgaWYgKE5PUlRIRVJOX0NBLnNvbWUoYyA9PiBjaXR5Tm9ybS5pbmNsdWRlcyhjLnRvTG93ZXJDYXNlKCkpIHx8IGMudG9Mb3dlckNhc2UoKS5pbmNsdWRlcyhjaXR5Tm9ybSkpKSB7CiAgICByZXR1cm4gJ05vcnRoZXJuIENhbGlmb3JuaWEnOwogIH0KICAKICBpZiAoU09VVEhFUk5fQ0Euc29tZShjID0+IGNpdHlOb3JtLmluY2x1ZGVzKGMudG9Mb3dlckNhc2UoKSkgfHwgYy50b0xvd2VyQ2FzZSgpLmluY2x1ZGVzKGNpdHlOb3JtKSkpIHsKICAgIHJldHVybiAnU291dGhlcm4gQ2FsaWZvcm5pYSc7CiAgfQogIAogIHJldHVybiBudWxsOwp9CgpmdW5jdGlvbiBleHRyYWN0RGF0ZShsZWFkKSB7CiAgLy8gUHJpb3JpdHk6IGNyZWF0ZWRfZGF0ZSA+IGRhdGUgPiBhcHBvaW50bWVudERhdGUgPiBmb2xsb3dVcERhdGUKICBjb25zdCBkYXRlU3RyID0gbGVhZC5jcmVhdGVkX2RhdGUgfHwgbGVhZC5kYXRlIHx8IGxlYWQuYXBwb2ludG1lbnREYXRlIHx8IGxlYWQuZm9sbG93X3VwX2RhdGU7CiAgCiAgaWYgKCFkYXRlU3RyKSByZXR1cm4gbnVsbDsKICAKICB0cnkgewogICAgY29uc3QgZGF0ZSA9IG5ldyBEYXRlKGRhdGVTdHIpOwogICAgaWYgKGlzTmFOKGRhdGUuZ2V0VGltZSgpKSkgcmV0dXJuIG51bGw7CiAgICByZXR1cm4gZGF0ZTsKICB9IGNhdGNoIHsKICAgIHJldHVybiBudWxsOwogIH0KfQoKLy8gQ2FjaGU6IHJldXNlIGRhdGEgZm9yIDIgbWludXRlcywgZGVkdXBsaWNhdGUgY29uY3VycmVudCBpbi1mbGlnaHQgcmVxdWVzdHMKbGV0IF9jYWNoZSA9IG51bGw7CmxldCBfY2FjaGVBdCA9IDA7CmxldCBfaW5mbGlnaHQgPSBudWxsOwpjb25zdCBDQUNIRV9UVEwgPSAyICogNjAgKiAxMDAwOwoKYXN5bmMgZnVuY3Rpb24gbG9hZEFsbExlYWRzKCkgewogIHRyeSB7CiAgICBjb25zdCByZXMgPSBhd2FpdCByYWlsd2F5TGVhZHMubGlzdCh7IHNvcnQ6ICctY3JlYXRlZF9kYXRlJywgbGltaXQ6IDIwMDAgfSk7CiAgICByZXR1cm4gcmVzLml0ZW1zIHx8IFtdOwogIH0gY2F0Y2ggKGUpIHsKICAgIGNvbnNvbGUuZXJyb3IoJ1tsZWFkUmVnaW9uQW5hbHl0aWNzXSBMb2FkIGVycm9yOicsIGUubWVzc2FnZSk7CiAgICByZXR1cm4gW107CiAgfQp9CgpleHBvcnQgYXN5bmMgZnVuY3Rpb24gYnVpbGRSZWdpb25BbmFseXRpY3MoKSB7CiAgLy8gUmV0dXJuIGNhY2hlZCByZXN1bHQgaWYgZnJlc2gKICBpZiAoX2NhY2hlICYmIERhdGUubm93KCkgLSBfY2FjaGVBdCA8IENBQ0hFX1RUTCkgcmV0dXJuIF9jYWNoZTsKCiAgLy8gRGVkdXBsaWNhdGU6IGlmIGEgZmV0Y2ggaXMgYWxyZWFkeSBpbi1mbGlnaHQsIHdhaXQgZm9yIGl0IGluc3RlYWQgb2YgZmlyaW5nIGFub3RoZXIKICBpZiAoX2luZmxpZ2h0KSByZXR1cm4gX2luZmxpZ2h0OwoKICBjb25zb2xlLmxvZygnW2xlYWRSZWdpb25BbmFseXRpY3NdIFN0YXJ0aW5nIGRhdGEgbG9hZC4uLicpOwoKICBfaW5mbGlnaHQgPSAoYXN5bmMgKCkgPT4gewogIGNvbnN0IGFsbExlYWRzID0gYXdhaXQgbG9hZEFsbExlYWRzKCk7CiAgY29uc29sZS5sb2coYFtsZWFkUmVnaW9uQW5hbHl0aWNzXSBUb3RhbCBsZWFkcyBsb2FkZWQ6ICR7YWxsTGVhZHMubGVuZ3RofWApOwoKICAvLyBJbml0aWFsaXplIHN0cnVjdHVyZQogIGNvbnN0IGRhdGEgPSB7fTsKICAKICBsZXQgdW5rbm93bkNpdHlDb3VudCA9IDA7CiAgbGV0IHVua25vd25EYXRlQ291bnQgPSAwOwogIGNvbnN0IHllYXJDb3VudHMgPSB7fTsKCiAgLy8gUHJvY2VzcyBlYWNoIGxlYWQKICBhbGxMZWFkcy5mb3JFYWNoKGxlYWQgPT4gewogICAgY29uc3QgY2l0eSA9IGxlYWQuY2l0eSB8fCBudWxsOwogICAgY29uc3QgZGF0ZSA9IGV4dHJhY3REYXRlKGxlYWQpOwoKICAgIC8vIEhhbmRsZSBtaXNzaW5nIGRhdGUg4oCUIHN0aWxsIGNvdW50IGZvciBkZWJ1ZwogICAgaWYgKCFkYXRlKSB7CiAgICAgIHVua25vd25EYXRlQ291bnQrKzsKICAgICAgcmV0dXJuOwogICAgfQoKICAgIGNvbnN0IHllYXIgPSBkYXRlLmdldEZ1bGxZZWFyKCkudG9TdHJpbmcoKTsKICAgIGNvbnN0IG1vbnRoSW5kZXggPSBkYXRlLmdldE1vbnRoKCk7CiAgICBjb25zdCBtb250aE5hbWUgPSBNT05USF9OQU1FU1ttb250aEluZGV4XTsKCiAgICAvLyBUcmFjayB5ZWFyIGNvdW50cyAoYWxsIGxlYWRzIHdpdGggYSBkYXRlLCByZWdhcmRsZXNzIG9mIGNpdHkpCiAgICBpZiAoIXllYXJDb3VudHNbeWVhcl0pIHllYXJDb3VudHNbeWVhcl0gPSAwOwogICAgeWVhckNvdW50c1t5ZWFyXSsrOwoKICAgIC8vIEhhbmRsZSBtaXNzaW5nIGNpdHkgT1IgdW5jbGFzc2lmaWFibGUgY2l0eSDigJQgY291bnQgYXMgVW5rbm93bgogICAgY29uc3QgcmVnaW9uID0gY2xhc3NpZnlSZWdpb24oY2l0eSk7CiAgICBpZiAoIWNpdHkgfHwgIXJlZ2lvbikgewogICAgICB1bmtub3duQ2l0eUNvdW50Kys7CiAgICAgIC8vIFN0aWxsIGFkZCB0byB5ZWFyIHN0cnVjdHVyZSBzbyB0b3RhbHMgYXJlIGFjY3VyYXRlCiAgICAgIGlmICghZGF0YVt5ZWFyXSkgewogICAgICAgIGRhdGFbeWVhcl0gPSB7CiAgICAgICAgICAnTm9ydGhlcm4gQ2FsaWZvcm5pYSc6IHsgdG90YWw6IDAsIG1vbnRoczoge30sIGNpdGllczoge30gfSwKICAgICAgICAgICdTb3V0aGVybiBDYWxpZm9ybmlhJzogeyB0b3RhbDogMCwgbW9udGhzOiB7fSwgY2l0aWVzOiB7fSB9LAogICAgICAgICAgJ1Vua25vd24gQ2l0eSc6IHsgdG90YWw6IDAgfSwKICAgICAgICAgICdVbmtub3duIERhdGUnOiB7IHRvdGFsOiAwIH0KICAgICAgICB9OwogICAgICAgIE1PTlRIX05BTUVTLmZvckVhY2gobW9udGggPT4gewogICAgICAgICAgZGF0YVt5ZWFyXVsnTm9ydGhlcm4gQ2FsaWZvcm5pYSddLm1vbnRoc1ttb250aF0gPSB7IHRvdGFsOiAwLCBjaXRpZXM6IHt9IH07CiAgICAgICAgICBkYXRhW3llYXJdWydTb3V0aGVybiBDYWxpZm9ybmlhJ10ubW9udGhzW21vbnRoXSA9IHsgdG90YWw6IDAsIGNpdGllczoge30gfTsKICAgICAgICB9KTsKICAgICAgfQogICAgICBkYXRhW3llYXJdWydVbmtub3duIENpdHknXS50b3RhbCsrOwogICAgICByZXR1cm47CiAgICB9CgogICAgLy8gSW5pdGlhbGl6ZSB5ZWFyCiAgICBpZiAoIWRhdGFbeWVhcl0pIHsKICAgICAgZGF0YVt5ZWFyXSA9IHsKICAgICAgICAnTm9ydGhlcm4gQ2FsaWZvcm5pYSc6IHsgdG90YWw6IDAsIG1vbnRoczoge30sIGNpdGllczoge30gfSwKICAgICAgICAnU291dGhlcm4gQ2FsaWZvcm5pYSc6IHsgdG90YWw6IDAsIG1vbnRoczoge30sIGNpdGllczoge30gfSwKICAgICAgICAnVW5rbm93biBDaXR5JzogeyB0b3RhbDogMCB9LAogICAgICAgICdVbmtub3duIERhdGUnOiB7IHRvdGFsOiAwIH0KICAgICAgfTsKCiAgICAgIC8vIEluaXRpYWxpemUgbW9udGhzCiAgICAgIE1PTlRIX05BTUVTLmZvckVhY2gobW9udGggPT4gewogICAgICAgIGRhdGFbeWVhcl1bJ05vcnRoZXJuIENhbGlmb3JuaWEnXS5tb250aHNbbW9udGhdID0geyB0b3RhbDogMCwgY2l0aWVzOiB7fSB9OwogICAgICAgIGRhdGFbeWVhcl1bJ1NvdXRoZXJuIENhbGlmb3JuaWEnXS5tb250aHNbbW9udGhdID0geyB0b3RhbDogMCwgY2l0aWVzOiB7fSB9OwogICAgICB9KTsKICAgIH0KCiAgICAvLyBJbmNyZW1lbnQgcmVnaW9uIHRvdGFsCiAgICBkYXRhW3llYXJdW3JlZ2lvbl0udG90YWwrKzsKCiAgICAvLyBJbmNyZW1lbnQgbW9udGggdG90YWwKICAgIGRhdGFbeWVhcl1bcmVnaW9uXS5tb250aHNbbW9udGhOYW1lXS50b3RhbCsrOwoKICAgIC8vIFRyYWNrIGNpdHkKICAgIGlmICghZGF0YVt5ZWFyXVtyZWdpb25dLmNpdGllc1tjaXR5XSkgewogICAgICBkYXRhW3llYXJdW3JlZ2lvbl0uY2l0aWVzW2NpdHldID0geyB0b3RhbDogMCwgbGVhZElkczogW10gfTsKICAgIH0KICAgIGRhdGFbeWVhcl1bcmVnaW9uXS5jaXRpZXNbY2l0eV0udG90YWwrKzsKICAgIGRhdGFbeWVhcl1bcmVnaW9uXS5jaXRpZXNbY2l0eV0ubGVhZElkcy5wdXNoKGxlYWQuaWQpOwoKICAgIC8vIFRyYWNrIGNpdHkgaW4gbW9udGgKICAgIGlmICghZGF0YVt5ZWFyXVtyZWdpb25dLm1vbnRoc1ttb250aE5hbWVdLmNpdGllc1tjaXR5XSkgewogICAgICBkYXRhW3llYXJdW3JlZ2lvbl0ubW9udGhzW21vbnRoTmFtZV0uY2l0aWVzW2NpdHldID0geyB0b3RhbDogMCwgbGVhZElkczogW10gfTsKICAgIH0KICAgIGRhdGFbeWVhcl1bcmVnaW9uXS5tb250aHNbbW9udGhOYW1lXS5jaXRpZXNbY2l0eV0udG90YWwrKzsKICAgIGRhdGFbeWVhcl1bcmVnaW9uXS5tb250aHNbbW9udGhOYW1lXS5jaXRpZXNbY2l0eV0ubGVhZElkcy5wdXNoKGxlYWQuaWQpOwogIH0pOwoKICAvLyBMb2cgZGVidWcgaW5mbwogIGNvbnNvbGUubG9nKCdbbGVhZFJlZ2lvbkFuYWx5dGljc10gRGVidWcgU3VtbWFyeTonKTsKICBjb25zb2xlLmxvZyhgICBUb3RhbCBsZWFkcyBsb2FkZWQ6ICR7YWxsTGVhZHMubGVuZ3RofWApOwogIGNvbnNvbGUubG9nKGAgIFVua25vd24gY2l0eTogJHt1bmtub3duQ2l0eUNvdW50fWApOwogIGNvbnNvbGUubG9nKGAgIFVua25vd24gZGF0ZTogJHt1bmtub3duRGF0ZUNvdW50fWApOwogIE9iamVjdC5lbnRyaWVzKHllYXJDb3VudHMpLmZvckVhY2goKFt5ZWFyLCBjb3VudF0pID0+IHsKICAgIGNvbnNvbGUubG9nKGAgIExlYWRzIGluICR7eWVhcn06ICR7Y291bnR9YCk7CiAgfSk7CgogIGNvbnN0IHJlc3VsdCA9IHsKICAgIGRhdGEsCiAgICBkZWJ1ZzogewogICAgICB0b3RhbExlYWRzOiBhbGxMZWFkcy5sZW5ndGgsCiAgICAgIHVua25vd25DaXR5OiB1bmtub3duQ2l0eUNvdW50LAogICAgICB1bmtub3duRGF0ZTogdW5rbm93bkRhdGVDb3VudCwKICAgICAgeWVhckNvdW50cwogICAgfQogIH07CgogIF9jYWNoZSA9IHJlc3VsdDsKICBfY2FjaGVBdCA9IERhdGUubm93KCk7CiAgX2luZmxpZ2h0ID0gbnVsbDsKICByZXR1cm4gcmVzdWx0OwogIH0pKCk7CgogIHJldHVybiBfaW5mbGlnaHQ7Cn0=
+/**
+ * leadRegionAnalytics - Load all leads and build region/year/month/city breakdown
+ * 
+ * Uses pagination to load ALL leads, classifies by region and date,
+ * returns nested structure with detailed aggregations
+ */
+
+import * as railwayLeads from '@/api/railway/leads';
+
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+const NORTHERN_CA = [
+  'San Francisco', 'Oakland', 'Berkeley', 'San Jose', 'Palo Alto', 'Sunnyvale',
+  'Mountain View', 'Hayward', 'Fremont', 'Daly City', 'Vallejo', 'Concord',
+  'Walnut Creek', 'Sacramento', 'Stockton', 'Modesto', 'Merced', 'Fresno',
+  'Visalia', 'Bakersfield', 'San Luis Obispo', 'Santa Cruz', 'Salinas',
+  'Monterey', 'King City', 'Coalinga', 'Ridgecrest', 'Kern County', 'Tulare County',
+  'Inyo County', 'Mono County', 'Kings County', 'Ione', 'Amador'
+];
+
+const SOUTHERN_CA = [
+  'Los Angeles', 'San Diego', 'Anaheim', 'Long Beach', 'Riverside', 'Irvine',
+  'Santa Ana', 'Oxnard', 'Torrance', 'Pasadena', 'Ventura', 'Huntington Beach',
+  'Glendale', 'Oceanside', 'Ontario', 'Fontana', 'Santa Barbara', 'Thousand Oaks',
+  'Moreno Valley', 'Murrieta', 'Temecula', 'Victorville', 'Palmdale', 'Lancaster',
+  'Rancho Cucamonga', 'Corona', 'Costa Mesa', 'Fullerton', 'Norwalk', 'Garden Grove',
+  'Huntington Park', 'Santa Monica', 'Malibu', 'Ojai', 'Camarillo', 'Port Hueneme',
+  'Simi Valley', 'Agoura Hills', 'Calabasas', 'Westlake Village', 'Newbury Park'
+];
+
+function classifyRegion(city) {
+  if (!city) return null;
+  
+  const cityNorm = city.toLowerCase().trim();
+  
+  if (NORTHERN_CA.some(c => cityNorm.includes(c.toLowerCase()) || c.toLowerCase().includes(cityNorm))) {
+    return 'Northern California';
+  }
+  
+  if (SOUTHERN_CA.some(c => cityNorm.includes(c.toLowerCase()) || c.toLowerCase().includes(cityNorm))) {
+    return 'Southern California';
+  }
+  
+  return null;
+}
+
+function extractDate(lead) {
+  // Priority: created_date > date > appointmentDate > followUpDate
+  const dateStr = lead.created_date || lead.date || lead.appointmentDate || lead.follow_up_date;
+  
+  if (!dateStr) return null;
+  
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return null;
+    return date;
+  } catch {
+    return null;
+  }
+}
+
+// Cache: reuse data for 2 minutes, deduplicate concurrent in-flight requests
+let _cache = null;
+let _cacheAt = 0;
+let _inflight = null;
+const CACHE_TTL = 2 * 60 * 1000;
+
+async function loadAllLeads() {
+  try {
+    const res = await railwayLeads.list({ sort: '-created_date', limit: 2000 });
+    return res.items || [];
+  } catch (e) {
+    console.error('[leadRegionAnalytics] Load error:', e.message);
+    return [];
+  }
+}
+
+export async function buildRegionAnalytics() {
+  // Return cached result if fresh
+  if (_cache && Date.now() - _cacheAt < CACHE_TTL) return _cache;
+
+  // Deduplicate: if a fetch is already in-flight, wait for it instead of firing another
+  if (_inflight) return _inflight;
+
+  console.log('[leadRegionAnalytics] Starting data load...');
+
+  _inflight = (async () => {
+  const allLeads = await loadAllLeads();
+  console.log(`[leadRegionAnalytics] Total leads loaded: ${allLeads.length}`);
+
+  // Initialize structure
+  const data = {};
+  
+  let unknownCityCount = 0;
+  let unknownDateCount = 0;
+  const yearCounts = {};
+
+  // Process each lead
+  allLeads.forEach(lead => {
+    const city = lead.city || null;
+    const date = extractDate(lead);
+
+    // Handle missing date — still count for debug
+    if (!date) {
+      unknownDateCount++;
+      return;
+    }
+
+    const year = date.getFullYear().toString();
+    const monthIndex = date.getMonth();
+    const monthName = MONTH_NAMES[monthIndex];
+
+    // Track year counts (all leads with a date, regardless of city)
+    if (!yearCounts[year]) yearCounts[year] = 0;
+    yearCounts[year]++;
+
+    // Handle missing city OR unclassifiable city — count as Unknown
+    const region = classifyRegion(city);
+    if (!city || !region) {
+      unknownCityCount++;
+      // Still add to year structure so totals are accurate
+      if (!data[year]) {
+        data[year] = {
+          'Northern California': { total: 0, months: {}, cities: {} },
+          'Southern California': { total: 0, months: {}, cities: {} },
+          'Unknown City': { total: 0 },
+          'Unknown Date': { total: 0 }
+        };
+        MONTH_NAMES.forEach(month => {
+          data[year]['Northern California'].months[month] = { total: 0, cities: {} };
+          data[year]['Southern California'].months[month] = { total: 0, cities: {} };
+        });
+      }
+      data[year]['Unknown City'].total++;
+      return;
+    }
+
+    // Initialize year
+    if (!data[year]) {
+      data[year] = {
+        'Northern California': { total: 0, months: {}, cities: {} },
+        'Southern California': { total: 0, months: {}, cities: {} },
+        'Unknown City': { total: 0 },
+        'Unknown Date': { total: 0 }
+      };
+
+      // Initialize months
+      MONTH_NAMES.forEach(month => {
+        data[year]['Northern California'].months[month] = { total: 0, cities: {} };
+        data[year]['Southern California'].months[month] = { total: 0, cities: {} };
+      });
+    }
+
+    // Increment region total
+    data[year][region].total++;
+
+    // Increment month total
+    data[year][region].months[monthName].total++;
+
+    // Track city
+    if (!data[year][region].cities[city]) {
+      data[year][region].cities[city] = { total: 0, leadIds: [] };
+    }
+    data[year][region].cities[city].total++;
+    data[year][region].cities[city].leadIds.push(lead.id);
+
+    // Track city in month
+    if (!data[year][region].months[monthName].cities[city]) {
+      data[year][region].months[monthName].cities[city] = { total: 0, leadIds: [] };
+    }
+    data[year][region].months[monthName].cities[city].total++;
+    data[year][region].months[monthName].cities[city].leadIds.push(lead.id);
+  });
+
+  // Log debug info
+  console.log('[leadRegionAnalytics] Debug Summary:');
+  console.log(`  Total leads loaded: ${allLeads.length}`);
+  console.log(`  Unknown city: ${unknownCityCount}`);
+  console.log(`  Unknown date: ${unknownDateCount}`);
+  Object.entries(yearCounts).forEach(([year, count]) => {
+    console.log(`  Leads in ${year}: ${count}`);
+  });
+
+  const result = {
+    data,
+    debug: {
+      totalLeads: allLeads.length,
+      unknownCity: unknownCityCount,
+      unknownDate: unknownDateCount,
+      yearCounts
+    }
+  };
+
+  _cache = result;
+  _cacheAt = Date.now();
+  _inflight = null;
+  return result;
+  })();
+
+  return _inflight;
+}

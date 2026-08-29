@@ -1,1 +1,31 @@
-LyoqCiAqIFByb2plY3RUYWIg4oCUIEhhbmRvZmYgZXN0aW1hdGVzLCB3b3JrIGRhdGVzLCBwcm9qZWN0IHN0YXR1cy4KICovCmltcG9ydCB7IENhbGVuZGFyLCBCcmllZmNhc2UgfSBmcm9tICJsdWNpZGUtcmVhY3QiOwppbXBvcnQgSGFuZG9mZkVzdGltYXRlc1BhbmVsIGZyb20gIkAvY29tcG9uZW50cy9IYW5kb2ZmRXN0aW1hdGVzUGFuZWwiOwppbXBvcnQgeyBFZGl0YWJsZUluZm9Sb3cgfSBmcm9tICIuL0VkaXRhYmxlRmllbGRzIjsKCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIFByb2plY3RUYWIoeyBkZWFsLCBsZWFkLCB1cGRhdGVGaWVsZCwgc2V0TGVhZCwgc2F2aW5nIH0pIHsKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9Im1heC13LTR4bCBteC1hdXRvIHB4LTQgbWQ6cHgtNiBweS01IHNwYWNlLXktNSI+CiAgICAgIHsvKiBIYW5kb2ZmIEVzdGltYXRlcyAqL30KICAgICAgPGRpdj4KICAgICAgICA8cCBjbGFzc05hbWU9InR5cG9ncmFwaHktc2VjdGlvbi1oZWFkZXIgbWItMiI+SEFORE9GRiBFU1RJTUFURTwvcD4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iY2FyZC1wcmVtaXVtIG92ZXJmbG93LWhpZGRlbiI+CiAgICAgICAgICA8SGFuZG9mZkVzdGltYXRlc1BhbmVsIGxlYWQ9e2xlYWR9IG9uTGVhZFVwZGF0ZT17c2V0TGVhZH0gLz4KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CgogICAgICB7LyogUHJvamVjdCBTY2hlZHVsZSAqL30KICAgICAgPGRpdiBjbGFzc05hbWU9ImNhcmQtcHJlbWl1bSBwLTQgc3BhY2UteS0zIj4KICAgICAgICA8cCBjbGFzc05hbWU9InR5cG9ncmFwaHktc2VjdGlvbi1oZWFkZXIiPlBST0pFQ1QgU0NIRURVTEU8L3A+CiAgICAgICAgPEVkaXRhYmxlSW5mb1JvdyBpY29uPXtDYWxlbmRhcn0gbGFiZWw9IldvcmsgU3RhcnQgRGF0ZSIgdmFsdWU9e2RlYWwud29ya19zdGFydF9kYXRlfQogICAgICAgICAgdHlwZT0iZGF0ZSIgb25TYXZlPXt2ID0+IHVwZGF0ZUZpZWxkKCJ3b3JrX3N0YXJ0X2RhdGUiLCB2KX0gc2F2aW5nPXtzYXZpbmcgPT09ICJ3b3JrX3N0YXJ0X2RhdGUifSAvPgogICAgICAgIDxFZGl0YWJsZUluZm9Sb3cgaWNvbj17Q2FsZW5kYXJ9IGxhYmVsPSJXb3JrIEVuZCBEYXRlIiB2YWx1ZT17ZGVhbC53b3JrX2VuZF9kYXRlfQogICAgICAgICAgdHlwZT0iZGF0ZSIgb25TYXZlPXt2ID0+IHVwZGF0ZUZpZWxkKCJ3b3JrX2VuZF9kYXRlIiwgdil9IHNhdmluZz17c2F2aW5nID09PSAid29ya19lbmRfZGF0ZSJ9IC8+CiAgICAgICAgPEVkaXRhYmxlSW5mb1JvdyBpY29uPXtCcmllZmNhc2V9IGxhYmVsPSJQcm9qZWN0IFR5cGUiIHZhbHVlPXtkZWFsLnByb2plY3RfdHlwZSB8fCBsZWFkLnByb2plY3RfdHlwZX0KICAgICAgICAgIG9uU2F2ZT17diA9PiB1cGRhdGVGaWVsZCgicHJvamVjdF90eXBlIiwgdil9IHNhdmluZz17c2F2aW5nID09PSAicHJvamVjdF90eXBlIn0gLz4KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KICApOwp9
+/**
+ * ProjectTab — Handoff estimates, work dates, project status.
+ */
+import { Calendar, Briefcase } from "lucide-react";
+import HandoffEstimatesPanel from "@/components/HandoffEstimatesPanel";
+import { EditableInfoRow } from "./EditableFields";
+
+export default function ProjectTab({ deal, lead, updateField, setLead, saving }) {
+  return (
+    <div className="max-w-4xl mx-auto px-4 md:px-6 py-5 space-y-5">
+      {/* Handoff Estimates */}
+      <div>
+        <p className="typography-section-header mb-2">HANDOFF ESTIMATE</p>
+        <div className="card-premium overflow-hidden">
+          <HandoffEstimatesPanel lead={lead} onLeadUpdate={setLead} />
+        </div>
+      </div>
+
+      {/* Project Schedule */}
+      <div className="card-premium p-4 space-y-3">
+        <p className="typography-section-header">PROJECT SCHEDULE</p>
+        <EditableInfoRow icon={Calendar} label="Work Start Date" value={deal.work_start_date}
+          type="date" onSave={v => updateField("work_start_date", v)} saving={saving === "work_start_date"} />
+        <EditableInfoRow icon={Calendar} label="Work End Date" value={deal.work_end_date}
+          type="date" onSave={v => updateField("work_end_date", v)} saving={saving === "work_end_date"} />
+        <EditableInfoRow icon={Briefcase} label="Project Type" value={deal.project_type || lead.project_type}
+          onSave={v => updateField("project_type", v)} saving={saving === "project_type"} />
+      </div>
+    </div>
+  );
+}

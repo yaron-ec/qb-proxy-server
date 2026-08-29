@@ -1,1 +1,116 @@
-LyoqCiAqIERlYWxIZWFkZXIg4oCUIGJyZWFkY3J1bWIsIHRpdGxlLCBzdGFnZSBiYWRnZSwgYWN0aW9ucywgcHJvZ3Jlc3MgYmFyLgogKi8KaW1wb3J0IHsgTGluayB9IGZyb20gInJlYWN0LXJvdXRlci1kb20iOwppbXBvcnQgeyBBcnJvd0xlZnQsIFBsdXMsIFRyYXNoMiwgVHJlbmRpbmdVcCB9IGZyb20gImx1Y2lkZS1yZWFjdCI7Cgpjb25zdCBQSVBFTElORV9TVEFHRVMgPSBbCiAgIlNvbGQgLyBFc3RpbWF0ZSBBcHByb3ZlZCIsCiAgIkRlcG9zaXQgRHVlIiwKICAiRGVwb3NpdCBQYWlkIiwKICAiV29yayBTY2hlZHVsZWQiLAogICJXb3JrIFN0YXJ0ZWQiLAogICJQcm9ncmVzcyBQYXltZW50IER1ZSIsCiAgIlByb2dyZXNzIFBheW1lbnQgUGFpZCIsCiAgIkZpbmFsIFBheW1lbnQgRHVlIiwKICAiRmluYWwgUGF5bWVudCBQYWlkIiwKICAiSm9iIENvbXBsZXRlZCIsCl07Cgpjb25zdCBTVEFHRV9DT0xPUlMgPSB7CiAgIlNvbGQgLyBFc3RpbWF0ZSBBcHByb3ZlZCI6IHsgYmc6ICJiZy1ibHVlLTEwMCIsICAgIHRleHQ6ICJ0ZXh0LWJsdWUtNzAwIiwgICAgYm9yZGVyOiAiYm9yZGVyLWJsdWUtMjAwIiB9LAogICJEZXBvc2l0IER1ZSI6ICAgICAgICAgICAgICB7IGJnOiAiYmctYW1iZXItMTAwIiwgICB0ZXh0OiAidGV4dC1hbWJlci03MDAiLCAgIGJvcmRlcjogImJvcmRlci1hbWJlci0yMDAiIH0sCiAgIkRlcG9zaXQgUGFpZCI6ICAgICAgICAgICAgIHsgYmc6ICJiZy1lbWVyYWxkLTEwMCIsIHRleHQ6ICJ0ZXh0LWVtZXJhbGQtNzAwIiwgYm9yZGVyOiAiYm9yZGVyLWVtZXJhbGQtMjAwIiB9LAogICJXb3JrIFNjaGVkdWxlZCI6ICAgICAgICAgICB7IGJnOiAiYmctc2t5LTEwMCIsICAgICB0ZXh0OiAidGV4dC1za3ktNzAwIiwgICAgIGJvcmRlcjogImJvcmRlci1za3ktMjAwIiB9LAogICJXb3JrIFN0YXJ0ZWQiOiAgICAgICAgICAgICB7IGJnOiAiYmctaW5kaWdvLTEwMCIsICB0ZXh0OiAidGV4dC1pbmRpZ28tNzAwIiwgIGJvcmRlcjogImJvcmRlci1pbmRpZ28tMjAwIiB9LAogICJQcm9ncmVzcyBQYXltZW50IER1ZSI6ICAgICB7IGJnOiAiYmctb3JhbmdlLTEwMCIsICB0ZXh0OiAidGV4dC1vcmFuZ2UtNzAwIiwgIGJvcmRlcjogImJvcmRlci1vcmFuZ2UtMjAwIiB9LAogICJQcm9ncmVzcyBQYXltZW50IFBhaWQiOiAgICB7IGJnOiAiYmctdGVhbC0xMDAiLCAgICB0ZXh0OiAidGV4dC10ZWFsLTcwMCIsICAgIGJvcmRlcjogImJvcmRlci10ZWFsLTIwMCIgfSwKICAiRmluYWwgUGF5bWVudCBEdWUiOiAgICAgICAgeyBiZzogImJnLW9yYW5nZS0xMDAiLCAgdGV4dDogInRleHQtb3JhbmdlLTcwMCIsICBib3JkZXI6ICJib3JkZXItb3JhbmdlLTIwMCIgfSwKICAiRmluYWwgUGF5bWVudCBQYWlkIjogICAgICAgeyBiZzogImJnLWVtZXJhbGQtMTAwIiwgdGV4dDogInRleHQtZW1lcmFsZC03MDAiLCBib3JkZXI6ICJib3JkZXItZW1lcmFsZC0yMDAiIH0sCiAgIkpvYiBDb21wbGV0ZWQiOiAgICAgICAgICAgIHsgYmc6ICJiZy1ncmVlbi0xMDAiLCAgIHRleHQ6ICJ0ZXh0LWdyZWVuLTcwMCIsICAgYm9yZGVyOiAiYm9yZGVyLWdyZWVuLTIwMCIgfSwKfTsKCmNvbnN0IGZtdE1vbmV5ID0gKHYpID0+IHYgIT0gbnVsbCA/IGAkJHtOdW1iZXIodikudG9Mb2NhbGVTdHJpbmcoImVuLVVTIiwgeyBtaW5pbXVtRnJhY3Rpb25EaWdpdHM6IDAgfSl9YCA6ICLigJQiOwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gRGVhbEhlYWRlcih7IGRlYWwsIGxlYWQsIG9uQWRkUHJvamVjdCwgb25EZWxldGVEZWFsIH0pIHsKICBjb25zdCBzdGFnZUNvbG9yID0gU1RBR0VfQ09MT1JTW2RlYWwuc3RhZ2VdIHx8IHsgYmc6ICJiZy1zbGF0ZS0xMDAiLCB0ZXh0OiAidGV4dC1zbGF0ZS02MDAiLCBib3JkZXI6ICJib3JkZXItc2xhdGUtMjAwIiB9OwogIGNvbnN0IHN0YWdlSW5kZXggPSBQSVBFTElORV9TVEFHRVMuaW5kZXhPZihkZWFsLnN0YWdlKTsKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJiZy13aGl0ZSBib3JkZXItYiBib3JkZXItc2xhdGUtMjAwIGZsZXgtc2hyaW5rLTAgc3RpY2t5IHRvcC0wIHotMzAiIHN0eWxlPXt7IHBhZGRpbmdUb3A6ICJlbnYoc2FmZS1hcmVhLWluc2V0LXRvcCkiIH19PgogICAgICB7LyogQnJlYWRjcnVtYiAqL30KICAgICAgPGRpdiBjbGFzc05hbWU9InB4LTQgbWQ6cHgtNiBwdC0zIG1kOnB0LTQgcGItMCBmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiI+CiAgICAgICAgPExpbmsgdG89Ii9kZWFscyIgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciB3LTExIGgtMTEgcm91bmRlZC14bCBiZy1zbGF0ZS0xMDAgdGV4dC1zbGF0ZS03MDAgaG92ZXI6Ymctc2xhdGUtMjAwIHRyYW5zaXRpb24tY29sb3JzIGZsZXgtc2hyaW5rLTAgbWQ6aGlkZGVuIiBhcmlhLWxhYmVsPSJCYWNrIHRvIGRlYWxzIj4KICAgICAgICAgIDxBcnJvd0xlZnQgY2xhc3NOYW1lPSJ3LTUgaC01IiAvPgogICAgICAgIDwvTGluaz4KICAgICAgICA8TGluayB0bz0iL2RlYWxzIiBjbGFzc05hbWU9ImhpZGRlbiBtZDpmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMS41IHRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTQwMCBob3Zlcjp0ZXh0LXNsYXRlLTcwMCBidG4tY29tcGFjdCI+CiAgICAgICAgICA8QXJyb3dMZWZ0IGNsYXNzTmFtZT0idy0zLjUgaC0zLjUiIC8+CiAgICAgICAgICBEZWFscwogICAgICAgIDwvTGluaz4KICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtc2xhdGUtMzAwIHRleHQteHMiPi88L3NwYW4+CiAgICAgICAge2xlYWQgJiYgKAogICAgICAgICAgPD4KICAgICAgICAgICAgPExpbmsgdG89e2AvbGVhZHMvJHtsZWFkLmlkfWB9IGNsYXNzTmFtZT0idGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtYW1iZXItNjAwIGhvdmVyOnRleHQtYW1iZXItNzAwIj4KICAgICAgICAgICAgICB7bGVhZC5maXJzdF9uYW1lfSB7bGVhZC5sYXN0X25hbWV9CiAgICAgICAgICAgIDwvTGluaz4KICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXNsYXRlLTMwMCB0ZXh0LXhzIj4vPC9zcGFuPgogICAgICAgICAgPC8+CiAgICAgICAgKX0KICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTYwMCB0cnVuY2F0ZSI+e2RlYWwubmFtZX08L3NwYW4+CiAgICAgIDwvZGl2PgoKICAgICAgey8qIFRpdGxlICYgU3RhdHVzICovfQogICAgICA8ZGl2IGNsYXNzTmFtZT0icHgtNCBtZDpweC02IHB5LTMgbWQ6cHktNCBmbGV4IGZsZXgtY29sIHNtOmZsZXgtcm93IHNtOml0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gZ2FwLTMgbWQ6Z2FwLTQiPgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLXN0YXJ0IGdhcC0zIG1kOmdhcC00IG1pbi13LTAiPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9InctMTAgaC0xMCBtZDp3LTEyIG1kOmgtMTIgcm91bmRlZC14bCBiZy1ncmFkaWVudC10by1iciBmcm9tLWFtYmVyLTUwMCB0by1vcmFuZ2UtNTAwIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGZsZXgtc2hyaW5rLTAiPgogICAgICAgICAgICA8VHJlbmRpbmdVcCBjbGFzc05hbWU9InctNSBoLTUgbWQ6dy02IG1kOmgtNiB0ZXh0LXdoaXRlIiAvPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibWluLXctMCI+CiAgICAgICAgICAgIDxoMSBjbGFzc05hbWU9InRleHQtbGcgbWQ6dGV4dC0yeGwgZm9udC1ib2xkIHRleHQtc2xhdGUtOTAwIGxlYWRpbmctdGlnaHQgdHJ1bmNhdGUiPntkZWFsLm5hbWV9PC9oMT4KICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIG10LTEuNSBtZDptdC0yIGZsZXgtd3JhcCI+CiAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPXtgdGV4dC14cyBmb250LXNlbWlib2xkIHB4LTIuNSBtZDpweC0zIHB5LTEgbWQ6cHktMS41IHJvdW5kZWQtZnVsbCBib3JkZXIgJHtzdGFnZUNvbG9yLmJnfSAke3N0YWdlQ29sb3IudGV4dH0gJHtzdGFnZUNvbG9yLmJvcmRlcn1gfT4KICAgICAgICAgICAgICAgIHtkZWFsLnN0YWdlfQogICAgICAgICAgICAgIDwvc3Bhbj4KICAgICAgICAgICAgICB7ZGVhbC5hbW91bnQgJiYgKAogICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtYm9sZCB0ZXh0LWVtZXJhbGQtNzAwIj57Zm10TW9uZXkoZGVhbC5hbW91bnQpfTwvc3Bhbj4KICAgICAgICAgICAgICApfQogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgoKICAgICAgICB7LyogQWN0aW9ucyAqL30KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgZmxleC1zaHJpbmstMCI+CiAgICAgICAgICA8YnV0dG9uIG9uQ2xpY2s9e29uQWRkUHJvamVjdH0KICAgICAgICAgICAgY2xhc3NOYW1lPSJweC0zIG1kOnB4LTQgcHktMiB0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1hbWJlci02MDAgaG92ZXI6YmctYW1iZXItNTAgcm91bmRlZC1sZyBib3JkZXIgYm9yZGVyLWFtYmVyLTIwMCB0cmFuc2l0aW9uLWNvbG9ycyBmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMS41IGJ0bi1jb21wYWN0Ij4KICAgICAgICAgICAgPFBsdXMgY2xhc3NOYW1lPSJ3LTMuNSBoLTMuNSIgLz4KICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJoaWRkZW4gc206aW5saW5lIj5BZGQgUHJvamVjdDwvc3Bhbj4KICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJzbTpoaWRkZW4iPkFkZDwvc3Bhbj4KICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgPGJ1dHRvbiBvbkNsaWNrPXtvbkRlbGV0ZURlYWx9CiAgICAgICAgICAgIGNsYXNzTmFtZT0icHgtMyBtZDpweC00IHB5LTIgdGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtcmVkLTYwMCBob3ZlcjpiZy1yZWQtNTAgcm91bmRlZC1sZyBib3JkZXIgYm9yZGVyLXJlZC0yMDAgdHJhbnNpdGlvbi1jb2xvcnMgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSBidG4tY29tcGFjdCI+CiAgICAgICAgICAgIDxUcmFzaDIgY2xhc3NOYW1lPSJ3LTMuNSBoLTMuNSIgLz4KICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJoaWRkZW4gc206aW5saW5lIj5EZWxldGU8L3NwYW4+CiAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CgogICAgICB7LyogUHJvZ3Jlc3MgQmFyICovfQogICAgICA8ZGl2IGNsYXNzTmFtZT0icHgtNCBtZDpweC02IHBiLTMgbWQ6cGItNCI+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0wLjUiPgogICAgICAgICAge1BJUEVMSU5FX1NUQUdFUy5tYXAoKHMsIGkpID0+IHsKICAgICAgICAgICAgY29uc3QgaXNQYXN0ID0gaSA8IHN0YWdlSW5kZXg7CiAgICAgICAgICAgIGNvbnN0IGlzQ3VycmVudCA9IGkgPT09IHN0YWdlSW5kZXg7CiAgICAgICAgICAgIHJldHVybiAoCiAgICAgICAgICAgICAgPGRpdiBrZXk9e3N9IHRpdGxlPXtzfQogICAgICAgICAgICAgICAgY2xhc3NOYW1lPXtgZmxleC0xIGgtMiByb3VuZGVkLWZ1bGwgdHJhbnNpdGlvbi1hbGwgJHtpc0N1cnJlbnQgPyAiYmctYW1iZXItNTAwIiA6IGlzUGFzdCA/ICJiZy1hbWJlci0yMDAiIDogImJnLXNsYXRlLTIwMCJ9YH0KICAgICAgICAgICAgICAvPgogICAgICAgICAgICApOwogICAgICAgICAgfSl9CiAgICAgICAgPC9kaXY+CiAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSB0ZXh0LXNsYXRlLTQwMCBtdC0xIj4KICAgICAgICAgIFN0ZXAge01hdGgubWF4KDAsIHN0YWdlSW5kZXgpICsgMX0gb2Yge1BJUEVMSU5FX1NUQUdFUy5sZW5ndGh9CiAgICAgICAgPC9wPgogICAgICA8L2Rpdj4KICAgIDwvZGl2PgogICk7Cn0=
+/**
+ * DealHeader — breadcrumb, title, stage badge, actions, progress bar.
+ */
+import { Link } from "react-router-dom";
+import { ArrowLeft, Plus, Trash2, TrendingUp } from "lucide-react";
+
+const PIPELINE_STAGES = [
+  "Sold / Estimate Approved",
+  "Deposit Due",
+  "Deposit Paid",
+  "Work Scheduled",
+  "Work Started",
+  "Progress Payment Due",
+  "Progress Payment Paid",
+  "Final Payment Due",
+  "Final Payment Paid",
+  "Job Completed",
+];
+
+const STAGE_COLORS = {
+  "Sold / Estimate Approved": { bg: "bg-blue-100",    text: "text-blue-700",    border: "border-blue-200" },
+  "Deposit Due":              { bg: "bg-amber-100",   text: "text-amber-700",   border: "border-amber-200" },
+  "Deposit Paid":             { bg: "bg-emerald-100", text: "text-emerald-700", border: "border-emerald-200" },
+  "Work Scheduled":           { bg: "bg-sky-100",     text: "text-sky-700",     border: "border-sky-200" },
+  "Work Started":             { bg: "bg-indigo-100",  text: "text-indigo-700",  border: "border-indigo-200" },
+  "Progress Payment Due":     { bg: "bg-orange-100",  text: "text-orange-700",  border: "border-orange-200" },
+  "Progress Payment Paid":    { bg: "bg-teal-100",    text: "text-teal-700",    border: "border-teal-200" },
+  "Final Payment Due":        { bg: "bg-orange-100",  text: "text-orange-700",  border: "border-orange-200" },
+  "Final Payment Paid":       { bg: "bg-emerald-100", text: "text-emerald-700", border: "border-emerald-200" },
+  "Job Completed":            { bg: "bg-green-100",   text: "text-green-700",   border: "border-green-200" },
+};
+
+const fmtMoney = (v) => v != null ? `$${Number(v).toLocaleString("en-US", { minimumFractionDigits: 0 })}` : "—";
+
+export default function DealHeader({ deal, lead, onAddProject, onDeleteDeal }) {
+  const stageColor = STAGE_COLORS[deal.stage] || { bg: "bg-slate-100", text: "text-slate-600", border: "border-slate-200" };
+  const stageIndex = PIPELINE_STAGES.indexOf(deal.stage);
+
+  return (
+    <div className="bg-white border-b border-slate-200 flex-shrink-0 sticky top-0 z-30" style={{ paddingTop: "env(safe-area-inset-top)" }}>
+      {/* Breadcrumb */}
+      <div className="px-4 md:px-6 pt-3 md:pt-4 pb-0 flex items-center gap-2">
+        <Link to="/deals" className="flex items-center justify-center w-11 h-11 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors flex-shrink-0 md:hidden" aria-label="Back to deals">
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
+        <Link to="/deals" className="hidden md:flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-slate-700 btn-compact">
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Deals
+        </Link>
+        <span className="text-slate-300 text-xs">/</span>
+        {lead && (
+          <>
+            <Link to={`/leads/${lead.id}`} className="text-xs font-semibold text-amber-600 hover:text-amber-700">
+              {lead.first_name} {lead.last_name}
+            </Link>
+            <span className="text-slate-300 text-xs">/</span>
+          </>
+        )}
+        <span className="text-xs font-semibold text-slate-600 truncate">{deal.name}</span>
+      </div>
+
+      {/* Title & Status */}
+      <div className="px-4 md:px-6 py-3 md:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 md:gap-4">
+        <div className="flex items-start gap-3 md:gap-4 min-w-0">
+          <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center flex-shrink-0">
+            <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-white" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-lg md:text-2xl font-bold text-slate-900 leading-tight truncate">{deal.name}</h1>
+            <div className="flex items-center gap-2 mt-1.5 md:mt-2 flex-wrap">
+              <span className={`text-xs font-semibold px-2.5 md:px-3 py-1 md:py-1.5 rounded-full border ${stageColor.bg} ${stageColor.text} ${stageColor.border}`}>
+                {deal.stage}
+              </span>
+              {deal.amount && (
+                <span className="text-sm font-bold text-emerald-700">{fmtMoney(deal.amount)}</span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <button onClick={onAddProject}
+            className="px-3 md:px-4 py-2 text-xs font-semibold text-amber-600 hover:bg-amber-50 rounded-lg border border-amber-200 transition-colors flex items-center gap-1.5 btn-compact">
+            <Plus className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Add Project</span>
+            <span className="sm:hidden">Add</span>
+          </button>
+          <button onClick={onDeleteDeal}
+            className="px-3 md:px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg border border-red-200 transition-colors flex items-center gap-1.5 btn-compact">
+            <Trash2 className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Delete</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="px-4 md:px-6 pb-3 md:pb-4">
+        <div className="flex items-center gap-0.5">
+          {PIPELINE_STAGES.map((s, i) => {
+            const isPast = i < stageIndex;
+            const isCurrent = i === stageIndex;
+            return (
+              <div key={s} title={s}
+                className={`flex-1 h-2 rounded-full transition-all ${isCurrent ? "bg-amber-500" : isPast ? "bg-amber-200" : "bg-slate-200"}`}
+              />
+            );
+          })}
+        </div>
+        <p className="text-[10px] text-slate-400 mt-1">
+          Step {Math.max(0, stageIndex) + 1} of {PIPELINE_STAGES.length}
+        </p>
+      </div>
+    </div>
+  );
+}

@@ -1,1 +1,108 @@
-LyoqCiAqIFJhaWx3YXkgQVBJIGNsaWVudAogKgogKiDimqDvuI8gIElOVEVHUkFUSU9OIFBPTElDWSDigJQgRE8gTk9UIFZJT0xBVEUKICogRG8gTk9UIHVzZSBCYXNlNDQgYmFja2VuZCBmdW5jdGlvbnMgaGVyZS4KICogVGhpcyBpbnRlZ3JhdGlvbiBtdXN0IHVzZSBSYWlsd2F5IHByb3h5IG9yIGRpcmVjdCBHb29nbGUgQVBJIG9ubHkuCiAqIFNlZSBzcmMvbGliL2ludGVncmF0aW9uUG9saWN5LmpzIGZvciB0aGUgZnVsbCBwb2xpY3kuCiAqCiAqIEFMTE9XRUQ6ICBmZXRjaCgpIHRvIFJhaWx3YXkgcHJveHksIGJhc2U0NC5lbnRpdGllcy4qIChEQiBvbmx5KSwgYmFzZTQ0LmF1dGguKgogKiBGT1JCSURERU46IGJhc2U0NC5mdW5jdGlvbnMuaW52b2tlKC4uLiksIGJhc2U0NC5mdW5jdGlvbnMuKgogKgogKiBBbGwgUUIvSGFuZG9mZi9TaWduTm93IGNhbGxzIGdvIHRocm91Z2ggdGhlIFJhaWx3YXkgcHJveHkgc2VydmVyLgogKiBUaGUgcHJveHkgaG9sZHMgUUJfUFJPWFlfU0VDUkVUIOKAlCBuZXZlciBleHBvc2VkIHRvIHRoZSBicm93c2VyLgogKiBUaGUgcHJveHkgVVJMIGlzIHRoZSBjYW5vbmljYWwgVklURV9SQUlMV0FZX0FQSV9VUkwgKHNlZSBzcmMvbGliL2FwaUNvbmZpZy5qcykuCiAqLwoKaW1wb3J0IHsgUkFJTFdBWV9BUElfVVJMIGFzIFBST1hZX1VSTCB9IGZyb20gJ0AvbGliL2FwaUNvbmZpZyc7CmNvbnN0IFBST1hZX1NFQ1JFVCA9IGltcG9ydC5tZXRhLmVudi5WSVRFX1FCX1BST1hZX1NFQ1JFVCB8fCAnJzsKCi8qKgogKiBNYWtlIGEgUE9TVCByZXF1ZXN0IHRvIHRoZSBSYWlsd2F5IHByb3h5LgogKiBAcGFyYW0ge3N0cmluZ30gcGF0aCAtIGUuZy4gJy9xYi9sZWFkLXN0YXR1cycKICogQHBhcmFtIHtvYmplY3R9IGJvZHkgLSBKU09OIHBheWxvYWQKICovCmV4cG9ydCBhc3luYyBmdW5jdGlvbiByYWlsd2F5UmVxdWVzdChwYXRoLCBib2R5ID0ge30pIHsKICBpZiAoIVBST1hZX1VSTCkgewogICAgdGhyb3cgbmV3IEVycm9yKAogICAgICAnUmFpbHdheSBBUEkgVVJMIG5vdCBjb25maWd1cmVkLiBTZXQgVklURV9SQUlMV0FZX0FQSV9VUkwgaW4geW91ciBlbnZpcm9ubWVudC4nCiAgICApOwogIH0KICBjb25zdCByZXMgPSBhd2FpdCBmZXRjaChgJHtQUk9YWV9VUkx9JHtwYXRofWAsIHsKICAgIG1ldGhvZDogJ1BPU1QnLAogICAgaGVhZGVyczogewogICAgICAnQ29udGVudC1UeXBlJzogJ2FwcGxpY2F0aW9uL2pzb24nLAogICAgICAuLi4oUFJPWFlfU0VDUkVUID8geyAnWC1Qcm94eS1TZWNyZXQnOiBQUk9YWV9TRUNSRVQgfSA6IHt9KSwKICAgIH0sCiAgICBib2R5OiBKU09OLnN0cmluZ2lmeShib2R5KSwKICB9KTsKICBjb25zdCBkYXRhID0gYXdhaXQgcmVzLmpzb24oKS5jYXRjaCgoKSA9PiAoe30pKTsKICBpZiAoIXJlcy5vaykgewogICAgdGhyb3cgT2JqZWN0LmFzc2lnbihuZXcgRXJyb3IoZGF0YT8uZXJyb3IgfHwgYFByb3h5IGVycm9yICR7cmVzLnN0YXR1c31gKSwgeyBzdGF0dXM6IHJlcy5zdGF0dXMsIGRhdGEgfSk7CiAgfQogIHJldHVybiBkYXRhOwp9CgovKioKICogTm9ybWFsaXplcyBpbnRlZ3JhdGlvbiBlcnJvcnMgZm9yIHVzZXItZmFjaW5nIGRpc3BsYXkuCiAqLwpleHBvcnQgZnVuY3Rpb24gbm9ybWFsaXplSW50ZWdyYXRpb25FcnJvcihlcnJvcikgewogIGNvbnN0IHJhdyA9IGVycm9yPy5tZXNzYWdlIHx8IFN0cmluZyhlcnJvciB8fCAnJyk7CgogIC8vIFN0cmlwIEhUTUwgcmVzcG9uc2VzIChFeHByZXNzIDQwNCBwYWdlcywgZXRjLikKICBpZiAocmF3LmluY2x1ZGVzKCc8IURPQ1RZUEUnKSB8fCByYXcuaW5jbHVkZXMoJzxodG1sJykpIHsKICAgIGlmIChyYXcuaW5jbHVkZXMoJ0Nhbm5vdCBQT1NUJykgfHwgcmF3LmluY2x1ZGVzKCdDYW5ub3QgR0VUJykgfHwgcmF3LmluY2x1ZGVzKCc0MDQnKSkgewogICAgICByZXR1cm4gJ1F1aWNrQm9va3MgcHJveHkgbmVlZHMgcmVkZXBsb3kuIFBsZWFzZSByZWRlcGxveSB0aGUgUmFpbHdheSBwcm94eSBhbmQgdHJ5IGFnYWluLic7CiAgICB9CiAgICByZXR1cm4gJ1F1aWNrQm9va3MgcHJveHkgcmV0dXJuZWQgYW4gdW5leHBlY3RlZCByZXNwb25zZS4gUGxlYXNlIHRyeSBhZ2Fpbi4nOwogIH0KCiAgLy8gUmVjb25uZWN0IHJlcXVpcmVkCiAgaWYgKHJhdy5pbmNsdWRlcygnUVVJQ0tCT09LU19SRUNPTk5FQ1RfUkVRVUlSRUQnKSB8fCByYXcuaW5jbHVkZXMoJ3JlY29ubmVjdFJlcXVpcmVkJykpIHsKICAgIHJldHVybiAnUXVpY2tCb29rcyBjb25uZWN0aW9uIGV4cGlyZWQuIFJlY29ubmVjdCBpbiBTZXR0aW5ncyDihpIgSW50ZWdyYXRpb25zLic7CiAgfQoKICAvLyBOZXR3b3JrIGVycm9ycwogIGlmIChyYXcuaW5jbHVkZXMoJ0VOT1RGT1VORCcpIHx8IHJhdy5pbmNsdWRlcygnZmV0Y2ggZmFpbGVkJykgfHwgcmF3LmluY2x1ZGVzKCdOZXR3b3JrRXJyb3InKSB8fCByYXcuaW5jbHVkZXMoJ0Nhbm5vdCByZWFjaCBRQiBwcm94eScpKSB7CiAgICByZXR1cm4gJ0Nhbm5vdCByZWFjaCBRdWlja0Jvb2tzIHByb3h5LiBDaGVjayBjb25uZWN0aW9uIGFuZCB0cnkgYWdhaW4uJzsKICB9CgogIC8vIFBsYW4vc3Vic2NyaXB0aW9uIGVycm9ycwogIGlmICgKICAgIHJhdy5pbmNsdWRlcygnQnVpbGRlcisnKSB8fAogICAgcmF3LmluY2x1ZGVzKCdjdXJyZW50IHBsYW4nKSB8fAogICAgcmF3LmluY2x1ZGVzKCdiYWNrZW5kIGZ1bmN0aW9uJykgfHwKICAgIHJhdy5pbmNsdWRlcygnc3Vic2NyaXB0aW9uIHBsYW4nKSB8fAogICAgcmF3LmluY2x1ZGVzKCd1cGdyYWRlJykgfHwKICAgIHJhdy5pbmNsdWRlcygnNDAyJykgfHwKICAgIGVycm9yPy5zdGF0dXMgPT09IDQwMgogICkgewogICAgcmV0dXJuICdRdWlja0Jvb2tzIGludGVncmF0aW9uIHVuYXZhaWxhYmxlLiBQbGVhc2UgY2hlY2sgUUIgY29ubmVjdGlvbiBpbiBTZXR0aW5ncy4nOwogIH0KCiAgLy8gQ2xlYW4gcHJveHkgcHJlZml4IGFuZCB0cnVuY2F0ZQogIGNvbnN0IGNsZWFuID0gcmF3LnJlcGxhY2UoL15Qcm94eSBcZCs6XHMqLywgJycpLnJlcGxhY2UoL15RQiBcZCs6XHMqLywgJycpOwogIGlmIChjbGVhbi5sZW5ndGggPiAxODApIHJldHVybiBjbGVhbi5zbGljZSgwLCAxODApICsgJ+KApic7CiAgcmV0dXJuIGNsZWFuIHx8ICdJbnRlZ3JhdGlvbiBmYWlsZWQuIFBsZWFzZSB0cnkgYWdhaW4uJzsKfQoKLyoqCiAqIFN5bmMgUUIgZXN0aW1hdGVzIGZvciBhIGxlYWQgdmlhIHRoZSBzeW5jTGVhZEVzdGltYXRlc0Zyb21RQiBiYWNrZW5kIGZ1bmN0aW9uLgogKi8KZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIHN5bmNMZWFkRXN0aW1hdGVzKGxlYWRJZCkgewogIHJldHVybiByYWlsd2F5UmVxdWVzdCgnL3FiL3N5bmMtbGVhZC1lc3RpbWF0ZXMnLCB7IGxlYWRfbmFtZTogbGVhZElkIH0pOwp9CgovKioKICogRGlhZ25vc2UgUUIgZXN0aW1hdGUgbWF0Y2hpbmcgZm9yIGEgbGVhZCB2aWEgdGhlIHN5bmNMZWFkRXN0aW1hdGVzRnJvbVFCIGJhY2tlbmQgZnVuY3Rpb24uCiAqLwpleHBvcnQgYXN5bmMgZnVuY3Rpb24gZGlhZ25vc2VMZWFkRXN0aW1hdGVzKGxlYWRJZCkgewogIHJldHVybiByYWlsd2F5UmVxdWVzdCgnL3FiL2RpYWdub3NlLWxlYWQtZXN0aW1hdGVzJywgeyBsZWFkX25hbWU6IGxlYWRJZCB9KTsKfQoKLyoqCiAqIEZldGNoL3NhdmUgUERGIGZvciBhbiBlc3RpbWF0ZSB2aWEgdGhlIGZldGNoRXN0aW1hdGVQZGZzIGJhY2tlbmQgZnVuY3Rpb24uCiAqLwpleHBvcnQgYXN5bmMgZnVuY3Rpb24gZmV0Y2hFc3RpbWF0ZVBkZihlc3RpbWF0ZVJlY29yZElkKSB7CiAgcmV0dXJuIHJhaWx3YXlSZXF1ZXN0KCcvcWIvZmV0Y2gtZXN0aW1hdGUtcGRmJywgeyBlc3RpbWF0ZV9pZDogZXN0aW1hdGVSZWNvcmRJZCB9KTsKfQ==
+/**
+ * Railway API client
+ *
+ * ⚠️  INTEGRATION POLICY — DO NOT VIOLATE
+ * Do NOT use Base44 backend functions here.
+ * This integration must use Railway proxy or direct Google API only.
+ * See src/lib/integrationPolicy.js for the full policy.
+ *
+ * ALLOWED:  fetch() to Railway proxy, base44.entities.* (DB only), base44.auth.*
+ * FORBIDDEN: base44.functions.invoke(...), base44.functions.*
+ *
+ * All QB/Handoff/SignNow calls go through the Railway proxy server.
+ * The proxy holds QB_PROXY_SECRET — never exposed to the browser.
+ * The proxy URL is the canonical VITE_RAILWAY_API_URL (see src/lib/apiConfig.js).
+ */
+
+import { RAILWAY_API_URL as PROXY_URL } from '@/lib/apiConfig';
+const PROXY_SECRET = import.meta.env.VITE_QB_PROXY_SECRET || '';
+
+/**
+ * Make a POST request to the Railway proxy.
+ * @param {string} path - e.g. '/qb/lead-status'
+ * @param {object} body - JSON payload
+ */
+export async function railwayRequest(path, body = {}) {
+  if (!PROXY_URL) {
+    throw new Error(
+      'Railway API URL not configured. Set VITE_RAILWAY_API_URL in your environment.'
+    );
+  }
+  const res = await fetch(`${PROXY_URL}${path}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(PROXY_SECRET ? { 'X-Proxy-Secret': PROXY_SECRET } : {}),
+    },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw Object.assign(new Error(data?.error || `Proxy error ${res.status}`), { status: res.status, data });
+  }
+  return data;
+}
+
+/**
+ * Normalizes integration errors for user-facing display.
+ */
+export function normalizeIntegrationError(error) {
+  const raw = error?.message || String(error || '');
+
+  // Strip HTML responses (Express 404 pages, etc.)
+  if (raw.includes('<!DOCTYPE') || raw.includes('<html')) {
+    if (raw.includes('Cannot POST') || raw.includes('Cannot GET') || raw.includes('404')) {
+      return 'QuickBooks proxy needs redeploy. Please redeploy the Railway proxy and try again.';
+    }
+    return 'QuickBooks proxy returned an unexpected response. Please try again.';
+  }
+
+  // Reconnect required
+  if (raw.includes('QUICKBOOKS_RECONNECT_REQUIRED') || raw.includes('reconnectRequired')) {
+    return 'QuickBooks connection expired. Reconnect in Settings → Integrations.';
+  }
+
+  // Network errors
+  if (raw.includes('ENOTFOUND') || raw.includes('fetch failed') || raw.includes('NetworkError') || raw.includes('Cannot reach QB proxy')) {
+    return 'Cannot reach QuickBooks proxy. Check connection and try again.';
+  }
+
+  // Plan/subscription errors
+  if (
+    raw.includes('Builder+') ||
+    raw.includes('current plan') ||
+    raw.includes('backend function') ||
+    raw.includes('subscription plan') ||
+    raw.includes('upgrade') ||
+    raw.includes('402') ||
+    error?.status === 402
+  ) {
+    return 'QuickBooks integration unavailable. Please check QB connection in Settings.';
+  }
+
+  // Clean proxy prefix and truncate
+  const clean = raw.replace(/^Proxy \d+:\s*/, '').replace(/^QB \d+:\s*/, '');
+  if (clean.length > 180) return clean.slice(0, 180) + '…';
+  return clean || 'Integration failed. Please try again.';
+}
+
+/**
+ * Sync QB estimates for a lead via the syncLeadEstimatesFromQB backend function.
+ */
+export async function syncLeadEstimates(leadId) {
+  return railwayRequest('/qb/sync-lead-estimates', { lead_name: leadId });
+}
+
+/**
+ * Diagnose QB estimate matching for a lead via the syncLeadEstimatesFromQB backend function.
+ */
+export async function diagnoseLeadEstimates(leadId) {
+  return railwayRequest('/qb/diagnose-lead-estimates', { lead_name: leadId });
+}
+
+/**
+ * Fetch/save PDF for an estimate via the fetchEstimatePdfs backend function.
+ */
+export async function fetchEstimatePdf(estimateRecordId) {
+  return railwayRequest('/qb/fetch-estimate-pdf', { estimate_id: estimateRecordId });
+}

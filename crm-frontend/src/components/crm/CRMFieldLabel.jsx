@@ -1,1 +1,9 @@
-aW1wb3J0IHsgdHlwb2dyYXBoeSB9IGZyb20gIkAvbGliL2NybURlc2lnblN5c3RlbSI7CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBDUk1GaWVsZExhYmVsKHsgY2hpbGRyZW4sIGNsYXNzTmFtZSA9ICIiIH0pIHsKICByZXR1cm4gKAogICAgPHAgY2xhc3NOYW1lPXtgJHt0eXBvZ3JhcGh5LmZpZWxkTGFiZWwuY2xhc3NOYW1lfSAke2NsYXNzTmFtZX1gfT4KICAgICAge2NoaWxkcmVufQogICAgPC9wPgogICk7Cn0=
+import { typography } from "@/lib/crmDesignSystem";
+
+export default function CRMFieldLabel({ children, className = "" }) {
+  return (
+    <p className={`${typography.fieldLabel.className} ${className}`}>
+      {children}
+    </p>
+  );
+}

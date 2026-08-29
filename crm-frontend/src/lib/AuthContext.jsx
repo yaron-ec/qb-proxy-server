@@ -1,1 +1,264 @@
-aW1wb3J0IFJlYWN0LCB7IGNyZWF0ZUNvbnRleHQsIHVzZVN0YXRlLCB1c2VDb250ZXh0LCB1c2VFZmZlY3QgfSBmcm9tICdyZWFjdCc7CmltcG9ydCB7IGJhc2U0NCB9IGZyb20gJ0AvYXBpL2Jhc2U0NENsaWVudCc7IC8vIGVzbGludC1kaXNhYmxlLWxpbmUgbm8tdW51c2VkLXZhcnMKaW1wb3J0ICogYXMgcmFpbHdheUFwaSBmcm9tICdAL2xpYi9yYWlsd2F5QXBpJzsKaW1wb3J0IHsgaXNBcGlDb25maWd1cmVkIH0gZnJvbSAnQC9saWIvYXBpQ29uZmlnJzsKCi8qKgogKiBBdXRoQ29udGV4dCDigJQgUmFpbHdheS1vbmx5IGF1dGhlbnRpY2F0aW9uLgogKgogKiBUaGUgYmFzZTQ0IGltcG9ydCBpcyByZXF1aXJlZCBieSB0aGUgcGxhdGZvcm0gYnV0IGlzIE5PVCB1c2VkIGZvciBhdXRoLgogKiBSYWlsd2F5IEpXVCAoYWNjZXNzICsgcmVmcmVzaCkgaXMgdGhlIHNvbGUgYXV0aCBsYXllci4KICoKICogICAtIGNoZWNrQXBwU3RhdGU6IGlmIG5vIFJhaWx3YXkgc2Vzc2lvbiDihpIgYXV0aF9yZXF1aXJlZCDihpIgL2xvZ2luCiAqICAgLSBjaGVja1VzZXJBdXRoOiByYWlsd2F5QXBpLm1lKCkg4oaSIHVzZXIgKyByb2xlCiAqICAgLSBsb2dvdXQ6IHJldm9rZSBSYWlsd2F5IHNlc3Npb24g4oaSIC9sb2dpbgogKiAgIC0gbmF2aWdhdGVUb0xvZ2luOiDihpIgL2xvZ2luCiAqCiAqIFlhcm9uICsgTWljaGVsbGUgcmVtYWluIGFkbWlucyAoZW5mb3JjZWQgc2VydmVyLXNpZGUgdmlhIHVzZXJfYWxsb3dsaXN0KS4KICogUm9sZS9vd25lcnNoaXAgYmVoYXZpb3IgaXMgcHJlc2VydmVkIChSYWlsd2F5IEpXVCBjYXJyaWVzIHJvbGUgKyBvd25lcl9pZCkuCiAqLwpjb25zdCBBdXRoQ29udGV4dCA9IGNyZWF0ZUNvbnRleHQoKTsKCi8vIFdyYXBzIGFueSBwcm9taXNlIHdpdGggYSB0aW1lb3V0LiBSZWplY3RzIHdpdGggYSBjbGVhciBtZXNzYWdlIGlmIGV4Y2VlZGVkLgpmdW5jdGlvbiB3aXRoVGltZW91dChwcm9taXNlLCBtcywgbGFiZWwpIHsKICBjb25zdCB0aW1lb3V0ID0gbmV3IFByb21pc2UoKF8sIHJlamVjdCkgPT4KICAgIHNldFRpbWVvdXQoKCkgPT4gcmVqZWN0KG5ldyBFcnJvcihgJHtsYWJlbH0gdGltZWQgb3V0IGFmdGVyICR7bXMgLyAxMDAwfXNgKSksIG1zKQogICk7CiAgcmV0dXJuIFByb21pc2UucmFjZShbcHJvbWlzZSwgdGltZW91dF0pOwp9CgovLyBEZXRlY3QgU2FmYXJpIHByaXZhdGUgbW9kZSAvIGJsb2NrZWQgbG9jYWxTdG9yYWdlIChpT1MgUFdBIHNhZmUgY2hlY2spCmZ1bmN0aW9uIGlzTG9jYWxTdG9yYWdlQXZhaWxhYmxlKCkgewogIHRyeSB7CiAgICBjb25zdCBrZXkgPSAnX19sc190ZXN0X18nOwogICAgbG9jYWxTdG9yYWdlLnNldEl0ZW0oa2V5LCAnMScpOwogICAgbG9jYWxTdG9yYWdlLnJlbW92ZUl0ZW0oa2V5KTsKICAgIHJldHVybiB0cnVlOwogIH0gY2F0Y2ggewogICAgcmV0dXJuIGZhbHNlOwogIH0KfQoKZXhwb3J0IGNvbnN0IEF1dGhQcm92aWRlciA9ICh7IGNoaWxkcmVuIH0pID0+IHsKICBjb25zdCBbdXNlciwgc2V0VXNlcl0gPSB1c2VTdGF0ZShudWxsKTsKICBjb25zdCBbaXNBdXRoZW50aWNhdGVkLCBzZXRJc0F1dGhlbnRpY2F0ZWRdID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFtpc0xvYWRpbmdBdXRoLCBzZXRJc0xvYWRpbmdBdXRoXSA9IHVzZVN0YXRlKHRydWUpOwogIGNvbnN0IFtpc0xvYWRpbmdQdWJsaWNTZXR0aW5ncywgc2V0SXNMb2FkaW5nUHVibGljU2V0dGluZ3NdID0gdXNlU3RhdGUodHJ1ZSk7CiAgY29uc3QgW2F1dGhFcnJvciwgc2V0QXV0aEVycm9yXSA9IHVzZVN0YXRlKG51bGwpOwogIGNvbnN0IFthdXRoQ2hlY2tlZCwgc2V0QXV0aENoZWNrZWRdID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFthcHBQdWJsaWNTZXR0aW5ncywgc2V0QXBwUHVibGljU2V0dGluZ3NdID0gdXNlU3RhdGUobnVsbCk7CgogIC8vIOKUgOKUgCBSYWlsd2F5IHNlc3Npb24gc3RhdGUgKGtlcHQgZm9yIGJhY2t3YXJkLWNvbXBhdCB3aXRoIGNvbnN1bWVycykg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACiAgLy8gICByYWlsd2F5X2F1dGhlbnRpY2F0ZWQg4oCUIFJhaWx3YXkgSldUIGFjdGl2ZQogIC8vICAgcmFpbHdheV9hdXRoX2ZhaWxlZCAgIOKAlCBKV1QgaW52YWxpZC9leHBpcmVkCiAgLy8gICByYWlsd2F5X2xvZ2dlZF9vdXQgICAg4oCUIG5vIHNlc3Npb24sIG5vdCBhdHRlbXB0ZWQKICBjb25zdCBbcmFpbHdheUF1dGhTdGF0ZSwgc2V0UmFpbHdheUF1dGhTdGF0ZV0gPSB1c2VTdGF0ZSgncmFpbHdheV9sb2dnZWRfb3V0Jyk7CiAgY29uc3QgW3JhaWx3YXlBdXRoRXJyb3IsIHNldFJhaWx3YXlBdXRoRXJyb3JdID0gdXNlU3RhdGUobnVsbCk7CiAgY29uc3QgW3JhaWx3YXlVc2VyLCBzZXRSYWlsd2F5VXNlcl0gPSB1c2VTdGF0ZShudWxsKTsKCiAgdXNlRWZmZWN0KCgpID0+IHsKICAgIGNoZWNrQXBwU3RhdGUoKTsKICB9LCBbXSk7CgogIC8vIEtlcHQgZm9yIGJhY2t3YXJkLWNvbXBhdCB3aXRoIGNvbnN1bWVycyB0aGF0IHJlZmVyZW5jZSBjbGVhclJhaWx3YXlTZXNzaW9uLgogIGNvbnN0IGNsZWFyUmFpbHdheVNlc3Npb24gPSAoKSA9PiB7CiAgICB0cnkgeyByYWlsd2F5QXBpLmNsZWFyVG9rZW5zKCk7IH0gY2F0Y2ggKF8pIHt9CiAgICBzZXRSYWlsd2F5VXNlcihudWxsKTsKICAgIHNldFJhaWx3YXlBdXRoRXJyb3IobnVsbCk7CiAgICBzZXRSYWlsd2F5QXV0aFN0YXRlKCdyYWlsd2F5X2xvZ2dlZF9vdXQnKTsKICB9OwoKICAvLyBLZXB0IGZvciBiYWNrd2FyZC1jb21wYXQgd2l0aCBjb25zdW1lcnMgdGhhdCByZWZlcmVuY2UgZW5zdXJlUmFpbHdheVNlc3Npb24uCiAgLy8gVGhlIG1pZ3JhdGlvbiBicmlkZ2UgaGFzIGJlZW4gcmVtb3ZlZCDigJQgdGhpcyBpcyBub3cgYSBuby1vcCB0aGF0IHJldHVybnMKICAvLyB0aGUgY3VycmVudCBzdGF0ZS4gTmV3IGF1dGggaXMgdmlhIC9sb2dpbiAoR29vZ2xlIFNTTyBvciBlbWFpbC9wYXNzd29yZCkuCiAgY29uc3QgZW5zdXJlUmFpbHdheVNlc3Npb24gPSBhc3luYyAoKSA9PiB7CiAgICBpZiAocmFpbHdheUFwaS5pc0xvZ2dlZEluKCkpIHsKICAgICAgc2V0UmFpbHdheUF1dGhTdGF0ZSgncmFpbHdheV9hdXRoZW50aWNhdGVkJyk7CiAgICAgIHJldHVybiAncmFpbHdheV9hdXRoZW50aWNhdGVkJzsKICAgIH0KICAgIHJldHVybiAncmFpbHdheV9sb2dnZWRfb3V0JzsKICB9OwoKICBjb25zdCBjaGVja0FwcFN0YXRlID0gYXN5bmMgKCkgPT4gewogICAgdHJ5IHsKICAgICAgc2V0SXNMb2FkaW5nUHVibGljU2V0dGluZ3ModHJ1ZSk7CiAgICAgIHNldElzTG9hZGluZ0F1dGgodHJ1ZSk7CiAgICAgIHNldEF1dGhFcnJvcihudWxsKTsKCiAgICAgIC8vIFNhZmFyaSBwcml2YXRlIG1vZGUgYmxvY2tzIGxvY2FsU3RvcmFnZSDigJQgdG9rZW5zIGNhbiBuZXZlciBwZXJzaXN0LgogICAgICBpZiAoIWlzTG9jYWxTdG9yYWdlQXZhaWxhYmxlKCkpIHsKICAgICAgICBzZXRJc0xvYWRpbmdQdWJsaWNTZXR0aW5ncyhmYWxzZSk7CiAgICAgICAgc2V0SXNMb2FkaW5nQXV0aChmYWxzZSk7CiAgICAgICAgc2V0QXV0aENoZWNrZWQodHJ1ZSk7CiAgICAgICAgc2V0QXV0aEVycm9yKHsKICAgICAgICAgIHR5cGU6ICdhdXRoX3JlcXVpcmVkJywKICAgICAgICAgIG1lc3NhZ2U6ICdTaWduLWluIHJlcXVpcmVzIGNvb2tpZXMvc3RvcmFnZS4gUGxlYXNlIGRpc2FibGUgUHJpdmF0ZSBCcm93c2luZyBhbmQgdHJ5IGFnYWluLicsCiAgICAgICAgfSk7CiAgICAgICAgcmV0dXJuOwogICAgICB9CgogICAgICAvLyDilIDilIAgUmFpbHdheSBhdXRoIOKAlCB0aGUgc29sZSBhdXRoIHBhdGgg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACiAgICAgIC8vIE5vIEJhc2U0NCB0b2tlbiwgbm8gbWlncmF0aW9uIGJyaWRnZS4gSWYgbm8gUmFpbHdheSBzZXNzaW9uIGV4aXN0cywKICAgICAgLy8gc3VyZmFjZSBhdXRoX3JlcXVpcmVkIHNvIHRoZSBBcHAgZ2F0ZSByb3V0ZXMgdG8gL2xvZ2luLgogICAgICBzZXRJc0xvYWRpbmdQdWJsaWNTZXR0aW5ncyhmYWxzZSk7CgogICAgICBpZiAoIWlzQXBpQ29uZmlndXJlZCgpKSB7CiAgICAgICAgc2V0SXNMb2FkaW5nQXV0aChmYWxzZSk7CiAgICAgICAgc2V0SXNBdXRoZW50aWNhdGVkKGZhbHNlKTsKICAgICAgICBzZXRBdXRoQ2hlY2tlZCh0cnVlKTsKICAgICAgICBzZXRBdXRoRXJyb3IoewogICAgICAgICAgdHlwZTogJ25ldHdvcmtfZXJyb3InLAogICAgICAgICAgbWVzc2FnZTogJ0FQSSBub3QgY29uZmlndXJlZC4gQ29udGFjdCBzdXBwb3J0LicsCiAgICAgICAgfSk7CiAgICAgICAgcmV0dXJuOwogICAgICB9CgogICAgICBpZiAoIXJhaWx3YXlBcGkuaXNMb2dnZWRJbigpKSB7CiAgICAgICAgc2V0SXNMb2FkaW5nQXV0aChmYWxzZSk7CiAgICAgICAgc2V0SXNBdXRoZW50aWNhdGVkKGZhbHNlKTsKICAgICAgICBzZXRBdXRoQ2hlY2tlZCh0cnVlKTsKICAgICAgICBzZXRBdXRoRXJyb3IoeyB0eXBlOiAnYXV0aF9yZXF1aXJlZCcsIG1lc3NhZ2U6ICdZb3UgbXVzdCBiZSBsb2dnZWQgaW4gdG8gYWNjZXNzIHRoaXMgYXBwbGljYXRpb24nIH0pOwogICAgICAgIHJldHVybjsKICAgICAgfQoKICAgICAgYXdhaXQgY2hlY2tVc2VyQXV0aCgpOwogICAgfSBjYXRjaCAoZXJyb3IpIHsKICAgICAgY29uc29sZS5lcnJvcignW0F1dGhdIGNoZWNrQXBwU3RhdGUgdW5leHBlY3RlZCBlcnJvcjonLCBlcnJvcik7CiAgICAgIHNldEF1dGhFcnJvcih7IHR5cGU6ICduZXR3b3JrX2Vycm9yJywgbWVzc2FnZTogZXJyb3IubWVzc2FnZSB8fCAnRmFpbGVkIHRvIGxvYWQgYXBwLiBQbGVhc2UgY2hlY2sgeW91ciBjb25uZWN0aW9uLicgfSk7CiAgICAgIHNldElzTG9hZGluZ1B1YmxpY1NldHRpbmdzKGZhbHNlKTsKICAgICAgc2V0SXNMb2FkaW5nQXV0aChmYWxzZSk7CiAgICAgIHNldEF1dGhDaGVja2VkKHRydWUpOwogICAgfQogIH07CgogIGNvbnN0IEFETUlOX0VNQUlMUyA9IFsneWFyb25AZWNjb25zdHJ1Y3Rpb25ncm91cC5jb20nLCAnbWljaGVsbGVAZWNjb25zdHJ1Y3Rpb25ncm91cC5jb20nXTsKCiAgY29uc3QgY2hlY2tVc2VyQXV0aCA9IGFzeW5jICgpID0+IHsKICAgIHRyeSB7CiAgICAgIHNldElzTG9hZGluZ0F1dGgodHJ1ZSk7CgogICAgICAvLyBSYWlsd2F5IC9hcGkvdjEvYXV0aC9tZSDigJQgdmFsaWRhdGVzIHRoZSBKV1QgYW5kIHJldHVybnMgdGhlIHVzZXIuCiAgICAgIC8vIDEwcyB0aW1lb3V0OiBvbiBpT1MgYWZ0ZXIgc2xlZXAvbmV0d29yayBzd2l0Y2ggdGhpcyBjYW4gaGFuZy4KICAgICAgY29uc3QgY3VycmVudFVzZXIgPSBhd2FpdCB3aXRoVGltZW91dCgKICAgICAgICAoYXN5bmMgKCkgPT4gewogICAgICAgICAgY29uc3QgciA9IGF3YWl0IHJhaWx3YXlBcGkubWUoKTsKICAgICAgICAgIHNldFJhaWx3YXlBdXRoU3RhdGUoJ3JhaWx3YXlfYXV0aGVudGljYXRlZCcpOwogICAgICAgICAgc2V0UmFpbHdheVVzZXIoci51c2VyIHx8IG51bGwpOwogICAgICAgICAgcmV0dXJuIHIudXNlcjsKICAgICAgICB9KSgpLAogICAgICAgIDEwMDAwLAogICAgICAgICdhdXRoLm1lKCknCiAgICAgICk7CgogICAgICBpZiAoIWN1cnJlbnRVc2VyKSB7CiAgICAgICAgc2V0SXNMb2FkaW5nQXV0aChmYWxzZSk7CiAgICAgICAgc2V0SXNBdXRoZW50aWNhdGVkKGZhbHNlKTsKICAgICAgICBzZXRBdXRoQ2hlY2tlZCh0cnVlKTsKICAgICAgICBzZXRBdXRoRXJyb3IoeyB0eXBlOiAnYXV0aF9yZXF1aXJlZCcsIG1lc3NhZ2U6ICdTZXNzaW9uIGV4cGlyZWQuIFBsZWFzZSBzaWduIGluIGFnYWluLicgfSk7CiAgICAgICAgcmV0dXJuOwogICAgICB9CgogICAgICBpZiAoQURNSU5fRU1BSUxTLmluY2x1ZGVzKGN1cnJlbnRVc2VyLmVtYWlsPy50b0xvd2VyQ2FzZSgpKSkgewogICAgICAgIHNldFVzZXIoY3VycmVudFVzZXIpOwogICAgICAgIHNldElzQXV0aGVudGljYXRlZCh0cnVlKTsKICAgICAgICBzZXRJc0xvYWRpbmdBdXRoKGZhbHNlKTsKICAgICAgICBzZXRBdXRoQ2hlY2tlZCh0cnVlKTsKICAgICAgICByZXR1cm47CiAgICAgIH0KCiAgICAgIGlmIChjdXJyZW50VXNlci5yb2xlKSB7CiAgICAgICAgc2V0VXNlcihjdXJyZW50VXNlcik7CiAgICAgICAgc2V0SXNBdXRoZW50aWNhdGVkKHRydWUpOwogICAgICAgIHNldElzTG9hZGluZ0F1dGgoZmFsc2UpOwogICAgICAgIHNldEF1dGhDaGVja2VkKHRydWUpOwogICAgICAgIHJldHVybjsKICAgICAgfQoKICAgICAgLy8gVXNlciBleGlzdHMgYnV0IGhhcyBubyByb2xlCiAgICAgIHNldElzTG9hZGluZ0F1dGgoZmFsc2UpOwogICAgICBzZXRJc0F1dGhlbnRpY2F0ZWQoZmFsc2UpOwogICAgICBzZXRBdXRoQ2hlY2tlZCh0cnVlKTsKICAgICAgc2V0VXNlcihjdXJyZW50VXNlcik7CiAgICAgIHNldEF1dGhFcnJvcih7CiAgICAgICAgdHlwZTogJ3VzZXJfbm90X2F1dGhvcml6ZWQnLAogICAgICAgIG1lc3NhZ2U6ICdZb3VyIGFjY291bnQgaGFzIG5vdCBiZWVuIHNldCB1cCB5ZXQuIENvbnRhY3QgYWRtaW4gdG8gY3JlYXRlIHlvdXIgYWNjb3VudC4nLAogICAgICAgIHVzZXJFbWFpbDogY3VycmVudFVzZXIuZW1haWwsCiAgICAgICAgaGFzUGVuZGluZ1JlcXVlc3Q6IGZhbHNlLAogICAgICB9KTsKICAgIH0gY2F0Y2ggKGVycm9yKSB7CiAgICAgIGNvbnNvbGUuZXJyb3IoJ1tBdXRoXSBjaGVja1VzZXJBdXRoIGZhaWxlZDonLCBlcnJvcik7CiAgICAgIHNldElzTG9hZGluZ0F1dGgoZmFsc2UpOwogICAgICBzZXRJc0F1dGhlbnRpY2F0ZWQoZmFsc2UpOwogICAgICBzZXRBdXRoQ2hlY2tlZCh0cnVlKTsKICAgICAgc2V0UmFpbHdheUF1dGhTdGF0ZSgncmFpbHdheV9hdXRoX2ZhaWxlZCcpOwogICAgICBzZXRSYWlsd2F5QXV0aEVycm9yKGVycm9yLm1lc3NhZ2UpOwoKICAgICAgaWYgKGVycm9yLnN0YXR1cyA9PT0gNDAxIHx8IGVycm9yLnN0YXR1cyA9PT0gNDAzKSB7CiAgICAgICAgc2V0QXV0aEVycm9yKHsgdHlwZTogJ2F1dGhfcmVxdWlyZWQnLCBtZXNzYWdlOiAnU2Vzc2lvbiBleHBpcmVkLiBQbGVhc2Ugc2lnbiBpbiBhZ2Fpbi4nIH0pOwogICAgICB9IGVsc2UgewogICAgICAgIHNldEF1dGhFcnJvcih7CiAgICAgICAgICB0eXBlOiAnbmV0d29ya19lcnJvcicsCiAgICAgICAgICBtZXNzYWdlOiBlcnJvci5tZXNzYWdlIHx8ICdDb3VsZCBub3QgcmVhY2ggdGhlIHNlcnZlci4gQ2hlY2sgeW91ciBjb25uZWN0aW9uIGFuZCByZXRyeS4nLAogICAgICAgIH0pOwogICAgICB9CiAgICB9CiAgfTsKCiAgY29uc3QgcmVmcmVzaFVzZXIgPSBhc3luYyAoKSA9PiB7CiAgICB0cnkgewogICAgICBjb25zdCBjdXJyZW50VXNlciA9IChhd2FpdCByYWlsd2F5QXBpLm1lKCkpLnVzZXI7CiAgICAgIHNldFVzZXIoY3VycmVudFVzZXIpOwogICAgICByZXR1cm4gY3VycmVudFVzZXI7CiAgICB9IGNhdGNoIChlcnJvcikgewogICAgICBjb25zb2xlLmVycm9yKCdVc2VyIHJlZnJlc2ggZmFpbGVkOicsIGVycm9yKTsKICAgICAgdGhyb3cgZXJyb3I7CiAgICB9CiAgfTsKCiAgY29uc3QgbG9nb3V0ID0gYXN5bmMgKHNob3VsZFJlZGlyZWN0ID0gdHJ1ZSkgPT4gewogICAgc2V0VXNlcihudWxsKTsKICAgIHNldElzQXV0aGVudGljYXRlZChmYWxzZSk7CiAgICB0cnkgeyBhd2FpdCByYWlsd2F5QXBpLmxvZ291dCgpOyB9IGNhdGNoIChfKSB7IC8qIGJlc3QtZWZmb3J0ICovIH0KICAgIGNsZWFyUmFpbHdheVNlc3Npb24oKTsKCiAgICBpZiAoc2hvdWxkUmVkaXJlY3QpIHsKICAgICAgd2luZG93LmxvY2F0aW9uLmhyZWYgPSAnL2xvZ2luJzsKICAgIH0KICB9OwoKICBjb25zdCBuYXZpZ2F0ZVRvTG9naW4gPSAoKSA9PiB7CiAgICB3aW5kb3cubG9jYXRpb24uaHJlZiA9ICcvbG9naW4nOwogIH07CgogIHJldHVybiAoCiAgICA8QXV0aENvbnRleHQuUHJvdmlkZXIgdmFsdWU9e3sKICAgICAgdXNlciwKICAgICAgaXNBdXRoZW50aWNhdGVkLAogICAgICBpc0xvYWRpbmdBdXRoLAogICAgICBpc0xvYWRpbmdQdWJsaWNTZXR0aW5ncywKICAgICAgYXV0aEVycm9yLAogICAgICBhcHBQdWJsaWNTZXR0aW5ncywKICAgICAgYXV0aENoZWNrZWQsCiAgICAgIGxvZ291dCwKICAgICAgbmF2aWdhdGVUb0xvZ2luLAogICAgICBjaGVja1VzZXJBdXRoLAogICAgICBjaGVja0FwcFN0YXRlLAogICAgICByZWZyZXNoVXNlciwKICAgICAgcmFpbHdheUF1dGhTdGF0ZSwKICAgICAgcmFpbHdheUF1dGhFcnJvciwKICAgICAgcmFpbHdheVVzZXIsCiAgICAgIGVuc3VyZVJhaWx3YXlTZXNzaW9uLAogICAgICBjbGVhclJhaWx3YXlTZXNzaW9uLAogICAgfX0+CiAgICAgIHtjaGlsZHJlbn0KICAgIDwvQXV0aENvbnRleHQuUHJvdmlkZXI+CiAgKTsKfTsKCmV4cG9ydCBjb25zdCB1c2VBdXRoID0gKCkgPT4gewogIGNvbnN0IGNvbnRleHQgPSB1c2VDb250ZXh0KEF1dGhDb250ZXh0KTsKICBpZiAoIWNvbnRleHQpIHsKICAgIHRocm93IG5ldyBFcnJvcigndXNlQXV0aCBtdXN0IGJlIHVzZWQgd2l0aGluIGFuIEF1dGhQcm92aWRlcicpOwogIH0KICByZXR1cm4gY29udGV4dDsKfTs=
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { base44 } from '@/api/base44Client'; // eslint-disable-line no-unused-vars
+import * as railwayApi from '@/lib/railwayApi';
+import { isApiConfigured } from '@/lib/apiConfig';
+
+/**
+ * AuthContext — Railway-only authentication.
+ *
+ * The base44 import is required by the platform but is NOT used for auth.
+ * Railway JWT (access + refresh) is the sole auth layer.
+ *
+ *   - checkAppState: if no Railway session → auth_required → /login
+ *   - checkUserAuth: railwayApi.me() → user + role
+ *   - logout: revoke Railway session → /login
+ *   - navigateToLogin: → /login
+ *
+ * Yaron + Michelle remain admins (enforced server-side via user_allowlist).
+ * Role/ownership behavior is preserved (Railway JWT carries role + owner_id).
+ */
+const AuthContext = createContext();
+
+// Wraps any promise with a timeout. Rejects with a clear message if exceeded.
+function withTimeout(promise, ms, label) {
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error(`${label} timed out after ${ms / 1000}s`)), ms)
+  );
+  return Promise.race([promise, timeout]);
+}
+
+// Detect Safari private mode / blocked localStorage (iOS PWA safe check)
+function isLocalStorageAvailable() {
+  try {
+    const key = '__ls_test__';
+    localStorage.setItem(key, '1');
+    localStorage.removeItem(key);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+  const [isLoadingPublicSettings, setIsLoadingPublicSettings] = useState(true);
+  const [authError, setAuthError] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [appPublicSettings, setAppPublicSettings] = useState(null);
+
+  // ── Railway session state (kept for backward-compat with consumers) ────────
+  //   railway_authenticated — Railway JWT active
+  //   railway_auth_failed   — JWT invalid/expired
+  //   railway_logged_out    — no session, not attempted
+  const [railwayAuthState, setRailwayAuthState] = useState('railway_logged_out');
+  const [railwayAuthError, setRailwayAuthError] = useState(null);
+  const [railwayUser, setRailwayUser] = useState(null);
+
+  useEffect(() => {
+    checkAppState();
+  }, []);
+
+  // Kept for backward-compat with consumers that reference clearRailwaySession.
+  const clearRailwaySession = () => {
+    try { railwayApi.clearTokens(); } catch (_) {}
+    setRailwayUser(null);
+    setRailwayAuthError(null);
+    setRailwayAuthState('railway_logged_out');
+  };
+
+  // Kept for backward-compat with consumers that reference ensureRailwaySession.
+  // The migration bridge has been removed — this is now a no-op that returns
+  // the current state. New auth is via /login (Google SSO or email/password).
+  const ensureRailwaySession = async () => {
+    if (railwayApi.isLoggedIn()) {
+      setRailwayAuthState('railway_authenticated');
+      return 'railway_authenticated';
+    }
+    return 'railway_logged_out';
+  };
+
+  const checkAppState = async () => {
+    try {
+      setIsLoadingPublicSettings(true);
+      setIsLoadingAuth(true);
+      setAuthError(null);
+
+      // Safari private mode blocks localStorage — tokens can never persist.
+      if (!isLocalStorageAvailable()) {
+        setIsLoadingPublicSettings(false);
+        setIsLoadingAuth(false);
+        setAuthChecked(true);
+        setAuthError({
+          type: 'auth_required',
+          message: 'Sign-in requires cookies/storage. Please disable Private Browsing and try again.',
+        });
+        return;
+      }
+
+      // ── Railway auth — the sole auth path ────────────────────────────────
+      // No Base44 token, no migration bridge. If no Railway session exists,
+      // surface auth_required so the App gate routes to /login.
+      setIsLoadingPublicSettings(false);
+
+      if (!isApiConfigured()) {
+        setIsLoadingAuth(false);
+        setIsAuthenticated(false);
+        setAuthChecked(true);
+        setAuthError({
+          type: 'network_error',
+          message: 'API not configured. Contact support.',
+        });
+        return;
+      }
+
+      if (!railwayApi.isLoggedIn()) {
+        setIsLoadingAuth(false);
+        setIsAuthenticated(false);
+        setAuthChecked(true);
+        setAuthError({ type: 'auth_required', message: 'You must be logged in to access this application' });
+        return;
+      }
+
+      await checkUserAuth();
+    } catch (error) {
+      console.error('[Auth] checkAppState unexpected error:', error);
+      setAuthError({ type: 'network_error', message: error.message || 'Failed to load app. Please check your connection.' });
+      setIsLoadingPublicSettings(false);
+      setIsLoadingAuth(false);
+      setAuthChecked(true);
+    }
+  };
+
+  const ADMIN_EMAILS = ['yaron@ecconstructiongroup.com', 'michelle@ecconstructiongroup.com'];
+
+  const checkUserAuth = async () => {
+    try {
+      setIsLoadingAuth(true);
+
+      // Railway /api/v1/auth/me — validates the JWT and returns the user.
+      // 10s timeout: on iOS after sleep/network switch this can hang.
+      const currentUser = await withTimeout(
+        (async () => {
+          const r = await railwayApi.me();
+          setRailwayAuthState('railway_authenticated');
+          setRailwayUser(r.user || null);
+          return r.user;
+        })(),
+        10000,
+        'auth.me()'
+      );
+
+      if (!currentUser) {
+        setIsLoadingAuth(false);
+        setIsAuthenticated(false);
+        setAuthChecked(true);
+        setAuthError({ type: 'auth_required', message: 'Session expired. Please sign in again.' });
+        return;
+      }
+
+      if (ADMIN_EMAILS.includes(currentUser.email?.toLowerCase())) {
+        setUser(currentUser);
+        setIsAuthenticated(true);
+        setIsLoadingAuth(false);
+        setAuthChecked(true);
+        return;
+      }
+
+      if (currentUser.role) {
+        setUser(currentUser);
+        setIsAuthenticated(true);
+        setIsLoadingAuth(false);
+        setAuthChecked(true);
+        return;
+      }
+
+      // User exists but has no role
+      setIsLoadingAuth(false);
+      setIsAuthenticated(false);
+      setAuthChecked(true);
+      setUser(currentUser);
+      setAuthError({
+        type: 'user_not_authorized',
+        message: 'Your account has not been set up yet. Contact admin to create your account.',
+        userEmail: currentUser.email,
+        hasPendingRequest: false,
+      });
+    } catch (error) {
+      console.error('[Auth] checkUserAuth failed:', error);
+      setIsLoadingAuth(false);
+      setIsAuthenticated(false);
+      setAuthChecked(true);
+      setRailwayAuthState('railway_auth_failed');
+      setRailwayAuthError(error.message);
+
+      if (error.status === 401 || error.status === 403) {
+        setAuthError({ type: 'auth_required', message: 'Session expired. Please sign in again.' });
+      } else {
+        setAuthError({
+          type: 'network_error',
+          message: error.message || 'Could not reach the server. Check your connection and retry.',
+        });
+      }
+    }
+  };
+
+  const refreshUser = async () => {
+    try {
+      const currentUser = (await railwayApi.me()).user;
+      setUser(currentUser);
+      return currentUser;
+    } catch (error) {
+      console.error('User refresh failed:', error);
+      throw error;
+    }
+  };
+
+  const logout = async (shouldRedirect = true) => {
+    setUser(null);
+    setIsAuthenticated(false);
+    try { await railwayApi.logout(); } catch (_) { /* best-effort */ }
+    clearRailwaySession();
+
+    if (shouldRedirect) {
+      window.location.href = '/login';
+    }
+  };
+
+  const navigateToLogin = () => {
+    window.location.href = '/login';
+  };
+
+  return (
+    <AuthContext.Provider value={{
+      user,
+      isAuthenticated,
+      isLoadingAuth,
+      isLoadingPublicSettings,
+      authError,
+      appPublicSettings,
+      authChecked,
+      logout,
+      navigateToLogin,
+      checkUserAuth,
+      checkAppState,
+      refreshUser,
+      railwayAuthState,
+      railwayAuthError,
+      railwayUser,
+      ensureRailwaySession,
+      clearRailwaySession,
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};

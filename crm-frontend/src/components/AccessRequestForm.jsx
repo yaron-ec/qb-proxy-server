@@ -1,1 +1,131 @@
-aW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICdyZWFjdCc7CmltcG9ydCB7IGFwaUNhbGwgfSBmcm9tICdAL2FwaS9yYWlsd2F5L2NsaWVudCc7CmltcG9ydCB7IE1haWwsIEFsZXJ0Q2lyY2xlLCBDaGVja0NpcmNsZSB9IGZyb20gJ2x1Y2lkZS1yZWFjdCc7CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBBY2Nlc3NSZXF1ZXN0Rm9ybSh7IHVzZXJFbWFpbCB9KSB7CiAgY29uc3QgW2Z1bGxOYW1lLCBzZXRGdWxsTmFtZV0gPSB1c2VTdGF0ZSgnJyk7CiAgY29uc3QgW3JlYXNvbiwgc2V0UmVhc29uXSA9IHVzZVN0YXRlKCcnKTsKICBjb25zdCBbbG9hZGluZywgc2V0TG9hZGluZ10gPSB1c2VTdGF0ZShmYWxzZSk7CiAgY29uc3QgW3N1Ym1pdHRlZCwgc2V0U3VibWl0dGVkXSA9IHVzZVN0YXRlKGZhbHNlKTsKICBjb25zdCBbZXJyb3IsIHNldEVycm9yXSA9IHVzZVN0YXRlKG51bGwpOwoKICBjb25zdCBoYW5kbGVTdWJtaXQgPSBhc3luYyAoZSkgPT4gewogICAgZS5wcmV2ZW50RGVmYXVsdCgpOwogICAgaWYgKCFmdWxsTmFtZS50cmltKCkpIHsKICAgICAgc2V0RXJyb3IoJ1BsZWFzZSBlbnRlciB5b3VyIGZ1bGwgbmFtZScpOwogICAgICByZXR1cm47CiAgICB9CgogICAgc2V0TG9hZGluZyh0cnVlKTsKICAgIHNldEVycm9yKG51bGwpOwogICAgCiAgICB0cnkgewogICAgICBhd2FpdCBhcGlDYWxsKCcvYXBpL3YxL2FjY2Vzcy1yZXF1ZXN0cycsIHsKICAgICAgICBtZXRob2Q6ICdQT1NUJywKICAgICAgICBib2R5OiB7CiAgICAgICAgICBlbWFpbDogdXNlckVtYWlsLnRvTG93ZXJDYXNlKCksCiAgICAgICAgICBuYW1lOiBmdWxsTmFtZS50cmltKCksCiAgICAgICAgICBzdGF0dXM6ICdwZW5kaW5nJywKICAgICAgICAgIHJlYXNvbjogcmVhc29uLnRyaW0oKSwKICAgICAgICB9LAogICAgICB9KTsKCiAgICAgIC8vIE5vdGlmaWNhdGlvbiBlbWFpbCBpcyBzZW50IHNlcnZlci1zaWRlIHdoZW4gdGhlIGFjY2VzcyByZXF1ZXN0IGlzIGNyZWF0ZWQKICAgICAgCiAgICAgIHNldFN1Ym1pdHRlZCh0cnVlKTsKICAgIH0gY2F0Y2ggKGVycikgewogICAgICBzZXRFcnJvcihlcnIubWVzc2FnZSk7CiAgICB9IGZpbmFsbHkgewogICAgICBzZXRMb2FkaW5nKGZhbHNlKTsKICAgIH0KICB9OwoKICBpZiAoc3VibWl0dGVkKSB7CiAgICByZXR1cm4gKAogICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctd2hpdGUgcm91bmRlZC1sZyBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCBwLTggdGV4dC1jZW50ZXIgbWF4LXctbWQgbXgtYXV0byBtdC0xMiI+CiAgICAgICAgPENoZWNrQ2lyY2xlIGNsYXNzTmFtZT0idy0xMiBoLTEyIHRleHQtZW1lcmFsZC02MDAgbXgtYXV0byBtYi00IiAvPgogICAgICAgIDxoMiBjbGFzc05hbWU9InRleHQtbGcgZm9udC1ib2xkIHRleHQtc2xhdGUtOTAwIG1iLTIiPlJlcXVlc3Qgc3VibWl0dGVkPC9oMj4KICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20gdGV4dC1zbGF0ZS02MDAgbWItNCI+CiAgICAgICAgICBZb3UnbGwgYmUgbm90aWZpZWQgYnkgZW1haWwgaWYgeW91ciByZXF1ZXN0IGlzIGFwcHJvdmVkLgogICAgICAgIDwvcD4KICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS01MDAiPgogICAgICAgICAgTG9nZ2VkIGluIGFzOiA8c3BhbiBjbGFzc05hbWU9ImZvbnQtc2VtaWJvbGQiPnt1c2VyRW1haWx9PC9zcGFuPgogICAgICAgIDwvcD4KICAgICAgICA8YnV0dG9uCiAgICAgICAgICBvbkNsaWNrPXsoKSA9PiB3aW5kb3cubG9jYXRpb24uaHJlZiA9ICcvJ30KICAgICAgICAgIGNsYXNzTmFtZT0ibXQtNiBweC00IHB5LTIgYmctc2xhdGUtMTAwIHRleHQtc2xhdGUtNzAwIHRleHQtc20gZm9udC1zZW1pYm9sZCByb3VuZGVkLWxnIGhvdmVyOmJnLXNsYXRlLTIwMCB0cmFuc2l0aW9uLWNvbG9ycyIKICAgICAgICA+CiAgICAgICAgICBSZXR1cm4gaG9tZQogICAgICAgIDwvYnV0dG9uPgogICAgICA8L2Rpdj4KICAgICk7CiAgfQoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9ImJnLXdoaXRlIHJvdW5kZWQtbGcgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcC04IG1heC13LW1kIG14LWF1dG8gbXQtMTIiPgogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBqdXN0aWZ5LWNlbnRlciBtYi02Ij4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idy0xMiBoLTEyIHJvdW5kZWQtZnVsbCBiZy1ibHVlLTEwMCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciI+CiAgICAgICAgICA8TWFpbCBjbGFzc05hbWU9InctNiBoLTYgdGV4dC1ibHVlLTYwMCIgLz4KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CiAgICAgIAogICAgICA8aDIgY2xhc3NOYW1lPSJ0ZXh0LXhsIGZvbnQtYm9sZCB0ZXh0LXNsYXRlLTkwMCB0ZXh0LWNlbnRlciBtYi0yIj5SZXF1ZXN0IGFjY2VzczwvaDI+CiAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1zbSB0ZXh0LXNsYXRlLTYwMCB0ZXh0LWNlbnRlciBtYi02Ij4KICAgICAgICBZb3VyIGVtYWlsIGlzIG5vdCB5ZXQgYXV0aG9yaXplZC4gU3VibWl0IGEgcmVxdWVzdCBhbmQgYW4gYWRtaW5pc3RyYXRvciB3aWxsIHJldmlldyBpdC4KICAgICAgPC9wPgoKICAgICAgPGZvcm0gb25TdWJtaXQ9e2hhbmRsZVN1Ym1pdH0gY2xhc3NOYW1lPSJzcGFjZS15LTQiPgogICAgICAgIDxkaXY+CiAgICAgICAgICA8bGFiZWwgY2xhc3NOYW1lPSJ0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS03MDAgYmxvY2sgbWItMiI+RW1haWw8L2xhYmVsPgogICAgICAgICAgPGlucHV0CiAgICAgICAgICAgIHR5cGU9ImVtYWlsIgogICAgICAgICAgICB2YWx1ZT17dXNlckVtYWlsfQogICAgICAgICAgICBkaXNhYmxlZAogICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHB4LTMgcHktMiB0ZXh0LXNtIGJnLXNsYXRlLTUwIHRleHQtc2xhdGUtNjAwIgogICAgICAgICAgLz4KICAgICAgICA8L2Rpdj4KCiAgICAgICAgPGRpdj4KICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9InRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTcwMCBibG9jayBtYi0yIj5GdWxsIE5hbWUgKjwvbGFiZWw+CiAgICAgICAgICA8aW5wdXQKICAgICAgICAgICAgdHlwZT0idGV4dCIKICAgICAgICAgICAgcGxhY2Vob2xkZXI9IkpvaG4gRG9lIgogICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHB4LTMgcHktMiB0ZXh0LXNtIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1ibHVlLTUwMC8yMCBmb2N1czpib3JkZXItYmx1ZS01MDAiCiAgICAgICAgICAgIHZhbHVlPXtmdWxsTmFtZX0KICAgICAgICAgICAgb25DaGFuZ2U9e2UgPT4gc2V0RnVsbE5hbWUoZS50YXJnZXQudmFsdWUpfQogICAgICAgICAgLz4KICAgICAgICA8L2Rpdj4KCiAgICAgICAgPGRpdj4KICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9InRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTcwMCBibG9jayBtYi0yIj5XaHkgZG8geW91IG5lZWQgYWNjZXNzPzwvbGFiZWw+CiAgICAgICAgICA8dGV4dGFyZWEKICAgICAgICAgICAgcGxhY2Vob2xkZXI9IkknbSBwYXJ0IG9mIHRoZSBzYWxlcyB0ZWFtLi4uIgogICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHB4LTMgcHktMiB0ZXh0LXNtIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1ibHVlLTUwMC8yMCBmb2N1czpib3JkZXItYmx1ZS01MDAgcmVzaXplLW5vbmUiCiAgICAgICAgICAgIHJvd3M9ezN9CiAgICAgICAgICAgIHZhbHVlPXtyZWFzb259CiAgICAgICAgICAgIG9uQ2hhbmdlPXtlID0+IHNldFJlYXNvbihlLnRhcmdldC52YWx1ZSl9CiAgICAgICAgICAvPgogICAgICAgIDwvZGl2PgoKICAgICAgICB7ZXJyb3IgJiYgKAogICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZ2FwLTIgYmctcmVkLTUwIGJvcmRlciBib3JkZXItcmVkLTIwMCByb3VuZGVkLWxnIHAtMyI+CiAgICAgICAgICAgIDxBbGVydENpcmNsZSBjbGFzc05hbWU9InctNCBoLTQgdGV4dC1yZWQtNjAwIGZsZXgtc2hyaW5rLTAgbXQtMC41IiAvPgogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1yZWQtNzAwIj57ZXJyb3J9PC9wPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgKX0KCiAgICAgICAgPGJ1dHRvbgogICAgICAgICAgdHlwZT0ic3VibWl0IgogICAgICAgICAgZGlzYWJsZWQ9e2xvYWRpbmd9CiAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBweC00IHB5LTIuNSBiZy1ibHVlLTYwMCB0ZXh0LXdoaXRlIHRleHQtc20gZm9udC1zZW1pYm9sZCByb3VuZGVkLWxnIGhvdmVyOmJnLWJsdWUtNzAwIHRyYW5zaXRpb24tY29sb3JzIGRpc2FibGVkOm9wYWNpdHktNTAiCiAgICAgICAgPgogICAgICAgICAge2xvYWRpbmcgPyAnU3VibWl0dGluZy4uLicgOiAnU3VibWl0IHJlcXVlc3QnfQogICAgICAgIDwvYnV0dG9uPgogICAgICA8L2Zvcm0+CgogICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS01MDAgdGV4dC1jZW50ZXIgbXQtNiI+CiAgICAgICAgQW4gYWRtaW5pc3RyYXRvciB3aWxsIHJldmlldyB5b3VyIHJlcXVlc3Qgc2hvcnRseS4KICAgICAgPC9wPgogICAgPC9kaXY+CiAgKTsKfQ==
+import { useState } from 'react';
+import { apiCall } from '@/api/railway/client';
+import { Mail, AlertCircle, CheckCircle } from 'lucide-react';
+
+export default function AccessRequestForm({ userEmail }) {
+  const [fullName, setFullName] = useState('');
+  const [reason, setReason] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!fullName.trim()) {
+      setError('Please enter your full name');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    
+    try {
+      await apiCall('/api/v1/access-requests', {
+        method: 'POST',
+        body: {
+          email: userEmail.toLowerCase(),
+          name: fullName.trim(),
+          status: 'pending',
+          reason: reason.trim(),
+        },
+      });
+
+      // Notification email is sent server-side when the access request is created
+      
+      setSubmitted(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (submitted) {
+    return (
+      <div className="bg-white rounded-lg border border-slate-200 p-8 text-center max-w-md mx-auto mt-12">
+        <CheckCircle className="w-12 h-12 text-emerald-600 mx-auto mb-4" />
+        <h2 className="text-lg font-bold text-slate-900 mb-2">Request submitted</h2>
+        <p className="text-sm text-slate-600 mb-4">
+          You'll be notified by email if your request is approved.
+        </p>
+        <p className="text-xs text-slate-500">
+          Logged in as: <span className="font-semibold">{userEmail}</span>
+        </p>
+        <button
+          onClick={() => window.location.href = '/'}
+          className="mt-6 px-4 py-2 bg-slate-100 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-200 transition-colors"
+        >
+          Return home
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-lg border border-slate-200 p-8 max-w-md mx-auto mt-12">
+      <div className="flex justify-center mb-6">
+        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+          <Mail className="w-6 h-6 text-blue-600" />
+        </div>
+      </div>
+      
+      <h2 className="text-xl font-bold text-slate-900 text-center mb-2">Request access</h2>
+      <p className="text-sm text-slate-600 text-center mb-6">
+        Your email is not yet authorized. Submit a request and an administrator will review it.
+      </p>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="text-xs font-semibold text-slate-700 block mb-2">Email</label>
+          <input
+            type="email"
+            value={userEmail}
+            disabled
+            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50 text-slate-600"
+          />
+        </div>
+
+        <div>
+          <label className="text-xs font-semibold text-slate-700 block mb-2">Full Name *</label>
+          <input
+            type="text"
+            placeholder="John Doe"
+            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            value={fullName}
+            onChange={e => setFullName(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="text-xs font-semibold text-slate-700 block mb-2">Why do you need access?</label>
+          <textarea
+            placeholder="I'm part of the sales team..."
+            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none"
+            rows={3}
+            value={reason}
+            onChange={e => setReason(e.target.value)}
+          />
+        </div>
+
+        {error && (
+          <div className="flex gap-2 bg-red-50 border border-red-200 rounded-lg p-3">
+            <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-red-700">{error}</p>
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full px-4 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+        >
+          {loading ? 'Submitting...' : 'Submit request'}
+        </button>
+      </form>
+
+      <p className="text-xs text-slate-500 text-center mt-6">
+        An administrator will review your request shortly.
+      </p>
+    </div>
+  );
+}

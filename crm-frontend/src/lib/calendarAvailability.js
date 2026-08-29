@@ -1,1 +1,163 @@
-LyoqCiAqIENsaWVudC1zaWRlIGNhbGVuZGFyIGF2YWlsYWJpbGl0eSBjaGVjay4KICogUmVwbGljYXRlcyB0aGUgbG9naWMgZnJvbSB0aGUgY2hlY2tDYWxlbmRhckNvbmZsaWN0cyBiYWNrZW5kIGZ1bmN0aW9uLgogKiBVc2VzIENSTSBMZWFkIGRhdGEgKGFsd2F5cyBhdmFpbGFibGUpICsgb3B0aW9uYWwgR29vZ2xlIENhbGVuZGFyIGZyZWVCdXN5IEFQSS4KICovCmltcG9ydCAqIGFzIHJhaWx3YXlMZWFkcyBmcm9tICdAL2FwaS9yYWlsd2F5L2xlYWRzJzsKCmNvbnN0IFRaID0gJ0FtZXJpY2EvTG9zX0FuZ2VsZXMnOwpjb25zdCBNSUNIRUxMRV9FTUFJTCA9ICdtaWNoZWxsZUBlY2NvbnN0cnVjdGlvbmdyb3VwLmNvbSc7CmNvbnN0IFRPVEFMX1dJTkRPV19NSU5VVEVTID0gMTIwOyAvLyAxaHIgbWVldGluZyArIDFociBidWZmZXIKCmNvbnN0IE9XTkVSX0VNQUlMX01BUCA9IHsKICAneWFyb24nOiAgICAneWFyb25AZWNjb25zdHJ1Y3Rpb25ncm91cC5jb20nLAogICdtaWNoZWxsZSc6ICdtaWNoZWxsZUBlY2NvbnN0cnVjdGlvbmdyb3VwLmNvbScsCiAgJ2V0aGFuJzogICAgJ2V0aGFuQGVjY29uc3RydWN0aW9uZ3JvdXAuY29tJywKICAnbWlja3knOiAgICAnbWlja3lAZWNjb25zdHJ1Y3Rpb25ncm91cC5jb20nLAogICdtaWNrZXknOiAgICdtaWNreUBlY2NvbnN0cnVjdGlvbmdyb3VwLmNvbScsCiAgJ3ZpY3RvcmlhJzogJ3ZpY3RvcmlhQGVjY29uc3RydWN0aW9uZ3JvdXAuY29tJywKICAnc2hhcm9uJzogICAnc2hhcm9uQGVjY29uc3RydWN0aW9uZ3JvdXAuY29tJywKfTsKCmNvbnN0IEFMTF9TTE9UUyA9IFtdOwpmb3IgKGxldCBoID0gODsgaCA8PSAxODsgaCsrKSB7CiAgZm9yIChsZXQgbSA9IDA7IG0gPCA2MDsgbSArPSAzMCkgewogICAgaWYgKGggPT09IDggJiYgbSA9PT0gMCkgY29udGludWU7CiAgICBpZiAoaCA9PT0gMTggJiYgbSA+IDMwKSBjb250aW51ZTsKICAgIEFMTF9TTE9UUy5wdXNoKGAke1N0cmluZyhoKS5wYWRTdGFydCgyLCAnMCcpfToke1N0cmluZyhtKS5wYWRTdGFydCgyLCAnMCcpfWApOwogIH0KfQoKZXhwb3J0IGZ1bmN0aW9uIHJlc29sdmVPd25lckVtYWlsKG93bmVyTmFtZSkgewogIGlmICghb3duZXJOYW1lIHx8IHR5cGVvZiBvd25lck5hbWUgIT09ICdzdHJpbmcnKSByZXR1cm4gbnVsbDsKICBjb25zdCBub3JtYWxpemVkID0gb3duZXJOYW1lLnRyaW0oKS50b0xvd2VyQ2FzZSgpOwogIGNvbnN0IGVtYWlsID0gT1dORVJfRU1BSUxfTUFQW25vcm1hbGl6ZWRdCiAgICB8fCBPV05FUl9FTUFJTF9NQVBbbm9ybWFsaXplZC5zcGxpdCgvXHMrLylbMF1dCiAgICB8fCBgJHtub3JtYWxpemVkLnNwbGl0KC9ccysvKVswXX1AZWNjb25zdHJ1Y3Rpb25ncm91cC5jb21gOwogIGlmIChlbWFpbCA9PT0gTUlDSEVMTEVfRU1BSUwpIHJldHVybiBudWxsOwogIHJldHVybiBlbWFpbDsKfQoKZnVuY3Rpb24gbGFUb1V0Y0lzbyhkYXRlLCB0aW1lKSB7CiAgY29uc3Qgbm9vblV0YyA9IG5ldyBEYXRlKGAke2RhdGV9VDEyOjAwOjAwWmApOwogIGNvbnN0IHBhcnRzID0gbmV3IEludGwuRGF0ZVRpbWVGb3JtYXQoJ2VuLVVTJywgewogICAgdGltZVpvbmU6IFRaLCBob3VyOiAnMi1kaWdpdCcsIG1pbnV0ZTogJzItZGlnaXQnLCBob3VyMTI6IGZhbHNlLAogIH0pLmZvcm1hdFRvUGFydHMobm9vblV0Yyk7CiAgY29uc3QgcE1hcCA9IHt9OwogIGZvciAoY29uc3QgcCBvZiBwYXJ0cykgcE1hcFtwLnR5cGVdID0gcC52YWx1ZTsKICBjb25zdCBsYUhvdXIgPSBwYXJzZUludChwTWFwLmhvdXIgPT09ICcyNCcgPyAnMCcgOiBwTWFwLmhvdXIpOwogIGNvbnN0IGxhTWluID0gcGFyc2VJbnQocE1hcC5taW51dGUpOwogIGNvbnN0IG9mZnNldE1pbnV0ZXMgPSA3MjAgLSAobGFIb3VyICogNjAgKyBsYU1pbik7CiAgY29uc3QgW3RILCB0TV0gPSB0aW1lLnNwbGl0KCc6JykubWFwKE51bWJlcik7CiAgY29uc3QgdGFyZ2V0VXRjTWludXRlcyA9IHRIICogNjAgKyB0TSArIG9mZnNldE1pbnV0ZXM7CiAgY29uc3QgdXRjSCA9IE1hdGguZmxvb3IodGFyZ2V0VXRjTWludXRlcyAvIDYwKSAlIDI0OwogIGNvbnN0IHV0Y00gPSB0YXJnZXRVdGNNaW51dGVzICUgNjA7CiAgY29uc3QgZGF5T2Zmc2V0ID0gTWF0aC5mbG9vcih0YXJnZXRVdGNNaW51dGVzIC8gKDYwICogMjQpKTsKICBjb25zdCBiYXNlRGF0ZSA9IG5ldyBEYXRlKGAke2RhdGV9VDAwOjAwOjAwWmApOwogIGJhc2VEYXRlLnNldFVUQ0RhdGUoYmFzZURhdGUuZ2V0VVRDRGF0ZSgpICsgZGF5T2Zmc2V0KTsKICBiYXNlRGF0ZS5zZXRVVENIb3Vycyh1dGNILCB1dGNNLCAwLCAwKTsKICByZXR1cm4gYmFzZURhdGUudG9JU09TdHJpbmcoKTsKfQoKZnVuY3Rpb24gaXNvVG9MYU1pbnV0ZXMoaXNvU3RyKSB7CiAgY29uc3QgZGF0ZSA9IG5ldyBEYXRlKGlzb1N0cik7CiAgY29uc3QgcGFydHMgPSBuZXcgSW50bC5EYXRlVGltZUZvcm1hdCgnZW4tVVMnLCB7CiAgICB0aW1lWm9uZTogVFosIGhvdXI6ICcyLWRpZ2l0JywgbWludXRlOiAnMi1kaWdpdCcsIGhvdXIxMjogZmFsc2UsCiAgfSkuZm9ybWF0VG9QYXJ0cyhkYXRlKTsKICBjb25zdCBwTWFwID0ge307CiAgZm9yIChjb25zdCBwIG9mIHBhcnRzKSBwTWFwW3AudHlwZV0gPSBwLnZhbHVlOwogIHJldHVybiBwYXJzZUludChwTWFwLmhvdXIgPT09ICcyNCcgPyAnMCcgOiBwTWFwLmhvdXIpICogNjAgKyBwYXJzZUludChwTWFwLm1pbnV0ZSk7Cn0KCmZ1bmN0aW9uIHNsb3RUb01pbnV0ZXMoc2xvdCkgewogIGNvbnN0IFtoLCBtXSA9IHNsb3Quc3BsaXQoJzonKS5tYXAoTnVtYmVyKTsKICByZXR1cm4gaCAqIDYwICsgbTsKfQoKZnVuY3Rpb24gY29tcHV0ZUJsb2NrZWRTbG90cyhidXN5UGVyaW9kcykgewogIGNvbnN0IGJsb2NrZWQgPSBuZXcgU2V0KCk7CiAgZm9yIChjb25zdCBzbG90IG9mIEFMTF9TTE9UUykgewogICAgY29uc3Qgc2xvdFN0YXJ0ID0gc2xvdFRvTWludXRlcyhzbG90KTsKICAgIGNvbnN0IHNsb3RFbmQgPSBzbG90U3RhcnQgKyBUT1RBTF9XSU5ET1dfTUlOVVRFUzsKICAgIGZvciAoY29uc3QgYnVzeSBvZiBidXN5UGVyaW9kcykgewogICAgICBjb25zdCBidXN5U3RhcnQgPSBpc29Ub0xhTWludXRlcyhidXN5LnN0YXJ0KTsKICAgICAgY29uc3QgYnVzeUVuZCA9IGlzb1RvTGFNaW51dGVzKGJ1c3kuZW5kKTsKICAgICAgaWYgKGJ1c3lTdGFydCA8IHNsb3RFbmQgJiYgYnVzeUVuZCA+IHNsb3RTdGFydCkgewogICAgICAgIGJsb2NrZWQuYWRkKHNsb3QpOwogICAgICAgIGJyZWFrOwogICAgICB9CiAgICB9CiAgfQogIHJldHVybiBBcnJheS5mcm9tKGJsb2NrZWQpLnNvcnQoKTsKfQoKLy8gU2ltcGxlIGluLW1lbW9yeSBjYWNoZQpjb25zdCBjYWNoZSA9IG5ldyBNYXAoKTsKY29uc3QgQ0FDSEVfVFRMID0gNSAqIDYwICogMTAwMDsKCi8qKgogKiBSZXR1cm5zIHsgYmxvY2tlZF9zbG90czogc3RyaW5nW10sIGJ1c3lfcGVyaW9kczogb2JqZWN0W10gfQogKi8KZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIGdldEJsb2NrZWRTbG90cyhkYXRlLCBvd25lck5hbWUsIHsgZm9yY2VSZWZyZXNoID0gZmFsc2UgfSA9IHt9KSB7CiAgY29uc3QgY2FjaGVLZXkgPSBgJHtvd25lck5hbWV9fCR7ZGF0ZX1gOwogIGlmICghZm9yY2VSZWZyZXNoKSB7CiAgICBjb25zdCBjYWNoZWQgPSBjYWNoZS5nZXQoY2FjaGVLZXkpOwogICAgaWYgKGNhY2hlZCAmJiBEYXRlLm5vdygpIC0gY2FjaGVkLnRzIDwgQ0FDSEVfVFRMKSByZXR1cm4gY2FjaGVkLmRhdGE7CiAgfQoKICBjb25zdCBvd25lckVtYWlsID0gcmVzb2x2ZU93bmVyRW1haWwob3duZXJOYW1lKTsKICBjb25zdCBidXN5UGVyaW9kcyA9IFtdOwogIGNvbnN0IHNlZW4gPSBuZXcgU2V0KCk7CgogIGNvbnN0IGFkZENybUJsb2NrID0gKHRpbWVTdHIsIHNvdXJjZSkgPT4gewogICAgaWYgKCF0aW1lU3RyKSByZXR1cm47CiAgICBsZXQgbm9ybWFsaXplZCA9IFN0cmluZyh0aW1lU3RyKS5yZXBsYWNlKC9ccyooQU18UE0pL2ksICcnKS50cmltKCk7CiAgICBpZiAoIW5vcm1hbGl6ZWQuaW5jbHVkZXMoJzonKSkgbm9ybWFsaXplZCA9IGAke25vcm1hbGl6ZWR9OjAwYDsKICAgIGNvbnN0IHN0YXJ0ID0gbGFUb1V0Y0lzbyhkYXRlLCBub3JtYWxpemVkKTsKICAgIGNvbnN0IGVuZCA9IG5ldyBEYXRlKG5ldyBEYXRlKHN0YXJ0KS5nZXRUaW1lKCkgKyAyICogNjAgKiA2MCAqIDEwMDApLnRvSVNPU3RyaW5nKCk7CiAgICBjb25zdCBrZXkgPSBgJHtzdGFydH18JHtlbmR9YDsKICAgIGlmICghc2Vlbi5oYXMoa2V5KSkgeyBzZWVuLmFkZChrZXkpOyBidXN5UGVyaW9kcy5wdXNoKHsgY2FsZW5kYXI6ICdjcm0nLCBzb3VyY2UsIHN0YXJ0LCBlbmQgfSk7IH0KICB9OwoKICAvLyBDUk0tYmFzZWQgYnVzeSBwZXJpb2RzIOKAlCBnZXQgYWxsIG1lZXRpbmdzIG9uIHRoaXMgZGF0ZSBmb3IgdGhpcyBvd25lcgogIC8vIFdlIGZldGNoIHdpdGhvdXQgYXNzaWduZWRfcmVwIGZpbHRlciBhbmQgbWF0Y2ggYnkgZmlyc3QgbmFtZSB0byBoYW5kbGUKICAvLyBib3RoIGZ1bGwtbmFtZSBhbmQgZmlyc3QtbmFtZS1vbmx5IHN0b3JhZ2UgZm9ybWF0cwogIGNvbnN0IGFsbExlYWRzID0gYXdhaXQgcmFpbHdheUxlYWRzLmxpc3QoeyBsaW1pdDogNTAwIH0pLnRoZW4ociA9PiByLml0ZW1zIHx8IFtdKS5jYXRjaCgoKSA9PiBbXSk7CiAgY29uc3QgZm9sbG93VXBzID0gYWxsTGVhZHMuZmlsdGVyKGwgPT4gbC5mb2xsb3dfdXBfdHlwZSA9PT0gJ01lZXRpbmcnICYmIGwuZm9sbG93X3VwX2RhdGUgPT09IGRhdGUpOwogIGNvbnN0IGFwcG9pbnRtZW50cyA9IGFsbExlYWRzLmZpbHRlcihsID0+IGwuYXBwb2ludG1lbnRfZGF0ZSA9PT0gZGF0ZSk7CgogIC8vIEZpbHRlciB0byB0aGlzIG93bmVyOiBtYXRjaCBieSBmdWxsIG5hbWUgT1IgZmlyc3QgbmFtZQogIGNvbnN0IG1hdGNoZXNPd25lciA9IChsZWFkKSA9PiB7CiAgICBpZiAoIW93bmVyTmFtZSkgcmV0dXJuIHRydWU7CiAgICBjb25zdCByZXAgPSAobGVhZC5hc3NpZ25lZF9yZXAgfHwgJycpLnRyaW0oKS50b0xvd2VyQ2FzZSgpOwogICAgY29uc3Qgb3duZXIgPSBvd25lck5hbWUudHJpbSgpLnRvTG93ZXJDYXNlKCk7CiAgICByZXR1cm4gcmVwID09PSBvd25lciB8fCByZXAgPT09IG93bmVyLnNwbGl0KC9ccysvKVswXSB8fCBvd25lciA9PT0gcmVwLnNwbGl0KC9ccysvKVswXTsKICB9OwoKICBmb3IgKGNvbnN0IGxlYWQgb2YgZm9sbG93VXBzKSB7CiAgICBpZiAobWF0Y2hlc093bmVyKGxlYWQpKSBhZGRDcm1CbG9jayhsZWFkLmZvbGxvd191cF90aW1lIHx8IGxlYWQuYXBwb2ludG1lbnRfdGltZSwgJ2ZvbGxvd191cCcpOwogIH0KICBmb3IgKGNvbnN0IGxlYWQgb2YgYXBwb2ludG1lbnRzKSB7CiAgICBpZiAobWF0Y2hlc093bmVyKGxlYWQpKSBhZGRDcm1CbG9jayhsZWFkLmFwcG9pbnRtZW50X3RpbWUsICdhcHBvaW50bWVudCcpOwogIH0KCiAgLy8gR29vZ2xlIENhbGVuZGFyIGZyZWVCdXN5IGlzIG5vdyBoYW5kbGVkIHNlcnZlci1zaWRlIHZpYSBSYWlsd2F5LgogIC8vIEJyb3dzZXItc2lkZSBHb29nbGUgQVBJIGNhbGxzIGhhdmUgYmVlbiByZW1vdmVkIOKAlCBDUk0gZGF0YSBvbmx5IGhlcmUuCgogIGNvbnN0IGJsb2NrZWRfc2xvdHMgPSBjb21wdXRlQmxvY2tlZFNsb3RzKGJ1c3lQZXJpb2RzKTsKICBjb25zdCBkYXRhID0geyBibG9ja2VkX3Nsb3RzLCBidXN5X3BlcmlvZHM6IGJ1c3lQZXJpb2RzIH07CiAgY2FjaGUuc2V0KGNhY2hlS2V5LCB7IGRhdGEsIHRzOiBEYXRlLm5vdygpIH0pOwogIHJldHVybiBkYXRhOwp9CgovKioKICogVmFsaWRhdGUgYSBzaW5nbGUgc2xvdC4gUmV0dXJucyB7IGF2YWlsYWJsZSwgYmxvY2tlZCB9LgogKi8KZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIHZhbGlkYXRlU2xvdChkYXRlLCB0aW1lLCBvd25lck5hbWUsIHsgZm9yY2VSZWZyZXNoID0gZmFsc2UgfSA9IHt9KSB7CiAgaWYgKCF0aW1lKSByZXR1cm4geyBhdmFpbGFibGU6IHRydWUsIGJsb2NrZWQ6IGZhbHNlIH07CiAgY29uc3QgW2gsIG1dID0gdGltZS5zcGxpdCgnOicpLm1hcChOdW1iZXIpOwogIGlmIChoIDwgOCB8fCAoaCA9PT0gOCAmJiBtIDwgMzApKSByZXR1cm4geyBhdmFpbGFibGU6IGZhbHNlLCBibG9ja2VkOiB0cnVlLCByZWFzb246ICdiZWZvcmVfOF8zMGFtJyB9OwogIGNvbnN0IHsgYmxvY2tlZF9zbG90cyB9ID0gYXdhaXQgZ2V0QmxvY2tlZFNsb3RzKGRhdGUsIG93bmVyTmFtZSwgeyBmb3JjZVJlZnJlc2ggfSk7CiAgY29uc3QgaXNCbG9ja2VkID0gYmxvY2tlZF9zbG90cy5pbmNsdWRlcyh0aW1lKTsKICByZXR1cm4geyBhdmFpbGFibGU6ICFpc0Jsb2NrZWQsIGJsb2NrZWQ6IGlzQmxvY2tlZCB9Owp9
+/**
+ * Client-side calendar availability check.
+ * Replicates the logic from the checkCalendarConflicts backend function.
+ * Uses CRM Lead data (always available) + optional Google Calendar freeBusy API.
+ */
+import * as railwayLeads from '@/api/railway/leads';
+
+const TZ = 'America/Los_Angeles';
+const MICHELLE_EMAIL = 'michelle@ecconstructiongroup.com';
+const TOTAL_WINDOW_MINUTES = 120; // 1hr meeting + 1hr buffer
+
+const OWNER_EMAIL_MAP = {
+  'yaron':    'yaron@ecconstructiongroup.com',
+  'michelle': 'michelle@ecconstructiongroup.com',
+  'ethan':    'ethan@ecconstructiongroup.com',
+  'micky':    'micky@ecconstructiongroup.com',
+  'mickey':   'micky@ecconstructiongroup.com',
+  'victoria': 'victoria@ecconstructiongroup.com',
+  'sharon':   'sharon@ecconstructiongroup.com',
+};
+
+const ALL_SLOTS = [];
+for (let h = 8; h <= 18; h++) {
+  for (let m = 0; m < 60; m += 30) {
+    if (h === 8 && m === 0) continue;
+    if (h === 18 && m > 30) continue;
+    ALL_SLOTS.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+  }
+}
+
+export function resolveOwnerEmail(ownerName) {
+  if (!ownerName || typeof ownerName !== 'string') return null;
+  const normalized = ownerName.trim().toLowerCase();
+  const email = OWNER_EMAIL_MAP[normalized]
+    || OWNER_EMAIL_MAP[normalized.split(/\s+/)[0]]
+    || `${normalized.split(/\s+/)[0]}@ecconstructiongroup.com`;
+  if (email === MICHELLE_EMAIL) return null;
+  return email;
+}
+
+function laToUtcIso(date, time) {
+  const noonUtc = new Date(`${date}T12:00:00Z`);
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: TZ, hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(noonUtc);
+  const pMap = {};
+  for (const p of parts) pMap[p.type] = p.value;
+  const laHour = parseInt(pMap.hour === '24' ? '0' : pMap.hour);
+  const laMin = parseInt(pMap.minute);
+  const offsetMinutes = 720 - (laHour * 60 + laMin);
+  const [tH, tM] = time.split(':').map(Number);
+  const targetUtcMinutes = tH * 60 + tM + offsetMinutes;
+  const utcH = Math.floor(targetUtcMinutes / 60) % 24;
+  const utcM = targetUtcMinutes % 60;
+  const dayOffset = Math.floor(targetUtcMinutes / (60 * 24));
+  const baseDate = new Date(`${date}T00:00:00Z`);
+  baseDate.setUTCDate(baseDate.getUTCDate() + dayOffset);
+  baseDate.setUTCHours(utcH, utcM, 0, 0);
+  return baseDate.toISOString();
+}
+
+function isoToLaMinutes(isoStr) {
+  const date = new Date(isoStr);
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: TZ, hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(date);
+  const pMap = {};
+  for (const p of parts) pMap[p.type] = p.value;
+  return parseInt(pMap.hour === '24' ? '0' : pMap.hour) * 60 + parseInt(pMap.minute);
+}
+
+function slotToMinutes(slot) {
+  const [h, m] = slot.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function computeBlockedSlots(busyPeriods) {
+  const blocked = new Set();
+  for (const slot of ALL_SLOTS) {
+    const slotStart = slotToMinutes(slot);
+    const slotEnd = slotStart + TOTAL_WINDOW_MINUTES;
+    for (const busy of busyPeriods) {
+      const busyStart = isoToLaMinutes(busy.start);
+      const busyEnd = isoToLaMinutes(busy.end);
+      if (busyStart < slotEnd && busyEnd > slotStart) {
+        blocked.add(slot);
+        break;
+      }
+    }
+  }
+  return Array.from(blocked).sort();
+}
+
+// Simple in-memory cache
+const cache = new Map();
+const CACHE_TTL = 5 * 60 * 1000;
+
+/**
+ * Returns { blocked_slots: string[], busy_periods: object[] }
+ */
+export async function getBlockedSlots(date, ownerName, { forceRefresh = false } = {}) {
+  const cacheKey = `${ownerName}|${date}`;
+  if (!forceRefresh) {
+    const cached = cache.get(cacheKey);
+    if (cached && Date.now() - cached.ts < CACHE_TTL) return cached.data;
+  }
+
+  const ownerEmail = resolveOwnerEmail(ownerName);
+  const busyPeriods = [];
+  const seen = new Set();
+
+  const addCrmBlock = (timeStr, source) => {
+    if (!timeStr) return;
+    let normalized = String(timeStr).replace(/\s*(AM|PM)/i, '').trim();
+    if (!normalized.includes(':')) normalized = `${normalized}:00`;
+    const start = laToUtcIso(date, normalized);
+    const end = new Date(new Date(start).getTime() + 2 * 60 * 60 * 1000).toISOString();
+    const key = `${start}|${end}`;
+    if (!seen.has(key)) { seen.add(key); busyPeriods.push({ calendar: 'crm', source, start, end }); }
+  };
+
+  // CRM-based busy periods — get all meetings on this date for this owner
+  // We fetch without assigned_rep filter and match by first name to handle
+  // both full-name and first-name-only storage formats
+  const allLeads = await railwayLeads.list({ limit: 500 }).then(r => r.items || []).catch(() => []);
+  const followUps = allLeads.filter(l => l.follow_up_type === 'Meeting' && l.follow_up_date === date);
+  const appointments = allLeads.filter(l => l.appointment_date === date);
+
+  // Filter to this owner: match by full name OR first name
+  const matchesOwner = (lead) => {
+    if (!ownerName) return true;
+    const rep = (lead.assigned_rep || '').trim().toLowerCase();
+    const owner = ownerName.trim().toLowerCase();
+    return rep === owner || rep === owner.split(/\s+/)[0] || owner === rep.split(/\s+/)[0];
+  };
+
+  for (const lead of followUps) {
+    if (matchesOwner(lead)) addCrmBlock(lead.follow_up_time || lead.appointment_time, 'follow_up');
+  }
+  for (const lead of appointments) {
+    if (matchesOwner(lead)) addCrmBlock(lead.appointment_time, 'appointment');
+  }
+
+  // Google Calendar freeBusy is now handled server-side via Railway.
+  // Browser-side Google API calls have been removed — CRM data only here.
+
+  const blocked_slots = computeBlockedSlots(busyPeriods);
+  const data = { blocked_slots, busy_periods: busyPeriods };
+  cache.set(cacheKey, { data, ts: Date.now() });
+  return data;
+}
+
+/**
+ * Validate a single slot. Returns { available, blocked }.
+ */
+export async function validateSlot(date, time, ownerName, { forceRefresh = false } = {}) {
+  if (!time) return { available: true, blocked: false };
+  const [h, m] = time.split(':').map(Number);
+  if (h < 8 || (h === 8 && m < 30)) return { available: false, blocked: true, reason: 'before_8_30am' };
+  const { blocked_slots } = await getBlockedSlots(date, ownerName, { forceRefresh });
+  const isBlocked = blocked_slots.includes(time);
+  return { available: !isBlocked, blocked: isBlocked };
+}

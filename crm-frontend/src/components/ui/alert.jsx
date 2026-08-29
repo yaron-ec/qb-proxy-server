@@ -1,1 +1,47 @@
-aW1wb3J0ICogYXMgUmVhY3QgZnJvbSAicmVhY3QiCmltcG9ydCB7IGN2YSB9IGZyb20gImNsYXNzLXZhcmlhbmNlLWF1dGhvcml0eSI7CgppbXBvcnQgeyBjbiB9IGZyb20gIkAvbGliL3V0aWxzIgoKY29uc3QgYWxlcnRWYXJpYW50cyA9IGN2YSgKICAicmVsYXRpdmUgdy1mdWxsIHJvdW5kZWQtbGcgYm9yZGVyIHB4LTQgcHktMyB0ZXh0LXNtIFsmPnN2ZytkaXZdOnRyYW5zbGF0ZS15LVstM3B4XSBbJj5zdmddOmFic29sdXRlIFsmPnN2Z106bGVmdC00IFsmPnN2Z106dG9wLTQgWyY+c3ZnXTp0ZXh0LWZvcmVncm91bmQgWyY+c3ZnfipdOnBsLTciLAogIHsKICAgIHZhcmlhbnRzOiB7CiAgICAgIHZhcmlhbnQ6IHsKICAgICAgICBkZWZhdWx0OiAiYmctYmFja2dyb3VuZCB0ZXh0LWZvcmVncm91bmQiLAogICAgICAgIGRlc3RydWN0aXZlOgogICAgICAgICAgImJvcmRlci1kZXN0cnVjdGl2ZS81MCB0ZXh0LWRlc3RydWN0aXZlIGRhcms6Ym9yZGVyLWRlc3RydWN0aXZlIFsmPnN2Z106dGV4dC1kZXN0cnVjdGl2ZSIsCiAgICAgIH0sCiAgICB9LAogICAgZGVmYXVsdFZhcmlhbnRzOiB7CiAgICAgIHZhcmlhbnQ6ICJkZWZhdWx0IiwKICAgIH0sCiAgfQopCgpjb25zdCBBbGVydCA9IFJlYWN0LmZvcndhcmRSZWYoKHsgY2xhc3NOYW1lLCB2YXJpYW50LCAuLi5wcm9wcyB9LCByZWYpID0+ICgKICA8ZGl2CiAgICByZWY9e3JlZn0KICAgIHJvbGU9ImFsZXJ0IgogICAgY2xhc3NOYW1lPXtjbihhbGVydFZhcmlhbnRzKHsgdmFyaWFudCB9KSwgY2xhc3NOYW1lKX0KICAgIHsuLi5wcm9wc30gLz4KKSkKQWxlcnQuZGlzcGxheU5hbWUgPSAiQWxlcnQiCgpjb25zdCBBbGVydFRpdGxlID0gUmVhY3QuZm9yd2FyZFJlZigoeyBjbGFzc05hbWUsIC4uLnByb3BzIH0sIHJlZikgPT4gKAogIDxoNQogICAgcmVmPXtyZWZ9CiAgICBjbGFzc05hbWU9e2NuKCJtYi0xIGZvbnQtbWVkaXVtIGxlYWRpbmctbm9uZSB0cmFja2luZy10aWdodCIsIGNsYXNzTmFtZSl9CiAgICB7Li4ucHJvcHN9IC8+CikpCkFsZXJ0VGl0bGUuZGlzcGxheU5hbWUgPSAiQWxlcnRUaXRsZSIKCmNvbnN0IEFsZXJ0RGVzY3JpcHRpb24gPSBSZWFjdC5mb3J3YXJkUmVmKCh7IGNsYXNzTmFtZSwgLi4ucHJvcHMgfSwgcmVmKSA9PiAoCiAgPGRpdgogICAgcmVmPXtyZWZ9CiAgICBjbGFzc05hbWU9e2NuKCJ0ZXh0LXNtIFsmX3BdOmxlYWRpbmctcmVsYXhlZCIsIGNsYXNzTmFtZSl9CiAgICB7Li4ucHJvcHN9IC8+CikpCkFsZXJ0RGVzY3JpcHRpb24uZGlzcGxheU5hbWUgPSAiQWxlcnREZXNjcmlwdGlvbiIKCmV4cG9ydCB7IEFsZXJ0LCBBbGVydFRpdGxlLCBBbGVydERlc2NyaXB0aW9uIH0K
+import * as React from "react"
+import { cva } from "class-variance-authority";
+
+import { cn } from "@/lib/utils"
+
+const alertVariants = cva(
+  "relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7",
+  {
+    variants: {
+      variant: {
+        default: "bg-background text-foreground",
+        destructive:
+          "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+)
+
+const Alert = React.forwardRef(({ className, variant, ...props }, ref) => (
+  <div
+    ref={ref}
+    role="alert"
+    className={cn(alertVariants({ variant }), className)}
+    {...props} />
+))
+Alert.displayName = "Alert"
+
+const AlertTitle = React.forwardRef(({ className, ...props }, ref) => (
+  <h5
+    ref={ref}
+    className={cn("mb-1 font-medium leading-none tracking-tight", className)}
+    {...props} />
+))
+AlertTitle.displayName = "AlertTitle"
+
+const AlertDescription = React.forwardRef(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("text-sm [&_p]:leading-relaxed", className)}
+    {...props} />
+))
+AlertDescription.displayName = "AlertDescription"
+
+export { Alert, AlertTitle, AlertDescription }

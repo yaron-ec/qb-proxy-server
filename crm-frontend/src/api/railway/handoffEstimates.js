@@ -1,1 +1,29 @@
-LyoqCiAqIHJhaWx3YXkgaGFuZG9mZiBlc3RpbWF0ZXMg4oCUIEhhbmRvZmYgRXN0aW1hdGUgQ1JVRCBjbGllbnQuCiAqLwppbXBvcnQgeyBhcGlDYWxsIH0gZnJvbSAnLi9jbGllbnQnOwoKZXhwb3J0IGZ1bmN0aW9uIGxpc3QocGFyYW1zID0ge30pIHsKICBjb25zdCBxcyA9IG5ldyBVUkxTZWFyY2hQYXJhbXMoKTsKICBpZiAocGFyYW1zLmxlYWRfaWQpIHFzLnNldCgnbGVhZF9pZCcsIHBhcmFtcy5sZWFkX2lkKTsKICBpZiAocGFyYW1zLm1hdGNoX3N0YXR1cyAmJiBwYXJhbXMubWF0Y2hfc3RhdHVzICE9PSAnYWxsJykgcXMuc2V0KCdtYXRjaF9zdGF0dXMnLCBwYXJhbXMubWF0Y2hfc3RhdHVzKTsKICBpZiAocGFyYW1zLnFiX2VzdGltYXRlX2lkKSBxcy5zZXQoJ3FiX2VzdGltYXRlX2lkJywgcGFyYW1zLnFiX2VzdGltYXRlX2lkKTsKICBjb25zdCBxID0gcXMudG9TdHJpbmcoKTsKICByZXR1cm4gYXBpQ2FsbChgL2FwaS92MS9oYW5kb2ZmLWVzdGltYXRlcyR7cSA/IGA/JHtxfWAgOiAnJ31gLCB7IG1ldGhvZDogJ0dFVCcgfSk7Cn0KCmV4cG9ydCBmdW5jdGlvbiBnZXQoaWQpIHsKICByZXR1cm4gYXBpQ2FsbChgL2FwaS92MS9oYW5kb2ZmLWVzdGltYXRlcy8ke2lkfWAsIHsgbWV0aG9kOiAnR0VUJyB9KTsKfQoKZXhwb3J0IGZ1bmN0aW9uIGNyZWF0ZShkYXRhKSB7CiAgcmV0dXJuIGFwaUNhbGwoJy9hcGkvdjEvaGFuZG9mZi1lc3RpbWF0ZXMnLCB7IG1ldGhvZDogJ1BPU1QnLCBib2R5OiBkYXRhIH0pOwp9CgpleHBvcnQgZnVuY3Rpb24gdXBkYXRlKGlkLCBkYXRhKSB7CiAgcmV0dXJuIGFwaUNhbGwoYC9hcGkvdjEvaGFuZG9mZi1lc3RpbWF0ZXMvJHtpZH1gLCB7IG1ldGhvZDogJ1BVVCcsIGJvZHk6IGRhdGEgfSk7Cn0KCmV4cG9ydCBmdW5jdGlvbiByZW1vdmUoaWQpIHsKICByZXR1cm4gYXBpQ2FsbChgL2FwaS92MS9oYW5kb2ZmLWVzdGltYXRlcy8ke2lkfWAsIHsgbWV0aG9kOiAnREVMRVRFJyB9KTsKfQ==
+/**
+ * railway handoff estimates — Handoff Estimate CRUD client.
+ */
+import { apiCall } from './client';
+
+export function list(params = {}) {
+  const qs = new URLSearchParams();
+  if (params.lead_id) qs.set('lead_id', params.lead_id);
+  if (params.match_status && params.match_status !== 'all') qs.set('match_status', params.match_status);
+  if (params.qb_estimate_id) qs.set('qb_estimate_id', params.qb_estimate_id);
+  const q = qs.toString();
+  return apiCall(`/api/v1/handoff-estimates${q ? `?${q}` : ''}`, { method: 'GET' });
+}
+
+export function get(id) {
+  return apiCall(`/api/v1/handoff-estimates/${id}`, { method: 'GET' });
+}
+
+export function create(data) {
+  return apiCall('/api/v1/handoff-estimates', { method: 'POST', body: data });
+}
+
+export function update(id, data) {
+  return apiCall(`/api/v1/handoff-estimates/${id}`, { method: 'PUT', body: data });
+}
+
+export function remove(id) {
+  return apiCall(`/api/v1/handoff-estimates/${id}`, { method: 'DELETE' });
+}

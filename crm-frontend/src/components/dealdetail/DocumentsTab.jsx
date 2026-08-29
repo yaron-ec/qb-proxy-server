@@ -1,1 +1,27 @@
-LyoqCiAqIERvY3VtZW50c1RhYiDigJQgY29udHJhY3RzIChTaWduTm93KSBhbmQgZmlsZSB1cGxvYWRzIChhdHRhY2htZW50cykuCiAqLwppbXBvcnQgU2lnbk5vd1BhbmVsIGZyb20gIkAvY29tcG9uZW50cy9TaWduTm93UGFuZWwiOwppbXBvcnQgQXR0YWNobWVudHNQYW5lbCBmcm9tICJAL2NvbXBvbmVudHMvQXR0YWNobWVudHNQYW5lbCI7CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBEb2N1bWVudHNUYWIoeyBsZWFkLCBzZXRMZWFkIH0pIHsKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9Im1heC13LTR4bCBteC1hdXRvIHB4LTQgbWQ6cHgtNiBweS01IHNwYWNlLXktNSI+CiAgICAgIHsvKiBDb250cmFjdHMgKi99CiAgICAgIDxkaXY+CiAgICAgICAgPHAgY2xhc3NOYW1lPSJ0eXBvZ3JhcGh5LXNlY3Rpb24taGVhZGVyIG1iLTIiPkNPTlRSQUNUUzwvcD4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iY2FyZC1wcmVtaXVtIG92ZXJmbG93LWhpZGRlbiI+CiAgICAgICAgICA8U2lnbk5vd1BhbmVsIGxlYWQ9e2xlYWR9IG9uTGVhZFVwZGF0ZT17c2V0TGVhZH0gLz4KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CgogICAgICB7LyogVXBsb2FkcyAqL30KICAgICAgPGRpdj4KICAgICAgICA8cCBjbGFzc05hbWU9InR5cG9ncmFwaHktc2VjdGlvbi1oZWFkZXIgbWItMiI+VVBMT0FEUyAmIEZJTEVTPC9wPgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJjYXJkLXByZW1pdW0gb3ZlcmZsb3ctaGlkZGVuIj4KICAgICAgICAgIDxBdHRhY2htZW50c1BhbmVsIGxlYWQ9e2xlYWR9IC8+CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CiAgKTsKfQ==
+/**
+ * DocumentsTab — contracts (SignNow) and file uploads (attachments).
+ */
+import SignNowPanel from "@/components/SignNowPanel";
+import AttachmentsPanel from "@/components/AttachmentsPanel";
+
+export default function DocumentsTab({ lead, setLead }) {
+  return (
+    <div className="max-w-4xl mx-auto px-4 md:px-6 py-5 space-y-5">
+      {/* Contracts */}
+      <div>
+        <p className="typography-section-header mb-2">CONTRACTS</p>
+        <div className="card-premium overflow-hidden">
+          <SignNowPanel lead={lead} onLeadUpdate={setLead} />
+        </div>
+      </div>
+
+      {/* Uploads */}
+      <div>
+        <p className="typography-section-header mb-2">UPLOADS & FILES</p>
+        <div className="card-premium overflow-hidden">
+          <AttachmentsPanel lead={lead} />
+        </div>
+      </div>
+    </div>
+  );
+}

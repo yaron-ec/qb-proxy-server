@@ -1,1 +1,92 @@
-LyoqCiAqIEZvcm1hdCB1dGlsaXRpZXMgdG8gcHJldmVudCB6ZXJvL251bGwgZnJvbSBkaXNwbGF5aW5nCiAqLwoKLy8gRGlzcGxheSB2YWx1ZSBzYWZlbHkg4oCUIG5ldmVyIHNob3cgIjAiIG9yIG51bGwgbGl0ZXJhbGx5CmV4cG9ydCBjb25zdCBzYWZlRGlzcGxheSA9ICh2YWx1ZSkgPT4gewogIGlmICh2YWx1ZSA9PT0gbnVsbCB8fCB2YWx1ZSA9PT0gdW5kZWZpbmVkIHx8IHZhbHVlID09PSAnJyB8fCB2YWx1ZSA9PT0gJzAnIHx8IHZhbHVlID09PSAwKSB7CiAgICByZXR1cm4gJ+KAlCc7CiAgfQogIHJldHVybiB2YWx1ZTsKfTsKCi8vIEZvcm1hdCBtb25leSBzYWZlbHkg4oCUIG5ldmVyIHNob3cgIiQwIgpleHBvcnQgY29uc3QgZm10TW9uZXkgPSAodikgPT4gewogIGlmICh2ID09PSBudWxsIHx8IHYgPT09IHVuZGVmaW5lZCB8fCB2ID09PSAwKSB7CiAgICByZXR1cm4gJ+KAlCc7CiAgfQogIHJldHVybiBgJCR7TnVtYmVyKHYpLnRvTG9jYWxlU3RyaW5nKCdlbi1VUycsIHsgbWluaW11bUZyYWN0aW9uRGlnaXRzOiAwLCBtYXhpbXVtRnJhY3Rpb25EaWdpdHM6IDIgfSl9YDsKfTsKCi8vIEZvcm1hdCBkYXRlIHNhZmVseQpleHBvcnQgY29uc3QgZm10RGF0ZSA9IChpc29TdHIpID0+IHsKICBpZiAoIWlzb1N0cikgcmV0dXJuICfigJQnOwogIHJldHVybiBuZXcgRGF0ZShpc29TdHIpLnRvTG9jYWxlRGF0ZVN0cmluZygnZW4tVVMnLCB7IG1vbnRoOiAnc2hvcnQnLCBkYXk6ICdudW1lcmljJywgeWVhcjogJ251bWVyaWMnLCB0aW1lWm9uZTogJ0FtZXJpY2EvTG9zX0FuZ2VsZXMnIH0pOwp9OwoKLy8gRm9ybWF0IFVTIG9yIGludGVybmF0aW9uYWwgcGhvbmUgbnVtYmVycyBmb3IgZGlzcGxheSBvbmx5IChkb2VzIG5vdCBjaGFuZ2Ugc3RvcmVkIHZhbHVlKQovLyBHbG9iYWwgc3RhbmRhcmQ6ICsxIChYWFgpIFhYWC1YWFhYIGZvciBVUyBudW1iZXJzCmV4cG9ydCBjb25zdCBmb3JtYXRQaG9uZSA9IChyYXcpID0+IHsKICBpZiAoIXJhdykgcmV0dXJuIHJhdzsKICBjb25zdCBkaWdpdHMgPSBTdHJpbmcocmF3KS5yZXBsYWNlKC9cRC9nLCAnJyk7CiAgLy8gVVM6IDExIGRpZ2l0cyBzdGFydGluZyB3aXRoIDEgKGUuZy4gMTgxODQyNjk4MTUpCiAgaWYgKGRpZ2l0cy5sZW5ndGggPT09IDExICYmIGRpZ2l0c1swXSA9PT0gJzEnKSB7CiAgICByZXR1cm4gYCsxICgke2RpZ2l0cy5zbGljZSgxLCA0KX0pICR7ZGlnaXRzLnNsaWNlKDQsIDcpfS0ke2RpZ2l0cy5zbGljZSg3KX1gOwogIH0KICAvLyBVUzogMTAgZGlnaXRzIOKAlCBhc3N1bWUgVVMsIHByZXBlbmQgKzEKICBpZiAoZGlnaXRzLmxlbmd0aCA9PT0gMTApIHsKICAgIHJldHVybiBgKzEgKCR7ZGlnaXRzLnNsaWNlKDAsIDMpfSkgJHtkaWdpdHMuc2xpY2UoMywgNil9LSR7ZGlnaXRzLnNsaWNlKDYpfWA7CiAgfQogIC8vIEFscmVhZHkgZm9ybWF0dGVkIG9yIGludGVybmF0aW9uYWwg4oCUIHJldHVybiBhcy1pcwogIHJldHVybiByYXc7Cn07CgovLyBQcmVzZXJ2ZWQgYWJicmV2aWF0aW9ucyDigJQgYWx3YXlzIGtlZXAgdGhlc2UgdXBwZXJjYXNlCmNvbnN0IEFCQlJFVklBVElPTlMgPSBuZXcgU2V0KFsnQURVJywgJ0hWQUMnLCAnSE9BJywgJ1VTQScsICdDQScsICdMQScsICdMTEMnLCAnQUMnLCAnSFZBQyddKTsKCi8qKgogKiBDb252ZXJ0IGEgc3RyaW5nIHRvIFRpdGxlIENhc2Ug4oCUIGFsd2F5cyBub3JtYWxpemVzLgogKiAtIFByZXNlcnZlcyBrbm93biBhYmJyZXZpYXRpb25zIChBRFUsIEhWQUMsIEhPQSwgZXRjLikKICogLSBIYW5kbGVzIGh5cGhlbmF0ZWQgbmFtZXMgKFNtaXRoLUpvaG5zb24pCiAqIC0gSGFuZGxlcyBhcG9zdHJvcGhlIG5hbWVzIChPJ0Nvbm5vcikKICogLSBGaXhlcyBBTEwgQ0FQUywgYWxsIGxvd2VyY2FzZSwgYW5kIG1peGVkLWNhc2UgKGpPRSBhTEJBUlJBTiDihpIgSm9lIEFsYmFycmFuKQogKi8KZXhwb3J0IGNvbnN0IHRvVGl0bGVDYXNlID0gKHN0cikgPT4gewogIGlmICghc3RyKSByZXR1cm4gc3RyOwogIGNvbnN0IHMgPSBTdHJpbmcoc3RyKS50cmltKCk7CiAgaWYgKCFzKSByZXR1cm4gczsKCiAgY29uc3QgY2FwaXRhbGl6ZVdvcmQgPSAod29yZCkgPT4gewogICAgaWYgKCF3b3JkKSByZXR1cm4gd29yZDsKICAgIC8vIENoZWNrIGFiYnJldmlhdGlvbiBsaXN0IGZpcnN0CiAgICBpZiAoQUJCUkVWSUFUSU9OUy5oYXMod29yZC50b1VwcGVyQ2FzZSgpKSkgcmV0dXJuIHdvcmQudG9VcHBlckNhc2UoKTsKICAgIC8vIEhhbmRsZSBhcG9zdHJvcGhlczogTydDb25ub3IKICAgIGlmICh3b3JkLmluY2x1ZGVzKCInIikpIHsKICAgICAgcmV0dXJuIHdvcmQuc3BsaXQoIiciKS5tYXAocGFydCA9PgogICAgICAgIHBhcnQuY2hhckF0KDApLnRvVXBwZXJDYXNlKCkgKyBwYXJ0LnNsaWNlKDEpLnRvTG93ZXJDYXNlKCkKICAgICAgKS5qb2luKCInIik7CiAgICB9CiAgICByZXR1cm4gd29yZC5jaGFyQXQoMCkudG9VcHBlckNhc2UoKSArIHdvcmQuc2xpY2UoMSkudG9Mb3dlckNhc2UoKTsKICB9OwoKICAvLyBIYW5kbGUgaHlwaGVuYXRlZCB3b3JkczogU21pdGgtSm9obnNvbgogIHJldHVybiBzLnNwbGl0KCcgJykubWFwKHdvcmQgPT4gewogICAgaWYgKHdvcmQuaW5jbHVkZXMoJy0nKSkgewogICAgICByZXR1cm4gd29yZC5zcGxpdCgnLScpLm1hcChjYXBpdGFsaXplV29yZCkuam9pbignLScpOwogICAgfQogICAgcmV0dXJuIGNhcGl0YWxpemVXb3JkKHdvcmQpOwogIH0pLmpvaW4oJyAnKTsKfTsKCi8vIEZvcm1hdCBkYXRldGltZSBzYWZlbHkKZXhwb3J0IGNvbnN0IGZtdERhdGVUaW1lID0gKGlzb1N0cikgPT4gewogIGlmICghaXNvU3RyKSByZXR1cm4gJ+KAlCc7CiAgcmV0dXJuIG5ldyBEYXRlKGlzb1N0cikudG9Mb2NhbGVEYXRlU3RyaW5nKCdlbi1VUycsIHsKICAgIG1vbnRoOiAnc2hvcnQnLAogICAgZGF5OiAnbnVtZXJpYycsCiAgICB5ZWFyOiAnbnVtZXJpYycsCiAgICBob3VyOiAnMi1kaWdpdCcsCiAgICBtaW51dGU6ICcyLWRpZ2l0JywKICAgIHRpbWVab25lOiAnQW1lcmljYS9Mb3NfQW5nZWxlcycsCiAgfSk7Cn07
+/**
+ * Format utilities to prevent zero/null from displaying
+ */
+
+// Display value safely — never show "0" or null literally
+export const safeDisplay = (value) => {
+  if (value === null || value === undefined || value === '' || value === '0' || value === 0) {
+    return '—';
+  }
+  return value;
+};
+
+// Format money safely — never show "$0"
+export const fmtMoney = (v) => {
+  if (v === null || v === undefined || v === 0) {
+    return '—';
+  }
+  return `$${Number(v).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+};
+
+// Format date safely
+export const fmtDate = (isoStr) => {
+  if (!isoStr) return '—';
+  return new Date(isoStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/Los_Angeles' });
+};
+
+// Format US or international phone numbers for display only (does not change stored value)
+// Global standard: +1 (XXX) XXX-XXXX for US numbers
+export const formatPhone = (raw) => {
+  if (!raw) return raw;
+  const digits = String(raw).replace(/\D/g, '');
+  // US: 11 digits starting with 1 (e.g. 18184269815)
+  if (digits.length === 11 && digits[0] === '1') {
+    return `+1 (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
+  }
+  // US: 10 digits — assume US, prepend +1
+  if (digits.length === 10) {
+    return `+1 (${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  }
+  // Already formatted or international — return as-is
+  return raw;
+};
+
+// Preserved abbreviations — always keep these uppercase
+const ABBREVIATIONS = new Set(['ADU', 'HVAC', 'HOA', 'USA', 'CA', 'LA', 'LLC', 'AC', 'HVAC']);
+
+/**
+ * Convert a string to Title Case — always normalizes.
+ * - Preserves known abbreviations (ADU, HVAC, HOA, etc.)
+ * - Handles hyphenated names (Smith-Johnson)
+ * - Handles apostrophe names (O'Connor)
+ * - Fixes ALL CAPS, all lowercase, and mixed-case (jOE aLBARRAN → Joe Albarran)
+ */
+export const toTitleCase = (str) => {
+  if (!str) return str;
+  const s = String(str).trim();
+  if (!s) return s;
+
+  const capitalizeWord = (word) => {
+    if (!word) return word;
+    // Check abbreviation list first
+    if (ABBREVIATIONS.has(word.toUpperCase())) return word.toUpperCase();
+    // Handle apostrophes: O'Connor
+    if (word.includes("'")) {
+      return word.split("'").map(part =>
+        part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+      ).join("'");
+    }
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  };
+
+  // Handle hyphenated words: Smith-Johnson
+  return s.split(' ').map(word => {
+    if (word.includes('-')) {
+      return word.split('-').map(capitalizeWord).join('-');
+    }
+    return capitalizeWord(word);
+  }).join(' ');
+};
+
+// Format datetime safely
+export const fmtDateTime = (isoStr) => {
+  if (!isoStr) return '—';
+  return new Date(isoStr).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'America/Los_Angeles',
+  });
+};

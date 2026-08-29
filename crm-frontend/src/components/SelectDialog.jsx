@@ -1,1 +1,77 @@
-aW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICdyZWFjdCc7CmltcG9ydCB7IERpYWxvZywgRGlhbG9nQ29udGVudCwgRGlhbG9nVHJpZ2dlciB9IGZyb20gJ0AvY29tcG9uZW50cy91aS9kaWFsb2cnOwppbXBvcnQgeyBTZWFyY2gsIENoZXZyb25Eb3duIH0gZnJvbSAnbHVjaWRlLXJlYWN0JzsKCi8qKgogKiBTZWxlY3REaWFsb2cgLSBNb2JpbGUtZnJpZW5kbHkgc2VsZWN0IHJlcGxhY2VtZW50IHVzaW5nIERpYWxvZwogKiBQcm9wczogdmFsdWUsIG9uQ2hhbmdlLCBvcHRpb25zIChhcnJheSBvZiB7dmFsdWUsIGxhYmVsfSksIHBsYWNlaG9sZGVyLCBkaXNhYmxlZAogKi8KZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gU2VsZWN0RGlhbG9nKHsgdmFsdWUsIG9uQ2hhbmdlLCBvcHRpb25zLCBwbGFjZWhvbGRlciA9ICdTZWxlY3QuLi4nLCBkaXNhYmxlZCwgY2xhc3NOYW1lID0gJycsIGNvbXBhY3QgPSBmYWxzZSB9KSB7CiAgY29uc3QgW29wZW4sIHNldE9wZW5dID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFtzZWFyY2gsIHNldFNlYXJjaF0gPSB1c2VTdGF0ZSgnJyk7CgogIGNvbnN0IHNlbGVjdGVkID0gb3B0aW9ucy5maW5kKG9wdCA9PiBvcHQudmFsdWUgPT09IHZhbHVlKTsKICBjb25zdCBmaWx0ZXJlZCA9IG9wdGlvbnMuZmlsdGVyKG9wdCA9PgogICAgb3B0LmxhYmVsLnRvTG93ZXJDYXNlKCkuaW5jbHVkZXMoc2VhcmNoLnRvTG93ZXJDYXNlKCkpCiAgKTsKCiAgY29uc3QgaGFuZGxlU2VsZWN0ID0gKHYpID0+IHsKICAgIG9uQ2hhbmdlKHYpOwogICAgc2V0T3BlbihmYWxzZSk7CiAgICBzZXRTZWFyY2goJycpOwogIH07CgogIHJldHVybiAoCiAgICA8RGlhbG9nIG9wZW49e29wZW59IG9uT3BlbkNoYW5nZT17c2V0T3Blbn0+CiAgICAgIDxEaWFsb2dUcmlnZ2VyIGFzQ2hpbGQ+CiAgICAgICAgPGJ1dHRvbgogICAgICAgICAgZGlzYWJsZWQ9e2Rpc2FibGVkfQogICAgICAgICAgY2xhc3NOYW1lPXtgYm9yZGVyIHJvdW5kZWQtbGcgdGV4dC1sZWZ0IHRleHQtc2xhdGUtOTAwIGJnLXdoaXRlIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1hbWJlci01MDAvMjAgZm9jdXM6Ym9yZGVyLWFtYmVyLTUwMCB0cmFuc2l0aW9uLWNvbG9ycyBib3JkZXItc2xhdGUtMjAwIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBnYXAtMSAkewogICAgICAgICAgICBjb21wYWN0ID8gJ3B4LTIuNSBweS0xLjUgdGV4dC14cyBidG4tY29tcGFjdCcgOiAndy1mdWxsIHB4LTMgcHktMi41IHRleHQtc20nCiAgICAgICAgICB9ICR7ZGlzYWJsZWQgPyAnb3BhY2l0eS02MCBjdXJzb3Itbm90LWFsbG93ZWQnIDogJ2N1cnNvci1wb2ludGVyIGhvdmVyOmJvcmRlci1zbGF0ZS0zMDAnfSAke2NsYXNzTmFtZX1gfQogICAgICAgID4KICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT17YCR7c2VsZWN0ZWQgJiYgc2VsZWN0ZWQudmFsdWUgPyAndGV4dC1zbGF0ZS05MDAgZm9udC1zZW1pYm9sZCcgOiAndGV4dC1zbGF0ZS00MDAnfSAke2NvbXBhY3QgPyAndGV4dC14cycgOiAnJ31gfT4KICAgICAgICAgICAge3NlbGVjdGVkPy52YWx1ZSA/IHNlbGVjdGVkLmxhYmVsIDogcGxhY2Vob2xkZXJ9CiAgICAgICAgICA8L3NwYW4+CiAgICAgICAgICA8Q2hldnJvbkRvd24gY2xhc3NOYW1lPXtgdGV4dC1zbGF0ZS00MDAgZmxleC1zaHJpbmstMCAke2NvbXBhY3QgPyAndy0zIGgtMycgOiAndy00IGgtNCd9YH0gLz4KICAgICAgICA8L2J1dHRvbj4KICAgICAgPC9EaWFsb2dUcmlnZ2VyPgogICAgICA8RGlhbG9nQ29udGVudCBjbGFzc05hbWU9Im1heC13LXNtIG1heC1oLVs2MHZoXSBwLTAgZ2FwLTAiPgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJzdGlja3kgdG9wLTAgYmctd2hpdGUgYm9yZGVyLWIgYm9yZGVyLXNsYXRlLTIwMCBwLTQiPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9InJlbGF0aXZlIj4KICAgICAgICAgICAgPFNlYXJjaCBjbGFzc05hbWU9ImFic29sdXRlIGxlZnQtMyB0b3AtMS8yIC10cmFuc2xhdGUteS0xLzIgdy00IGgtNCB0ZXh0LXNsYXRlLTQwMCIgLz4KICAgICAgICAgICAgPGlucHV0CiAgICAgICAgICAgICAgYXV0b0ZvY3VzCiAgICAgICAgICAgICAgdHlwZT0idGV4dCIKICAgICAgICAgICAgICBwbGFjZWhvbGRlcj0iU2VhcmNoLi4uIgogICAgICAgICAgICAgIHZhbHVlPXtzZWFyY2h9CiAgICAgICAgICAgICAgb25DaGFuZ2U9e2UgPT4gc2V0U2VhcmNoKGUudGFyZ2V0LnZhbHVlKX0KICAgICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBwbC05IHByLTMgcHktMiB0ZXh0LXNtIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgZm9jdXM6b3V0bGluZS1ub25lIGZvY3VzOnJpbmctMiBmb2N1czpyaW5nLWFtYmVyLTUwMC8yMCIKICAgICAgICAgICAgLz4KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJvdmVyZmxvdy15LWF1dG8gbWF4LWgtW2NhbGMoNjB2aC02MHB4KV0iPgogICAgICAgICAge2ZpbHRlcmVkLmxlbmd0aCA9PT0gMCA/ICgKICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InAtNCB0ZXh0LWNlbnRlciB0ZXh0LXNtIHRleHQtc2xhdGUtNDAwIj5ObyByZXN1bHRzPC9kaXY+CiAgICAgICAgICApIDogKAogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZGl2aWRlLXkgZGl2aWRlLXNsYXRlLTEwMCI+CiAgICAgICAgICAgICAge2ZpbHRlcmVkLm1hcChvcHQgPT4gKAogICAgICAgICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICAgICAgICBrZXk9e29wdC52YWx1ZX0KICAgICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gaGFuZGxlU2VsZWN0KG9wdC52YWx1ZSl9CiAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT17YHctZnVsbCB0ZXh0LWxlZnQgcHgtNCBweS0zIHRleHQtc20gZm9udC1tZWRpdW0gdHJhbnNpdGlvbi1jb2xvcnMgJHsKICAgICAgICAgICAgICAgICAgICBvcHQudmFsdWUgPT09IHZhbHVlCiAgICAgICAgICAgICAgICAgICAgICA/ICdiZy1hbWJlci01MCB0ZXh0LWFtYmVyLTcwMCcKICAgICAgICAgICAgICAgICAgICAgIDogJ3RleHQtc2xhdGUtNzAwIGhvdmVyOmJnLXNsYXRlLTUwJwogICAgICAgICAgICAgICAgICB9YH0KICAgICAgICAgICAgICAgID4KICAgICAgICAgICAgICAgICAge29wdC5sYWJlbH0KICAgICAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgICAgICkpfQogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICl9CiAgICAgICAgPC9kaXY+CiAgICAgIDwvRGlhbG9nQ29udGVudD4KICAgIDwvRGlhbG9nPgogICk7Cn0=
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Search, ChevronDown } from 'lucide-react';
+
+/**
+ * SelectDialog - Mobile-friendly select replacement using Dialog
+ * Props: value, onChange, options (array of {value, label}), placeholder, disabled
+ */
+export default function SelectDialog({ value, onChange, options, placeholder = 'Select...', disabled, className = '', compact = false }) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+
+  const selected = options.find(opt => opt.value === value);
+  const filtered = options.filter(opt =>
+    opt.label.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleSelect = (v) => {
+    onChange(v);
+    setOpen(false);
+    setSearch('');
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <button
+          disabled={disabled}
+          className={`border rounded-lg text-left text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors border-slate-200 flex items-center justify-between gap-1 ${
+            compact ? 'px-2.5 py-1.5 text-xs btn-compact' : 'w-full px-3 py-2.5 text-sm'
+          } ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:border-slate-300'} ${className}`}
+        >
+          <span className={`${selected && selected.value ? 'text-slate-900 font-semibold' : 'text-slate-400'} ${compact ? 'text-xs' : ''}`}>
+            {selected?.value ? selected.label : placeholder}
+          </span>
+          <ChevronDown className={`text-slate-400 flex-shrink-0 ${compact ? 'w-3 h-3' : 'w-4 h-4'}`} />
+        </button>
+      </DialogTrigger>
+      <DialogContent className="max-w-sm max-h-[60vh] p-0 gap-0">
+        <div className="sticky top-0 bg-white border-b border-slate-200 p-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              autoFocus
+              type="text"
+              placeholder="Search..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+            />
+          </div>
+        </div>
+        <div className="overflow-y-auto max-h-[calc(60vh-60px)]">
+          {filtered.length === 0 ? (
+            <div className="p-4 text-center text-sm text-slate-400">No results</div>
+          ) : (
+            <div className="divide-y divide-slate-100">
+              {filtered.map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => handleSelect(opt.value)}
+                  className={`w-full text-left px-4 py-3 text-sm font-medium transition-colors ${
+                    opt.value === value
+                      ? 'bg-amber-50 text-amber-700'
+                      : 'text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

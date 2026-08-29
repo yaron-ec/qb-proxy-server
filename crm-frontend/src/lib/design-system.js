@@ -1,1 +1,129 @@
-LyoqCiAqIEVDIENvbnN0cnVjdGlvbiBHcm91cCDigJQgVW5pZmllZCBEZXNpZ24gU3lzdGVtCiAqIFVzZSB0aGVzZSB0b2tlbnMgYW5kIGhlbHBlcnMgZXZlcnl3aGVyZSBmb3IgY29uc2lzdGVudCBzdHlsaW5nLgogKi8KCi8vIOKUgOKUgCBTdGF0dXMgYmFkZ2Ugc3R5bGVzIOKAlCBDT0xPUiBPTkxZICh1c2VkIGJ5IHN0YXR1c0JhZGdlQ2xhc3MpIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgApleHBvcnQgY29uc3QgU1RBVFVTX1NUWUxFUyA9IHsKICAiTmV3IjogICAgICAgICAgICAgICAgICAgICAgICAgICJiZy1ibHVlLTUwIHRleHQtYmx1ZS03MDAgYm9yZGVyIGJvcmRlci1ibHVlLTIwMCIsCiAgIkFwcG9pbnRtZW50IHNjaGVkdWxlZCI6ICAgICAgICAiYmctZW1lcmFsZC0xMDAgdGV4dC1lbWVyYWxkLTgwMCBib3JkZXIgYm9yZGVyLWVtZXJhbGQtMzAwIiwKICAiQW5zd2VyZWQsIG5vIGFwcG9pbnRtZW50IHNldCI6ICJiZy1hbWJlci01MCB0ZXh0LWFtYmVyLTcwMCBib3JkZXIgYm9yZGVyLWFtYmVyLTIwMCIsCiAgIk5vIGFuc3dlciI6ICAgICAgICAgICAgICAgICAgICAiYmctc2xhdGUtMTAwIHRleHQtc2xhdGUtNjAwIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIiwKICAiUHJvcG9zYWwgU2VudCI6ICAgICAgICAgICAgICAgICJiZy12aW9sZXQtNTAgdGV4dC12aW9sZXQtNzAwIGJvcmRlciBib3JkZXItdmlvbGV0LTIwMCIsCiAgIk5vIHNob3ciOiAgICAgICAgICAgICAgICAgICAgICAiYmctcmVkLTUwIHRleHQtcmVkLTYwMCBib3JkZXIgYm9yZGVyLXJlZC0yMDAiLAogICJETlEiOiAgICAgICAgICAgICAgICAgICAgICAgICAgImJnLXNsYXRlLTEwMCB0ZXh0LXNsYXRlLTUwMCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCIsCiAgIlNvbGQiOiAgICAgICAgICAgICAgICAgICAgICAgICAiYmctZW1lcmFsZC02MDAgdGV4dC13aGl0ZSBib3JkZXIgYm9yZGVyLWVtZXJhbGQtNzAwIiwKICAiTG9zdCI6ICAgICAgICAgICAgICAgICAgICAgICAgICJiZy1yZWQtNTAgdGV4dC1yZWQtNzAwIGJvcmRlciBib3JkZXItcmVkLTIwMCIsCn07CgovLyBDYW5vbmljYWwgY2FzaW5nIGZvciBzdGF0dXMgdmFsdWVzCmNvbnN0IFNUQVRVU19DQU5PTklDQUwgPSBPYmplY3QuZnJvbUVudHJpZXMoCiAgT2JqZWN0LmtleXMoU1RBVFVTX1NUWUxFUykubWFwKGsgPT4gW2sudG9Mb3dlckNhc2UoKSwga10pCik7CgovKioKICogUmV0dXJucyBPTkxZIHRoZSBjb2xvciBjbGFzc2VzIGZvciBhIHN0YXR1cyAoYmFja2dyb3VuZCArIHRleHQgKyBib3JkZXIpLgogKiBVc2Ugc3RhdHVzQmFkZ2VDbGFzcygpIHdoZW4geW91IHdhbnQgdGhlIGZ1bGwgYmFkZ2UgaW5jbHVkaW5nIHNpemluZy4KICovCmV4cG9ydCBmdW5jdGlvbiBnZXRTdGF0dXNTdHlsZShzdGF0dXMpIHsKICBpZiAoIXN0YXR1cykgcmV0dXJuICJiZy1zbGF0ZS0xMDAgdGV4dC1zbGF0ZS01MDAgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAiOwogIGNvbnN0IGNhbm9uaWNhbCA9IFNUQVRVU19DQU5PTklDQUxbc3RhdHVzLnRvTG93ZXJDYXNlKCldOwogIHJldHVybiBTVEFUVVNfU1RZTEVTW2Nhbm9uaWNhbF0gfHwgImJnLXNsYXRlLTEwMCB0ZXh0LXNsYXRlLTUwMCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCI7Cn0KCi8qKgogKiBDQU5PTklDQUwgQkFER0Ug4oCUIHVzZSB0aGlzIGV2ZXJ5d2hlcmUgYSBzdGF0dXMgYmFkZ2UgaXMgcmVuZGVyZWQuCiAqIFByb2R1Y2VzIGEgY29tcGFjdCBwaWxsIOKAlCAyMCUgc21hbGxlciB0aGFuIGRlZmF1bHQgZm9yIGEgcHJlbWl1bSBmZWVsLgogKiBVc2FnZTogIDxzcGFuIGNsYXNzTmFtZT17c3RhdHVzQmFkZ2VDbGFzcyhsZWFkLnN0YXR1cyl9PntsZWFkLnN0YXR1c308L3NwYW4+CiAqLwpleHBvcnQgZnVuY3Rpb24gc3RhdHVzQmFkZ2VDbGFzcyhzdGF0dXMpIHsKICByZXR1cm4gYGlubGluZS1mbGV4IGl0ZW1zLWNlbnRlciB0ZXh0LVsxMXB4XSBmb250LXNlbWlib2xkIHB4LTIgcHktMC41IHJvdW5kZWQtZnVsbCB3aGl0ZXNwYWNlLW5vd3JhcCAke2dldFN0YXR1c1N0eWxlKHN0YXR1cyl9YDsKfQoKLy8g4pSA4pSAIFBhZ2UtbGV2ZWwgbGF5b3V0IHdyYXBwZXJzIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgApleHBvcnQgY29uc3QgUEFHRV9XUkFQUEVSICAgPSAibWluLWgtc2NyZWVuIGJnLXNsYXRlLTUwIjsKZXhwb3J0IGNvbnN0IFBBR0VfUEFERElORyAgID0gInB4LTYgcHktNiBtYXgtdy03eGwgbXgtYXV0byI7CmV4cG9ydCBjb25zdCBTRUNUSU9OX0dBUCAgICA9ICJzcGFjZS15LTYiOwoKLy8g4pSA4pSAIENhcmQgc3R5bGVzIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgApleHBvcnQgY29uc3QgQ0FSRCAgICAgICAgICAgID0gImJnLXdoaXRlIHJvdW5kZWQteGwgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgc2hhZG93LXNtIjsKZXhwb3J0IGNvbnN0IENBUkRfUEFEREVEICAgICA9ICJiZy13aGl0ZSByb3VuZGVkLXhsIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHNoYWRvdy1zbSBwLTYiOwpleHBvcnQgY29uc3QgQ0FSRF9IT1ZFUiAgICAgID0gImJnLXdoaXRlIHJvdW5kZWQteGwgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgc2hhZG93LXNtIGhvdmVyOnNoYWRvdy1tZCB0cmFuc2l0aW9uLXNoYWRvdyBkdXJhdGlvbi0yMDAiOwoKLy8g4pSA4pSAIFR5cG9ncmFwaHkg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACmV4cG9ydCBjb25zdCBIMSAgICAgICAgICAgICAgPSAidGV4dC0yeGwgZm9udC1ib2xkIHRleHQtc2xhdGUtOTAwIHRyYWNraW5nLXRpZ2h0IjsKZXhwb3J0IGNvbnN0IEgyICAgICAgICAgICAgICA9ICJ0ZXh0LXhsIGZvbnQtYm9sZCB0ZXh0LXNsYXRlLTgwMCI7CmV4cG9ydCBjb25zdCBIMyAgICAgICAgICAgICAgPSAidGV4dC1zbSBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNzAwIHVwcGVyY2FzZSB0cmFja2luZy13aWRlIjsKZXhwb3J0IGNvbnN0IExBQkVMICAgICAgICAgICA9ICJ0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS01MDAgdXBwZXJjYXNlIHRyYWNraW5nLXdpZGUiOwpleHBvcnQgY29uc3QgQk9EWSAgICAgICAgICAgID0gInRleHQtc20gdGV4dC1zbGF0ZS03MDAiOwpleHBvcnQgY29uc3QgTVVURUQgICAgICAgICAgID0gInRleHQteHMgdGV4dC1zbGF0ZS00MDAiOwoKLy8g4pSA4pSAIEJ1dHRvbnMg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACmV4cG9ydCBjb25zdCBCVE5fUFJJTUFSWSAgICAgPSAiaW5saW5lLWZsZXggaXRlbXMtY2VudGVyIGdhcC0yIGJnLWFtYmVyLTYwMCBob3ZlcjpiZy1hbWJlci03MDAgdGV4dC13aGl0ZSB0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgcHgtNCBweS0yIHJvdW5kZWQtbGcgdHJhbnNpdGlvbi1jb2xvcnMgZHVyYXRpb24tMTUwIGFjdGl2ZTpzY2FsZS05NSI7CmV4cG9ydCBjb25zdCBCVE5fU0VDT05EQVJZICAgPSAiaW5saW5lLWZsZXggaXRlbXMtY2VudGVyIGdhcC0yIGJnLXdoaXRlIGhvdmVyOmJnLXNsYXRlLTUwIHRleHQtc2xhdGUtNzAwIHRleHQtc20gZm9udC1zZW1pYm9sZCBweC00IHB5LTIgcm91bmRlZC1sZyBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCB0cmFuc2l0aW9uLWNvbG9ycyBkdXJhdGlvbi0xNTAiOwpleHBvcnQgY29uc3QgQlROX0RBTkdFUiAgICAgID0gImlubGluZS1mbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBiZy13aGl0ZSBob3ZlcjpiZy1yZWQtNTAgdGV4dC1yZWQtNjAwIHRleHQtc20gZm9udC1zZW1pYm9sZCBweC00IHB5LTIgcm91bmRlZC1sZyBib3JkZXIgYm9yZGVyLXJlZC0yMDAgdHJhbnNpdGlvbi1jb2xvcnMgZHVyYXRpb24tMTUwIjsKZXhwb3J0IGNvbnN0IEJUTl9HSE9TVCAgICAgICA9ICJpbmxpbmUtZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgdGV4dC1zbGF0ZS02MDAgaG92ZXI6dGV4dC1zbGF0ZS05MDAgdGV4dC1zbSBmb250LXNlbWlib2xkIHB4LTMgcHktMS41IHJvdW5kZWQtbGcgaG92ZXI6Ymctc2xhdGUtMTAwIHRyYW5zaXRpb24tY29sb3JzIGR1cmF0aW9uLTE1MCI7CgovLyDilIDilIAgSW5wdXRzIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgApleHBvcnQgY29uc3QgSU5QVVQgICAgICAgICAgID0gInctZnVsbCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHB4LTMgcHktMiB0ZXh0LXNtIHRleHQtc2xhdGUtOTAwIHBsYWNlaG9sZGVyOnRleHQtc2xhdGUtNDAwIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1hbWJlci01MDAvMjAgZm9jdXM6Ym9yZGVyLWFtYmVyLTUwMCB0cmFuc2l0aW9uLWFsbCI7CmV4cG9ydCBjb25zdCBTRUxFQ1QgICAgICAgICAgPSAiYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBweC0zIHB5LTIgdGV4dC1zbSB0ZXh0LXNsYXRlLTkwMCBiZy13aGl0ZSBmb2N1czpvdXRsaW5lLW5vbmUgZm9jdXM6cmluZy0yIGZvY3VzOnJpbmctYW1iZXItNTAwLzIwIGZvY3VzOmJvcmRlci1hbWJlci01MDAgdHJhbnNpdGlvbi1hbGwiOwoKLy8g4pSA4pSAIEJhZGdlcyDigJQgY29tcGFjdCBwaWxsIHN5c3RlbSAoMjAlIHRpZ2h0ZXIgdGhhbiBkZWZhdWx0KSDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKZXhwb3J0IGNvbnN0IEJBREdFX1NVQ0NFU1MgICA9ICJpbmxpbmUtZmxleCBpdGVtcy1jZW50ZXIgcHgtMiBweS0wLjUgcm91bmRlZC1mdWxsIHRleHQtWzExcHhdIGZvbnQtc2VtaWJvbGQgYmctZW1lcmFsZC01MCB0ZXh0LWVtZXJhbGQtNzAwIGJvcmRlciBib3JkZXItZW1lcmFsZC0yMDAiOwpleHBvcnQgY29uc3QgQkFER0VfV0FSTklORyAgID0gImlubGluZS1mbGV4IGl0ZW1zLWNlbnRlciBweC0yIHB5LTAuNSByb3VuZGVkLWZ1bGwgdGV4dC1bMTFweF0gZm9udC1zZW1pYm9sZCBiZy1hbWJlci01MCB0ZXh0LWFtYmVyLTcwMCBib3JkZXIgYm9yZGVyLWFtYmVyLTIwMCI7CmV4cG9ydCBjb25zdCBCQURHRV9FUlJPUiAgICAgPSAiaW5saW5lLWZsZXggaXRlbXMtY2VudGVyIHB4LTIgcHktMC41IHJvdW5kZWQtZnVsbCB0ZXh0LVsxMXB4XSBmb250LXNlbWlib2xkIGJnLXJlZC01MCB0ZXh0LXJlZC03MDAgYm9yZGVyIGJvcmRlci1yZWQtMjAwIjsKZXhwb3J0IGNvbnN0IEJBREdFX0lORk8gICAgICA9ICJpbmxpbmUtZmxleCBpdGVtcy1jZW50ZXIgcHgtMiBweS0wLjUgcm91bmRlZC1mdWxsIHRleHQtWzExcHhdIGZvbnQtc2VtaWJvbGQgYmctYmx1ZS01MCB0ZXh0LWJsdWUtNzAwIGJvcmRlciBib3JkZXItYmx1ZS0yMDAiOwpleHBvcnQgY29uc3QgQkFER0VfTkVVVFJBTCAgID0gImlubGluZS1mbGV4IGl0ZW1zLWNlbnRlciBweC0yIHB5LTAuNSByb3VuZGVkLWZ1bGwgdGV4dC1bMTFweF0gZm9udC1zZW1pYm9sZCBiZy1zbGF0ZS0xMDAgdGV4dC1zbGF0ZS02MDAgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAiOwoKLy8g4pSA4pSAIFNlY3Rpb24gaGVhZGVyIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgApleHBvcnQgY29uc3QgU0VDVElPTl9IRUFERVIgID0gImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBtYi00IjsKCi8vIOKUgOKUgCBUYWJsZSBzdHlsZXMg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACmV4cG9ydCBjb25zdCBUQUJMRV9XUkFQUEVSICAgPSAib3ZlcmZsb3ctaGlkZGVuIHJvdW5kZWQteGwgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAiOwpleHBvcnQgY29uc3QgVEggICAgICAgICAgICAgID0gInB4LTQgcHktMyB0ZXh0LWxlZnQgdGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNTAwIHVwcGVyY2FzZSB0cmFja2luZy13aWRlIGJnLXNsYXRlLTUwIGJvcmRlci1iIGJvcmRlci1zbGF0ZS0yMDAiOwpleHBvcnQgY29uc3QgVEQgICAgICAgICAgICAgID0gInB4LTQgcHktMyB0ZXh0LXNtIHRleHQtc2xhdGUtNzAwIGJvcmRlci1iIGJvcmRlci1zbGF0ZS0xMDAiOwoKLy8g4pSA4pSAIERpdmlkZXIg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACmV4cG9ydCBjb25zdCBESVZJREVSICAgICAgICAgPSAidy1mdWxsIGgtcHggYmctc2xhdGUtMTAwIjsKCi8vIOKUgOKUgCBFbXB0eSBzdGF0ZSDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKZXhwb3J0IGNvbnN0IEVNUFRZX1NUQVRFICAgICA9ICJmbGV4IGZsZXgtY29sIGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBweS0xNiB0ZXh0LXNsYXRlLTQwMCI7CgovLyDilIDilIAgTG9hZGluZyBzcGlubmVyIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgApleHBvcnQgY29uc3QgU1BJTk5FUiAgICAgICAgID0gInctNyBoLTcgYm9yZGVyLTQgYm9yZGVyLXNsYXRlLTIwMCBib3JkZXItdC1hbWJlci02MDAgcm91bmRlZC1mdWxsIGFuaW1hdGUtc3BpbiI7CgovLyDilIDilIAgQWN0aXZpdHkgdHlwZSB0b2tlbnMg4oCUIE9ORSBzb3VyY2Ugb2YgdHJ1dGggZm9yIGFsbCBhY3Rpdml0eSBpY29ucy9jb2xvcnMg4pSACi8vIFN0YW5kYXJkOiBjYWxsPWdyZWVuLCBub3RlPWJsdWUsIGVtYWlsPWFtYmVyLCB0YXNrPWFtYmVyLCBtZWV0aW5nPXB1cnBsZQovLyBVc2VkIGJ5IEFjdGl2aXR5Q29tcG9zZXIgdGFicywgQWN0aXZpdHlDYXJkLCBmZWVkIGZpbHRlcnMsIGV0Yy4KZXhwb3J0IGNvbnN0IEFDVElWSVRZX1RZUEVTID0gWwogIHsgaWQ6ICJub3RlIiwgICAgbGFiZWw6ICJBZGQgTm90ZSIsICAgIGljb246ICJNZXNzYWdlU3F1YXJlIiwgaWNvbkNvbG9yOiAidGV4dC1ibHVlLTUwMCIsICAgaWNvbkJnOiAiYmctYmx1ZS01MCIsICAgdGFiQWN0aXZlQ29sb3I6ICJ0ZXh0LWJsdWUtNjAwIiwgICB0YWJBY3RpdmVCb3JkZXI6ICJib3JkZXItYmx1ZS01MDAiLCAgIGJhZGdlQmc6ICJiZy1ibHVlLTEwMCB0ZXh0LWJsdWUtODAwIiAgIH0sCiAgeyBpZDogImNhbGwiLCAgICBsYWJlbDogIkxvZyBDYWxsIiwgICAgaWNvbjogIlBob25lIiwgICAgICAgICBpY29uQ29sb3I6ICJ0ZXh0LWdyZWVuLTYwMCIsICBpY29uQmc6ICJiZy1ncmVlbi01MCIsICB0YWJBY3RpdmVDb2xvcjogInRleHQtZ3JlZW4tNzAwIiwgIHRhYkFjdGl2ZUJvcmRlcjogImJvcmRlci1ncmVlbi01MDAiLCAgYmFkZ2VCZzogImJnLWdyZWVuLTEwMCB0ZXh0LWdyZWVuLTgwMCIgfSwKICB7IGlkOiAiZW1haWwiLCAgIGxhYmVsOiAiQWRkIEVtYWlsIiwgICBpY29uOiAiTWFpbCIsICAgICAgICAgIGljb25Db2xvcjogInRleHQtYW1iZXItNjAwIiwgIGljb25CZzogImJnLWFtYmVyLTUwIiwgIHRhYkFjdGl2ZUNvbG9yOiAidGV4dC1hbWJlci03MDAiLCAgdGFiQWN0aXZlQm9yZGVyOiAiYm9yZGVyLWFtYmVyLTUwMCIsICBiYWRnZUJnOiAiYmctYW1iZXItMTAwIHRleHQtYW1iZXItODAwIiB9LAogIHsgaWQ6ICJ0YXNrIiwgICAgbGFiZWw6ICJBZGQgVGFzayIsICAgIGljb246ICJDaGVja0NpcmNsZTIiLCAgaWNvbkNvbG9yOiAidGV4dC1hbWJlci01MDAiLCAgaWNvbkJnOiAiYmctYW1iZXItNTAiLCAgdGFiQWN0aXZlQ29sb3I6ICJ0ZXh0LWFtYmVyLTYwMCIsICB0YWJBY3RpdmVCb3JkZXI6ICJib3JkZXItYW1iZXItNTAwIiwgIGJhZGdlQmc6ICJiZy1hbWJlci0xMDAgdGV4dC1hbWJlci04MDAiIH0sCiAgeyBpZDogIm1lZXRpbmciLCBsYWJlbDogIkFkZCBNZWV0aW5nIiwgaWNvbjogIkNhbGVuZGFyIiwgICAgICBpY29uQ29sb3I6ICJ0ZXh0LXB1cnBsZS02MDAiLCBpY29uQmc6ICJiZy1wdXJwbGUtNTAiLCB0YWJBY3RpdmVDb2xvcjogInRleHQtcHVycGxlLTcwMCIsIHRhYkFjdGl2ZUJvcmRlcjogImJvcmRlci1wdXJwbGUtNTAwIiwgYmFkZ2VCZzogImJnLXB1cnBsZS0xMDAgdGV4dC1wdXJwbGUtODAwIiB9LApdOwoKLy8g4pSA4pSAIEtQSSBzdGF0IGNhcmQgaGVscGVyIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgApleHBvcnQgZnVuY3Rpb24ga3BpQ2FyZENsYXNzKGNvbG9yKSB7CiAgY29uc3QgbWFwID0gewogICAgYmx1ZTogICAgImJnLWJsdWUtNTAgYm9yZGVyLWJsdWUtMTAwIiwKICAgIGVtZXJhbGQ6ICJiZy1lbWVyYWxkLTUwIGJvcmRlci1lbWVyYWxkLTEwMCIsCiAgICBhbWJlcjogICAiYmctYW1iZXItNTAgYm9yZGVyLWFtYmVyLTEwMCIsCiAgICByZWQ6ICAgICAiYmctcmVkLTUwIGJvcmRlci1yZWQtMTAwIiwKICAgIHZpb2xldDogICJiZy12aW9sZXQtNTAgYm9yZGVyLXZpb2xldC0xMDAiLAogICAgc2xhdGU6ICAgImJnLXNsYXRlLTUwIGJvcmRlci1zbGF0ZS0yMDAiLAogIH07CiAgcmV0dXJuIGAke0NBUkR9ICR7bWFwW2NvbG9yXSB8fCBtYXAuc2xhdGV9IHAtNWA7Cn0KCmV4cG9ydCBmdW5jdGlvbiBrcGlJY29uQ2xhc3MoY29sb3IpIHsKICBjb25zdCBtYXAgPSB7CiAgICBibHVlOiAgICAiYmctYmx1ZS0xMDAgdGV4dC1ibHVlLTYwMCIsCiAgICBlbWVyYWxkOiAiYmctZW1lcmFsZC0xMDAgdGV4dC1lbWVyYWxkLTYwMCIsCiAgICBhbWJlcjogICAiYmctYW1iZXItMTAwIHRleHQtYW1iZXItNzAwIiwKICAgIHJlZDogICAgICJiZy1yZWQtMTAwIHRleHQtcmVkLTYwMCIsCiAgICB2aW9sZXQ6ICAiYmctdmlvbGV0LTEwMCB0ZXh0LXZpb2xldC02MDAiLAogICAgc2xhdGU6ICAgImJnLXNsYXRlLTEwMCB0ZXh0LXNsYXRlLTYwMCIsCiAgfTsKICByZXR1cm4gYHctMTAgaC0xMCByb3VuZGVkLWxnIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGZsZXgtc2hyaW5rLTAgJHttYXBbY29sb3JdIHx8IG1hcC5zbGF0ZX1gOwp9
+/**
+ * EC Construction Group — Unified Design System
+ * Use these tokens and helpers everywhere for consistent styling.
+ */
+
+// ── Status badge styles — COLOR ONLY (used by statusBadgeClass) ──────────────
+export const STATUS_STYLES = {
+  "New":                          "bg-blue-50 text-blue-700 border border-blue-200",
+  "Appointment scheduled":        "bg-emerald-100 text-emerald-800 border border-emerald-300",
+  "Answered, no appointment set": "bg-amber-50 text-amber-700 border border-amber-200",
+  "No answer":                    "bg-slate-100 text-slate-600 border border-slate-200",
+  "Proposal Sent":                "bg-violet-50 text-violet-700 border border-violet-200",
+  "No show":                      "bg-red-50 text-red-600 border border-red-200",
+  "DNQ":                          "bg-slate-100 text-slate-500 border border-slate-200",
+  "Sold":                         "bg-emerald-600 text-white border border-emerald-700",
+  "Lost":                         "bg-red-50 text-red-700 border border-red-200",
+};
+
+// Canonical casing for status values
+const STATUS_CANONICAL = Object.fromEntries(
+  Object.keys(STATUS_STYLES).map(k => [k.toLowerCase(), k])
+);
+
+/**
+ * Returns ONLY the color classes for a status (background + text + border).
+ * Use statusBadgeClass() when you want the full badge including sizing.
+ */
+export function getStatusStyle(status) {
+  if (!status) return "bg-slate-100 text-slate-500 border border-slate-200";
+  const canonical = STATUS_CANONICAL[status.toLowerCase()];
+  return STATUS_STYLES[canonical] || "bg-slate-100 text-slate-500 border border-slate-200";
+}
+
+/**
+ * CANONICAL BADGE — use this everywhere a status badge is rendered.
+ * Produces a compact pill — 20% smaller than default for a premium feel.
+ * Usage:  <span className={statusBadgeClass(lead.status)}>{lead.status}</span>
+ */
+export function statusBadgeClass(status) {
+  return `inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${getStatusStyle(status)}`;
+}
+
+// ── Page-level layout wrappers ───────────────────────────────────────────────
+export const PAGE_WRAPPER   = "min-h-screen bg-slate-50";
+export const PAGE_PADDING   = "px-6 py-6 max-w-7xl mx-auto";
+export const SECTION_GAP    = "space-y-6";
+
+// ── Card styles ──────────────────────────────────────────────────────────────
+export const CARD            = "bg-white rounded-xl border border-slate-200 shadow-sm";
+export const CARD_PADDED     = "bg-white rounded-xl border border-slate-200 shadow-sm p-6";
+export const CARD_HOVER      = "bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-200";
+
+// ── Typography ───────────────────────────────────────────────────────────────
+export const H1              = "text-2xl font-bold text-slate-900 tracking-tight";
+export const H2              = "text-xl font-bold text-slate-800";
+export const H3              = "text-sm font-semibold text-slate-700 uppercase tracking-wide";
+export const LABEL           = "text-xs font-semibold text-slate-500 uppercase tracking-wide";
+export const BODY            = "text-sm text-slate-700";
+export const MUTED           = "text-xs text-slate-400";
+
+// ── Buttons ──────────────────────────────────────────────────────────────────
+export const BTN_PRIMARY     = "inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors duration-150 active:scale-95";
+export const BTN_SECONDARY   = "inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold px-4 py-2 rounded-lg border border-slate-200 transition-colors duration-150";
+export const BTN_DANGER      = "inline-flex items-center gap-2 bg-white hover:bg-red-50 text-red-600 text-sm font-semibold px-4 py-2 rounded-lg border border-red-200 transition-colors duration-150";
+export const BTN_GHOST       = "inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 text-sm font-semibold px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors duration-150";
+
+// ── Inputs ───────────────────────────────────────────────────────────────────
+export const INPUT           = "w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all";
+export const SELECT          = "border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all";
+
+// ── Badges — compact pill system (20% tighter than default) ─────────────────
+export const BADGE_SUCCESS   = "inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200";
+export const BADGE_WARNING   = "inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200";
+export const BADGE_ERROR     = "inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200";
+export const BADGE_INFO      = "inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200";
+export const BADGE_NEUTRAL   = "inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200";
+
+// ── Section header ───────────────────────────────────────────────────────────
+export const SECTION_HEADER  = "flex items-center justify-between mb-4";
+
+// ── Table styles ─────────────────────────────────────────────────────────────
+export const TABLE_WRAPPER   = "overflow-hidden rounded-xl border border-slate-200";
+export const TH              = "px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide bg-slate-50 border-b border-slate-200";
+export const TD              = "px-4 py-3 text-sm text-slate-700 border-b border-slate-100";
+
+// ── Divider ──────────────────────────────────────────────────────────────────
+export const DIVIDER         = "w-full h-px bg-slate-100";
+
+// ── Empty state ──────────────────────────────────────────────────────────────
+export const EMPTY_STATE     = "flex flex-col items-center justify-center py-16 text-slate-400";
+
+// ── Loading spinner ──────────────────────────────────────────────────────────
+export const SPINNER         = "w-7 h-7 border-4 border-slate-200 border-t-amber-600 rounded-full animate-spin";
+
+// ── Activity type tokens — ONE source of truth for all activity icons/colors ─
+// Standard: call=green, note=blue, email=amber, task=amber, meeting=purple
+// Used by ActivityComposer tabs, ActivityCard, feed filters, etc.
+export const ACTIVITY_TYPES = [
+  { id: "note",    label: "Add Note",    icon: "MessageSquare", iconColor: "text-blue-500",   iconBg: "bg-blue-50",   tabActiveColor: "text-blue-600",   tabActiveBorder: "border-blue-500",   badgeBg: "bg-blue-100 text-blue-800"   },
+  { id: "call",    label: "Log Call",    icon: "Phone",         iconColor: "text-green-600",  iconBg: "bg-green-50",  tabActiveColor: "text-green-700",  tabActiveBorder: "border-green-500",  badgeBg: "bg-green-100 text-green-800" },
+  { id: "email",   label: "Add Email",   icon: "Mail",          iconColor: "text-amber-600",  iconBg: "bg-amber-50",  tabActiveColor: "text-amber-700",  tabActiveBorder: "border-amber-500",  badgeBg: "bg-amber-100 text-amber-800" },
+  { id: "task",    label: "Add Task",    icon: "CheckCircle2",  iconColor: "text-amber-500",  iconBg: "bg-amber-50",  tabActiveColor: "text-amber-600",  tabActiveBorder: "border-amber-500",  badgeBg: "bg-amber-100 text-amber-800" },
+  { id: "meeting", label: "Add Meeting", icon: "Calendar",      iconColor: "text-purple-600", iconBg: "bg-purple-50", tabActiveColor: "text-purple-700", tabActiveBorder: "border-purple-500", badgeBg: "bg-purple-100 text-purple-800" },
+];
+
+// ── KPI stat card helper ─────────────────────────────────────────────────────
+export function kpiCardClass(color) {
+  const map = {
+    blue:    "bg-blue-50 border-blue-100",
+    emerald: "bg-emerald-50 border-emerald-100",
+    amber:   "bg-amber-50 border-amber-100",
+    red:     "bg-red-50 border-red-100",
+    violet:  "bg-violet-50 border-violet-100",
+    slate:   "bg-slate-50 border-slate-200",
+  };
+  return `${CARD} ${map[color] || map.slate} p-5`;
+}
+
+export function kpiIconClass(color) {
+  const map = {
+    blue:    "bg-blue-100 text-blue-600",
+    emerald: "bg-emerald-100 text-emerald-600",
+    amber:   "bg-amber-100 text-amber-700",
+    red:     "bg-red-100 text-red-600",
+    violet:  "bg-violet-100 text-violet-600",
+    slate:   "bg-slate-100 text-slate-600",
+  };
+  return `w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${map[color] || map.slate}`;
+}

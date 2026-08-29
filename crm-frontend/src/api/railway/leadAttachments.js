@@ -1,1 +1,27 @@
-LyoqCiAqIHJhaWx3YXkgbGVhZCBhdHRhY2htZW50cyDigJQgTGVhZCBBdHRhY2htZW50IENSVUQgY2xpZW50LgogKi8KaW1wb3J0IHsgYXBpQ2FsbCB9IGZyb20gJy4vY2xpZW50JzsKCmV4cG9ydCBmdW5jdGlvbiBsaXN0KHBhcmFtcyA9IHt9KSB7CiAgY29uc3QgcXMgPSBuZXcgVVJMU2VhcmNoUGFyYW1zKCk7CiAgaWYgKHBhcmFtcy5sZWFkX2lkKSBxcy5zZXQoJ2xlYWRfaWQnLCBwYXJhbXMubGVhZF9pZCk7CiAgY29uc3QgcSA9IHFzLnRvU3RyaW5nKCk7CiAgcmV0dXJuIGFwaUNhbGwoYC9hcGkvdjEvbGVhZC1hdHRhY2htZW50cyR7cSA/IGA/JHtxfWAgOiAnJ31gLCB7IG1ldGhvZDogJ0dFVCcgfSk7Cn0KCmV4cG9ydCBmdW5jdGlvbiBnZXQoaWQpIHsKICByZXR1cm4gYXBpQ2FsbChgL2FwaS92MS9sZWFkLWF0dGFjaG1lbnRzLyR7aWR9YCwgeyBtZXRob2Q6ICdHRVQnIH0pOwp9CgpleHBvcnQgZnVuY3Rpb24gY3JlYXRlKGRhdGEpIHsKICByZXR1cm4gYXBpQ2FsbCgnL2FwaS92MS9sZWFkLWF0dGFjaG1lbnRzJywgeyBtZXRob2Q6ICdQT1NUJywgYm9keTogZGF0YSB9KTsKfQoKZXhwb3J0IGZ1bmN0aW9uIHVwZGF0ZShpZCwgZGF0YSkgewogIHJldHVybiBhcGlDYWxsKGAvYXBpL3YxL2xlYWQtYXR0YWNobWVudHMvJHtpZH1gLCB7IG1ldGhvZDogJ1BVVCcsIGJvZHk6IGRhdGEgfSk7Cn0KCmV4cG9ydCBmdW5jdGlvbiByZW1vdmUoaWQpIHsKICByZXR1cm4gYXBpQ2FsbChgL2FwaS92MS9sZWFkLWF0dGFjaG1lbnRzLyR7aWR9YCwgeyBtZXRob2Q6ICdERUxFVEUnIH0pOwp9
+/**
+ * railway lead attachments — Lead Attachment CRUD client.
+ */
+import { apiCall } from './client';
+
+export function list(params = {}) {
+  const qs = new URLSearchParams();
+  if (params.lead_id) qs.set('lead_id', params.lead_id);
+  const q = qs.toString();
+  return apiCall(`/api/v1/lead-attachments${q ? `?${q}` : ''}`, { method: 'GET' });
+}
+
+export function get(id) {
+  return apiCall(`/api/v1/lead-attachments/${id}`, { method: 'GET' });
+}
+
+export function create(data) {
+  return apiCall('/api/v1/lead-attachments', { method: 'POST', body: data });
+}
+
+export function update(id, data) {
+  return apiCall(`/api/v1/lead-attachments/${id}`, { method: 'PUT', body: data });
+}
+
+export function remove(id) {
+  return apiCall(`/api/v1/lead-attachments/${id}`, { method: 'DELETE' });
+}

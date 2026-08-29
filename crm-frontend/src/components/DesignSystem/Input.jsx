@@ -1,1 +1,54 @@
-LyoqCiAqIFVuaWZpZWQgRm9ybSBJbnB1dCBDb21wb25lbnRzCiAqIENvbnNpc3RlbnQgYWNyb3NzIGFsbCBwYWdlcyB3aXRoIHN0YW5kYXJkIGZvY3VzIHN0YXRlcwogKi8KCmV4cG9ydCBmdW5jdGlvbiBUZXh0SW5wdXQoeyBwbGFjZWhvbGRlciwgdmFsdWUsIG9uQ2hhbmdlLCBvbktleVByZXNzLCBjbGFzc05hbWUgPSAiIiB9KSB7CiAgcmV0dXJuICgKICAgIDxpbnB1dAogICAgICB0eXBlPSJ0ZXh0IgogICAgICBwbGFjZWhvbGRlcj17cGxhY2Vob2xkZXJ9CiAgICAgIHZhbHVlPXt2YWx1ZX0KICAgICAgb25DaGFuZ2U9e29uQ2hhbmdlfQogICAgICBvbktleVByZXNzPXtvbktleVByZXNzfQogICAgICBjbGFzc05hbWU9e2Bib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHB4LTMgcHktMiB0ZXh0LXNtIHRleHQtc2xhdGUtOTAwIHBsYWNlaG9sZGVyOnRleHQtc2xhdGUtNDAwIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1hbWJlci01MDAvMjAgZm9jdXM6Ym9yZGVyLWFtYmVyLTUwMCB0cmFuc2l0aW9uLWFsbCAke2NsYXNzTmFtZX1gfQogICAgLz4KICApOwp9CgpleHBvcnQgZnVuY3Rpb24gRW1haWxJbnB1dCh7IHBsYWNlaG9sZGVyID0gIkVtYWlsIiwgdmFsdWUsIG9uQ2hhbmdlLCBjbGFzc05hbWUgPSAiIiB9KSB7CiAgcmV0dXJuICgKICAgIDxpbnB1dAogICAgICB0eXBlPSJlbWFpbCIKICAgICAgcGxhY2Vob2xkZXI9e3BsYWNlaG9sZGVyfQogICAgICB2YWx1ZT17dmFsdWV9CiAgICAgIG9uQ2hhbmdlPXtvbkNoYW5nZX0KICAgICAgY2xhc3NOYW1lPXtgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBweC0zIHB5LTIgdGV4dC1zbSB0ZXh0LXNsYXRlLTkwMCBwbGFjZWhvbGRlcjp0ZXh0LXNsYXRlLTQwMCBmb2N1czpvdXRsaW5lLW5vbmUgZm9jdXM6cmluZy0yIGZvY3VzOnJpbmctYW1iZXItNTAwLzIwIGZvY3VzOmJvcmRlci1hbWJlci01MDAgdHJhbnNpdGlvbi1hbGwgJHtjbGFzc05hbWV9YH0KICAgIC8+CiAgKTsKfQoKZXhwb3J0IGZ1bmN0aW9uIFNlbGVjdCh7IHZhbHVlLCBvbkNoYW5nZSwgb3B0aW9ucywgcGxhY2Vob2xkZXIgPSAiU2VsZWN0IiwgY2xhc3NOYW1lID0gIiIgfSkgewogIHJldHVybiAoCiAgICA8c2VsZWN0CiAgICAgIHZhbHVlPXt2YWx1ZX0KICAgICAgb25DaGFuZ2U9e29uQ2hhbmdlfQogICAgICBjbGFzc05hbWU9e2Bib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHB4LTMgcHktMiB0ZXh0LXNtIHRleHQtc2xhdGUtNzAwIGJnLXdoaXRlIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1hbWJlci01MDAvMjAgZm9jdXM6Ym9yZGVyLWFtYmVyLTUwMCB0cmFuc2l0aW9uLWFsbCAke2NsYXNzTmFtZX1gfQogICAgPgogICAgICA8b3B0aW9uIHZhbHVlPSIiPntwbGFjZWhvbGRlcn08L29wdGlvbj4KICAgICAge29wdGlvbnMubWFwKG9wdCA9PiA8b3B0aW9uIGtleT17b3B0fSB2YWx1ZT17b3B0fT57b3B0fTwvb3B0aW9uPil9CiAgICA8L3NlbGVjdD4KICApOwp9CgpleHBvcnQgZnVuY3Rpb24gVGV4dEFyZWEoeyBwbGFjZWhvbGRlciwgdmFsdWUsIG9uQ2hhbmdlLCByb3dzID0gMywgY2xhc3NOYW1lID0gIiIgfSkgewogIHJldHVybiAoCiAgICA8dGV4dGFyZWEKICAgICAgcGxhY2Vob2xkZXI9e3BsYWNlaG9sZGVyfQogICAgICB2YWx1ZT17dmFsdWV9CiAgICAgIG9uQ2hhbmdlPXtvbkNoYW5nZX0KICAgICAgcm93cz17cm93c30KICAgICAgY2xhc3NOYW1lPXtgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBweC0zIHB5LTIgdGV4dC1zbSB0ZXh0LXNsYXRlLTkwMCBwbGFjZWhvbGRlcjp0ZXh0LXNsYXRlLTQwMCBmb2N1czpvdXRsaW5lLW5vbmUgZm9jdXM6cmluZy0yIGZvY3VzOnJpbmctYW1iZXItNTAwLzIwIGZvY3VzOmJvcmRlci1hbWJlci01MDAgdHJhbnNpdGlvbi1hbGwgcmVzaXplLW5vbmUgJHtjbGFzc05hbWV9YH0KICAgIC8+CiAgKTsKfQ==
+/**
+ * Unified Form Input Components
+ * Consistent across all pages with standard focus states
+ */
+
+export function TextInput({ placeholder, value, onChange, onKeyPress, className = "" }) {
+  return (
+    <input
+      type="text"
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+      onKeyPress={onKeyPress}
+      className={`border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all ${className}`}
+    />
+  );
+}
+
+export function EmailInput({ placeholder = "Email", value, onChange, className = "" }) {
+  return (
+    <input
+      type="email"
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+      className={`border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all ${className}`}
+    />
+  );
+}
+
+export function Select({ value, onChange, options, placeholder = "Select", className = "" }) {
+  return (
+    <select
+      value={value}
+      onChange={onChange}
+      className={`border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all ${className}`}
+    >
+      <option value="">{placeholder}</option>
+      {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+    </select>
+  );
+}
+
+export function TextArea({ placeholder, value, onChange, rows = 3, className = "" }) {
+  return (
+    <textarea
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+      rows={rows}
+      className={`border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all resize-none ${className}`}
+    />
+  );
+}

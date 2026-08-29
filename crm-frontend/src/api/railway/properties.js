@@ -1,1 +1,27 @@
-LyoqCiAqIHJhaWx3YXkgcHJvcGVydGllcyDigJQgUHJvcGVydHkgQ1JVRCBjbGllbnQuCiAqLwppbXBvcnQgeyBhcGlDYWxsIH0gZnJvbSAnLi9jbGllbnQnOwoKZXhwb3J0IGZ1bmN0aW9uIGxpc3QocGFyYW1zID0ge30pIHsKICBjb25zdCBxcyA9IG5ldyBVUkxTZWFyY2hQYXJhbXMoKTsKICBpZiAocGFyYW1zLmxlYWRfaWQpIHFzLnNldCgnbGVhZF9pZCcsIHBhcmFtcy5sZWFkX2lkKTsKICBjb25zdCBxID0gcXMudG9TdHJpbmcoKTsKICByZXR1cm4gYXBpQ2FsbChgL2FwaS92MS9wcm9wZXJ0aWVzJHtxID8gYD8ke3F9YCA6ICcnfWAsIHsgbWV0aG9kOiAnR0VUJyB9KTsKfQoKZXhwb3J0IGZ1bmN0aW9uIGdldChpZCkgewogIHJldHVybiBhcGlDYWxsKGAvYXBpL3YxL3Byb3BlcnRpZXMvJHtpZH1gLCB7IG1ldGhvZDogJ0dFVCcgfSk7Cn0KCmV4cG9ydCBmdW5jdGlvbiBjcmVhdGUoZGF0YSkgewogIHJldHVybiBhcGlDYWxsKCcvYXBpL3YxL3Byb3BlcnRpZXMnLCB7IG1ldGhvZDogJ1BPU1QnLCBib2R5OiBkYXRhIH0pOwp9CgpleHBvcnQgZnVuY3Rpb24gdXBkYXRlKGlkLCBkYXRhKSB7CiAgcmV0dXJuIGFwaUNhbGwoYC9hcGkvdjEvcHJvcGVydGllcy8ke2lkfWAsIHsgbWV0aG9kOiAnUFVUJywgYm9keTogZGF0YSB9KTsKfQoKZXhwb3J0IGZ1bmN0aW9uIHJlbW92ZShpZCkgewogIHJldHVybiBhcGlDYWxsKGAvYXBpL3YxL3Byb3BlcnRpZXMvJHtpZH1gLCB7IG1ldGhvZDogJ0RFTEVURScgfSk7Cn0=
+/**
+ * railway properties — Property CRUD client.
+ */
+import { apiCall } from './client';
+
+export function list(params = {}) {
+  const qs = new URLSearchParams();
+  if (params.lead_id) qs.set('lead_id', params.lead_id);
+  const q = qs.toString();
+  return apiCall(`/api/v1/properties${q ? `?${q}` : ''}`, { method: 'GET' });
+}
+
+export function get(id) {
+  return apiCall(`/api/v1/properties/${id}`, { method: 'GET' });
+}
+
+export function create(data) {
+  return apiCall('/api/v1/properties', { method: 'POST', body: data });
+}
+
+export function update(id, data) {
+  return apiCall(`/api/v1/properties/${id}`, { method: 'PUT', body: data });
+}
+
+export function remove(id) {
+  return apiCall(`/api/v1/properties/${id}`, { method: 'DELETE' });
+}

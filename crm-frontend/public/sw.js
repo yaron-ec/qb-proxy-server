@@ -1,1 +1,100 @@
-LyoqCiAqIFNlcnZpY2UgV29ya2VyIOKAlCBOZXR3b3JrLUZpcnN0IFN0cmF0ZWd5CiAqCiAqIEFsd2F5cyBmZXRjaGVzIGZyb20gbmV0d29yayBmaXJzdC4gRmFsbHMgYmFjayB0byBjYWNoZSBvbmx5IGlmIG9mZmxpbmUuCiAqIE9uIGV2ZXJ5IGluc3RhbGwsIGltbWVkaWF0ZWx5IHRha2VzIGNvbnRyb2wgKG5vIHdhaXRpbmcgZm9yIG9sZCB0YWJzIHRvIGNsb3NlKS4KICogVGhpcyBlbnN1cmVzIHB1Ymxpc2hlZCBidWlsZHMgYXJlIGFsd2F5cyBzZXJ2ZWQgZnJlc2ggZnJvbSB0aGUgQ0ROL3NlcnZlci4KICovCgpjb25zdCBDQUNIRV9OQU1FID0gJ2VjLWNybS12NSc7CgovLyBPbiBpbnN0YWxsOiBza2lwIHdhaXRpbmcgc28gbmV3IFNXIGFjdGl2YXRlcyBpbW1lZGlhdGVseQpzZWxmLmFkZEV2ZW50TGlzdGVuZXIoJ2luc3RhbGwnLCAoZXZlbnQpID0+IHsKICBzZWxmLnNraXBXYWl0aW5nKCk7Cn0pOwoKLy8gT24gYWN0aXZhdGU6IGRlbGV0ZSBhbGwgb2xkIGNhY2hlcyBhbmQgY2xhaW0gYWxsIGNsaWVudHMgaW1tZWRpYXRlbHkKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdhY3RpdmF0ZScsIChldmVudCkgPT4gewogIGV2ZW50LndhaXRVbnRpbCgKICAgIGNhY2hlcy5rZXlzKCkudGhlbigoa2V5cykgPT4KICAgICAgUHJvbWlzZS5hbGwoCiAgICAgICAga2V5cwogICAgICAgICAgLm1hcCgoa2V5KSA9PiBjYWNoZXMuZGVsZXRlKGtleSkpCiAgICAgICkKICAgICkudGhlbigoKSA9PiBzZWxmLmNsaWVudHMuY2xhaW0oKSkKICApOwp9KTsKCi8vIEZldGNoOiBuZXR3b3JrLWZpcnN0LiBPbmx5IGNhY2hlIEdFVCByZXF1ZXN0cyBmb3Igc3RhdGljIGFzc2V0cy4KLy8gSFRNTCBuYXZpZ2F0aW9uIHJlcXVlc3RzIChpbmRleC5odG1sKSBhcmUgTkVWRVIgY2FjaGVkIOKAlCBhbHdheXMgbmV0d29yay4Kc2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIChldmVudCkgPT4gewogIGNvbnN0IHsgcmVxdWVzdCB9ID0gZXZlbnQ7CiAgY29uc3QgdXJsID0gbmV3IFVSTChyZXF1ZXN0LnVybCk7CgogIC8vIE5ldmVyIGludGVyY2VwdCBub24tR0VUIHJlcXVlc3RzIG9yIGNyb3NzLW9yaWdpbiByZXF1ZXN0cwogIGlmIChyZXF1ZXN0Lm1ldGhvZCAhPT0gJ0dFVCcgfHwgdXJsLm9yaWdpbiAhPT0gc2VsZi5sb2NhdGlvbi5vcmlnaW4pIHsKICAgIHJldHVybjsKICB9CgogIC8vIE5ldmVyIGNhY2hlIEFQSSBjYWxscyBvciBiYWNrZW5kIGZ1bmN0aW9uIGNhbGxzCiAgaWYgKAogICAgdXJsLnBhdGhuYW1lLnN0YXJ0c1dpdGgoJy9hcGkvJykgfHwKICAgIHVybC5wYXRobmFtZS5zdGFydHNXaXRoKCcvZnVuY3Rpb25zLycpIHx8CiAgICB1cmwucGF0aG5hbWUuc3RhcnRzV2l0aCgnL2VudGl0aWVzLycpCiAgKSB7CiAgICByZXR1cm47CiAgfQoKICAvLyBIVE1MIG5hdmlnYXRpb246IGFsd2F5cyBnbyB0byBuZXR3b3JrIChlbnN1cmVzIGxhdGVzdCBpbmRleC5odG1sKQogIGlmIChyZXF1ZXN0Lm1vZGUgPT09ICduYXZpZ2F0ZScpIHsKICAgIGV2ZW50LnJlc3BvbmRXaXRoKAogICAgICBmZXRjaChyZXF1ZXN0KS5jYXRjaCgoKSA9PiBjYWNoZXMubWF0Y2goJy9pbmRleC5odG1sJykpCiAgICApOwogICAgcmV0dXJuOwogIH0KCiAgLy8gU3RhdGljIGFzc2V0cyAoSlMsIENTUywgaW1hZ2VzKTogbmV0d29yay1maXJzdCwgY2FjaGUgYXMgZmFsbGJhY2suCiAgLy8gQ1JJVElDQUw6IG5ldmVyIGNhY2hlIG9yIHNlcnZlIGFuIGVtcHR5IEpTL0NTUyBib2R5LiBUaGUgYnJvd3NlciB3b3VsZAogIC8vIHRocm93ICJTeW50YXhFcnJvcjogVW5leHBlY3RlZCBlbmQgb2YgaW5wdXQiIHdpdGggbm8gc3RhY2sgdHJhY2UuIEVtcHR5CiAgLy8gMjAwIHJlc3BvbnNlcyBvY2N1ciB0cmFuc2llbnRseSBkdXJpbmcgZGV2IHJlYnVpbGRzOyBza2lwIGNhY2hpbmcgdGhlbQogIC8vIGFuZCBmYWxsIGJhY2sgdG8gdGhlIGxhc3QgZ29vZCBjYWNoZWQgY29weSBpZiBvbmUgZXhpc3RzLgogIGV2ZW50LnJlc3BvbmRXaXRoKAogICAgKGFzeW5jICgpID0+IHsKICAgICAgdHJ5IHsKICAgICAgICBjb25zdCByZXNwb25zZSA9IGF3YWl0IGZldGNoKHJlcXVlc3QpOwogICAgICAgIGNvbnN0IGlzU3RhdGljQXNzZXQgPSB1cmwucGF0aG5hbWUubWF0Y2goL1wuKGpzfGNzc3xwbmd8anBnfGpwZWd8c3ZnfGljb3x3b2ZmMj8pJC8pOwogICAgICAgIGlmIChyZXNwb25zZS5vayAmJiBpc1N0YXRpY0Fzc2V0KSB7CiAgICAgICAgICAvLyBJbnNwZWN0IHRoZSBib2R5IHdpdGhvdXQgY29uc3VtaW5nIHRoZSByZXNwb25zZSB3ZSByZXR1cm4KICAgICAgICAgIGNvbnN0IGNsb25lID0gcmVzcG9uc2UuY2xvbmUoKTsKICAgICAgICAgIGNvbnN0IHRleHQgPSBhd2FpdCBjbG9uZS50ZXh0KCk7CiAgICAgICAgICBpZiAodGV4dCAmJiB0ZXh0Lmxlbmd0aCA+IDApIHsKICAgICAgICAgICAgY29uc3QgY2FjaGUgPSBhd2FpdCBjYWNoZXMub3BlbihDQUNIRV9OQU1FKTsKICAgICAgICAgICAgLy8gUmVjb25zdHJ1Y3QgZnJvbSB0aGUgcmVhZCB0ZXh0IHNvIHRoZSBjYWNoZWQgY29weSBoYXMgYSByZWFsIGJvZHkKICAgICAgICAgICAgYXdhaXQgY2FjaGUucHV0KHJlcXVlc3QsIG5ldyBSZXNwb25zZSh0ZXh0LCB7CiAgICAgICAgICAgICAgc3RhdHVzOiByZXNwb25zZS5zdGF0dXMsCiAgICAgICAgICAgICAgc3RhdHVzVGV4dDogcmVzcG9uc2Uuc3RhdHVzVGV4dCwKICAgICAgICAgICAgICBoZWFkZXJzOiByZXNwb25zZS5oZWFkZXJzLAogICAgICAgICAgICB9KSk7CiAgICAgICAgICB9IGVsc2UgewogICAgICAgICAgICAvLyBFbXB0eSBib2R5IOKAlCBkb24ndCBwb2lzb24gdGhlIGNhY2hlLiBTZXJ2ZSBhIGdvb2QgY2FjaGVkIGNvcHkgaWYgd2UgaGF2ZSBvbmUuCiAgICAgICAgICAgIGNvbnN0IGNhY2hlZCA9IGF3YWl0IGNhY2hlcy5tYXRjaChyZXF1ZXN0KTsKICAgICAgICAgICAgaWYgKGNhY2hlZCkgcmV0dXJuIGNhY2hlZDsKICAgICAgICAgICAgLy8gTm8gZ29vZCBjYWNoZSBlaXRoZXIuIEZvciBKUywgcmV0dXJuIGEgdmFsaWQgbm8tb3AgbW9kdWxlIHNvIHRoZQogICAgICAgICAgICAvLyBicm93c2VyIG5ldmVyIHRocm93cyAiU3ludGF4RXJyb3I6IFVuZXhwZWN0ZWQgZW5kIG9mIGlucHV0IiBvbiBhbgogICAgICAgICAgICAvLyBlbXB0eSAyMDAgKHdoaWNoIGhhcHBlbnMgdHJhbnNpZW50bHkgZHVyaW5nIHJlYnVpbGRzKS4gQSBmcmVzaAogICAgICAgICAgICAvLyByZWxvYWQgd2lsbCBmZXRjaCB0aGUgcmVhbCBjb250ZW50LgogICAgICAgICAgICBpZiAodXJsLnBhdGhuYW1lLm1hdGNoKC9cLihqc3xqc3h8bWpzKSQvKSkgewogICAgICAgICAgICAgIHJldHVybiBuZXcgUmVzcG9uc2UoJy8vJywgewogICAgICAgICAgICAgICAgc3RhdHVzOiAyMDAsCiAgICAgICAgICAgICAgICBoZWFkZXJzOiB7ICdDb250ZW50LVR5cGUnOiAnYXBwbGljYXRpb24vamF2YXNjcmlwdDsgY2hhcnNldD11dGYtOCcgfSwKICAgICAgICAgICAgICB9KTsKICAgICAgICAgICAgfQogICAgICAgICAgfQogICAgICAgIH0KICAgICAgICByZXR1cm4gcmVzcG9uc2U7CiAgICAgIH0gY2F0Y2ggewogICAgICAgIHJldHVybiBjYWNoZXMubWF0Y2gocmVxdWVzdCk7CiAgICAgIH0KICAgIH0pKCkKICApOwp9KTsK
+/**
+ * Service Worker — Network-First Strategy
+ *
+ * Always fetches from network first. Falls back to cache only if offline.
+ * On every install, immediately takes control (no waiting for old tabs to close).
+ * This ensures published builds are always served fresh from the CDN/server.
+ */
+
+const CACHE_NAME = 'ec-crm-v5';
+
+// On install: skip waiting so new SW activates immediately
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+});
+
+// On activate: delete all old caches and claim all clients immediately
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .map((key) => caches.delete(key))
+      )
+    ).then(() => self.clients.claim())
+  );
+});
+
+// Fetch: network-first. Only cache GET requests for static assets.
+// HTML navigation requests (index.html) are NEVER cached — always network.
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Never intercept non-GET requests or cross-origin requests
+  if (request.method !== 'GET' || url.origin !== self.location.origin) {
+    return;
+  }
+
+  // Never cache API calls or backend function calls
+  if (
+    url.pathname.startsWith('/api/') ||
+    url.pathname.startsWith('/functions/') ||
+    url.pathname.startsWith('/entities/')
+  ) {
+    return;
+  }
+
+  // HTML navigation: always go to network (ensures latest index.html)
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request).catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+
+  // Static assets (JS, CSS, images): network-first, cache as fallback.
+  // CRITICAL: never cache or serve an empty JS/CSS body. The browser would
+  // throw "SyntaxError: Unexpected end of input" with no stack trace. Empty
+  // 200 responses occur transiently during dev rebuilds; skip caching them
+  // and fall back to the last good cached copy if one exists.
+  event.respondWith(
+    (async () => {
+      try {
+        const response = await fetch(request);
+        const isStaticAsset = url.pathname.match(/\.(js|css|png|jpg|jpeg|svg|ico|woff2?)$/);
+        if (response.ok && isStaticAsset) {
+          // Inspect the body without consuming the response we return
+          const clone = response.clone();
+          const text = await clone.text();
+          if (text && text.length > 0) {
+            const cache = await caches.open(CACHE_NAME);
+            // Reconstruct from the read text so the cached copy has a real body
+            await cache.put(request, new Response(text, {
+              status: response.status,
+              statusText: response.statusText,
+              headers: response.headers,
+            }));
+          } else {
+            // Empty body — don't poison the cache. Serve a good cached copy if we have one.
+            const cached = await caches.match(request);
+            if (cached) return cached;
+            // No good cache either. For JS, return a valid no-op module so the
+            // browser never throws "SyntaxError: Unexpected end of input" on an
+            // empty 200 (which happens transiently during rebuilds). A fresh
+            // reload will fetch the real content.
+            if (url.pathname.match(/\.(js|jsx|mjs)$/)) {
+              return new Response('//', {
+                status: 200,
+                headers: { 'Content-Type': 'application/javascript; charset=utf-8' },
+              });
+            }
+          }
+        }
+        return response;
+      } catch {
+        return caches.match(request);
+      }
+    })()
+  );
+});

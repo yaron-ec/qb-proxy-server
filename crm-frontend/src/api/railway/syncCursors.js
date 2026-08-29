@@ -1,1 +1,20 @@
-LyoqCiAqIHJhaWx3YXkgc3luYyBjdXJzb3JzIOKAlCBTeW5jIEN1cnNvciBDUlVEIGNsaWVudCAoYWRtaW4gb25seSkuCiAqLwppbXBvcnQgeyBhcGlDYWxsIH0gZnJvbSAnLi9jbGllbnQnOwoKZXhwb3J0IGZ1bmN0aW9uIGxpc3QoKSB7CiAgcmV0dXJuIGFwaUNhbGwoJy9hcGkvdjEvc3luYy1jdXJzb3JzJywgeyBtZXRob2Q6ICdHRVQnIH0pOwp9CgpleHBvcnQgZnVuY3Rpb24gZ2V0KGludGVncmF0aW9uKSB7CiAgcmV0dXJuIGFwaUNhbGwoYC9hcGkvdjEvc3luYy1jdXJzb3JzLyR7ZW5jb2RlVVJJQ29tcG9uZW50KGludGVncmF0aW9uKX1gLCB7IG1ldGhvZDogJ0dFVCcgfSk7Cn0KCmV4cG9ydCBmdW5jdGlvbiB1cHNlcnQoaW50ZWdyYXRpb24sIGRhdGEpIHsKICByZXR1cm4gYXBpQ2FsbChgL2FwaS92MS9zeW5jLWN1cnNvcnMvJHtlbmNvZGVVUklDb21wb25lbnQoaW50ZWdyYXRpb24pfWAsIHsgbWV0aG9kOiAnUFVUJywgYm9keTogZGF0YSB9KTsKfQoKZXhwb3J0IGZ1bmN0aW9uIHJlbW92ZShpbnRlZ3JhdGlvbikgewogIHJldHVybiBhcGlDYWxsKGAvYXBpL3YxL3N5bmMtY3Vyc29ycy8ke2VuY29kZVVSSUNvbXBvbmVudChpbnRlZ3JhdGlvbil9YCwgeyBtZXRob2Q6ICdERUxFVEUnIH0pOwp9
+/**
+ * railway sync cursors — Sync Cursor CRUD client (admin only).
+ */
+import { apiCall } from './client';
+
+export function list() {
+  return apiCall('/api/v1/sync-cursors', { method: 'GET' });
+}
+
+export function get(integration) {
+  return apiCall(`/api/v1/sync-cursors/${encodeURIComponent(integration)}`, { method: 'GET' });
+}
+
+export function upsert(integration, data) {
+  return apiCall(`/api/v1/sync-cursors/${encodeURIComponent(integration)}`, { method: 'PUT', body: data });
+}
+
+export function remove(integration) {
+  return apiCall(`/api/v1/sync-cursors/${encodeURIComponent(integration)}`, { method: 'DELETE' });
+}

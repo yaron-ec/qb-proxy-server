@@ -1,1 +1,28 @@
-LyoqCiAqIHJhaWx3YXkgZGVhbCBleHBlbnNlIHBheW1lbnRzIOKAlCBEZWFsIEV4cGVuc2UgUGF5bWVudCBDUlVEIGNsaWVudC4KICovCmltcG9ydCB7IGFwaUNhbGwgfSBmcm9tICcuL2NsaWVudCc7CgpleHBvcnQgZnVuY3Rpb24gbGlzdChwYXJhbXMgPSB7fSkgewogIGNvbnN0IHFzID0gbmV3IFVSTFNlYXJjaFBhcmFtcygpOwogIGlmIChwYXJhbXMuZXhwZW5zZV9pZCkgcXMuc2V0KCdleHBlbnNlX2lkJywgcGFyYW1zLmV4cGVuc2VfaWQpOwogIGlmIChwYXJhbXMuZGVhbF9pZCkgcXMuc2V0KCdkZWFsX2lkJywgcGFyYW1zLmRlYWxfaWQpOwogIGNvbnN0IHEgPSBxcy50b1N0cmluZygpOwogIHJldHVybiBhcGlDYWxsKGAvYXBpL3YxL2RlYWwtZXhwZW5zZS1wYXltZW50cyR7cSA/IGA/JHtxfWAgOiAnJ31gLCB7IG1ldGhvZDogJ0dFVCcgfSk7Cn0KCmV4cG9ydCBmdW5jdGlvbiBnZXQoaWQpIHsKICByZXR1cm4gYXBpQ2FsbChgL2FwaS92MS9kZWFsLWV4cGVuc2UtcGF5bWVudHMvJHtpZH1gLCB7IG1ldGhvZDogJ0dFVCcgfSk7Cn0KCmV4cG9ydCBmdW5jdGlvbiBjcmVhdGUoZGF0YSkgewogIHJldHVybiBhcGlDYWxsKCcvYXBpL3YxL2RlYWwtZXhwZW5zZS1wYXltZW50cycsIHsgbWV0aG9kOiAnUE9TVCcsIGJvZHk6IGRhdGEgfSk7Cn0KCmV4cG9ydCBmdW5jdGlvbiB1cGRhdGUoaWQsIGRhdGEpIHsKICByZXR1cm4gYXBpQ2FsbChgL2FwaS92MS9kZWFsLWV4cGVuc2UtcGF5bWVudHMvJHtpZH1gLCB7IG1ldGhvZDogJ1BVVCcsIGJvZHk6IGRhdGEgfSk7Cn0KCmV4cG9ydCBmdW5jdGlvbiByZW1vdmUoaWQpIHsKICByZXR1cm4gYXBpQ2FsbChgL2FwaS92MS9kZWFsLWV4cGVuc2UtcGF5bWVudHMvJHtpZH1gLCB7IG1ldGhvZDogJ0RFTEVURScgfSk7Cn0=
+/**
+ * railway deal expense payments — Deal Expense Payment CRUD client.
+ */
+import { apiCall } from './client';
+
+export function list(params = {}) {
+  const qs = new URLSearchParams();
+  if (params.expense_id) qs.set('expense_id', params.expense_id);
+  if (params.deal_id) qs.set('deal_id', params.deal_id);
+  const q = qs.toString();
+  return apiCall(`/api/v1/deal-expense-payments${q ? `?${q}` : ''}`, { method: 'GET' });
+}
+
+export function get(id) {
+  return apiCall(`/api/v1/deal-expense-payments/${id}`, { method: 'GET' });
+}
+
+export function create(data) {
+  return apiCall('/api/v1/deal-expense-payments', { method: 'POST', body: data });
+}
+
+export function update(id, data) {
+  return apiCall(`/api/v1/deal-expense-payments/${id}`, { method: 'PUT', body: data });
+}
+
+export function remove(id) {
+  return apiCall(`/api/v1/deal-expense-payments/${id}`, { method: 'DELETE' });
+}

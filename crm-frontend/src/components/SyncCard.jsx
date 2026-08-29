@@ -1,1 +1,151 @@
-LyoqCiAqIFNoYXJlZCBidWlsZGluZyBibG9ja3MgZm9yIGFsbCBTeW5jIHRhYnMuCiAqIEltcG9ydCBmcm9tIGhlcmUgdG8ga2VlcCBldmVyeSB0YWIgbG9va2luZyBpZGVudGljYWwuCiAqLwoKLy8g4pSA4pSAIFNlY3Rpb24gY2FyZCDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKZXhwb3J0IGZ1bmN0aW9uIFN5bmNTZWN0aW9uKHsgY2hpbGRyZW4sIGNsYXNzTmFtZSA9ICIiIH0pIHsKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9e2BiZy13aGl0ZSBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLXhsIHAtNSAke2NsYXNzTmFtZX1gfT4KICAgICAge2NoaWxkcmVufQogICAgPC9kaXY+CiAgKTsKfQoKLy8g4pSA4pSAIFNlY3Rpb24gaGVhZGVyIHJvdyAoaWNvbiArIHRpdGxlICsgb3B0aW9uYWwgYmFkZ2UgKyBvcHRpb25hbCBhY3Rpb24pIOKUgOKUgOKUgOKUgOKUgOKUgApleHBvcnQgZnVuY3Rpb24gU3luY1NlY3Rpb25IZWFkZXIoeyBpY29uOiBJY29uLCB0aXRsZSwgYmFkZ2UsIGFjdGlvbiwgaWNvbkNvbG9yID0gInRleHQtc2xhdGUtNTAwIiB9KSB7CiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gZ2FwLTMgbWItNCI+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMi41Ij4KICAgICAgICB7SWNvbiAmJiA8SWNvbiBjbGFzc05hbWU9e2B3LTQgaC00IGZsZXgtc2hyaW5rLTAgJHtpY29uQ29sb3J9YH0gLz59CiAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS04MDAiPnt0aXRsZX08L3NwYW4+CiAgICAgICAge2JhZGdlICYmICgKICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT17YHRleHQtWzEwcHhdIGZvbnQtYm9sZCBweC0yIHB5LTAuNSByb3VuZGVkLWZ1bGwgJHtiYWRnZS5jbGFzc05hbWV9YH0+CiAgICAgICAgICAgIHtiYWRnZS5sYWJlbH0KICAgICAgICAgIDwvc3Bhbj4KICAgICAgICApfQogICAgICA8L2Rpdj4KICAgICAge2FjdGlvbn0KICAgIDwvZGl2PgogICk7Cn0KCi8vIOKUgOKUgCBTdGF0dXMgcGlsbCDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKZXhwb3J0IGZ1bmN0aW9uIFN0YXR1c1BpbGwoeyBzdGF0dXMgfSkgewogIGNvbnN0IG1hcCA9IHsKICAgIGNvbm5lY3RlZDogICAgImJnLWVtZXJhbGQtMTAwIHRleHQtZW1lcmFsZC03MDAiLAogICAgZGlzY29ubmVjdGVkOiAiYmctc2xhdGUtMTAwIHRleHQtc2xhdGUtNTAwIiwKICAgIGVycm9yOiAgICAgICAgImJnLXJlZC0xMDAgdGV4dC1yZWQtNzAwIiwKICAgIGluYWN0aXZlOiAgICAgImJnLXNsYXRlLTEwMCB0ZXh0LXNsYXRlLTUwMCIsCiAgICBhY3RpdmU6ICAgICAgICJiZy1lbWVyYWxkLTEwMCB0ZXh0LWVtZXJhbGQtNzAwIiwKICAgIHN5bmNpbmc6ICAgICAgImJnLWJsdWUtMTAwIHRleHQtYmx1ZS03MDAiLAogICAgc3VjY2VzczogICAgICAiYmctZW1lcmFsZC0xMDAgdGV4dC1lbWVyYWxkLTcwMCIsCiAgICB3YXJuaW5nOiAgICAgICJiZy1hbWJlci0xMDAgdGV4dC1hbWJlci03MDAiLAogIH07CiAgcmV0dXJuICgKICAgIDxzcGFuIGNsYXNzTmFtZT17YGlubGluZS1mbGV4IGl0ZW1zLWNlbnRlciB0ZXh0LVsxMHB4XSBmb250LWJvbGQgcHgtMiBweS0wLjUgcm91bmRlZC1mdWxsICR7bWFwW3N0YXR1c10gfHwgImJnLXNsYXRlLTEwMCB0ZXh0LXNsYXRlLTUwMCJ9YH0+CiAgICAgIHtzdGF0dXMuY2hhckF0KDApLnRvVXBwZXJDYXNlKCkgKyBzdGF0dXMuc2xpY2UoMSl9CiAgICA8L3NwYW4+CiAgKTsKfQoKLy8g4pSA4pSAIEluZm8gbm90aWNlIChyZXBsYWNlcyBoZWF2eSBkYXJrIGJhbm5lcnMpIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgApleHBvcnQgZnVuY3Rpb24gU3luY0luZm9Ob3RpY2UoeyBjaGlsZHJlbiwgdmFyaWFudCA9ICJuZXV0cmFsIiB9KSB7CiAgY29uc3Qgc3R5bGVzID0gewogICAgbmV1dHJhbDogImJnLXNsYXRlLTUwIGJvcmRlci1zbGF0ZS0yMDAgdGV4dC1zbGF0ZS02MDAiLAogICAgYmx1ZTogICAgImJnLWJsdWUtNTAgYm9yZGVyLWJsdWUtMjAwIHRleHQtYmx1ZS03MDAiLAogICAgYW1iZXI6ICAgImJnLWFtYmVyLTUwIGJvcmRlci1hbWJlci0yMDAgdGV4dC1hbWJlci03MDAiLAogICAgZ3JlZW46ICAgImJnLWVtZXJhbGQtNTAgYm9yZGVyLWVtZXJhbGQtMjAwIHRleHQtZW1lcmFsZC03MDAiLAogICAgcmVkOiAgICAgImJnLXJlZC01MCBib3JkZXItcmVkLTIwMCB0ZXh0LXJlZC03MDAiLAogIH07CiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPXtgYm9yZGVyIHJvdW5kZWQtbGcgcHgtNCBweS0zIHRleHQteHMgJHtzdHlsZXNbdmFyaWFudF19YH0+CiAgICAgIHtjaGlsZHJlbn0KICAgIDwvZGl2PgogICk7Cn0KCi8vIOKUgOKUgCBDb21wYWN0IHN0YXQgcm93IOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgApleHBvcnQgZnVuY3Rpb24gU3luY1N0YXRSb3coeyBpdGVtcyB9KSB7CiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGZsZXgtd3JhcCBnYXAtMiI+CiAgICAgIHtpdGVtcy5tYXAoKHsgbGFiZWwsIHZhbHVlLCBjb2xvciA9ICJzbGF0ZSIgfSkgPT4gewogICAgICAgIGNvbnN0IGNvbG9ycyA9IHsKICAgICAgICAgIHNsYXRlOiAgICJiZy1zbGF0ZS0xMDAgdGV4dC1zbGF0ZS03MDAiLAogICAgICAgICAgYmx1ZTogICAgImJnLWJsdWUtMTAwIHRleHQtYmx1ZS03MDAiLAogICAgICAgICAgZ3JlZW46ICAgImJnLWVtZXJhbGQtMTAwIHRleHQtZW1lcmFsZC03MDAiLAogICAgICAgICAgYW1iZXI6ICAgImJnLWFtYmVyLTEwMCB0ZXh0LWFtYmVyLTcwMCIsCiAgICAgICAgICByZWQ6ICAgICAiYmctcmVkLTEwMCB0ZXh0LXJlZC03MDAiLAogICAgICAgICAgcHVycGxlOiAgImJnLXB1cnBsZS0xMDAgdGV4dC1wdXJwbGUtNzAwIiwKICAgICAgICB9OwogICAgICAgIHJldHVybiAoCiAgICAgICAgICA8ZGl2IGtleT17bGFiZWx9IGNsYXNzTmFtZT17YGlubGluZS1mbGV4IGl0ZW1zLWNlbnRlciBnYXAtMSBweC0yLjUgcHktMSByb3VuZGVkLWZ1bGwgdGV4dC14cyBmb250LXNlbWlib2xkICR7Y29sb3JzW2NvbG9yXX1gfT4KICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJmb250LWJvbGQiPnt2YWx1ZSA/PyAwfTwvc3Bhbj4KICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSBmb250LW1lZGl1bSBvcGFjaXR5LTgwIj57bGFiZWx9PC9zcGFuPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgKTsKICAgICAgfSl9CiAgICA8L2Rpdj4KICApOwp9CgovLyDilIDilIAgUHJpbWFyeSBidXR0b24g4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACmV4cG9ydCBmdW5jdGlvbiBTeW5jQnRuKHsgb25DbGljaywgZGlzYWJsZWQsIGxvYWRpbmcsIGljb246IEljb24sIGNoaWxkcmVuLCB2YXJpYW50ID0gInByaW1hcnkiLCBjbGFzc05hbWUgPSAiIiB9KSB7CiAgY29uc3QgYmFzZSA9ICJpbmxpbmUtZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSB0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgcHgtMyBweS0yIHJvdW5kZWQtbGcgdHJhbnNpdGlvbi1jb2xvcnMgZGlzYWJsZWQ6b3BhY2l0eS01MCI7CiAgY29uc3QgdmFyaWFudHMgPSB7CiAgICBwcmltYXJ5OiAgICJiZy1hbWJlci02MDAgaG92ZXI6YmctYW1iZXItNzAwIHRleHQtd2hpdGUiLAogICAgc2Vjb25kYXJ5OiAiYmctd2hpdGUgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgaG92ZXI6Ymctc2xhdGUtNTAgdGV4dC1zbGF0ZS03MDAiLAogICAgZGFuZ2VyOiAgICAiYmctd2hpdGUgYm9yZGVyIGJvcmRlci1yZWQtMjAwIGhvdmVyOmJnLXJlZC01MCB0ZXh0LXJlZC02MDAiLAogICAgZ3JlZW46ICAgICAiYmctZW1lcmFsZC02MDAgaG92ZXI6YmctZW1lcmFsZC03MDAgdGV4dC13aGl0ZSIsCiAgICBibHVlOiAgICAgICJiZy1ibHVlLTYwMCBob3ZlcjpiZy1ibHVlLTcwMCB0ZXh0LXdoaXRlIiwKICB9OwogIHJldHVybiAoCiAgICA8YnV0dG9uIG9uQ2xpY2s9e29uQ2xpY2t9IGRpc2FibGVkPXtkaXNhYmxlZH0gY2xhc3NOYW1lPXtgJHtiYXNlfSAke3ZhcmlhbnRzW3ZhcmlhbnRdfSAke2NsYXNzTmFtZX1gfT4KICAgICAge2xvYWRpbmcKICAgICAgICA/IDxzcGFuIGNsYXNzTmFtZT0idy0zLjUgaC0zLjUgYm9yZGVyLTIgYm9yZGVyLWN1cnJlbnQgYm9yZGVyLXQtdHJhbnNwYXJlbnQgcm91bmRlZC1mdWxsIGFuaW1hdGUtc3BpbiIgLz4KICAgICAgICA6IEljb24gJiYgPEljb24gY2xhc3NOYW1lPSJ3LTMuNSBoLTMuNSIgLz59CiAgICAgIHtjaGlsZHJlbn0KICAgIDwvYnV0dG9uPgogICk7Cn0KCi8vIOKUgOKUgCBTdGVwIGxpc3QgKHJlcGxhY2VzIG51bWJlcmVkIGluc3RydWN0aW9uIGJsb2JzKSDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKZXhwb3J0IGZ1bmN0aW9uIFN5bmNTdGVwTGlzdCh7IHN0ZXBzLCB2YXJpYW50ID0gIm5ldXRyYWwiIH0pIHsKICBjb25zdCBzdHlsZXMgPSB7CiAgICBuZXV0cmFsOiAiYm9yZGVyLXNsYXRlLTIwMCBiZy1zbGF0ZS01MCIsCiAgICBibHVlOiAgICAiYm9yZGVyLWJsdWUtMjAwIGJnLWJsdWUtNTAiLAogICAgYW1iZXI6ICAgImJvcmRlci1hbWJlci0yMDAgYmctYW1iZXItNTAiLAogIH07CiAgY29uc3QgdGV4dFN0eWxlcyA9IHsKICAgIG5ldXRyYWw6ICJ0ZXh0LXNsYXRlLTYwMCIsCiAgICBibHVlOiAgICAidGV4dC1ibHVlLTcwMCIsCiAgICBhbWJlcjogICAidGV4dC1hbWJlci03MDAiLAogIH07CiAgcmV0dXJuICgKICAgIDxvbCBjbGFzc05hbWU9e2Bib3JkZXIgcm91bmRlZC1sZyBweC00IHB5LTMgc3BhY2UteS0xLjUgJHtzdHlsZXNbdmFyaWFudF19YH0+CiAgICAgIHtzdGVwcy5tYXAoKHN0ZXAsIGkpID0+ICgKICAgICAgICA8bGkga2V5PXtpfSBjbGFzc05hbWU9e2BmbGV4IGdhcC0yIHRleHQteHMgJHt0ZXh0U3R5bGVzW3ZhcmlhbnRdfWB9PgogICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJmb250LWJvbGQgZmxleC1zaHJpbmstMCBvcGFjaXR5LTYwIj57aSArIDF9Ljwvc3Bhbj4KICAgICAgICAgIDxzcGFuIGRhbmdlcm91c2x5U2V0SW5uZXJIVE1MPXt7IF9faHRtbDogc3RlcCB9fSAvPgogICAgICAgIDwvbGk+CiAgICAgICkpfQogICAgPC9vbD4KICApOwp9CgovLyDilIDilIAgUmVzdWx0IGZlZWRiYWNrIHJvdyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKZXhwb3J0IGZ1bmN0aW9uIFN5bmNSZXN1bHQoeyBzdWNjZXNzLCBtZXNzYWdlLCBlcnJvciB9KSB7CiAgaWYgKCFtZXNzYWdlICYmICFlcnJvcikgcmV0dXJuIG51bGw7CiAgaWYgKHN1Y2Nlc3MpIHsKICAgIHJldHVybiAoCiAgICAgIDxTeW5jSW5mb05vdGljZSB2YXJpYW50PSJncmVlbiI+CiAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJmb250LXNlbWlib2xkIj7inJMge21lc3NhZ2V9PC9zcGFuPgogICAgICA8L1N5bmNJbmZvTm90aWNlPgogICAgKTsKICB9CiAgcmV0dXJuICgKICAgIDxTeW5jSW5mb05vdGljZSB2YXJpYW50PSJyZWQiPgogICAgICA8c3BhbiBjbGFzc05hbWU9ImZvbnQtc2VtaWJvbGQiPkVycm9yOiB7ZXJyb3IgfHwgbWVzc2FnZX08L3NwYW4+CiAgICA8L1N5bmNJbmZvTm90aWNlPgogICk7Cn0=
+/**
+ * Shared building blocks for all Sync tabs.
+ * Import from here to keep every tab looking identical.
+ */
+
+// ── Section card ─────────────────────────────────────────────────────────────
+export function SyncSection({ children, className = "" }) {
+  return (
+    <div className={`bg-white border border-slate-200 rounded-xl p-5 ${className}`}>
+      {children}
+    </div>
+  );
+}
+
+// ── Section header row (icon + title + optional badge + optional action) ──────
+export function SyncSectionHeader({ icon: Icon, title, badge, action, iconColor = "text-slate-500" }) {
+  return (
+    <div className="flex items-center justify-between gap-3 mb-4">
+      <div className="flex items-center gap-2.5">
+        {Icon && <Icon className={`w-4 h-4 flex-shrink-0 ${iconColor}`} />}
+        <span className="text-sm font-semibold text-slate-800">{title}</span>
+        {badge && (
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badge.className}`}>
+            {badge.label}
+          </span>
+        )}
+      </div>
+      {action}
+    </div>
+  );
+}
+
+// ── Status pill ───────────────────────────────────────────────────────────────
+export function StatusPill({ status }) {
+  const map = {
+    connected:    "bg-emerald-100 text-emerald-700",
+    disconnected: "bg-slate-100 text-slate-500",
+    error:        "bg-red-100 text-red-700",
+    inactive:     "bg-slate-100 text-slate-500",
+    active:       "bg-emerald-100 text-emerald-700",
+    syncing:      "bg-blue-100 text-blue-700",
+    success:      "bg-emerald-100 text-emerald-700",
+    warning:      "bg-amber-100 text-amber-700",
+  };
+  return (
+    <span className={`inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full ${map[status] || "bg-slate-100 text-slate-500"}`}>
+      {status.charAt(0).toUpperCase() + status.slice(1)}
+    </span>
+  );
+}
+
+// ── Info notice (replaces heavy dark banners) ─────────────────────────────────
+export function SyncInfoNotice({ children, variant = "neutral" }) {
+  const styles = {
+    neutral: "bg-slate-50 border-slate-200 text-slate-600",
+    blue:    "bg-blue-50 border-blue-200 text-blue-700",
+    amber:   "bg-amber-50 border-amber-200 text-amber-700",
+    green:   "bg-emerald-50 border-emerald-200 text-emerald-700",
+    red:     "bg-red-50 border-red-200 text-red-700",
+  };
+  return (
+    <div className={`border rounded-lg px-4 py-3 text-xs ${styles[variant]}`}>
+      {children}
+    </div>
+  );
+}
+
+// ── Compact stat row ──────────────────────────────────────────────────────────
+export function SyncStatRow({ items }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {items.map(({ label, value, color = "slate" }) => {
+        const colors = {
+          slate:   "bg-slate-100 text-slate-700",
+          blue:    "bg-blue-100 text-blue-700",
+          green:   "bg-emerald-100 text-emerald-700",
+          amber:   "bg-amber-100 text-amber-700",
+          red:     "bg-red-100 text-red-700",
+          purple:  "bg-purple-100 text-purple-700",
+        };
+        return (
+          <div key={label} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${colors[color]}`}>
+            <span className="font-bold">{value ?? 0}</span>
+            <span className="text-[10px] font-medium opacity-80">{label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Primary button ────────────────────────────────────────────────────────────
+export function SyncBtn({ onClick, disabled, loading, icon: Icon, children, variant = "primary", className = "" }) {
+  const base = "inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg transition-colors disabled:opacity-50";
+  const variants = {
+    primary:   "bg-amber-600 hover:bg-amber-700 text-white",
+    secondary: "bg-white border border-slate-200 hover:bg-slate-50 text-slate-700",
+    danger:    "bg-white border border-red-200 hover:bg-red-50 text-red-600",
+    green:     "bg-emerald-600 hover:bg-emerald-700 text-white",
+    blue:      "bg-blue-600 hover:bg-blue-700 text-white",
+  };
+  return (
+    <button onClick={onClick} disabled={disabled} className={`${base} ${variants[variant]} ${className}`}>
+      {loading
+        ? <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+        : Icon && <Icon className="w-3.5 h-3.5" />}
+      {children}
+    </button>
+  );
+}
+
+// ── Step list (replaces numbered instruction blobs) ───────────────────────────
+export function SyncStepList({ steps, variant = "neutral" }) {
+  const styles = {
+    neutral: "border-slate-200 bg-slate-50",
+    blue:    "border-blue-200 bg-blue-50",
+    amber:   "border-amber-200 bg-amber-50",
+  };
+  const textStyles = {
+    neutral: "text-slate-600",
+    blue:    "text-blue-700",
+    amber:   "text-amber-700",
+  };
+  return (
+    <ol className={`border rounded-lg px-4 py-3 space-y-1.5 ${styles[variant]}`}>
+      {steps.map((step, i) => (
+        <li key={i} className={`flex gap-2 text-xs ${textStyles[variant]}`}>
+          <span className="font-bold flex-shrink-0 opacity-60">{i + 1}.</span>
+          <span dangerouslySetInnerHTML={{ __html: step }} />
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+// ── Result feedback row ───────────────────────────────────────────────────────
+export function SyncResult({ success, message, error }) {
+  if (!message && !error) return null;
+  if (success) {
+    return (
+      <SyncInfoNotice variant="green">
+        <span className="font-semibold">✓ {message}</span>
+      </SyncInfoNotice>
+    );
+  }
+  return (
+    <SyncInfoNotice variant="red">
+      <span className="font-semibold">Error: {error || message}</span>
+    </SyncInfoNotice>
+  );
+}

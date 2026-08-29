@@ -1,1 +1,128 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCwgdXNlUmVmIH0gZnJvbSAicmVhY3QiOwppbXBvcnQgeyBDb3B5LCBDaGVjaywgUXJDb2RlLCBFeHRlcm5hbExpbmssIFNtYXJ0cGhvbmUgfSBmcm9tICJsdWNpZGUtcmVhY3QiOwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gQ2FwdHVyZUxpbmtUYWIoKSB7CiAgY29uc3QgW2NvcGllZCwgc2V0Q29waWVkXSA9IHVzZVN0YXRlKGZhbHNlKTsKICBjb25zdCBbcXJMb2FkZWQsIHNldFFyTG9hZGVkXSA9IHVzZVN0YXRlKGZhbHNlKTsKCiAgY29uc3QgY2FwdHVyZVVybCA9IGAke3dpbmRvdy5sb2NhdGlvbi5vcmlnaW59L2NhcHR1cmVgOwoKICBjb25zdCBjb3B5ID0gKCkgPT4gewogICAgbmF2aWdhdG9yLmNsaXBib2FyZC53cml0ZVRleHQoY2FwdHVyZVVybCk7CiAgICBzZXRDb3BpZWQodHJ1ZSk7CiAgICBzZXRUaW1lb3V0KCgpID0+IHNldENvcGllZChmYWxzZSksIDI1MDApOwogIH07CgogIC8vIFFSIGNvZGUgdmlhIGZyZWUgQVBJIChubyBzaWdudXAgbmVlZGVkKQogIGNvbnN0IHFyVXJsID0gYGh0dHBzOi8vYXBpLnFyc2VydmVyLmNvbS92MS9jcmVhdGUtcXItY29kZS8/c2l6ZT0yMjB4MjIwJmRhdGE9JHtlbmNvZGVVUklDb21wb25lbnQoY2FwdHVyZVVybCl9JmNvbG9yPTkyNDAwZSZiZ2NvbG9yPWZmZmJlYmA7CgogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT0ibWF4LXctMnhsIHNwYWNlLXktNiI+CiAgICAgIHsvKiBVUkwgQ2FyZCAqL30KICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLXdoaXRlIHJvdW5kZWQteGwgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgc2hhZG93LXNtIHAtNiI+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIG1iLTQiPgogICAgICAgICAgPFNtYXJ0cGhvbmUgY2xhc3NOYW1lPSJ3LTQgaC00IHRleHQtYW1iZXItNjAwIiAvPgogICAgICAgICAgPGgyIGNsYXNzTmFtZT0idGV4dC1zbSBmb250LWJvbGQgdGV4dC1zbGF0ZS04MDAiPkNhbGwgQ2VudGVyIENhcHR1cmUgRm9ybTwvaDI+CiAgICAgICAgPC9kaXY+CiAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIHRleHQtc2xhdGUtNTAwIG1iLTUiPgogICAgICAgICAgU2hhcmUgdGhpcyBsaW5rIHdpdGggeW91ciBjYWxsIGNlbnRlciBhZ2VudHMuIE5vIGxvZ2luIHJlcXVpcmVkIOKAlCBhZ2VudHMgY2FuIG9wZW4gaXQgb24gYW55IGRldmljZSBhbmQgc3VibWl0IGxlYWRzIGRpcmVjdGx5IGludG8gdGhlIENSTS4KICAgICAgICA8L3A+CgogICAgICAgIHsvKiBMaW5rIGRpc3BsYXkgKi99CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIj4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4LTEgYmctc2xhdGUtNTAgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyBweC00IHB5LTMgdGV4dC1zbSBmb250LW1vbm8gdGV4dC1zbGF0ZS03MDAgdHJ1bmNhdGUiPgogICAgICAgICAgICB7Y2FwdHVyZVVybH0KICAgICAgICAgIDwvZGl2PgogICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICBvbkNsaWNrPXtjb3B5fQogICAgICAgICAgICBjbGFzc05hbWU9e2BmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBweC00IHB5LTMgcm91bmRlZC1sZyB0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgdHJhbnNpdGlvbi1jb2xvcnMgd2hpdGVzcGFjZS1ub3dyYXAKICAgICAgICAgICAgICAke2NvcGllZCA/ICJiZy1lbWVyYWxkLTYwMCB0ZXh0LXdoaXRlIiA6ICJiZy1hbWJlci02MDAgaG92ZXI6YmctYW1iZXItNzAwIHRleHQtd2hpdGUifWB9CiAgICAgICAgICA+CiAgICAgICAgICAgIHtjb3BpZWQgPyA8Q2hlY2sgY2xhc3NOYW1lPSJ3LTQgaC00IiAvPiA6IDxDb3B5IGNsYXNzTmFtZT0idy00IGgtNCIgLz59CiAgICAgICAgICAgIHtjb3BpZWQgPyAiQ29waWVkISIgOiAiQ29weSBMaW5rIn0KICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgPGEKICAgICAgICAgICAgaHJlZj17Y2FwdHVyZVVybH0KICAgICAgICAgICAgdGFyZ2V0PSJfYmxhbmsiCiAgICAgICAgICAgIHJlbD0ibm9yZWZlcnJlciIKICAgICAgICAgICAgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBweC00IHB5LTMgcm91bmRlZC1sZyB0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgdGV4dC1zbGF0ZS02MDAgaG92ZXI6Ymctc2xhdGUtNTAgdHJhbnNpdGlvbi1jb2xvcnMgd2hpdGVzcGFjZS1ub3dyYXAiCiAgICAgICAgICA+CiAgICAgICAgICAgIDxFeHRlcm5hbExpbmsgY2xhc3NOYW1lPSJ3LTQgaC00IiAvPgogICAgICAgICAgICBPcGVuCiAgICAgICAgICA8L2E+CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgoKICAgICAgey8qIFFSIENvZGUgQ2FyZCAqL30KICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLXdoaXRlIHJvdW5kZWQteGwgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgc2hhZG93LXNtIHAtNiI+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIG1iLTQiPgogICAgICAgICAgPFFyQ29kZSBjbGFzc05hbWU9InctNCBoLTQgdGV4dC1hbWJlci02MDAiIC8+CiAgICAgICAgICA8aDIgY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtYm9sZCB0ZXh0LXNsYXRlLTgwMCI+UVIgQ29kZTwvaDI+CiAgICAgICAgPC9kaXY+CiAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIHRleHQtc2xhdGUtNTAwIG1iLTUiPgogICAgICAgICAgUHJpbnQgb3IgZGlzcGxheSB0aGlzIFFSIGNvZGUgc28gYWdlbnRzIGNhbiBzY2FuIGl0IG9uIHRoZWlyIHBob25lIG9yIHRhYmxldCB0byBvcGVuIHRoZSBmb3JtIGluc3RhbnRseS4KICAgICAgICA8L3A+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZmxleC1jb2wgaXRlbXMtY2VudGVyIGdhcC00Ij4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1hbWJlci01MCBib3JkZXItMiBib3JkZXItYW1iZXItMjAwIHJvdW5kZWQtMnhsIHAtNSBpbmxpbmUtYmxvY2siPgogICAgICAgICAgICB7IXFyTG9hZGVkICYmICgKICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idy1bMjIwcHhdIGgtWzIyMHB4XSBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciB0ZXh0LXNsYXRlLTMwMCI+CiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idy02IGgtNiBib3JkZXItMiBib3JkZXItYW1iZXItNDAwIGJvcmRlci10LXRyYW5zcGFyZW50IHJvdW5kZWQtZnVsbCBhbmltYXRlLXNwaW4iIC8+CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICl9CiAgICAgICAgICAgIDxpbWcKICAgICAgICAgICAgICBzcmM9e3FyVXJsfQogICAgICAgICAgICAgIGFsdD0iUVIgQ29kZSBmb3IgY2FwdHVyZSBmb3JtIgogICAgICAgICAgICAgIGNsYXNzTmFtZT17YHctWzIyMHB4XSBoLVsyMjBweF0gcm91bmRlZC1sZyAke3FyTG9hZGVkID8gImJsb2NrIiA6ICJoaWRkZW4ifWB9CiAgICAgICAgICAgICAgb25Mb2FkPXsoKSA9PiBzZXRRckxvYWRlZCh0cnVlKX0KICAgICAgICAgICAgLz4KICAgICAgICAgIDwvZGl2PgogICAgICAgICAgPGEKICAgICAgICAgICAgaHJlZj17cXJVcmx9CiAgICAgICAgICAgIGRvd25sb2FkPSJlYy1jYXB0dXJlLXFyLnBuZyIKICAgICAgICAgICAgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiB0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1hbWJlci03MDAgaG92ZXI6dW5kZXJsaW5lIgogICAgICAgICAgPgogICAgICAgICAgICDirIcgRG93bmxvYWQgUVIgQ29kZQogICAgICAgICAgPC9hPgogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KCiAgICAgIHsvKiBDYWxlbmRhciBBdmFpbGFiaWxpdHkgQWRtaW4gTm90ZSAqL30KICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLWJsdWUtNTAgYm9yZGVyIGJvcmRlci1ibHVlLTIwMCByb3VuZGVkLXhsIHAtNSI+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtc3RhcnQgZ2FwLTMiPgogICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LWxnIGxlYWRpbmctNSBmbGV4LXNocmluay0wIj7wn5OFPC9zcGFuPgogICAgICAgICAgPGRpdj4KICAgICAgICAgICAgPGgzIGNsYXNzTmFtZT0idGV4dC14cyBmb250LWJvbGQgdGV4dC1ibHVlLTkwMCB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZSBtYi0yIj5DYWxlbmRhciBBdmFpbGFiaWxpdHkg4oCUIEFkbWluIE5vdGU8L2gzPgogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20gdGV4dC1ibHVlLTgwMCBsZWFkaW5nLXJlbGF4ZWQiPgogICAgICAgICAgICAgIEF2YWlsYWJpbGl0eSBjaGVja3MgZm9yIGFzc2lnbmVkIHNhbGVzIHJlcHMgZGVwZW5kIG9uIDxzdHJvbmc+R29vZ2xlIENhbGVuZGFyIHNoYXJpbmcgcGVybWlzc2lvbnM8L3N0cm9uZz4uIElmIGEgcmVwJ3MgY2FsZW5kYXIgaXMgbm90IHNoYXJlZCB3aXRoeyIgIn0KICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9ImZvbnQtbW9ubyB0ZXh0LXhzIGJnLWJsdWUtMTAwIHB4LTEgcHktMC41IHJvdW5kZWQiPnlhcm9uQGVjY29uc3RydWN0aW9uZ3JvdXAuY29tPC9zcGFuPiwKICAgICAgICAgICAgICB0aGUgc3lzdGVtIGNhbiBvbmx5IGNoZWNrIDxzdHJvbmc+Q1JNIG1lZXRpbmdzPC9zdHJvbmc+IGZvciB0aGF0IHJlcCDigJQgbm90IHRoZWlyIHBlcnNvbmFsIEdvb2dsZSBDYWxlbmRhciBldmVudHMuCiAgICAgICAgICAgIDwvcD4KICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtYmx1ZS03MDAgbXQtMiI+CiAgICAgICAgICAgICAgVG8gZml4OiBJbiBHb29nbGUgV29ya3NwYWNlIGFkbWluLCBlbnN1cmUgZWFjaCByZXAgc2hhcmVzIHRoZWlyIGNhbGVuZGFyIHdpdGggWWFyb24ncyBhY2NvdW50IHdpdGggYXQgbGVhc3QgPGVtPkZyZWUvQnVzeTwvZW0+IHZpc2liaWxpdHkuCiAgICAgICAgICAgICAgWWFyb24ncyBvd24gY2FsZW5kYXIgaXMgYWx3YXlzIGZ1bGx5IGNoZWNrZWQuCiAgICAgICAgICAgIDwvcD4KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KCiAgICAgIHsvKiBIb3cgaXQgd29ya3MgKi99CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1zbGF0ZS01MCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLXhsIHAtNSI+CiAgICAgICAgPGgzIGNsYXNzTmFtZT0idGV4dC14cyBmb250LWJvbGQgdGV4dC1zbGF0ZS03MDAgdXBwZXJjYXNlIHRyYWNraW5nLXdpZGUgbWItMyI+SG93IEl0IFdvcmtzPC9oMz4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ic3BhY2UteS0yLjUiPgogICAgICAgICAge1sKICAgICAgICAgICAgeyBlbW9qaTogIvCflJMiLCB0ZXh0OiAiTm8gbG9naW4gcmVxdWlyZWQg4oCUIGFueSBhZ2VudCBjYW4gb3BlbiB0aGUgZm9ybSB3aXRob3V0IGFuIGFjY291bnQiIH0sCiAgICAgICAgICAgIHsgZW1vamk6ICLwn5SNIiwgdGV4dDogIkF1dG9tYXRpYyBkdXBsaWNhdGUgZGV0ZWN0aW9uIOKAlCBpZiB0aGUgcGhvbmUgb3IgZW1haWwgYWxyZWFkeSBleGlzdHMsIHRoZSBsZWFkIGlzIHVwZGF0ZWQgaW5zdGVhZCBvZiBjcmVhdGVkIiB9LAogICAgICAgICAgICB7IGVtb2ppOiAi4pqhIiwgdGV4dDogIkxlYWRzIGFwcGVhciBpbiB0aGUgQ1JNIGltbWVkaWF0ZWx5IGFmdGVyIHN1Ym1pc3Npb24iIH0sCiAgICAgICAgICAgIHsgZW1vamk6ICLwn5OdIiwgdGV4dDogIkFnZW50IG5hbWUsIGVtYWlsLCBhbmQgc3VibWlzc2lvbiB0aW1lIGFyZSBzYXZlZCBpbiB0aGUgbGVhZCBub3RlcyBhdXRvbWF0aWNhbGx5IiB9LAogICAgICAgICAgICB7IGVtb2ppOiAi8J+TsSIsIHRleHQ6ICJGdWxseSBtb2JpbGUtb3B0aW1pemVkIGZvciB0YWJsZXRzIGFuZCBzbWFydHBob25lcyIgfSwKICAgICAgICAgIF0ubWFwKCh7IGVtb2ppLCB0ZXh0IH0sIGkpID0+ICgKICAgICAgICAgICAgPGRpdiBrZXk9e2l9IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1zdGFydCBnYXAtMi41IHRleHQtc20gdGV4dC1zbGF0ZS02MDAiPgogICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1iYXNlIGxlYWRpbmctNSI+e2Vtb2ppfTwvc3Bhbj4KICAgICAgICAgICAgICA8c3Bhbj57dGV4dH08L3NwYW4+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgKSl9CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CiAgKTsKfQ==
+import { useState, useEffect, useRef } from "react";
+import { Copy, Check, QrCode, ExternalLink, Smartphone } from "lucide-react";
+
+export default function CaptureLinkTab() {
+  const [copied, setCopied] = useState(false);
+  const [qrLoaded, setQrLoaded] = useState(false);
+
+  const captureUrl = `${window.location.origin}/capture`;
+
+  const copy = () => {
+    navigator.clipboard.writeText(captureUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  // QR code via free API (no signup needed)
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(captureUrl)}&color=92400e&bgcolor=fffbeb`;
+
+  return (
+    <div className="max-w-2xl space-y-6">
+      {/* URL Card */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Smartphone className="w-4 h-4 text-amber-600" />
+          <h2 className="text-sm font-bold text-slate-800">Call Center Capture Form</h2>
+        </div>
+        <p className="text-sm text-slate-500 mb-5">
+          Share this link with your call center agents. No login required — agents can open it on any device and submit leads directly into the CRM.
+        </p>
+
+        {/* Link display */}
+        <div className="flex items-center gap-2">
+          <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm font-mono text-slate-700 truncate">
+            {captureUrl}
+          </div>
+          <button
+            onClick={copy}
+            className={`flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap
+              ${copied ? "bg-emerald-600 text-white" : "bg-amber-600 hover:bg-amber-700 text-white"}`}
+          >
+            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            {copied ? "Copied!" : "Copy Link"}
+          </button>
+          <a
+            href={captureUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap"
+          >
+            <ExternalLink className="w-4 h-4" />
+            Open
+          </a>
+        </div>
+      </div>
+
+      {/* QR Code Card */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <QrCode className="w-4 h-4 text-amber-600" />
+          <h2 className="text-sm font-bold text-slate-800">QR Code</h2>
+        </div>
+        <p className="text-sm text-slate-500 mb-5">
+          Print or display this QR code so agents can scan it on their phone or tablet to open the form instantly.
+        </p>
+        <div className="flex flex-col items-center gap-4">
+          <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-5 inline-block">
+            {!qrLoaded && (
+              <div className="w-[220px] h-[220px] flex items-center justify-center text-slate-300">
+                <div className="w-6 h-6 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+            <img
+              src={qrUrl}
+              alt="QR Code for capture form"
+              className={`w-[220px] h-[220px] rounded-lg ${qrLoaded ? "block" : "hidden"}`}
+              onLoad={() => setQrLoaded(true)}
+            />
+          </div>
+          <a
+            href={qrUrl}
+            download="ec-capture-qr.png"
+            className="flex items-center gap-2 text-xs font-semibold text-amber-700 hover:underline"
+          >
+            ⬇ Download QR Code
+          </a>
+        </div>
+      </div>
+
+      {/* Calendar Availability Admin Note */}
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
+        <div className="flex items-start gap-3">
+          <span className="text-lg leading-5 flex-shrink-0">📅</span>
+          <div>
+            <h3 className="text-xs font-bold text-blue-900 uppercase tracking-wide mb-2">Calendar Availability — Admin Note</h3>
+            <p className="text-sm text-blue-800 leading-relaxed">
+              Availability checks for assigned sales reps depend on <strong>Google Calendar sharing permissions</strong>. If a rep's calendar is not shared with{" "}
+              <span className="font-mono text-xs bg-blue-100 px-1 py-0.5 rounded">yaron@ecconstructiongroup.com</span>,
+              the system can only check <strong>CRM meetings</strong> for that rep — not their personal Google Calendar events.
+            </p>
+            <p className="text-xs text-blue-700 mt-2">
+              To fix: In Google Workspace admin, ensure each rep shares their calendar with Yaron's account with at least <em>Free/Busy</em> visibility.
+              Yaron's own calendar is always fully checked.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* How it works */}
+      <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
+        <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-3">How It Works</h3>
+        <div className="space-y-2.5">
+          {[
+            { emoji: "🔓", text: "No login required — any agent can open the form without an account" },
+            { emoji: "🔍", text: "Automatic duplicate detection — if the phone or email already exists, the lead is updated instead of created" },
+            { emoji: "⚡", text: "Leads appear in the CRM immediately after submission" },
+            { emoji: "📝", text: "Agent name, email, and submission time are saved in the lead notes automatically" },
+            { emoji: "📱", text: "Fully mobile-optimized for tablets and smartphones" },
+          ].map(({ emoji, text }, i) => (
+            <div key={i} className="flex items-start gap-2.5 text-sm text-slate-600">
+              <span className="text-base leading-5">{emoji}</span>
+              <span>{text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,1 +1,126 @@
-LyoqCiAqIHJhaWx3YXkgbGVhZHMg4oCUIExlYWQgbGlzdC9nZXQgY2xpZW50IChSMUEgZm91bmRhdGlvbjogcmVhZC1vbmx5KS4KICoKICogICBsaXN0KHsgc3RhdHVzLCBzb3VyY2UsIG93bmVyRW1haWwsIHNlYXJjaCwgc29ydCwgbGltaXQgfSkgLT4geyBpdGVtcywgdG90YWwgfQogKiAgIGdldChpZCkgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAtPiB7IGxlYWQgfQogKgogKiBXcml0ZXMgKGNyZWF0ZS91cGRhdGUvZHVwbGljYXRlLWNoZWNrKSBhcnJpdmUgaW4gUjFCLgogKi8KCmltcG9ydCB7IGFwaUNhbGwgfSBmcm9tICcuL2NsaWVudCc7CgpleHBvcnQgZnVuY3Rpb24gbGlzdChwYXJhbXMgPSB7fSkgewogIGNvbnN0IHFzID0gbmV3IFVSTFNlYXJjaFBhcmFtcygpOwogIGlmIChwYXJhbXMuc3RhdHVzICYmIHBhcmFtcy5zdGF0dXMgIT09ICdhbGwnKSBxcy5zZXQoJ3N0YXR1cycsIHBhcmFtcy5zdGF0dXMpOwogIGlmIChwYXJhbXMuc291cmNlICYmIHBhcmFtcy5zb3VyY2UgIT09ICdhbGwnKSBxcy5zZXQoJ3NvdXJjZScsIHBhcmFtcy5zb3VyY2UpOwogIGlmIChwYXJhbXMub3duZXJFbWFpbCAmJiBwYXJhbXMub3duZXJFbWFpbCAhPT0gJ2FsbCcpIHFzLnNldCgnb3duZXJfZW1haWwnLCBwYXJhbXMub3duZXJFbWFpbCk7CiAgaWYgKHBhcmFtcy5zZWFyY2gpIHFzLnNldCgnc2VhcmNoJywgcGFyYW1zLnNlYXJjaCk7CiAgaWYgKHBhcmFtcy5zb3J0KSBxcy5zZXQoJ3NvcnQnLCBwYXJhbXMuc29ydCk7CiAgaWYgKHBhcmFtcy5saW1pdCkgcXMuc2V0KCdsaW1pdCcsIFN0cmluZyhwYXJhbXMubGltaXQpKTsKICBjb25zdCBxID0gcXMudG9TdHJpbmcoKTsKICByZXR1cm4gYXBpQ2FsbChgL2FwaS92MS9sZWFkcyR7cSA/IGA/JHtxfWAgOiAnJ31gLCB7IG1ldGhvZDogJ0dFVCcgfSk7Cn0KCmV4cG9ydCBmdW5jdGlvbiBnZXQoaWQpIHsKICByZXR1cm4gYXBpQ2FsbChgL2FwaS92MS9sZWFkcy8ke2lkfWAsIHsgbWV0aG9kOiAnR0VUJyB9KTsKfQoKLyoqCiAqIEdldCBhIGxlYWQgYnkgaXRzIGV4dGVybmFsX3JlZiAodGhlIEJhc2U0NCBsZWFkIElEKS4KICogUmV0dXJucyA0MDQgaWYgdGhlIGxlYWQgZG9lc24ndCBleGlzdCBpbiBSYWlsd2F5IHlldC4KICovCmV4cG9ydCBmdW5jdGlvbiBnZXRCeUV4dGVybmFsKGV4dGVybmFsUmVmKSB7CiAgcmV0dXJuIGFwaUNhbGwoYC9hcGkvdjEvbGVhZHMvYnktZXh0ZXJuYWwvJHtlbmNvZGVVUklDb21wb25lbnQoZXh0ZXJuYWxSZWYpfWAsIHsgbWV0aG9kOiAnR0VUJyB9KTsKfQoKLyoqCiAqIFVwc2VydCArIHVwZGF0ZSBjb250YWN0IGZpZWxkcyBieSBleHRlcm5hbF9yZWYgKEJhc2U0NCBsZWFkIElEKS4KICogVmFsaWRhdGVzIGVtYWlsL3Bob25lLCBjaGVja3MgZm9yIGR1cGxpY2F0ZXMgb24gb3RoZXIgbGVhZHMuCiAqIFJldHVybnMgeyBsZWFkIH0gb24gc3VjY2VzcywgdGhyb3dzIHdpdGggc3RhdHVzIDQwOSBvbiBkdXBsaWNhdGUgY29uZmxpY3QuCiAqLwpleHBvcnQgZnVuY3Rpb24gdXBkYXRlQnlFeHRlcm5hbChleHRlcm5hbFJlZiwgZGF0YSkgewogIHJldHVybiBhcGlDYWxsKGAvYXBpL3YxL2xlYWRzL2J5LWV4dGVybmFsLyR7ZW5jb2RlVVJJQ29tcG9uZW50KGV4dGVybmFsUmVmKX1gLCB7CiAgICBtZXRob2Q6ICdQVVQnLAogICAgYm9keTogZGF0YSwKICB9KTsKfQoKLyoqCiAqIFVwZGF0ZSBhIGxlYWQgYnkgUmFpbHdheSBJRCAoZnVsbCBDUk0gZmllbGQgdXBkYXRlKS4KICogU3VwcG9ydHM6IHN0YXR1cywgbm90ZXMsIG93bmVyX2lkLCBhc3NpZ25lZF9yZXAsIGZvbGxvd191cF8qLCBtZWV0aW5nX3N0YWdlLAogKiBwcm9qZWN0X3R5cGUsIGJ1ZGdldF9yYW5nZSwgc3RhcnRfdGltZWZyYW1lLCBzb3VyY2UsIHJlZmVycmFsX25hbWUsIGxlYWRfc2NvcmUsCiAqIGlzX25ld19pbnRha2VfbGVhZCwgY3VzdG9tZXJfcmVtaW5kZXJzX2Rpc2FibGVkLCByZWNvcmRfdHlwZSwgcmV2aWV3ZWRfYXQsIG1lc3NhZ2UsIHBob3RvX3VybHMuCiAqIFJldHVybnMgeyBsZWFkIH0gb24gc3VjY2Vzcy4KICovCmV4cG9ydCBmdW5jdGlvbiB1cGRhdGUoaWQsIGRhdGEpIHsKICByZXR1cm4gYXBpQ2FsbChgL2FwaS92MS9sZWFkcy8ke2lkfWAsIHsgbWV0aG9kOiAnUFVUJywgYm9keTogZGF0YSB9KTsKfQoKLyoqCiAqIERlbGV0ZSBhIGxlYWQgYnkgUmFpbHdheSBJRC4KICogUmV0dXJucyB7IHN1Y2Nlc3MsIGlkIH0gb24gc3VjY2Vzcy4KICovCmV4cG9ydCBmdW5jdGlvbiByZW1vdmUoaWQpIHsKICByZXR1cm4gYXBpQ2FsbChgL2FwaS92MS9sZWFkcy8ke2lkfWAsIHsgbWV0aG9kOiAnREVMRVRFJyB9KTsKfQoKLyoqCiAqIERlbGV0ZSBhIGxlYWQgYnkgZXh0ZXJuYWxfcmVmIChCYXNlNDQgbGVhZCBJRCkuCiAqIFJldHVybnMgeyBzdWNjZXNzLCBleHRlcm5hbF9yZWYgfSBvbiBzdWNjZXNzLgogKi8KZXhwb3J0IGZ1bmN0aW9uIGRlbGV0ZUJ5RXh0ZXJuYWwoZXh0ZXJuYWxSZWYpIHsKICByZXR1cm4gYXBpQ2FsbChgL2FwaS92MS9sZWFkcy9ieS1leHRlcm5hbC8ke2VuY29kZVVSSUNvbXBvbmVudChleHRlcm5hbFJlZil9YCwgeyBtZXRob2Q6ICdERUxFVEUnIH0pOwp9CgovKioKICogR2V0IGNvbXBvc2l0ZSBsZWFkIGRldGFpbCBieSBleHRlcm5hbF9yZWYgKEJhc2U0NCBsZWFkIElEKS4KICogUmV0dXJucyB7IGxlYWQsIGFjdGl2aXRpZXMsIGRlYWxzLCBjb250YWN0T3duZXJzLCBwcm9qZWN0VHlwZXMsIGxlYWRTb3VyY2VzIH0uCiAqIFJlcGxhY2VzIHRoZSBCYXNlNDQgZ2V0TGVhZERldGFpbCBmdW5jdGlvbi4KICovCmV4cG9ydCBmdW5jdGlvbiBnZXREZXRhaWxCeUV4dGVybmFsKGV4dGVybmFsUmVmKSB7CiAgcmV0dXJuIGFwaUNhbGwoYC9hcGkvdjEvbGVhZHMvYnktZXh0ZXJuYWwvJHtlbmNvZGVVUklDb21wb25lbnQoZXh0ZXJuYWxSZWYpfS9kZXRhaWxgLCB7IG1ldGhvZDogJ0dFVCcgfSk7Cn0KCi8qKgogKiBVcGRhdGUgYXBwb2ludG1lbnQgZmllbGRzIGJ5IGV4dGVybmFsX3JlZiAoQmFzZTQ0IGxlYWQgSUQpLgogKiBVcGRhdGVzIE9OTFkgYXBwb2ludG1lbnQgZmllbGRzIChhcHBvaW50bWVudF9kYXRlLCBhcHBvaW50bWVudF90aW1lLCBtZWV0aW5nX3N0YWdlLAogKiBmb2xsb3dfdXBfZGF0ZSwgZm9sbG93X3VwX3RpbWUsIGZvbGxvd191cF90eXBlKS4gU2VwYXJhdGUgZnJvbSBjb250YWN0IHVwZGF0ZS4KICogUmV0dXJucyB7IGxlYWQgfS4KICovCmV4cG9ydCBmdW5jdGlvbiB1cGRhdGVBcHBvaW50bWVudEJ5RXh0ZXJuYWwoZXh0ZXJuYWxSZWYsIGRhdGEpIHsKICByZXR1cm4gYXBpQ2FsbChgL2FwaS92MS9sZWFkcy9ieS1leHRlcm5hbC8ke2VuY29kZVVSSUNvbXBvbmVudChleHRlcm5hbFJlZil9L2FwcG9pbnRtZW50YCwgeyBtZXRob2Q6ICdQVVQnLCBib2R5OiBkYXRhIH0pOwp9CgovKioKICogVHJpZ2dlciBHb29nbGUgQ2FsZW5kYXIgc3luYyBmb3IgYSBsZWFkIHZpYSB0aGUgbmF0aXZlIFJhaWx3YXkgY2FsZW5kYXJPdXRib3gKICogc3lzdGVtLiBFbnF1ZXVlcyBtYWluICsgdHJhdmVsIGV2ZW50cyAoMWhyIGJ1ZmZlciBiZWZvcmUvYWZ0ZXIpIHByb2Nlc3NlZCBieQogKiB0aGUgY2FsZW5kYXIgb3V0Ym94IHdvcmtlci4gTm8gQmFzZTQ0LCBubyBkaXJlY3QgR29vZ2xlIEFQSSBjYWxscyBmcm9tIHRoZQogKiBlbmRwb2ludC4gUmV0dXJucyB7IHN1Y2Nlc3MsIGFwcG9pbnRtZW50X2lkLCBtZXNzYWdlIH0uCiAqLwpleHBvcnQgZnVuY3Rpb24gc3luY0NhbGVuZGFyKGV4dGVybmFsUmVmKSB7CiAgcmV0dXJuIGFwaUNhbGwoYC9hcGkvdjEvbGVhZHMvYnktZXh0ZXJuYWwvJHtlbmNvZGVVUklDb21wb25lbnQoZXh0ZXJuYWxSZWYpfS9zeW5jLWNhbGVuZGFyYCwgeyBtZXRob2Q6ICdQT1NUJyB9KTsKfQoKLyoqCiAqIFRyaWdnZXIgR29vZ2xlIENvbnRhY3Qgc3luYyBmb3IgYSBsZWFkIHZpYSB0aGUgUmFpbHdheSBzZXJ2aWNlIGFjY291bnQuCiAqIFJldHVybnMgeyBzdWNjZXNzLCByZXNvdXJjZV9uYW1lIH0gb24gc3VjY2Vzcywgb3IgNTAxIGlmIGNvbnRhY3RzIHNjb3BlCiAqIGlzIG5vdCBjb25maWd1cmVkIG9uIHRoZSBzZXJ2aWNlIGFjY291bnQuIE5vIEJhc2U0NC4KICovCmV4cG9ydCBmdW5jdGlvbiBzeW5jQ29udGFjdChleHRlcm5hbFJlZikgewogIHJldHVybiBhcGlDYWxsKGAvYXBpL3YxL2xlYWRzL2J5LWV4dGVybmFsLyR7ZW5jb2RlVVJJQ29tcG9uZW50KGV4dGVybmFsUmVmKX0vc3luYy1jb250YWN0YCwgeyBtZXRob2Q6ICdQT1NUJyB9KTsKfQoKLy8g4pSA4pSAIFJFTU9WRUQ6IEJhc2U0NCBwcm94eSBmdW5jdGlvbnMg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACi8vIFRoZSBmb2xsb3dpbmcgZnVuY3Rpb25zIHdlcmUgUkVNT1ZFRCBiZWNhdXNlIHRoZXkgcHJveGllZCB0byBCYXNlNDQgZnVuY3Rpb25zCi8vIHZpYSBSYWlsd2F5LCB2aW9sYXRpbmcgdGhlIGFyY2hpdGVjdHVyZSByZXF1aXJlbWVudDoKLy8gICBwcm94eVFCU3RhdHVzLCBwcm94eVFCU3luYywgcHJveHlTaWduTm93LCBnZXRTdWJtaXNzaW9ucywKLy8gICBnZXRTaWduTm93RG9jdW1lbnRzLCBkZWxldGVTaWduTm93RG9jdW1lbnQKLy8KLy8gVGhlc2UgbXVzdCBiZSByZXBsYWNlZCB3aXRoIE5BVElWRSBSYWlsd2F5IGltcGxlbWVudGF0aW9uczoKLy8gICAtIFFCOiBuYXRpdmUgZW5kcG9pbnRzIHJlYWRpbmcgZnJvbSBQb3N0Z3JlcyArIGNhbGxpbmcgSW50dWl0IEFQSSBkaXJlY3RseQovLyAgIC0gU2lnbk5vdzogbmF0aXZlIGVuZHBvaW50cyBjYWxsaW5nIFNpZ25Ob3cgQVBJIGRpcmVjdGx5ICsgUG9zdGdyZXMgdGFibGUKLy8gICAtIFN1Ym1pc3Npb25zOiBuYXRpdmUgbGVhZF9zdWJtaXNzaW9ucyB0YWJsZSBpbiBQb3N0Z3JlcwovLwovLyBVbnRpbCBuYXRpdmUgaW1wbGVtZW50YXRpb25zIGFyZSBidWlsdCwgdGhlIGZyb250ZW5kIGNvbXBvbmVudHMKLy8gKFFCU3RhdHVzUGFuZWwsIFNpZ25Ob3dQYW5lbCwgU3VibWlzc2lvbkhpc3RvcnkpIHNob3cgYQovLyAicGVuZGluZyBuYXRpdmUgbWlncmF0aW9uIiBzdGF0ZS4=
+/**
+ * railway leads — Lead list/get client (R1A foundation: read-only).
+ *
+ *   list({ status, source, ownerEmail, search, sort, limit }) -> { items, total }
+ *   get(id)                                                   -> { lead }
+ *
+ * Writes (create/update/duplicate-check) arrive in R1B.
+ */
+
+import { apiCall } from './client';
+
+export function list(params = {}) {
+  const qs = new URLSearchParams();
+  if (params.status && params.status !== 'all') qs.set('status', params.status);
+  if (params.source && params.source !== 'all') qs.set('source', params.source);
+  if (params.ownerEmail && params.ownerEmail !== 'all') qs.set('owner_email', params.ownerEmail);
+  if (params.search) qs.set('search', params.search);
+  if (params.sort) qs.set('sort', params.sort);
+  if (params.limit) qs.set('limit', String(params.limit));
+  const q = qs.toString();
+  return apiCall(`/api/v1/leads${q ? `?${q}` : ''}`, { method: 'GET' });
+}
+
+export function get(id) {
+  return apiCall(`/api/v1/leads/${id}`, { method: 'GET' });
+}
+
+/**
+ * Get a lead by its external_ref (the Base44 lead ID).
+ * Returns 404 if the lead doesn't exist in Railway yet.
+ */
+export function getByExternal(externalRef) {
+  return apiCall(`/api/v1/leads/by-external/${encodeURIComponent(externalRef)}`, { method: 'GET' });
+}
+
+/**
+ * Upsert + update contact fields by external_ref (Base44 lead ID).
+ * Validates email/phone, checks for duplicates on other leads.
+ * Returns { lead } on success, throws with status 409 on duplicate conflict.
+ */
+export function updateByExternal(externalRef, data) {
+  return apiCall(`/api/v1/leads/by-external/${encodeURIComponent(externalRef)}`, {
+    method: 'PUT',
+    body: data,
+  });
+}
+
+/**
+ * Update a lead by Railway ID (full CRM field update).
+ * Supports: status, notes, owner_id, assigned_rep, follow_up_*, meeting_stage,
+ * project_type, budget_range, start_timeframe, source, referral_name, lead_score,
+ * is_new_intake_lead, customer_reminders_disabled, record_type, reviewed_at, message, photo_urls.
+ * Returns { lead } on success.
+ */
+export function update(id, data) {
+  return apiCall(`/api/v1/leads/${id}`, { method: 'PUT', body: data });
+}
+
+/**
+ * Delete a lead by Railway ID.
+ * Returns { success, id } on success.
+ */
+export function remove(id) {
+  return apiCall(`/api/v1/leads/${id}`, { method: 'DELETE' });
+}
+
+/**
+ * Delete a lead by external_ref (Base44 lead ID).
+ * Returns { success, external_ref } on success.
+ */
+export function deleteByExternal(externalRef) {
+  return apiCall(`/api/v1/leads/by-external/${encodeURIComponent(externalRef)}`, { method: 'DELETE' });
+}
+
+/**
+ * Get composite lead detail by external_ref (Base44 lead ID).
+ * Returns { lead, activities, deals, contactOwners, projectTypes, leadSources }.
+ * Replaces the Base44 getLeadDetail function.
+ */
+export function getDetailByExternal(externalRef) {
+  return apiCall(`/api/v1/leads/by-external/${encodeURIComponent(externalRef)}/detail`, { method: 'GET' });
+}
+
+/**
+ * Update appointment fields by external_ref (Base44 lead ID).
+ * Updates ONLY appointment fields (appointment_date, appointment_time, meeting_stage,
+ * follow_up_date, follow_up_time, follow_up_type). Separate from contact update.
+ * Returns { lead }.
+ */
+export function updateAppointmentByExternal(externalRef, data) {
+  return apiCall(`/api/v1/leads/by-external/${encodeURIComponent(externalRef)}/appointment`, { method: 'PUT', body: data });
+}
+
+/**
+ * Trigger Google Calendar sync for a lead via the native Railway calendarOutbox
+ * system. Enqueues main + travel events (1hr buffer before/after) processed by
+ * the calendar outbox worker. No Base44, no direct Google API calls from the
+ * endpoint. Returns { success, appointment_id, message }.
+ */
+export function syncCalendar(externalRef) {
+  return apiCall(`/api/v1/leads/by-external/${encodeURIComponent(externalRef)}/sync-calendar`, { method: 'POST' });
+}
+
+/**
+ * Trigger Google Contact sync for a lead via the Railway service account.
+ * Returns { success, resource_name } on success, or 501 if contacts scope
+ * is not configured on the service account. No Base44.
+ */
+export function syncContact(externalRef) {
+  return apiCall(`/api/v1/leads/by-external/${encodeURIComponent(externalRef)}/sync-contact`, { method: 'POST' });
+}
+
+// ── REMOVED: Base44 proxy functions ──────────────────────────────────────────
+// The following functions were REMOVED because they proxied to Base44 functions
+// via Railway, violating the architecture requirement:
+//   proxyQBStatus, proxyQBSync, proxySignNow, getSubmissions,
+//   getSignNowDocuments, deleteSignNowDocument
+//
+// These must be replaced with NATIVE Railway implementations:
+//   - QB: native endpoints reading from Postgres + calling Intuit API directly
+//   - SignNow: native endpoints calling SignNow API directly + Postgres table
+//   - Submissions: native lead_submissions table in Postgres
+//
+// Until native implementations are built, the frontend components
+// (QBStatusPanel, SignNowPanel, SubmissionHistory) show a
+// "pending native migration" state.

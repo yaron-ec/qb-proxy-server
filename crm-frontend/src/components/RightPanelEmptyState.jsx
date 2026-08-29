@@ -1,1 +1,32 @@
-LyoqCiAqIFJpZ2h0UGFuZWxFbXB0eVN0YXRlIC0gVW5pZmllZCBlbXB0eSBzdGF0ZSBmb3IgYWxsIHJpZ2h0LXNpZGUgcGFuZWxzCiAqIAogKiBFbnN1cmVzIGNvbnNpc3RlbnQ6CiAqIC0gQ2VudGVyZWQgaWNvbiAoOHg4LCBtdXRlZCBjb2xvcikKICogLSBUaXRsZSAodHlwb2dyYXBoeS1lbXB0eS1zdGF0ZS10aXRsZSkKICogLSBEZXNjcmlwdGlvbiB0ZXh0ICh0eXBvZ3JhcGh5LWhlbHBlci10ZXh0KQogKiAtIE9wdGlvbmFsIGFjdGlvbiBidXR0b24KICogLSBQYWRkaW5nIGFuZCBzcGFjaW5nCiAqLwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gUmlnaHRQYW5lbEVtcHR5U3RhdGUoewogIGljb246IEljb24sCiAgdGl0bGUsCiAgZGVzY3JpcHRpb24sCiAgYWN0aW9uLAp9KSB7CiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGZsZXgtY29sIGl0ZW1zLWNlbnRlciB0ZXh0LWNlbnRlciBweC00IHB5LTYgZ2FwLTIuNSI+CiAgICAgIHtJY29uICYmICgKICAgICAgICA8SWNvbiBjbGFzc05hbWU9InctOCBoLTggdGV4dC1zbGF0ZS0zMDAiIC8+CiAgICAgICl9CiAgICAgIHt0aXRsZSAmJiAoCiAgICAgICAgPGgzIGNsYXNzTmFtZT0idHlwb2dyYXBoeS1lbXB0eS1zdGF0ZS10aXRsZSI+e3RpdGxlfTwvaDM+CiAgICAgICl9CiAgICAgIHtkZXNjcmlwdGlvbiAmJiAoCiAgICAgICAgPHAgY2xhc3NOYW1lPSJ0eXBvZ3JhcGh5LWhlbHBlci10ZXh0Ij57ZGVzY3JpcHRpb259PC9wPgogICAgICApfQogICAgICB7YWN0aW9uICYmIDxkaXYgY2xhc3NOYW1lPSJwdC0xIj57YWN0aW9ufTwvZGl2Pn0KICAgIDwvZGl2PgogICk7Cn0=
+/**
+ * RightPanelEmptyState - Unified empty state for all right-side panels
+ * 
+ * Ensures consistent:
+ * - Centered icon (8x8, muted color)
+ * - Title (typography-empty-state-title)
+ * - Description text (typography-helper-text)
+ * - Optional action button
+ * - Padding and spacing
+ */
+
+export default function RightPanelEmptyState({
+  icon: Icon,
+  title,
+  description,
+  action,
+}) {
+  return (
+    <div className="flex flex-col items-center text-center px-4 py-6 gap-2.5">
+      {Icon && (
+        <Icon className="w-8 h-8 text-slate-300" />
+      )}
+      {title && (
+        <h3 className="typography-empty-state-title">{title}</h3>
+      )}
+      {description && (
+        <p className="typography-helper-text">{description}</p>
+      )}
+      {action && <div className="pt-1">{action}</div>}
+    </div>
+  );
+}

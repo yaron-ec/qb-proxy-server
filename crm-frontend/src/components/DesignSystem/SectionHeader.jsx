@@ -1,1 +1,33 @@
-LyoqCiAqIFVuaWZpZWQgU2VjdGlvbiBIZWFkZXIgQ29tcG9uZW50CiAqIFVzZWQgZm9yIHBhZ2UgdGl0bGVzLCBzZWN0aW9uIGdyb3VwaW5ncwogKi8KCmV4cG9ydCBmdW5jdGlvbiBQYWdlVGl0bGUoeyBjaGlsZHJlbiB9KSB7CiAgcmV0dXJuIDxoMSBjbGFzc05hbWU9InRleHQtMnhsIGZvbnQtYm9sZCB0ZXh0LXNsYXRlLTkwMCB0cmFja2luZy10aWdodCI+e2NoaWxkcmVufTwvaDE+Owp9CgpleHBvcnQgZnVuY3Rpb24gUGFnZVN1YnRpdGxlKHsgY2hpbGRyZW4gfSkgewogIHJldHVybiA8cCBjbGFzc05hbWU9InRleHQtc20gdGV4dC1zbGF0ZS01MDAgbXQtMC41Ij57Y2hpbGRyZW59PC9wPjsKfQoKZXhwb3J0IGZ1bmN0aW9uIFNlY3Rpb25UaXRsZSh7IGNoaWxkcmVuIH0pIHsKICByZXR1cm4gPGgyIGNsYXNzTmFtZT0idGV4dC1zbSBmb250LWJvbGQgdGV4dC1zbGF0ZS03MDAgdXBwZXJjYXNlIHRyYWNraW5nLXdpZGUiPntjaGlsZHJlbn08L2gyPjsKfQoKZXhwb3J0IGZ1bmN0aW9uIEdyb3VwTGFiZWwoeyBjaGlsZHJlbiB9KSB7CiAgcmV0dXJuIDxwIGNsYXNzTmFtZT0idGV4dC1bMTFweF0gZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTQwMCB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZXIgcHgtMyBtYi0xLjUiPntjaGlsZHJlbn08L3A+Owp9CgpleHBvcnQgZnVuY3Rpb24gSGVscGVyVGV4dCh7IGNoaWxkcmVuIH0pIHsKICByZXR1cm4gPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtc2xhdGUtNTAwIj57Y2hpbGRyZW59PC9wPjsKfQoKZXhwb3J0IGZ1bmN0aW9uIExhYmVsKHsgY2hpbGRyZW4sIHJlcXVpcmVkID0gZmFsc2UgfSkgewogIHJldHVybiAoCiAgICA8bGFiZWwgY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS03MDAgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEiPgogICAgICB7Y2hpbGRyZW59CiAgICAgIHtyZXF1aXJlZCAmJiA8c3BhbiBjbGFzc05hbWU9InRleHQtcmVkLTUwMCI+Kjwvc3Bhbj59CiAgICA8L2xhYmVsPgogICk7Cn0=
+/**
+ * Unified Section Header Component
+ * Used for page titles, section groupings
+ */
+
+export function PageTitle({ children }) {
+  return <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{children}</h1>;
+}
+
+export function PageSubtitle({ children }) {
+  return <p className="text-sm text-slate-500 mt-0.5">{children}</p>;
+}
+
+export function SectionTitle({ children }) {
+  return <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wide">{children}</h2>;
+}
+
+export function GroupLabel({ children }) {
+  return <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-1.5">{children}</p>;
+}
+
+export function HelperText({ children }) {
+  return <p className="text-xs text-slate-500">{children}</p>;
+}
+
+export function Label({ children, required = false }) {
+  return (
+    <label className="text-sm font-semibold text-slate-700 flex items-center gap-1">
+      {children}
+      {required && <span className="text-red-500">*</span>}
+    </label>
+  );
+}
