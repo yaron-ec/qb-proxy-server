@@ -1,1 +1,172 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gJ3JlYWN0JzsKaW1wb3J0IHsgYXBpQ2FsbCB9IGZyb20gJ0AvYXBpL3JhaWx3YXkvY2xpZW50JzsKaW1wb3J0IHsgQ2hlY2ssIFgsIEFsZXJ0Q2lyY2xlIH0gZnJvbSAnbHVjaWRlLXJlYWN0JzsKaW1wb3J0IHsgdG9UaXRsZUNhc2UgfSBmcm9tICdAL2xpYi9mb3JtYXR0ZXJzJzsKCmNvbnN0IE5PTl9MRUFEX1BBVFRFUk5TID0gWwogICdEZXNpZ25lcicsICdDYW5kaWRhdGUnLCAnV2FyZWhvdXNlJywgJ1Jvb2ZpbmcgQ29tcGFueScsIAogICdGbG9vcmluZyBDb21wYW55JywgJ0luYycsICdMTEMnLCAnQ29udHJhY3RvcicsICdTZXJ2aWNlcycKXTsKCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIE5vbkxlYWRzUmV2aWV3KCkgewogIGNvbnN0IFtsZWFkcywgc2V0TGVhZHNdID0gdXNlU3RhdGUoW10pOwogIGNvbnN0IFtsb2FkaW5nLCBzZXRMb2FkaW5nXSA9IHVzZVN0YXRlKHRydWUpOwogIGNvbnN0IFtzZWxlY3RlZCwgc2V0U2VsZWN0ZWRdID0gdXNlU3RhdGUobmV3IFNldCgpKTsKICBjb25zdCBbcmVjb3JkVHlwZSwgc2V0UmVjb3JkVHlwZV0gPSB1c2VTdGF0ZSgnQ29udGFjdCcpOwogIGNvbnN0IFtzYXZpbmcsIHNldFNhdmluZ10gPSB1c2VTdGF0ZShmYWxzZSk7CgogIHVzZUVmZmVjdCgoKSA9PiB7CiAgICBsb2FkU3VzcGljaW91c0xlYWRzKCk7CiAgfSwgW10pOwoKICBjb25zdCBsb2FkU3VzcGljaW91c0xlYWRzID0gYXN5bmMgKCkgPT4gewogICAgdHJ5IHsKICAgICAgY29uc3QgcmVzID0gYXdhaXQgYXBpQ2FsbCgnL2FwaS92MS9sZWFkcz9saW1pdD0yMDAwJywgeyBtZXRob2Q6ICdHRVQnIH0pOwogICAgICBjb25zdCBhbGxMZWFkcyA9IEFycmF5LmlzQXJyYXkocmVzKSA/IHJlcyA6IChyZXM/Lml0ZW1zIHx8IFtdKTsKICAgICAgY29uc3Qgc3VzcGljaW91cyA9IGFsbExlYWRzLmZpbHRlcihsZWFkID0+IHsKICAgICAgICBjb25zdCBmdWxsTmFtZSA9IGAke2xlYWQuZmlyc3RfbmFtZSB8fCAnJ30gJHtsZWFkLmxhc3RfbmFtZSB8fCAnJ31gOwogICAgICAgIHJldHVybiBOT05fTEVBRF9QQVRURVJOUy5zb21lKHBhdHRlcm4gPT4gZnVsbE5hbWUuaW5jbHVkZXMocGF0dGVybikpOwogICAgICB9KTsKICAgICAgc2V0TGVhZHMoc3VzcGljaW91cyk7CiAgICAgIHNldExvYWRpbmcoZmFsc2UpOwogICAgfSBjYXRjaCAoZSkgewogICAgICBjb25zb2xlLmVycm9yKCdFcnJvciBsb2FkaW5nIHN1c3BpY2lvdXMgbGVhZHM6JywgZSk7CiAgICAgIHNldExvYWRpbmcoZmFsc2UpOwogICAgfQogIH07CgogIGNvbnN0IHRvZ2dsZVNlbGVjdCA9IChsZWFkSWQpID0+IHsKICAgIGNvbnN0IG5ld1NlbGVjdGVkID0gbmV3IFNldChzZWxlY3RlZCk7CiAgICBpZiAobmV3U2VsZWN0ZWQuaGFzKGxlYWRJZCkpIHsKICAgICAgbmV3U2VsZWN0ZWQuZGVsZXRlKGxlYWRJZCk7CiAgICB9IGVsc2UgewogICAgICBuZXdTZWxlY3RlZC5hZGQobGVhZElkKTsKICAgIH0KICAgIHNldFNlbGVjdGVkKG5ld1NlbGVjdGVkKTsKICB9OwoKICBjb25zdCB0b2dnbGVTZWxlY3RBbGwgPSAoKSA9PiB7CiAgICBpZiAoc2VsZWN0ZWQuc2l6ZSA9PT0gbGVhZHMubGVuZ3RoKSB7CiAgICAgIHNldFNlbGVjdGVkKG5ldyBTZXQoKSk7CiAgICB9IGVsc2UgewogICAgICBzZXRTZWxlY3RlZChuZXcgU2V0KGxlYWRzLm1hcChsID0+IGwuaWQpKSk7CiAgICB9CiAgfTsKCiAgY29uc3Qgc2F2ZUNoYW5nZXMgPSBhc3luYyAoKSA9PiB7CiAgICBzZXRTYXZpbmcodHJ1ZSk7CiAgICBsZXQgdXBkYXRlZCA9IDA7CiAgICBmb3IgKGNvbnN0IGxlYWRJZCBvZiBzZWxlY3RlZCkgewogICAgICB0cnkgewogICAgICAgIGF3YWl0IGFwaUNhbGwoYC9hcGkvdjEvbGVhZHMvJHtsZWFkSWR9YCwgeyBtZXRob2Q6ICdQVVQnLCBib2R5OiB7IHJlY29yZF90eXBlOiByZWNvcmRUeXBlIH0gfSk7CiAgICAgICAgdXBkYXRlZCsrOwogICAgICB9IGNhdGNoIChlKSB7CiAgICAgICAgY29uc29sZS5lcnJvcihgRXJyb3IgdXBkYXRpbmcgbGVhZCAke2xlYWRJZH06YCwgZSk7CiAgICAgIH0KICAgIH0KICAgIHNldFNhdmluZyhmYWxzZSk7CiAgICBzZXRTZWxlY3RlZChuZXcgU2V0KCkpOwogICAgYXdhaXQgbG9hZFN1c3BpY2lvdXNMZWFkcygpOwogIH07CgogIGlmIChsb2FkaW5nKSB7CiAgICByZXR1cm4gKAogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgcHktMTYiPgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ3LTcgaC03IGJvcmRlci00IGJvcmRlci1zbGF0ZS0yMDAgYm9yZGVyLXQtYW1iZXItNjAwIHJvdW5kZWQtZnVsbCBhbmltYXRlLXNwaW4iIC8+CiAgICAgIDwvZGl2PgogICAgKTsKICB9CgogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT0ibWluLWgtc2NyZWVuIGJnLXNsYXRlLTUwIj4KICAgICAgPGRpdiBjbGFzc05hbWU9InN0aWNreSB0b3AtMCB6LTQwIGJnLXdoaXRlIGJvcmRlci1iIGJvcmRlci1zbGF0ZS0yMDAiPgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtYXgtdy03eGwgbXgtYXV0byBweC02IHB5LTUiPgogICAgICAgICAgPGgxIGNsYXNzTmFtZT0idGV4dC0yeGwgZm9udC1ib2xkIHRleHQtc2xhdGUtOTAwIj5Ob24tTGVhZHMgUmV2aWV3PC9oMT4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1zbSB0ZXh0LXNsYXRlLTUwMCBtdC0wLjUiPlJlY29yZHMgbWF0Y2hpbmcgdmVuZG9yL2VtcGxveWVlIHBhdHRlcm5zICh7bGVhZHMubGVuZ3RofSk8L3A+CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgoKICAgICAgPGRpdiBjbGFzc05hbWU9Im1heC13LTd4bCBteC1hdXRvIHB4LTYgcHktNiI+CiAgICAgICAge2xlYWRzLmxlbmd0aCA9PT0gMCA/ICgKICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LWNlbnRlciBweS0xNiB0ZXh0LXNsYXRlLTQwMCI+CiAgICAgICAgICAgIDxBbGVydENpcmNsZSBjbGFzc05hbWU9InctOCBoLTggbXgtYXV0byBtYi0yIiAvPgogICAgICAgICAgICA8cD5ObyBzdXNwaWNpb3VzIHJlY29yZHMgZm91bmQ8L3A+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICApIDogKAogICAgICAgICAgPD4KICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLXdoaXRlIHJvdW5kZWQtbGcgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgb3ZlcmZsb3ctaGlkZGVuIj4KICAgICAgICAgICAgICA8dGFibGUgY2xhc3NOYW1lPSJ3LWZ1bGwiPgogICAgICAgICAgICAgICAgPHRoZWFkIGNsYXNzTmFtZT0iYmctc2xhdGUtNTAgYm9yZGVyLWIgYm9yZGVyLXNsYXRlLTIwMCI+CiAgICAgICAgICAgICAgICAgIDx0cj4KICAgICAgICAgICAgICAgICAgICA8dGggY2xhc3NOYW1lPSJweC00IHB5LTMgdGV4dC1sZWZ0Ij4KICAgICAgICAgICAgICAgICAgICAgIDxpbnB1dAogICAgICAgICAgICAgICAgICAgICAgICB0eXBlPSJjaGVja2JveCIKICAgICAgICAgICAgICAgICAgICAgICAgY2hlY2tlZD17c2VsZWN0ZWQuc2l6ZSA9PT0gbGVhZHMubGVuZ3RoICYmIGxlYWRzLmxlbmd0aCA+IDB9CiAgICAgICAgICAgICAgICAgICAgICAgIG9uQ2hhbmdlPXt0b2dnbGVTZWxlY3RBbGx9CiAgICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0idy00IGgtNCBhY2NlbnQtYW1iZXItNjAwIgogICAgICAgICAgICAgICAgICAgICAgLz4KICAgICAgICAgICAgICAgICAgICA8L3RoPgogICAgICAgICAgICAgICAgICAgIDx0aCBjbGFzc05hbWU9InB4LTQgcHktMyB0ZXh0LWxlZnQgdGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNjAwIj5OYW1lPC90aD4KICAgICAgICAgICAgICAgICAgICA8dGggY2xhc3NOYW1lPSJweC00IHB5LTMgdGV4dC1sZWZ0IHRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTYwMCI+RW1haWw8L3RoPgogICAgICAgICAgICAgICAgICAgIDx0aCBjbGFzc05hbWU9InB4LTQgcHktMyB0ZXh0LWxlZnQgdGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNjAwIj5TdGF0dXM8L3RoPgogICAgICAgICAgICAgICAgICAgIDx0aCBjbGFzc05hbWU9InB4LTQgcHktMyB0ZXh0LWxlZnQgdGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNjAwIj5UeXBlPC90aD4KICAgICAgICAgICAgICAgICAgPC90cj4KICAgICAgICAgICAgICAgIDwvdGhlYWQ+CiAgICAgICAgICAgICAgICA8dGJvZHkgY2xhc3NOYW1lPSJkaXZpZGUteSBkaXZpZGUtc2xhdGUtMjAwIj4KICAgICAgICAgICAgICAgICAge2xlYWRzLm1hcChsZWFkID0+ICgKICAgICAgICAgICAgICAgICAgICA8dHIga2V5PXtsZWFkLmlkfSBjbGFzc05hbWU9ImhvdmVyOmJnLXNsYXRlLTUwIj4KICAgICAgICAgICAgICAgICAgICAgIDx0ZCBjbGFzc05hbWU9InB4LTQgcHktMyI+CiAgICAgICAgICAgICAgICAgICAgICAgIDxpbnB1dAogICAgICAgICAgICAgICAgICAgICAgICAgIHR5cGU9ImNoZWNrYm94IgogICAgICAgICAgICAgICAgICAgICAgICAgIGNoZWNrZWQ9e3NlbGVjdGVkLmhhcyhsZWFkLmlkKX0KICAgICAgICAgICAgICAgICAgICAgICAgICBvbkNoYW5nZT17KCkgPT4gdG9nZ2xlU2VsZWN0KGxlYWQuaWQpfQogICAgICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0idy00IGgtNCBhY2NlbnQtYW1iZXItNjAwIgogICAgICAgICAgICAgICAgICAgICAgICAvPgogICAgICAgICAgICAgICAgICAgICAgPC90ZD4KICAgICAgICAgICAgICAgICAgICAgIDx0ZCBjbGFzc05hbWU9InB4LTQgcHktMyB0ZXh0LXNtIGZvbnQtbWVkaXVtIHRleHQtc2xhdGUtOTAwIj4KICAgICAgICAgICAgICAgICAgICAgICAge3RvVGl0bGVDYXNlKGxlYWQuZmlyc3RfbmFtZSl9IHt0b1RpdGxlQ2FzZShsZWFkLmxhc3RfbmFtZSl9CiAgICAgICAgICAgICAgICAgICAgICA8L3RkPgogICAgICAgICAgICAgICAgICAgICAgPHRkIGNsYXNzTmFtZT0icHgtNCBweS0zIHRleHQtc20gdGV4dC1zbGF0ZS01MDAiPntsZWFkLmVtYWlsIHx8ICfigJQnfTwvdGQ+CiAgICAgICAgICAgICAgICAgICAgICA8dGQgY2xhc3NOYW1lPSJweC00IHB5LTMgdGV4dC1zbSB0ZXh0LXNsYXRlLTcwMCI+e2xlYWQuc3RhdHVzIHx8ICdOZXcnfTwvdGQ+CiAgICAgICAgICAgICAgICAgICAgICA8dGQgY2xhc3NOYW1lPSJweC00IHB5LTMgdGV4dC1zbSB0ZXh0LXNsYXRlLTcwMCI+e2xlYWQucmVjb3JkX3R5cGUgfHwgJ0xlYWQnfTwvdGQ+CiAgICAgICAgICAgICAgICAgICAgPC90cj4KICAgICAgICAgICAgICAgICAgKSl9CiAgICAgICAgICAgICAgICA8L3Rib2R5PgogICAgICAgICAgICAgIDwvdGFibGU+CiAgICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgICAge3NlbGVjdGVkLnNpemUgPiAwICYmICgKICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibXQtNiBiZy13aGl0ZSByb3VuZGVkLWxnIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHAtNCI+CiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIGdhcC00IGZsZXgtd3JhcCI+CiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS03MDAiPgogICAgICAgICAgICAgICAgICAgIHtzZWxlY3RlZC5zaXplfSBzZWxlY3RlZAogICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0zIj4KICAgICAgICAgICAgICAgICAgICA8c2VsZWN0CiAgICAgICAgICAgICAgICAgICAgICB2YWx1ZT17cmVjb3JkVHlwZX0KICAgICAgICAgICAgICAgICAgICAgIG9uQ2hhbmdlPXtlID0+IHNldFJlY29yZFR5cGUoZS50YXJnZXQudmFsdWUpfQogICAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJweC0zIHB5LTIgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcm91bmRlZC1sZyB0ZXh0LXNtIGZvbnQtbWVkaXVtIGJnLXdoaXRlIHRleHQtc2xhdGUtNzAwIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1hbWJlci01MDAvMjAiCiAgICAgICAgICAgICAgICAgICAgPgogICAgICAgICAgICAgICAgICAgICAgPG9wdGlvbiB2YWx1ZT0iQ29udGFjdCI+Q29udGFjdDwvb3B0aW9uPgogICAgICAgICAgICAgICAgICAgICAgPG9wdGlvbiB2YWx1ZT0iVmVuZG9yIj5WZW5kb3I8L29wdGlvbj4KICAgICAgICAgICAgICAgICAgICAgIDxvcHRpb24gdmFsdWU9IkVtcGxveWVlIj5FbXBsb3llZTwvb3B0aW9uPgogICAgICAgICAgICAgICAgICAgICAgPG9wdGlvbiB2YWx1ZT0iSm9iIEFwcGxpY2FudCI+Sm9iIEFwcGxpY2FudDwvb3B0aW9uPgogICAgICAgICAgICAgICAgICAgIDwvc2VsZWN0PgogICAgICAgICAgICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgICAgICAgICAgIG9uQ2xpY2s9e3NhdmVDaGFuZ2VzfQogICAgICAgICAgICAgICAgICAgICAgZGlzYWJsZWQ9e3NhdmluZ30KICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgcHgtNCBweS0yIGJnLWFtYmVyLTYwMCBob3ZlcjpiZy1hbWJlci03MDAgdGV4dC13aGl0ZSB0ZXh0LXNtIGZvbnQtc2VtaWJvbGQgcm91bmRlZC1sZyB0cmFuc2l0aW9uLWNvbG9ycyBkaXNhYmxlZDpvcGFjaXR5LTUwIgogICAgICAgICAgICAgICAgICAgID4KICAgICAgICAgICAgICAgICAgICAgIDxDaGVjayBjbGFzc05hbWU9InctNCBoLTQiIC8+CiAgICAgICAgICAgICAgICAgICAgICB7c2F2aW5nID8gJ1NhdmluZy4uLicgOiAnU2F2ZSd9CiAgICAgICAgICAgICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICl9CiAgICAgICAgICA8Lz4KICAgICAgICApfQogICAgICA8L2Rpdj4KICAgIDwvZGl2PgogICk7Cn0=
+import { useState, useEffect } from 'react';
+import { apiCall } from '@/api/railway/client';
+import { Check, X, AlertCircle } from 'lucide-react';
+import { toTitleCase } from '@/lib/formatters';
+
+const NON_LEAD_PATTERNS = [
+  'Designer', 'Candidate', 'Warehouse', 'Roofing Company', 
+  'Flooring Company', 'Inc', 'LLC', 'Contractor', 'Services'
+];
+
+export default function NonLeadsReview() {
+  const [leads, setLeads] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState(new Set());
+  const [recordType, setRecordType] = useState('Contact');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    loadSuspiciousLeads();
+  }, []);
+
+  const loadSuspiciousLeads = async () => {
+    try {
+      const res = await apiCall('/api/v1/leads?limit=2000', { method: 'GET' });
+      const allLeads = Array.isArray(res) ? res : (res?.items || []);
+      const suspicious = allLeads.filter(lead => {
+        const fullName = `${lead.first_name || ''} ${lead.last_name || ''}`;
+        return NON_LEAD_PATTERNS.some(pattern => fullName.includes(pattern));
+      });
+      setLeads(suspicious);
+      setLoading(false);
+    } catch (e) {
+      console.error('Error loading suspicious leads:', e);
+      setLoading(false);
+    }
+  };
+
+  const toggleSelect = (leadId) => {
+    const newSelected = new Set(selected);
+    if (newSelected.has(leadId)) {
+      newSelected.delete(leadId);
+    } else {
+      newSelected.add(leadId);
+    }
+    setSelected(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selected.size === leads.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(leads.map(l => l.id)));
+    }
+  };
+
+  const saveChanges = async () => {
+    setSaving(true);
+    let updated = 0;
+    for (const leadId of selected) {
+      try {
+        await apiCall(`/api/v1/leads/${leadId}`, { method: 'PUT', body: { record_type: recordType } });
+        updated++;
+      } catch (e) {
+        console.error(`Error updating lead ${leadId}:`, e);
+      }
+    }
+    setSaving(false);
+    setSelected(new Set());
+    await loadSuspiciousLeads();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="w-7 h-7 border-4 border-slate-200 border-t-amber-600 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <div className="sticky top-0 z-40 bg-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-6 py-5">
+          <h1 className="text-2xl font-bold text-slate-900">Non-Leads Review</h1>
+          <p className="text-sm text-slate-500 mt-0.5">Records matching vendor/employee patterns ({leads.length})</p>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 py-6">
+        {leads.length === 0 ? (
+          <div className="text-center py-16 text-slate-400">
+            <AlertCircle className="w-8 h-8 mx-auto mb-2" />
+            <p>No suspicious records found</p>
+          </div>
+        ) : (
+          <>
+            <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-slate-50 border-b border-slate-200">
+                  <tr>
+                    <th className="px-4 py-3 text-left">
+                      <input
+                        type="checkbox"
+                        checked={selected.size === leads.length && leads.length > 0}
+                        onChange={toggleSelectAll}
+                        className="w-4 h-4 accent-amber-600"
+                      />
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600">Name</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600">Email</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600">Type</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {leads.map(lead => (
+                    <tr key={lead.id} className="hover:bg-slate-50">
+                      <td className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={selected.has(lead.id)}
+                          onChange={() => toggleSelect(lead.id)}
+                          className="w-4 h-4 accent-amber-600"
+                        />
+                      </td>
+                      <td className="px-4 py-3 text-sm font-medium text-slate-900">
+                        {toTitleCase(lead.first_name)} {toTitleCase(lead.last_name)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-slate-500">{lead.email || '—'}</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">{lead.status || 'New'}</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">{lead.record_type || 'Lead'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {selected.size > 0 && (
+              <div className="mt-6 bg-white rounded-lg border border-slate-200 p-4">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <div className="text-sm font-semibold text-slate-700">
+                    {selected.size} selected
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <select
+                      value={recordType}
+                      onChange={e => setRecordType(e.target.value)}
+                      className="px-3 py-2 border border-slate-200 rounded-lg text-sm font-medium bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                    >
+                      <option value="Contact">Contact</option>
+                      <option value="Vendor">Vendor</option>
+                      <option value="Employee">Employee</option>
+                      <option value="Job Applicant">Job Applicant</option>
+                    </select>
+                    <button
+                      onClick={saveChanges}
+                      disabled={saving}
+                      className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      <Check className="w-4 h-4" />
+                      {saving ? 'Saving...' : 'Save'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

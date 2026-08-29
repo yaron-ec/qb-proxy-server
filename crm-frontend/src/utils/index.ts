@@ -1,1 +1,3 @@
-ZXhwb3J0IGZ1bmN0aW9uIGNyZWF0ZVBhZ2VVcmwocGFnZU5hbWU6IHN0cmluZykgewogICAgcmV0dXJuICcvJyArIHBhZ2VOYW1lLnJlcGxhY2UoLyAvZywgJy0nKTsKfQ==
+export function createPageUrl(pageName: string) {
+    return '/' + pageName.replace(/ /g, '-');
+}

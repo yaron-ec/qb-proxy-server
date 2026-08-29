@@ -1,1 +1,222 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCwgdXNlTWVtbyB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsgYXBpQ2FsbCB9IGZyb20gIkAvYXBpL3JhaWx3YXkvY2xpZW50IjsKaW1wb3J0IHsgTGluayB9IGZyb20gInJlYWN0LXJvdXRlci1kb20iOwppbXBvcnQgeyBBcnJvd0xlZnQsIEFsZXJ0VHJpYW5nbGUsIFVzZXIsIFBob25lLCBDYWxlbmRhciB9IGZyb20gImx1Y2lkZS1yZWFjdCI7CgpmdW5jdGlvbiBwYXJzZUxvY2FsRGF0ZShkYXRlU3RyKSB7CiAgY29uc3QgbSA9IFN0cmluZyhkYXRlU3RyIHx8ICcnKS5tYXRjaCgvKFxkezR9KS0oXGR7Mn0pLShcZHsyfSkvKTsKICBpZiAoIW0pIHJldHVybiBudWxsOwogIHJldHVybiBEYXRlLlVUQyhwYXJzZUludChtWzFdKSwgcGFyc2VJbnQobVsyXSkgLSAxLCBwYXJzZUludChtWzNdKSk7Cn0KCmZ1bmN0aW9uIGZtdDEyKHQpIHsKICBpZiAoIXQpIHJldHVybiAnJzsKICBjb25zdCBbaCwgbV0gPSB0LnNwbGl0KCc6JykubWFwKE51bWJlcik7CiAgY29uc3QgYW1wbSA9IGggPj0gMTIgPyAnUE0nIDogJ0FNJzsKICByZXR1cm4gYCR7aCAlIDEyIHx8IDEyfToke1N0cmluZyhtKS5wYWRTdGFydCgyLCAnMCcpfSAke2FtcG19YDsKfQoKZnVuY3Rpb24gZGF5c092ZXJkdWUoZGF0ZVN0cikgewogIGNvbnN0IGRhdGVVVEMgPSBwYXJzZUxvY2FsRGF0ZShkYXRlU3RyKTsKICBpZiAoIWRhdGVVVEMpIHJldHVybiBudWxsOwogIGNvbnN0IHRvZGF5VVRDID0gRGF0ZS5VVEMobmV3IERhdGUoKS5nZXRVVENGdWxsWWVhcigpLCBuZXcgRGF0ZSgpLmdldFVUQ01vbnRoKCksIG5ldyBEYXRlKCkuZ2V0VVRDRGF0ZSgpKTsKICBjb25zdCBkaWZmRGF5cyA9IE1hdGguZmxvb3IoKHRvZGF5VVRDIC0gZGF0ZVVUQykgLyAoMTAwMCAqIDYwICogNjAgKiAyNCkpOwogIHJldHVybiBkaWZmRGF5cyA+IDAgPyBkaWZmRGF5cyA6IDA7Cn0KCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIE92ZXJkdWVMZWFkcygpIHsKICBjb25zdCBbbGVhZHMsIHNldExlYWRzXSA9IHVzZVN0YXRlKFtdKTsKICBjb25zdCBbbG9hZGluZywgc2V0TG9hZGluZ10gPSB1c2VTdGF0ZSh0cnVlKTsKICBjb25zdCBbZmlsdGVyUmVwLCBzZXRGaWx0ZXJSZXBdID0gdXNlU3RhdGUoIiIpOwogIGNvbnN0IFtzb3J0QnksIHNldFNvcnRCeV0gPSB1c2VTdGF0ZSgiZGF5c092ZXJkdWUiKTsKCiAgdXNlRWZmZWN0KCgpID0+IHsKICAgIGNvbnN0IGxvYWREYXRhID0gYXN5bmMgKCkgPT4gewogICAgICB0cnkgewogICAgICAgIGNvbnN0IHJlcyA9IGF3YWl0IGFwaUNhbGwoJy9hcGkvdjEvbGVhZHM/bGltaXQ9MTAwMDAnLCB7IG1ldGhvZDogJ0dFVCcgfSk7CiAgICAgICAgY29uc3QgYWxsTGVhZHMgPSBBcnJheS5pc0FycmF5KHJlcykgPyByZXMgOiAocmVzPy5pdGVtcyB8fCBbXSk7CiAgICAgICAgc2V0TGVhZHMoYWxsTGVhZHMpOwogICAgICAgIHNldExvYWRpbmcoZmFsc2UpOwogICAgICB9IGNhdGNoIChlKSB7CiAgICAgICAgY29uc29sZS5lcnJvcignW092ZXJkdWVMZWFkc10gRXJyb3IgbG9hZGluZyBkYXRhOicsIGUpOwogICAgICAgIHNldExvYWRpbmcoZmFsc2UpOwogICAgICB9CiAgICB9OwoKICAgIGxvYWREYXRhKCk7CiAgICBjb25zdCBpbnRlcnZhbCA9IHNldEludGVydmFsKGxvYWREYXRhLCAzMDAwMCk7CiAgICByZXR1cm4gKCkgPT4gY2xlYXJJbnRlcnZhbChpbnRlcnZhbCk7CiAgfSwgW10pOwoKICBjb25zdCB0b2RheVVUQyA9IERhdGUuVVRDKG5ldyBEYXRlKCkuZ2V0VVRDRnVsbFllYXIoKSwgbmV3IERhdGUoKS5nZXRVVENNb250aCgpLCBuZXcgRGF0ZSgpLmdldFVUQ0RhdGUoKSk7CgogIGNvbnN0IG92ZXJkdWVMZWFkcyA9IHVzZU1lbW8oKCkgPT4gewogICAgcmV0dXJuIGxlYWRzCiAgICAgIC5maWx0ZXIobCA9PgogICAgICAgIGwuZm9sbG93X3VwX2RhdGUgJiYKICAgICAgICAhWydTb2xkJywgJ0xvc3QnXS5pbmNsdWRlcyhsLnN0YXR1cykgJiYKICAgICAgICAhbC5maXJzdF9uYW1lPy50b0xvd2VyQ2FzZSgpLmluY2x1ZGVzKCd1bmtub3duJykKICAgICAgKQogICAgICAuZmlsdGVyKGwgPT4gewogICAgICAgIGNvbnN0IGRhdGVVVEMgPSBwYXJzZUxvY2FsRGF0ZShsLmZvbGxvd191cF9kYXRlKTsKICAgICAgICByZXR1cm4gZGF0ZVVUQyAmJiBkYXRlVVRDIDwgdG9kYXlVVEM7CiAgICAgIH0pCiAgICAgIC5tYXAobCA9PiAoewogICAgICAgIC4uLmwsCiAgICAgICAgZGF5c092ZXJkdWU6IGRheXNPdmVyZHVlKGwuZm9sbG93X3VwX2RhdGUpIHx8IDAsCiAgICAgIH0pKQogICAgICAuZmlsdGVyKGwgPT4gIWZpbHRlclJlcCB8fCBsLmFzc2lnbmVkX3JlcCA9PT0gZmlsdGVyUmVwKQogICAgICAuc29ydCgoYSwgYikgPT4gewogICAgICAgIGlmIChzb3J0QnkgPT09ICJkYXlzT3ZlcmR1ZSIpIHsKICAgICAgICAgIHJldHVybiBiLmRheXNPdmVyZHVlIC0gYS5kYXlzT3ZlcmR1ZTsKICAgICAgICB9IGVsc2UgaWYgKHNvcnRCeSA9PT0gIm5hbWUiKSB7CiAgICAgICAgICByZXR1cm4gYCR7YS5maXJzdF9uYW1lfSAke2EubGFzdF9uYW1lfWAubG9jYWxlQ29tcGFyZShgJHtiLmZpcnN0X25hbWV9ICR7Yi5sYXN0X25hbWV9YCk7CiAgICAgICAgfSBlbHNlIGlmIChzb3J0QnkgPT09ICJyZXAiKSB7CiAgICAgICAgICByZXR1cm4gKGEuYXNzaWduZWRfcmVwIHx8ICcnKS5sb2NhbGVDb21wYXJlKGIuYXNzaWduZWRfcmVwIHx8ICcnKTsKICAgICAgICB9CiAgICAgICAgcmV0dXJuIDA7CiAgICAgIH0pOwogIH0sIFtsZWFkcywgZmlsdGVyUmVwLCBzb3J0QnksIHRvZGF5VVRDXSk7CgogIGNvbnN0IHJlcHMgPSBBcnJheS5mcm9tKG5ldyBTZXQobGVhZHMuZmlsdGVyKGwgPT4gbC5mb2xsb3dfdXBfZGF0ZSkubWFwKGwgPT4gbC5hc3NpZ25lZF9yZXAgfHwgJ1VuYXNzaWduZWQnKSkpCiAgICAuc29ydCgpOwoKICBpZiAobG9hZGluZykgewogICAgcmV0dXJuICgKICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGgtZnVsbCI+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9InctOCBoLTggYm9yZGVyLTQgYm9yZGVyLXNsYXRlLTIwMCBib3JkZXItdC1yZWQtNjAwIHJvdW5kZWQtZnVsbCBhbmltYXRlLXNwaW4iPjwvZGl2PgogICAgICA8L2Rpdj4KICAgICk7CiAgfQoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9InAtNiBtaW4taC1mdWxsIGJnLXNsYXRlLTUwIHNwYWNlLXktNiI+CiAgICAgIHsvKiBIZWFkZXIgKi99CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMyI+CiAgICAgICAgPExpbmsgdG89Ii8iIGNsYXNzTmFtZT0icC0xLjUgaG92ZXI6Ymctc2xhdGUtMjAwIHJvdW5kZWQtbGcgdHJhbnNpdGlvbi1jb2xvcnMiPgogICAgICAgICAgPEFycm93TGVmdCBjbGFzc05hbWU9InctNSBoLTUgdGV4dC1zbGF0ZS02MDAiIC8+CiAgICAgICAgPC9MaW5rPgogICAgICAgIDxkaXY+CiAgICAgICAgICA8aDEgY2xhc3NOYW1lPSJ0ZXh0LTJ4bCBmb250LWJvbGQgdGV4dC1zbGF0ZS05MDAgdHJhY2tpbmctdGlnaHQgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIiPgogICAgICAgICAgICA8QWxlcnRUcmlhbmdsZSBjbGFzc05hbWU9InctNiBoLTYgdGV4dC1yZWQtNTAwIiAvPgogICAgICAgICAgICBPdmVyZHVlIEZvbGxvdy11cHMKICAgICAgICAgIDwvaDE+CiAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20gdGV4dC1zbGF0ZS01MDAgbXQtMC41Ij57b3ZlcmR1ZUxlYWRzLmxlbmd0aH0gbGVhZHMgd2l0aCBvdmVyZHVlIGZvbGxvdy11cHM8L3A+CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgoKICAgICAgey8qIENvbnRyb2xzICovfQogICAgICB7b3ZlcmR1ZUxlYWRzLmxlbmd0aCA+IDAgJiYgKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy13aGl0ZSByb3VuZGVkLXhsIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHAtNCBmbGV4IGZsZXgtd3JhcCBpdGVtcy1jZW50ZXIgZ2FwLTQiPgogICAgICAgICAgPGRpdj4KICAgICAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT0idGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNjAwIGJsb2NrIG1iLTEiPlNhbGVzIFJlcDwvbGFiZWw+CiAgICAgICAgICAgIDxzZWxlY3QKICAgICAgICAgICAgICB2YWx1ZT17ZmlsdGVyUmVwfQogICAgICAgICAgICAgIG9uQ2hhbmdlPXsoZSkgPT4gc2V0RmlsdGVyUmVwKGUudGFyZ2V0LnZhbHVlKX0KICAgICAgICAgICAgICBjbGFzc05hbWU9ImJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgcHgtMyBweS0yIHRleHQtc20gdGV4dC1zbGF0ZS03MDAgYmctd2hpdGUgZm9jdXM6b3V0bGluZS1ub25lIGZvY3VzOnJpbmctMiBmb2N1czpyaW5nLXJlZC01MDAvMjAgZm9jdXM6Ym9yZGVyLXJlZC01MDAgdHJhbnNpdGlvbi1hbGwiCiAgICAgICAgICAgID4KICAgICAgICAgICAgICA8b3B0aW9uIHZhbHVlPSIiPkFsbCBSZXBzICh7bGVhZHMuZmlsdGVyKGwgPT4gbC5mb2xsb3dfdXBfZGF0ZSkubGVuZ3RofSk8L29wdGlvbj4KICAgICAgICAgICAgICB7cmVwcy5tYXAocmVwID0+IHsKICAgICAgICAgICAgICAgIGNvbnN0IGNvdW50ID0gb3ZlcmR1ZUxlYWRzLmZpbHRlcihsID0+IChsLmFzc2lnbmVkX3JlcCB8fCAnVW5hc3NpZ25lZCcpID09PSByZXApLmxlbmd0aDsKICAgICAgICAgICAgICAgIHJldHVybiA8b3B0aW9uIGtleT17cmVwfSB2YWx1ZT17cmVwfT57cmVwfSAoe2NvdW50fSk8L29wdGlvbj47CiAgICAgICAgICAgICAgfSl9CiAgICAgICAgICAgIDwvc2VsZWN0PgogICAgICAgICAgPC9kaXY+CgogICAgICAgICAgPGRpdj4KICAgICAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT0idGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtNjAwIGJsb2NrIG1iLTEiPlNvcnQgQnk8L2xhYmVsPgogICAgICAgICAgICA8c2VsZWN0CiAgICAgICAgICAgICAgdmFsdWU9e3NvcnRCeX0KICAgICAgICAgICAgICBvbkNoYW5nZT17KGUpID0+IHNldFNvcnRCeShlLnRhcmdldC52YWx1ZSl9CiAgICAgICAgICAgICAgY2xhc3NOYW1lPSJib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLWxnIHB4LTMgcHktMiB0ZXh0LXNtIHRleHQtc2xhdGUtNzAwIGJnLXdoaXRlIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1yZWQtNTAwLzIwIGZvY3VzOmJvcmRlci1yZWQtNTAwIHRyYW5zaXRpb24tYWxsIgogICAgICAgICAgICA+CiAgICAgICAgICAgICAgPG9wdGlvbiB2YWx1ZT0iZGF5c092ZXJkdWUiPkRheXMgT3ZlcmR1ZSAoSGlnaGVzdCk8L29wdGlvbj4KICAgICAgICAgICAgICA8b3B0aW9uIHZhbHVlPSJuYW1lIj5OYW1lIChBLVopPC9vcHRpb24+CiAgICAgICAgICAgICAgPG9wdGlvbiB2YWx1ZT0icmVwIj5TYWxlcyBSZXAgKEEtWik8L29wdGlvbj4KICAgICAgICAgICAgPC9zZWxlY3Q+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgKX0KCiAgICAgIHsvKiBMaXN0ICovfQogICAgICA8ZGl2IGNsYXNzTmFtZT0ic3BhY2UteS0zIj4KICAgICAgICB7b3ZlcmR1ZUxlYWRzLmxlbmd0aCA9PT0gMCA/ICgKICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy13aGl0ZSByb3VuZGVkLXhsIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHAtMTIgdGV4dC1jZW50ZXIiPgogICAgICAgICAgICA8QWxlcnRUcmlhbmdsZSBjbGFzc05hbWU9InctOCBoLTggdGV4dC1zbGF0ZS0zMDAgbXgtYXV0byBtYi0zIiAvPgogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc2xhdGUtNTAwIGZvbnQtbWVkaXVtIj5ObyBvdmVyZHVlIGZvbGxvdy11cHM8L3A+CiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTQwMCBtdC0xIj5HcmVhdCB3b3JrIHN0YXlpbmcgb24gdG9wIG9mIGZvbGxvdy11cHMhIPCfjok8L3A+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICApIDogKAogICAgICAgICAgb3ZlcmR1ZUxlYWRzLm1hcCgobGVhZCkgPT4gKAogICAgICAgICAgICA8TGluawogICAgICAgICAgICAgIGtleT17bGVhZC5pZH0KICAgICAgICAgICAgICB0bz17YC9sZWFkcy8ke2xlYWQuaWR9YH0KICAgICAgICAgICAgICBjbGFzc05hbWU9ImJnLXdoaXRlIHJvdW5kZWQteGwgYm9yZGVyIGJvcmRlci1yZWQtMjAwIGhvdmVyOmJvcmRlci1yZWQtMzAwIGhvdmVyOnNoYWRvdy1tZCB0cmFuc2l0aW9uLWFsbCBvdmVyZmxvdy1oaWRkZW4gZ3JvdXAiCiAgICAgICAgICAgID4KICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0icC00IGZsZXggaXRlbXMtc3RhcnQgZ2FwLTQiPgogICAgICAgICAgICAgICAgey8qIEF2YXRhciAqL30KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ3LTEwIGgtMTAgcm91bmRlZC1sZyBiZy1yZWQtMTAwIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGZsZXgtc2hyaW5rLTAgdGV4dC1zbSBmb250LWJvbGQgdGV4dC1yZWQtNzAwIj4KICAgICAgICAgICAgICAgICAge2xlYWQuZmlyc3RfbmFtZT8uWzBdfXtsZWFkLmxhc3RfbmFtZT8uWzBdfQogICAgICAgICAgICAgICAgPC9kaXY+CgogICAgICAgICAgICAgICAgey8qIEluZm8gKi99CiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleC0xIG1pbi13LTAiPgogICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1zdGFydCBqdXN0aWZ5LWJldHdlZW4gZ2FwLTIgbWItMSI+CiAgICAgICAgICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1zbSBmb250LXNlbWlib2xkIHRleHQtc2xhdGUtOTAwIGdyb3VwLWhvdmVyOnRleHQtcmVkLTYwMCB0cmFuc2l0aW9uLWNvbG9ycyI+CiAgICAgICAgICAgICAgICAgICAgICAgIHtsZWFkLmZpcnN0X25hbWV9IHtsZWFkLmxhc3RfbmFtZX0KICAgICAgICAgICAgICAgICAgICAgIDwvcD4KICAgICAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTUwMCBtdC0wLjUiPntsZWFkLmVtYWlsfTwvcD4KICAgICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQteHMgZm9udC1ib2xkIHRleHQtd2hpdGUgYmctcmVkLTUwMCBweC0yLjUgcHktMSByb3VuZGVkLWZ1bGwgZmxleC1zaHJpbmstMCB3aGl0ZXNwYWNlLW5vd3JhcCI+CiAgICAgICAgICAgICAgICAgICAgICB7bGVhZC5kYXlzT3ZlcmR1ZX0gZGF5cyBvdmVyZHVlCiAgICAgICAgICAgICAgICAgICAgPC9zcGFuPgogICAgICAgICAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICAgICAgICAgIHsvKiBEZXRhaWxzICovfQogICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBmbGV4LXdyYXAgaXRlbXMtY2VudGVyIGdhcC0zIG10LTIgdGV4dC14cyB0ZXh0LXNsYXRlLTUwMCI+CiAgICAgICAgICAgICAgICAgICAge2xlYWQuZm9sbG93X3VwX2RhdGUgJiYgKAogICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0xIj4KICAgICAgICAgICAgICAgICAgICAgICAgPENhbGVuZGFyIGNsYXNzTmFtZT0idy0zIGgtMyIgLz4KICAgICAgICAgICAgICAgICAgICAgICAgPHNwYW4+e25ldyBEYXRlKGxlYWQuZm9sbG93X3VwX2RhdGUpLnRvTG9jYWxlRGF0ZVN0cmluZygnZW4tVVMnLCB7IG1vbnRoOiAnc2hvcnQnLCBkYXk6ICdudW1lcmljJyB9KX08L3NwYW4+CiAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgICApfQogICAgICAgICAgICAgICAgICAgIHtsZWFkLmZvbGxvd191cF90aW1lICYmICgKICAgICAgICAgICAgICAgICAgICAgIDxzcGFuPntmbXQxMihsZWFkLmZvbGxvd191cF90aW1lKX08L3NwYW4+CiAgICAgICAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgICAgICAgICB7bGVhZC5mb2xsb3dfdXBfdHlwZSAmJiAoCiAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InB4LTIgcHktMC41IGJnLXNsYXRlLTEwMCByb3VuZGVkIj4KICAgICAgICAgICAgICAgICAgICAgICAge2xlYWQuZm9sbG93X3VwX3R5cGUgPT09ICdNZWV0aW5nJyA/ICfwn5OFJyA6ICfwn5OeJ30ge2xlYWQuZm9sbG93X3VwX3R5cGV9CiAgICAgICAgICAgICAgICAgICAgICA8L3NwYW4+CiAgICAgICAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgICAgICAgICB7bGVhZC5waG9uZSAmJiAoCiAgICAgICAgICAgICAgICAgICAgICA8YSBocmVmPXtgdGVsOiR7bGVhZC5waG9uZX1gfSBvbkNsaWNrPXsoZSkgPT4gZS5wcmV2ZW50RGVmYXVsdCgpfQogICAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0xIHRleHQtZ3JlZW4tNjAwIGhvdmVyOnRleHQtZ3JlZW4tNzAwIj4KICAgICAgICAgICAgICAgICAgICAgICAgPFBob25lIGNsYXNzTmFtZT0idy0zIGgtMyIgLz4KICAgICAgICAgICAgICAgICAgICAgIDwvYT4KICAgICAgICAgICAgICAgICAgICApfQogICAgICAgICAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICAgICAgICAgIHsvKiBSZXAgJiBTdGF0dXMgKi99CiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBtdC0yIHRleHQteHMiPgogICAgICAgICAgICAgICAgICAgIDxVc2VyIGNsYXNzTmFtZT0idy0zIGgtMyB0ZXh0LXNsYXRlLTQwMCIgLz4KICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtc2xhdGUtNjAwIj57bGVhZC5hc3NpZ25lZF9yZXAgfHwgJ1VuYXNzaWduZWQnfTwvc3Bhbj4KICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtc2xhdGUtMzAwIj7igKI8L3NwYW4+CiAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPXtgZm9udC1tZWRpdW0gJHsKICAgICAgICAgICAgICAgICAgICAgIGxlYWQuc3RhdHVzID09PSAnRE5RJyA/ICd0ZXh0LXNsYXRlLTUwMCcgOgogICAgICAgICAgICAgICAgICAgICAgbGVhZC5zdGF0dXMgPT09ICdTb2xkJyA/ICd0ZXh0LWdyZWVuLTYwMCcgOgogICAgICAgICAgICAgICAgICAgICAgbGVhZC5zdGF0dXMgPT09ICdMb3N0JyA/ICd0ZXh0LXJlZC02MDAnIDoKICAgICAgICAgICAgICAgICAgICAgICd0ZXh0LXNsYXRlLTYwMCcKICAgICAgICAgICAgICAgICAgICB9YH0+CiAgICAgICAgICAgICAgICAgICAgICB7bGVhZC5zdGF0dXMgfHwgJ05ldyd9CiAgICAgICAgICAgICAgICAgICAgPC9zcGFuPgogICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8L0xpbms+CiAgICAgICAgICApKQogICAgICAgICl9CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CiAgKTsKfQ==
+import { useState, useEffect, useMemo } from "react";
+import { apiCall } from "@/api/railway/client";
+import { Link } from "react-router-dom";
+import { ArrowLeft, AlertTriangle, User, Phone, Calendar } from "lucide-react";
+
+function parseLocalDate(dateStr) {
+  const m = String(dateStr || '').match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return null;
+  return Date.UTC(parseInt(m[1]), parseInt(m[2]) - 1, parseInt(m[3]));
+}
+
+function fmt12(t) {
+  if (!t) return '';
+  const [h, m] = t.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ampm}`;
+}
+
+function daysOverdue(dateStr) {
+  const dateUTC = parseLocalDate(dateStr);
+  if (!dateUTC) return null;
+  const todayUTC = Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate());
+  const diffDays = Math.floor((todayUTC - dateUTC) / (1000 * 60 * 60 * 24));
+  return diffDays > 0 ? diffDays : 0;
+}
+
+export default function OverdueLeads() {
+  const [leads, setLeads] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filterRep, setFilterRep] = useState("");
+  const [sortBy, setSortBy] = useState("daysOverdue");
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const res = await apiCall('/api/v1/leads?limit=10000', { method: 'GET' });
+        const allLeads = Array.isArray(res) ? res : (res?.items || []);
+        setLeads(allLeads);
+        setLoading(false);
+      } catch (e) {
+        console.error('[OverdueLeads] Error loading data:', e);
+        setLoading(false);
+      }
+    };
+
+    loadData();
+    const interval = setInterval(loadData, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const todayUTC = Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate());
+
+  const overdueLeads = useMemo(() => {
+    return leads
+      .filter(l =>
+        l.follow_up_date &&
+        !['Sold', 'Lost'].includes(l.status) &&
+        !l.first_name?.toLowerCase().includes('unknown')
+      )
+      .filter(l => {
+        const dateUTC = parseLocalDate(l.follow_up_date);
+        return dateUTC && dateUTC < todayUTC;
+      })
+      .map(l => ({
+        ...l,
+        daysOverdue: daysOverdue(l.follow_up_date) || 0,
+      }))
+      .filter(l => !filterRep || l.assigned_rep === filterRep)
+      .sort((a, b) => {
+        if (sortBy === "daysOverdue") {
+          return b.daysOverdue - a.daysOverdue;
+        } else if (sortBy === "name") {
+          return `${a.first_name} ${a.last_name}`.localeCompare(`${b.first_name} ${b.last_name}`);
+        } else if (sortBy === "rep") {
+          return (a.assigned_rep || '').localeCompare(b.assigned_rep || '');
+        }
+        return 0;
+      });
+  }, [leads, filterRep, sortBy, todayUTC]);
+
+  const reps = Array.from(new Set(leads.filter(l => l.follow_up_date).map(l => l.assigned_rep || 'Unassigned')))
+    .sort();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="w-8 h-8 border-4 border-slate-200 border-t-red-600 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 min-h-full bg-slate-50 space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <Link to="/" className="p-1.5 hover:bg-slate-200 rounded-lg transition-colors">
+          <ArrowLeft className="w-5 h-5 text-slate-600" />
+        </Link>
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <AlertTriangle className="w-6 h-6 text-red-500" />
+            Overdue Follow-ups
+          </h1>
+          <p className="text-sm text-slate-500 mt-0.5">{overdueLeads.length} leads with overdue follow-ups</p>
+        </div>
+      </div>
+
+      {/* Controls */}
+      {overdueLeads.length > 0 && (
+        <div className="bg-white rounded-xl border border-slate-200 p-4 flex flex-wrap items-center gap-4">
+          <div>
+            <label className="text-xs font-semibold text-slate-600 block mb-1">Sales Rep</label>
+            <select
+              value={filterRep}
+              onChange={(e) => setFilterRep(e.target.value)}
+              className="border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
+            >
+              <option value="">All Reps ({leads.filter(l => l.follow_up_date).length})</option>
+              {reps.map(rep => {
+                const count = overdueLeads.filter(l => (l.assigned_rep || 'Unassigned') === rep).length;
+                return <option key={rep} value={rep}>{rep} ({count})</option>;
+              })}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-slate-600 block mb-1">Sort By</label>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
+            >
+              <option value="daysOverdue">Days Overdue (Highest)</option>
+              <option value="name">Name (A-Z)</option>
+              <option value="rep">Sales Rep (A-Z)</option>
+            </select>
+          </div>
+        </div>
+      )}
+
+      {/* List */}
+      <div className="space-y-3">
+        {overdueLeads.length === 0 ? (
+          <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
+            <AlertTriangle className="w-8 h-8 text-slate-300 mx-auto mb-3" />
+            <p className="text-slate-500 font-medium">No overdue follow-ups</p>
+            <p className="text-xs text-slate-400 mt-1">Great work staying on top of follow-ups! 🎉</p>
+          </div>
+        ) : (
+          overdueLeads.map((lead) => (
+            <Link
+              key={lead.id}
+              to={`/leads/${lead.id}`}
+              className="bg-white rounded-xl border border-red-200 hover:border-red-300 hover:shadow-md transition-all overflow-hidden group"
+            >
+              <div className="p-4 flex items-start gap-4">
+                {/* Avatar */}
+                <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0 text-sm font-bold text-red-700">
+                  {lead.first_name?.[0]}{lead.last_name?.[0]}
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900 group-hover:text-red-600 transition-colors">
+                        {lead.first_name} {lead.last_name}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-0.5">{lead.email}</p>
+                    </div>
+                    <span className="text-xs font-bold text-white bg-red-500 px-2.5 py-1 rounded-full flex-shrink-0 whitespace-nowrap">
+                      {lead.daysOverdue} days overdue
+                    </span>
+                  </div>
+
+                  {/* Details */}
+                  <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-slate-500">
+                    {lead.follow_up_date && (
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        <span>{new Date(lead.follow_up_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                      </div>
+                    )}
+                    {lead.follow_up_time && (
+                      <span>{fmt12(lead.follow_up_time)}</span>
+                    )}
+                    {lead.follow_up_type && (
+                      <span className="px-2 py-0.5 bg-slate-100 rounded">
+                        {lead.follow_up_type === 'Meeting' ? '📅' : '📞'} {lead.follow_up_type}
+                      </span>
+                    )}
+                    {lead.phone && (
+                      <a href={`tel:${lead.phone}`} onClick={(e) => e.preventDefault()}
+                        className="flex items-center gap-1 text-green-600 hover:text-green-700">
+                        <Phone className="w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
+
+                  {/* Rep & Status */}
+                  <div className="flex items-center gap-2 mt-2 text-xs">
+                    <User className="w-3 h-3 text-slate-400" />
+                    <span className="text-slate-600">{lead.assigned_rep || 'Unassigned'}</span>
+                    <span className="text-slate-300">•</span>
+                    <span className={`font-medium ${
+                      lead.status === 'DNQ' ? 'text-slate-500' :
+                      lead.status === 'Sold' ? 'text-green-600' :
+                      lead.status === 'Lost' ? 'text-red-600' :
+                      'text-slate-600'
+                    }`}>
+                      {lead.status || 'New'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}

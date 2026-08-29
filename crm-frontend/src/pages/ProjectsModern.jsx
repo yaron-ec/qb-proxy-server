@@ -1,1 +1,169 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsgYXBpQ2FsbCB9IGZyb20gIkAvYXBpL3JhaWx3YXkvY2xpZW50IjsKaW1wb3J0IHsgTGluayB9IGZyb20gInJlYWN0LXJvdXRlci1kb20iOwppbXBvcnQgeyBQbHVzLCBTZWFyY2gsIEZpbHRlciwgRG9sbGFyU2lnbiwgVXNlcnMsIENoZWNrQ2lyY2xlMiwgQWxlcnRDaXJjbGUsIFRyZW5kaW5nVXAgfSBmcm9tICJsdWNpZGUtcmVhY3QiOwoKY29uc3QgUFJPSkVDVF9TVEFUVVNfQ09MT1JTID0gewogICdQcmUtQ29uc3RydWN0aW9uJzogJ2JnLWJsdWUtMTAwIHRleHQtYmx1ZS03MDAnLAogICdJbiBQcm9ncmVzcyc6ICdiZy1vcmFuZ2UtMTAwIHRleHQtb3JhbmdlLTcwMCcsCiAgJ09uIEhvbGQnOiAnYmctYW1iZXItMTAwIHRleHQtYW1iZXItNzAwJywKICAnQ29tcGxldGVkJzogJ2JnLWVtZXJhbGQtMTAwIHRleHQtZW1lcmFsZC03MDAnLAogICdDYW5jZWxsZWQnOiAnYmctcmVkLTEwMCB0ZXh0LXJlZC03MDAnLAp9OwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gUHJvamVjdHNNb2Rlcm4oKSB7CiAgY29uc3QgW3Byb2plY3RzLCBzZXRQcm9qZWN0c10gPSB1c2VTdGF0ZShbXSk7CiAgY29uc3QgW2xvYWRpbmcsIHNldExvYWRpbmddID0gdXNlU3RhdGUodHJ1ZSk7CiAgY29uc3QgW3NlYXJjaFRlcm0sIHNldFNlYXJjaFRlcm1dID0gdXNlU3RhdGUoJycpOwogIGNvbnN0IFtzdGF0dXNGaWx0ZXIsIHNldFN0YXR1c0ZpbHRlcl0gPSB1c2VTdGF0ZSgnYWxsJyk7CgogIHVzZUVmZmVjdCgoKSA9PiB7CiAgICBsb2FkUHJvamVjdHMoKTsKICAgIGNvbnN0IGludGVydmFsID0gc2V0SW50ZXJ2YWwobG9hZFByb2plY3RzLCAzMDAwMCk7CiAgICByZXR1cm4gKCkgPT4gY2xlYXJJbnRlcnZhbChpbnRlcnZhbCk7CiAgfSwgW10pOwoKICBjb25zdCBsb2FkUHJvamVjdHMgPSBhc3luYyAoKSA9PiB7CiAgICB0cnkgewogICAgICBjb25zdCByZXMgPSBhd2FpdCBhcGlDYWxsKCcvYXBpL3YxL2RlYWxzP2xpbWl0PTUwMCcsIHsgbWV0aG9kOiAnR0VUJyB9KTsKICAgICAgY29uc3QgYWxsUHJvamVjdHMgPSBBcnJheS5pc0FycmF5KHJlcykgPyByZXMgOiAocmVzPy5pdGVtcyB8fCBbXSk7CiAgICAgIHNldFByb2plY3RzKGFsbFByb2plY3RzKTsKICAgICAgc2V0TG9hZGluZyhmYWxzZSk7CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIGNvbnNvbGUuZXJyb3IoJ0Vycm9yIGxvYWRpbmcgcHJvamVjdHM6JywgZSk7CiAgICAgIHNldExvYWRpbmcoZmFsc2UpOwogICAgfQogIH07CgogIGNvbnN0IGZpbHRlcmVkUHJvamVjdHMgPSBwcm9qZWN0cwogICAgLmZpbHRlcihwID0+IHsKICAgICAgY29uc3QgdGV4dCA9IGAke3AubmFtZX0gJHtwLmNsaWVudF9uYW1lfSAke3AucHJvcGVydHlfYWRkcmVzcyB8fCAnJ31gLnRvTG93ZXJDYXNlKCk7CiAgICAgIHJldHVybiB0ZXh0LmluY2x1ZGVzKHNlYXJjaFRlcm0udG9Mb3dlckNhc2UoKSk7CiAgICB9KQogICAgLmZpbHRlcihwID0+IHN0YXR1c0ZpbHRlciA9PT0gJ2FsbCcgfHwgcC5zdGF0dXMgPT09IHN0YXR1c0ZpbHRlcik7CgogIGNvbnN0IGdldFByb2dyZXNzUGVyY2VudCA9IChwcm9qZWN0KSA9PiB7CiAgICBpZiAocHJvamVjdC5zdGF0dXMgPT09ICdDb21wbGV0ZWQnKSByZXR1cm4gMTAwOwogICAgaWYgKHByb2plY3Quc3RhdHVzID09PSAnUHJlLUNvbnN0cnVjdGlvbicpIHJldHVybiAwOwogICAgaWYgKHByb2plY3Quc3RhdHVzID09PSAnT24gSG9sZCcpIHJldHVybiA1MDsKICAgIHJldHVybiA2NTsKICB9OwoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9Im1pbi1oLXNjcmVlbiBiZy1zbGF0ZS01MCI+CiAgICAgIHsvKiBIZWFkZXIgKi99CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJzdGlja3kgdG9wLTAgei00MCBiZy13aGl0ZSBib3JkZXItYiBib3JkZXItc2xhdGUtMjAwIj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibWF4LXctN3hsIG14LWF1dG8gcHgtNiBweS02Ij4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gbWItNiI+CiAgICAgICAgICAgIDxkaXY+CiAgICAgICAgICAgICAgPGgxIGNsYXNzTmFtZT0idGV4dC0zeGwgZm9udC1ib2xkIHRleHQtc2xhdGUtOTAwIj5Qcm9qZWN0czwvaDE+CiAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIHRleHQtc2xhdGUtNTAwIG10LTEiPntmaWx0ZXJlZFByb2plY3RzLmxlbmd0aH0gcHJvamVjdHM8L3A+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8YnV0dG9uIGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgYmctZ3JhZGllbnQtdG8tciBmcm9tLXNsYXRlLTkwMCB0by1zbGF0ZS04MDAgdGV4dC13aGl0ZSBweC00IHB5LTIgcm91bmRlZC14bCBmb250LXNlbWlib2xkIGhvdmVyOnNoYWRvdy1sZyB0cmFuc2l0aW9uLWFsbCBkdXJhdGlvbi0yMDAgYWN0aXZlOnNjYWxlLTk1Ij4KICAgICAgICAgICAgICA8UGx1cyBjbGFzc05hbWU9InctNCBoLTQiIC8+CiAgICAgICAgICAgICAgTmV3IFByb2plY3QKICAgICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICB7LyogRmlsdGVycyAqL30KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGZsZXgtY29sIG1kOmZsZXgtcm93IGdhcC0zIj4KICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InJlbGF0aXZlIGZsZXgtMSBtYXgtdy1tZCI+CiAgICAgICAgICAgICAgPFNlYXJjaCBjbGFzc05hbWU9ImFic29sdXRlIGxlZnQtMyB0b3AtMS8yIHRyYW5zZm9ybSAtdHJhbnNsYXRlLXktMS8yIHctNCBoLTQgdGV4dC1zbGF0ZS00MDAiIC8+CiAgICAgICAgICAgICAgPGlucHV0CiAgICAgICAgICAgICAgICB0eXBlPSJ0ZXh0IgogICAgICAgICAgICAgICAgcGxhY2Vob2xkZXI9IlNlYXJjaCBwcm9qZWN0cy4uLiIKICAgICAgICAgICAgICAgIHZhbHVlPXtzZWFyY2hUZXJtfQogICAgICAgICAgICAgICAgb25DaGFuZ2U9eyhlKSA9PiBzZXRTZWFyY2hUZXJtKGUudGFyZ2V0LnZhbHVlKX0KICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0idy1mdWxsIHBsLTEwIHByLTQgcHktMiBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCByb3VuZGVkLXhsIHRleHQtc20gZm9jdXM6b3V0bGluZS1ub25lIGZvY3VzOnJpbmctMiBmb2N1czpyaW5nLXNsYXRlLTkwMC8xMCB0cmFuc2l0aW9uLWFsbCIKICAgICAgICAgICAgICAvPgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgPHNlbGVjdAogICAgICAgICAgICAgIHZhbHVlPXtzdGF0dXNGaWx0ZXJ9CiAgICAgICAgICAgICAgb25DaGFuZ2U9eyhlKSA9PiBzZXRTdGF0dXNGaWx0ZXIoZS50YXJnZXQudmFsdWUpfQogICAgICAgICAgICAgIGNsYXNzTmFtZT0icHgtNCBweS0yIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQteGwgdGV4dC1zbSBmb250LW1lZGl1bSBiZy13aGl0ZSBmb2N1czpvdXRsaW5lLW5vbmUgZm9jdXM6cmluZy0yIGZvY3VzOnJpbmctc2xhdGUtOTAwLzEwIHRyYW5zaXRpb24tYWxsIgogICAgICAgICAgICA+CiAgICAgICAgICAgICAgPG9wdGlvbiB2YWx1ZT0iYWxsIj5BbGwgU3RhdHVzZXM8L29wdGlvbj4KICAgICAgICAgICAgICB7T2JqZWN0LmtleXMoUFJPSkVDVF9TVEFUVVNfQ09MT1JTKS5tYXAoc3RhdHVzID0+ICgKICAgICAgICAgICAgICAgIDxvcHRpb24ga2V5PXtzdGF0dXN9IHZhbHVlPXtzdGF0dXN9PntzdGF0dXN9PC9vcHRpb24+CiAgICAgICAgICAgICAgKSl9CiAgICAgICAgICAgIDwvc2VsZWN0PgogICAgICAgICAgPC9kaXY+CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgoKICAgICAgey8qIFByb2plY3RzIEdyaWQgKi99CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJtYXgtdy03eGwgbXgtYXV0byBweC02IHB5LTgiPgogICAgICAgIHtsb2FkaW5nID8gKAogICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHB5LTEyIj4KICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXNsYXRlLTUwMCI+TG9hZGluZyBwcm9qZWN0cy4uLjwvc3Bhbj4KICAgICAgICAgIDwvZGl2PgogICAgICAgICkgOiBmaWx0ZXJlZFByb2plY3RzLmxlbmd0aCA9PT0gMCA/ICgKICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LWNlbnRlciBweS0xMiI+CiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1zbGF0ZS01MDAiPk5vIHByb2plY3RzIGZvdW5kPC9wPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgKSA6ICgKICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJncmlkIGdyaWQtY29scy0xIG1kOmdyaWQtY29scy0yIGxnOmdyaWQtY29scy0zIGdhcC02Ij4KICAgICAgICAgICAge2ZpbHRlcmVkUHJvamVjdHMubWFwKHByb2plY3QgPT4gewogICAgICAgICAgICAgIGNvbnN0IHByb2dyZXNzID0gZ2V0UHJvZ3Jlc3NQZXJjZW50KHByb2plY3QpOwogICAgICAgICAgICAgIHJldHVybiAoCiAgICAgICAgICAgICAgICA8TGluawogICAgICAgICAgICAgICAgICBrZXk9e3Byb2plY3QuaWR9CiAgICAgICAgICAgICAgICAgIHRvPXtgL3Byb2plY3RzLyR7cHJvamVjdC5pZH1gfQogICAgICAgICAgICAgICAgICBjbGFzc05hbWU9ImNhcmQtcHJlbWl1bSBwLTYgZ3JvdXAgaG92ZXI6c2hhZG93LWxnIHRyYW5zaXRpb24tYWxsIGR1cmF0aW9uLTIwMCBjdXJzb3ItcG9pbnRlciBmbGV4IGZsZXgtY29sIgogICAgICAgICAgICAgICAgPgogICAgICAgICAgICAgICAgICB7LyogSGVhZGVyICovfQogICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibWItNCI+CiAgICAgICAgICAgICAgICAgICAgPGgzIGNsYXNzTmFtZT0iZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTkwMCBtYi0xIGdyb3VwLWhvdmVyOnRleHQtc2xhdGUtNzAwIHRyYW5zaXRpb24tY29sb3JzIj4KICAgICAgICAgICAgICAgICAgICAgIHtwcm9qZWN0Lm5hbWV9CiAgICAgICAgICAgICAgICAgICAgPC9oMz4KICAgICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20gdGV4dC1zbGF0ZS02MDAiPntwcm9qZWN0LmNsaWVudF9uYW1lfTwvcD4KICAgICAgICAgICAgICAgICAgPC9kaXY+CgogICAgICAgICAgICAgICAgICB7LyogU3RhdHVzICovfQogICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibWItNCI+CiAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPXtgdGV4dC14cyBmb250LXNlbWlib2xkIHB4LTMgcHktMSByb3VuZGVkLWZ1bGwgJHtQUk9KRUNUX1NUQVRVU19DT0xPUlNbcHJvamVjdC5zdGF0dXNdIHx8ICdiZy1zbGF0ZS0xMDAgdGV4dC1zbGF0ZS03MDAnfWB9PgogICAgICAgICAgICAgICAgICAgICAge3Byb2plY3Quc3RhdHVzfQogICAgICAgICAgICAgICAgICAgIDwvc3Bhbj4KICAgICAgICAgICAgICAgICAgPC9kaXY+CgogICAgICAgICAgICAgICAgICB7LyogUHJvZ3Jlc3MgQmFyICovfQogICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibWItNCI+CiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBtYi0yIj4KICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTYwMCBmb250LW1lZGl1bSI+UHJvZ3Jlc3M8L3NwYW4+CiAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS05MDAgZm9udC1zZW1pYm9sZCI+e3Byb2dyZXNzfSU8L3NwYW4+CiAgICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InctZnVsbCBoLTIgYmctc2xhdGUtMTAwIHJvdW5kZWQtZnVsbCBvdmVyZmxvdy1oaWRkZW4iPgogICAgICAgICAgICAgICAgICAgICAgPGRpdiAKICAgICAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJoLWZ1bGwgYmctZ3JhZGllbnQtdG8tciBmcm9tLXNsYXRlLTkwMCB0by1zbGF0ZS03MDAgdHJhbnNpdGlvbi1hbGwgZHVyYXRpb24tNTAwIgogICAgICAgICAgICAgICAgICAgICAgICBzdHlsZT17eyB3aWR0aDogYCR7cHJvZ3Jlc3N9JWAgfX0KICAgICAgICAgICAgICAgICAgICAgIC8+CiAgICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgICAgICAgICAgey8qIFN0YXRzICovfQogICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZ3JpZCBncmlkLWNvbHMtMiBnYXAtMyBwdC00IGJvcmRlci10IGJvcmRlci1zbGF0ZS0xMDAiPgogICAgICAgICAgICAgICAgICAgIDxkaXY+CiAgICAgICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS02MDAgbWItMSI+Q29udHJhY3QgVmFsdWU8L3A+CiAgICAgICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9ImZvbnQtc2VtaWJvbGQgdGV4dC1zbGF0ZS05MDAiPiR7KHByb2plY3QuY29udHJhY3RfdmFsdWUgfHwgMCkudG9Mb2NhbGVTdHJpbmcoKX08L3A+CiAgICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTYwMCBtYi0xIj5TdGFydCBEYXRlPC9wPgogICAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJmb250LXNlbWlib2xkIHRleHQtc2xhdGUtOTAwIj57cHJvamVjdC5zdGFydF9kYXRlID8gbmV3IERhdGUocHJvamVjdC5zdGFydF9kYXRlKS50b0xvY2FsZURhdGVTdHJpbmcoKSA6ICfigJQnfTwvcD4KICAgICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgPC9kaXY+CgogICAgICAgICAgICAgICAgICB7LyogQWRkcmVzcyAqL30KICAgICAgICAgICAgICAgICAge3Byb2plY3QucHJvcGVydHlfYWRkcmVzcyAmJiAoCiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9Im10LTQgcHQtNCBib3JkZXItdCBib3JkZXItc2xhdGUtMTAwIj4KICAgICAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LXNsYXRlLTYwMCI+8J+TjSB7cHJvamVjdC5wcm9wZXJ0eV9hZGRyZXNzfTwvcD4KICAgICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgICAgIDwvTGluaz4KICAgICAgICAgICAgICApOwogICAgICAgICAgICB9KX0KICAgICAgICAgIDwvZGl2PgogICAgICAgICl9CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CiAgKTsKfQ==
+import { useState, useEffect } from "react";
+import { apiCall } from "@/api/railway/client";
+import { Link } from "react-router-dom";
+import { Plus, Search, Filter, DollarSign, Users, CheckCircle2, AlertCircle, TrendingUp } from "lucide-react";
+
+const PROJECT_STATUS_COLORS = {
+  'Pre-Construction': 'bg-blue-100 text-blue-700',
+  'In Progress': 'bg-orange-100 text-orange-700',
+  'On Hold': 'bg-amber-100 text-amber-700',
+  'Completed': 'bg-emerald-100 text-emerald-700',
+  'Cancelled': 'bg-red-100 text-red-700',
+};
+
+export default function ProjectsModern() {
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  useEffect(() => {
+    loadProjects();
+    const interval = setInterval(loadProjects, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadProjects = async () => {
+    try {
+      const res = await apiCall('/api/v1/deals?limit=500', { method: 'GET' });
+      const allProjects = Array.isArray(res) ? res : (res?.items || []);
+      setProjects(allProjects);
+      setLoading(false);
+    } catch (e) {
+      console.error('Error loading projects:', e);
+      setLoading(false);
+    }
+  };
+
+  const filteredProjects = projects
+    .filter(p => {
+      const text = `${p.name} ${p.client_name} ${p.property_address || ''}`.toLowerCase();
+      return text.includes(searchTerm.toLowerCase());
+    })
+    .filter(p => statusFilter === 'all' || p.status === statusFilter);
+
+  const getProgressPercent = (project) => {
+    if (project.status === 'Completed') return 100;
+    if (project.status === 'Pre-Construction') return 0;
+    if (project.status === 'On Hold') return 50;
+    return 65;
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      {/* Header */}
+      <div className="sticky top-0 z-40 bg-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Projects</h1>
+              <p className="text-sm text-slate-500 mt-1">{filteredProjects.length} projects</p>
+            </div>
+            <button className="flex items-center gap-2 bg-gradient-to-r from-slate-900 to-slate-800 text-white px-4 py-2 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 active:scale-95">
+              <Plus className="w-4 h-4" />
+              New Project
+            </button>
+          </div>
+
+          {/* Filters */}
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search projects..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all"
+              />
+            </div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all"
+            >
+              <option value="all">All Statuses</option>
+              {Object.keys(PROJECT_STATUS_COLORS).map(status => (
+                <option key={status} value={status}>{status}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Projects Grid */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <span className="text-slate-500">Loading projects...</span>
+          </div>
+        ) : filteredProjects.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-slate-500">No projects found</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProjects.map(project => {
+              const progress = getProgressPercent(project);
+              return (
+                <Link
+                  key={project.id}
+                  to={`/projects/${project.id}`}
+                  className="card-premium p-6 group hover:shadow-lg transition-all duration-200 cursor-pointer flex flex-col"
+                >
+                  {/* Header */}
+                  <div className="mb-4">
+                    <h3 className="font-semibold text-slate-900 mb-1 group-hover:text-slate-700 transition-colors">
+                      {project.name}
+                    </h3>
+                    <p className="text-sm text-slate-600">{project.client_name}</p>
+                  </div>
+
+                  {/* Status */}
+                  <div className="mb-4">
+                    <span className={`text-xs font-semibold px-3 py-1 rounded-full ${PROJECT_STATUS_COLORS[project.status] || 'bg-slate-100 text-slate-700'}`}>
+                      {project.status}
+                    </span>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-slate-600 font-medium">Progress</span>
+                      <span className="text-xs text-slate-900 font-semibold">{progress}%</span>
+                    </div>
+                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-slate-900 to-slate-700 transition-all duration-500"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Stats */}
+                  <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-100">
+                    <div>
+                      <p className="text-xs text-slate-600 mb-1">Contract Value</p>
+                      <p className="font-semibold text-slate-900">${(project.contract_value || 0).toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-600 mb-1">Start Date</p>
+                      <p className="font-semibold text-slate-900">{project.start_date ? new Date(project.start_date).toLocaleDateString() : '—'}</p>
+                    </div>
+                  </div>
+
+                  {/* Address */}
+                  {project.property_address && (
+                    <div className="mt-4 pt-4 border-t border-slate-100">
+                      <p className="text-xs text-slate-600">📍 {project.property_address}</p>
+                    </div>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

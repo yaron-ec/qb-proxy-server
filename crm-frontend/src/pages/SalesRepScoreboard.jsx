@@ -1,1 +1,166 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gJ3JlYWN0JzsKaW1wb3J0IHsgYXBpQ2FsbCB9IGZyb20gJ0AvYXBpL3JhaWx3YXkvY2xpZW50JzsKaW1wb3J0IHsgVHJlbmRpbmdVcCwgVGFyZ2V0LCBaYXAgfSBmcm9tICdsdWNpZGUtcmVhY3QnOwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gU2FsZXNSZXBTY29yZWJvYXJkKCkgewogIGNvbnN0IFtzY29yZWJvYXJkLCBzZXRTY29yZWJvYXJkXSA9IHVzZVN0YXRlKFtdKTsKICBjb25zdCBbbG9hZGluZywgc2V0TG9hZGluZ10gPSB1c2VTdGF0ZSh0cnVlKTsKICBjb25zdCBbc29ydEJ5LCBzZXRTb3J0QnldID0gdXNlU3RhdGUoJ3JldmVudWVTb2xkJyk7CgogIHVzZUVmZmVjdCgoKSA9PiB7CiAgICBsb2FkU2NvcmVib2FyZCgpOwogIH0sIFtdKTsKCiAgY29uc3QgbG9hZFNjb3JlYm9hcmQgPSBhc3luYyAoKSA9PiB7CiAgICB0cnkgewogICAgICBjb25zdCByZXMgPSBhd2FpdCBhcGlDYWxsKCcvYXBpL3YxL2xlYWRzJywgeyBtZXRob2Q6ICdHRVQnIH0pOwogICAgICBzZXRTY29yZWJvYXJkKHJlcz8uc2NvcmVib2FyZCB8fCBbXSk7CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIGNvbnNvbGUuZXJyb3IoJ0Vycm9yIGxvYWRpbmcgc2NvcmVib2FyZDonLCBlKTsKICAgIH0gZmluYWxseSB7CiAgICAgIHNldExvYWRpbmcoZmFsc2UpOwogICAgfQogIH07CgogIGlmIChsb2FkaW5nKSB7CiAgICByZXR1cm4gPGRpdiBjbGFzc05hbWU9ImgtZnVsbCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciI+PGRpdiBjbGFzc05hbWU9InctOCBoLTggYm9yZGVyLTQgYm9yZGVyLXNsYXRlLTIwMCBib3JkZXItdC1hbWJlci02MDAgcm91bmRlZC1mdWxsIGFuaW1hdGUtc3BpbiI+PC9kaXY+PC9kaXY+OwogIH0KCiAgY29uc3Qgc29ydGVkID0gWy4uLnNjb3JlYm9hcmRdLnNvcnQoKGEsIGIpID0+IHsKICAgIGlmIChzb3J0QnkgPT09ICdyZXZlbnVlU29sZCcpIHJldHVybiBiLnJldmVudWVTb2xkIC0gYS5yZXZlbnVlU29sZDsKICAgIGlmIChzb3J0QnkgPT09ICdjbG9zZVJhdGUnKSByZXR1cm4gYi5jbG9zZVJhdGUgLSBhLmNsb3NlUmF0ZTsKICAgIGlmIChzb3J0QnkgPT09ICdsZWFkc0Fzc2lnbmVkJykgcmV0dXJuIGIubGVhZHNBc3NpZ25lZCAtIGEubGVhZHNBc3NpZ25lZDsKICAgIHJldHVybiAwOwogIH0pOwoKICBjb25zdCB0b3BQZXJmb3JtZXIgPSBzb3J0ZWRbMF07CiAgY29uc3QgdG90YWxSZXZlbnVlID0gc29ydGVkLnJlZHVjZSgoc3VtLCByKSA9PiBzdW0gKyByLnJldmVudWVTb2xkLCAwKTsKICBjb25zdCBhdmdDbG9zZVJhdGUgPSBNYXRoLnJvdW5kKHNvcnRlZC5yZWR1Y2UoKHN1bSwgcikgPT4gc3VtICsgci5jbG9zZVJhdGUsIDApIC8gc29ydGVkLmxlbmd0aCkgfHwgMDsKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJtaW4taC1mdWxsIGJnLWJhY2tncm91bmQiIHN0eWxlPXt7IHBhZGRpbmdUb3A6ICdlbnYoc2FmZS1hcmVhLWluc2V0LXRvcCknIH19PgogICAgICA8ZGl2IGNsYXNzTmFtZT0ibWF4LXctN3hsIG14LWF1dG8gcHgtNiBweS04Ij4KICAgICAgICB7LyogSGVhZGVyICovfQogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtYi04Ij4KICAgICAgICAgIDxoMSBjbGFzc05hbWU9InRleHQtM3hsIGZvbnQtYm9sZCB0ZXh0LWZvcmVncm91bmQiPlNhbGVzIFJlcCBTY29yZWJvYXJkPC9oMT4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1zbSB0ZXh0LW11dGVkLWZvcmVncm91bmQgbXQtMSI+UGVyZm9ybWFuY2UgbWV0cmljcyBhbmQgbGVhZGVyYm9hcmQ8L3A+CiAgICAgICAgPC9kaXY+CgogICAgICAgIHsvKiBTdW1tYXJ5IFN0YXRzICovfQogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJncmlkIGdyaWQtY29scy0xIG1kOmdyaWQtY29scy0zIGdhcC00IG1iLTgiPgogICAgICAgICAgPFN0YXRDYXJkCiAgICAgICAgICAgIGljb249e1RyZW5kaW5nVXB9CiAgICAgICAgICAgIGxhYmVsPSJUb3RhbCBSZXZlbnVlIFNvbGQiCiAgICAgICAgICAgIHZhbHVlPXtgJCR7KHRvdGFsUmV2ZW51ZSAvIDEwMDApLnRvRml4ZWQoMCl9S2B9CiAgICAgICAgICAgIGNvbG9yPSJlbWVyYWxkIgogICAgICAgICAgLz4KICAgICAgICAgIDxTdGF0Q2FyZAogICAgICAgICAgICBpY29uPXtUYXJnZXR9CiAgICAgICAgICAgIGxhYmVsPSJBdmVyYWdlIENsb3NlIFJhdGUiCiAgICAgICAgICAgIHZhbHVlPXtgJHthdmdDbG9zZVJhdGV9JWB9CiAgICAgICAgICAgIGNvbG9yPSJibHVlIgogICAgICAgICAgLz4KICAgICAgICAgIDxTdGF0Q2FyZAogICAgICAgICAgICBpY29uPXtaYXB9CiAgICAgICAgICAgIGxhYmVsPSJUb3AgUGVyZm9ybWVyIgogICAgICAgICAgICB2YWx1ZT17dG9wUGVyZm9ybWVyPy5uYW1lIHx8ICfigJQnfQogICAgICAgICAgICBzdWJ0aXRsZT17YCQkeyh0b3BQZXJmb3JtZXI/LnJldmVudWVTb2xkIC8gMTAwMCkudG9GaXhlZCgwKX1LYH0KICAgICAgICAgICAgY29sb3I9ImFtYmVyIgogICAgICAgICAgLz4KICAgICAgICA8L2Rpdj4KCiAgICAgICAgey8qIFNvcnQgQ29udHJvbHMgKi99CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZ2FwLTIgbWItNiI+CiAgICAgICAgICB7WwogICAgICAgICAgICB7IHZhbHVlOiAncmV2ZW51ZVNvbGQnLCBsYWJlbDogJ1NvcnQ6IFJldmVudWUgU29sZCcgfSwKICAgICAgICAgICAgeyB2YWx1ZTogJ2Nsb3NlUmF0ZScsIGxhYmVsOiAnU29ydDogQ2xvc2UgUmF0ZScgfSwKICAgICAgICAgICAgeyB2YWx1ZTogJ2xlYWRzQXNzaWduZWQnLCBsYWJlbDogJ1NvcnQ6IExlYWRzIEFzc2lnbmVkJyB9LAogICAgICAgICAgXS5tYXAob3B0ID0+ICgKICAgICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICAgIGtleT17b3B0LnZhbHVlfQogICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHNldFNvcnRCeShvcHQudmFsdWUpfQogICAgICAgICAgICAgIGNsYXNzTmFtZT17YHB4LTMgcHktMS41IHRleHQteHMgZm9udC1zZW1pYm9sZCByb3VuZGVkLWxnIGJvcmRlciB0cmFuc2l0aW9uLWFsbCAkewogICAgICAgICAgICAgICAgc29ydEJ5ID09PSBvcHQudmFsdWUKICAgICAgICAgICAgICAgICAgPyAnYmctYW1iZXItNjAwIHRleHQtd2hpdGUgYm9yZGVyLWFtYmVyLTYwMCcKICAgICAgICAgICAgICAgICAgOiAnYmctd2hpdGUgdGV4dC1zbGF0ZS03MDAgYm9yZGVyLXNsYXRlLTIwMCBob3Zlcjpib3JkZXItc2xhdGUtMzAwJwogICAgICAgICAgICAgIH1gfQogICAgICAgICAgICA+CiAgICAgICAgICAgICAge29wdC5sYWJlbH0KICAgICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICApKX0KICAgICAgICA8L2Rpdj4KCiAgICAgICAgey8qIExlYWRlcmJvYXJkICovfQogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJzcGFjZS15LTMiPgogICAgICAgICAge3NvcnRlZC5tYXAoKHJlcCwgaW5kZXgpID0+ICgKICAgICAgICAgICAgPExlYWRlcmJvYXJkUm93IGtleT17cmVwLm5hbWV9IHJlcD17cmVwfSByYW5rPXtpbmRleCArIDF9IHRvdGFsPXtzb3J0ZWQubGVuZ3RofSAvPgogICAgICAgICAgKSl9CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CiAgKTsKfQoKZnVuY3Rpb24gU3RhdENhcmQoeyBpY29uOiBJY29uLCBsYWJlbCwgdmFsdWUsIHN1YnRpdGxlLCBjb2xvciB9KSB7CiAgY29uc3QgY29sb3JNYXAgPSB7CiAgICBlbWVyYWxkOiAnYmctZW1lcmFsZC01MCBib3JkZXItZW1lcmFsZC0yMDAgdGV4dC1lbWVyYWxkLTcwMCcsCiAgICBibHVlOiAnYmctYmx1ZS01MCBib3JkZXItYmx1ZS0yMDAgdGV4dC1ibHVlLTcwMCcsCiAgICBhbWJlcjogJ2JnLWFtYmVyLTUwIGJvcmRlci1hbWJlci0yMDAgdGV4dC1hbWJlci03MDAnLAogIH07CgogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT17YHJvdW5kZWQtbGcgYm9yZGVyIHAtNiAke2NvbG9yTWFwW2NvbG9yXX1gfT4KICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtc3RhcnQganVzdGlmeS1iZXR3ZWVuIG1iLTIiPgogICAgICAgIDxkaXY+CiAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20gZm9udC1tZWRpdW0gb3BhY2l0eS03NSI+e2xhYmVsfTwvcD4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC0yeGwgZm9udC1ib2xkIG10LTEiPnt2YWx1ZX08L3A+CiAgICAgICAgICB7c3VidGl0bGUgJiYgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIG9wYWNpdHktNzUgbXQtMSI+e3N1YnRpdGxlfTwvcD59CiAgICAgICAgPC9kaXY+CiAgICAgICAgPEljb24gY2xhc3NOYW1lPSJ3LTYgaC02IG9wYWNpdHktNTAiIC8+CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CiAgKTsKfQoKZnVuY3Rpb24gTGVhZGVyYm9hcmRSb3coeyByZXAsIHJhbmssIHRvdGFsIH0pIHsKICBjb25zdCBtZWRhbEVtb2ppID0gcmFuayA9PT0gMSA/ICfwn6WHJyA6IHJhbmsgPT09IDIgPyAn8J+liCcgOiByYW5rID09PSAzID8gJ/CfpYknIDogJyAgJzsKICBjb25zdCBtYXhSZXZlbnVlID0gTWF0aC5tYXgoLi4uQXJyYXkuZnJvbSh7IGxlbmd0aDogdG90YWwgfSwgKCkgPT4gMCkpOwoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9ImJnLXdoaXRlIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgcC00IGhvdmVyOnNoYWRvdy1tZCB0cmFuc2l0aW9uLXNoYWRvdyI+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLXN0YXJ0IGdhcC00Ij4KICAgICAgICB7LyogUmFuayBCYWRnZSAqL30KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC0yeGwgZm9udC1ib2xkIHRleHQtc2xhdGUtMzAwIG1pbi13LVsycmVtXSB0ZXh0LWNlbnRlciI+CiAgICAgICAgICB7bWVkYWxFbW9qaX0KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LXNtIHRleHQtc2xhdGUtNTAwIj57cmFua308L2Rpdj4KICAgICAgICA8L2Rpdj4KCiAgICAgICAgey8qIFJlcCBJbmZvICovfQogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4LTEgbWluLXctMCI+CiAgICAgICAgICA8aDMgY2xhc3NOYW1lPSJmb250LWJvbGQgdGV4dC1zbGF0ZS05MDAgdGV4dC1sZyI+e3JlcC5uYW1lfTwvaDM+CgogICAgICAgICAgey8qIE1ldHJpY3MgR3JpZCAqL30KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJncmlkIGdyaWQtY29scy0yIHNtOmdyaWQtY29scy00IG1kOmdyaWQtY29scy04IGdhcC0zIG10LTMiPgogICAgICAgICAgICA8TWV0cmljIGxhYmVsPSJMZWFkcyIgdmFsdWU9e3JlcC5sZWFkc0Fzc2lnbmVkfSAvPgogICAgICAgICAgICA8TWV0cmljIGxhYmVsPSJBcHB0cyBTZXQiIHZhbHVlPXtyZXAuYXBwb2ludG1lbnRzU2V0fSAvPgogICAgICAgICAgICA8TWV0cmljIGxhYmVsPSJBcHB0cyBIZWxkIiB2YWx1ZT17cmVwLmFwcG9pbnRtZW50c0hlbGR9IC8+CiAgICAgICAgICAgIDxNZXRyaWMgbGFiZWw9IkNvbnRyYWN0cyIgdmFsdWU9e3JlcC5jb250cmFjdHNTZW50fSAvPgogICAgICAgICAgICA8TWV0cmljIGxhYmVsPSJTaWduZWQiIHZhbHVlPXtyZXAuY29udHJhY3RzU2lnbmVkfSAvPgogICAgICAgICAgICA8TWV0cmljIGxhYmVsPSJDbG9zZSBSYXRlIiB2YWx1ZT17YCR7cmVwLmNsb3NlUmF0ZX0lYH0gYWNjZW50IC8+CiAgICAgICAgICAgIDxNZXRyaWMgbGFiZWw9IlJldmVudWUgU29sZCIgdmFsdWU9e2AkJHtyZXAucmV2ZW51ZVNvbGQgPj0gMTAwMCA/IChyZXAucmV2ZW51ZVNvbGQgLyAxMDAwKS50b0ZpeGVkKDApICsgJ0snIDogcmVwLnJldmVudWVTb2xkLnRvTG9jYWxlU3RyaW5nKCl9YH0gYWNjZW50IC8+CiAgICAgICAgICAgIDxNZXRyaWMgbGFiZWw9IkNvbGxlY3RlZCIgdmFsdWU9e2AkJHtyZXAucmV2ZW51ZUNvbGxlY3RlZCA+PSAxMDAwID8gKHJlcC5yZXZlbnVlQ29sbGVjdGVkIC8gMTAwMCkudG9GaXhlZCgwKSArICdLJyA6IHJlcC5yZXZlbnVlQ29sbGVjdGVkLnRvTG9jYWxlU3RyaW5nKCl9YH0gYWNjZW50IC8+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KICApOwp9CgpmdW5jdGlvbiBNZXRyaWMoeyBsYWJlbCwgdmFsdWUsIGFjY2VudCB9KSB7CiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPXtgdGV4dC1jZW50ZXIgcHktMSByb3VuZGVkICR7YWNjZW50ID8gJ2JnLWFtYmVyLTUwIGJvcmRlciBib3JkZXItYW1iZXItMTAwJyA6ICdiZy1zbGF0ZS01MCd9YH0+CiAgICAgIDxkaXYgY2xhc3NOYW1lPXtgdGV4dC1zbSBmb250LWJvbGQgJHthY2NlbnQgPyAndGV4dC1hbWJlci03MDAnIDogJ3RleHQtc2xhdGUtOTAwJ31gfT57dmFsdWV9PC9kaXY+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LVsxMXB4XSB0ZXh0LXNsYXRlLTUwMCBmb250LW1lZGl1bSI+e2xhYmVsfTwvZGl2PgogICAgPC9kaXY+CiAgKTsKfQ==
+import { useState, useEffect } from 'react';
+import { apiCall } from '@/api/railway/client';
+import { TrendingUp, Target, Zap } from 'lucide-react';
+
+export default function SalesRepScoreboard() {
+  const [scoreboard, setScoreboard] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState('revenueSold');
+
+  useEffect(() => {
+    loadScoreboard();
+  }, []);
+
+  const loadScoreboard = async () => {
+    try {
+      const res = await apiCall('/api/v1/leads', { method: 'GET' });
+      setScoreboard(res?.scoreboard || []);
+    } catch (e) {
+      console.error('Error loading scoreboard:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="h-full flex items-center justify-center"><div className="w-8 h-8 border-4 border-slate-200 border-t-amber-600 rounded-full animate-spin"></div></div>;
+  }
+
+  const sorted = [...scoreboard].sort((a, b) => {
+    if (sortBy === 'revenueSold') return b.revenueSold - a.revenueSold;
+    if (sortBy === 'closeRate') return b.closeRate - a.closeRate;
+    if (sortBy === 'leadsAssigned') return b.leadsAssigned - a.leadsAssigned;
+    return 0;
+  });
+
+  const topPerformer = sorted[0];
+  const totalRevenue = sorted.reduce((sum, r) => sum + r.revenueSold, 0);
+  const avgCloseRate = Math.round(sorted.reduce((sum, r) => sum + r.closeRate, 0) / sorted.length) || 0;
+
+  return (
+    <div className="min-h-full bg-background" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground">Sales Rep Scoreboard</h1>
+          <p className="text-sm text-muted-foreground mt-1">Performance metrics and leaderboard</p>
+        </div>
+
+        {/* Summary Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <StatCard
+            icon={TrendingUp}
+            label="Total Revenue Sold"
+            value={`$${(totalRevenue / 1000).toFixed(0)}K`}
+            color="emerald"
+          />
+          <StatCard
+            icon={Target}
+            label="Average Close Rate"
+            value={`${avgCloseRate}%`}
+            color="blue"
+          />
+          <StatCard
+            icon={Zap}
+            label="Top Performer"
+            value={topPerformer?.name || '—'}
+            subtitle={`$${(topPerformer?.revenueSold / 1000).toFixed(0)}K`}
+            color="amber"
+          />
+        </div>
+
+        {/* Sort Controls */}
+        <div className="flex gap-2 mb-6">
+          {[
+            { value: 'revenueSold', label: 'Sort: Revenue Sold' },
+            { value: 'closeRate', label: 'Sort: Close Rate' },
+            { value: 'leadsAssigned', label: 'Sort: Leads Assigned' },
+          ].map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => setSortBy(opt.value)}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all ${
+                sortBy === opt.value
+                  ? 'bg-amber-600 text-white border-amber-600'
+                  : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Leaderboard */}
+        <div className="space-y-3">
+          {sorted.map((rep, index) => (
+            <LeaderboardRow key={rep.name} rep={rep} rank={index + 1} total={sorted.length} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ icon: Icon, label, value, subtitle, color }) {
+  const colorMap = {
+    emerald: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+    blue: 'bg-blue-50 border-blue-200 text-blue-700',
+    amber: 'bg-amber-50 border-amber-200 text-amber-700',
+  };
+
+  return (
+    <div className={`rounded-lg border p-6 ${colorMap[color]}`}>
+      <div className="flex items-start justify-between mb-2">
+        <div>
+          <p className="text-sm font-medium opacity-75">{label}</p>
+          <p className="text-2xl font-bold mt-1">{value}</p>
+          {subtitle && <p className="text-xs opacity-75 mt-1">{subtitle}</p>}
+        </div>
+        <Icon className="w-6 h-6 opacity-50" />
+      </div>
+    </div>
+  );
+}
+
+function LeaderboardRow({ rep, rank, total }) {
+  const medalEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '  ';
+  const maxRevenue = Math.max(...Array.from({ length: total }, () => 0));
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+      <div className="flex items-start gap-4">
+        {/* Rank Badge */}
+        <div className="text-2xl font-bold text-slate-300 min-w-[2rem] text-center">
+          {medalEmoji}
+          <div className="text-sm text-slate-500">{rank}</div>
+        </div>
+
+        {/* Rep Info */}
+        <div className="flex-1 min-w-0">
+          <h3 className="font-bold text-slate-900 text-lg">{rep.name}</h3>
+
+          {/* Metrics Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3 mt-3">
+            <Metric label="Leads" value={rep.leadsAssigned} />
+            <Metric label="Appts Set" value={rep.appointmentsSet} />
+            <Metric label="Appts Held" value={rep.appointmentsHeld} />
+            <Metric label="Contracts" value={rep.contractsSent} />
+            <Metric label="Signed" value={rep.contractsSigned} />
+            <Metric label="Close Rate" value={`${rep.closeRate}%`} accent />
+            <Metric label="Revenue Sold" value={`$${rep.revenueSold >= 1000 ? (rep.revenueSold / 1000).toFixed(0) + 'K' : rep.revenueSold.toLocaleString()}`} accent />
+            <Metric label="Collected" value={`$${rep.revenueCollected >= 1000 ? (rep.revenueCollected / 1000).toFixed(0) + 'K' : rep.revenueCollected.toLocaleString()}`} accent />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Metric({ label, value, accent }) {
+  return (
+    <div className={`text-center py-1 rounded ${accent ? 'bg-amber-50 border border-amber-100' : 'bg-slate-50'}`}>
+      <div className={`text-sm font-bold ${accent ? 'text-amber-700' : 'text-slate-900'}`}>{value}</div>
+      <div className="text-[11px] text-slate-500 font-medium">{label}</div>
+    </div>
+  );
+}

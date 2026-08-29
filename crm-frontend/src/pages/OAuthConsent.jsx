@@ -1,1 +1,239 @@
-aW1wb3J0IFJlYWN0LCB7IHVzZUVmZmVjdCwgdXNlU3RhdGUgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IGFwcFBhcmFtcyB9IGZyb20gIkAvbGliL2FwcC1wYXJhbXMiOwppbXBvcnQgeyBCdXR0b24gfSBmcm9tICJAL2NvbXBvbmVudHMvdWkvYnV0dG9uIjsKaW1wb3J0IHsgU2hpZWxkQ2hlY2ssIExvYWRlcjIgfSBmcm9tICJsdWNpZGUtcmVhY3QiOwppbXBvcnQgQXV0aExheW91dCBmcm9tICJAL2NvbXBvbmVudHMvQXV0aExheW91dCI7CgovLyBBcHAtc2lkZSBPQXV0aCBjb25zZW50IHBhZ2UgZm9yIHRoZSBhcHAncyBNQ1Agc2VydmVyLiBUaGUgcGxhdGZvcm0gcmVkaXJlY3RzCi8vIEFJIGNsaWVudHMgaGVyZSAoc2VlIGJhc2U0NC9tY3AvY29uZmlnLmpzb24gYGNvbnNlbnRfcGF0aGApIHdpdGggYW4gb3BhcXVlCi8vIGBjdHhgIGhhbmRsZSDigJQgdGhlIGF1dGhvcml6YXRpb24gcmVxdWVzdCBpdHNlbGYgbGl2ZXMgb24gdGhlIHNlcnZlci4gVGhpcyBwYWdlCi8vIGdhdGVzIG9uIHRoZSBhcHAtdXNlciBzZXNzaW9uLCBmZXRjaGVzIHRoZSBkaXNwbGF5IGluZm8gZm9yIHRoYXQgaGFuZGxlLCBzaG93cwovLyB0aGUgY2F0ZWdvcmllcyBvZiBhY2Nlc3MgYmVpbmcgZ3JhbnRlZCwgYW5kIHBvc3RzIHRoZSBhcHByb3ZlL2RlbnkgZGVjaXNpb24uCi8vIERvIG5vdCBjaGFuZ2UgdGhlIGZldGNoIGNhbGxzLCBoZWFkZXJzLCBvciB0aGUgYGN0eGAgaGFuZGxlIGhhbmRsaW5nIOKAlCBzdHlsaW5nCi8vIGFuZCBjb3B5IGFyZSBzYWZlIHRvIGVkaXQuCmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIE9BdXRoQ29uc2VudCgpIHsKICBjb25zdCBjdHggPSBuZXcgVVJMU2VhcmNoUGFyYW1zKHdpbmRvdy5sb2NhdGlvbi5zZWFyY2gpLmdldCgiY3R4Iik7CiAgY29uc3QgW2luZm8sIHNldEluZm9dID0gdXNlU3RhdGUobnVsbCk7CiAgY29uc3QgW2NoZWNraW5nLCBzZXRDaGVja2luZ10gPSB1c2VTdGF0ZSh0cnVlKTsKICBjb25zdCBbc3VibWl0dGluZywgc2V0U3VibWl0dGluZ10gPSB1c2VTdGF0ZShmYWxzZSk7CiAgY29uc3QgW2RlY2lkZWQsIHNldERlY2lkZWRdID0gdXNlU3RhdGUoIiIpOwogIGNvbnN0IFtlcnJvciwgc2V0RXJyb3JdID0gdXNlU3RhdGUoIiIpOwogIGNvbnN0IFtyZWNvbm5lY3QsIHNldFJlY29ubmVjdF0gPSB1c2VTdGF0ZSgiIik7CgogIHVzZUVmZmVjdCgoKSA9PiB7CiAgICAoYXN5bmMgKCkgPT4gewogICAgICBsZXQgcmVkaXJlY3RpbmcgPSBmYWxzZTsKICAgICAgdHJ5IHsKICAgICAgICBpZiAoIWN0eCkgewogICAgICAgICAgc2V0RXJyb3IoIlRoaXMgYXV0aG9yaXphdGlvbiBsaW5rIGlzIGludmFsaWQgb3IgaGFzIGV4cGlyZWQuIik7CiAgICAgICAgICByZXR1cm47CiAgICAgICAgfQogICAgICAgIC8vIFJlc29sdmUgdGhlIGhhbmRsZSBmaXJzdDogYSBkZWFkIGhhbmRsZSBtdXN0IG5ldmVyIHJlbmRlcgogICAgICAgIC8vIGFwcHJvdmUvZGVueSwgYW5kIHRoZSByZXNwb25zZSBjYXJyaWVzIHRoZSBhcHAncyBjb25maWd1cmVkIGxvZ2luCiAgICAgICAgLy8gcm91dGUgZm9yIHRoZSBzaWduZWQtb3V0IHJlZGlyZWN0IGJlbG93LiBTZW5kIHRoZSBzZXNzaW9uIChjb29raWUgKwogICAgICAgIC8vIGJlYXJlciB0b2tlbikgc28gdGhlIHNlcnZlciBjYW4gbGlzdCB0aGUgZ3JhbnRlZCB0b29scyBmb3IgYQogICAgICAgIC8vIHNpZ25lZC1pbiB1c2VyIOKAlCB0aGUgc2FtZSBhdXRoIHRoZSBhcHByb3ZlL2RlbnkgY2FsbCBzZW5kczsgd2l0aG91dAogICAgICAgIC8vIGl0IHRoZSBkaXNwbGF5IHJlcXVlc3QgaXMgYW5vbnltb3VzIGFuZCBzaG93cyBubyB0b29scy4KICAgICAgICBjb25zdCBpbmZvSGVhZGVycyA9IHt9OwogICAgICAgIGlmIChhcHBQYXJhbXMudG9rZW4pIGluZm9IZWFkZXJzLkF1dGhvcml6YXRpb24gPSAiQmVhcmVyICIgKyBhcHBQYXJhbXMudG9rZW47CiAgICAgICAgY29uc3QgcmVzID0gYXdhaXQgZmV0Y2goCiAgICAgICAgICBgL2FwaS9hcHBzLyR7YXBwUGFyYW1zLmFwcElkfS9tY3AvY29uc2VudC1pbmZvP2hhbmRsZT0ke2VuY29kZVVSSUNvbXBvbmVudChjdHgpfWAsCiAgICAgICAgICB7IGNyZWRlbnRpYWxzOiAiaW5jbHVkZSIsIGhlYWRlcnM6IGluZm9IZWFkZXJzIH0sCiAgICAgICAgKTsKICAgICAgICBpZiAoIXJlcy5vaykgewogICAgICAgICAgc2V0RXJyb3IoIlRoaXMgYXV0aG9yaXphdGlvbiBsaW5rIGlzIGludmFsaWQgb3IgaGFzIGV4cGlyZWQuIik7CiAgICAgICAgICByZXR1cm47CiAgICAgICAgfQogICAgICAgIGNvbnN0IGRhdGEgPSBhd2FpdCByZXMuanNvbigpOwogICAgICAgIC8vIEdhdGUgb24gdGhlIHNlcnZlcidzIGF1dGggcmVzdWx0LCBOT1QgYmFzZTQ0LmF1dGguaXNBdXRoZW50aWNhdGVkKCk6CiAgICAgICAgLy8gdGhlIFNESyBjaGVjayBydW5zIHRoZSBiZWFyZXIgcGF0aCwgc28gYSBjb29raWUtb25seSBzZXNzaW9uIChwbGF0Zm9ybQogICAgICAgIC8vIGxvZ2luL1NTTywgb3IgYSBwcml2YXRlIGFwcCB3aXRoIGEgc3RhbGUgbG9jYWxTdG9yYWdlIHRva2VuKSB3b3VsZCByZWFkCiAgICAgICAgLy8gYXMgc2lnbmVkLW91dCBhbmQgcmVkaXJlY3Qg4oCUIGV2ZW4gdGhvdWdoIC9jb25zZW50LWluZm8ganVzdAogICAgICAgIC8vIGF1dGhlbnRpY2F0ZWQgdGhpcyBzYW1lIHJlcXVlc3QgdmlhIGl0cyBjb29raWUgZmFsbGJhY2suIGRhdGEuYXV0aGVudGljYXRlZAogICAgICAgIC8vIGtlZXBzIHRoZSByZWRpcmVjdCBkZWNpc2lvbiBpbiBhZ3JlZW1lbnQgd2l0aCB3aGF0IHRoZSBzZXJ2ZXIgcmV0dXJuZWQuCiAgICAgICAgaWYgKCFkYXRhLmF1dGhlbnRpY2F0ZWQpIHsKICAgICAgICAgIC8vIFRoZSBzaG9ydCBoYW5kbGUgcmlkZXMgYmFjayBpbiByZXR1cm5UbzsgbG9naW5fcGF0aCBpcwogICAgICAgICAgLy8gb3duZXItY29uZmlndXJlZCBhbmQgdmFsaWRhdGVkIHNlcnZlci1zaWRlIGFzIGEgc2FtZS1vcmlnaW4gcGF0aC4KICAgICAgICAgIC8vIFNlbmQgZnJvbV91cmwgdG9vOiBhIGN1c3RvbS1hdXRoIGFwcCBjb2VyY2VkIHRvIHBsYXRmb3JtIGF1dGggKGUuZy4KICAgICAgICAgIC8vIHB1YmxpY193aXRob3V0X2xvZ2luIHVuZGVyIHdvcmtzcGFjZSBTU08pIHNlcnZlcyB0aGUgcGxhdGZvcm0gbG9naW4sCiAgICAgICAgICAvLyB3aGljaCBob25vcnMgZnJvbV91cmwgcmF0aGVyIHRoYW4gcmV0dXJuVG8uIFJlYnVpbGQgdGhlIHF1ZXJ5IGZyb20KICAgICAgICAgIC8vIGBjdHhgIGFsb25lIOKAlCBuZXZlciBmb3J3YXJkIHdpbmRvdy5sb2NhdGlvbi5zZWFyY2ggcmF3OiB0aGUgcGxhdGZvcm0KICAgICAgICAgIC8vIHJlc3VtZSByZXR1cm5zIGZyb21fdXJsIHZlcmJhdGltLCBzbyBjcmFmdGVkIGV4dHJhcyBvbiB0aGUgY29uc2VudAogICAgICAgICAgLy8gbGluayAoYXBwX2Jhc2VfdXJsLCBhY2Nlc3NfdG9rZW4sIOKApikgd291bGQgcmlkZSB0aHJvdWdoIHRoZSBsb2dpbgogICAgICAgICAgLy8gcm91bmQtdHJpcCBhbmQgYXBwLXBhcmFtcy5qcyB3b3VsZCBwZXJzaXN0IHRoZW0gaW50byB0aGUgZnJlc2hseQogICAgICAgICAgLy8gYXV0aGVudGljYXRlZCBzZXNzaW9uLgogICAgICAgICAgY29uc3QgcmV0dXJuVG8gPQogICAgICAgICAgICB3aW5kb3cubG9jYXRpb24ucGF0aG5hbWUgKyAiP2N0eD0iICsgZW5jb2RlVVJJQ29tcG9uZW50KGN0eCk7CiAgICAgICAgICBjb25zdCBlbmNvZGVkID0gZW5jb2RlVVJJQ29tcG9uZW50KHJldHVyblRvKTsKICAgICAgICAgIHJlZGlyZWN0aW5nID0gdHJ1ZTsgLy8ga2VlcCB0aGUgc3Bpbm5lciB3aGlsZSB0aGUgYnJvd3NlciBuYXZpZ2F0ZXMKICAgICAgICAgIHdpbmRvdy5sb2NhdGlvbi5ocmVmID0KICAgICAgICAgICAgKGRhdGEubG9naW5fcGF0aCB8fCAiL2xvZ2luIikgKyAiP3JldHVyblRvPSIgKyBlbmNvZGVkICsgIiZmcm9tX3VybD0iICsgZW5jb2RlZDsKICAgICAgICAgIHJldHVybjsKICAgICAgICB9CiAgICAgICAgc2V0SW5mbyhkYXRhKTsKICAgICAgfSBjYXRjaCAoZSkgewogICAgICAgIHNldEVycm9yKCJDb3VsZCBub3QgbG9hZCB0aGlzIGF1dGhvcml6YXRpb24gcmVxdWVzdC4gUGxlYXNlIHRyeSBhZ2Fpbi4iKTsKICAgICAgfSBmaW5hbGx5IHsKICAgICAgICBpZiAoIXJlZGlyZWN0aW5nKSBzZXRDaGVja2luZyhmYWxzZSk7CiAgICAgIH0KICAgIH0pKCk7CiAgfSwgW2N0eF0pOwoKICBjb25zdCByZXNwb25kID0gYXN5bmMgKGFjdGlvbikgPT4gewogICAgc2V0U3VibWl0dGluZyh0cnVlKTsKICAgIHNldEVycm9yKCIiKTsKICAgIHRyeSB7CiAgICAgIGNvbnN0IGhlYWRlcnMgPSB7ICJDb250ZW50LVR5cGUiOiAiYXBwbGljYXRpb24vanNvbiIgfTsKICAgICAgLy8gQ29va2llLWJhY2tlZCBzZXNzaW9ucyBjYXJyeSBubyB0b2tlbjsgc2VuZGluZyAiQmVhcmVyIG51bGwiIHdvdWxkCiAgICAgIC8vIHNoYWRvdyB0aGUgdmFsaWQgY29va2llLCBzbyBhZGQgdGhlIGhlYWRlciBvbmx5IHdoZW4gYSB0b2tlbiBleGlzdHMuCiAgICAgIGlmIChhcHBQYXJhbXMudG9rZW4pIGhlYWRlcnMuQXV0aG9yaXphdGlvbiA9ICJCZWFyZXIgIiArIGFwcFBhcmFtcy50b2tlbjsKICAgICAgY29uc3QgcmVzID0gYXdhaXQgZmV0Y2goYC9hcGkvYXBwcy8ke2FwcFBhcmFtcy5hcHBJZH0vbWNwL2F1dGhvcml6ZS1ncmFudGAsIHsKICAgICAgICBtZXRob2Q6ICJQT1NUIiwKICAgICAgICBjcmVkZW50aWFsczogImluY2x1ZGUiLAogICAgICAgIGhlYWRlcnMsCiAgICAgICAgYm9keTogSlNPTi5zdHJpbmdpZnkoeyBjdHgsIGFjdGlvbiB9KSwKICAgICAgfSk7CiAgICAgIGlmICghcmVzLm9rKSB7CiAgICAgICAgLy8gNDAxID0gdGhlIHNlc3Npb24gZXhwaXJlZCBiZWZvcmUgdGhlIChzaW5nbGUtdXNlLCBzdGlsbC11bmNvbnN1bWVkKQogICAgICAgIC8vIGhhbmRsZSB3YXMgc3BlbnQ7IHJldHJ5aW5nIHRoZSBzYW1lIGNvbnRyb2xzIHJlLXNlbmRzIHRoZSBkZWFkIHNlc3Npb24KICAgICAgICAvLyBmb3JldmVyLiBTZW5kIHRoZSB1c2VyIGJhY2sgdGhyb3VnaCBsb2dpbiBwcmVzZXJ2aW5nIGBjdHhgIOKAlCB0aGUgc2FtZQogICAgICAgIC8vIHJlZGlyZWN0IHRoZSBpbml0aWFsIHNpZ25lZC1vdXQgcGF0aCB1c2VzIOKAlCBzbyB0aGV5IGNhbiByZXR1cm4gYW5kCiAgICAgICAgLy8gYXBwcm92ZSB0aGUgc3RpbGwtdmFsaWQgaGFuZGxlLgogICAgICAgIGlmIChyZXMuc3RhdHVzID09PSA0MDEpIHsKICAgICAgICAgIGNvbnN0IHJldHVyblRvID0gd2luZG93LmxvY2F0aW9uLnBhdGhuYW1lICsgIj9jdHg9IiArIGVuY29kZVVSSUNvbXBvbmVudChjdHgpOwogICAgICAgICAgY29uc3QgZW5jb2RlZCA9IGVuY29kZVVSSUNvbXBvbmVudChyZXR1cm5Ubyk7CiAgICAgICAgICB3aW5kb3cubG9jYXRpb24uaHJlZiA9CiAgICAgICAgICAgICgoaW5mbyAmJiBpbmZvLmxvZ2luX3BhdGgpIHx8ICIvbG9naW4iKSArICI/cmV0dXJuVG89IiArIGVuY29kZWQgKyAiJmZyb21fdXJsPSIgKyBlbmNvZGVkOwogICAgICAgICAgcmV0dXJuOwogICAgICAgIH0KICAgICAgICAvLyBUaGVzZSBhbGwgY29tZSBBRlRFUiB0aGUgc2luZ2xlLXVzZSBoYW5kbGUgaXMgYXRvbWljYWxseSBjb25zdW1lZAogICAgICAgIC8vICg0MDkgdG9vbCBzZXQgY2hhbmdlZDsgNDAzIGhvc3QvcmVzb3VyY2UvYXBwIG1pc21hdGNoOyA0MDQgYWNjZXNzCiAgICAgICAgLy8gZ29uZTsgNDAwIG1hbGZvcm1lZC9oYW5kbGUgYWxyZWFkeSB1c2VkKSwgc28gcmV0cnlpbmcgY2FuIG9ubHkgNDA0LgogICAgICAgIC8vIFNob3cgYSB0ZXJtaW5hbCByZWNvbm5lY3Qgc3RhdGUsIG5vdCBhbiBpbXBvc3NpYmxlICJ0cnkgYWdhaW4iLgogICAgICAgIGlmIChbNDAwLCA0MDMsIDQwNCwgNDA5XS5pbmNsdWRlcyhyZXMuc3RhdHVzKSkgewogICAgICAgICAgbGV0IGRldGFpbCA9ICIiOwogICAgICAgICAgdHJ5IHsgZGV0YWlsID0gKGF3YWl0IHJlcy5qc29uKCkpLmRldGFpbDsgfSBjYXRjaCAoXykgeyAvKiBrZWVwIGRlZmF1bHQgKi8gfQogICAgICAgICAgc2V0UmVjb25uZWN0KGRldGFpbCB8fCAiVGhpcyBhdXRob3JpemF0aW9uIGNhbiBubyBsb25nZXIgYmUgY29tcGxldGVkLiBSZWNvbm5lY3QgZnJvbSB5b3VyIEFJIGNsaWVudCB0byB0cnkgYWdhaW4uIik7CiAgICAgICAgICBzZXRTdWJtaXR0aW5nKGZhbHNlKTsKICAgICAgICAgIHJldHVybjsKICAgICAgICB9CiAgICAgICAgdGhyb3cgbmV3IEVycm9yKCJDb3VsZCBub3QgY29tcGxldGUgYXV0aG9yaXphdGlvbi4gUGxlYXNlIHRyeSBhZ2Fpbi4iKTsKICAgICAgfQogICAgICBjb25zdCBkYXRhID0gYXdhaXQgcmVzLmpzb24oKTsKICAgICAgd2luZG93LmxvY2F0aW9uLmhyZWYgPSBkYXRhLnJlZGlyZWN0X3VybDsKICAgICAgaWYgKCEvXmh0dHBzPzovaS50ZXN0KGRhdGEucmVkaXJlY3RfdXJsKSkgewogICAgICAgIC8vIEN1c3RvbS1zY2hlbWUgcmVkaXJlY3QgKG5hdGl2ZSBBSSBjbGllbnRzLCBlLmcuIGN1cnNvcjovLyk6IGJyb3dzZXJzCiAgICAgICAgLy8gbWF5IGJsb2NrIG9yIG5vdCB2aXNpYmx5IG5hdmlnYXRlLCBzbyBzaG93IGEgdGVybWluYWwgc3RhdGUgaW5zdGVhZAogICAgICAgIC8vIG9mIGFuIGV0ZXJuYWwgc3Bpbm5lci4KICAgICAgICBzZXREZWNpZGVkKGFjdGlvbik7CiAgICAgICAgc2V0U3VibWl0dGluZyhmYWxzZSk7CiAgICAgIH0KICAgIH0gY2F0Y2ggKGUpIHsKICAgICAgc2V0RXJyb3IoZS5tZXNzYWdlKTsKICAgICAgc2V0U3VibWl0dGluZyhmYWxzZSk7CiAgICB9CiAgfTsKCiAgaWYgKGNoZWNraW5nKSB7CiAgICByZXR1cm4gKAogICAgICA8QXV0aExheW91dCBpY29uPXtTaGllbGRDaGVja30gdGl0bGU9IkF1dGhvcml6ZSBhY2Nlc3MiPgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBweS02IHRleHQtbXV0ZWQtZm9yZWdyb3VuZCI+CiAgICAgICAgICA8TG9hZGVyMiBjbGFzc05hbWU9InctNSBoLTUgbXItMiBhbmltYXRlLXNwaW4iIGFyaWEtaGlkZGVuPSJ0cnVlIiAvPgogICAgICAgICAgTG9hZGluZ+KApgogICAgICAgIDwvZGl2PgogICAgICA8L0F1dGhMYXlvdXQ+CiAgICApOwogIH0KCiAgY29uc3QgY2xpZW50ID0gKGluZm8gJiYgaW5mby5jbGllbnRfbmFtZSkgfHwgIkFuIEFJIGNsaWVudCI7CiAgY29uc3QgYXBwTmFtZSA9IChpbmZvICYmIGluZm8uYXBwX25hbWUpIHx8ICJ0aGlzIGFwcCI7CgogIGlmIChkZWNpZGVkKSB7CiAgICByZXR1cm4gKAogICAgICA8QXV0aExheW91dAogICAgICAgIGljb249e1NoaWVsZENoZWNrfQogICAgICAgIHRpdGxlPXtkZWNpZGVkID09PSAiYXBwcm92ZSIgPyAiQWNjZXNzIGdyYW50ZWQiIDogIkFjY2VzcyBkZW5pZWQifQogICAgICAgIHN1YnRpdGxlPXtgWW91IGNhbiByZXR1cm4gdG8gJHtjbGllbnR9IGFuZCBjbG9zZSB0aGlzIHdpbmRvdy5gfQogICAgICAvPgogICAgKTsKICB9CgogIC8vIFRlcm1pbmFsOiB0aGUgYXV0aG9yaXphdGlvbiByZXF1ZXN0IGlzIG5vIGxvbmdlciB2YWxpZCAodG9vbCBzZXQgY2hhbmdlZCArCiAgLy8gaGFuZGxlIGNvbnN1bWVkKS4gUmV0cnlpbmcgY2FuJ3Qgc3VjY2VlZCwgc28gc2hvdyByZWNvbm5lY3QgZ3VpZGFuY2Ugd2l0aAogIC8vIG5vIGFwcHJvdmUvZGVueSBjb250cm9scy4KICBpZiAocmVjb25uZWN0KSB7CiAgICByZXR1cm4gKAogICAgICA8QXV0aExheW91dCBpY29uPXtTaGllbGRDaGVja30gdGl0bGU9IlJlY29ubmVjdCByZXF1aXJlZCI+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9InAtMyByb3VuZGVkLWxnIGJnLWRlc3RydWN0aXZlLzEwIHRleHQtZGVzdHJ1Y3RpdmUgdGV4dC1zbSI+CiAgICAgICAgICB7cmVjb25uZWN0fQogICAgICAgIDwvZGl2PgogICAgICA8L0F1dGhMYXlvdXQ+CiAgICApOwogIH0KCiAgLy8gTm8gY29uc2VudCBkZXRhaWxzIG1lYW5zIG5vdGhpbmcgdHJ1c3R3b3J0aHkgdG8gYXBwcm92ZTogYSBmYWlsZWQKICAvLyBjb25zZW50LWluZm8gbG9hZCAoZXhwaXJlZCBoYW5kbGUsIHJhdGUgbGltaXQsIHRyYW5zaWVudCBlcnJvcikgcmVuZGVycwogIC8vIHRoZSBlcnJvciBhbG9uZSwgbmV2ZXIgdGhlIGFwcHJvdmUvZGVueSBjb250cm9scy4KICBpZiAoZXJyb3IgJiYgIWluZm8pIHsKICAgIHJldHVybiAoCiAgICAgIDxBdXRoTGF5b3V0IGljb249e1NoaWVsZENoZWNrfSB0aXRsZT0iQXV0aG9yaXplIGFjY2VzcyI+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9InAtMyByb3VuZGVkLWxnIGJnLWRlc3RydWN0aXZlLzEwIHRleHQtZGVzdHJ1Y3RpdmUgdGV4dC1zbSI+CiAgICAgICAgICB7ZXJyb3J9CiAgICAgICAgPC9kaXY+CiAgICAgIDwvQXV0aExheW91dD4KICAgICk7CiAgfQoKICBjb25zdCB0b29scyA9IEFycmF5LmlzQXJyYXkoaW5mby50b29scykgPyBpbmZvLnRvb2xzIDogW107CgogIHJldHVybiAoCiAgICA8QXV0aExheW91dAogICAgICBpY29uPXtTaGllbGRDaGVja30KICAgICAgdGl0bGU9IkF1dGhvcml6ZSBhY2Nlc3MiCiAgICAgIHN1YnRpdGxlPXtgJHtjbGllbnR9IHdhbnRzIHRvIGFjY2VzcyAke2FwcE5hbWV9IG9uIHlvdXIgYmVoYWxmYH0KICAgID4KICAgICAge2Vycm9yICYmICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibWItNCBwLTMgcm91bmRlZC1sZyBiZy1kZXN0cnVjdGl2ZS8xMCB0ZXh0LWRlc3RydWN0aXZlIHRleHQtc20iPgogICAgICAgICAge2Vycm9yfQogICAgICAgIDwvZGl2PgogICAgICApfQoKICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtbWVkaXVtIHRleHQtZm9yZWdyb3VuZCBtYi0yIj4KICAgICAgICB7dG9vbHMubGVuZ3RoID8gYEl0IHdpbGwgYmUgYWJsZSB0byB1c2UgdGhlc2UgdG9vbHMgaW4gJHthcHBOYW1lfTpgIDogIk5vIHRvb2xzIHJlcXVlc3RlZCJ9CiAgICAgIDwvcD4KICAgICAge3Rvb2xzLmxlbmd0aCA+IDAgJiYgKAogICAgICAgIDx1bCBjbGFzc05hbWU9InNwYWNlLXktMiB0ZXh0LXNtIG1iLTYiPgogICAgICAgICAge3Rvb2xzLm1hcCgodG9vbCkgPT4gKAogICAgICAgICAgICA8bGkga2V5PXt0b29sLm5hbWV9IGNsYXNzTmFtZT0iZmxleCBmbGV4LWNvbCI+CiAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LWZvcmVncm91bmQgZm9udC1tZWRpdW0iPgogICAgICAgICAgICAgICAge3Rvb2wudGl0bGUgfHwgdG9vbC5uYW1lfQogICAgICAgICAgICAgIDwvc3Bhbj4KICAgICAgICAgICAgICB7dG9vbC5kZXNjcmlwdGlvbiAmJiAoCiAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtbXV0ZWQtZm9yZWdyb3VuZCI+e3Rvb2wuZGVzY3JpcHRpb259PC9zcGFuPgogICAgICAgICAgICAgICl9CiAgICAgICAgICAgIDwvbGk+CiAgICAgICAgICApKX0KICAgICAgICA8L3VsPgogICAgICApfQoKICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZ2FwLTMiPgogICAgICAgIDxCdXR0b24KICAgICAgICAgIHZhcmlhbnQ9Im91dGxpbmUiCiAgICAgICAgICBjbGFzc05hbWU9ImZsZXgtMSBoLTEyIGZvbnQtbWVkaXVtIgogICAgICAgICAgZGlzYWJsZWQ9e3N1Ym1pdHRpbmd9CiAgICAgICAgICBvbkNsaWNrPXsoKSA9PiByZXNwb25kKCJkZW55Iil9CiAgICAgICAgPgogICAgICAgICAgRGVueQogICAgICAgIDwvQnV0dG9uPgogICAgICAgIDxCdXR0b24KICAgICAgICAgIGNsYXNzTmFtZT0iZmxleC0xIGgtMTIgZm9udC1tZWRpdW0iCiAgICAgICAgICBkaXNhYmxlZD17c3VibWl0dGluZ30KICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHJlc3BvbmQoImFwcHJvdmUiKX0KICAgICAgICA+CiAgICAgICAgICB7c3VibWl0dGluZyA/IDxMb2FkZXIyIGNsYXNzTmFtZT0idy00IGgtNCBtci0yIGFuaW1hdGUtc3BpbiIgLz4gOiBudWxsfQogICAgICAgICAgQXBwcm92ZQogICAgICAgIDwvQnV0dG9uPgogICAgICA8L2Rpdj4KICAgIDwvQXV0aExheW91dD4KICApOwp9Cg==
+import React, { useEffect, useState } from "react";
+import { appParams } from "@/lib/app-params";
+import { Button } from "@/components/ui/button";
+import { ShieldCheck, Loader2 } from "lucide-react";
+import AuthLayout from "@/components/AuthLayout";
+
+// App-side OAuth consent page for the app's MCP server. The platform redirects
+// AI clients here (see base44/mcp/config.json `consent_path`) with an opaque
+// `ctx` handle — the authorization request itself lives on the server. This page
+// gates on the app-user session, fetches the display info for that handle, shows
+// the categories of access being granted, and posts the approve/deny decision.
+// Do not change the fetch calls, headers, or the `ctx` handle handling — styling
+// and copy are safe to edit.
+export default function OAuthConsent() {
+  const ctx = new URLSearchParams(window.location.search).get("ctx");
+  const [info, setInfo] = useState(null);
+  const [checking, setChecking] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [decided, setDecided] = useState("");
+  const [error, setError] = useState("");
+  const [reconnect, setReconnect] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      let redirecting = false;
+      try {
+        if (!ctx) {
+          setError("This authorization link is invalid or has expired.");
+          return;
+        }
+        // Resolve the handle first: a dead handle must never render
+        // approve/deny, and the response carries the app's configured login
+        // route for the signed-out redirect below. Send the session (cookie +
+        // bearer token) so the server can list the granted tools for a
+        // signed-in user — the same auth the approve/deny call sends; without
+        // it the display request is anonymous and shows no tools.
+        const infoHeaders = {};
+        if (appParams.token) infoHeaders.Authorization = "Bearer " + appParams.token;
+        const res = await fetch(
+          `/api/apps/${appParams.appId}/mcp/consent-info?handle=${encodeURIComponent(ctx)}`,
+          { credentials: "include", headers: infoHeaders },
+        );
+        if (!res.ok) {
+          setError("This authorization link is invalid or has expired.");
+          return;
+        }
+        const data = await res.json();
+        // Gate on the server's auth result, NOT base44.auth.isAuthenticated():
+        // the SDK check runs the bearer path, so a cookie-only session (platform
+        // login/SSO, or a private app with a stale localStorage token) would read
+        // as signed-out and redirect — even though /consent-info just
+        // authenticated this same request via its cookie fallback. data.authenticated
+        // keeps the redirect decision in agreement with what the server returned.
+        if (!data.authenticated) {
+          // The short handle rides back in returnTo; login_path is
+          // owner-configured and validated server-side as a same-origin path.
+          // Send from_url too: a custom-auth app coerced to platform auth (e.g.
+          // public_without_login under workspace SSO) serves the platform login,
+          // which honors from_url rather than returnTo. Rebuild the query from
+          // `ctx` alone — never forward window.location.search raw: the platform
+          // resume returns from_url verbatim, so crafted extras on the consent
+          // link (app_base_url, access_token, …) would ride through the login
+          // round-trip and app-params.js would persist them into the freshly
+          // authenticated session.
+          const returnTo =
+            window.location.pathname + "?ctx=" + encodeURIComponent(ctx);
+          const encoded = encodeURIComponent(returnTo);
+          redirecting = true; // keep the spinner while the browser navigates
+          window.location.href =
+            (data.login_path || "/login") + "?returnTo=" + encoded + "&from_url=" + encoded;
+          return;
+        }
+        setInfo(data);
+      } catch (e) {
+        setError("Could not load this authorization request. Please try again.");
+      } finally {
+        if (!redirecting) setChecking(false);
+      }
+    })();
+  }, [ctx]);
+
+  const respond = async (action) => {
+    setSubmitting(true);
+    setError("");
+    try {
+      const headers = { "Content-Type": "application/json" };
+      // Cookie-backed sessions carry no token; sending "Bearer null" would
+      // shadow the valid cookie, so add the header only when a token exists.
+      if (appParams.token) headers.Authorization = "Bearer " + appParams.token;
+      const res = await fetch(`/api/apps/${appParams.appId}/mcp/authorize-grant`, {
+        method: "POST",
+        credentials: "include",
+        headers,
+        body: JSON.stringify({ ctx, action }),
+      });
+      if (!res.ok) {
+        // 401 = the session expired before the (single-use, still-unconsumed)
+        // handle was spent; retrying the same controls re-sends the dead session
+        // forever. Send the user back through login preserving `ctx` — the same
+        // redirect the initial signed-out path uses — so they can return and
+        // approve the still-valid handle.
+        if (res.status === 401) {
+          const returnTo = window.location.pathname + "?ctx=" + encodeURIComponent(ctx);
+          const encoded = encodeURIComponent(returnTo);
+          window.location.href =
+            ((info && info.login_path) || "/login") + "?returnTo=" + encoded + "&from_url=" + encoded;
+          return;
+        }
+        // These all come AFTER the single-use handle is atomically consumed
+        // (409 tool set changed; 403 host/resource/app mismatch; 404 access
+        // gone; 400 malformed/handle already used), so retrying can only 404.
+        // Show a terminal reconnect state, not an impossible "try again".
+        if ([400, 403, 404, 409].includes(res.status)) {
+          let detail = "";
+          try { detail = (await res.json()).detail; } catch (_) { /* keep default */ }
+          setReconnect(detail || "This authorization can no longer be completed. Reconnect from your AI client to try again.");
+          setSubmitting(false);
+          return;
+        }
+        throw new Error("Could not complete authorization. Please try again.");
+      }
+      const data = await res.json();
+      window.location.href = data.redirect_url;
+      if (!/^https?:/i.test(data.redirect_url)) {
+        // Custom-scheme redirect (native AI clients, e.g. cursor://): browsers
+        // may block or not visibly navigate, so show a terminal state instead
+        // of an eternal spinner.
+        setDecided(action);
+        setSubmitting(false);
+      }
+    } catch (e) {
+      setError(e.message);
+      setSubmitting(false);
+    }
+  };
+
+  if (checking) {
+    return (
+      <AuthLayout icon={ShieldCheck} title="Authorize access">
+        <div className="flex items-center justify-center py-6 text-muted-foreground">
+          <Loader2 className="w-5 h-5 mr-2 animate-spin" aria-hidden="true" />
+          Loading…
+        </div>
+      </AuthLayout>
+    );
+  }
+
+  const client = (info && info.client_name) || "An AI client";
+  const appName = (info && info.app_name) || "this app";
+
+  if (decided) {
+    return (
+      <AuthLayout
+        icon={ShieldCheck}
+        title={decided === "approve" ? "Access granted" : "Access denied"}
+        subtitle={`You can return to ${client} and close this window.`}
+      />
+    );
+  }
+
+  // Terminal: the authorization request is no longer valid (tool set changed +
+  // handle consumed). Retrying can't succeed, so show reconnect guidance with
+  // no approve/deny controls.
+  if (reconnect) {
+    return (
+      <AuthLayout icon={ShieldCheck} title="Reconnect required">
+        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+          {reconnect}
+        </div>
+      </AuthLayout>
+    );
+  }
+
+  // No consent details means nothing trustworthy to approve: a failed
+  // consent-info load (expired handle, rate limit, transient error) renders
+  // the error alone, never the approve/deny controls.
+  if (error && !info) {
+    return (
+      <AuthLayout icon={ShieldCheck} title="Authorize access">
+        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+          {error}
+        </div>
+      </AuthLayout>
+    );
+  }
+
+  const tools = Array.isArray(info.tools) ? info.tools : [];
+
+  return (
+    <AuthLayout
+      icon={ShieldCheck}
+      title="Authorize access"
+      subtitle={`${client} wants to access ${appName} on your behalf`}
+    >
+      {error && (
+        <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+          {error}
+        </div>
+      )}
+
+      <p className="text-sm font-medium text-foreground mb-2">
+        {tools.length ? `It will be able to use these tools in ${appName}:` : "No tools requested"}
+      </p>
+      {tools.length > 0 && (
+        <ul className="space-y-2 text-sm mb-6">
+          {tools.map((tool) => (
+            <li key={tool.name} className="flex flex-col">
+              <span className="text-foreground font-medium">
+                {tool.title || tool.name}
+              </span>
+              {tool.description && (
+                <span className="text-muted-foreground">{tool.description}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="flex gap-3">
+        <Button
+          variant="outline"
+          className="flex-1 h-12 font-medium"
+          disabled={submitting}
+          onClick={() => respond("deny")}
+        >
+          Deny
+        </Button>
+        <Button
+          className="flex-1 h-12 font-medium"
+          disabled={submitting}
+          onClick={() => respond("approve")}
+        >
+          {submitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+          Approve
+        </Button>
+      </div>
+    </AuthLayout>
+  );
+}

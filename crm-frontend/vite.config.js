@@ -1,1 +1,60 @@
-aW1wb3J0IHJlYWN0IGZyb20gJ0B2aXRlanMvcGx1Z2luLXJlYWN0JwppbXBvcnQgeyBkZWZpbmVDb25maWcgfSBmcm9tICd2aXRlJwppbXBvcnQgcGF0aCBmcm9tICdub2RlOnBhdGgnCmltcG9ydCB7IGZpbGVVUkxUb1BhdGggfSBmcm9tICdub2RlOnVybCcKCmNvbnN0IF9fZGlybmFtZSA9IHBhdGguZGlybmFtZShmaWxlVVJMVG9QYXRoKGltcG9ydC5tZXRhLnVybCkpCgovLyBodHRwczovL3ZpdGUuZGV2L2NvbmZpZy8KLy8KLy8gVHdvIGJ1aWxkIG1vZGVzIGZyb20gb25lIGNvbmZpZzoKLy8gICAtIGRlZmF1bHQgKHZpdGUgLyB2aXRlIGJ1aWxkKSAgICAgICAg4oaSIEJhc2U0NC1ob3N0ZWQgQ1JNICh1bmNoYW5nZWQsIGxpdmUpCi8vICAgLSBleGl0ICAgICh2aXRlIGJ1aWxkIC0tbW9kZSBleGl0KSAgIOKGkiBzdGFuZGFsb25lIENSTSBmcm9udGVuZCB3aXRoIE5PCi8vICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBAYmFzZTQ0L3ZpdGUtcGx1Z2luIGRlcGVuZGVuY3kuCi8vCi8vIFRoZSBleGl0IG1vZGUgbG9hZHMgYC5lbnYuZXhpdGAgYXV0b21hdGljYWxseSAoVml0ZSBtb2RlLWJhc2VkIGVudiBmaWxlcykuCi8vIEluIGV4aXQgbW9kZSB0aGUgQmFzZTQ0IHZpdGUgcGx1Z2luIGlzIGV4Y2x1ZGVkIGVudGlyZWx5IChkeW5hbWljIGltcG9ydAovLyBndWFyZGVkIGJ5ICFpc0V4aXRCdWlsZCksIHNvIHRoZSBidWlsZCBuZXZlciByZXF1aXJlcyBAYmFzZTQ0L3ZpdGUtcGx1Z2luCi8vIG9yIEJhc2U0NCBhcHAgcGFyYW1zLiBUaGUgZGVmYXVsdCBtb2RlIGlzIGZ1bmN0aW9uYWxseSBlcXVpdmFsZW50IHRvIHRoZQovLyBwcmV2aW91cyBzdGF0aWMgY29uZmlnLgpleHBvcnQgZGVmYXVsdCBkZWZpbmVDb25maWcoYXN5bmMgKHsgbW9kZSB9KSA9PiB7CiAgY29uc3QgaXNFeGl0QnVpbGQgPSBtb2RlID09PSAnZXhpdCc7CgogIGxldCBiYXNlNDRQbHVnaW5zID0gW107CiAgaWYgKCFpc0V4aXRCdWlsZCkgewogICAgLy8gRHluYW1pYyBpbXBvcnQgc28gZXhpdCBtb2RlIG5ldmVyIGxvYWRzIEBiYXNlNDQvdml0ZS1wbHVnaW4uCiAgICAvLyBJbiBkZWZhdWx0IG1vZGUgdGhlIHBhY2thZ2UgaXMgaW5zdGFsbGVkIGluIHRoZSB3b3Jrc3BhY2UuCiAgICBjb25zdCBiYXNlNDRNb2R1bGUgPSBhd2FpdCBpbXBvcnQoIkBiYXNlNDQvdml0ZS1wbHVnaW4iKTsKICAgIGNvbnN0IGJhc2U0NCA9IGJhc2U0NE1vZHVsZS5kZWZhdWx0OwogICAgYmFzZTQ0UGx1Z2lucyA9IFsKICAgICAgYmFzZTQ0KHsKICAgICAgICBsZWdhY3lTREtJbXBvcnRzOiBwcm9jZXNzLmVudi5CQVNFNDRfTEVHQUNZX1NES19JTVBPUlRTID09PSAndHJ1ZScsCiAgICAgICAgaG1yTm90aWZpZXI6IHRydWUsCiAgICAgICAgbmF2aWdhdGlvbk5vdGlmaWVyOiB0cnVlLAogICAgICAgIGFuYWx5dGljc1RyYWNrZXI6IHRydWUsCiAgICAgICAgdmlzdWFsRWRpdEFnZW50OiB0cnVlCiAgICAgIH0pCiAgICBdOwogIH0KCiAgcmV0dXJuIHsKICAgIGxvZ0xldmVsOiAnZXJyb3InLAogICAgLy8gVGhlIEBiYXNlNDQvdml0ZS1wbHVnaW4gaW5qZWN0cyB0aGUgYEBgIOKGkiBgL3NyY2AgYWxpYXMuIEluIGV4aXQgbW9kZSB0aGUKICAgIC8vIHBsdWdpbiBpcyBhYnNlbnQsIHNvIGRlY2xhcmUgdGhlIGFsaWFzIGV4cGxpY2l0bHkuIChEZWZhdWx0IG1vZGUgZ2V0cyBpdAogICAgLy8gZnJvbSB0aGUgcGx1Z2luOyBhZGRpbmcgaXQgdGhlcmUgdG9vIGlzIGhhcm1sZXNzIGJ1dCBvbWl0dGVkIHRvIGtlZXAgdGhlCiAgICAvLyBsaXZlIGJ1aWxkIHVuY2hhbmdlZC4pCiAgICByZXNvbHZlOiBpc0V4aXRCdWlsZCA/IHsKICAgICAgYWxpYXM6IHsKICAgICAgICAnQCc6IHBhdGgucmVzb2x2ZShfX2Rpcm5hbWUsICdzcmMnKSwKICAgICAgICAvLyBTdHViIEBiYXNlNDQvc2RrIHNvIFpFUk8gQmFzZTQ0IFNESyBjb2RlIHJlYWNoZXMgdGhlIHN0YW5kYWxvbmUgYnVuZGxlLgogICAgICAgIC8vIEF1dGhDb250ZXh0LmpzeCdzIHBsYXRmb3JtLXJlcXVpcmVkIGltcG9ydCByZXNvbHZlcyB0byB0aGlzIG5vLW9wCiAgICAgICAgLy8gaW5zdGVhZCBvZiBwdWxsaW5nIGluIHRoZSByZWFsIEBiYXNlNDQvc2RrIHBhY2thZ2UuCiAgICAgICAgJ0BiYXNlNDQvc2RrJzogcGF0aC5yZXNvbHZlKF9fZGlybmFtZSwgJ3NyYy9hcGkvYmFzZTQ0LXNkay1zdHViLmpzJyksCiAgICAgIH0KICAgIH0gOiB1bmRlZmluZWQsCiAgICBwbHVnaW5zOiBbCiAgICAgIC4uLmJhc2U0NFBsdWdpbnMsCiAgICAgIHJlYWN0KCkKICAgIF0KICB9Owp9KTs=
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+// https://vite.dev/config/
+//
+// Two build modes from one config:
+//   - default (vite / vite build)        → Base44-hosted CRM (unchanged, live)
+//   - exit    (vite build --mode exit)   → standalone CRM frontend with NO
+//                                         @base44/vite-plugin dependency.
+//
+// The exit mode loads `.env.exit` automatically (Vite mode-based env files).
+// In exit mode the Base44 vite plugin is excluded entirely (dynamic import
+// guarded by !isExitBuild), so the build never requires @base44/vite-plugin
+// or Base44 app params. The default mode is functionally equivalent to the
+// previous static config.
+export default defineConfig(async ({ mode }) => {
+  const isExitBuild = mode === 'exit';
+
+  let base44Plugins = [];
+  if (!isExitBuild) {
+    // Dynamic import so exit mode never loads @base44/vite-plugin.
+    // In default mode the package is installed in the workspace.
+    const base44Module = await import("@base44/vite-plugin");
+    const base44 = base44Module.default;
+    base44Plugins = [
+      base44({
+        legacySDKImports: process.env.BASE44_LEGACY_SDK_IMPORTS === 'true',
+        hmrNotifier: true,
+        navigationNotifier: true,
+        analyticsTracker: true,
+        visualEditAgent: true
+      })
+    ];
+  }
+
+  return {
+    logLevel: 'error',
+    // The @base44/vite-plugin injects the `@` → `/src` alias. In exit mode the
+    // plugin is absent, so declare the alias explicitly. (Default mode gets it
+    // from the plugin; adding it there too is harmless but omitted to keep the
+    // live build unchanged.)
+    resolve: isExitBuild ? {
+      alias: {
+        '@': path.resolve(__dirname, 'src'),
+        // Stub @base44/sdk so ZERO Base44 SDK code reaches the standalone bundle.
+        // AuthContext.jsx's platform-required import resolves to this no-op
+        // instead of pulling in the real @base44/sdk package.
+        '@base44/sdk': path.resolve(__dirname, 'src/api/base44-sdk-stub.js'),
+      }
+    } : undefined,
+    plugins: [
+      ...base44Plugins,
+      react()
+    ]
+  };
+});

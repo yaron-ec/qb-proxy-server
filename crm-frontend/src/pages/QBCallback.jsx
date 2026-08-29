@@ -1,1 +1,163 @@
-LyoqCiAqIFF1aWNrQm9va3MgT0F1dGggQ2FsbGJhY2sgUGFnZQogKiBJbnR1aXQgcmVkaXJlY3RzIGhlcmUgYWZ0ZXIgdXNlciBhdXRob3JpemVzLgogKiBVUkw6IC9xYi1jYWxsYmFjaz9jb2RlPS4uLiZyZWFsbUlkPS4uLiZzdGF0ZT1xYl9vYXV0aAogKiAKICogVGhpcyBwYWdlIGV4Y2hhbmdlcyB0aGUgY29kZSBmb3IgdG9rZW5zIHZpYSBxYkF1dGggYmFja2VuZCBmdW5jdGlvbiwKICogdGhlbiBjbG9zZXMgdGhlIHBvcHVwIChvciByZWRpcmVjdHMgdG8gc2V0dGluZ3MpLgogKi8KaW1wb3J0IHsgdXNlRWZmZWN0LCB1c2VTdGF0ZSB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsgcmFpbHdheVJlcXVlc3QgfSBmcm9tICJAL2xpYi9yYWlsd2F5Q2xpZW50IjsKaW1wb3J0IHsgQ2hlY2tDaXJjbGUsIEFsZXJ0VHJpYW5nbGUsIExvYWRlcjIgfSBmcm9tICJsdWNpZGUtcmVhY3QiOwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gUUJDYWxsYmFjaygpIHsKICBjb25zdCBbc3RhdHVzLCBzZXRTdGF0dXNdID0gdXNlU3RhdGUoImxvYWRpbmciKTsgLy8gbG9hZGluZyB8IHN1Y2Nlc3MgfCBlcnJvcgogIGNvbnN0IFtkZXRhaWwsIHNldERldGFpbF0gPSB1c2VTdGF0ZSgiIik7CiAgY29uc3QgW2RlYnVnSW5mbywgc2V0RGVidWdJbmZvXSA9IHVzZVN0YXRlKHt9KTsKCiAgdXNlRWZmZWN0KCgpID0+IHsKICAgIGhhbmRsZUNhbGxiYWNrKCk7CiAgfSwgW10pOwoKICBjb25zdCBoYW5kbGVDYWxsYmFjayA9IGFzeW5jICgpID0+IHsKICAgIGNvbnN0IHBhcmFtcyA9IG5ldyBVUkxTZWFyY2hQYXJhbXMod2luZG93LmxvY2F0aW9uLnNlYXJjaCk7CiAgICBjb25zdCBjb2RlID0gcGFyYW1zLmdldCgiY29kZSIpOwogICAgY29uc3QgcmVhbG1JZCA9IHBhcmFtcy5nZXQoInJlYWxtSWQiKTsKICAgIGNvbnN0IHN0YXRlID0gcGFyYW1zLmdldCgic3RhdGUiKTsKICAgIGNvbnN0IGVycm9yID0gcGFyYW1zLmdldCgiZXJyb3IiKTsKICAgIGNvbnN0IGVycm9yRGVzYyA9IHBhcmFtcy5nZXQoImVycm9yX2Rlc2NyaXB0aW9uIik7CgogICAgY29uc3QgZGVidWcgPSB7CiAgICAgIHVybDogd2luZG93LmxvY2F0aW9uLmhyZWYsCiAgICAgIGNvZGU6IGNvZGUgPyBjb2RlLnNsaWNlKDAsIDIwKSArICIuLi4iIDogIk1JU1NJTkciLAogICAgICByZWFsbUlkOiByZWFsbUlkIHx8ICJNSVNTSU5HIiwKICAgICAgc3RhdGU6IHN0YXRlIHx8ICJNSVNTSU5HIiwKICAgICAgZXJyb3I6IGVycm9yIHx8IG51bGwsCiAgICAgIGVycm9yRGVzYzogZXJyb3JEZXNjIHx8IG51bGwsCiAgICB9OwogICAgc2V0RGVidWdJbmZvKGRlYnVnKTsKICAgIGNvbnNvbGUubG9nKCJbUUJDYWxsYmFja10gUGFyYW1zOiIsIGRlYnVnKTsKCiAgICAvLyBJbnR1aXQgcmV0dXJuZWQgYW4gZXJyb3IKICAgIGlmIChlcnJvcikgewogICAgICBjb25zb2xlLmVycm9yKCJbUUJDYWxsYmFja10gSW50dWl0IGVycm9yOiIsIGVycm9yLCBlcnJvckRlc2MpOwogICAgICBzZXRTdGF0dXMoImVycm9yIik7CiAgICAgIHNldERldGFpbChgSW50dWl0IGVycm9yOiAke2Vycm9yfSDigJQgJHtlcnJvckRlc2MgfHwgIk5vIGRlc2NyaXB0aW9uIn1gKTsKICAgICAgcmV0dXJuOwogICAgfQoKICAgIGlmICghY29kZSkgewogICAgICBzZXRTdGF0dXMoImVycm9yIik7CiAgICAgIHNldERldGFpbCgiTm8gYXV0aG9yaXphdGlvbiBjb2RlIHJlY2VpdmVkIGZyb20gSW50dWl0LiBUaGUgVVJMIGlzIG1pc3NpbmcgdGhlICdjb2RlJyBwYXJhbWV0ZXIuIik7CiAgICAgIHJldHVybjsKICAgIH0KCiAgICBpZiAoIXJlYWxtSWQpIHsKICAgICAgc2V0U3RhdHVzKCJlcnJvciIpOwogICAgICBzZXREZXRhaWwoIk5vIHJlYWxtSWQgcmVjZWl2ZWQgZnJvbSBJbnR1aXQuIENhbm5vdCBpZGVudGlmeSB5b3VyIFF1aWNrQm9va3MgY29tcGFueS4iKTsKICAgICAgcmV0dXJuOwogICAgfQoKICAgIC8vIElmIG9wZW5lZCBhcyBhIHBvcHVwLCBzZW5kIGNvZGUrcmVhbG1JZCBiYWNrIHRvIG9wZW5lciB0byBkbyB0aGUgdG9rZW4gZXhjaGFuZ2UKICAgIC8vICh0aGUgcG9wdXAgbWF5IG5vdCBoYXZlIGF1dGggc2Vzc2lvbiwgc28gdGhlIGF1dGhlbnRpY2F0ZWQgb3BlbmVyIGhhbmRsZXMgaXQpCiAgICBpZiAod2luZG93Lm9wZW5lciAmJiAhd2luZG93Lm9wZW5lci5jbG9zZWQpIHsKICAgICAgdHJ5IHsKICAgICAgICBjb25zb2xlLmxvZygiW1FCQ2FsbGJhY2tdIFNlbmRpbmcgT0F1dGggY29kZSB0byBvcGVuZXIgcG9wdXAuLi4iKTsKICAgICAgICB3aW5kb3cub3BlbmVyLnBvc3RNZXNzYWdlKHsgdHlwZTogIlFCX09BVVRIX0NPREUiLCBjb2RlLCByZWFsbUlkIH0sICIqIik7CiAgICAgICAgc2V0U3RhdHVzKCJzdWNjZXNzIik7CiAgICAgICAgc2V0RGV0YWlsKGBBdXRob3JpemF0aW9uIHJlY2VpdmVkISBDb21wbGV0aW5nIGNvbm5lY3Rpb24uLi5gKTsKICAgICAgICBzZXRUaW1lb3V0KCgpID0+IHdpbmRvdy5jbG9zZSgpLCAyMDAwKTsKICAgICAgfSBjYXRjaCAoZSkgewogICAgICAgIGNvbnNvbGUuZXJyb3IoIltRQkNhbGxiYWNrXSBwb3N0TWVzc2FnZSBlcnJvcjoiLCBlLm1lc3NhZ2UpOwogICAgICAgIHNldFN0YXR1cygiZXJyb3IiKTsKICAgICAgICBzZXREZXRhaWwoYEZhaWxlZCB0byBjb21tdW5pY2F0ZSB3aXRoIG9wZW5lcjogJHtlLm1lc3NhZ2V9YCk7CiAgICAgIH0KICAgICAgcmV0dXJuOwogICAgfQoKICAgIC8vIE5vdCBhIHBvcHVwIOKAlCBkbyB0aGUgdG9rZW4gZXhjaGFuZ2UgZGlyZWN0bHkgKHVzZXIgbmF2aWdhdGVkIGhlcmUgZGlyZWN0bHkpCiAgICB0cnkgewogICAgICBjb25zb2xlLmxvZygiW1FCQ2FsbGJhY2tdIEV4Y2hhbmdpbmcgY29kZSBmb3IgdG9rZW5zLi4uIik7CiAgICAgIGNvbnN0IHJlZGlyZWN0VXJpID0gYCR7d2luZG93LmxvY2F0aW9uLm9yaWdpbn0vcWItY2FsbGJhY2tgOwogICAgICBjb25zb2xlLmxvZygiW1FCQ2FsbGJhY2tdIFVzaW5nIHJlZGlyZWN0VXJpOiIsIHJlZGlyZWN0VXJpKTsKICAgICAgY29uc3QgcmVzID0gYXdhaXQgcmFpbHdheVJlcXVlc3QoJy9xYi9hdXRoLWNhbGxiYWNrJywgewogICAgICAgIG1ldGhvZDogJ1BPU1QnLAogICAgICAgIGJvZHk6IHsKICAgICAgICAgIGNvZGUsCiAgICAgICAgICByZWFsbUlkLAogICAgICAgICAgcmVkaXJlY3RfdXJpOiByZWRpcmVjdFVyaSwKICAgICAgICB9LAogICAgICB9KTsKCiAgICAgIGlmIChyZXM/LmVycm9yKSB7CiAgICAgICAgc2V0U3RhdHVzKCJlcnJvciIpOwogICAgICAgIHNldERldGFpbChgVG9rZW4gZXhjaGFuZ2UgZmFpbGVkOiAke3Jlcy5lcnJvcn1gKTsKICAgICAgICBjb25zb2xlLmVycm9yKCJbUUJDYWxsYmFja10gVG9rZW4gZXhjaGFuZ2UgZXJyb3I6IiwgcmVzKTsKICAgICAgICByZXR1cm47CiAgICAgIH0KCiAgICAgIGlmIChyZXM/LnN1Y2Nlc3MpIHsKICAgICAgICBzZXRTdGF0dXMoInN1Y2Nlc3MiKTsKICAgICAgICBzZXREZXRhaWwoYENvbm5lY3RlZCEgUmVhbG0gSUQ6ICR7cmVhbG1JZH1gKTsKICAgICAgICBzZXRUaW1lb3V0KCgpID0+IHsgd2luZG93LmxvY2F0aW9uLmhyZWYgPSAiL3NldHRpbmdzIjsgfSwgMjAwMCk7CiAgICAgIH0gZWxzZSB7CiAgICAgICAgc2V0U3RhdHVzKCJlcnJvciIpOwogICAgICAgIHNldERldGFpbCgiVW5leHBlY3RlZCByZXNwb25zZSBmcm9tIHNlcnZlci4iKTsKICAgICAgfQogICAgfSBjYXRjaCAoZSkgewogICAgICBjb25zb2xlLmVycm9yKCJbUUJDYWxsYmFja10gRXhjZXB0aW9uOiIsIGUpOwogICAgICBzZXRTdGF0dXMoImVycm9yIik7CiAgICAgIHNldERldGFpbChgRXhjZXB0aW9uIGR1cmluZyB0b2tlbiBleGNoYW5nZTogJHtlLm1lc3NhZ2V9YCk7CiAgICB9CiAgfTsKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJtaW4taC1zY3JlZW4gYmctc2xhdGUtNTAgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgcC02Ij4KICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLXdoaXRlIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQtbGcgc2hhZG93LXNtIHAtOCBtYXgtdy1tZCB3LWZ1bGwgdGV4dC1jZW50ZXIiPgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LTN4bCBtYi00Ij7wn5K8PC9kaXY+CiAgICAgICAgPGgxIGNsYXNzTmFtZT0idGV4dC1sZyBmb250LWJvbGQgdGV4dC1zbGF0ZS04MDAgbWItMiI+UXVpY2tCb29rcyBDb25uZWN0aW9uPC9oMT4KCiAgICAgICAge3N0YXR1cyA9PT0gImxvYWRpbmciICYmICgKICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJzcGFjZS15LTMiPgogICAgICAgICAgICA8TG9hZGVyMiBjbGFzc05hbWU9InctOCBoLTggYW5pbWF0ZS1zcGluIHRleHQtWyMyQ0EwMUNdIG14LWF1dG8iIC8+CiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1zbSB0ZXh0LXNsYXRlLTYwMCI+RXhjaGFuZ2luZyBhdXRob3JpemF0aW9uIGNvZGUgZm9yIHRva2Vucy4uLjwvcD4KICAgICAgICAgIDwvZGl2PgogICAgICAgICl9CgogICAgICAgIHtzdGF0dXMgPT09ICJzdWNjZXNzIiAmJiAoCiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ic3BhY2UteS0zIj4KICAgICAgICAgICAgPENoZWNrQ2lyY2xlIGNsYXNzTmFtZT0idy04IGgtOCB0ZXh0LWVtZXJhbGQtNTAwIG14LWF1dG8iIC8+CiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1zbSBmb250LXNlbWlib2xkIHRleHQtZW1lcmFsZC03MDAiPlN1Y2Nlc3NmdWxseSBjb25uZWN0ZWQhPC9wPgogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS01MDAiPntkZXRhaWx9PC9wPgogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1zbGF0ZS00MDAiPlRoaXMgd2luZG93IHdpbGwgY2xvc2UgYXV0b21hdGljYWxseS4uLjwvcD4KICAgICAgICAgIDwvZGl2PgogICAgICAgICl9CgogICAgICAgIHtzdGF0dXMgPT09ICJlcnJvciIgJiYgKAogICAgICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMyB0ZXh0LWxlZnQiPgogICAgICAgICAgICA8QWxlcnRUcmlhbmdsZSBjbGFzc05hbWU9InctOCBoLTggdGV4dC1yZWQtNTAwIG14LWF1dG8iIC8+CiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1zbSBmb250LXNlbWlib2xkIHRleHQtcmVkLTcwMCB0ZXh0LWNlbnRlciI+Q29ubmVjdGlvbiBGYWlsZWQ8L3A+CiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1yZWQtNTAgYm9yZGVyIGJvcmRlci1yZWQtMjAwIHJvdW5kZWQgcC0zIj4KICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1yZWQtNzAwIGZvbnQtbW9ubyBicmVhay1hbGwiPntkZXRhaWx9PC9wPgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLXNsYXRlLTUwIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHJvdW5kZWQgcC0zIHRleHQteHMgZm9udC1tb25vIHNwYWNlLXktMSI+CiAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJmb250LWJvbGQgdGV4dC1zbGF0ZS02MDAgbWItMSI+RGVidWcgSW5mbzo8L3A+CiAgICAgICAgICAgICAge09iamVjdC5lbnRyaWVzKGRlYnVnSW5mbykubWFwKChbaywgdl0pID0+IHYgJiYgKAogICAgICAgICAgICAgICAgPGRpdiBrZXk9e2t9IGNsYXNzTmFtZT0iZmxleCBnYXAtMiI+CiAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1zbGF0ZS00MDAgZmxleC1zaHJpbmstMCI+e2t9Ojwvc3Bhbj4KICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXNsYXRlLTcwMCBicmVhay1hbGwiPntTdHJpbmcodil9PC9zcGFuPgogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgKSl9CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gd2luZG93LmNsb3NlKCl9CiAgICAgICAgICAgICAgY2xhc3NOYW1lPSJ3LWZ1bGwgYmctc2xhdGUtMTAwIHRleHQtc2xhdGUtNzAwIHB5LTIgdGV4dC1zbSBmb250LXNlbWlib2xkIHJvdW5kZWQgaG92ZXI6Ymctc2xhdGUtMjAwIHRyYW5zaXRpb24tY29sb3JzIgogICAgICAgICAgICA+CiAgICAgICAgICAgICAgQ2xvc2UgV2luZG93CiAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgKX0KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KICApOwp9
+/**
+ * QuickBooks OAuth Callback Page
+ * Intuit redirects here after user authorizes.
+ * URL: /qb-callback?code=...&realmId=...&state=qb_oauth
+ * 
+ * This page exchanges the code for tokens via qbAuth backend function,
+ * then closes the popup (or redirects to settings).
+ */
+import { useEffect, useState } from "react";
+import { railwayRequest } from "@/lib/railwayClient";
+import { CheckCircle, AlertTriangle, Loader2 } from "lucide-react";
+
+export default function QBCallback() {
+  const [status, setStatus] = useState("loading"); // loading | success | error
+  const [detail, setDetail] = useState("");
+  const [debugInfo, setDebugInfo] = useState({});
+
+  useEffect(() => {
+    handleCallback();
+  }, []);
+
+  const handleCallback = async () => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    const realmId = params.get("realmId");
+    const state = params.get("state");
+    const error = params.get("error");
+    const errorDesc = params.get("error_description");
+
+    const debug = {
+      url: window.location.href,
+      code: code ? code.slice(0, 20) + "..." : "MISSING",
+      realmId: realmId || "MISSING",
+      state: state || "MISSING",
+      error: error || null,
+      errorDesc: errorDesc || null,
+    };
+    setDebugInfo(debug);
+    console.log("[QBCallback] Params:", debug);
+
+    // Intuit returned an error
+    if (error) {
+      console.error("[QBCallback] Intuit error:", error, errorDesc);
+      setStatus("error");
+      setDetail(`Intuit error: ${error} — ${errorDesc || "No description"}`);
+      return;
+    }
+
+    if (!code) {
+      setStatus("error");
+      setDetail("No authorization code received from Intuit. The URL is missing the 'code' parameter.");
+      return;
+    }
+
+    if (!realmId) {
+      setStatus("error");
+      setDetail("No realmId received from Intuit. Cannot identify your QuickBooks company.");
+      return;
+    }
+
+    // If opened as a popup, send code+realmId back to opener to do the token exchange
+    // (the popup may not have auth session, so the authenticated opener handles it)
+    if (window.opener && !window.opener.closed) {
+      try {
+        console.log("[QBCallback] Sending OAuth code to opener popup...");
+        window.opener.postMessage({ type: "QB_OAUTH_CODE", code, realmId }, "*");
+        setStatus("success");
+        setDetail(`Authorization received! Completing connection...`);
+        setTimeout(() => window.close(), 2000);
+      } catch (e) {
+        console.error("[QBCallback] postMessage error:", e.message);
+        setStatus("error");
+        setDetail(`Failed to communicate with opener: ${e.message}`);
+      }
+      return;
+    }
+
+    // Not a popup — do the token exchange directly (user navigated here directly)
+    try {
+      console.log("[QBCallback] Exchanging code for tokens...");
+      const redirectUri = `${window.location.origin}/qb-callback`;
+      console.log("[QBCallback] Using redirectUri:", redirectUri);
+      const res = await railwayRequest('/qb/auth-callback', {
+        method: 'POST',
+        body: {
+          code,
+          realmId,
+          redirect_uri: redirectUri,
+        },
+      });
+
+      if (res?.error) {
+        setStatus("error");
+        setDetail(`Token exchange failed: ${res.error}`);
+        console.error("[QBCallback] Token exchange error:", res);
+        return;
+      }
+
+      if (res?.success) {
+        setStatus("success");
+        setDetail(`Connected! Realm ID: ${realmId}`);
+        setTimeout(() => { window.location.href = "/settings"; }, 2000);
+      } else {
+        setStatus("error");
+        setDetail("Unexpected response from server.");
+      }
+    } catch (e) {
+      console.error("[QBCallback] Exception:", e);
+      setStatus("error");
+      setDetail(`Exception during token exchange: ${e.message}`);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+      <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-8 max-w-md w-full text-center">
+        <div className="text-3xl mb-4">💼</div>
+        <h1 className="text-lg font-bold text-slate-800 mb-2">QuickBooks Connection</h1>
+
+        {status === "loading" && (
+          <div className="space-y-3">
+            <Loader2 className="w-8 h-8 animate-spin text-[#2CA01C] mx-auto" />
+            <p className="text-sm text-slate-600">Exchanging authorization code for tokens...</p>
+          </div>
+        )}
+
+        {status === "success" && (
+          <div className="space-y-3">
+            <CheckCircle className="w-8 h-8 text-emerald-500 mx-auto" />
+            <p className="text-sm font-semibold text-emerald-700">Successfully connected!</p>
+            <p className="text-xs text-slate-500">{detail}</p>
+            <p className="text-xs text-slate-400">This window will close automatically...</p>
+          </div>
+        )}
+
+        {status === "error" && (
+          <div className="space-y-3 text-left">
+            <AlertTriangle className="w-8 h-8 text-red-500 mx-auto" />
+            <p className="text-sm font-semibold text-red-700 text-center">Connection Failed</p>
+            <div className="bg-red-50 border border-red-200 rounded p-3">
+              <p className="text-xs text-red-700 font-mono break-all">{detail}</p>
+            </div>
+            <div className="bg-slate-50 border border-slate-200 rounded p-3 text-xs font-mono space-y-1">
+              <p className="font-bold text-slate-600 mb-1">Debug Info:</p>
+              {Object.entries(debugInfo).map(([k, v]) => v && (
+                <div key={k} className="flex gap-2">
+                  <span className="text-slate-400 flex-shrink-0">{k}:</span>
+                  <span className="text-slate-700 break-all">{String(v)}</span>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => window.close()}
+              className="w-full bg-slate-100 text-slate-700 py-2 text-sm font-semibold rounded hover:bg-slate-200 transition-colors"
+            >
+              Close Window
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

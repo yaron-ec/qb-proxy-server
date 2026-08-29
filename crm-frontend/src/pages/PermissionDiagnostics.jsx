@@ -1,1 +1,301 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsgYXBpQ2FsbCB9IGZyb20gIkAvYXBpL3JhaWx3YXkvY2xpZW50IjsKaW1wb3J0IHsgQWxlcnRDaXJjbGUsIENoZWNrQ2lyY2xlLCBBbGVydFRyaWFuZ2xlLCBSZWZyZXNoQ3cgfSBmcm9tICJsdWNpZGUtcmVhY3QiOwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gUGVybWlzc2lvbkRpYWdub3N0aWNzKCkgewogIGNvbnN0IFtkaWFnbm9zdGljcywgc2V0RGlhZ25vc3RpY3NdID0gdXNlU3RhdGUobnVsbCk7CiAgY29uc3QgW2xvYWRpbmcsIHNldExvYWRpbmddID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFtlcnJvciwgc2V0RXJyb3JdID0gdXNlU3RhdGUobnVsbCk7CgogIGNvbnN0IHJ1bkRpYWdub3N0aWNzID0gYXN5bmMgKCkgPT4gewogICAgc2V0TG9hZGluZyh0cnVlKTsKICAgIHNldEVycm9yKG51bGwpOwogICAgdHJ5IHsKICAgICAgY29uc3QgcmVzdWx0ID0gYXdhaXQgYXBpQ2FsbCgnL2FwaS92MS9sZWFkcycsIHsgbWV0aG9kOiAnR0VUJyB9KTsKICAgICAgc2V0RGlhZ25vc3RpY3MobnVsbCk7CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIHNldEVycm9yKGUubWVzc2FnZSk7CiAgICB9IGZpbmFsbHkgewogICAgICBzZXRMb2FkaW5nKGZhbHNlKTsKICAgIH0KICB9OwoKICB1c2VFZmZlY3QoKCkgPT4gewogICAgcnVuRGlhZ25vc3RpY3MoKTsKICB9LCBbXSk7CgogIGlmIChsb2FkaW5nKSB7CiAgICByZXR1cm4gKAogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgbWluLWgtc2NyZWVuIGJnLXNsYXRlLTUwIj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1jZW50ZXIiPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9InctMTIgaC0xMiBib3JkZXItNCBib3JkZXItc2xhdGUtMjAwIGJvcmRlci10LWFtYmVyLTYwMCByb3VuZGVkLWZ1bGwgYW5pbWF0ZS1zcGluIG14LWF1dG8gbWItNCI+PC9kaXY+CiAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20gdGV4dC1zbGF0ZS02MDAiPlJ1bm5pbmcgcGVybWlzc2lvbiBkaWFnbm9zdGljcy4uLjwvcD4KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CiAgICApOwogIH0KCiAgaWYgKGVycm9yKSB7CiAgICByZXR1cm4gKAogICAgICA8ZGl2IGNsYXNzTmFtZT0ibWluLWgtc2NyZWVuIGJnLXNsYXRlLTUwIHAtNiI+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9Im1heC13LTN4bCBteC1hdXRvIj4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1yZWQtNTAgYm9yZGVyIGJvcmRlci1yZWQtMzAwIHJvdW5kZWQtbGcgcC02Ij4KICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZ2FwLTMiPgogICAgICAgICAgICAgIDxBbGVydENpcmNsZSBjbGFzc05hbWU9InctNiBoLTYgdGV4dC1yZWQtNjAwIGZsZXgtc2hyaW5rLTAgbXQtMC41IiAvPgogICAgICAgICAgICAgIDxkaXY+CiAgICAgICAgICAgICAgICA8aDIgY2xhc3NOYW1lPSJ0ZXh0LWxnIGZvbnQtYm9sZCB0ZXh0LXJlZC05MDAgbWItMiI+RXJyb3IgUnVubmluZyBEaWFnbm9zdGljczwvaDI+CiAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtcmVkLTcwMCBmb250LW1vbm8gdGV4dC1zbSBtYi00Ij57ZXJyb3J9PC9wPgogICAgICAgICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICAgICAgICBvbkNsaWNrPXtydW5EaWFnbm9zdGljc30KICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJweC00IHB5LTIgYmctcmVkLTYwMCB0ZXh0LXdoaXRlIHRleHQtc20gZm9udC1ib2xkIHJvdW5kZWQtbGcgaG92ZXI6YmctcmVkLTcwMCB0cmFuc2l0aW9uLWNvbG9ycyBpbmxpbmUtZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIiCiAgICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICAgIDxSZWZyZXNoQ3cgY2xhc3NOYW1lPSJ3LTQgaC00IiAvPiBSZXRyeQogICAgICAgICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgPC9kaXY+CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgogICAgKTsKICB9CgogIGlmICghZGlhZ25vc3RpY3MpIHsKICAgIHJldHVybiBudWxsOwogIH0KCiAgY29uc3QgZ2V0U2V2ZXJpdHkgPSAoaXNzdWUpID0+IHsKICAgIGlmIChpc3N1ZS5pbmNsdWRlcygnQ1JJVElDQUwnKSkgcmV0dXJuICdjcml0aWNhbCc7CiAgICBpZiAoaXNzdWUuaW5jbHVkZXMoJ1dBUk5JTkcnKSkgcmV0dXJuICd3YXJuaW5nJzsKICAgIHJldHVybiAnb2snOwogIH07CgogIGNvbnN0IHNldmVyaXR5ID0gZ2V0U2V2ZXJpdHkoZGlhZ25vc3RpY3Muc3VtbWFyeS5wZXJtaXNzaW9uX2lzc3VlKTsKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJtaW4taC1zY3JlZW4gYmctc2xhdGUtNTAgcC02Ij4KICAgICAgPGRpdiBjbGFzc05hbWU9Im1heC13LTR4bCBteC1hdXRvIHNwYWNlLXktNiI+CiAgICAgICAgey8qIEhlYWRlciAqL30KICAgICAgICA8ZGl2PgogICAgICAgICAgPGgxIGNsYXNzTmFtZT0idGV4dC0zeGwgZm9udC1ib2xkIHRleHQtc2xhdGUtOTAwIj5QZXJtaXNzaW9uIE1vZGVsIERpYWdub3N0aWNzPC9oMT4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1zbSB0ZXh0LXNsYXRlLTUwMCBtdC0xIj5SdW4gYXQge2RpYWdub3N0aWNzLnRpbWVzdGFtcH08L3A+CiAgICAgICAgPC9kaXY+CgogICAgICAgIHsvKiBPdmVyYWxsIFN0YXR1cyAqL30KICAgICAgICA8ZGl2IGNsYXNzTmFtZT17YHJvdW5kZWQtbGcgcC02IGJvcmRlci0yICR7CiAgICAgICAgICBzZXZlcml0eSA9PT0gJ2NyaXRpY2FsJyA/ICdiZy1yZWQtNTAgYm9yZGVyLXJlZC0zMDAnIDoKICAgICAgICAgIHNldmVyaXR5ID09PSAnd2FybmluZycgPyAnYmcteWVsbG93LTUwIGJvcmRlci15ZWxsb3ctMzAwJyA6CiAgICAgICAgICAnYmctZ3JlZW4tNTAgYm9yZGVyLWdyZWVuLTMwMCcKICAgICAgICB9YH0+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBnYXAtMyBpdGVtcy1zdGFydCI+CiAgICAgICAgICAgIHtzZXZlcml0eSA9PT0gJ2NyaXRpY2FsJyAmJiA8QWxlcnRDaXJjbGUgY2xhc3NOYW1lPSJ3LTYgaC02IHRleHQtcmVkLTYwMCBmbGV4LXNocmluay0wIG10LTAuNSIgLz59CiAgICAgICAgICAgIHtzZXZlcml0eSA9PT0gJ3dhcm5pbmcnICYmIDxBbGVydFRyaWFuZ2xlIGNsYXNzTmFtZT0idy02IGgtNiB0ZXh0LXllbGxvdy02MDAgZmxleC1zaHJpbmstMCBtdC0wLjUiIC8+fQogICAgICAgICAgICB7c2V2ZXJpdHkgPT09ICdvaycgJiYgPENoZWNrQ2lyY2xlIGNsYXNzTmFtZT0idy02IGgtNiB0ZXh0LWdyZWVuLTYwMCBmbGV4LXNocmluay0wIG10LTAuNSIgLz59CiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4LTEiPgogICAgICAgICAgICAgIDxoMiBjbGFzc05hbWU9e2B0ZXh0LWxnIGZvbnQtYm9sZCBtYi0yICR7CiAgICAgICAgICAgICAgICBzZXZlcml0eSA9PT0gJ2NyaXRpY2FsJyA/ICd0ZXh0LXJlZC05MDAnIDoKICAgICAgICAgICAgICAgIHNldmVyaXR5ID09PSAnd2FybmluZycgPyAndGV4dC15ZWxsb3ctOTAwJyA6CiAgICAgICAgICAgICAgICAndGV4dC1ncmVlbi05MDAnCiAgICAgICAgICAgICAgfWB9PgogICAgICAgICAgICAgICAge2RpYWdub3N0aWNzLnN1bW1hcnkucGVybWlzc2lvbl9pc3N1ZX0KICAgICAgICAgICAgICA8L2gyPgogICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT17YHRleHQtc20gJHsKICAgICAgICAgICAgICAgIHNldmVyaXR5ID09PSAnY3JpdGljYWwnID8gJ3RleHQtcmVkLTcwMCcgOgogICAgICAgICAgICAgICAgc2V2ZXJpdHkgPT09ICd3YXJuaW5nJyA/ICd0ZXh0LXllbGxvdy03MDAnIDoKICAgICAgICAgICAgICAgICd0ZXh0LWdyZWVuLTcwMCcKICAgICAgICAgICAgICB9YH0+CiAgICAgICAgICAgICAgICB7ZGlhZ25vc3RpY3Muc3VtbWFyeS5yb290X2NhdXNlX2h5cG90aGVzaXN9CiAgICAgICAgICAgICAgPC9wPgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgoKICAgICAgICB7LyogU2VjdGlvbjogQXV0aGVudGljYXRpb24gKi99CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLXdoaXRlIHJvdW5kZWQtbGcgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcC02Ij4KICAgICAgICAgIDxoMyBjbGFzc05hbWU9InRleHQtbGcgZm9udC1ib2xkIHRleHQtc2xhdGUtOTAwIG1iLTQiPkxheWVyIDE6IEF1dGhlbnRpY2F0aW9uPC9oMz4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJzcGFjZS15LTIgZm9udC1tb25vIHRleHQtc20iPgogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBqdXN0aWZ5LWJldHdlZW4gcHktMSI+CiAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXNsYXRlLTYwMCI+RW1haWw6PC9zcGFuPgogICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1zbGF0ZS05MDAgZm9udC1zZW1pYm9sZCI+e2RpYWdub3N0aWNzLmF1dGhlbnRpY2F0aW9uLmVtYWlsfTwvc3Bhbj4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGp1c3RpZnktYmV0d2VlbiBweS0xIj4KICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtc2xhdGUtNjAwIj5GdWxsIE5hbWU6PC9zcGFuPgogICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1zbGF0ZS05MDAiPntkaWFnbm9zdGljcy5hdXRoZW50aWNhdGlvbi5mdWxsX25hbWV9PC9zcGFuPgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXgganVzdGlmeS1iZXR3ZWVuIHB5LTEiPgogICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1zbGF0ZS02MDAiPlVzZXIucm9sZSAoZnJvbSBVc2VyIGVudGl0eSk6PC9zcGFuPgogICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT17YGZvbnQtc2VtaWJvbGQgJHtkaWFnbm9zdGljcy5hdXRoZW50aWNhdGlvbi5yb2xlX2Zyb21fdXNlcl9lbnRpdHkgPT09ICdhZG1pbicgPyAndGV4dC1lbWVyYWxkLTcwMCcgOiAndGV4dC1zbGF0ZS05MDAnfWB9PgogICAgICAgICAgICAgICAge2RpYWdub3N0aWNzLmF1dGhlbnRpY2F0aW9uLnJvbGVfZnJvbV91c2VyX2VudGl0eX0KICAgICAgICAgICAgICA8L3NwYW4+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBqdXN0aWZ5LWJldHdlZW4gcHktMSI+CiAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXNsYXRlLTYwMCI+VXNlciBJRDo8L3NwYW4+CiAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXNsYXRlLTkwMCB0ZXh0LXhzIj57ZGlhZ25vc3RpY3MuYXV0aGVudGljYXRpb24uaWR9PC9zcGFuPgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgoKICAgICAgICB7LyogU2VjdGlvbjogQWxsb3dsaXN0ICovfQogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy13aGl0ZSByb3VuZGVkLWxnIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHAtNiI+CiAgICAgICAgICA8aDMgY2xhc3NOYW1lPSJ0ZXh0LWxnIGZvbnQtYm9sZCB0ZXh0LXNsYXRlLTkwMCBtYi00Ij5MYXllciAyOiBBbGxvd2xpc3QgKFVzZXJBbGxvd2xpc3QgRW50aXR5KTwvaDM+CiAgICAgICAgICB7ZGlhZ25vc3RpY3MuYWxsb3dsaXN0LmZvdW5kID8gKAogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ic3BhY2UteS0yIGZvbnQtbW9ubyB0ZXh0LXNtIj4KICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBqdXN0aWZ5LWJldHdlZW4gcHktMSI+CiAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtc2xhdGUtNjAwIj5TdGF0dXM6PC9zcGFuPgogICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LWVtZXJhbGQtNzAwIGZvbnQtYm9sZCI+4pyTIEZvdW5kIGluIGFsbG93bGlzdDwvc3Bhbj4KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBqdXN0aWZ5LWJldHdlZW4gcHktMSI+CiAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtc2xhdGUtNjAwIj5FbWFpbDo8L3NwYW4+CiAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtc2xhdGUtOTAwIj57ZGlhZ25vc3RpY3MuYWxsb3dsaXN0LmVudHJ5LmVtYWlsfTwvc3Bhbj4KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBqdXN0aWZ5LWJldHdlZW4gcHktMSI+CiAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtc2xhdGUtNjAwIj5OYW1lOjwvc3Bhbj4KICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1zbGF0ZS05MDAiPntkaWFnbm9zdGljcy5hbGxvd2xpc3QuZW50cnkubmFtZX08L3NwYW4+CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXgganVzdGlmeS1iZXR3ZWVuIHB5LTEiPgogICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXNsYXRlLTYwMCI+QWxsb3dsaXN0IFJvbGU6PC9zcGFuPgogICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPXtgZm9udC1zZW1pYm9sZCAke2RpYWdub3N0aWNzLmFsbG93bGlzdC5lbnRyeS5yb2xlID09PSAnYWRtaW4nID8gJ3RleHQtZW1lcmFsZC03MDAnIDogJ3RleHQtc2xhdGUtOTAwJ31gfT4KICAgICAgICAgICAgICAgICAge2RpYWdub3N0aWNzLmFsbG93bGlzdC5lbnRyeS5yb2xlfQogICAgICAgICAgICAgICAgPC9zcGFuPgogICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGp1c3RpZnktYmV0d2VlbiBweS0xIj4KICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1zbGF0ZS02MDAiPkVuYWJsZWQ6PC9zcGFuPgogICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPXtkaWFnbm9zdGljcy5hbGxvd2xpc3QuZW50cnkuZW5hYmxlZCA/ICd0ZXh0LWVtZXJhbGQtNzAwIGZvbnQtYm9sZCcgOiAndGV4dC1yZWQtNzAwJ30+CiAgICAgICAgICAgICAgICAgIHtkaWFnbm9zdGljcy5hbGxvd2xpc3QuZW50cnkuZW5hYmxlZCA/ICdZZXMnIDogJ05PJ30KICAgICAgICAgICAgICAgIDwvc3Bhbj4KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICApIDogKAogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1yZWQtNzAwIGZvbnQtc2VtaWJvbGQiPuKclyBOT1QgZm91bmQgaW4gYWxsb3dsaXN0PC9kaXY+CiAgICAgICAgICApfQogICAgICAgIDwvZGl2PgoKICAgICAgICB7LyogU2VjdGlvbjogQWRtaW4gU3RhdHVzICovfQogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy13aGl0ZSByb3VuZGVkLWxnIGJvcmRlciBib3JkZXItc2xhdGUtMjAwIHAtNiI+CiAgICAgICAgICA8aDMgY2xhc3NOYW1lPSJ0ZXh0LWxnIGZvbnQtYm9sZCB0ZXh0LXNsYXRlLTkwMCBtYi00Ij5MYXllciAzOiBBZG1pbiBTdGF0dXMgQ2FsY3VsYXRpb248L2gzPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMyI+CiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1zbGF0ZS01MCBwLTMgcm91bmRlZCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCI+CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTYwMCBtYi0yIj5IYXJkY29kZWQgQWRtaW4gTGlzdDo8L2Rpdj4KICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZm9udC1tb25vIHRleHQtc20gdGV4dC1zbGF0ZS05MDAgc3BhY2UteS0xIj4KICAgICAgICAgICAgICAgIHtkaWFnbm9zdGljcy5hZG1pbl9zdGF0dXMuaGFyZGNvZGVkX2FkbWluX2xpc3QubWFwKChlbWFpbCwgaSkgPT4gKAogICAgICAgICAgICAgICAgICA8ZGl2IGtleT17aX0gY2xhc3NOYW1lPXtgcHktMC41ICR7ZW1haWwgPT09IGRpYWdub3N0aWNzLmF1dGhlbnRpY2F0aW9uLmVtYWlsID8gJ2JnLWVtZXJhbGQtMTAwIHB4LTIgcm91bmRlZCBmb250LWJvbGQgdGV4dC1lbWVyYWxkLTkwMCcgOiAnJ31gfT4KICAgICAgICAgICAgICAgICAgICB7ZW1haWx9CiAgICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgKSl9CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMiBmb250LW1vbm8gdGV4dC1zbSI+CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXgganVzdGlmeS1iZXR3ZWVuIHB5LTEgYmctc2xhdGUtNTAgcHgtMyBweS0yIHJvdW5kZWQiPgogICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXNsYXRlLTYwMCI+VXNlci5yb2xlID09PSAnYWRtaW4nOjwvc3Bhbj4KICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT17ZGlhZ25vc3RpY3MuYWRtaW5fc3RhdHVzLnVzZXJfcm9sZV9pc19hZG1pbiA/ICd0ZXh0LWVtZXJhbGQtNzAwIGZvbnQtYm9sZCcgOiAndGV4dC1zbGF0ZS05MDAnfT4KICAgICAgICAgICAgICAgICAge2RpYWdub3N0aWNzLmFkbWluX3N0YXR1cy51c2VyX3JvbGVfaXNfYWRtaW4gPyAnWUVTIOKckycgOiAnTk8nfQogICAgICAgICAgICAgICAgPC9zcGFuPgogICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGp1c3RpZnktYmV0d2VlbiBweS0xIGJnLXNsYXRlLTUwIHB4LTMgcHktMiByb3VuZGVkIj4KICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1zbGF0ZS02MDAiPkluIGhhcmRjb2RlZCBhZG1pbiBsaXN0Ojwvc3Bhbj4KICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT17ZGlhZ25vc3RpY3MuYWRtaW5fc3RhdHVzLmlzX2luX2hhcmRjb2RlZF9hZG1pbl9saXN0ID8gJ3RleHQtZW1lcmFsZC03MDAgZm9udC1ib2xkJyA6ICd0ZXh0LXJlZC03MDAgZm9udC1ib2xkJ30+CiAgICAgICAgICAgICAgICAgIHtkaWFnbm9zdGljcy5hZG1pbl9zdGF0dXMuaXNfaW5faGFyZGNvZGVkX2FkbWluX2xpc3QgPyAnWUVTIOKckycgOiAnTk8g4pyXJ30KICAgICAgICAgICAgICAgIDwvc3Bhbj4KICAgICAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICAgICAge2RpYWdub3N0aWNzLmFkbWluX3N0YXR1cy5yb2xlX21pc21hdGNoICE9PSAnT0snICYmICgKICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtdC0zIHAtMyBiZy1yZWQtMTAwIGJvcmRlciBib3JkZXItcmVkLTMwMCByb3VuZGVkIj4KICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtcmVkLTkwMCBmb250LWJvbGQgdGV4dC1zbSI+e2RpYWdub3N0aWNzLmFkbWluX3N0YXR1cy5yb2xlX21pc21hdGNofTwvZGl2PgogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KCiAgICAgICAgey8qIFNlY3Rpb246IE93bmVyIE1hcHBpbmcgKi99CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLXdoaXRlIHJvdW5kZWQtbGcgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcC02Ij4KICAgICAgICAgIDxoMyBjbGFzc05hbWU9InRleHQtbGcgZm9udC1ib2xkIHRleHQtc2xhdGUtOTAwIG1iLTQiPkxheWVyIDQ6IE93bmVyIE1hcHBpbmc8L2gzPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMyI+CiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1zbGF0ZS01MCBwLTMgcm91bmRlZCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMCI+CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LXNsYXRlLTYwMCBtYi0yIj5IYXJkY29kZWQgVXNlciDihpIgT3duZXIgTWFwOjwvZGl2PgogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmb250LW1vbm8gdGV4dC1zbSB0ZXh0LXNsYXRlLTkwMCBzcGFjZS15LTEiPgogICAgICAgICAgICAgICAge09iamVjdC5lbnRyaWVzKGRpYWdub3N0aWNzLm93bmVyX21hcHBpbmcuaGFyZGNvZGVkX21hcCkubWFwKChbZW1haWwsIG93bmVyXSwgaSkgPT4gKAogICAgICAgICAgICAgICAgICA8ZGl2IGtleT17aX0gY2xhc3NOYW1lPXtgcHktMC41ICR7ZW1haWwgPT09IGRpYWdub3N0aWNzLmF1dGhlbnRpY2F0aW9uLmVtYWlsID8gJ2JnLWVtZXJhbGQtMTAwIHB4LTIgcm91bmRlZCBmb250LWJvbGQgdGV4dC1lbWVyYWxkLTkwMCcgOiAnJ31gfT4KICAgICAgICAgICAgICAgICAgICB7ZW1haWx9IOKGkiB7b3duZXJ9CiAgICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgKSl9CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMiBmb250LW1vbm8gdGV4dC1zbSI+CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXgganVzdGlmeS1iZXR3ZWVuIHB5LTEgYmctc2xhdGUtNTAgcHgtMyBweS0yIHJvdW5kZWQiPgogICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXNsYXRlLTYwMCI+WW91ciBtYXBwZWQgb3duZXIgbmFtZTo8L3NwYW4+CiAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtc2xhdGUtOTAwIGZvbnQtc2VtaWJvbGQiPntkaWFnbm9zdGljcy5vd25lcl9tYXBwaW5nLmhhcmRjb2RlZF9tYXBwZWRfdG8gfHwgJ+KAlCd9PC9zcGFuPgogICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICAgIHtPYmplY3Qua2V5cyhkaWFnbm9zdGljcy5vd25lcl9tYXBwaW5nLnNldHRpbmdzX293bmVyX2VtYWlscykubGVuZ3RoID4gMCAmJiAoCiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLWJsdWUtNTAgcC0zIHJvdW5kZWQgYm9yZGVyIGJvcmRlci1ibHVlLTIwMCI+CiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC14cyBmb250LXNlbWlib2xkIHRleHQtYmx1ZS05MDAgbWItMiI+T3duZXIgRW1haWwgTWFwcGluZyAoZnJvbSBTZXR0aW5ncyk6PC9kaXY+CiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZm9udC1tb25vIHRleHQtc20gdGV4dC1ibHVlLTkwMCBzcGFjZS15LTEiPgogICAgICAgICAgICAgICAgICB7T2JqZWN0LmVudHJpZXMoZGlhZ25vc3RpY3Mub3duZXJfbWFwcGluZy5zZXR0aW5nc19vd25lcl9lbWFpbHMpLm1hcCgoW293bmVyLCBlbWFpbF0sIGkpID0+ICgKICAgICAgICAgICAgICAgICAgICA8ZGl2IGtleT17aX0+e293bmVyfToge2VtYWlsfTwvZGl2PgogICAgICAgICAgICAgICAgICApKX0KICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICApfQoKICAgICAgICAgICAge2RpYWdub3N0aWNzLm93bmVyX21hcHBpbmcuYXZhaWxhYmxlX2NvbnRhY3Rfb3duZXJzLmxlbmd0aCA+IDAgJiYgKAogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1wdXJwbGUtNTAgcC0zIHJvdW5kZWQgYm9yZGVyIGJvcmRlci1wdXJwbGUtMjAwIj4KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1wdXJwbGUtOTAwIG1iLTIiPkF2YWlsYWJsZSBDb250YWN0IE93bmVyczo8L2Rpdj4KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmb250LW1vbm8gdGV4dC1zbSB0ZXh0LXB1cnBsZS05MDAgc3BhY2UteS0xIj4KICAgICAgICAgICAgICAgICAge2RpYWdub3N0aWNzLm93bmVyX21hcHBpbmcuYXZhaWxhYmxlX2NvbnRhY3Rfb3duZXJzLm1hcCgob3duZXIsIGkpID0+ICgKICAgICAgICAgICAgICAgICAgICA8ZGl2IGtleT17aX0gY2xhc3NOYW1lPXtkaWFnbm9zdGljcy5vd25lcl9tYXBwaW5nLmhhcmRjb2RlZF9tYXBwZWRfdG8gPT09IG93bmVyID8gJ2JnLXB1cnBsZS0yMDAgcHgtMiBweS0xIHJvdW5kZWQgZm9udC1ib2xkJyA6ICcnfT4KICAgICAgICAgICAgICAgICAgICAgIHtvd25lcn0KICAgICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgKSl9CiAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgKX0KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgoKICAgICAgICB7LyogU2VjdGlvbjogUkxTIFRlc3QgKi99CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLXdoaXRlIHJvdW5kZWQtbGcgYm9yZGVyIGJvcmRlci1zbGF0ZS0yMDAgcC02Ij4KICAgICAgICAgIDxoMyBjbGFzc05hbWU9InRleHQtbGcgZm9udC1ib2xkIHRleHQtc2xhdGUtOTAwIG1iLTQiPkxheWVyIDU6IFJMUyAvIFJlY29yZCBWaXNpYmlsaXR5PC9oMz4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJzcGFjZS15LTIgZm9udC1tb25vIHRleHQtc20iPgogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBqdXN0aWZ5LWJldHdlZW4gcHktMSBiZy1zbGF0ZS01MCBweC0zIHB5LTIgcm91bmRlZCI+CiAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXNsYXRlLTYwMCI+Q2FuIHJlYWQgbGVhZHM6PC9zcGFuPgogICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT17ZGlhZ25vc3RpY3MucmxzX3Rlc3QuYWJsZV90b19yZWFkX2xlYWRzID09PSAnWUVTJyA/ICd0ZXh0LWVtZXJhbGQtNzAwIGZvbnQtYm9sZCcgOiAndGV4dC1yZWQtNzAwIGZvbnQtYm9sZCd9PgogICAgICAgICAgICAgICAge2RpYWdub3N0aWNzLnJsc190ZXN0LmFibGVfdG9fcmVhZF9sZWFkc30KICAgICAgICAgICAgICA8L3NwYW4+CiAgICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgICAge2RpYWdub3N0aWNzLnJsc190ZXN0LnNhbXBsZV9sZWFkICYmICgKICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctZW1lcmFsZC01MCBwLTMgcm91bmRlZCBib3JkZXIgYm9yZGVyLWVtZXJhbGQtMjAwIG10LTMiPgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQteHMgZm9udC1ib2xkIHRleHQtZW1lcmFsZC05MDAgbWItMiI+U2FtcGxlIExlYWQgKGZpcnN0IHJlY29yZCk6PC9kaXY+CiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ic3BhY2UteS0xIHRleHQtc2xhdGUtOTAwIj4KICAgICAgICAgICAgICAgICAgPGRpdj5OYW1lOiB7ZGlhZ25vc3RpY3MucmxzX3Rlc3Quc2FtcGxlX2xlYWQubmFtZX08L2Rpdj4KICAgICAgICAgICAgICAgICAgPGRpdj5Bc3NpZ25lZCBSZXA6IHtkaWFnbm9zdGljcy5ybHNfdGVzdC5zYW1wbGVfbGVhZC5hc3NpZ25lZF9yZXAgfHwgJ+KAlCd9PC9kaXY+CiAgICAgICAgICAgICAgICAgIDxkaXY+SUQ6IDxzcGFuIGNsYXNzTmFtZT0idGV4dC14cyI+e2RpYWdub3N0aWNzLnJsc190ZXN0LnNhbXBsZV9sZWFkLmlkfTwvc3Bhbj48L2Rpdj4KICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICApfQoKICAgICAgICAgICAge2RpYWdub3N0aWNzLnJsc190ZXN0LnJlYWRfZXJyb3IgJiYgKAogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1yZWQtNTAgcC0zIHJvdW5kZWQgYm9yZGVyIGJvcmRlci1yZWQtMjAwIG10LTMiPgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtcmVkLTkwMCBmb250LWJvbGQgdGV4dC1zbSI+UmVhZCBFcnJvcjo8L2Rpdj4KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LXJlZC03MDAgdGV4dC14cyBmb250LW1vbm8gbXQtMSI+e2RpYWdub3N0aWNzLnJsc190ZXN0LnJlYWRfZXJyb3J9PC9kaXY+CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICl9CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KCiAgICAgICAgey8qIEJ1dHRvbiAqL30KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBnYXAtMyI+CiAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgIG9uQ2xpY2s9e3J1bkRpYWdub3N0aWNzfQogICAgICAgICAgICBjbGFzc05hbWU9InB4LTYgcHktMiBiZy1hbWJlci02MDAgdGV4dC13aGl0ZSB0ZXh0LXNtIGZvbnQtYm9sZCByb3VuZGVkLWxnIGhvdmVyOmJnLWFtYmVyLTcwMCB0cmFuc2l0aW9uLWNvbG9ycyBpbmxpbmUtZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIiCiAgICAgICAgICA+CiAgICAgICAgICAgIDxSZWZyZXNoQ3cgY2xhc3NOYW1lPSJ3LTQgaC00IiAvPiBSZS1ydW4gRGlhZ25vc3RpY3MKICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KICAgIDwvZGl2PgogICk7Cn0=
+import { useState, useEffect } from "react";
+import { apiCall } from "@/api/railway/client";
+import { AlertCircle, CheckCircle, AlertTriangle, RefreshCw } from "lucide-react";
+
+export default function PermissionDiagnostics() {
+  const [diagnostics, setDiagnostics] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const runDiagnostics = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await apiCall('/api/v1/leads', { method: 'GET' });
+      setDiagnostics(null);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    runDiagnostics();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-slate-200 border-t-amber-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-sm text-slate-600">Running permission diagnostics...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-slate-50 p-6">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-red-50 border border-red-300 rounded-lg p-6">
+            <div className="flex gap-3">
+              <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <h2 className="text-lg font-bold text-red-900 mb-2">Error Running Diagnostics</h2>
+                <p className="text-red-700 font-mono text-sm mb-4">{error}</p>
+                <button
+                  onClick={runDiagnostics}
+                  className="px-4 py-2 bg-red-600 text-white text-sm font-bold rounded-lg hover:bg-red-700 transition-colors inline-flex items-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" /> Retry
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!diagnostics) {
+    return null;
+  }
+
+  const getSeverity = (issue) => {
+    if (issue.includes('CRITICAL')) return 'critical';
+    if (issue.includes('WARNING')) return 'warning';
+    return 'ok';
+  };
+
+  const severity = getSeverity(diagnostics.summary.permission_issue);
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-6">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">Permission Model Diagnostics</h1>
+          <p className="text-sm text-slate-500 mt-1">Run at {diagnostics.timestamp}</p>
+        </div>
+
+        {/* Overall Status */}
+        <div className={`rounded-lg p-6 border-2 ${
+          severity === 'critical' ? 'bg-red-50 border-red-300' :
+          severity === 'warning' ? 'bg-yellow-50 border-yellow-300' :
+          'bg-green-50 border-green-300'
+        }`}>
+          <div className="flex gap-3 items-start">
+            {severity === 'critical' && <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />}
+            {severity === 'warning' && <AlertTriangle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" />}
+            {severity === 'ok' && <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />}
+            <div className="flex-1">
+              <h2 className={`text-lg font-bold mb-2 ${
+                severity === 'critical' ? 'text-red-900' :
+                severity === 'warning' ? 'text-yellow-900' :
+                'text-green-900'
+              }`}>
+                {diagnostics.summary.permission_issue}
+              </h2>
+              <p className={`text-sm ${
+                severity === 'critical' ? 'text-red-700' :
+                severity === 'warning' ? 'text-yellow-700' :
+                'text-green-700'
+              }`}>
+                {diagnostics.summary.root_cause_hypothesis}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Section: Authentication */}
+        <div className="bg-white rounded-lg border border-slate-200 p-6">
+          <h3 className="text-lg font-bold text-slate-900 mb-4">Layer 1: Authentication</h3>
+          <div className="space-y-2 font-mono text-sm">
+            <div className="flex justify-between py-1">
+              <span className="text-slate-600">Email:</span>
+              <span className="text-slate-900 font-semibold">{diagnostics.authentication.email}</span>
+            </div>
+            <div className="flex justify-between py-1">
+              <span className="text-slate-600">Full Name:</span>
+              <span className="text-slate-900">{diagnostics.authentication.full_name}</span>
+            </div>
+            <div className="flex justify-between py-1">
+              <span className="text-slate-600">User.role (from User entity):</span>
+              <span className={`font-semibold ${diagnostics.authentication.role_from_user_entity === 'admin' ? 'text-emerald-700' : 'text-slate-900'}`}>
+                {diagnostics.authentication.role_from_user_entity}
+              </span>
+            </div>
+            <div className="flex justify-between py-1">
+              <span className="text-slate-600">User ID:</span>
+              <span className="text-slate-900 text-xs">{diagnostics.authentication.id}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Section: Allowlist */}
+        <div className="bg-white rounded-lg border border-slate-200 p-6">
+          <h3 className="text-lg font-bold text-slate-900 mb-4">Layer 2: Allowlist (UserAllowlist Entity)</h3>
+          {diagnostics.allowlist.found ? (
+            <div className="space-y-2 font-mono text-sm">
+              <div className="flex justify-between py-1">
+                <span className="text-slate-600">Status:</span>
+                <span className="text-emerald-700 font-bold">✓ Found in allowlist</span>
+              </div>
+              <div className="flex justify-between py-1">
+                <span className="text-slate-600">Email:</span>
+                <span className="text-slate-900">{diagnostics.allowlist.entry.email}</span>
+              </div>
+              <div className="flex justify-between py-1">
+                <span className="text-slate-600">Name:</span>
+                <span className="text-slate-900">{diagnostics.allowlist.entry.name}</span>
+              </div>
+              <div className="flex justify-between py-1">
+                <span className="text-slate-600">Allowlist Role:</span>
+                <span className={`font-semibold ${diagnostics.allowlist.entry.role === 'admin' ? 'text-emerald-700' : 'text-slate-900'}`}>
+                  {diagnostics.allowlist.entry.role}
+                </span>
+              </div>
+              <div className="flex justify-between py-1">
+                <span className="text-slate-600">Enabled:</span>
+                <span className={diagnostics.allowlist.entry.enabled ? 'text-emerald-700 font-bold' : 'text-red-700'}>
+                  {diagnostics.allowlist.entry.enabled ? 'Yes' : 'NO'}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="text-red-700 font-semibold">✗ NOT found in allowlist</div>
+          )}
+        </div>
+
+        {/* Section: Admin Status */}
+        <div className="bg-white rounded-lg border border-slate-200 p-6">
+          <h3 className="text-lg font-bold text-slate-900 mb-4">Layer 3: Admin Status Calculation</h3>
+          <div className="space-y-3">
+            <div className="bg-slate-50 p-3 rounded border border-slate-200">
+              <div className="text-xs font-semibold text-slate-600 mb-2">Hardcoded Admin List:</div>
+              <div className="font-mono text-sm text-slate-900 space-y-1">
+                {diagnostics.admin_status.hardcoded_admin_list.map((email, i) => (
+                  <div key={i} className={`py-0.5 ${email === diagnostics.authentication.email ? 'bg-emerald-100 px-2 rounded font-bold text-emerald-900' : ''}`}>
+                    {email}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2 font-mono text-sm">
+              <div className="flex justify-between py-1 bg-slate-50 px-3 py-2 rounded">
+                <span className="text-slate-600">User.role === 'admin':</span>
+                <span className={diagnostics.admin_status.user_role_is_admin ? 'text-emerald-700 font-bold' : 'text-slate-900'}>
+                  {diagnostics.admin_status.user_role_is_admin ? 'YES ✓' : 'NO'}
+                </span>
+              </div>
+              <div className="flex justify-between py-1 bg-slate-50 px-3 py-2 rounded">
+                <span className="text-slate-600">In hardcoded admin list:</span>
+                <span className={diagnostics.admin_status.is_in_hardcoded_admin_list ? 'text-emerald-700 font-bold' : 'text-red-700 font-bold'}>
+                  {diagnostics.admin_status.is_in_hardcoded_admin_list ? 'YES ✓' : 'NO ✗'}
+                </span>
+              </div>
+
+              {diagnostics.admin_status.role_mismatch !== 'OK' && (
+                <div className="mt-3 p-3 bg-red-100 border border-red-300 rounded">
+                  <div className="text-red-900 font-bold text-sm">{diagnostics.admin_status.role_mismatch}</div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Section: Owner Mapping */}
+        <div className="bg-white rounded-lg border border-slate-200 p-6">
+          <h3 className="text-lg font-bold text-slate-900 mb-4">Layer 4: Owner Mapping</h3>
+          <div className="space-y-3">
+            <div className="bg-slate-50 p-3 rounded border border-slate-200">
+              <div className="text-xs font-semibold text-slate-600 mb-2">Hardcoded User → Owner Map:</div>
+              <div className="font-mono text-sm text-slate-900 space-y-1">
+                {Object.entries(diagnostics.owner_mapping.hardcoded_map).map(([email, owner], i) => (
+                  <div key={i} className={`py-0.5 ${email === diagnostics.authentication.email ? 'bg-emerald-100 px-2 rounded font-bold text-emerald-900' : ''}`}>
+                    {email} → {owner}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2 font-mono text-sm">
+              <div className="flex justify-between py-1 bg-slate-50 px-3 py-2 rounded">
+                <span className="text-slate-600">Your mapped owner name:</span>
+                <span className="text-slate-900 font-semibold">{diagnostics.owner_mapping.hardcoded_mapped_to || '—'}</span>
+              </div>
+            </div>
+
+            {Object.keys(diagnostics.owner_mapping.settings_owner_emails).length > 0 && (
+              <div className="bg-blue-50 p-3 rounded border border-blue-200">
+                <div className="text-xs font-semibold text-blue-900 mb-2">Owner Email Mapping (from Settings):</div>
+                <div className="font-mono text-sm text-blue-900 space-y-1">
+                  {Object.entries(diagnostics.owner_mapping.settings_owner_emails).map(([owner, email], i) => (
+                    <div key={i}>{owner}: {email}</div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {diagnostics.owner_mapping.available_contact_owners.length > 0 && (
+              <div className="bg-purple-50 p-3 rounded border border-purple-200">
+                <div className="text-xs font-semibold text-purple-900 mb-2">Available Contact Owners:</div>
+                <div className="font-mono text-sm text-purple-900 space-y-1">
+                  {diagnostics.owner_mapping.available_contact_owners.map((owner, i) => (
+                    <div key={i} className={diagnostics.owner_mapping.hardcoded_mapped_to === owner ? 'bg-purple-200 px-2 py-1 rounded font-bold' : ''}>
+                      {owner}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Section: RLS Test */}
+        <div className="bg-white rounded-lg border border-slate-200 p-6">
+          <h3 className="text-lg font-bold text-slate-900 mb-4">Layer 5: RLS / Record Visibility</h3>
+          <div className="space-y-2 font-mono text-sm">
+            <div className="flex justify-between py-1 bg-slate-50 px-3 py-2 rounded">
+              <span className="text-slate-600">Can read leads:</span>
+              <span className={diagnostics.rls_test.able_to_read_leads === 'YES' ? 'text-emerald-700 font-bold' : 'text-red-700 font-bold'}>
+                {diagnostics.rls_test.able_to_read_leads}
+              </span>
+            </div>
+
+            {diagnostics.rls_test.sample_lead && (
+              <div className="bg-emerald-50 p-3 rounded border border-emerald-200 mt-3">
+                <div className="text-xs font-bold text-emerald-900 mb-2">Sample Lead (first record):</div>
+                <div className="space-y-1 text-slate-900">
+                  <div>Name: {diagnostics.rls_test.sample_lead.name}</div>
+                  <div>Assigned Rep: {diagnostics.rls_test.sample_lead.assigned_rep || '—'}</div>
+                  <div>ID: <span className="text-xs">{diagnostics.rls_test.sample_lead.id}</span></div>
+                </div>
+              </div>
+            )}
+
+            {diagnostics.rls_test.read_error && (
+              <div className="bg-red-50 p-3 rounded border border-red-200 mt-3">
+                <div className="text-red-900 font-bold text-sm">Read Error:</div>
+                <div className="text-red-700 text-xs font-mono mt-1">{diagnostics.rls_test.read_error}</div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Button */}
+        <div className="flex gap-3">
+          <button
+            onClick={runDiagnostics}
+            className="px-6 py-2 bg-amber-600 text-white text-sm font-bold rounded-lg hover:bg-amber-700 transition-colors inline-flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" /> Re-run Diagnostics
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

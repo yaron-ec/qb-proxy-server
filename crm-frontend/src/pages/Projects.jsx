@@ -1,1 +1,133 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsgYXBpQ2FsbCB9IGZyb20gIkAvYXBpL3JhaWx3YXkvY2xpZW50IjsKaW1wb3J0IHsgTGluayB9IGZyb20gInJlYWN0LXJvdXRlci1kb20iOwppbXBvcnQgeyBQbHVzLCBBcnJvd1JpZ2h0LCBDaGVja0NpcmNsZSwgQ2xvY2ssIEFsZXJ0Q2lyY2xlLCBYQ2lyY2xlLCBEb3dubG9hZCB9IGZyb20gImx1Y2lkZS1yZWFjdCI7Cgpjb25zdCBTVEFUVVNfSUNPTiA9IHsKICAiUHJlLUNvbnN0cnVjdGlvbiI6IDxDbG9jayBjbGFzc05hbWU9InctMyBoLTMgdGV4dC1ibHVlcHJpbnQiIC8+LAogICJJbiBQcm9ncmVzcyI6IDxDaGVja0NpcmNsZSBjbGFzc05hbWU9InctMyBoLTMgdGV4dC1lbWVyYWxkLTYwMCIgLz4sCiAgIk9uIEhvbGQiOiA8QWxlcnRDaXJjbGUgY2xhc3NOYW1lPSJ3LTMgaC0zIHRleHQtb3JhbmdlIiAvPiwKICAiQ29tcGxldGVkIjogPENoZWNrQ2lyY2xlIGNsYXNzTmFtZT0idy0zIGgtMyB0ZXh0LW11dGVkLWZvcmVncm91bmQiIC8+LAogICJDYW5jZWxsZWQiOiA8WENpcmNsZSBjbGFzc05hbWU9InctMyBoLTMgdGV4dC1kZXN0cnVjdGl2ZSIgLz4sCn07Cgpjb25zdCBTVEFUVVNfQ09MT1IgPSB7CiAgIlByZS1Db25zdHJ1Y3Rpb24iOiAiYm9yZGVyLWwtYmx1ZXByaW50IiwKICAiSW4gUHJvZ3Jlc3MiOiAiYm9yZGVyLWwtZW1lcmFsZC02MDAiLAogICJPbiBIb2xkIjogImJvcmRlci1sLW9yYW5nZSIsCiAgIkNvbXBsZXRlZCI6ICJib3JkZXItbC1tdXRlZCIsCiAgIkNhbmNlbGxlZCI6ICJib3JkZXItbC1kZXN0cnVjdGl2ZSIsCn07CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBQcm9qZWN0cygpIHsKICBjb25zdCBbcHJvamVjdHMsIHNldFByb2plY3RzXSA9IHVzZVN0YXRlKFtdKTsKICBjb25zdCBbbG9hZGluZywgc2V0TG9hZGluZ10gPSB1c2VTdGF0ZSh0cnVlKTsKICBjb25zdCBbc3RhdHVzRmlsdGVyLCBzZXRTdGF0dXNGaWx0ZXJdID0gdXNlU3RhdGUoIkFsbCIpOwoKICB1c2VFZmZlY3QoKCkgPT4gewogICAgYXBpQ2FsbCgnL2FwaS92MS9kZWFscycsIHsgbWV0aG9kOiAnR0VUJyB9KS50aGVuKHJlcyA9PiB7CiAgICAgIGNvbnN0IGRhdGEgPSBBcnJheS5pc0FycmF5KHJlcykgPyByZXMgOiAocmVzPy5pdGVtcyB8fCBbXSk7CiAgICAgIHNldFByb2plY3RzKGRhdGEpOwogICAgICBzZXRMb2FkaW5nKGZhbHNlKTsKICAgIH0pOwogIH0sIFtdKTsKCiAgY29uc3Qgc3RhdHVzZXMgPSBbIkFsbCIsICJQcmUtQ29uc3RydWN0aW9uIiwgIkluIFByb2dyZXNzIiwgIk9uIEhvbGQiLCAiQ29tcGxldGVkIiwgIkNhbmNlbGxlZCJdOwogIGNvbnN0IGZpbHRlcmVkID0gc3RhdHVzRmlsdGVyID09PSAiQWxsIiA/IHByb2plY3RzIDogcHJvamVjdHMuZmlsdGVyKHAgPT4gcC5zdGF0dXMgPT09IHN0YXR1c0ZpbHRlcik7CgogIGNvbnN0IGhhbmRsZUV4cG9ydCA9IGFzeW5jICgpID0+IHsKICAgIGNvbnN0IHJlc3BvbnNlID0gYXdhaXQgYXBpQ2FsbCgnL2FwaS92MS9sZWFkcz9saW1pdD01MDAwJywgeyBtZXRob2Q6ICdHRVQnIH0pOwogICAgY29uc3QgdXJsID0gd2luZG93LlVSTC5jcmVhdGVPYmplY3RVUkwobmV3IEJsb2IoW0pTT04uc3RyaW5naWZ5KHJlc3BvbnNlKV0pKTsKICAgIGNvbnN0IGxpbmsgPSBkb2N1bWVudC5jcmVhdGVFbGVtZW50KCdhJyk7CiAgICBsaW5rLmhyZWYgPSB1cmw7CiAgICBsaW5rLnNldEF0dHJpYnV0ZSgnZG93bmxvYWQnLCBgYmFja3VwXyR7bmV3IERhdGUoKS50b0lTT1N0cmluZygpLnNwbGl0KCdUJylbMF19LmNzdmApOwogICAgZG9jdW1lbnQuYm9keS5hcHBlbmRDaGlsZChsaW5rKTsKICAgIGxpbmsuY2xpY2soKTsKICAgIGxpbmsucGFyZW50Tm9kZS5yZW1vdmVDaGlsZChsaW5rKTsKICB9OwoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9InAtOCBtaW4taC1mdWxsIj4KICAgICAgPGRpdiBjbGFzc05hbWU9Im1iLTggYm9yZGVyLWIgYm9yZGVyLWJvcmRlciBwYi02IGZsZXggaXRlbXMtZW5kIGp1c3RpZnktYmV0d2VlbiI+CiAgICAgICAgPGRpdj4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSBmb250LW1vbm8gZm9udC1ib2xkIHRyYWNraW5nLXdpZGVzdCB0ZXh0LW11dGVkLWZvcmVncm91bmQgdXBwZXJjYXNlIG1iLTEiPkNSTSDigJQgUFJPSkVDVCBSRUdJU1RSWTwvZGl2PgogICAgICAgICAgPGgxIGNsYXNzTmFtZT0idGV4dC00eGwgZm9udC1ibGFjayB0ZXh0LW1pZG5pZ2h0IHRyYWNraW5nLXRpZ2h0IHVwcGVyY2FzZSI+UHJvamVjdHM8L2gxPgogICAgICAgIDwvZGl2PgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiI+CiAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgIG9uQ2xpY2s9e2hhbmRsZUV4cG9ydH0KICAgICAgICAgICAgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBiZy13aGl0ZSBib3JkZXIgYm9yZGVyLWJvcmRlciB0ZXh0LW1pZG5pZ2h0IHB4LTUgcHktMyB0ZXh0LXhzIGZvbnQtYm9sZCB0cmFja2luZy13aWRlc3QgdXBwZXJjYXNlIGhvdmVyOmJnLXNsYXRlLTUwIHRyYW5zaXRpb24tY29sb3JzIgogICAgICAgICAgPgogICAgICAgICAgICA8RG93bmxvYWQgY2xhc3NOYW1lPSJ3LTMgaC0zIiAvPiBFeHBvcnQKICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgPExpbmsKICAgICAgICAgICAgdG89Ii9wcm9qZWN0cy9uZXciCiAgICAgICAgICAgIGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgYmctb3JhbmdlIHRleHQtd2hpdGUgcHgtNSBweS0zIHRleHQteHMgZm9udC1ib2xkIHRyYWNraW5nLXdpZGVzdCB1cHBlcmNhc2UgaG92ZXI6Ymctb3JhbmdlLzkwIHRyYW5zaXRpb24tY29sb3JzIgogICAgICAgICAgPgogICAgICAgICAgICA8UGx1cyBjbGFzc05hbWU9InctMyBoLTMiIC8+IE5ldyBQcm9qZWN0CiAgICAgICAgICA8L0xpbms+CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgoKICAgICAgey8qIFN0YXR1cyBmaWx0ZXJzICovfQogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBnYXAtMiBmbGV4LXdyYXAgbWItNiI+CiAgICAgICAge3N0YXR1c2VzLm1hcChzID0+ICgKICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAga2V5PXtzfQogICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRTdGF0dXNGaWx0ZXIocyl9CiAgICAgICAgICAgIGNsYXNzTmFtZT17YHB4LTMgcHktMS41IHRleHQtWzEwcHhdIGZvbnQtYm9sZCB0cmFja2luZy13aWRlc3QgdXBwZXJjYXNlIGZvbnQtbW9ubyB0cmFuc2l0aW9uLWNvbG9ycyBib3JkZXIKICAgICAgICAgICAgICAke3N0YXR1c0ZpbHRlciA9PT0gcyA/ICJiZy1taWRuaWdodCB0ZXh0LXdoaXRlIGJvcmRlci1taWRuaWdodCIgOiAiYmctd2hpdGUgdGV4dC1tdXRlZC1mb3JlZ3JvdW5kIGJvcmRlci1ib3JkZXIgaG92ZXI6Ym9yZGVyLW1pZG5pZ2h0IGhvdmVyOnRleHQtbWlkbmlnaHQifWB9CiAgICAgICAgICA+CiAgICAgICAgICAgIHtzfQogICAgICAgICAgPC9idXR0b24+CiAgICAgICAgKSl9CiAgICAgIDwvZGl2PgoKICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtWzEwcHhdIGZvbnQtbW9ubyB0ZXh0LW11dGVkLWZvcmVncm91bmQgdHJhY2tpbmctd2lkZXIgdXBwZXJjYXNlIG1iLTQiPgogICAgICAgIHtmaWx0ZXJlZC5sZW5ndGh9IHByb2plY3R7ZmlsdGVyZWQubGVuZ3RoICE9PSAxID8gInMiIDogIiJ9CiAgICAgIDwvZGl2PgoKICAgICAge2xvYWRpbmcgPyAoCiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHB5LTIwIj4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ3LTggaC04IGJvcmRlci00IGJvcmRlci1tdXRlZCBib3JkZXItdC1vcmFuZ2Ugcm91bmRlZC1mdWxsIGFuaW1hdGUtc3BpbiIgLz4KICAgICAgICA8L2Rpdj4KICAgICAgKSA6ICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZ3JpZCBtZDpncmlkLWNvbHMtMiBsZzpncmlkLWNvbHMtMyBnYXAtNCI+CiAgICAgICAgICB7ZmlsdGVyZWQubGVuZ3RoID09PSAwID8gKAogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iY29sLXNwYW4tMyBiZy13aGl0ZSBib3JkZXIgYm9yZGVyLWJvcmRlciBwLTEyIHRleHQtY2VudGVyIHRleHQtWzEwcHhdIGZvbnQtbW9ubyB0ZXh0LW11dGVkLWZvcmVncm91bmQgdHJhY2tpbmctd2lkZXN0IHVwcGVyY2FzZSI+CiAgICAgICAgICAgICAgTm8gcHJvamVjdHMgZm91bmQKICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICApIDogZmlsdGVyZWQubWFwKHAgPT4gKAogICAgICAgICAgICA8TGluayBrZXk9e3AuaWR9IHRvPXtgL3Byb2plY3RzLyR7cC5pZH1gfT4KICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT17YGJnLXdoaXRlIGJvcmRlciBib3JkZXItYm9yZGVyIGJvcmRlci1sLTQgcC01IGhvdmVyOnNoYWRvdy1sZyBob3ZlcjotdHJhbnNsYXRlLXktMC41IHRyYW5zaXRpb24tYWxsIGR1cmF0aW9uLTE1MCBoLWZ1bGwgJHtTVEFUVVNfQ09MT1JbcC5zdGF0dXNdIHx8ICIifWB9PgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtc3RhcnQganVzdGlmeS1iZXR3ZWVuIG1iLTMiPgogICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIiPgogICAgICAgICAgICAgICAgICAgIHtTVEFUVVNfSUNPTltwLnN0YXR1c119CiAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSBmb250LW1vbm8gZm9udC1ib2xkIHRyYWNraW5nLXdpZGVzdCB1cHBlcmNhc2UgdGV4dC1tdXRlZC1mb3JlZ3JvdW5kIj57cC5zdGF0dXN9PC9zcGFuPgogICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgPEFycm93UmlnaHQgY2xhc3NOYW1lPSJ3LTMgaC0zIHRleHQtbXV0ZWQtZm9yZWdyb3VuZCIgLz4KICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgPGgzIGNsYXNzTmFtZT0iZm9udC1ibGFjayB0ZXh0LW1pZG5pZ2h0IHRleHQtc20gdXBwZXJjYXNlIHRyYWNraW5nLXRpZ2h0IG1iLTEiPntwLm5hbWV9PC9oMz4KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LVsxMXB4XSBmb250LW1vbm8gdGV4dC1tdXRlZC1mb3JlZ3JvdW5kIG1iLTMiPntwLnByb3BlcnR5X2FkZHJlc3MgfHwgIuKAlCJ9PC9kaXY+CiAgICAgICAgICAgICAgICB7cC5wcm9qZWN0X3R5cGUgJiYgKAogICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC1bMTBweF0gZm9udC1tb25vIGZvbnQtYm9sZCB0ZXh0LWJsdWVwcmludCB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZXIiPntwLnByb2plY3RfdHlwZX08L2Rpdj4KICAgICAgICAgICAgICAgICl9CiAgICAgICAgICAgICAgICB7cC5jb250cmFjdF92YWx1ZSAmJiAoCiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LXNtIGZvbnQtYmxhY2sgdGV4dC1vcmFuZ2UgbXQtMiI+JHtwLmNvbnRyYWN0X3ZhbHVlLnRvTG9jYWxlU3RyaW5nKCl9PC9kaXY+CiAgICAgICAgICAgICAgICApfQogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBtdC0zIHB0LTMgYm9yZGVyLXQgYm9yZGVyLWJvcmRlciI+CiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSBmb250LW1vbm8gdGV4dC1tdXRlZC1mb3JlZ3JvdW5kIj4KICAgICAgICAgICAgICAgICAgICB7cC5zdGFydF9kYXRlID8gbmV3IERhdGUocC5zdGFydF9kYXRlKS50b0xvY2FsZURhdGVTdHJpbmcoKSA6ICJObyBzdGFydCBkYXRlIn0KICAgICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LVsxMHB4XSBmb250LW1vbm8gdGV4dC1tdXRlZC1mb3JlZ3JvdW5kIj4KICAgICAgICAgICAgICAgICAgICBQTToge3AuYXNzaWduZWRfcG0gPyBwLmFzc2lnbmVkX3BtLnNwbGl0KCJAIilbMF0gOiAiVW5hc3NpZ25lZCJ9CiAgICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgIDwvTGluaz4KICAgICAgICAgICkpfQogICAgICAgIDwvZGl2PgogICAgICApfQogICAgPC9kaXY+CiAgKTsKfQ==
+import { useState, useEffect } from "react";
+import { apiCall } from "@/api/railway/client";
+import { Link } from "react-router-dom";
+import { Plus, ArrowRight, CheckCircle, Clock, AlertCircle, XCircle, Download } from "lucide-react";
+
+const STATUS_ICON = {
+  "Pre-Construction": <Clock className="w-3 h-3 text-blueprint" />,
+  "In Progress": <CheckCircle className="w-3 h-3 text-emerald-600" />,
+  "On Hold": <AlertCircle className="w-3 h-3 text-orange" />,
+  "Completed": <CheckCircle className="w-3 h-3 text-muted-foreground" />,
+  "Cancelled": <XCircle className="w-3 h-3 text-destructive" />,
+};
+
+const STATUS_COLOR = {
+  "Pre-Construction": "border-l-blueprint",
+  "In Progress": "border-l-emerald-600",
+  "On Hold": "border-l-orange",
+  "Completed": "border-l-muted",
+  "Cancelled": "border-l-destructive",
+};
+
+export default function Projects() {
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState("All");
+
+  useEffect(() => {
+    apiCall('/api/v1/deals', { method: 'GET' }).then(res => {
+      const data = Array.isArray(res) ? res : (res?.items || []);
+      setProjects(data);
+      setLoading(false);
+    });
+  }, []);
+
+  const statuses = ["All", "Pre-Construction", "In Progress", "On Hold", "Completed", "Cancelled"];
+  const filtered = statusFilter === "All" ? projects : projects.filter(p => p.status === statusFilter);
+
+  const handleExport = async () => {
+    const response = await apiCall('/api/v1/leads?limit=5000', { method: 'GET' });
+    const url = window.URL.createObjectURL(new Blob([JSON.stringify(response)]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `backup_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode.removeChild(link);
+  };
+
+  return (
+    <div className="p-8 min-h-full">
+      <div className="mb-8 border-b border-border pb-6 flex items-end justify-between">
+        <div>
+          <div className="text-[10px] font-mono font-bold tracking-widest text-muted-foreground uppercase mb-1">CRM — PROJECT REGISTRY</div>
+          <h1 className="text-4xl font-black text-midnight tracking-tight uppercase">Projects</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-2 bg-white border border-border text-midnight px-5 py-3 text-xs font-bold tracking-widest uppercase hover:bg-slate-50 transition-colors"
+          >
+            <Download className="w-3 h-3" /> Export
+          </button>
+          <Link
+            to="/projects/new"
+            className="flex items-center gap-2 bg-orange text-white px-5 py-3 text-xs font-bold tracking-widest uppercase hover:bg-orange/90 transition-colors"
+          >
+            <Plus className="w-3 h-3" /> New Project
+          </Link>
+        </div>
+      </div>
+
+      {/* Status filters */}
+      <div className="flex gap-2 flex-wrap mb-6">
+        {statuses.map(s => (
+          <button
+            key={s}
+            onClick={() => setStatusFilter(s)}
+            className={`px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase font-mono transition-colors border
+              ${statusFilter === s ? "bg-midnight text-white border-midnight" : "bg-white text-muted-foreground border-border hover:border-midnight hover:text-midnight"}`}
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+
+      <div className="text-[10px] font-mono text-muted-foreground tracking-wider uppercase mb-4">
+        {filtered.length} project{filtered.length !== 1 ? "s" : ""}
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="w-8 h-8 border-4 border-muted border-t-orange rounded-full animate-spin" />
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.length === 0 ? (
+            <div className="col-span-3 bg-white border border-border p-12 text-center text-[10px] font-mono text-muted-foreground tracking-widest uppercase">
+              No projects found
+            </div>
+          ) : filtered.map(p => (
+            <Link key={p.id} to={`/projects/${p.id}`}>
+              <div className={`bg-white border border-border border-l-4 p-5 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-150 h-full ${STATUS_COLOR[p.status] || ""}`}>
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    {STATUS_ICON[p.status]}
+                    <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-muted-foreground">{p.status}</span>
+                  </div>
+                  <ArrowRight className="w-3 h-3 text-muted-foreground" />
+                </div>
+                <h3 className="font-black text-midnight text-sm uppercase tracking-tight mb-1">{p.name}</h3>
+                <div className="text-[11px] font-mono text-muted-foreground mb-3">{p.property_address || "—"}</div>
+                {p.project_type && (
+                  <div className="text-[10px] font-mono font-bold text-blueprint uppercase tracking-wider">{p.project_type}</div>
+                )}
+                {p.contract_value && (
+                  <div className="text-sm font-black text-orange mt-2">${p.contract_value.toLocaleString()}</div>
+                )}
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
+                  <div className="text-[10px] font-mono text-muted-foreground">
+                    {p.start_date ? new Date(p.start_date).toLocaleDateString() : "No start date"}
+                  </div>
+                  <div className="text-[10px] font-mono text-muted-foreground">
+                    PM: {p.assigned_pm ? p.assigned_pm.split("@")[0] : "Unassigned"}
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
