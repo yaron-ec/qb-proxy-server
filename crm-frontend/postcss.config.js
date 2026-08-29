@@ -1,1 +1,6 @@
-{h��^}����n�)쵨��)�r���)�����
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
