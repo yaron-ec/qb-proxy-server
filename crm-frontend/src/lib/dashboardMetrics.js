@@ -163,8 +163,9 @@ export function computeDealMetrics(deals, now = new Date()) {
   const allDeals = deals || [];
   const currentLA = getCurrentLAMonth(now);
 
-  // Canonical sold date: prefer actual_sold_date (transformed), then sold_date (raw)
-  const getSoldDate = (d) => d.actual_sold_date || d.sold_date;
+  // Canonical sold date: sold_date from the API (TIMESTAMPTZ). Null = not sold.
+  // Both Dashboard and Deals use the same field — no override or fallback.
+  const getSoldDate = (d) => d.sold_date;
 
   // Canonical contract amount
   const getDealAmount = (d) => Number(d.contract_amount || d.amount || 0);
