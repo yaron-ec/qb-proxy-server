@@ -102,10 +102,10 @@ function LayoutComponent() {
   const location = useLocation();
   const { user: currentUser, logout } = useAuth();
   const isMobile = useIsMobile();
-  // Original pre-cutover logo (Base44 media). Used as the default so the logo
-  // renders immediately on load; a company_logo_url from the API overrides it.
-  const ORIGINAL_LOGO_URL = 'https://media.base44.com/images/public/69f42cee41d29f30bff5c013/8d257a3dd_Logo-dark.jpg';
-  const [logoUrl, setLogoUrl] = useState(ORIGINAL_LOGO_URL);
+  // Local static asset — zero runtime dependency on Base44 media.
+  // A company_logo_url from the API overrides this if set.
+  const LOCAL_LOGO_URL = '/logo-dark.jpg';
+  const [logoUrl, setLogoUrl] = useState(LOCAL_LOGO_URL);
 
   useEffect(() => {
     railwayCompanySettings.get()
