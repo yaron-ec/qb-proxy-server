@@ -55,16 +55,13 @@ async function main() {
 
   // ── 2. SETTINGS: settings table ──────────────────────────────────────────
   try {
-    const { rows: settingsRows } = await query('SELECT key, value, description, type, created_at, updated_at FROM settings ORDER BY key');
+    const { rows: settingsRows } = await query('SELECT app_lists, updated_at FROM settings WHERE id = 1');
     report.settings.tableExists = true;
-    report.settings.records = settingsRows.map(s => ({
-      key: s.key,
-      value: s.value,
-      description: s.description,
-      type: s.type,
-    }));
-    report.settings.count = settingsRows.length;
-    report.settings.keys = settingsRows.map(s => s.key);
+    const appLists = (settingsRows[0] && settingsRows[0].app_lists) || {};
+    const settingKeys = Object.keys(appLists);
+    report.settings.records = settingKeys.map(k => ({ key: k, value: appLists[k] }));
+    report.settings.count = settingKeys.length;
+    report.settings.keys = settingKeys;
   } catch (e) {
     report.settings.tableExists = false;
     report.settings.error = e.message;

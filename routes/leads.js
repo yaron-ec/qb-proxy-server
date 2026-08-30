@@ -353,21 +353,32 @@ router.get('/by-external/:externalRef/detail', requireAuth, async (req, res) => 
       query('SELECT * FROM activities WHERE lead_id = $1 ORDER BY created_at DESC LIMIT 500', [railwayLeadId]),
       query('SELECT * FROM deals WHERE lead_id = $1 ORDER BY created_at DESC LIMIT 100', [railwayLeadId]),
       query('SELECT id, display_name, email FROM owners WHERE is_active = true ORDER BY display_name ASC'),
-      query(`SELECT key, value FROM settings WHERE key IN ('project_types', 'lead_sources')`),
+      query(`SELECT app_lists FROM settings WHERE id = 1`),
     ]);
 
-    const settings = {};
-    for (const r of settingsRes.rows) {
-      settings[r.key] = r.value;
+    // Extract project_types and lead_sources from the app_lists JSONB singleton.
+    // Supports both flat (app_lists.project_types) and nested (app_lists.<type>.project_types) structures.
+    const appLists = (settingsRes.rows[0] && settingsRes.rows[0].app_lists) || {};
+    function extractFromAppLists(lists, settingKey) {
+      if (!lists || typeof lists !== 'object') return null;
+      if (lists[settingKey] !== undefined) return lists[settingKey];
+      for (const t of Object.keys(lists)) {
+        if (lists[t] && typeof lists[t] === 'object' && lists[t][settingKey] !== undefined) {
+          return lists[t][settingKey];
+        }
+      }
+      return null;
     }
+    const projectTypes = extractFromAppLists(appLists, 'project_types') || [];
+    const leadSources = extractFromAppLists(appLists, 'lead_sources') || [];
 
     res.json({
       lead,
       activities: actRes.rows.map(serializeActivity),
       deals: dealRes.rows,
       contactOwners: ownerRes.rows.map(o => ({ id: o.id, display_name: o.display_name, email: o.email })),
-      projectTypes: settings.project_types || [],
-      leadSources: settings.lead_sources || [],
+      projectTypes,
+      leadSources,
     });
   } catch (e) {
     console.error('[leads] get-detail error:', e.message);
