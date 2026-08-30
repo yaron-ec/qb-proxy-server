@@ -9,6 +9,7 @@ import {
 import { useAuth } from "@/lib/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Tip from "@/components/ui/Tip";
+import { companySettings as railwayCompanySettings } from "@/api/railway";
 
 const NAV_ITEMS_ALL = [
   { path: "/",              label: "Dashboard",     icon: BarChart2 },
@@ -101,6 +102,16 @@ function LayoutComponent() {
   const location = useLocation();
   const { user: currentUser, logout } = useAuth();
   const isMobile = useIsMobile();
+  const [logoUrl, setLogoUrl] = useState(null);
+
+  useEffect(() => {
+    railwayCompanySettings.get()
+      .then(data => {
+        const settings = data?.settings;
+        if (settings?.company_logo_url) setLogoUrl(settings.company_logo_url);
+      })
+      .catch(() => {});
+  }, []);
 
   const NAV_ITEMS = currentUser?.role === 'sales_rep' ? NAV_ITEMS_SALES_REP : NAV_ITEMS_ALL;
 
@@ -135,12 +146,16 @@ function LayoutComponent() {
         {/* Logo / Brand */}
         <div className="flex items-center border-b border-white/10 h-24 flex-shrink-0" style={{ padding: collapsed ? '0.75rem' : '0.75rem 1rem' }}>
           <div className="flex items-center" style={{ width: '100%', justifyContent: collapsed ? 'center' : 'flex-start', gap: collapsed ? 0 : '0.75rem' }}>
-            <div
-              style={{ height: 56, width: 56, flexShrink: 0 }}
-              className="flex items-center justify-center bg-amber-500 rounded-lg text-white font-bold text-lg"
-            >
-              EC
-            </div>
+            {logoUrl ? (
+              <img src={logoUrl} alt="EC Construction Group" style={{ height: 56, width: 56, flexShrink: 0, objectFit: 'contain' }} className="rounded-lg" />
+            ) : (
+              <div
+                style={{ height: 56, width: 56, flexShrink: 0 }}
+                className="flex items-center justify-center bg-amber-500 rounded-lg text-white font-bold text-lg"
+              >
+                EC
+              </div>
+            )}
             {!collapsed && (
               <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
                 <div className="text-white font-bold text-xs leading-tight">EC Construction</div>
