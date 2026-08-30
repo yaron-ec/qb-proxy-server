@@ -60,6 +60,28 @@ const PageContentWrapper = ({ children }) => {
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, checkAppState, user } = useAuth();
+  const location = useLocation();
+
+  // TEMPORARY DIAGNOSTIC — /capture 404 debugging (remove after fix)
+  const _wlPath = window.location.pathname;
+  const _rlPath = location.pathname;
+  if (_wlPath.startsWith('/capture') || _rlPath.startsWith('/capture')) {
+    const _isPublic = ['/capture', '/login'].includes(_wlPath);
+    const _branch = _isPublic ? 'PUBLIC' : (isLoadingAuth || isLoadingPublicSettings ? 'LOADING' : (authError ? 'AUTH_ERROR:' + authError.type : 'MAIN'));
+    return (
+      <div style={{ padding: 20, fontFamily: 'monospace', fontSize: 14, background: '#fef3c7', minHeight: '100vh' }}>
+        <h1 style={{ color: '#dc2626' }}>DIAGNOSTIC — /capture routing</h1>
+        <p>window.location.pathname = "{_wlPath}"</p>
+        <p>useLocation().pathname = "{_rlPath}"</p>
+        <p>isPublicRoute (includes check) = {String(_isPublic)}</p>
+        <p>isLoadingAuth = {String(isLoadingAuth)}</p>
+        <p>isLoadingPublicSettings = {String(isLoadingPublicSettings)}</p>
+        <p>authError = {authError ? authError.type : 'null'}</p>
+        <hr />
+        <p>branch = {_branch}</p>
+      </div>
+    );
+  }
 
   // Public routes — skip auth checks entirely
   const isPublicRoute = ['/capture', '/login'].includes(window.location.pathname);
