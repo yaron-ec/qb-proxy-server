@@ -380,7 +380,7 @@ export default function LeadCapture() {
     <div className="min-h-screen bg-slate-50">
       <div className="bg-white border-b border-slate-200 px-4 py-4 sticky top-0 z-10">
         <div className="max-w-2xl mx-auto flex items-center gap-4">
-          <img src="https://media.base44.com/images/public/69f42cee41d29f30bff5c013/6fb826cbc_WhatsAppImage2026-04-30at101207PM.jpg" alt="EC Construction" className="w-10 h-10 object-contain" />
+          <img src="/capture-logo.jpg" alt="EC Construction" className="w-10 h-10 object-contain" />
           <div className="flex-1">
             <div className="text-sm font-bold text-slate-900">EC Construction Group</div>
             <div className="text-xs text-amber-600 font-semibold">New Lead Intake Form</div>
