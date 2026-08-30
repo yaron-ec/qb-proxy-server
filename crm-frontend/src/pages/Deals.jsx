@@ -37,16 +37,16 @@ const fmtDate  = (d) => d ? new Date(d + "T00:00:00").toLocaleDateString("en-US"
 // Sort deals by sold date (newest first) with safe fallbacks
 const sortDealsBySoldDate = (deals) => {
   return [...deals].sort((a, b) => {
-    const getValidDate = (d) => {
-      const dateStr = d.sold_date || d.contract_signed_date || d.signed_date || d.created_date;
-      if (!dateStr) return new Date(0);
-      try {
-        return new Date(dateStr);
-      } catch {
-        return new Date(0);
-      }
-    };
-    return getValidDate(b) - getValidDate(a);
+    // Primary: sold_date descending (NULLS LAST — unsold deals sort to bottom)
+    const aSold = a.sold_date ? new Date(a.sold_date).getTime() : null;
+    const bSold = b.sold_date ? new Date(b.sold_date).getTime() : null;
+    if (aSold !== null && bSold !== null) return bSold - aSold;
+    if (aSold !== null) return -1;
+    if (bSold !== null) return 1;
+    // Both unsold: fallback to created_date descending
+    const aCreated = a.created_date ? new Date(a.created_date).getTime() : 0;
+    const bCreated = b.created_date ? new Date(b.created_date).getTime() : 0;
+    return bCreated - aCreated;
   });
 };
 
@@ -260,10 +260,22 @@ export default function Deals() {
   // Sort
   const sorted = [...filtered].sort((a, b) => {
     switch (sortBy) {
-      case "sold_date_desc":
-        return new Date(b.sold_date || 0) - new Date(a.sold_date || 0);
-      case "sold_date_asc":
-        return new Date(a.sold_date || 0) - new Date(b.sold_date || 0);
+      case "sold_date_desc": {
+        const aT = a.sold_date ? new Date(a.sold_date).getTime() : null;
+        const bT = b.sold_date ? new Date(b.sold_date).getTime() : null;
+        if (aT !== null && bT !== null) return bT - aT;
+        if (aT !== null) return -1;
+        if (bT !== null) return 1;
+        return 0;
+      }
+      case "sold_date_asc": {
+        const aT = a.sold_date ? new Date(a.sold_date).getTime() : null;
+        const bT = b.sold_date ? new Date(b.sold_date).getTime() : null;
+        if (aT !== null && bT !== null) return aT - bT;
+        if (aT !== null) return 1;
+        if (bT !== null) return -1;
+        return 0;
+      }
       case "amount_desc":
         return (b.contract_amount || b.sale_amount || 0) - (a.contract_amount || a.sale_amount || 0);
       case "amount_asc":
