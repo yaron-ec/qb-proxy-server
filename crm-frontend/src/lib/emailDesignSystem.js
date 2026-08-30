@@ -9,7 +9,7 @@ export const EC_GOLD = '#C9A227';
 export const EC_LIGHT_GRAY = '#F4F6FA';
 export const EC_TEXT_DARK = '#1A1A2E';
 export const EC_TEXT_MUTED = '#6B7280';
-export const EC_LOGO_URL = 'https://media.base44.com/images/public/69f42cee41d29f30bff5c013/cc5db7058_image.png';
+export const EC_LOGO_URL = 'https://crm.ecconstructiongroup.com/email-logo.png';
 
 export const EMAIL_CSS = `
   * { margin: 0; padding: 0; box-sizing: border-box; }
