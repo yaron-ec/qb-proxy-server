@@ -16,7 +16,7 @@
  * - Preserves the existing lead ID (Base44 ID used as external_ref for Railway upsert).
  */
 import { useState } from 'react';
-import { Phone, Mail, MapPin, MessageSquare, Pencil, User, RefreshCw, AlertCircle } from 'lucide-react';
+import { Phone, Mail, MapPin, MessageSquare, Pencil, User, RefreshCw, AlertCircle, Copy } from 'lucide-react';
 import { leads as railwayLeads } from '@/api/railway';
 import { formatPhone, toTitleCase } from '@/lib/formatters';
 import { composeEmail } from '@/lib/contactActions';
@@ -47,7 +47,7 @@ function isPhoneValid(phone) {
 // ── EditableContactField ─────────────────────────────────────────────────────
 // Reusable per-field inline editor. Matches the CRM's established pattern:
 // pencil icon (like EditNameButton) → inline input → Save/Cancel (like EditableField).
-function EditableContactField({ lead, field, label, icon: Icon, iconClass, placeholder, type = 'text', onLeadUpdate, children, actionButtons }) {
+function EditableContactField({ lead, field, label, icon: Icon, iconClass, placeholder, type = 'text', onLeadUpdate, children, actionButtons, copyValue }) {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [val, setVal] = useState(lead[field] || '');
@@ -157,6 +157,17 @@ function EditableContactField({ lead, field, label, icon: Icon, iconClass, place
           <div className="flex-1 min-w-0">{children}</div>
           <div className="flex items-center gap-1 flex-shrink-0">
             {actionButtons}
+            {copyValue && (
+              <Tip label={`Copy ${label}`}>
+                <button
+                  onClick={(e) => { e.stopPropagation(); navigator.clipboard?.writeText(copyValue).then(() => toast({ title: `${label} copied`, duration: 1500 })); }}
+                  aria-label={`Copy ${label}`}
+                  className="btn-compact flex items-center justify-center w-6 h-6 rounded hover:bg-slate-100 text-slate-300 hover:text-slate-600 transition-colors flex-shrink-0"
+                >
+                  <Copy className="w-3 h-3" />
+                </button>
+              </Tip>
+            )}
             <Tip label={`Edit ${label}`}>
               <button
                 onClick={startEdit}
@@ -181,19 +192,19 @@ export default function ContactInfoEditor({ lead, onLeadUpdate }) {
     <div className="space-y-3.5">
       {/* First Name */}
       <EditableContactField lead={lead} field="first_name" label="First Name" icon={User} iconClass="text-slate-400"
-        placeholder="First name" onLeadUpdate={onLeadUpdate}>
+        placeholder="First name" onLeadUpdate={onLeadUpdate} copyValue={lead.first_name}>
         <TruncatedTooltip text={toTitleCase(lead.first_name) || '—'} className="crm-value" />
       </EditableContactField>
 
       {/* Last Name */}
       <EditableContactField lead={lead} field="last_name" label="Last Name" icon={User} iconClass="text-slate-400"
-        placeholder="Last name" onLeadUpdate={onLeadUpdate}>
+        placeholder="Last name" onLeadUpdate={onLeadUpdate} copyValue={lead.last_name}>
         <TruncatedTooltip text={toTitleCase(lead.last_name) || '—'} className="crm-value" />
       </EditableContactField>
 
       {/* Phone */}
       <EditableContactField lead={lead} field="phone" label="Phone" icon={Phone} iconClass="text-green-600"
-        type="tel" placeholder="(310) 555-0000" onLeadUpdate={onLeadUpdate}
+        type="tel" placeholder="(310) 555-0000" onLeadUpdate={onLeadUpdate} copyValue={lead.phone}
         actionButtons={lead.phone ? (
           <>
             <Tip label={`Call ${formatPhone(lead.phone)}`} side="top">
@@ -215,7 +226,7 @@ export default function ContactInfoEditor({ lead, onLeadUpdate }) {
 
       {/* Email */}
       <EditableContactField lead={lead} field="email" label="Email" icon={Mail} iconClass="text-slate-400"
-        type="email" placeholder="email@example.com" onLeadUpdate={onLeadUpdate}
+        type="email" placeholder="email@example.com" onLeadUpdate={onLeadUpdate} copyValue={lead.email}
         actionButtons={lead.email ? (
           <Tip label={`Email ${lead.email}`} side="top">
             <a href={`mailto:${lead.email}`} aria-label={`Email ${lead.email}`} className="crm-action-btn text-amber-700 hover:bg-amber-50 hover:border-amber-200"
@@ -231,7 +242,7 @@ export default function ContactInfoEditor({ lead, onLeadUpdate }) {
 
       {/* Property Address */}
       <EditableContactField lead={lead} field="property_address" label="Street Address" icon={MapPin} iconClass="text-slate-400"
-        placeholder="123 Main St" onLeadUpdate={onLeadUpdate}>
+        placeholder="123 Main St" onLeadUpdate={onLeadUpdate} copyValue={lead.property_address}>
         {lead.property_address
           ? <TruncatedTooltip text={toTitleCase(lead.property_address)} className="crm-value" />
           : <span className="crm-empty">—</span>}
@@ -239,7 +250,7 @@ export default function ContactInfoEditor({ lead, onLeadUpdate }) {
 
       {/* City */}
       <EditableContactField lead={lead} field="city" label="City" icon={MapPin} iconClass="text-slate-400"
-        placeholder="Los Angeles" onLeadUpdate={onLeadUpdate}>
+        placeholder="Los Angeles" onLeadUpdate={onLeadUpdate} copyValue={lead.city}>
         {lead.city
           ? <TruncatedTooltip text={toTitleCase(lead.city)} className="crm-value" />
           : <span className="crm-empty">—</span>}
@@ -247,13 +258,13 @@ export default function ContactInfoEditor({ lead, onLeadUpdate }) {
 
       {/* State */}
       <EditableContactField lead={lead} field="state" label="State" icon={MapPin} iconClass="text-slate-400"
-        placeholder="CA" onLeadUpdate={onLeadUpdate}>
+        placeholder="CA" onLeadUpdate={onLeadUpdate} copyValue={lead.state}>
         <span className="crm-value">{lead.state || <span className="crm-empty">—</span>}</span>
       </EditableContactField>
 
       {/* ZIP */}
       <EditableContactField lead={lead} field="zip" label="ZIP" icon={MapPin} iconClass="text-slate-400"
-        placeholder="90001" onLeadUpdate={onLeadUpdate}>
+        placeholder="90001" onLeadUpdate={onLeadUpdate} copyValue={lead.zip}>
         <span className="crm-value">{lead.zip || <span className="crm-empty">—</span>}</span>
       </EditableContactField>
     </div>
