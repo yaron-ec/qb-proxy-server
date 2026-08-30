@@ -8,7 +8,7 @@
  * Used by src/lib/emailTransport.js when FLOW_OWNERSHIP is 'railway'.
  */
 
-const LOGO_URL = 'https://media.base44.com/images/public/69f42cee41d29f30bff5c013/cc5db7058_image.png';
+const LOGO_URL = 'https://crm.ecconstructiongroup.com/email-logo.png';
 const NAVY = '#0B2D5C';
 const GOLD = '#C9A227';
 const LIGHT_GRAY = '#F4F6FA';
