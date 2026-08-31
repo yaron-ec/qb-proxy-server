@@ -43,25 +43,44 @@ async function parse(res) {
   return data;
 }
 
+// Refresh lock: serializes concurrent refresh attempts so only ONE
+// /api/v1/auth/refresh call runs at a time. Without this, when the access
+// token expires, multiple concurrent apiCall instances all get 401 at once
+// and each calls refreshSession(). The first refresh rotates (revokes) the
+// old refresh token; a second concurrent refresh sends the now-revoked old
+// token, gets 401, and calls clearTokens() — wiping the NEW tokens the first
+// refresh just stored. Subsequent calls then find no refresh token →
+// "no refresh token" error. The lock ensures all concurrent 401s wait for
+// the single refresh, then retry with the new access token.
+let _refreshPromise = null;
+
 async function refreshSession() {
-  const refresh = getRefresh();
-  if (!refresh) {
-    // Clear stale access token so isLoggedIn() returns false on next boot,
-    // forcing the user back to the login page instead of looping.
-    clearTokens();
-    const err = new Error('no refresh token');
-    err.status = 401; // Treat as auth_required (not network_error) so the UI
-                      // routes to login instead of showing "Connection problem".
-    throw err;
+  if (_refreshPromise) return _refreshPromise;
+  _refreshPromise = (async () => {
+    const refresh = getRefresh();
+    if (!refresh) {
+      // Clear stale access token so isLoggedIn() returns false on next boot,
+      // forcing the user back to the login page instead of looping.
+      clearTokens();
+      const err = new Error('no refresh token');
+      err.status = 401; // Treat as auth_required (not network_error) so the UI
+                        // routes to login instead of showing "Connection problem".
+      throw err;
+    }
+    const res = await fetch(`${API_URL}/api/v1/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh }),
+    });
+    const data = await parse(res);
+    if (data.access) setTokens(data.access, data.refresh || getRefresh());
+    return data;
+  })();
+  try {
+    return await _refreshPromise;
+  } finally {
+    _refreshPromise = null;
   }
-  const res = await fetch(`${API_URL}/api/v1/auth/refresh`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refresh }),
-  });
-  const data = await parse(res);
-  if (data.access) setTokens(data.access, data.refresh || getRefresh());
-  return data;
 }
 
 /**
