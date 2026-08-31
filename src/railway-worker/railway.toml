@@ -1,6 +1,7 @@
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
+watchPatterns = ["/src/railway-worker/**"]
 
 [deploy]
 startCommand = "node server.js"
