@@ -122,7 +122,7 @@ router.get('/by-external/:externalRef', requireAuth, async (req, res) => {
     const { rows } = await query(
       `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
        FROM leads l LEFT JOIN owners o ON o.id = l.owner_id
-       WHERE l.external_ref = $1`,
+       WHERE (l.external_ref = $1 OR l.id = $1)`,
       [externalRef]
     );
     if (!rows[0]) return res.status(404).json({ error: 'not_found' });
@@ -340,7 +340,7 @@ router.get('/by-external/:externalRef/detail', requireAuth, async (req, res) => 
     const { rows } = await query(
       `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
        FROM leads l LEFT JOIN owners o ON o.id = l.owner_id
-       WHERE l.external_ref = $1`,
+       WHERE (l.external_ref = $1 OR l.id = $1)`,
       [externalRef]
     );
     if (!rows[0]) return res.status(404).json({ error: 'not_found' });
