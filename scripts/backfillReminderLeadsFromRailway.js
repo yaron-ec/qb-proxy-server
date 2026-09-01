@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 const db = require('../db/client');
 const { upsertLead } = require('../lib/leadIngest');
@@ -56,7 +56,7 @@ async function main() {
       const result = await upsertLead(db, {
         id: String(row.external_ref),
 
-        lead_first_name: row.first_name || row.lead_first_name || null,
+        lead_first_name: row.first_name || row.lead_first_name || row.name || row.full_name || row.customer_name || String(row.email || row.phone || row.external_ref),
         last_name: row.last_name || null,
         email: row.email || null,
         phone: row.phone || null,
