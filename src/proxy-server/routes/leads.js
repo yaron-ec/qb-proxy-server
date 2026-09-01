@@ -462,15 +462,14 @@ router.get('/by-external/:externalRef/detail', requireAuth, async (req, res) => 
 // No side effects (no calendar sync here — that's handled by the booking outbox).
 const APPOINTMENT_FIELDS = ['appointment_date', 'appointment_time', 'meeting_stage', 'follow_up_date', 'follow_up_time', 'follow_up_type'];
 
-router.put('/by-external/:externalRef/appointment', requireAuth, async (req, res) => {
+// ── Shared appointment update logic ──────────────────────────────────────────
+// Used by both PUT /:id/appointment (canonical Railway UUID) and
+// PUT /by-external/:externalRef/appointment (legacy external_ref).
+// Both routes resolve the canonical Railway UUID BEFORE calling this helper,
+// so it always updates by WHERE id = $1 — no unsafe identifier comparisons,
+// no external_ref required. The caller has already verified owner scope.
+async function executeAppointmentUpdate(req, res, resolvedLeadId) {
   try {
-    const { externalRef } = req.params;
-    if (!externalRef) return res.status(400).json({ error: 'external_ref required' });
-
-    const scope = await resolveOwnerScope(req.user);
-    if (scope.denied) return res.status(403).json({ error: 'forbidden' });
-    if (scope.readOnly) return res.status(403).json({ error: 'forbidden', message: 'office role is read-only' });
-
     const body = req.body || {};
     const updates = [];
     const params = [];
@@ -488,29 +487,12 @@ router.put('/by-external/:externalRef/appointment', requireAuth, async (req, res
     updates.push('updated_at = NOW()');
 
     // ── Atomic: lead update + appointment mutation in ONE transaction ────────
-    // If the appointment mutation fails (e.g., EXCLUDE constraint on overlapping
-    // busy_range), the lead update is rolled back too — no partial mutation.
-    // The conflict is surfaced as a 409 so the frontend can show an actionable
-    // error instead of silently swallowing it and leaving the UI stuck.
-    //
-    // SAFE IDENTIFIER RESOLUTION: resolve the lead by external_ref or Railway
-    // UUID BEFORE the UPDATE, then UPDATE by the resolved canonical id. This
-    // avoids `WHERE external_ref = $1 OR id = $1` which throws when $1 is a
-    // legacy non-UUID external_ref (PostgreSQL cannot cast it to uuid).
-    const { whereSql: apptWhere } = leadIdWhere(externalRef);
-    const resolvedLead = await query(
-      `SELECT id FROM leads WHERE ${apptWhere} LIMIT 1`,
-      [externalRef]
-    );
-    if (!resolvedLead.rows[0]) return res.status(404).json({ error: 'not_found' });
-    const resolvedLeadId = resolvedLead.rows[0].id;
-
     const client = await pool.connect();
     let updatedLead;
     try {
       await client.query('BEGIN');
 
-      // 1. Update lead appointment fields by the resolved canonical Railway UUID.
+      // 1. Update lead appointment fields by the canonical Railway UUID.
       const { rows } = await client.query(
         `UPDATE leads SET ${updates.join(', ')} WHERE id = $${p} RETURNING *`,
         [...params, resolvedLeadId]
@@ -548,7 +530,6 @@ router.put('/by-external/:externalRef/appointment', requireAuth, async (req, res
           );
           const updatedAppt = (await client.query('SELECT * FROM appointments WHERE id = $1', [existingAppt.id])).rows[0];
           await calendarOutbox.enqueueUpdate(client, updatedAppt, updatedLead, updatedLead.owner_email, updatedAppt.version, true);
-          // Audit trail: appointment rescheduled
           await client.query(
             `INSERT INTO appointment_events (appointment_id, actor, action, previous_values, new_values)
              VALUES ($1, $2, 'rescheduled', $3, $4)`,
@@ -569,7 +550,6 @@ router.put('/by-external/:externalRef/appointment', requireAuth, async (req, res
             );
             const newAppt = insRes.rows[0];
             await calendarOutbox.enqueueCreate(client, newAppt, updatedLead, updatedLead.owner_email);
-            // Audit trail: appointment created
             await client.query(
               `INSERT INTO appointment_events (appointment_id, actor, action, new_values)
                VALUES ($1, $2, 'created', $3)`,
@@ -579,6 +559,8 @@ router.put('/by-external/:externalRef/appointment', requireAuth, async (req, res
           }
         }
       } else {
+        // Phone Call or no follow-up: cancel any existing Meeting appointment.
+        // No new Google Calendar event, no calendar_outbox create/update.
         if (existingAppt) {
           const newVersion = (existingAppt.version || 1) + 1;
           await client.query(
@@ -587,7 +569,6 @@ router.put('/by-external/:externalRef/appointment', requireAuth, async (req, res
           );
           const cancelledAppt = (await client.query('SELECT * FROM appointments WHERE id = $1', [existingAppt.id])).rows[0];
           await calendarOutbox.enqueueCancel(client, cancelledAppt, cancelledAppt.version);
-          // Audit trail: appointment cancelled
           await client.query(
             `INSERT INTO appointment_events (appointment_id, actor, action, previous_values)
              VALUES ($1, $2, 'cancelled', $3)`,
@@ -598,9 +579,6 @@ router.put('/by-external/:externalRef/appointment', requireAuth, async (req, res
       }
 
       // ── Reminder projection (same transaction — atomic) ──────────────────
-      // Project the updated lead into reminder_leads BEFORE commit so the
-      // projection can never silently remain stale. If this fails, the entire
-      // appointment mutation rolls back (no partial state).
       const leadForProjection = (await client.query(
         `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
          FROM leads l LEFT JOIN owners o ON o.id = l.owner_id
@@ -614,7 +592,6 @@ router.put('/by-external/:externalRef/appointment', requireAuth, async (req, res
       try { await client.query('ROLLBACK'); } catch (_) {}
       client.release();
 
-      // EXCLUDE constraint violation = overlapping busy_range = slot conflict
       if (calErr.code === '23P01') {
         return res.status(409).json({
           error: 'slot_conflict',
@@ -638,6 +615,62 @@ router.put('/by-external/:externalRef/appointment', requireAuth, async (req, res
 
     const updatedAppt = await fetchActiveAppointment(leadWithOwner.id);
     res.json({ lead: serializeLead(leadWithOwner, updatedAppt) });
+  } catch (e) {
+    console.error('[leads] appointment update error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+}
+
+// ── PUT /:id/appointment — CANONICAL appointment update by Railway UUID ──────
+// This is the primary appointment update route for Railway-native leads.
+// Accepts ONLY valid Railway UUIDs — no external_ref, no leadIdWhere, no
+// unsafe identifier comparisons. The frontend FollowUpScheduler calls this
+// with lead.railway_id (the canonical Railway UUID).
+router.put('/:id/appointment', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!UUID_RE.test(String(id))) {
+      return res.status(400).json({ error: 'invalid_id', message: 'PUT /:id/appointment requires a valid Railway UUID.' });
+    }
+
+    const scope = await resolveOwnerScope(req.user);
+    if (scope.denied) return res.status(403).json({ error: 'forbidden' });
+    if (scope.readOnly) return res.status(403).json({ error: 'forbidden', message: 'office role is read-only' });
+
+    // Verify lead exists + caller has access
+    const leadR = await query('SELECT id, owner_id FROM leads WHERE id = $1', [id]);
+    if (!leadR.rows[0]) return res.status(404).json({ error: 'not_found' });
+    if (scope.ownerFilter && String(leadR.rows[0].owner_id) !== String(scope.ownerFilter)) {
+      return res.status(403).json({ error: 'forbidden' });
+    }
+
+    return executeAppointmentUpdate(req, res, leadR.rows[0].id);
+  } catch (e) {
+    console.error('[leads] appointment update error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── PUT /by-external/:externalRef/appointment — legacy appointment update ─────
+// Resolves the lead by external_ref OR Railway UUID via the shared safe
+// resolver, then delegates to executeAppointmentUpdate with the canonical
+// Railway UUID. Kept for backward compatibility with legacy Base44 leads.
+router.put('/by-external/:externalRef/appointment', requireAuth, async (req, res) => {
+  try {
+    const { externalRef } = req.params;
+    if (!externalRef) return res.status(400).json({ error: 'external_ref required' });
+
+    const scope = await resolveOwnerScope(req.user);
+    if (scope.denied) return res.status(403).json({ error: 'forbidden' });
+    if (scope.readOnly) return res.status(403).json({ error: 'forbidden', message: 'office role is read-only' });
+
+    const leadRow = await resolveLeadByIdentifier(externalRef);
+    if (!leadRow) return res.status(404).json({ error: 'not_found' });
+    if (scope.ownerFilter && String(leadRow.owner_id) !== String(scope.ownerFilter)) {
+      return res.status(403).json({ error: 'forbidden' });
+    }
+
+    return executeAppointmentUpdate(req, res, leadRow.id);
   } catch (e) {
     console.error('[leads] appointment update error:', e.message);
     res.status(500).json({ error: e.message });

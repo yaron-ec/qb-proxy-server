@@ -96,19 +96,16 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
     const timeoutId = setTimeout(() => controller.abort(), 30000);
 
     try {
-      const res = await railwayLeads.updateAppointmentByExternal(lead.id, {
+      // Use the canonical lead.id — for Railway-native leads this IS the Railway
+      // UUID (e.g. e6a54c3a-...). This hits PUT /:id/appointment, the UUID-only
+      // route that validates via UUID_RE and uses direct WHERE id = $1.
+      const res = await railwayLeads.updateAppointment(lead.id, {
         follow_up_date: date,
         follow_up_time: time || null,
         follow_up_type: type || null,
       }, { signal: controller.signal });
-      // Preserve the identifier contract: lead.id = external_ref || url_id,
-      // lead.railway_id = Railway UUID. The raw API response has id = Railway UUID,
-      // so we must transform it the same way LeadDetailModern does.
       if (res?.lead) {
-        const r = res.lead;
-        r.railway_id = r.id;
-        r.id = r.external_ref || lead.id;
-        onLeadUpdate(r);
+        onLeadUpdate(res.lead);
       }
       setJustSaved(true);
       setEditing(false);
@@ -137,16 +134,13 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
     const timeoutId = setTimeout(() => controller.abort(), 30000);
 
     try {
-      const res = await railwayLeads.updateAppointmentByExternal(lead.id, {
+      const res = await railwayLeads.updateAppointment(lead.id, {
         follow_up_date: null,
         follow_up_time: null,
         follow_up_type: null,
       }, { signal: controller.signal });
       if (res?.lead) {
-        const r = res.lead;
-        r.railway_id = r.id;
-        r.id = r.external_ref || lead.id;
-        onLeadUpdate(r);
+        onLeadUpdate(res.lead);
       }
       setDate("");
       setTime("");

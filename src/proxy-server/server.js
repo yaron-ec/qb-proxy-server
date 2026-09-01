@@ -126,9 +126,14 @@ let tokenStorageMethod = 'filesystem';
 // Railway JWT Bearer token (browser-to-server). The browser must NEVER contain
 // the proxy secret — it authenticates with its Railway JWT instead. Server-side
 // callers (qbInternal, cron, handoff worker) continue to use X-Proxy-Secret.
-let _verifyAccessToken = null;
-try { _verifyAccessToken = require('./lib/authService').verifyAccessToken; } catch (e) { /* authService not loaded yet */ }
-
+//
+// JWT verification uses a LAZY require (inside the function) instead of a static
+// module-level variable. This guarantees authService is always loaded when a
+// browser request arrives — CommonJS caches modules after the first successful
+// load, so the lazy require has zero per-request overhead. The previous static
+// `let _verifyAccessToken = null` pattern could silently leave the JWT verifier
+// null if the require at module-init time failed, causing ALL browser JWT
+// Bearer tokens to be rejected with "missing or invalid X-Proxy-Secret".
 function requireProxySecret(req, res, next) {
   // Path 1: X-Proxy-Secret (server-to-server)
   const secret = req.headers['x-proxy-secret'];
@@ -139,11 +144,16 @@ function requireProxySecret(req, res, next) {
   // Path 2: Railway JWT Bearer token (browser-to-server)
   const header = req.headers['authorization'] || '';
   const m = /^Bearer\s+(.+)$/i.exec(header);
-  if (m && _verifyAccessToken) {
+  if (m) {
     try {
-      req.user = _verifyAccessToken(m[1].trim());
+      // Lazy require — always gets the cached authService module, never null.
+      const { verifyAccessToken } = require('./lib/authService');
+      req.user = verifyAccessToken(m[1].trim());
       return next();
-    } catch (e) { /* token invalid — fall through to 401 */ }
+    } catch (e) {
+      // Token invalid or expired — fall through to 401.
+      // The frontend apiCall() will detect the 401, refresh the JWT, and retry.
+    }
   }
 
   return res.status(401).json({ error: 'Unauthorized — missing or invalid X-Proxy-Secret' });
