@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import * as railwayDeals from "@/api/railway/deals";
 import * as railwayLeads from "@/api/railway/leads";
 import * as railwayInvoices from "@/api/railway/invoices";
-import { TrendingUp, LayoutDashboard, DollarSign, FileText, Briefcase, Clock, PieChart } from "lucide-react";
+import { TrendingUp, LayoutDashboard, DollarSign, FileText, Briefcase, Clock, PieChart, AlertCircle } from "lucide-react";
 import AddNewProjectModal from "@/components/AddNewProjectModal";
 import { TabBar } from "@/components/DesignSystem";
 import { deriveStageFromPayments } from "@/components/DealPaymentPanel";
@@ -180,28 +180,21 @@ export default function DealDetail() {
     );
   }
 
-  if (!lead) {
-    return (
-      <div className="h-full flex flex-col items-center justify-center bg-slate-50 gap-3 px-4">
-        <TrendingUp className="w-12 h-12 text-amber-400" />
-        <p className="text-base font-semibold text-slate-700">Deal loaded — lead unavailable</p>
-        <p className="text-sm text-slate-500 text-center max-w-sm">
-          This deal exists but its associated lead could not be loaded. The lead may have been removed or you may not have access to it.
-        </p>
-        <button onClick={() => navigate('/deals')} className="mt-2 px-4 py-2 text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-lg">
-          Back to Deals
-        </button>
-      </div>
-    );
-  }
-
   return (
     <>
-      {showAddProject && (
+      {showAddProject && lead && (
         <AddNewProjectModal lead={lead} currentDeal={deal} onClose={() => setShowAddProject(false)} onSuccess={handleAddProjectSuccess} />
       )}
       <div className="flex flex-col h-full bg-slate-50 overflow-hidden">
         <DealHeader deal={deal} lead={lead} onAddProject={() => setShowAddProject(true)} onDeleteDeal={handleDeleteDeal} />
+        {!lead && (
+          <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 flex items-center gap-2 flex-shrink-0">
+            <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+            <p className="text-xs font-semibold text-amber-800">
+              No lead linked to this deal — customer info is unavailable. Deal fields, financials, and pipeline stages remain editable.
+            </p>
+          </div>
+        )}
         <TabBar tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
         <div className="flex-1 overflow-y-auto">
           {activeTab === "overview" && (
