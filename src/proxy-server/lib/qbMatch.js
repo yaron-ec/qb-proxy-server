@@ -11,6 +11,8 @@
  */
 'use strict';
 
+// Railway runtime recovery deployment trigger
+
 const normalize = (str) => (str || '').toLowerCase().trim();
 
 const normalizeEmail = (email) => {
