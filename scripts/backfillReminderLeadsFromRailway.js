@@ -1,4 +1,4 @@
-ï»¿'use strict';
+'use strict';
 
 const db = require('../db/client');
 const { upsertLead } = require('../lib/leadIngest');
@@ -9,9 +9,9 @@ async function main() {
     FROM leads
     WHERE external_ref IS NOT NULL
       AND (
-        (follow_up_date IS NOT NULL AND follow_up_date >= CURRENT_DATE)
+        (follow_up_date IS NOT NULL AND CASE WHEN follow_up_date::text ~ '^\d{4}-\d{2}-\d{2}$' THEN follow_up_date::date END >= CURRENT_DATE)
         OR
-        (appointment_date IS NOT NULL AND appointment_date >= CURRENT_DATE)
+        (appointment_date IS NOT NULL AND CASE WHEN appointment_date::text ~ '^\d{4}-\d{2}-\d{2}$' THEN appointment_date::date END >= CURRENT_DATE)
       )
     ORDER BY external_ref
   `);
@@ -21,7 +21,7 @@ async function main() {
   let failed = 0;
 
   console.log(`[backfill] source=${rows.length}`);
-  console.log('[backfill] Railway/Postgres only â€” NO emails â€” NO reminder claims');
+  console.log('[backfill] Railway/Postgres only — NO emails — NO reminder claims');
 
   for (const row of rows) {
     try {
