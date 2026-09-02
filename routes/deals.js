@@ -30,10 +30,24 @@ const { query } = require('../db/client');
 const {
   serializeDeal, resolveDealScope, repMatchCandidates,
   canAccessDeal, canWriteDeal, validateDealPayload, computePaymentStatus,
+  UUID_RE,
 } = require('../lib/dealModel');
 
 const router = express.Router();
 router.use(requireAuth);
+
+// ── Safe identifier resolution ────────────────────────────────────────────────
+// PostgreSQL throws "invalid input syntax for type uuid" if a non-UUID string
+// is compared against a uuid column. This helper builds a WHERE clause that
+// only compares against `id` when the identifier is a valid UUID, and always
+// compares against legacy_base44_id (TEXT). Returns { whereSql, params }.
+function dealIdWhere(identifier) {
+  if (UUID_RE.test(String(identifier))) {
+    // Cast $1 to uuid for the id comparison — PostgreSQL cannot compare uuid = text.
+    return { whereSql: 'id = $1::uuid OR legacy_base44_id = $1', params: [identifier] };
+  }
+  return { whereSql: 'legacy_base44_id = $1', params: [identifier] };
+}
 
 // ── GET / — list (owner-scoped, filtered) ────────────────────────────────────
 router.get('/', async (req, res) => {
@@ -56,7 +70,10 @@ router.get('/', async (req, res) => {
       p += 2;
     }
     if (stage && stage !== 'all') { where.push(`d.stage = $${p}`); params.push(stage); p++; }
-    if (lead_id) { where.push(`d.lead_id = $${p}`); params.push(lead_id); p++; }
+    if (lead_id) {
+      if (!UUID_RE.test(String(lead_id))) return res.json({ items: [], total: 0 });
+      where.push(`d.lead_id = $${p}`); params.push(lead_id); p++;
+    }
     if (assigned_rep && assigned_rep !== 'all' && (req.user.role === 'admin' || req.user.role === 'manager')) {
       where.push(`lower(d.assigned_rep) = lower($${p})`); params.push(assigned_rep); p++;
     }
@@ -89,9 +106,16 @@ router.get('/', async (req, res) => {
 });
 
 // ── GET /:id — single deal (owner-scoped) ───────────────────────────────────
+// Resolves by Railway UUID (id) OR legacy_base44_id (migrated Base44 deal ID).
+// Uses safe identifier resolution to avoid PostgreSQL uuid cast errors on
+// non-UUID legacy identifiers.
 router.get('/:id', async (req, res) => {
   try {
-    const { rows } = await query('SELECT * FROM deals WHERE id = $1', [req.params.id]);
+    const { whereSql, params } = dealIdWhere(req.params.id);
+    const { rows } = await query(
+      `SELECT * FROM deals WHERE ${whereSql} LIMIT 1`,
+      params
+    );
     const deal = rows[0];
     if (!deal) return res.status(404).json({ error: 'not_found' });
     if (!canAccessDeal(req.user, deal)) return res.status(403).json({ error: 'forbidden' });
@@ -130,9 +154,14 @@ router.post('/', async (req, res) => {
 });
 
 // ── PUT /:id — update (partial) ─────────────────────────────────────────────
+// Resolves by Railway UUID (id) OR legacy_base44_id (safe identifier resolution).
 router.put('/:id', async (req, res) => {
   try {
-    const { rows } = await query('SELECT * FROM deals WHERE id = $1', [req.params.id]);
+    const { whereSql, params } = dealIdWhere(req.params.id);
+    const { rows } = await query(
+      `SELECT * FROM deals WHERE ${whereSql} LIMIT 1`,
+      params
+    );
     const deal = rows[0];
     if (!deal) return res.status(404).json({ error: 'not_found' });
     if (!canWriteDeal(req.user, deal, 'update')) return res.status(403).json({ error: 'forbidden' });
@@ -160,7 +189,7 @@ router.put('/:id', async (req, res) => {
     const cols = Object.keys(cleaned);
     const sets = cols.map((c, i) => `${c} = $${i + 1}`).join(', ');
     const sql = `UPDATE deals SET ${sets} WHERE id = $${cols.length + 1} RETURNING *`;
-    const { rows: updated } = await query(sql, [...cols.map((c) => cleaned[c]), req.params.id]);
+    const { rows: updated } = await query(sql, [...cols.map((c) => cleaned[c]), deal.id]);
     res.json({ deal: serializeDeal(updated[0]) });
   } catch (e) {
     console.error('[deals] update error:', e.message);
@@ -168,14 +197,19 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// ── DELETE /:id — ADMIN ONLY ─────────────────────────────────────────────────
+// ── DELETE /:id — ADMIN ONLY ────────────────────────────────────────────────
+// Resolves by Railway UUID (id) OR legacy_base44_id (safe identifier resolution).
 router.delete('/:id', async (req, res) => {
   try {
-    const { rows } = await query('SELECT * FROM deals WHERE id = $1', [req.params.id]);
+    const { whereSql, params } = dealIdWhere(req.params.id);
+    const { rows } = await query(
+      `SELECT * FROM deals WHERE ${whereSql} LIMIT 1`,
+      params
+    );
     const deal = rows[0];
     if (!deal) return res.status(404).json({ error: 'not_found' });
     if (!canWriteDeal(req.user, deal, 'delete')) return res.status(403).json({ error: 'forbidden' });
-    await query('DELETE FROM deals WHERE id = $1', [req.params.id]);
+    await query('DELETE FROM deals WHERE id = $1', [deal.id]);
     res.json({ success: true, id: req.params.id });
   } catch (e) {
     console.error('[deals] delete error:', e.message);
