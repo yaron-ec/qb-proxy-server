@@ -91,15 +91,29 @@ export default function LeadDetailModern() {
         if (lSources) setLeadSources(lSources);
         setLoading(false);
 
-        // Clear new intake marker via Railway (or Base44 fallback)
+        // Clear new intake marker via Railway — update by Railway UUID (not external_ref)
         if (leadData?.is_new_intake_lead) {
           try {
-            await railwayLeads.updateByExternal(id, { is_new_intake_lead: false, reviewed_at: new Date().toISOString() });
+            await railwayLeads.update(leadData.railway_id || id, { is_new_intake_lead: false, reviewed_at: new Date().toISOString() });
           } catch { /* non-critical */ }
         }
       } catch (error) {
-        const isForbidden = error?.response?.status === 403 || error?.message?.includes('Forbidden');
-        setLoadError(isForbidden ? 'You do not have access to this lead.' : (error.message || 'Failed to load page. Please try again.'));
+        // apiCall throws errors with a .status property (not .response.status).
+        // 403 = authorization denied, 401 = session expired, 404 = not found,
+        // 500/503 = server/network error. Distinguish so the UI doesn't mask
+        // auth failures as generic "Failed to load".
+        const status = error?.status;
+        const isForbidden = status === 403 || error?.message?.includes('Forbidden');
+        const isAuthExpired = status === 401;
+        const isNotFound = status === 404;
+        const msg = isForbidden
+          ? 'You do not have access to this lead.'
+          : isAuthExpired
+          ? 'Your session has expired. Please sign in again.'
+          : isNotFound
+          ? 'Lead not found. It may have been deleted.'
+          : (error.message || 'Failed to load page. Please try again.');
+        setLoadError(msg);
         setLoading(false);
       }
     };
@@ -124,18 +138,27 @@ export default function LeadDetailModern() {
   }, [lead?.status, lead?.id]);
 
   const updateField = async (field, value) => {
+    // Always update by Railway UUID — NEVER by external_ref. Updating by
+    // external_ref via updateByExternal() INSERTs with external_ref as the key,
+    // which creates DUPLICATE leads for Railway-native records (no external_ref).
+    // The backend PUT /:id now handles both contact and CRM fields with duplicate
+    // checking, so this single path covers all field types safely.
+    const railwayId = lead?.railway_id || id;
+    const prevLead = lead;
     setLead(prev => ({ ...prev, [field]: value }));
     setSaving(true);
     try {
-      const res = await railwayLeads.updateByExternal(id, { [field]: value });
+      const res = await railwayLeads.update(railwayId, { [field]: value });
       if (res?.lead) {
         const r = res.lead;
+        // Preserve the external_ref-based id for routing, keep railway_id for updates
         r.railway_id = r.id;
         r.id = r.external_ref || id;
         setLead(r);
       }
     } catch (e) {
-      setLead(prev => prev ? { ...prev, [field]: prev[field] } : prev);
+      // Revert the optimistic update so the UI reflects the actual saved state.
+      setLead(prevLead);
       throw e;
     } finally {
       setSaving(false);
@@ -152,7 +175,7 @@ export default function LeadDetailModern() {
   const handleDeleteLead = async () => {
     if (confirm("Delete this lead permanently?")) {
       try {
-        await railwayLeads.deleteByExternal(id);
+        await railwayLeads.remove(lead.railway_id || id);
         navigate("/leads");
       } catch (e) {
         alert("Failed to delete lead: " + (e.message || "You may not have permission."));
@@ -162,7 +185,7 @@ export default function LeadDetailModern() {
 
   if (loading) return (
     <div className="h-full flex items-center justify-center bg-slate-50">
-      <div className="w-7 h-7 border-3 border-slate-200 border-t-amber-600 rounded-full animate-spin"></div>
+      <div className="w-7 h-7 border-2 border-slate-200 border-t-amber-600 rounded-full animate-spin"></div>
     </div>
   );
 
@@ -261,7 +284,7 @@ export default function LeadDetailModern() {
           <span className={`${statusBadgeClass(lead.status)} hidden md:inline-flex`}>{lead.status || "New"}</span>
           {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
             <EditNameButton lead={lead} onSave={async (first, last) => {
-              const res = await railwayLeads.updateByExternal(id, { first_name: first, last_name: last });
+              const res = await railwayLeads.update(lead.railway_id || id, { first_name: first, last_name: last });
               if (res?.lead) setLead(prev => ({ ...prev, first_name: res.lead.first_name, last_name: res.lead.last_name }));
             }} />
           )}
@@ -354,7 +377,7 @@ export default function LeadDetailModern() {
             </div>
           )}
           <div className="px-0">
-            <CalendarSyncPanel lead={lead} />
+            <CalendarSyncPanel lead={lead} onLeadUpdate={setLead} />
           </div>
           <GoogleContactSyncPanel lead={lead} onLeadUpdate={setLead} />
           <div className="border-t border-slate-100">
@@ -447,7 +470,7 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
               <h2 className="text-sm font-bold text-slate-900 truncate leading-tight">{toTitleCase(lead.first_name)} {toTitleCase(lead.last_name)}</h2>
               {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
                 <EditNameButton lead={lead} onSave={async (first, last) => {
-                  const res = await railwayLeads.updateByExternal(lead.id, { first_name: first, last_name: last });
+                  const res = await railwayLeads.update(lead.railway_id || lead.id, { first_name: first, last_name: last });
                   if (res?.lead) onLeadUpdate({ ...lead, first_name: res.lead.first_name, last_name: res.lead.last_name });
                 }} />
               )}
@@ -790,11 +813,30 @@ function EmailEditField({ lead, updateField, composeEmail }) {
 // ── EditableField ────────────────────────────────────────────────────────────
 function EditableField({ label, value, onSave, type = "text", options = [], editable = false, showPencil = false, copyValue = null, copyLabel = null, children }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
   const rawValue = (value === "—" || value === null || value === undefined) ? "" : String(value);
   const [editVal, setEditVal] = useState(rawValue);
   const [selectedMulti, setSelectedMulti] = useState(() =>
     type === "multiselect" && value && value !== "—" ? String(value).split(",").map(v => v.trim()).filter(v => v) : []
   );
+
+  // Async-aware save: shows loading state, preserves edit values on error,
+  // only exits edit mode on success. Prevents the "stuck Saving..." state.
+  const handleSave = async () => {
+    const saveVal = type === "multiselect" ? selectedMulti.join(", ") : editVal;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await onSave(saveVal);
+      setIsEditing(false);
+    } catch (e) {
+      // Preserve entered values so the user can retry without re-typing.
+      setSaveError(e?.message || 'Save failed. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (children && !isEditing) {
     return (
@@ -851,9 +893,13 @@ function EditableField({ label, value, onSave, type = "text", options = [], edit
       ) : (
         <textarea value={editVal} onChange={e => setEditVal(e.target.value)} className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-amber-500 resize-none" rows={3} />
       )}
+      {saveError && <p className="text-[11px] text-red-600 leading-tight flex items-center gap-1"><AlertCircle className="w-3 h-3" />{saveError}</p>}
       <div className="flex gap-1.5">
-        <button onClick={() => { onSave(type === "multiselect" ? selectedMulti.join(", ") : editVal); setIsEditing(false); }} className="flex-1 px-2 py-1 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded transition-colors">Save</button>
-        <button onClick={() => { setEditVal(rawValue); setIsEditing(false); }} className="flex-1 px-2 py-1 text-xs text-slate-600 border border-slate-200 rounded hover:bg-slate-50 transition-colors">Cancel</button>
+        <button onClick={handleSave} disabled={saving} className="flex-1 px-2 py-1 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded transition-colors disabled:opacity-50 flex items-center justify-center gap-1">
+          {saving && <RefreshCw className="w-3 h-3 animate-spin" />}
+          {saving ? 'Saving...' : 'Save'}
+        </button>
+        <button onClick={() => { setEditVal(rawValue); setSaveError(null); setIsEditing(false); }} disabled={saving} className="flex-1 px-2 py-1 text-xs text-slate-600 border border-slate-200 rounded hover:bg-slate-50 transition-colors disabled:opacity-50">Cancel</button>
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import * as railwaySignnow from "@/api/railway/signnow";
 import { apiCall } from "@/api/railway/client";
 import { useToast } from "@/components/ui/use-toast";
 import { FileSignature, Link as LinkIcon, Unlink, Loader2, CheckCircle, Eye, EyeOff, RefreshCw, AlertTriangle, Save } from "lucide-react";
+import { RAILWAY_API_URL } from "@/lib/apiConfig";
 
 export default function SignNowSettingsTab() {
   const { toast } = useToast();
@@ -306,10 +307,10 @@ export default function SignNowSettingsTab() {
           </p>
           <div className="bg-white border border-amber-200 rounded-lg px-3 py-2 flex items-center gap-2">
             <code className="text-xs text-slate-700 flex-1 break-all font-mono">
-              {window.location.origin}/api/functions/signNowWebhook
+              {RAILWAY_API_URL}/api/v1/signnow-webhook
             </code>
             <button
-              onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/api/functions/signNowWebhook`); }}
+              onClick={() => { navigator.clipboard.writeText(`${RAILWAY_API_URL}/api/v1/signnow-webhook`); }}
               className="text-xs font-semibold text-amber-700 hover:text-amber-900 flex-shrink-0"
             >
               Copy

@@ -17,7 +17,7 @@
  *      - Level 2 bad deploy: rollback to last known good (if API token allows).
  *      - Level 3 (MODULE_NOT_FOUND, missing env, OAuth): BLOCKED → escalate.
  *   6. Resolves incidents when health is restored.
- *   7. Sends alerts via independent channel (Base44 SendEmail via invokeFunction).
+ *   7. Sends alerts via independent channel (Railway emailService (lib/emailService) — Base44 fully decommissioned).
  *
  * What it does NOT do:
  *   - Does NOT auto-restart services (Railway API token is read-only).

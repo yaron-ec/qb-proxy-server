@@ -97,6 +97,101 @@ router.post('/admin-set-password', async (req, res) => {
   }
 });
 
+// ── Admin: list users (read-only, admin-only) ────────────────────────────────
+//   POST /admin-list-users
+//   Header: X-Admin-Secret: <ADMIN_AUTH_SECRET or PROXY_SECRET>
+//
+// Returns all users with id, email, full_name, role, status, google_sub presence,
+// and password_hash presence. Does NOT return password hashes or tokens.
+router.post('/admin-list-users', async (req, res) => {
+  const adminSecret = process.env.ADMIN_AUTH_SECRET || process.env.PROXY_SECRET;
+  const provided = req.headers['x-admin-secret'];
+  if (!adminSecret || provided !== adminSecret) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+  try {
+    const { rows } = await require('../db/client').query(
+      `SELECT id, email, full_name, role, status,
+              (google_sub IS NOT NULL) AS has_google_sso,
+              (password_hash IS NOT NULL) AS has_password,
+              created_at, updated_at
+       FROM users ORDER BY email`
+    );
+    res.json({ users: rows, count: rows.length });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── Admin: clear a user's password (admin-only) ──────────────────────────────
+//   POST /admin-clear-password  { email }
+//   Header: X-Admin-Secret: <ADMIN_AUTH_SECRET or PROXY_SECRET>
+//
+// Clears the password_hash for a user, disabling email/password login.
+// Google SSO (google_sub) is NOT affected. Use this to remove a temporary
+// password after admin-set-password was used for role patching.
+router.post('/admin-clear-password', async (req, res) => {
+  const adminSecret = process.env.ADMIN_AUTH_SECRET || process.env.PROXY_SECRET;
+  const provided = req.headers['x-admin-secret'];
+  if (!adminSecret || provided !== adminSecret) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+  try {
+    const { email } = req.body || {};
+    if (!email) return res.status(400).json({ error: 'email required' });
+
+    const user = await auth.getUserByEmail(email);
+    if (!user) return res.status(404).json({ error: 'user not found' });
+    if (!user.google_sub) {
+      return res.status(409).json({
+        error: 'cannot_clear_password',
+        details: 'User has no google_sub — clearing password would lock them out. User must log in via Google SSO first to establish google_sub before password can be cleared.'
+      });
+    }
+
+    await require('../db/client').query(
+      'UPDATE users SET password_hash = NULL, updated_at = NOW() WHERE id = $1',
+      [user.id]
+    );
+    res.json({ ok: true, email: user.email, message: 'Password cleared. Google SSO remains active.' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── Admin: set a user's role WITHOUT changing their password (PERMANENT) ────
+//   POST /admin-set-role  { email, role }
+//   Header: X-Admin-Secret: <ADMIN_AUTH_SECRET or PROXY_SECRET>
+//
+// Sets the role for an existing user without touching their password_hash
+// or Google SSO (google_sub). This is the canonical tool for fixing role
+// mismatches without credential side-effects.
+router.post('/admin-set-role', async (req, res) => {
+  const adminSecret = process.env.ADMIN_AUTH_SECRET || process.env.PROXY_SECRET;
+  const provided = req.headers['x-admin-secret'];
+  if (!adminSecret || provided !== adminSecret) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+  try {
+    const { email, role } = req.body || {};
+    if (!email || !role) return res.status(400).json({ error: 'email and role required' });
+    if (!['admin', 'manager', 'sales_rep', 'office', 'user'].includes(role)) {
+      return res.status(400).json({ error: 'invalid role' });
+    }
+
+    const user = await auth.getUserByEmail(email);
+    if (!user) return res.status(404).json({ error: 'user not found' });
+
+    await require('../db/client').query(
+      'UPDATE users SET role = $1, status = $2, updated_at = NOW() WHERE id = $3',
+      [role, 'active', user.id]
+    );
+    res.json({ ok: true, email: user.email, role, message: `Role set to ${role}. No password changed.` });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── [REMOVED] Base44 → Railway migration bridge ─────────────────────────────
 // The /migrate endpoint has been removed. Railway auth is now the permanent
 // auth layer (Google SSO + email/password via /login + /admin-set-password).

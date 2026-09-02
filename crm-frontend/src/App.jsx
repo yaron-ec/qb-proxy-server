@@ -1,12 +1,11 @@
-// Rebuild trigger 2026-08-28: force Base44 published app to serve current
-// Railway-only code (fixes stale bundle: Activity writes, ContactInfoEditor pencils,
-// Dashboard/Deals metrics — all three defects traced to stale build index-CHwSslG8.js)
+// Rebuild trigger 2026-09-01: auth reconciliation — apiCall now refreshes on
+// 403 (stale JWT role recovery), ADMIN_EMAILS bypass removed, DealDetail
+// distinguishes 403/401/404. Forces Base44 published app to serve current code.
 import { Toaster } from "@/components/ui/toaster"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, useLocation, Navigate } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
 import React from 'react';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
@@ -38,24 +37,16 @@ import Reports from './pages/Reports';
 import MobileDayView from './pages/MobileDayView';
 import KanbanBoard from './pages/KanbanBoard';
 
-// Page content wrapper with transition (only wraps page content, not Layout)
+// Page content wrapper — renders children directly.
+// The previous AnimatePresence mode="wait" wrapper caused detail pages to
+// stay invisible (opacity:0) when navigating from list → detail: React reused
+// the same PageContentWrapper instance, AnimatePresence saw a key change, and
+// mode="wait" delayed mounting the new content until the old content's exit
+// animation completed. If anything interrupted the enter animation, the new
+// page stayed at opacity:0 — invisible. This affected BOTH leads and deals
+// detail pages identically. Removing the wrapper ensures immediate render.
 const PageContentWrapper = ({ children }) => {
-  const location = useLocation();
-  const isPublicRoute = ['/capture'].includes(location.pathname);
-
-  return (
-    <AnimatePresence mode="wait" initial={false}>
-      <motion.div
-        key={location.pathname}
-        initial={{ opacity: 0, x: isPublicRoute ? 0 : 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: -20 }}
-        transition={{ duration: 0.2 }}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
-  );
+  return <div className="h-full">{children}</div>;
 };
 
 const AuthenticatedApp = () => {

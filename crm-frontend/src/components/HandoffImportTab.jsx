@@ -3,6 +3,7 @@ import * as railwayLeads from "@/api/railway/leads";
 import * as railwayHandoffEstimates from "@/api/railway/handoffEstimates";
 import { apiCall } from "@/api/railway/client";
 import { appParams } from "@/lib/app-params";
+import { RAILWAY_API_URL } from "@/lib/apiConfig";
 import {
   Zap, CheckCircle, Loader2, AlertTriangle, Upload, FileJson,
   Link, Copy, Check, Clock, ChevronDown, ChevronUp, Play, Wifi, WifiOff, RefreshCw, Database
@@ -10,8 +11,7 @@ import {
 import { SyncSection, SyncSectionHeader, SyncInfoNotice, SyncStatRow, SyncBtn, SyncStepList } from "./SyncCard";
 
 function getWebhookUrl() {
-  const base = appParams.appBaseUrl || window.location.origin;
-  return `${base}/api/functions/handoffWebhookV2`;
+  return `${RAILWAY_API_URL}/handoff/import-estimate`;
 }
 
 // ─── Webhook Setup ────────────────────────────────────────────────────────────

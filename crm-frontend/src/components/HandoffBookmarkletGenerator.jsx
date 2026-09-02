@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Copy, Check, Code, ChevronDown, ChevronUp, AlertTriangle, Bookmark } from "lucide-react";
 import { appParams } from "@/lib/app-params";
+import { RAILWAY_API_URL } from "@/lib/apiConfig";
 
 function getImportUrl() {
-  const base = appParams.appBaseUrl || window.location.origin;
-  return `${base}/api/functions/handoffBulkImport`;
+  return `${RAILWAY_API_URL}/handoff/import-estimate`;
 }
 
 // Build the full bookmarklet JS from user-provided capture data

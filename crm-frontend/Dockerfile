@@ -8,6 +8,8 @@ ARG VITE_RAILWAY_API_URL=https://qb-proxy-server-production.up.railway.app
 ENV VITE_RAILWAY_API_URL=$VITE_RAILWAY_API_URL
 ARG VITE_RAILWAY_CAPTURE_URL=https://qb-proxy-server-production.up.railway.app
 ENV VITE_RAILWAY_CAPTURE_URL=$VITE_RAILWAY_CAPTURE_URL
+ARG VITE_EXIT_BUILD=true
+ENV VITE_EXIT_BUILD=$VITE_EXIT_BUILD
 RUN npm run build:exit
 
 # ---- Production SPA serve stage ----

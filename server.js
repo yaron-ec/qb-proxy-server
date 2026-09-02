@@ -1273,6 +1273,9 @@ app.post('/internal/email/send', requireProxySecret, async (req, res) => {
 // Internal routes for authorizing Gmail sending through Railway. Protected by
 // X-Proxy-Secret or a short-lived setup_token. No email is sent here.
 app.use('/internal/gmail/oauth', require('./lib/gmailOAuthRouter'));
+app.use('/api/v1/qb-webhook', require('./routes/qbWebhook'));
+app.use('/api/v1/meta-webhook', require('./routes/metaWebhook'));
+app.use('/api/v1/signnow-webhook', require('./routes/signnowWebhook'));
 
 // ── /gmail/* routes ───────────────────────────────────────────────────────────
 

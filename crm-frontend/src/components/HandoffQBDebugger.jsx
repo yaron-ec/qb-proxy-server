@@ -299,9 +299,9 @@ export default function HandoffQBDebugger() {
           <div className="bg-blue-50 border border-blue-200 rounded p-2.5">
             <div className="text-[10px] font-bold text-blue-800 mb-1">📡 Webhook Setup</div>
             <div className="text-[9px] text-blue-700 space-y-1">
-              <div>Endpoint: <span className="font-mono text-blue-600 break-all">/functions/handoffWebhookV2</span></div>
-              <div>Status: Auto-configured</div>
-              <div>Auto-sync: Every 15 minutes via handoffAutoSync</div>
+              <div>Endpoint: <span className="font-mono text-blue-600 break-all">/handoff/import-estimate</span></div>
+              <div>Status: Auto-configured (Railway)</div>
+              <div>Auto-sync: Every 15 minutes via QB Sync Cron</div>
             </div>
           </div>
 
