@@ -1530,4 +1530,81 @@ router.post('/backfill-reminder-leads', async (req, res) => {
   }
 });
 
+// ── POST /diagnose-deal ──────────────────────────────────────────────────────
+// READ-ONLY diagnostic: queries the canonical Railway `deals` table by UUID
+// (id) or legacy_base44_id, then checks the linked lead. No writes. Used to
+// trace why a Deal Detail page shows "Deal not found" for a real Railway UUID.
+router.post('/diagnose-deal', async (req, res) => {
+  try {
+    const { deal_id } = req.body || {};
+    if (!deal_id) return res.status(400).json({ error: 'deal_id required' });
+
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const isUuid = UUID_RE.test(String(deal_id));
+
+    // Query by id (UUID) OR legacy_base44_id (TEXT)
+    let dealRows;
+    if (isUuid) {
+      const { rows } = await query(
+        'SELECT * FROM deals WHERE id = $1 OR legacy_base44_id = $1 LIMIT 1',
+        [deal_id]
+      );
+      dealRows = rows;
+    } else {
+      const { rows } = await query(
+        'SELECT * FROM deals WHERE legacy_base44_id = $1 LIMIT 1',
+        [deal_id]
+      );
+      dealRows = rows;
+    }
+
+    const deal = dealRows[0];
+    if (!deal) {
+      // Not found — check total deal count and recent deals for context
+      const { rows: countRows } = await query('SELECT COUNT(*) as cnt FROM deals');
+      const { rows: recentRows } = await query(
+        'SELECT id, legacy_base44_id, name, lead_id, created_at FROM deals ORDER BY created_at DESC LIMIT 5'
+      );
+      return res.json({
+        found: false,
+        deal_id,
+        is_uuid: isUuid,
+        total_deals: parseInt(countRows[0].cnt, 10),
+        recent_deals: recentRows,
+      });
+    }
+
+    // Deal found — check linked lead
+    let lead = null;
+    if (deal.lead_id) {
+      const { rows: leadRows } = await query(
+        'SELECT id, external_ref, first_name, last_name, email, phone, status FROM leads WHERE id = $1 LIMIT 1',
+        [deal.lead_id]
+      );
+      lead = leadRows[0] || null;
+    }
+
+    res.json({
+      found: true,
+      deal_id,
+      is_uuid: isUuid,
+      deal: {
+        id: deal.id,
+        legacy_base44_id: deal.legacy_base44_id,
+        name: deal.name,
+        lead_id: deal.lead_id,
+        stage: deal.stage,
+        amount: deal.amount,
+        assigned_rep: deal.assigned_rep,
+        created_at: deal.created_at,
+        updated_at: deal.updated_at,
+      },
+      lead,
+    });
+  } catch (e) {
+    console.error('[cron] diagnose-deal error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
