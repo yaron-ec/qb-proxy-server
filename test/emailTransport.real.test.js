@@ -171,30 +171,33 @@ async function testSuccessfulJwtSend() {
   console.log('  ✓ successful JWT-authenticated send');
 }
 
-async function testJwtMissingProvisionsViaMigrate() {
+async function testJwtMissingFailsWithoutMigrationBridge() {
   resetStorage();
   let calls = [];
   setFetch(async (url, opts) => {
     calls.push({ url, opts });
-    if (url.includes('/api/v1/auth/migrate')) {
-      return mockResponse(200, { access: 'new-jwt', refresh: 'new-refresh', user: { id: 'u1' } });
-    }
     return emailOkResponse('gmail-2', false);
   });
 
   const transport = await buildTransport();
-  const result = await transport.sendGenericEmail({
-    to: 'customer@example.com', subject: 'Test', htmlBody: '<p>Body</p>',
-    leadId: 'lead1', clientRequestId: 'req1',
-  });
+  let threw = false;
+  let errMsg = '';
+  try {
+    await transport.sendGenericEmail({
+      to: 'customer@example.com', subject: 'Test', htmlBody: '<p>Body</p>',
+      leadId: 'lead1', clientRequestId: 'req1',
+    });
+  } catch (e) {
+    threw = true;
+    errMsg = e.message;
+  }
 
-  assert.strictEqual(result.ok, true);
-  assert.strictEqual(calls.length, 2, 'Should call migrate then send');
-  assert.ok(calls[0].url.includes('/api/v1/auth/migrate'), 'First call should be migrate');
-  assert.ok(calls[1].url.includes('/api/v1/emails/send'), 'Second call should be send');
-  assert.strictEqual(calls[1].opts.headers['Authorization'], 'Bearer new-jwt');
-  assert.strictEqual(_storage.get('railway_access_token'), 'new-jwt');
-  console.log('  ✓ JWT missing — provisions via migrateFromBase44');
+  // Migration bridge has been intentionally removed (Base44 exit).
+  // When JWT is missing, migrateFromBase44 throws instead of provisioning.
+  assert.ok(threw, 'Should throw when JWT missing (migration bridge removed)');
+  assert.ok(errMsg.includes('Migration bridge removed'), 'Error should mention migration bridge removed');
+  assert.strictEqual(calls.length, 0, 'Should NOT call any API (migration bridge removed)');
+  console.log('  ✓ JWT missing — fails with migration bridge removed (no API calls)');
 }
 
 async function testJwtExpiredRefreshSucceeds() {
@@ -571,7 +574,7 @@ async function runAll() {
 
   const tests = [
     testSuccessfulJwtSend,
-    testJwtMissingProvisionsViaMigrate,
+    testJwtMissingFailsWithoutMigrationBridge,
     testJwtExpiredRefreshSucceeds,
     testJwtRefreshFailure,
     testRailway400,
