@@ -1395,16 +1395,16 @@ router.post('/diagnose-reminder-lead', async (req, res) => {
     let idx = 1;
 
     if (external_ref) {
-      conditions.push(`l.external_ref = ${idx++}`);
+      conditions.push(`l.external_ref = $${idx++}`);
       params.push(external_ref);
     }
     if (phone) {
       // Normalize: strip non-digits for comparison
-      conditions.push(`REGEXP_REPLACE(l.phone, '\\D', '', 'g') = REGEXP_REPLACE(${idx++}, '\\D', '', 'g')`);
+      conditions.push(`REGEXP_REPLACE(l.phone, '\\D', '', 'g') = REGEXP_REPLACE($${idx++}, '\\D', '', 'g')`);
       params.push(phone);
     }
     if (first_name && last_name) {
-      conditions.push(`LOWER(l.first_name) = LOWER(${idx++}) AND LOWER(l.last_name) = LOWER(${idx++})`);
+      conditions.push(`LOWER(l.first_name) = LOWER($${idx++}) AND LOWER(l.last_name) = LOWER($${idx++})`);
       params.push(first_name);
       params.push(last_name);
     }
@@ -1413,14 +1413,26 @@ router.post('/diagnose-reminder-lead', async (req, res) => {
       return res.status(400).json({ error: 'At least one of phone, first_name+last_name, or external_ref is required' });
     }
 
+    // Appointments live in a separate `appointments` table (start_at TIMESTAMPTZ).
+    // Derive appointment_date/time in Pacific from the earliest active appointment.
     const leadSql = `
       SELECT l.id, l.external_ref, l.first_name, l.last_name, l.email, l.phone,
              l.property_address, l.city, l.project_type, l.follow_up_date,
-             l.follow_up_time, l.follow_up_type, l.appointment_date,
-             l.appointment_time, l.assigned_rep, l.budget_range, l.notes,
-             l.customer_reminders_disabled, l.crm_created_date, l.created_at,
+             l.follow_up_time, l.follow_up_type,
+             to_char(appt.start_at AT TIME ZONE 'America/Los_Angeles', 'YYYY-MM-DD') AS appointment_date,
+             to_char(appt.start_at AT TIME ZONE 'America/Los_Angeles', 'HH24:MI') AS appointment_time,
+             l.budget_range, l.notes, l.customer_reminders_disabled,
+             l.crm_created_date, l.created_at,
              o.display_name AS owner_display_name, o.email AS owner_email
-      FROM leads l LEFT JOIN owners o ON o.id = l.owner_id
+      FROM leads l
+      LEFT JOIN owners o ON o.id = l.owner_id
+      LEFT JOIN LATERAL (
+        SELECT a.start_at FROM appointments a
+        WHERE a.lead_id = l.id
+          AND a.status IN ('scheduled','confirmed')
+        ORDER BY a.start_at ASC
+        LIMIT 1
+      ) appt ON true
       WHERE ${conditions.join(' OR ')}
       ORDER BY l.created_at DESC
       LIMIT 10`;
