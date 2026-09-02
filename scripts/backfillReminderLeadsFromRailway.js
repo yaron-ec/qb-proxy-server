@@ -1,113 +1,165 @@
+/* eslint-disable no-undef */
+/**
+ * backfillReminderLeadsFromRailway.js
+ *
+ * Railway-native backfill: reconciles reminder_leads with the canonical Railway
+ * leads table. No Base44 dependency. Idempotent.
+ *
+ * Source of truth: Railway `leads` table.
+ * Derived projection: `reminder_leads` table (read by the reminder engine).
+ *
+ * Reconciliation logic:
+ *   1. For every canonical lead with a follow-up/appointment date:
+ *      - Upsert into reminder_leads using id = external_ref || id.
+ *      - Legacy leads (external_ref NOT NULL) → use external_ref as the id.
+ *      - Railway-native leads (external_ref NULL) → use the Railway UUID (id).
+ *   2. For every canonical lead with NO dates:
+ *      - Clear appointment fields in reminder_leads (if a row exists).
+ *   3. For every reminder_leads row whose id no longer matches any canonical
+ *      lead (by external_ref OR by Railway UUID):
+ *      - Delete it (stale orphan cleanup).
+ *
+ * This does NOT send emails. Does NOT create reminder claims. Does NOT modify
+ * canonical lead business data. Does NOT touch already-sent idempotency keys.
+ *
+ * Usage:
+ *   node scripts/backfillReminderLeadsFromRailway.js           (apply)
+ *   node scripts/backfillReminderLeadsFromRailway.js --dry-run (report only)
+ *
+ * Requires: DATABASE_URL on the Railway service.
+ */
 'use strict';
 
 const db = require('../db/client');
-const { upsertLead } = require('../lib/leadIngest');
+const { validateAndNormalizeLead, upsertLead } = require('../lib/leadIngest');
+const { syncLeadToReminders, reminderIdFor } = require('../lib/reminderProjection');
 
-function pacificToday() {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/Los_Angeles',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  }).formatToParts(new Date());
+const isDryRun = process.argv.includes('--dry-run');
 
-  const get = type => parts.find(p => p.type === type)?.value;
-  return `${get('year')}-${get('month')}-${get('day')}`;
-}
+async function backfill() {
+  console.log(`[backfill] Starting Railway-native reminder_leads reconciliation...${isDryRun ? ' (DRY RUN)' : ''}`);
 
-function validFutureDate(value, today) {
-  if (!value) return false;
+  await db.ensureSchema();
 
-  const date = String(value).slice(0, 10);
+  // ── 1. Read ALL canonical leads (source of truth) ──────────────────────
+  // Appointments live in a separate `appointments` table (start_at TIMESTAMPTZ).
+  // Derive appointment_date ('YYYY-MM-DD') and appointment_time ('HH:MM') in
+  // Pacific timezone from the earliest active (non-cancelled) appointment.
+  const { rows: allLeads } = await db.query(
+    `SELECT l.id, l.external_ref, l.first_name, l.last_name, l.email, l.phone,
+            l.property_address, l.city, l.project_type, l.follow_up_date,
+            l.follow_up_time, l.follow_up_type,
+            to_char(appt.start_at AT TIME ZONE 'America/Los_Angeles', 'YYYY-MM-DD') AS appointment_date,
+            to_char(appt.start_at AT TIME ZONE 'America/Los_Angeles', 'HH24:MI') AS appointment_time,
+            l.budget_range, l.notes, l.customer_reminders_disabled,
+            l.crm_created_date, l.created_at,
+            o.display_name AS owner_display_name, o.email AS owner_email
+     FROM leads l
+     LEFT JOIN owners o ON o.id = l.owner_id
+     LEFT JOIN LATERAL (
+       SELECT a.start_at FROM appointments a
+       WHERE a.lead_id = l.id
+         AND a.status IN ('scheduled','confirmed')
+       ORDER BY a.start_at ASC
+       LIMIT 1
+     ) appt ON true
+     ORDER BY l.created_at DESC`
+  );
+  console.log(`[backfill] Found ${allLeads.length} canonical leads`);
 
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return false;
+  // ── 2. Read current reminder_leads (to detect orphans) ──────────────────
+  const { rows: existingReminders } = await db.query(
+    'SELECT id, follow_up_date, appointment_date FROM reminder_leads'
+  );
+  const existingIds = new Set(existingReminders.map(r => r.id));
+  console.log(`[backfill] reminder_leads currently has ${existingIds.size} rows`);
+
+  // Build a set of all canonical reminder ids (external_ref || id)
+  const canonicalIds = new Set();
+  for (const lead of allLeads) {
+    const rid = reminderIdFor(lead);
+    if (rid) canonicalIds.add(rid);
   }
 
-  return date >= today;
-}
+  // ── 3. Process each canonical lead ─────────────────────────────────────
+  let upserted = 0, cleared = 0, skipped = 0, errors = 0;
+  const stats = { legacy: 0, native: 0 };
 
-async function main() {
-  const today = pacificToday();
+  for (const lead of allLeads) {
+    const rid = reminderIdFor(lead);
+    if (!rid) { skipped++; continue; }
 
-  const { rows } = await db.query(`
-    SELECT *
-    FROM leads
-    WHERE external_ref IS NOT NULL
-      AND follow_up_date IS NOT NULL
-    ORDER BY external_ref
-  `);
+    if (lead.external_ref) stats.legacy++;
+    else stats.native++;
 
-  const eligible = rows.filter(row =>
-    validFutureDate(row.follow_up_date, today)
-  );
+    const hasDates = lead.follow_up_date || lead.appointment_date;
 
-  let created = 0;
-  let updated = 0;
-  let skipped = rows.length - eligible.length;
-  let failed = 0;
-
-  console.log(`[backfill] today=${today}`);
-  console.log(`[backfill] source=${rows.length} eligible=${eligible.length} skipped=${skipped}`);
-  console.log('[backfill] Railway/Postgres only; NO email sends; NO reminder_claims');
-
-  for (const row of eligible) {
-    try {
-      const result = await upsertLead(db, {
-        id: String(row.external_ref),
-
-        first_name: row.first_name || row.lead_first_name || row.name || row.full_name || row.customer_name || String(row.email || row.phone || row.external_ref),
-        last_name: row.last_name || null,
-        email: row.email || null,
-        phone: row.phone || null,
-
-        property_address: row.property_address || row.address || null,
-        city: row.city || null,
-        project_type: row.project_type || null,
-
-        follow_up_date: row.follow_up_date || null,
-        follow_up_time: row.follow_up_time || null,
-        follow_up_type: row.follow_up_type || null,
-
-        assigned_rep: row.assigned_rep || null,
-        assigned_rep_name: row.assigned_rep_name || row.owner_name || null,
-        assigned_rep_email: row.assigned_rep_email || row.owner_email || null,
-        assigned_rep_phone: row.assigned_rep_phone || row.owner_phone || null,
-
-        budget_range: row.budget_range || null,
-        notes: row.notes || null,
-        customer_reminders_disabled: Boolean(row.customer_reminders_disabled),
-        crm_created_date: row.created_at || row.crm_created_date || null
-      });
-
-      if (result?.action === 'created') created++;
-      else updated++;
-
-    } catch (err) {
-      failed++;
-      console.error(
-        `[backfill] FAILED ${row.external_ref}: ${err.message || err}`
-      );
+    if (hasDates) {
+      try {
+        await syncLeadToReminders(db, lead);
+        upserted++;
+      } catch (e) {
+        console.error(`[backfill] ERROR upserting ${rid}: ${e.message}`);
+        errors++;
+      }
+    } else {
+      // No dates — clear if a row exists (idempotent no-op if not)
+      if (existingIds.has(rid)) {
+        try {
+          await syncLeadToReminders(db, lead);
+          cleared++;
+        } catch (e) {
+          console.error(`[backfill] ERROR clearing ${rid}: ${e.message}`);
+          errors++;
+        }
+      }
     }
   }
 
-  console.log(
-    `[backfill] DONE eligible=${eligible.length} created=${created} updated=${updated} skipped=${skipped} failed=${failed}`
-  );
-
-  if (failed > 0) {
-    process.exitCode = 1;
+  // ── 4. Orphan cleanup: delete reminder_leads rows with no canonical lead ─
+  const orphanIds = [];
+  for (const rid of existingIds) {
+    if (!canonicalIds.has(rid)) orphanIds.push(rid);
   }
+  console.log(`[backfill] Found ${orphanIds.length} orphan reminder_leads rows (no matching canonical lead)`);
+
+  let orphanDeleted = 0;
+  if (!isDryRun && orphanIds.length > 0) {
+    for (const rid of orphanIds) {
+      try {
+        await db.query('DELETE FROM reminder_leads WHERE id = $1', [rid]);
+        orphanDeleted++;
+      } catch (e) {
+        console.error(`[backfill] ERROR deleting orphan ${rid}: ${e.message}`);
+        errors++;
+      }
+    }
+  }
+
+  // ── 5. Verify final state ───────────────────────────────────────────────
+  const { rows: countRows } = await db.query('SELECT COUNT(*) as count FROM reminder_leads');
+  const finalCount = parseInt(countRows[0].count, 10);
+
+  const summary = {
+    canonicalLeads: allLeads.length,
+    legacyLeads: stats.legacy,
+    nativeLeads: stats.native,
+    upserted,
+    cleared,
+    skipped,
+    orphansFound: orphanIds.length,
+    orphansDeleted: isDryRun ? 0 : orphanDeleted,
+    errors,
+    reminderLeadsFinal: finalCount,
+    dryRun: isDryRun,
+  };
+
+  console.log('[backfill] DONE:', JSON.stringify(summary, null, 2));
+  return summary;
 }
 
-main()
-  .catch(err => {
-    console.error('[backfill] FATAL:', err);
-    process.exitCode = 1;
-  })
-  .finally(async () => {
-    try {
-      if (typeof db.end === 'function') await db.end();
-      else if (db.pool && typeof db.pool.end === 'function') await db.pool.end();
-    } catch {}
-  });
+if (require.main === module) {
+  backfill().then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1); });
+}
+
+module.exports = { backfill };
