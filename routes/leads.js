@@ -634,7 +634,7 @@ router.put('/:id', requireAuth, async (req, res) => {
 
     updates.push('updated_at = NOW()');
 
-    const sql = `UPDATE leads SET ${updates.join(', ')} WHERE id::text = ${p} RETURNING *`;
+    const sql = `UPDATE leads SET ${updates.join(', ')} WHERE id::text = $${p} RETURNING *`;
     params.push(id);
 
     const { rows } = await query(sql, params);
