@@ -1,3 +1,4 @@
+# Railway rebuild trigger 2026-09-02: deals uuid cast fix
 FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./
