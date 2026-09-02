@@ -1542,11 +1542,12 @@ router.post('/diagnose-deal', async (req, res) => {
     const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     const isUuid = UUID_RE.test(String(deal_id));
 
-    // Query by id (UUID) OR legacy_base44_id (TEXT)
+    // Query by id (UUID) OR legacy_base44_id (TEXT).
+    // Cast $1 to uuid for the id comparison — PostgreSQL cannot compare text = uuid.
     let dealRows;
     if (isUuid) {
       const { rows } = await query(
-        'SELECT * FROM deals WHERE id = $1 OR legacy_base44_id = $1 LIMIT 1',
+        'SELECT * FROM deals WHERE id = $1::uuid OR legacy_base44_id = $1 LIMIT 1',
         [deal_id]
       );
       dealRows = rows;
