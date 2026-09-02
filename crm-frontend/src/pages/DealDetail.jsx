@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import * as railwayDeals from "@/api/railway/deals";
 import * as railwayLeads from "@/api/railway/leads";
 import * as railwayInvoices from "@/api/railway/invoices";
-import { TrendingUp, LayoutDashboard, DollarSign, FileText, Briefcase, Clock, PieChart } from "lucide-react";
+import { TrendingUp, LayoutDashboard, DollarSign, FileText, Briefcase, Clock, PieChart, AlertCircle } from "lucide-react";
 import AddNewProjectModal from "@/components/AddNewProjectModal";
 import { TabBar } from "@/components/DesignSystem";
 import { deriveStageFromPayments } from "@/components/DealPaymentPanel";
@@ -46,6 +46,7 @@ export default function DealDetail() {
   const [editingField, setEditingField] = useState(null);
   const [invoices, setInvoices] = useState([]);
   const [activeTab, setActiveTab] = useState("overview");
+  const [loadError, setLoadError] = useState(null);
 
   // Refresh deal + lead data after QB actions
   const refreshLead = async () => {
@@ -79,8 +80,12 @@ export default function DealDetail() {
         setLead(leadData);
         setInvoices(invoices.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
         setLoading(false);
-      } catch {
+      } catch (err) {
+        // Capture the error so we can classify it in the render section.
+        // 403 must NOT render as "Deal not found" — it masks auth defects.
+        // 503 network errors (assigned by apiCall) must show "Error loading deal".
         setDeal(null);
+        setLoadError(err);
         setLoading(false);
       }
     })();
@@ -150,11 +155,64 @@ export default function DealDetail() {
     );
   }
 
-  if (!deal || !lead) {
+  if (loadError?.status === 403) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center bg-slate-50 gap-3 px-6 text-center">
+        <AlertCircle className="w-12 h-12 text-amber-500" />
+        <p className="text-base font-semibold text-slate-700">Access denied</p>
+        <p className="text-sm text-slate-500">You do not have permission to view this deal. Contact an admin if you believe this is an error.</p>
+      </div>
+    );
+  }
+
+  if (loadError?.status === 401) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center bg-slate-50 gap-3 px-6 text-center">
+        <AlertCircle className="w-12 h-12 text-blue-500" />
+        <p className="text-base font-semibold text-slate-700">Session expired</p>
+        <p className="text-sm text-slate-500">Please sign in again to continue.</p>
+      </div>
+    );
+  }
+
+  if (loadError && !deal) {
+    // 500, network errors (503), or any other failure — NEVER show "Deal not
+    // found" for these. "Deal not found" is reserved for 404 (actual missing
+    // resource). A 503 network error must not be misclassified as a missing deal.
+    const isServerError = (loadError?.status >= 500) || !loadError?.status;
+    return (
+      <div className="h-full flex flex-col items-center justify-center bg-slate-50 gap-3 px-6 text-center">
+        <AlertCircle className="w-12 h-12 text-red-500" />
+        <p className="text-base font-semibold text-slate-700">
+          {isServerError ? 'Error loading deal' : 'Deal not found'}
+        </p>
+        <p className="text-sm text-slate-500">
+          {isServerError
+            ? `An error occurred while loading this deal. ${loadError?.message || 'Please try again or contact support.'}`
+            : 'This deal may have been deleted or does not exist.'}
+        </p>
+        {isServerError && loadError?.status && (
+          <p className="text-xs text-slate-400 mt-1">HTTP {loadError.status}</p>
+        )}
+      </div>
+    );
+  }
+
+  if (!deal) {
     return (
       <div className="h-full flex flex-col items-center justify-center bg-slate-50 gap-3">
         <TrendingUp className="w-12 h-12 text-slate-300" />
         <p className="text-base font-semibold text-slate-600">Deal not found</p>
+      </div>
+    );
+  }
+
+  if (!lead) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center bg-slate-50 gap-3 px-6 text-center">
+        <AlertCircle className="w-12 h-12 text-amber-500" />
+        <p className="text-base font-semibold text-slate-700">No lead linked</p>
+        <p className="text-sm text-slate-500">This deal has no linked lead — customer info is unavailable.</p>
       </div>
     );
   }
