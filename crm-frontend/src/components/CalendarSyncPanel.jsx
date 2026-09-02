@@ -31,9 +31,12 @@ export default function CalendarSyncPanel({ lead }) {
   const syncError = lead.google_calendar_sync_error;
   const hasEvent = !!lead.google_event_id;
   const hasBuffer = !!lead.google_travel_event_id;
+  // Canonical state — mutually exclusive. Only appointments table is truth.
+  // syncStatus='synced' WITHOUT google_event_id means the outbox marked synced
+  // but the event ID wasn't persisted — treat as pending, NOT synced.
   const isFailed = syncStatus === 'error' || syncStatus === 'failed';
-  const isPending = syncStatus === 'pending' || queueRecord?.status === 'pending';
   const isSynced = syncStatus === 'synced' && hasEvent;
+  const isPending = !isSynced && !isFailed && (syncStatus === 'pending' || !hasEvent || queueRecord?.status === 'pending');
 
   // Rep name for display
   const repFirstName = (lead.assigned_rep || '').trim().split(/\s+/)[0] || 'Rep';

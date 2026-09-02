@@ -124,12 +124,21 @@ let tokenStorageMethod = 'filesystem';
 // ── Auth middleware ──────────────────────────────────────────────────────────
 
 function requireProxySecret(req, res, next) {
+  // Accept JWT auth (Authorization: Bearer) from authenticated CRM browser requests.
+  // Browser code must NEVER contain PROXY_SECRET — it authenticates via JWT.
+  // Fall back to X-Proxy-Secret for server-to-server calls (workers, cron triggers).
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return requireAuth(req, res, next);
+  }
   const secret = req.headers['x-proxy-secret'];
   if (!PROXY_SECRET || secret !== PROXY_SECRET) {
-    return res.status(401).json({ error: 'Unauthorized — missing or invalid X-Proxy-Secret' });
+    return res.status(401).json({ error: 'Unauthorized — authentication required' });
   }
   next();
 }
+
+const { requireAuth } = require('./lib/rbac');
 
 // ── Token helpers ────────────────────────────────────────────────────────────
 

@@ -1177,7 +1177,8 @@ router.post('/by-external/:externalRef/sync-contact', requireAuth, async (req, r
           property_address: lead.property_address,
           city: lead.city,
         },
-        subEmail
+        subEmail,
+        lead.google_contact_resource_name // Pass stored resource_name to avoid redundant searchContacts reads (429 fix)
       );
 
       // Record sync status. Backward-compatible: if migration 2026-25 has not
