@@ -35,6 +35,20 @@ const {
 const router = express.Router();
 router.use(requireAuth);
 
+// ── Safe identifier resolution ──────────────────────────────────────────────
+// PostgreSQL throws "operator does not exist: uuid = text" if a text parameter
+// is compared against a uuid column. This helper builds a WHERE clause that
+// casts the id parameter to uuid when it is a valid UUID, and always compares
+// against legacy_base44_id (TEXT) as a fallback. Returns { whereSql, params }.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function dealIdWhere(identifier) {
+  const id = String(identifier);
+  if (UUID_RE.test(id)) {
+    return { whereSql: 'id = $1::uuid OR legacy_base44_id = $2', params: [id, id] };
+  }
+  return { whereSql: 'legacy_base44_id = $1', params: [id] };
+}
+
 // ── GET / — list (owner-scoped, filtered) ────────────────────────────────────
 router.get('/', async (req, res) => {
   try {
@@ -56,7 +70,10 @@ router.get('/', async (req, res) => {
       p += 2;
     }
     if (stage && stage !== 'all') { where.push(`d.stage = $${p}`); params.push(stage); p++; }
-    if (lead_id) { where.push(`d.lead_id = $${p}`); params.push(lead_id); p++; }
+    if (lead_id) {
+      if (!UUID_RE.test(String(lead_id))) return res.json({ items: [], total: 0 });
+      where.push(`d.lead_id = ${p}`); params.push(lead_id); p++;
+    }
     if (assigned_rep && assigned_rep !== 'all' && (req.user.role === 'admin' || req.user.role === 'manager')) {
       where.push(`lower(d.assigned_rep) = lower($${p})`); params.push(assigned_rep); p++;
     }
@@ -91,7 +108,8 @@ router.get('/', async (req, res) => {
 // ── GET /:id — single deal (owner-scoped) ───────────────────────────────────
 router.get('/:id', async (req, res) => {
   try {
-    const { rows } = await query('SELECT * FROM deals WHERE id = $1', [req.params.id]);
+    const { whereSql, params } = dealIdWhere(req.params.id);
+    const { rows } = await query(`SELECT * FROM deals WHERE ${whereSql} LIMIT 1`, params);
     const deal = rows[0];
     if (!deal) return res.status(404).json({ error: 'not_found' });
     if (!canAccessDeal(req.user, deal)) return res.status(403).json({ error: 'forbidden' });
@@ -132,7 +150,8 @@ router.post('/', async (req, res) => {
 // ── PUT /:id — update (partial) ─────────────────────────────────────────────
 router.put('/:id', async (req, res) => {
   try {
-    const { rows } = await query('SELECT * FROM deals WHERE id = $1', [req.params.id]);
+    const { whereSql, params } = dealIdWhere(req.params.id);
+    const { rows } = await query(`SELECT * FROM deals WHERE ${whereSql} LIMIT 1`, params);
     const deal = rows[0];
     if (!deal) return res.status(404).json({ error: 'not_found' });
     if (!canWriteDeal(req.user, deal, 'update')) return res.status(403).json({ error: 'forbidden' });
@@ -160,7 +179,7 @@ router.put('/:id', async (req, res) => {
     const cols = Object.keys(cleaned);
     const sets = cols.map((c, i) => `${c} = $${i + 1}`).join(', ');
     const sql = `UPDATE deals SET ${sets} WHERE id = $${cols.length + 1} RETURNING *`;
-    const { rows: updated } = await query(sql, [...cols.map((c) => cleaned[c]), req.params.id]);
+    const { rows: updated } = await query(sql, [...cols.map((c) => cleaned[c]), deal.id]);
     res.json({ deal: serializeDeal(updated[0]) });
   } catch (e) {
     console.error('[deals] update error:', e.message);
@@ -171,11 +190,12 @@ router.put('/:id', async (req, res) => {
 // ── DELETE /:id — ADMIN ONLY ─────────────────────────────────────────────────
 router.delete('/:id', async (req, res) => {
   try {
-    const { rows } = await query('SELECT * FROM deals WHERE id = $1', [req.params.id]);
+    const { whereSql, params } = dealIdWhere(req.params.id);
+    const { rows } = await query(`SELECT * FROM deals WHERE ${whereSql} LIMIT 1`, params);
     const deal = rows[0];
     if (!deal) return res.status(404).json({ error: 'not_found' });
     if (!canWriteDeal(req.user, deal, 'delete')) return res.status(403).json({ error: 'forbidden' });
-    await query('DELETE FROM deals WHERE id = $1', [req.params.id]);
+    await query('DELETE FROM deals WHERE id = $1', [deal.id]);
     res.json({ success: true, id: req.params.id });
   } catch (e) {
     console.error('[deals] delete error:', e.message);
