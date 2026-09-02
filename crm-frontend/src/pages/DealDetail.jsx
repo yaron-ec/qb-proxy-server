@@ -51,8 +51,10 @@ export default function DealDetail() {
   // Refresh deal + lead data after QB actions
   const refreshLead = async () => {
     try {
-      const d = await railwayDeals.get(id);
-      const leadData = d.lead_id ? await railwayLeads.get(d.lead_id).catch(() => null) : null;
+      const dealRes = await railwayDeals.get(id);
+      const d = dealRes?.deal || dealRes;
+      const leadRes = d.lead_id ? await railwayLeads.get(d.lead_id).catch(() => null) : null;
+      const leadData = leadRes?.lead || leadRes;
       if (leadData) setLead(leadData);
       if (d) setDeal(d);
     } catch { /* non-critical */ }
@@ -62,8 +64,10 @@ export default function DealDetail() {
   useEffect(() => {
     (async () => {
       try {
-        const d = await railwayDeals.get(id);
-        const leadData = d.lead_id ? await railwayLeads.get(d.lead_id).catch(() => null) : null;
+        const dealRes = await railwayDeals.get(id);
+        const d = dealRes?.deal || dealRes;
+        const leadRes = d.lead_id ? await railwayLeads.get(d.lead_id).catch(() => null) : null;
+        const leadData = leadRes?.lead || leadRes;
         let invoices = [];
         if (d.lead_id) {
           try {
@@ -74,7 +78,7 @@ export default function DealDetail() {
         const suggested = deriveStageFromPayments(d);
         let finalDeal = d;
         if (suggested && !d.stage_override && d.stage !== suggested) {
-          try { finalDeal = await railwayDeals.update(id, { stage: suggested }); } catch {}
+          try { const stageRes = await railwayDeals.update(id, { stage: suggested }); finalDeal = stageRes?.deal || stageRes; } catch {}
         }
         setDeal(finalDeal);
         setLead(leadData);
@@ -108,13 +112,15 @@ export default function DealDetail() {
     setDeal(prev => ({ ...prev, [field]: value }));
     setSaving(field);
     try {
-      const updatedDeal = await railwayDeals.update(id, { [field]: value });
+      const dealUpdateRes = await railwayDeals.update(id, { [field]: value });
+      const updatedDeal = dealUpdateRes?.deal || dealUpdateRes;
       setDeal(updatedDeal);
       // If this field maps to a lead field, update the lead too
       const leadField = DEAL_TO_LEAD_MAP[field];
       if (leadField && lead?.id) {
         try {
-          const updatedLead = await railwayLeads.update(lead.id, { [leadField]: value });
+          const leadUpdateRes = await railwayLeads.update(lead.id, { [leadField]: value });
+          const updatedLead = leadUpdateRes?.lead || leadUpdateRes;
           setLead(updatedLead);
         } catch {}
       }

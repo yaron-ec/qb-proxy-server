@@ -62,7 +62,8 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal }) {
   }, [load]);
 
   const updateDeal = async (fields) => {
-    const updated = await railwayDeals.update(deal.id, fields);
+    const updateRes = await railwayDeals.update(deal.id, fields);
+    const updated = updateRes?.deal || updateRes;
     setDeal(updated);
     return updated;
   };
