@@ -1546,9 +1546,10 @@ router.post('/diagnose-deal', async (req, res) => {
     // Cast $1 to uuid for the id comparison — PostgreSQL cannot compare text = uuid.
     let dealRows;
     if (isUuid) {
+      // Use separate params: $1::uuid for id, $2 (text) for legacy_base44_id.
       const { rows } = await query(
-        'SELECT * FROM deals WHERE id = $1::uuid OR legacy_base44_id = $1 LIMIT 1',
-        [deal_id]
+        'SELECT * FROM deals WHERE id = $1::uuid OR legacy_base44_id = $2 LIMIT 1',
+        [deal_id, deal_id]
       );
       dealRows = rows;
     } else {
