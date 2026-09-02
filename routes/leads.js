@@ -28,6 +28,22 @@ const { toUtcIso } = require('../lib/booking/slotBlocking');
 const { syncLeadToReminders, removeFromReminders } = require('../lib/reminderProjection');
 const router = express.Router();
 
+// ── Lead deletion helper: clean up TEXT lead_id tables ───────────────────
+// These tables reference leads by TEXT lead_id (no FK), so PostgreSQL won't
+// cascade-delete them. They must be cleaned up explicitly within the same
+// transaction as the lead DELETE to prevent orphan rows and prevent future
+// reminder/worker processing for a deleted Lead.
+async function cleanupLeadTextRefs(client, leadId) {
+  // reminder_claims: Lead-owned reminder claim state — DELETE
+  await client.query(`DELETE FROM reminder_claims WHERE lead_id = $1`, [leadId]);
+  // reminder_activity_queue: Lead-owned Activity write retry queue — DELETE
+  await client.query(`DELETE FROM reminder_activity_queue WHERE lead_id = $1`, [leadId]);
+  // reminder_runs: historical run log — unlink (SET NULL), preserve audit trail
+  await client.query(`UPDATE reminder_runs SET last_reminder_lead_id = NULL WHERE last_reminder_lead_id = $1`, [leadId]);
+  // qb_invoice_sale_map: invoice->sale mapping — unlink (SET empty), preserve QB invoice mapping
+  await client.query(`UPDATE qb_invoice_sale_map SET crm_lead_id = $1 WHERE crm_lead_id = $2`, ['', leadId]);
+}
+
 // ── Owner-scope resolution ───────────────────────────────────────────────────
 // admin/manager: no filter. office: no filter (read-only). sales_rep: own owner.
 async function resolveOwnerScope(user) {
@@ -392,11 +408,12 @@ router.delete('/by-external/:externalRef', requireAuth, async (req, res) => {
       return res.status(403).json({ error: 'forbidden' });
     }
 
-    // ── Atomic: lead delete + reminder cleanup in ONE transaction ──────
+    // ── Atomic: lead delete + dependency cleanup in ONE transaction ────
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
       await removeFromReminders(client, leadR.rows[0]);
+      await cleanupLeadTextRefs(client, leadR.rows[0].id);
       await client.query('DELETE FROM leads WHERE id = $1', [leadR.rows[0].id]);
       await client.query('COMMIT');
     } catch (e) {
@@ -909,11 +926,12 @@ router.delete('/:id', requireAuth, async (req, res) => {
       return res.status(403).json({ error: 'forbidden' });
     }
 
-    // ── Atomic: lead delete + reminder cleanup in ONE transaction ──────
+    // ── Atomic: lead delete + dependency cleanup in ONE transaction ────
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
       await removeFromReminders(client, leadR.rows[0]);
+      await cleanupLeadTextRefs(client, id);
       await client.query('DELETE FROM leads WHERE id = $1', [id]);
       await client.query('COMMIT');
     } catch (e) {

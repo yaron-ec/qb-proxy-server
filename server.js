@@ -1712,6 +1712,30 @@ app.post('/sync/qb-estimate-pdfs', requireProxySecret, async (req, res) => {
   }
 });
 
+// ── Admin: run pending DB migrations (server-side only, X-Proxy-Secret guarded) ──
+app.post('/admin/migrate', requireProxySecret, async (req, res) => {
+  try {
+    const fs2 = require('fs');
+    const path2 = require('path');
+    const migrationsDir = path2.join(__dirname, 'db', 'migrations');
+    const files = fs2.readdirSync(migrationsDir).filter(f => f.endsWith('.sql')).sort();
+    const results = [];
+    for (const file of files) {
+      const sql = fs2.readFileSync(path2.join(migrationsDir, file), 'utf8');
+      try {
+        await saleDb.query(sql);
+        results.push({ file, status: 'ok' });
+      } catch (e) {
+        // Many migrations are idempotent; report error but continue
+        results.push({ file, status: 'error', error: e.message.substring(0, 200) });
+      }
+    }
+    res.json({ success: true, applied: results.length, results });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── Start ─────────────────────────────────────────────────────────────────────
 
 const PORT = process.env.PORT || 3000;
