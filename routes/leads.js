@@ -427,29 +427,31 @@ router.get('/by-external/:externalRef/detail', requireAuth, async (req, res) => 
     const railwayLeadId = leadRow.id;
 
     // Parallel fetch: appointment, activities, deals, owners, settings
+    // The settings table is a SINGLETON (id=1) with an app_lists JSONB column
+    // that holds project_types, lead_sources, etc. It does NOT have key/value
+    // columns — the old Base44-era key/value query caused "column key does not
+    // exist" PostgreSQL errors on every Lead Detail load.
     const [apptRes, actRes, dealRes, ownerRes, settingsRes] = await Promise.all([
       query(`SELECT * FROM appointments WHERE lead_id = $1 AND status IN ('scheduled', 'confirmed')
              ORDER BY created_at DESC LIMIT 1`, [railwayLeadId]),
       query('SELECT * FROM activities WHERE lead_id = $1 ORDER BY created_at DESC LIMIT 500', [railwayLeadId]),
       query('SELECT * FROM deals WHERE lead_id = $1 ORDER BY created_at DESC LIMIT 100', [railwayLeadId]),
       query('SELECT id, display_name, email FROM owners WHERE is_active = true ORDER BY display_name ASC'),
-      query(`SELECT key, value FROM settings WHERE key IN ('project_types', 'lead_sources')`),
+      query(`SELECT app_lists FROM settings WHERE id = 1`),
     ]);
 
     const lead = serializeLead(leadRow, apptRes.rows[0]);
 
-    const settings = {};
-    for (const r of settingsRes.rows) {
-      settings[r.key] = r.value;
-    }
+    // Extract project_types and lead_sources from the singleton app_lists JSONB
+    const appLists = (settingsRes.rows[0] && settingsRes.rows[0].app_lists) || {};
 
     res.json({
       lead,
       activities: actRes.rows.map(serializeActivity),
       deals: dealRes.rows,
       contactOwners: ownerRes.rows.map(o => ({ id: o.id, display_name: o.display_name, email: o.email })),
-      projectTypes: settings.project_types || [],
-      leadSources: settings.lead_sources || [],
+      projectTypes: appLists.project_types || [],
+      leadSources: appLists.lead_sources || [],
     });
   } catch (e) {
     console.error('[leads] get-detail error:', e.message);
