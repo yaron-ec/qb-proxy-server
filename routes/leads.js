@@ -587,7 +587,7 @@ router.put('/:id', requireAuth, async (req, res) => {
     if (scope.readOnly) return res.status(403).json({ error: 'forbidden', message: 'office role is read-only' });
 
     // Verify lead exists + caller has access
-    const leadR = await query('SELECT owner_id FROM leads WHERE id = $1', [id]);
+    const leadR = await query('SELECT owner_id FROM leads WHERE id::text = $1', [id]);
     if (!leadR.rows[0]) return res.status(404).json({ error: 'not_found' });
     if (scope.ownerFilter && String(leadR.rows[0].owner_id) !== String(scope.ownerFilter)) {
       return res.status(403).json({ error: 'forbidden' });
@@ -634,7 +634,7 @@ router.put('/:id', requireAuth, async (req, res) => {
 
     updates.push('updated_at = NOW()');
 
-    const sql = `UPDATE leads SET ${updates.join(', ')} WHERE id = $${p} RETURNING *`;
+    const sql = `UPDATE leads SET ${updates.join(', ')} WHERE id::text = ${p} RETURNING *`;
     params.push(id);
 
     const { rows } = await query(sql, params);
@@ -663,13 +663,13 @@ router.delete('/:id', requireAuth, async (req, res) => {
     if (scope.readOnly) return res.status(403).json({ error: 'forbidden', message: 'office role is read-only' });
 
     // Verify lead exists + caller has access
-    const leadR = await query('SELECT owner_id FROM leads WHERE id = $1', [id]);
+    const leadR = await query('SELECT owner_id FROM leads WHERE id::text = $1', [id]);
     if (!leadR.rows[0]) return res.status(404).json({ error: 'not_found' });
     if (scope.ownerFilter && String(leadR.rows[0].owner_id) !== String(scope.ownerFilter)) {
       return res.status(403).json({ error: 'forbidden' });
     }
 
-    await query('DELETE FROM leads WHERE id = $1', [id]);
+    await query('DELETE FROM leads WHERE id::text = $1', [id]);
     res.json({ success: true, id });
   } catch (e) {
     console.error('[leads] delete error:', e.message);
@@ -687,7 +687,7 @@ router.get('/:id', requireAuth, async (req, res) => {
     const { rows } = await query(
       `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
        FROM leads l LEFT JOIN owners o ON o.id = l.owner_id
-       WHERE l.id = $1`,
+       WHERE l.id::text = $1`,
       [id]
     );
     const lead = rows[0];
@@ -713,7 +713,7 @@ router.get('/:id/activities', requireAuth, async (req, res) => {
     if (scope.denied) return res.status(403).json({ error: 'forbidden' });
 
     // Verify lead exists + caller has access
-    const leadR = await query('SELECT owner_id FROM leads WHERE id = $1', [id]);
+    const leadR = await query('SELECT owner_id FROM leads WHERE id::text = $1', [id]);
     if (!leadR.rows[0]) return res.status(404).json({ error: 'lead_not_found' });
     if (scope.ownerFilter && String(leadR.rows[0].owner_id) !== String(scope.ownerFilter)) {
       return res.status(403).json({ error: 'forbidden' });
@@ -739,7 +739,7 @@ router.post('/:id/activities', requireAuth, async (req, res) => {
     if (scope.readOnly) return res.status(403).json({ error: 'forbidden', message: 'office role is read-only' });
 
     // Verify lead exists + caller has access
-    const leadR = await query('SELECT owner_id FROM leads WHERE id = $1', [id]);
+    const leadR = await query('SELECT owner_id FROM leads WHERE id::text = $1', [id]);
     if (!leadR.rows[0]) return res.status(404).json({ error: 'lead_not_found' });
     if (scope.ownerFilter && String(leadR.rows[0].owner_id) !== String(scope.ownerFilter)) {
       return res.status(403).json({ error: 'forbidden' });
