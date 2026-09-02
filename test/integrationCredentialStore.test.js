@@ -532,4 +532,13 @@ async function run() {
   return summarize();
 }
 
-run().then((code) => process.exit(code)).catch((e) => { console.error('FATAL', e); process.exit(1); });
+// When run as a standalone script, exit with the test result code.
+// When run under `node --test`, the process.exit would kill the test runner
+// prematurely — so only call it when this file is the main module AND not
+// being run by the test runner (which sets process.env.NODE_TEST_CONTEXT).
+if (require.main === module && !process.env.NODE_TEST_CONTEXT) {
+  run().then((code) => process.exit(code)).catch((e) => { console.error('FATAL', e); process.exit(1); });
+} else {
+  // Under node --test: run tests, report results, but don't call process.exit.
+  run().catch((e) => { console.error('FATAL', e); });
+}

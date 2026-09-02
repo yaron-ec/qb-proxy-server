@@ -1,4 +1,3 @@
-// Railway build trigger 2026-09-02: deals uuid cast fix deployment nudge
 /* eslint-disable no-undef */
 /**
  * QuickBooks Proxy Server
@@ -39,7 +38,7 @@ const app = express();
 // ── CORS — allow requests from any Base44 app domain ────────────────────────
 app.use(cors({
   origin: true, // reflect request origin (all Base44 app origins are valid)
-  methods: ['GET', 'POST', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'X-Proxy-Secret', 'Authorization'],
   credentials: false,
 }));
@@ -123,22 +122,42 @@ let tokenStorageMethod = 'filesystem';
 
 // ── Auth middleware ──────────────────────────────────────────────────────────
 
+// Accept EITHER X-Proxy-Secret (server-to-server: qbInternal.js) OR a valid
+// Railway JWT Bearer token (browser-to-server). The browser must NEVER contain
+// the proxy secret — it authenticates with its Railway JWT instead. Server-side
+// callers (qbInternal, cron, handoff worker) continue to use X-Proxy-Secret.
+//
+// JWT verification uses a LAZY require (inside the function) instead of a static
+// module-level variable. This guarantees authService is always loaded when a
+// browser request arrives — CommonJS caches modules after the first successful
+// load, so the lazy require has zero per-request overhead. The previous static
+// `let _verifyAccessToken = null` pattern could silently leave the JWT verifier
+// null if the require at module-init time failed, causing ALL browser JWT
+// Bearer tokens to be rejected with an authentication required error.
 function requireProxySecret(req, res, next) {
-  // Accept JWT auth (Authorization: Bearer) from authenticated CRM browser requests.
-  // Browser code must NEVER contain PROXY_SECRET — it authenticates via JWT.
-  // Fall back to X-Proxy-Secret for server-to-server calls (workers, cron triggers).
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    return requireAuth(req, res, next);
-  }
+  // Path 1: X-Proxy-Secret (server-to-server)
   const secret = req.headers['x-proxy-secret'];
-  if (!PROXY_SECRET || secret !== PROXY_SECRET) {
-    return res.status(401).json({ error: 'Unauthorized — authentication required' });
+  if (PROXY_SECRET && secret === PROXY_SECRET) {
+    return next();
   }
-  next();
-}
 
-const { requireAuth } = require('./lib/rbac');
+  // Path 2: Railway JWT Bearer token (browser-to-server)
+  const header = req.headers['authorization'] || '';
+  const m = /^Bearer\s+(.+)$/i.exec(header);
+  if (m) {
+    try {
+      // Lazy require — always gets the cached authService module, never null.
+      const { verifyAccessToken } = require('./lib/authService');
+      req.user = verifyAccessToken(m[1].trim());
+      return next();
+    } catch (e) {
+      // Token invalid or expired — fall through to 401.
+      // The frontend apiCall() will detect the 401, refresh the JWT, and retry.
+    }
+  }
+
+  return res.status(401).json({ error: 'Unauthorized — authentication required' });
+}
 
 // ── Token helpers ────────────────────────────────────────────────────────────
 
@@ -321,12 +340,24 @@ app.get('/qb/health', async (req, res) => {
 
 // ── Auth routes ──────────────────────────────────────────────────────────────
 
-// GET /auth/connect — returns the Intuit OAuth URL
-// Accepts optional ?redirect_uri= override so the CRM can pass its production URL
-app.get('/auth/connect', requireProxySecret, (req, res) => {
+// GET /auth/connect — returns the Intuit OAuth URL (delegates to shared handler)
+app.get('/auth/connect', requireProxySecret, handleAuthConnect);
+
+// POST /auth/callback — exchange code for tokens (delegates to shared handler)
+app.post('/auth/callback', requireProxySecret, handleAuthCallback);
+
+// GET /auth/status — connection status (delegates to shared handler)
+app.get('/auth/status', requireProxySecret, handleAuthStatus);
+
+// ── Shared QB auth handlers (canonical — used by both /auth/* and /qb/* aliases) ──
+// The CRM frontend (QuickBooksSyncTab) calls POST /qb/auth-* aliases. The
+// canonical routes are GET /auth/* (used by server-side callers). Both
+// delegate to these shared handlers so there is NO duplicated business logic.
+
+async function handleAuthConnect(req, res) {
   if (!QB_CLIENT_ID) return res.status(500).json({ error: 'QB_CLIENT_ID not configured on proxy' });
-  const redirectUri = req.query.redirect_uri || QB_REDIRECT_URI;
-  if (!redirectUri) return res.status(500).json({ error: 'QB_REDIRECT_URI not configured on proxy and no redirect_uri param provided' });
+  const redirectUri = req.body?.redirect_uri || req.query?.redirect_uri || QB_REDIRECT_URI;
+  if (!redirectUri) return res.status(500).json({ error: 'QB_REDIRECT_URI not configured on proxy and no redirect_uri provided' });
   const params = new URLSearchParams({
     client_id: QB_CLIENT_ID,
     response_type: 'code',
@@ -334,73 +365,84 @@ app.get('/auth/connect', requireProxySecret, (req, res) => {
     redirect_uri: redirectUri,
     state: 'qb_oauth',
   });
-  console.log('[proxy] /auth/connect — using redirect_uri:', redirectUri);
+  console.log('[proxy] auth-connect — using redirect_uri:', redirectUri);
   res.json({ auth_url: `${QB_AUTH_URL}?${params}`, environment: QB_ENVIRONMENT, redirect_uri: redirectUri });
-});
+}
 
-// POST /auth/callback — exchange code for tokens (called from your OAuth callback page)
-// Accepts optional redirect_uri in body to match what was used in /auth/connect
-app.post('/auth/callback', requireProxySecret, async (req, res) => {
-  const { code, realmId, redirect_uri } = req.body;
+async function handleAuthCallback(req, res) {
+  const { code, realmId, redirect_uri } = req.body || {};
   if (!code || !realmId) return res.status(400).json({ error: 'Missing code or realmId' });
-
   const redirectUri = redirect_uri || QB_REDIRECT_URI;
   if (!redirectUri) return res.status(500).json({ error: 'QB_REDIRECT_URI not configured and no redirect_uri in request body' });
-  console.log('[proxy] /auth/callback — using redirect_uri:', redirectUri);
-
-  const creds = Buffer.from(`${QB_CLIENT_ID}:${QB_CLIENT_SECRET}`).toString('base64');
-  const tokenRes = await fetch(QB_TOKEN_URL, {
-    method: 'POST',
-    headers: { Authorization: `Basic ${creds}`, 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
-    body: new URLSearchParams({ grant_type: 'authorization_code', code, redirect_uri: redirectUri }).toString(),
-  });
-  const tokenData = await tokenRes.json();
-  if (!tokenRes.ok) return res.status(400).json({ error: tokenData.error_description || 'Token exchange failed' });
-
-  storedTokens = {
-    access_token: tokenData.access_token,
-    refresh_token: tokenData.refresh_token,
-    realm_id: realmId,
-    environment: QB_ENVIRONMENT,
-    expires_at: new Date(Date.now() + (tokenData.expires_in || 3600) * 1000).toISOString(),
-    refresh_expires_at: new Date(Date.now() + (tokenData.x_refresh_token_expires_in || 8726400) * 1000).toISOString(),
-    connected_at: new Date().toISOString(),
-  };
-
-  saveTokensToFile(storedTokens);
-  tokenStorageMethod = 'filesystem';
-  
-  console.log('[proxy] OAuth complete — realm_id:', realmId, 'env:', QB_ENVIRONMENT, 'storage:', tokenStorageMethod);
-  res.json({ success: true, realm_id: realmId, environment: QB_ENVIRONMENT, storage_method: tokenStorageMethod });
-});
-
-// GET /auth/status — connection status
-app.get('/auth/status', requireProxySecret, (req, res) => {
-  if (!storedTokens) return res.json({ connected: false, reconnectRequired: true });
-  const refreshExpired = isRefreshTokenExpired(storedTokens);
-  res.json({
-    connected: !refreshExpired,
-    reconnectRequired: refreshExpired,
-    realm_id: storedTokens.realm_id,
-    environment: QB_ENVIRONMENT,
-    connected_at: storedTokens.connected_at,
-    refresh_expires_at: storedTokens.refresh_expires_at,
-    token_expires_at: storedTokens.expires_at,
-  });
-});
-
-// POST /auth/disconnect
-app.post('/auth/disconnect', requireProxySecret, (req, res) => {
-  storedTokens = null;
+  console.log('[proxy] auth-callback — using redirect_uri:', redirectUri);
   try {
-    if (fs.existsSync(TOKEN_FILE)) {
-      fs.unlinkSync(TOKEN_FILE);
-    }
+    const creds = Buffer.from(`${QB_CLIENT_ID}:${QB_CLIENT_SECRET}`).toString('base64');
+    const tokenRes = await fetch(QB_TOKEN_URL, {
+      method: 'POST',
+      headers: { Authorization: `Basic ${creds}`, 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
+      body: new URLSearchParams({ grant_type: 'authorization_code', code, redirect_uri: redirectUri }).toString(),
+    });
+    const tokenData = await tokenRes.json();
+    if (!tokenRes.ok) return res.status(400).json({ error: tokenData.error_description || 'Token exchange failed' });
+    storedTokens = {
+      access_token: tokenData.access_token,
+      refresh_token: tokenData.refresh_token,
+      realm_id: realmId,
+      environment: QB_ENVIRONMENT,
+      expires_at: new Date(Date.now() + (tokenData.expires_in || 3600) * 1000).toISOString(),
+      refresh_expires_at: new Date(Date.now() + (tokenData.x_refresh_token_expires_in || 8726400) * 1000).toISOString(),
+      connected_at: new Date().toISOString(),
+    };
+    saveTokensToFile(storedTokens);
+    tokenStorageMethod = 'filesystem';
+    console.log('[proxy] OAuth complete — realm_id:', realmId, 'env:', QB_ENVIRONMENT, 'storage:', tokenStorageMethod);
+    res.json({ success: true, realm_id: realmId, environment: QB_ENVIRONMENT, storage_method: tokenStorageMethod });
   } catch (e) {
-    console.error('[proxy] Failed to delete token file:', e.message);
+    res.status(500).json({ error: e.message });
   }
+}
+
+function handleAuthDisconnect(req, res) {
+  storedTokens = null;
+  try { if (fs.existsSync(TOKEN_FILE)) fs.unlinkSync(TOKEN_FILE); } catch (e) { /* best-effort */ }
   res.json({ success: true });
-});
+}
+
+async function handleAuthStatus(req, res) {
+  const health = await buildHealthPayload();
+  res.json({
+    connected: health.connected,
+    reconnectRequired: health.reconnectRequired,
+    realm_id: health.realmId,
+    environment: health.environment,
+    connected_at: health.connectedAt,
+    refresh_expires_at: health.refreshExpiresAt,
+    token_expires_at: health.tokenExpiresAt,
+  });
+}
+
+async function handleGetCompany(req, res) {
+  try {
+    const tokens = await getValidTokens();
+    const data = await qbFetch(`/companyinfo/${tokens.realm_id}?minorversion=65`);
+    res.json({ company: data.CompanyInfo });
+  } catch (e) {
+    return handleQBError(e, res);
+  }
+}
+
+// ── /qb/* aliases for the CRM frontend (QuickBooksSyncTab) ───────────────────
+// POST aliases that delegate to the shared handlers above. The frontend calls
+// these via railwayRequest (JWT auth). No duplicated business logic.
+
+app.post('/qb/auth-status', requireProxySecret, handleAuthStatus);
+app.post('/qb/get-company', requireProxySecret, handleGetCompany);
+app.post('/qb/auth-connect', requireProxySecret, handleAuthConnect);
+app.post('/qb/auth-callback', requireProxySecret, handleAuthCallback);
+app.post('/qb/auth-disconnect', requireProxySecret, handleAuthDisconnect);
+
+// POST /auth/disconnect (delegates to shared handler)
+app.post('/auth/disconnect', requireProxySecret, handleAuthDisconnect);
 
 // ── Company Info ─────────────────────────────────────────────────────────────
 
@@ -1256,9 +1298,16 @@ app.use('/api/v1/cron', require('./routes/cronJobs'));
 // PUBLIC Railway endpoints for the Lead Capture form (no JWT, rate-limited).
 // Narrow surface: availability + atomic lead/appointment create only.
 app.use('/api/public/capture', require('./routes/publicCapture'));
+
+// ── External webhook receivers (public, verified by signature/secret) ──────
+// These replace the Base44 webhook functions. No JWT, no PROXY_SECRET.
+// Each receiver verifies its own signature/secret and is idempotent.
+app.use('/api/v1/qb-webhook', require('./routes/qbWebhook'));
+app.use('/api/v1/meta-webhook', require('./routes/metaWebhook'));
+app.use('/api/v1/signnow-webhook', require('./routes/signnowWebhook'));
 app.use('/api/v1/owners', require('./routes/owners'));
 // Stage 2: Railway CRM Deal CRUD (mounted before dealFinancials so /:id/financials still resolves)
-app.use('/api/v1/deals', require('./routes/deals'));
+app.use('/api/v1/deals', require('./routes/deals')); // CRUD (mounted first: /:id matches one segment only)
 // Sale-scoped QuickBooks invoice ownership (read-only financials + mapping contract)
 app.use('/api/v1/deals', require('./routes/dealFinancials'));
 app.use('/api/v1/sale-invoices', require('./routes/saleInvoices'));
@@ -1282,9 +1331,6 @@ app.post('/internal/email/send', requireProxySecret, async (req, res) => {
 // Internal routes for authorizing Gmail sending through Railway. Protected by
 // X-Proxy-Secret or a short-lived setup_token. No email is sent here.
 app.use('/internal/gmail/oauth', require('./lib/gmailOAuthRouter'));
-app.use('/api/v1/qb-webhook', require('./routes/qbWebhook'));
-app.use('/api/v1/meta-webhook', require('./routes/metaWebhook'));
-app.use('/api/v1/signnow-webhook', require('./routes/signnowWebhook'));
 
 // ── /gmail/* routes ───────────────────────────────────────────────────────────
 

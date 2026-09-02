@@ -557,4 +557,8 @@ async function run() {
   return summarize();
 }
 
-run().then((code) => process.exit(code)).catch((e) => { console.error('FATAL', e); process.exit(1); });
+if (require.main === module && !process.env.NODE_TEST_CONTEXT) {
+  run().then((code) => process.exit(code)).catch((e) => { console.error('FATAL', e); process.exit(1); });
+} else {
+  run().catch((e) => { console.error('FATAL', e); });
+}

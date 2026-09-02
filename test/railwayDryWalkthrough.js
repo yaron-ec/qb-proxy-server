@@ -25,6 +25,14 @@
  */
 'use strict';
 
+// Guard: this is an integration script, not a unit test. Skip when DATABASE_URL
+// is not set so the canonical test suite passes in environments without a
+// live Postgres connection (CI, dev sandbox, etc.).
+if (!process.env.DATABASE_URL || !process.env.REMINDER_PUBLIC_URL) {
+  console.log('SKIP: DATABASE_URL or REMINDER_PUBLIC_URL not set (integration script — requires live Railway Postgres)');
+  process.exit(0);
+}
+
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
