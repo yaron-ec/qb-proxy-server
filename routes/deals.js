@@ -72,7 +72,7 @@ router.get('/', async (req, res) => {
     if (stage && stage !== 'all') { where.push(`d.stage = $${p}`); params.push(stage); p++; }
     if (lead_id) {
       if (!UUID_RE.test(String(lead_id))) return res.json({ items: [], total: 0 });
-      where.push(`d.lead_id = ${p}`); params.push(lead_id); p++;
+      where.push(`d.lead_id = $${p}`); params.push(lead_id); p++;
     }
     if (assigned_rep && assigned_rep !== 'all' && (req.user.role === 'admin' || req.user.role === 'manager')) {
       where.push(`lower(d.assigned_rep) = lower($${p})`); params.push(assigned_rep); p++;
