@@ -1382,4 +1382,140 @@ router.post('/audit-test-probe-fk-references', async (req, res) => {
   }
 });
 
+// ── POST /diagnose-reminder-lead ─────────────────────────────────────────────
+// READ-ONLY diagnostic: searches canonical Railway `leads` by phone, name, or
+// external_ref, then checks whether the matched lead is present in
+// `reminder_leads`. No writes. Used to prove presence/absence without inferring
+// from Base44 fields.
+router.post('/diagnose-reminder-lead', async (req, res) => {
+  try {
+    const { phone, first_name, last_name, external_ref } = req.body || {};
+    const conditions = [];
+    const params = [];
+    let idx = 1;
+
+    if (external_ref) {
+      conditions.push(`l.external_ref = ${idx++}`);
+      params.push(external_ref);
+    }
+    if (phone) {
+      // Normalize: strip non-digits for comparison
+      conditions.push(`REGEXP_REPLACE(l.phone, '\\D', '', 'g') = REGEXP_REPLACE(${idx++}, '\\D', '', 'g')`);
+      params.push(phone);
+    }
+    if (first_name && last_name) {
+      conditions.push(`LOWER(l.first_name) = LOWER(${idx++}) AND LOWER(l.last_name) = LOWER(${idx++})`);
+      params.push(first_name);
+      params.push(last_name);
+    }
+
+    if (conditions.length === 0) {
+      return res.status(400).json({ error: 'At least one of phone, first_name+last_name, or external_ref is required' });
+    }
+
+    const leadSql = `
+      SELECT l.id, l.external_ref, l.first_name, l.last_name, l.email, l.phone,
+             l.property_address, l.city, l.project_type, l.follow_up_date,
+             l.follow_up_time, l.follow_up_type, l.appointment_date,
+             l.appointment_time, l.assigned_rep, l.budget_range, l.notes,
+             l.customer_reminders_disabled, l.crm_created_date, l.created_at,
+             o.display_name AS owner_display_name, o.email AS owner_email
+      FROM leads l LEFT JOIN owners o ON o.id = l.owner_id
+      WHERE ${conditions.join(' OR ')}
+      ORDER BY l.created_at DESC
+      LIMIT 10`;
+    const { rows: leadRows } = await query(leadSql, params);
+
+    // For each matched lead, check if it exists in reminder_leads
+    const reminderIdFor = (r) => r.external_ref || r.id;
+    const reminderIds = leadRows.map(reminderIdFor);
+    let reminderRows = [];
+    if (reminderIds.length > 0) {
+      const { rows } = await query(
+        `SELECT id, follow_up_date, appointment_date, customer_reminders_disabled, updated_at
+         FROM reminder_leads WHERE id = ANY($1::text[])`,
+        [reminderIds]
+      );
+      reminderRows = rows;
+    }
+    const reminderMap = new Map(reminderRows.map(r => [r.id, r]));
+
+    const results = leadRows.map(r => {
+      const rid = reminderIdFor(r);
+      const rem = reminderMap.get(rid);
+      return {
+        railway_id: r.id,
+        external_ref: r.external_ref,
+        reminder_id: rid,
+        first_name: r.first_name,
+        last_name: r.last_name,
+        email: r.email,
+        phone: r.phone,
+        appointment_date: r.appointment_date,
+        appointment_time: r.appointment_time,
+        follow_up_date: r.follow_up_date,
+        follow_up_time: r.follow_up_time,
+        assigned_rep: r.assigned_rep,
+        owner_display_name: r.owner_display_name,
+        customer_reminders_disabled: r.customer_reminders_disabled,
+        crm_created_date: r.crm_created_date,
+        in_reminder_leads: !!rem,
+        reminder_leads_row: rem || null,
+      };
+    });
+
+    res.json({
+      search_criteria: { phone, first_name, last_name, external_ref },
+      matches: results.length,
+      leads: results,
+    });
+  } catch (e) {
+    console.error('[cron] diagnose-reminder-lead error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── POST /backfill-reminder-leads ─────────────────────────────────────────────
+// Railway-native backfill: reconciles reminder_leads with canonical Railway leads.
+// No Base44 dependency. Runs scripts/backfillReminderLeadsFromRailway.js.
+// Idempotent: upserts eligible leads, clears stale dates, deletes orphans.
+router.post('/backfill-reminder-leads', async (req, res) => {
+  const { execFile } = require('child_process');
+  const path = require('path');
+  const fs = require('fs');
+
+  const scriptPath = path.resolve(__dirname, '..', 'scripts', 'backfillReminderLeadsFromRailway.js');
+  if (!fs.existsSync(scriptPath)) {
+    return res.status(404).json({ error: 'backfillReminderLeadsFromRailway.js not found', path: scriptPath });
+  }
+
+  const isDryRun = req.body && req.body.dryRun === true;
+  const args = [scriptPath];
+  if (isDryRun) args.push('--dry-run');
+
+  try {
+    execFile('node', args, {
+      timeout: 180000,
+      maxBuffer: 20 * 1024 * 1024,
+      env: { ...process.env },
+      cwd: path.resolve(__dirname, '..'),
+    }, (err, stdout, stderr) => {
+      if (err && err.code !== 0) {
+        console.error('[cron] backfill-reminder-leads process error:', err.message);
+      }
+      res.json({
+        ok: !err || err.code === 0,
+        exitCode: err ? err.code : 0,
+        stdout,
+        stderr: stderr || '',
+        job: 'backfill-reminder-leads',
+        dryRun: isDryRun,
+      });
+    });
+  } catch (e) {
+    console.error('[cron] backfill-reminder-leads error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
