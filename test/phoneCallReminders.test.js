@@ -15,19 +15,29 @@
 const test = require('node:test');
 const assert = require('node:assert');
 
-// Stub db.client so the engine can require it without a live Postgres.
+// Stub db.client AND crmRepository so the engine can run without a live
+// Postgres connection. crmRepository.listEligibleLeads() calls db.query()
+// internally, but the db stub's query() may not propagate to all internal
+// require paths — stubbing crmRepository directly guarantees no DB access.
 const Module = require('module');
 const dbStub = { ensureSchema: async () => {}, query: async () => ({ rows: [] }) };
+const crmStub = {
+  listEligibleLeads: async () => [],
+  writeReminderSentActivity: async () => {},
+};
 const origResolve = Module._resolveFilename;
 Module._resolveFilename = function (req, parent, ...rest) {
   if (req === '../db/client' && parent && parent.filename && parent.filename.includes('phoneCallReminders')) {
-    return req; // let it resolve; we override load below
+    return req;
   }
   return origResolve.call(this, req, parent, ...rest);
 };
 const dbPath = require.resolve('../db/client');
 delete require.cache[dbPath];
 require.cache[dbPath] = { id: dbPath, filename: dbPath, loaded: true, exports: dbStub };
+const crmPath = require.resolve('../lib/crmRepository');
+delete require.cache[crmPath];
+require.cache[crmPath] = { id: crmPath, filename: crmPath, loaded: true, exports: crmStub };
 
 process.env.EMAIL_PHONE_CALL_REMINDER_TRANSPORT = 'base44'; // default gate
 const phone = require('../lib/phoneCallReminders');
@@ -55,15 +65,27 @@ test('getCallMs returns object for Phone Call', () => {
   assert.ok(r && typeof r.ms === 'number' && r.date === '2026-08-03' && r.time === '14:30');
 });
 
-test('transport gate base44 => skipped, no sends', async () => {
-  process.env.EMAIL_PHONE_CALL_REMINDER_TRANSPORT = 'base44';
-  const r = await phone.processPhoneCallReminders({ dryRun: false, triggeredBy: 'test' });
-  assert.strictEqual(r.skipped, true);
-  assert.strictEqual(r.reason, 'phone_transport_base44');
+// Transport gate always resolves to 'railway' — Base44 is fully decommissioned
+// (lib/transportControl.js flowTransport() unconditionally returns 'railway').
+// The old tests expected { skipped: true, reason: 'phone_transport_base44' }
+// when EMAIL_PHONE_CALL_REMINDER_TRANSPORT='base44', but that code path no
+// longer exists. The engine now always runs the Railway path. With the mock
+// DB returning empty rows, no leads are eligible so no emails are sent.
+
+test('dry-run mode returns ok with empty stats (no leads in mock DB)', async () => {
+  const r = await phone.processPhoneCallReminders({ dryRun: true, triggeredBy: 'test' });
+  assert.strictEqual(r.ok, true);
+  assert.strictEqual(r.dryRun, true);
+  assert.ok(r.stats, 'stats object present');
+  assert.strictEqual(r.stats.scanned, 0, 'no leads scanned from empty mock DB');
+  assert.strictEqual(r.stats.sent, 0, 'no emails sent in dry-run');
 });
 
-test('dry-run under railway gate does not send (gate stays base44 => skip first)', async () => {
-  process.env.EMAIL_PHONE_CALL_REMINDER_TRANSPORT = 'base44';
-  const r = await phone.processPhoneCallReminders({ dryRun: true, triggeredBy: 'test' });
-  assert.strictEqual(r.skipped, true);
+test('live mode returns ok with zero sends (no leads in mock DB)', async () => {
+  const r = await phone.processPhoneCallReminders({ dryRun: false, triggeredBy: 'test' });
+  assert.strictEqual(r.ok, true);
+  assert.strictEqual(r.dryRun, false);
+  assert.ok(r.stats, 'stats object present');
+  assert.strictEqual(r.stats.scanned, 0, 'no leads scanned from empty mock DB');
+  assert.strictEqual(r.stats.sent, 0, 'no emails sent with no eligible leads');
 });

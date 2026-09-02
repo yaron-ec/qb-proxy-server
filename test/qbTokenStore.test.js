@@ -34,6 +34,13 @@
  */
 'use strict';
 
+// Set a test-only ENCRYPTION_KEY so the credential store can encrypt/decrypt
+// without requiring a production secret. This is a unit-test environment —
+// the key is never used outside this process.
+if (!process.env.ENCRYPTION_KEY) {
+  process.env.ENCRYPTION_KEY = 'test-encryption-key-for-unit-tests-only-00';
+}
+
 const assert = require('assert');
 const fs = require('fs');
 const crypto = require('crypto');

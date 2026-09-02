@@ -24,6 +24,8 @@ const { canonicalEmail } = require('../lib/authorization');
 const { query, pool } = require('../db/client');
 const calendarOutbox = require('../lib/booking/calendarOutbox');
 const googleContactsClient = require('../lib/googleContactsClient');
+const { toUtcIso } = require('../lib/booking/slotBlocking');
+const { syncLeadToReminders, removeFromReminders } = require('../lib/reminderProjection');
 const router = express.Router();
 
 // ── Owner-scope resolution ───────────────────────────────────────────────────
@@ -44,7 +46,19 @@ async function resolveOwnerScope(user) {
 }
 
 // ── Row serializer: snake_case DB row → camelCase API response ───────────────
-function serializeLead(row) {
+// Fetch the active (scheduled/confirmed) appointment for a lead.
+// Returns null if no active appointment exists.
+async function fetchActiveAppointment(leadId) {
+  const { rows } = await query(
+    `SELECT * FROM appointments
+     WHERE lead_id = $1 AND status IN ('scheduled', 'confirmed')
+     ORDER BY created_at DESC LIMIT 1`,
+    [leadId]
+  );
+  return rows[0] || null;
+}
+
+function serializeLead(row, appointment = null) {
   if (!row) return null;
   return {
     id: row.id,
@@ -81,6 +95,23 @@ function serializeLead(row) {
     reviewed_at: row.reviewed_at || null,
     created_date: row.created_at,
     updated_date: row.updated_at,
+    // ── Calendar sync state (canonical: appointments table, NOT leads) ──
+    // The Base44-era leads.google_calendar_sync_status column does NOT exist in
+    // the Railway schema. The canonical state lives in appointments:
+    //   calendar_sync_status, google_event_id, google_travel_event_id,
+    //   calendar_last_error, calendar_synced_at
+    // We expose them on the lead object under the legacy field names so the
+    // frontend CalendarSyncPanel works without interface changes.
+    google_calendar_sync_status: appointment?.calendar_sync_status || null,
+    google_event_id: appointment?.google_event_id || null,
+    google_travel_event_id: appointment?.google_travel_event_id || null,
+    google_calendar_sync_error: appointment?.calendar_last_error || null,
+    last_google_sync: appointment?.calendar_synced_at || null,
+    // Google Contacts sync state (canonical: leads table — these columns
+    // were added by the 2026-09-crm-core migration)
+    google_contact_sync_status: row.google_contact_sync_status || null,
+    google_contact_resource_name: row.google_contact_resource_name || null,
+    google_contact_sync_error: row.google_contact_sync_error || null,
   };
 }
 
@@ -115,18 +146,22 @@ function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-// ── GET /by-external/:externalRef — get lead by external_ref (Base44 ID) ──────
+// ── Safe identifier resolution (shared module) ───────────────────────────────
+// Extracted to lib/leadResolver.js so all routes (leads, leadQB, activities,
+// etc.) use the SAME safe identifier resolution. PostgreSQL throws "invalid
+// input syntax for type uuid" if a non-UUID string is compared against a uuid
+// column. The shared leadIdWhere() only compares against `id` when the
+// identifier is a valid UUID, and always compares against external_ref.
+const { UUID_RE, leadIdWhere, resolveLeadByIdentifier } = require('../lib/leadResolver');
+
+// ── GET /by-external/:externalRef — get lead by external_ref OR Railway UUID ──
 router.get('/by-external/:externalRef', requireAuth, async (req, res) => {
   try {
     const { externalRef } = req.params;
-    const { rows } = await query(
-      `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
-       FROM leads l LEFT JOIN owners o ON o.id = l.owner_id
-       WHERE (l.external_ref = $1 OR l.id::text = $1)`,
-      [externalRef]
-    );
-    if (!rows[0]) return res.status(404).json({ error: 'not_found' });
-    res.json({ lead: serializeLead(rows[0]) });
+    const leadRow = await resolveLeadByIdentifier(externalRef);
+    if (!leadRow) return res.status(404).json({ error: 'not_found' });
+    const appointment = await fetchActiveAppointment(leadRow.id);
+    res.json({ lead: serializeLead(leadRow, appointment) });
   } catch (e) {
     console.error('[leads] get-by-external error:', e.message);
     res.status(500).json({ error: e.message });
@@ -211,11 +246,13 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
 
     // For INSERT (new Railway row), first_name + last_name are NOT NULL.
     // Use provided values, or fetch from existing row if the lead already exists.
+    // Use safe identifier resolution (external_ref OR Railway UUID).
     let insertFirstName = cleaned.first_name;
     let insertLastName = cleaned.last_name;
 
     if (!insertFirstName || !insertLastName) {
-      const existing = await query('SELECT first_name, last_name FROM leads WHERE external_ref = $1', [externalRef]);
+      const { whereSql: existWhere, params: existParams } = leadIdWhere(externalRef);
+      const existing = await query(`SELECT first_name, last_name FROM leads WHERE ${existWhere}`, existParams);
       if (existing.rows[0]) {
         insertFirstName = insertFirstName || existing.rows[0].first_name;
         insertLastName = insertLastName || existing.rows[0].last_name;
@@ -267,40 +304,71 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
       allFields.owner_id = body.owner_id;
     }
 
-    // Build INSERT columns + params
-    const insertCols = ['external_ref', 'first_name', 'last_name'];
-    const params = [externalRef, insertFirstName, insertLastName];
+    // ── Railway UUID resolution: if the identifier is a valid UUID and a lead
+    // exists with that id, UPDATE by id instead of upserting. The upsert's
+    // ON CONFLICT (external_ref) would INSERT a duplicate row for Railway-native
+    // leads (external_ref = NULL) when called with their Railway UUID.
+    const { whereSql: upsertWhere, params: upsertParams } = leadIdWhere(externalRef);
+    const existingById = await query(`SELECT id, external_ref FROM leads WHERE ${upsertWhere} LIMIT 1`, upsertParams);
+    const isRailwayNativeUpdate = existingById.rows[0] && UUID_RE.test(String(externalRef)) && existingById.rows[0].id === externalRef;
 
-    for (const col of Object.keys(allFields)) {
-      insertCols.push(col);
-      params.push(allFields[col]);
+    let sql, params;
+    if (isRailwayNativeUpdate) {
+      // UPDATE by canonical Railway UUID — no external_ref upsert, no duplicate.
+      const setCols = Object.keys(allFields);
+      const setClause = setCols.map((col, i) => `${col} = $${i + 1}`).join(', ');
+      params = [...setCols.map(c => allFields[c]), existingById.rows[0].id];
+      sql = `UPDATE leads SET ${setClause}, updated_at = NOW() WHERE id = $${setCols.length + 1} RETURNING *`;
+    } else {
+      // Upsert by external_ref (legacy leads or new inserts from Base44).
+      const insertCols = ['external_ref', 'first_name', 'last_name'];
+      params = [externalRef, insertFirstName, insertLastName];
+      for (const col of Object.keys(allFields)) {
+        insertCols.push(col);
+        params.push(allFields[col]);
+      }
+      const setParts = Object.keys(allFields).map(col => `${col} = EXCLUDED.${col}`);
+      setParts.push('updated_at = NOW()');
+      const insertPlaceholders = insertCols.map((_, i) => `$${i + 1}`).join(', ');
+      sql = `
+        INSERT INTO leads (${insertCols.join(', ')})
+        VALUES (${insertPlaceholders})
+        ON CONFLICT (external_ref) DO UPDATE SET ${setParts.join(', ')}
+        RETURNING *
+      `;
     }
 
-    // SET clause: re-use the same values via EXCLUDED
-    const setParts = Object.keys(allFields).map(col => `${col} = EXCLUDED.${col}`);
-    setParts.push('updated_at = NOW()');
+    // ── Atomic: lead upsert + reminder projection in ONE transaction ──────
+    // If the reminder projection fails, the lead upsert rolls back too —
+    // the CRM and the reminder engine can never diverge.
+    const client = await pool.connect();
+    let fullRow;
+    try {
+      await client.query('BEGIN');
+      const { rows } = await client.query(sql, params);
+      const updated = rows[0];
+      if (!updated) { await client.query('ROLLBACK'); return res.status(500).json({ error: 'upsert failed' }); }
 
-    const insertPlaceholders = insertCols.map((_, i) => `$${i + 1}`).join(', ');
-    const sql = `
-      INSERT INTO leads (${insertCols.join(', ')})
-      VALUES (${insertPlaceholders})
-      ON CONFLICT (external_ref) DO UPDATE SET ${setParts.join(', ')}
-      RETURNING *
-    `;
+      fullRow = (await client.query(
+        `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
+         FROM leads l LEFT JOIN owners o ON o.id = l.owner_id
+         WHERE l.id = $1`,
+        [updated.id]
+      )).rows[0];
 
-    const { rows } = await query(sql, params);
-    const updated = rows[0];
-    if (!updated) return res.status(500).json({ error: 'upsert failed' });
+      // Project the updated lead into reminder_leads (same transaction).
+      await syncLeadToReminders(client, fullRow);
+      await client.query('COMMIT');
+    } catch (e) {
+      try { await client.query('ROLLBACK'); } catch (_) {}
+      client.release();
+      console.error('[leads] put-by-external error:', e.message);
+      return res.status(500).json({ error: e.message });
+    }
+    client.release();
 
-    // Return with owner join for consistent serialization
-    const fullRow = await query(
-      `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
-       FROM leads l LEFT JOIN owners o ON o.id = l.owner_id
-       WHERE l.id = $1`,
-      [updated.id]
-    );
-
-    res.json({ lead: serializeLead(fullRow.rows[0]) });
+    const appt = await fetchActiveAppointment(fullRow.id);
+    res.json({ lead: serializeLead(fullRow, appt) });
   } catch (e) {
     console.error('[leads] put-by-external error:', e.message);
     res.status(500).json({ error: e.message });
@@ -317,13 +385,27 @@ router.delete('/by-external/:externalRef', requireAuth, async (req, res) => {
     if (scope.denied) return res.status(403).json({ error: 'forbidden' });
     if (scope.readOnly) return res.status(403).json({ error: 'forbidden', message: 'office role is read-only' });
 
-    const leadR = await query('SELECT id, owner_id FROM leads WHERE external_ref = $1', [externalRef]);
+    const { whereSql: delWhere, params: delParams } = leadIdWhere(externalRef);
+    const leadR = await query(`SELECT id, external_ref, owner_id FROM leads WHERE ${delWhere}`, delParams);
     if (!leadR.rows[0]) return res.status(404).json({ error: 'not_found' });
     if (scope.ownerFilter && String(leadR.rows[0].owner_id) !== String(scope.ownerFilter)) {
       return res.status(403).json({ error: 'forbidden' });
     }
 
-    await query('DELETE FROM leads WHERE id = $1', [leadR.rows[0].id]);
+    // ── Atomic: lead delete + reminder cleanup in ONE transaction ──────
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await removeFromReminders(client, leadR.rows[0]);
+      await client.query('DELETE FROM leads WHERE id = $1', [leadR.rows[0].id]);
+      await client.query('COMMIT');
+    } catch (e) {
+      try { await client.query('ROLLBACK'); } catch (_) {}
+      client.release();
+      console.error('[leads] delete-by-external error:', e.message);
+      return res.status(500).json({ error: e.message });
+    }
+    client.release();
     res.json({ success: true, external_ref: externalRef });
   } catch (e) {
     console.error('[leads] delete-by-external error:', e.message);
@@ -334,51 +416,40 @@ router.delete('/by-external/:externalRef', requireAuth, async (req, res) => {
 // ── GET /by-external/:externalRef/detail — composite lead detail ──────────────
 // Returns lead + activities + deals + contactOwners + projectTypes + leadSources
 // in a single call, replacing the Base44 getLeadDetail function.
+// Resolves by external_ref (legacy Base44 ID) OR Railway UUID — so Lead Detail
+// opens correctly regardless of which identifier the route param carries.
 router.get('/by-external/:externalRef/detail', requireAuth, async (req, res) => {
   try {
     const { externalRef } = req.params;
-    const { rows } = await query(
-      `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
-       FROM leads l LEFT JOIN owners o ON o.id = l.owner_id
-       WHERE (l.external_ref = $1 OR l.id::text = $1)`,
-      [externalRef]
-    );
-    if (!rows[0]) return res.status(404).json({ error: 'not_found' });
+    const leadRow = await resolveLeadByIdentifier(externalRef);
+    if (!leadRow) return res.status(404).json({ error: 'not_found' });
 
-    const lead = serializeLead(rows[0]);
-    const railwayLeadId = rows[0].id;
+    const railwayLeadId = leadRow.id;
 
-    // Parallel fetch: activities, deals, owners, settings
-    const [actRes, dealRes, ownerRes, settingsRes] = await Promise.all([
+    // Parallel fetch: appointment, activities, deals, owners, settings
+    const [apptRes, actRes, dealRes, ownerRes, settingsRes] = await Promise.all([
+      query(`SELECT * FROM appointments WHERE lead_id = $1 AND status IN ('scheduled', 'confirmed')
+             ORDER BY created_at DESC LIMIT 1`, [railwayLeadId]),
       query('SELECT * FROM activities WHERE lead_id = $1 ORDER BY created_at DESC LIMIT 500', [railwayLeadId]),
       query('SELECT * FROM deals WHERE lead_id = $1 ORDER BY created_at DESC LIMIT 100', [railwayLeadId]),
       query('SELECT id, display_name, email FROM owners WHERE is_active = true ORDER BY display_name ASC'),
-      query(`SELECT app_lists FROM settings WHERE id = 1`),
+      query(`SELECT key, value FROM settings WHERE key IN ('project_types', 'lead_sources')`),
     ]);
 
-    // Extract project_types and lead_sources from the app_lists JSONB singleton.
-    // Supports both flat (app_lists.project_types) and nested (app_lists.<type>.project_types) structures.
-    const appLists = (settingsRes.rows[0] && settingsRes.rows[0].app_lists) || {};
-    function extractFromAppLists(lists, settingKey) {
-      if (!lists || typeof lists !== 'object') return null;
-      if (lists[settingKey] !== undefined) return lists[settingKey];
-      for (const t of Object.keys(lists)) {
-        if (lists[t] && typeof lists[t] === 'object' && lists[t][settingKey] !== undefined) {
-          return lists[t][settingKey];
-        }
-      }
-      return null;
+    const lead = serializeLead(leadRow, apptRes.rows[0]);
+
+    const settings = {};
+    for (const r of settingsRes.rows) {
+      settings[r.key] = r.value;
     }
-    const projectTypes = extractFromAppLists(appLists, 'project_types') || [];
-    const leadSources = extractFromAppLists(appLists, 'lead_sources') || [];
 
     res.json({
       lead,
       activities: actRes.rows.map(serializeActivity),
       deals: dealRes.rows,
       contactOwners: ownerRes.rows.map(o => ({ id: o.id, display_name: o.display_name, email: o.email })),
-      projectTypes,
-      leadSources,
+      projectTypes: settings.project_types || [],
+      leadSources: settings.lead_sources || [],
     });
   } catch (e) {
     console.error('[leads] get-detail error:', e.message);
@@ -391,15 +462,14 @@ router.get('/by-external/:externalRef/detail', requireAuth, async (req, res) => 
 // No side effects (no calendar sync here — that's handled by the booking outbox).
 const APPOINTMENT_FIELDS = ['appointment_date', 'appointment_time', 'meeting_stage', 'follow_up_date', 'follow_up_time', 'follow_up_type'];
 
-router.put('/by-external/:externalRef/appointment', requireAuth, async (req, res) => {
+// ── Shared appointment update logic ──────────────────────────────────────────
+// Used by both PUT /:id/appointment (canonical Railway UUID) and
+// PUT /by-external/:externalRef/appointment (legacy external_ref).
+// Both routes resolve the canonical Railway UUID BEFORE calling this helper,
+// so it always updates by WHERE id = $1 — no unsafe identifier comparisons,
+// no external_ref required. The caller has already verified owner scope.
+async function executeAppointmentUpdate(req, res, resolvedLeadId) {
   try {
-    const { externalRef } = req.params;
-    if (!externalRef) return res.status(400).json({ error: 'external_ref required' });
-
-    const scope = await resolveOwnerScope(req.user);
-    if (scope.denied) return res.status(403).json({ error: 'forbidden' });
-    if (scope.readOnly) return res.status(403).json({ error: 'forbidden', message: 'office role is read-only' });
-
     const body = req.body || {};
     const updates = [];
     const params = [];
@@ -416,93 +486,123 @@ router.put('/by-external/:externalRef/appointment', requireAuth, async (req, res
     if (updates.length === 0) return res.status(400).json({ error: 'no appointment fields to update' });
     updates.push('updated_at = NOW()');
 
-    params.push(externalRef);
-    const { rows } = await query(
-      `UPDATE leads SET ${updates.join(', ')} WHERE external_ref = $${p} RETURNING *`,
-      params
-    );
-    if (!rows[0]) return res.status(404).json({ error: 'not_found' });
-
-    const updatedLead = rows[0];
-
-    // ── Calendar side effects (native Railway, no Base44) ──────────────────
-    // When follow_up fields change, sync the appointment + Google Calendar.
-    // Contact-only edits (PUT /by-external/:ref) NEVER touch this path.
-    const shouldHaveMeeting = updatedLead.follow_up_date && updatedLead.follow_up_type === 'Meeting';
-
+    // ── Atomic: lead update + appointment mutation in ONE transaction ────────
+    const client = await pool.connect();
+    let updatedLead;
     try {
-      const client = await pool.connect();
-      try {
-        await client.query('BEGIN');
+      await client.query('BEGIN');
 
-        // Find existing active appointment for this lead
-        const apptRes = await client.query(
-          `SELECT * FROM appointments WHERE lead_id = $1 AND status IN ('scheduled', 'confirmed') ORDER BY created_at DESC LIMIT 1`,
-          [updatedLead.id]
-        );
-        const existingAppt = apptRes.rows[0];
+      // 1. Update lead appointment fields by the canonical Railway UUID.
+      const { rows } = await client.query(
+        `UPDATE leads SET ${updates.join(', ')} WHERE id = $${p} RETURNING *`,
+        [...params, resolvedLeadId]
+      );
+      if (!rows[0]) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ error: 'not_found' });
+      }
+      updatedLead = rows[0];
 
-        if (shouldHaveMeeting) {
-          // Need a meeting — create or update the appointment
-          const apptDate = updatedLead.follow_up_date;
-          const apptTime = updatedLead.follow_up_time || '09:00';
-          const [sh, sm] = apptTime.split(':').map(Number);
-          const startAt = new Date(`${apptDate}T${String(sh).padStart(2,'0')}:${String(sm).padStart(2,'0')}:00`);
-          const durationMin = 60;
-          const endAt = new Date(startAt.getTime() + durationMin * 60 * 1000);
-          const busyStart = new Date(startAt.getTime() - 60 * 60 * 1000);
-          const busyEnd = new Date(endAt.getTime() + 60 * 60 * 1000);
+      // 2. Create / update / cancel appointment (same transaction — atomic)
+      const shouldHaveMeeting = updatedLead.follow_up_date && updatedLead.follow_up_type === 'Meeting';
 
-          if (existingAppt) {
-            // Update existing appointment
-            const newVersion = (existingAppt.version || 1) + 1;
-            await client.query(
-              `UPDATE appointments SET start_at = $1, end_at = $2, busy_range = tstzrange($3, $4, '[)'),
-               version = $5, calendar_sync_status = 'pending', updated_at = NOW() WHERE id = $6`,
-              [startAt.toISOString(), endAt.toISOString(), busyStart.toISOString(), busyEnd.toISOString(), newVersion, existingAppt.id]
-            );
-            const updatedAppt = (await client.query('SELECT * FROM appointments WHERE id = $1', [existingAppt.id])).rows[0];
-            await calendarOutbox.enqueueUpdate(client, updatedAppt, updatedLead, updatedLead.owner_email, updatedAppt.version, true);
-          } else {
-            // Create new appointment
-            const typeRes = await client.query('SELECT id FROM appointment_types ORDER BY id LIMIT 1');
-            if (typeRes.rows[0]) {
-              const typeId = typeRes.rows[0].id;
-              const insRes = await client.query(
-                `INSERT INTO appointments (lead_id, owner_id, appointment_type_id, start_at, end_at, timezone, busy_range, status, calendar_sync_status)
-                 VALUES ($1, $2, $3, $4, $5, $6, tstzrange($7, $8, '[)'), 'scheduled', 'pending')
-                 RETURNING *`,
-                [updatedLead.id, updatedLead.owner_id, typeId, startAt.toISOString(), endAt.toISOString(),
-                 'America/Los_Angeles', busyStart.toISOString(), busyEnd.toISOString()]
-              );
-              const newAppt = insRes.rows[0];
-              await calendarOutbox.enqueueCreate(client, newAppt, updatedLead, updatedLead.owner_email);
-            }
-          }
+      const apptRes = await client.query(
+        `SELECT * FROM appointments WHERE lead_id = $1 AND status IN ('scheduled', 'confirmed') ORDER BY created_at DESC LIMIT 1`,
+        [updatedLead.id]
+      );
+      const existingAppt = apptRes.rows[0];
+
+      if (shouldHaveMeeting) {
+        const apptDate = updatedLead.follow_up_date;
+        const apptTime = updatedLead.follow_up_time || '09:00';
+        const startAt = new Date(toUtcIso(apptDate, apptTime, 'America/Los_Angeles'));
+        const durationMin = 60;
+        const endAt = new Date(startAt.getTime() + durationMin * 60 * 1000);
+        const busyStart = new Date(startAt.getTime() - 60 * 60 * 1000);
+        const busyEnd = new Date(endAt.getTime() + 60 * 60 * 1000);
+
+        if (existingAppt) {
+          const newVersion = (existingAppt.version || 1) + 1;
+          await client.query(
+            `UPDATE appointments SET start_at = $1, end_at = $2, busy_range = tstzrange($3, $4, '[)'),
+             version = $5, calendar_sync_status = 'pending', updated_at = NOW() WHERE id = $6`,
+            [startAt.toISOString(), endAt.toISOString(), busyStart.toISOString(), busyEnd.toISOString(), newVersion, existingAppt.id]
+          );
+          const updatedAppt = (await client.query('SELECT * FROM appointments WHERE id = $1', [existingAppt.id])).rows[0];
+          await calendarOutbox.enqueueUpdate(client, updatedAppt, updatedLead, updatedLead.owner_email, updatedAppt.version, true);
+          await client.query(
+            `INSERT INTO appointment_events (appointment_id, actor, action, previous_values, new_values)
+             VALUES ($1, $2, 'rescheduled', $3, $4)`,
+            [existingAppt.id, req.user?.email || null,
+             JSON.stringify({ start_at: existingAppt.start_at, end_at: existingAppt.end_at }),
+             JSON.stringify({ start_at: updatedAppt.start_at, end_at: updatedAppt.end_at })]
+          );
         } else {
-          // No meeting needed — cancel any existing active appointment
-          if (existingAppt) {
-            const newVersion = (existingAppt.version || 1) + 1;
-            await client.query(
-              'UPDATE appointments SET status = $1, version = $2, updated_at = NOW() WHERE id = $3',
-              ['cancelled', newVersion, existingAppt.id]
+          const typeRes = await client.query('SELECT id FROM appointment_types ORDER BY id LIMIT 1');
+          if (typeRes.rows[0]) {
+            const typeId = typeRes.rows[0].id;
+            const insRes = await client.query(
+              `INSERT INTO appointments (lead_id, owner_id, appointment_type_id, start_at, end_at, timezone, busy_range, status, calendar_sync_status)
+               VALUES ($1, $2, $3, $4, $5, $6, tstzrange($7, $8, '[)'), 'scheduled', 'pending')
+               RETURNING *`,
+              [updatedLead.id, updatedLead.owner_id, typeId, startAt.toISOString(), endAt.toISOString(),
+               'America/Los_Angeles', busyStart.toISOString(), busyEnd.toISOString()]
             );
-            const cancelledAppt = (await client.query('SELECT * FROM appointments WHERE id = $1', [existingAppt.id])).rows[0];
-            await calendarOutbox.enqueueCancel(client, cancelledAppt, cancelledAppt.version);
+            const newAppt = insRes.rows[0];
+            await calendarOutbox.enqueueCreate(client, newAppt, updatedLead, updatedLead.owner_email);
+            await client.query(
+              `INSERT INTO appointment_events (appointment_id, actor, action, new_values)
+               VALUES ($1, $2, 'created', $3)`,
+              [newAppt.id, req.user?.email || null,
+               JSON.stringify({ start_at: newAppt.start_at, end_at: newAppt.end_at, owner_id: newAppt.owner_id })]
+            );
           }
         }
-
-        await client.query('COMMIT');
-      } catch (calErr) {
-        try { await client.query('ROLLBACK'); } catch (_) {}
-        console.error('[leads] calendar sync error (non-blocking):', calErr.message);
-        // Calendar sync failure is non-blocking — the leads table update already succeeded.
-      } finally {
-        client.release();
+      } else {
+        // Phone Call or no follow-up: cancel any existing Meeting appointment.
+        // No new Google Calendar event, no calendar_outbox create/update.
+        if (existingAppt) {
+          const newVersion = (existingAppt.version || 1) + 1;
+          await client.query(
+            'UPDATE appointments SET status = $1, version = $2, updated_at = NOW() WHERE id = $3',
+            ['cancelled', newVersion, existingAppt.id]
+          );
+          const cancelledAppt = (await client.query('SELECT * FROM appointments WHERE id = $1', [existingAppt.id])).rows[0];
+          await calendarOutbox.enqueueCancel(client, cancelledAppt, cancelledAppt.version);
+          await client.query(
+            `INSERT INTO appointment_events (appointment_id, actor, action, previous_values)
+             VALUES ($1, $2, 'cancelled', $3)`,
+            [existingAppt.id, req.user?.email || null,
+             JSON.stringify({ start_at: existingAppt.start_at, end_at: existingAppt.end_at, status: existingAppt.status })]
+          );
+        }
       }
-    } catch (poolErr) {
-      console.error('[leads] pool error (non-blocking):', poolErr.message);
+
+      // ── Reminder projection (same transaction — atomic) ──────────────────
+      const leadForProjection = (await client.query(
+        `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
+         FROM leads l LEFT JOIN owners o ON o.id = l.owner_id
+         WHERE l.id = $1`,
+        [updatedLead.id]
+      )).rows[0];
+      await syncLeadToReminders(client, leadForProjection);
+
+      await client.query('COMMIT');
+    } catch (calErr) {
+      try { await client.query('ROLLBACK'); } catch (_) {}
+      client.release();
+
+      if (calErr.code === '23P01') {
+        return res.status(409).json({
+          error: 'slot_conflict',
+          message: 'This time conflicts with another appointment. Please choose a different time.',
+        });
+      }
+
+      console.error('[leads] appointment update error:', calErr.message);
+      return res.status(500).json({ error: calErr.message });
     }
+    client.release();
 
     // Return with owner join
     const fullRow = await query(
@@ -511,7 +611,66 @@ router.put('/by-external/:externalRef/appointment', requireAuth, async (req, res
        WHERE l.id = $1`,
       [updatedLead.id]
     );
-    res.json({ lead: serializeLead(fullRow.rows[0]) });
+    const leadWithOwner = fullRow.rows[0];
+
+    const updatedAppt = await fetchActiveAppointment(leadWithOwner.id);
+    res.json({ lead: serializeLead(leadWithOwner, updatedAppt) });
+  } catch (e) {
+    console.error('[leads] appointment update error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+}
+
+// ── PUT /:id/appointment — CANONICAL appointment update by Railway UUID ──────
+// This is the primary appointment update route for Railway-native leads.
+// Accepts ONLY valid Railway UUIDs — no external_ref, no leadIdWhere, no
+// unsafe identifier comparisons. The frontend FollowUpScheduler calls this
+// with lead.railway_id (the canonical Railway UUID).
+router.put('/:id/appointment', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!UUID_RE.test(String(id))) {
+      return res.status(400).json({ error: 'invalid_id', message: 'PUT /:id/appointment requires a valid Railway UUID.' });
+    }
+
+    const scope = await resolveOwnerScope(req.user);
+    if (scope.denied) return res.status(403).json({ error: 'forbidden' });
+    if (scope.readOnly) return res.status(403).json({ error: 'forbidden', message: 'office role is read-only' });
+
+    // Verify lead exists + caller has access
+    const leadR = await query('SELECT id, owner_id FROM leads WHERE id = $1', [id]);
+    if (!leadR.rows[0]) return res.status(404).json({ error: 'not_found' });
+    if (scope.ownerFilter && String(leadR.rows[0].owner_id) !== String(scope.ownerFilter)) {
+      return res.status(403).json({ error: 'forbidden' });
+    }
+
+    return executeAppointmentUpdate(req, res, leadR.rows[0].id);
+  } catch (e) {
+    console.error('[leads] appointment update error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── PUT /by-external/:externalRef/appointment — legacy appointment update ─────
+// Resolves the lead by external_ref OR Railway UUID via the shared safe
+// resolver, then delegates to executeAppointmentUpdate with the canonical
+// Railway UUID. Kept for backward compatibility with legacy Base44 leads.
+router.put('/by-external/:externalRef/appointment', requireAuth, async (req, res) => {
+  try {
+    const { externalRef } = req.params;
+    if (!externalRef) return res.status(400).json({ error: 'external_ref required' });
+
+    const scope = await resolveOwnerScope(req.user);
+    if (scope.denied) return res.status(403).json({ error: 'forbidden' });
+    if (scope.readOnly) return res.status(403).json({ error: 'forbidden', message: 'office role is read-only' });
+
+    const leadRow = await resolveLeadByIdentifier(externalRef);
+    if (!leadRow) return res.status(404).json({ error: 'not_found' });
+    if (scope.ownerFilter && String(leadRow.owner_id) !== String(scope.ownerFilter)) {
+      return res.status(403).json({ error: 'forbidden' });
+    }
+
+    return executeAppointmentUpdate(req, res, leadRow.id);
   } catch (e) {
     console.error('[leads] appointment update error:', e.message);
     res.status(500).json({ error: e.message });
@@ -578,11 +737,13 @@ router.get('/', requireAuth, async (req, res) => {
 });
 
 // ── PUT /:id — update lead fields (owner-scoped) ────────────────────────────
-// Supports all CRM fields: status, notes, owner_id, follow_up_*, meeting_stage,
-// project_type, budget_range, start_timeframe, source, referral_name, lead_score,
-// is_new_intake_lead, customer_reminders_disabled, record_type, reviewed_at, message, photo_urls.
-// Contact fields (first_name, last_name, phone, email, property_address, city, state, zip)
-// are handled by PUT /by-external/:externalRef with duplicate checking.
+// Supports ALL fields: CRM fields + contact fields (first_name, last_name, phone,
+// email, property_address, city, state, zip). Contact fields are validated and
+// duplicate-checked the same way as PUT /by-external/:externalRef.
+//
+// This endpoint is the CANONICAL update path for the frontend because it updates
+// by Railway UUID — it NEVER creates duplicate leads (unlike PUT /by-external,
+// which INSERTs with external_ref and can duplicate Railway-native leads).
 const UPDATABLE_FIELDS = [
   'status', 'notes', 'owner_id', 'follow_up_date', 'follow_up_time', 'follow_up_type',
   'meeting_stage', 'project_type', 'budget_range', 'start_timeframe', 'source',
@@ -593,12 +754,18 @@ const UPDATABLE_FIELDS = [
 router.put('/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
+    // Guard: :id must be a valid UUID — this route only accepts canonical
+    // Railway UUIDs. Non-UUID identifiers (legacy external_refs) must use
+    // the /by-external/:externalRef routes instead.
+    if (!UUID_RE.test(String(id))) {
+      return res.status(400).json({ error: 'invalid_id', message: 'PUT /:id requires a valid Railway UUID. Use /by-external/:externalRef for legacy identifiers.' });
+    }
     const scope = await resolveOwnerScope(req.user);
     if (scope.denied) return res.status(403).json({ error: 'forbidden' });
     if (scope.readOnly) return res.status(403).json({ error: 'forbidden', message: 'office role is read-only' });
 
     // Verify lead exists + caller has access
-    const leadR = await query('SELECT owner_id FROM leads WHERE id = $1', [id]);
+    const leadR = await query('SELECT id, owner_id FROM leads WHERE id = $1', [id]);
     if (!leadR.rows[0]) return res.status(404).json({ error: 'not_found' });
     if (scope.ownerFilter && String(leadR.rows[0].owner_id) !== String(scope.ownerFilter)) {
       return res.status(403).json({ error: 'forbidden' });
@@ -609,9 +776,49 @@ router.put('/:id', requireAuth, async (req, res) => {
     const params = [];
     let p = 1;
 
+    // ── Contact fields (with validation + duplicate checking) ──────────
+    for (const col of CONTACT_FIELDS) {
+      if (body[col] !== undefined) {
+        let val = typeof body[col] === 'string' ? body[col].trim() : body[col];
+        if (val === '') val = null;
+
+        // Validate email format
+        if (col === 'email' && val !== null && !isValidEmail(val)) {
+          return res.status(400).json({ error: 'invalid_email', message: 'Invalid email format' });
+        }
+        // Normalize + validate phone
+        if (col === 'phone' && val !== null && val !== '') {
+          const normalized = normalizePhone(val);
+          if (!normalized) {
+            return res.status(400).json({ error: 'invalid_phone', message: 'Phone must be a valid US number (10 digits)' });
+          }
+          val = normalized;
+        }
+
+        // Duplicate check for email/phone against OTHER leads
+        if ((col === 'email' || col === 'phone') && val) {
+          const dup = await query(
+            `SELECT id, first_name, last_name FROM leads WHERE ${col === 'email' ? 'lower(email)' : 'phone'} = $1 AND id != $2 LIMIT 1`,
+            [val, id]
+          );
+          if (dup.rows[0]) {
+            return res.status(409).json({
+              error: col === 'email' ? 'duplicate_email' : 'duplicate_phone',
+              message: `${col === 'email' ? 'Email' : 'Phone'} already belongs to another lead: ${dup.rows[0].first_name} ${dup.rows[0].last_name}`,
+              conflict: { id: dup.rows[0].id, name: `${dup.rows[0].first_name} ${dup.rows[0].last_name}` },
+            });
+          }
+        }
+
+        params.push(val);
+        updates.push(`${col} = $${p}`);
+        p++;
+      }
+    }
+
+    // ── CRM fields ──────────────────────────────────────────────────────
     for (const col of UPDATABLE_FIELDS) {
       if (body[col] !== undefined) {
-        // Convert camelCase from frontend to snake_case if needed
         let val = body[col];
         // Handle boolean fields
         if (['is_new_intake_lead', 'customer_reminders_disabled'].includes(col)) {
@@ -648,17 +855,34 @@ router.put('/:id', requireAuth, async (req, res) => {
     const sql = `UPDATE leads SET ${updates.join(', ')} WHERE id = $${p} RETURNING *`;
     params.push(id);
 
-    const { rows } = await query(sql, params);
-    const updated = rows[0];
-    if (!updated) return res.status(404).json({ error: 'not_found' });
+    // ── Atomic: lead update + reminder projection in ONE transaction ──────
+    const client = await pool.connect();
+    let fullRow;
+    try {
+      await client.query('BEGIN');
+      const { rows } = await client.query(sql, params);
+      const updated = rows[0];
+      if (!updated) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'not_found' }); }
 
-    // Return with owner join
-    const fullRow = await query(
-      `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
-       FROM leads l LEFT JOIN owners o ON o.id = l.owner_id WHERE l.id = $1`,
-      [updated.id]
-    );
-    res.json({ lead: serializeLead(fullRow.rows[0]) });
+      fullRow = (await client.query(
+        `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
+         FROM leads l LEFT JOIN owners o ON o.id = l.owner_id WHERE l.id = $1`,
+        [updated.id]
+      )).rows[0];
+
+      // Project the updated lead into reminder_leads (same transaction).
+      await syncLeadToReminders(client, fullRow);
+      await client.query('COMMIT');
+    } catch (e) {
+      try { await client.query('ROLLBACK'); } catch (_) {}
+      client.release();
+      console.error('[leads] put error:', e.message);
+      return res.status(500).json({ error: e.message });
+    }
+    client.release();
+
+    const appt = await fetchActiveAppointment(fullRow.id);
+    res.json({ lead: serializeLead(fullRow, appt) });
   } catch (e) {
     console.error('[leads] put error:', e.message);
     res.status(500).json({ error: e.message });
@@ -669,18 +893,34 @@ router.put('/:id', requireAuth, async (req, res) => {
 router.delete('/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
+    if (!UUID_RE.test(String(id))) {
+      return res.status(400).json({ error: 'invalid_id', message: 'DELETE /:id requires a valid Railway UUID. Use /by-external/:externalRef for legacy identifiers.' });
+    }
     const scope = await resolveOwnerScope(req.user);
     if (scope.denied) return res.status(403).json({ error: 'forbidden' });
     if (scope.readOnly) return res.status(403).json({ error: 'forbidden', message: 'office role is read-only' });
 
     // Verify lead exists + caller has access
-    const leadR = await query('SELECT owner_id FROM leads WHERE id = $1', [id]);
+    const leadR = await query('SELECT id, external_ref, owner_id FROM leads WHERE id = $1', [id]);
     if (!leadR.rows[0]) return res.status(404).json({ error: 'not_found' });
     if (scope.ownerFilter && String(leadR.rows[0].owner_id) !== String(scope.ownerFilter)) {
       return res.status(403).json({ error: 'forbidden' });
     }
 
-    await query('DELETE FROM leads WHERE id = $1', [id]);
+    // ── Atomic: lead delete + reminder cleanup in ONE transaction ──────
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await removeFromReminders(client, leadR.rows[0]);
+      await client.query('DELETE FROM leads WHERE id = $1', [id]);
+      await client.query('COMMIT');
+    } catch (e) {
+      try { await client.query('ROLLBACK'); } catch (_) {}
+      client.release();
+      console.error('[leads] delete error:', e.message);
+      return res.status(500).json({ error: e.message });
+    }
+    client.release();
     res.json({ success: true, id });
   } catch (e) {
     console.error('[leads] delete error:', e.message);
@@ -689,17 +929,22 @@ router.delete('/:id', requireAuth, async (req, res) => {
 });
 
 // ── GET /:id — single lead (owner-scoped) ───────────────────────────────────
+// Resolves by Railway UUID (id) OR external_ref (legacy Base44 ID).
+// Uses safe identifier resolution (leadIdWhere) to avoid PostgreSQL uuid cast
+// errors when the route param is a non-UUID legacy external_ref.
 router.get('/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const scope = await resolveOwnerScope(req.user);
     if (scope.denied) return res.status(403).json({ error: 'forbidden' });
 
+    const { whereSql, params: idParams } = leadIdWhere(id, 'l.');
     const { rows } = await query(
       `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
        FROM leads l LEFT JOIN owners o ON o.id = l.owner_id
-       WHERE l.id = $1`,
-      [id]
+       WHERE ${whereSql}
+       LIMIT 1`,
+      idParams
     );
     const lead = rows[0];
     if (!lead) return res.status(404).json({ error: 'not_found' });
@@ -709,7 +954,8 @@ router.get('/:id', requireAuth, async (req, res) => {
       return res.status(403).json({ error: 'forbidden' });
     }
 
-    res.json({ lead: serializeLead(lead) });
+    const appt = await fetchActiveAppointment(lead.id);
+    res.json({ lead: serializeLead(lead, appt) });
   } catch (e) {
     console.error('[leads] get error:', e.message);
     res.status(500).json({ error: e.message });
@@ -717,22 +963,24 @@ router.get('/:id', requireAuth, async (req, res) => {
 });
 
 // ── GET /:id/activities — list activities for a lead ────────────────────────
+// Resolves the lead by Railway UUID OR external_ref (safe identifier resolution),
+// then queries activities by the canonical Railway UUID.
 router.get('/:id/activities', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const scope = await resolveOwnerScope(req.user);
     if (scope.denied) return res.status(403).json({ error: 'forbidden' });
 
-    // Verify lead exists + caller has access
-    const leadR = await query('SELECT owner_id FROM leads WHERE id = $1', [id]);
-    if (!leadR.rows[0]) return res.status(404).json({ error: 'lead_not_found' });
-    if (scope.ownerFilter && String(leadR.rows[0].owner_id) !== String(scope.ownerFilter)) {
+    // Resolve lead by external_ref OR Railway UUID (safe — no uuid cast error)
+    const leadRow = await resolveLeadByIdentifier(id);
+    if (!leadRow) return res.status(404).json({ error: 'lead_not_found' });
+    if (scope.ownerFilter && String(leadRow.owner_id) !== String(scope.ownerFilter)) {
       return res.status(403).json({ error: 'forbidden' });
     }
 
     const { rows } = await query(
       `SELECT * FROM activities WHERE lead_id = $1 ORDER BY created_at DESC LIMIT 500`,
-      [id]
+      [leadRow.id]
     );
     res.json({ items: rows.map(serializeActivity) });
   } catch (e) {
@@ -742,6 +990,8 @@ router.get('/:id/activities', requireAuth, async (req, res) => {
 });
 
 // ── POST /:id/activities — create an activity ──────────────────────────────
+// Resolves the lead by Railway UUID OR external_ref (safe identifier resolution),
+// then inserts the activity with the canonical Railway UUID as lead_id.
 router.post('/:id/activities', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
@@ -749,10 +999,10 @@ router.post('/:id/activities', requireAuth, async (req, res) => {
     if (scope.denied) return res.status(403).json({ error: 'forbidden' });
     if (scope.readOnly) return res.status(403).json({ error: 'forbidden', message: 'office role is read-only' });
 
-    // Verify lead exists + caller has access
-    const leadR = await query('SELECT owner_id FROM leads WHERE id = $1', [id]);
-    if (!leadR.rows[0]) return res.status(404).json({ error: 'lead_not_found' });
-    if (scope.ownerFilter && String(leadR.rows[0].owner_id) !== String(scope.ownerFilter)) {
+    // Resolve lead by external_ref OR Railway UUID (safe — no uuid cast error)
+    const leadRow = await resolveLeadByIdentifier(id);
+    if (!leadRow) return res.status(404).json({ error: 'lead_not_found' });
+    if (scope.ownerFilter && String(leadRow.owner_id) !== String(scope.ownerFilter)) {
       return res.status(403).json({ error: 'forbidden' });
     }
 
@@ -765,7 +1015,7 @@ router.post('/:id/activities', requireAuth, async (req, res) => {
     const ins = await query(
       `INSERT INTO activities (lead_id, type, content, author, source, metadata)
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [id, type, content, author || req.user.email || null, source, JSON.stringify(metadata || null)]
+      [leadRow.id, type, content, author || req.user.email || null, source, JSON.stringify(metadata || null)]
     );
     res.status(201).json({ activity: serializeActivity(ins.rows[0]) });
   } catch (e) {
@@ -784,14 +1034,8 @@ router.post('/:id/activities', requireAuth, async (req, res) => {
 router.post('/by-external/:externalRef/sync-calendar', requireAuth, async (req, res) => {
   try {
     const { externalRef } = req.params;
-    const { rows } = await query(
-      `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
-       FROM leads l LEFT JOIN owners o ON o.id = l.owner_id
-       WHERE l.external_ref = $1`, [externalRef]
-    );
-    if (!rows[0]) return res.status(404).json({ error: 'not_found' });
-
-    const lead = rows[0];
+    const lead = await resolveLeadByIdentifier(externalRef);
+    if (!lead) return res.status(404).json({ error: 'not_found' });
     const apptDate = lead.follow_up_date || lead.appointment_date;
     const apptTime = lead.follow_up_time || lead.appointment_time || '09:00';
     if (!apptDate) return res.status(400).json({ error: 'No appointment date set for this lead.' });
@@ -802,8 +1046,7 @@ router.post('/by-external/:externalRef/sync-calendar', requireAuth, async (req, 
     const calendarOutbox = require('../lib/booking/calendarOutbox');
 
     // Build start/end times (LA timezone)
-    const [sh, sm] = apptTime.split(':').map(Number);
-    const startAt = new Date(`${apptDate}T${String(sh).padStart(2,'0')}:${String(sm).padStart(2,'0')}:00`);
+    const startAt = new Date(toUtcIso(apptDate, apptTime, 'America/Los_Angeles'));
     const durationMin = 60; // default 1 hour meeting
     const endAt = new Date(startAt.getTime() + durationMin * 60 * 1000);
     const busyStart = new Date(startAt.getTime() - 60 * 60 * 1000); // 1hr before
@@ -857,11 +1100,31 @@ router.post('/by-external/:externalRef/sync-calendar', requireAuth, async (req, 
 
       await client.query('COMMIT');
 
-      // Update lead sync status (pending = outbox worker will process)
-      await query(
-        'UPDATE leads SET google_calendar_sync_status = $1, last_google_sync = NOW(), updated_at = NOW() WHERE id = $2',
-        ['pending', lead.id]
-      );
+      // ── Reminder projection (post-commit, best-effort) ────────────────
+      // sync-calendar can change appointment times. Project the new times into
+      // reminder_leads so the engine uses the correct schedule. Best-effort
+      // (non-blocking) because the calendar outbox is already enqueued — a
+      // reminder projection failure here is logged and retried by the backfill.
+      try {
+        const leadForProjection = (await query(
+          `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
+           FROM leads l LEFT JOIN owners o ON o.id = l.owner_id
+           WHERE l.id = $1`,
+          [lead.id]
+        )).rows[0];
+        if (leadForProjection) {
+          await syncLeadToReminders({ query }, leadForProjection);
+        }
+      } catch (projErr) {
+        console.error('[leads] sync-calendar reminder projection error (non-blocking):', projErr.message);
+      }
+
+      // NOTE: The appointment's calendar_sync_status is already set to 'pending'
+      // inside the transaction above (INSERT/UPDATE appointments). The outbox
+      // worker updates it to 'synced'/'failed' after calling Google. We do NOT
+      // update leads.google_calendar_sync_status — that column does NOT exist
+      // in the Railway schema (it's a Base44-era field). The canonical state
+      // lives in appointments.calendar_sync_status.
 
       res.json({
         success: true,
@@ -892,16 +1155,8 @@ router.post('/by-external/:externalRef/sync-calendar', requireAuth, async (req, 
 router.post('/by-external/:externalRef/sync-contact', requireAuth, async (req, res) => {
   try {
     const { externalRef } = req.params;
-    const { rows } = await query(
-      `SELECT l.id, l.first_name, l.last_name, l.email, l.phone, l.property_address, l.city,
-              o.email AS owner_email
-       FROM leads l LEFT JOIN owners o ON o.id = l.owner_id
-       WHERE l.external_ref = $1`,
-      [externalRef]
-    );
-    if (!rows[0]) return res.status(404).json({ error: 'not_found' });
-
-    const lead = rows[0];
+    const lead = await resolveLeadByIdentifier(externalRef);
+    if (!lead) return res.status(404).json({ error: 'not_found' });
     if (!lead.email && !lead.phone) {
       return res.status(400).json({ error: 'Lead has no email or phone to sync.' });
     }
@@ -923,10 +1178,18 @@ router.post('/by-external/:externalRef/sync-contact', requireAuth, async (req, r
         subEmail
       );
 
-      await query(
-        'UPDATE leads SET google_contact_sync_status = $1, google_contact_resource_name = $2, google_contact_sync_error = NULL, updated_at = NOW() WHERE id = $3',
-        ['synced', result.resourceName, lead.id]
-      );
+      // Record sync status. Backward-compatible: if migration 2026-25 has not
+      // yet been applied (columns don't exist), the UPDATE fails but the
+      // Google contact was still created/updated — only the sync status
+      // tracking is unavailable until the migration runs.
+      try {
+        await query(
+          'UPDATE leads SET google_contact_sync_status = $1, google_contact_resource_name = $2, google_contact_sync_error = NULL, updated_at = NOW() WHERE id = $3',
+          ['synced', result.resourceName, lead.id]
+        );
+      } catch (updateErr) {
+        console.warn('[leads] sync-contact: google_contact_* columns not yet migrated — sync status not recorded. Run migration 2026-25. Contact was still synced:', updateErr.message);
+      }
 
       return res.json({
         success: true,
@@ -936,10 +1199,15 @@ router.post('/by-external/:externalRef/sync-contact', requireAuth, async (req, r
       });
     } catch (e) {
       if (e.code === 'CONTACTS_SCOPE_NOT_CONFIGURED') {
-        await query(
-          'UPDATE leads SET google_contact_sync_status = $1, google_contact_sync_error = $2, updated_at = NOW() WHERE id = $3',
-          ['error', 'Contacts scope not configured on service account', lead.id]
-        );
+        // Backward-compatible: same try/catch as the success path.
+        try {
+          await query(
+            'UPDATE leads SET google_contact_sync_status = $1, google_contact_sync_error = $2, updated_at = NOW() WHERE id = $3',
+            ['error', 'Contacts scope not configured on service account', lead.id]
+          );
+        } catch (updateErr) {
+          console.warn('[leads] sync-contact: google_contact_* columns not yet migrated — error status not recorded:', updateErr.message);
+        }
         return res.status(501).json({
           error: 'contacts_scope_not_configured',
           message: 'Google Contacts sync requires the contacts scope on the service account. Add the contacts scope to domain-wide delegation in Google Workspace Admin Console.',
