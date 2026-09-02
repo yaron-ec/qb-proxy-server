@@ -1,3 +1,4 @@
+// Railway build trigger 2026-09-02: deals uuid cast fix deployment nudge
 /* eslint-disable no-undef */
 /**
  * QuickBooks Proxy Server
