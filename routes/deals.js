@@ -43,8 +43,9 @@ router.use(requireAuth);
 // compares against legacy_base44_id (TEXT). Returns { whereSql, params }.
 function dealIdWhere(identifier) {
   if (UUID_RE.test(String(identifier))) {
-    // Cast $1 to uuid for the id comparison — PostgreSQL cannot compare uuid = text.
-    return { whereSql: 'id = $1::uuid OR legacy_base44_id = $1', params: [identifier] };
+    // Use separate params: $1::uuid for id, $2 (text) for legacy_base44_id.
+    // Sharing $1 causes PostgreSQL to infer uuid type for BOTH comparisons.
+    return { whereSql: 'id = $1::uuid OR legacy_base44_id = $2', params: [identifier, identifier] };
   }
   return { whereSql: 'legacy_base44_id = $1', params: [identifier] };
 }
