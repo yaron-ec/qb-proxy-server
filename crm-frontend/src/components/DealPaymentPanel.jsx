@@ -241,7 +241,8 @@ export default function DealPaymentPanel({ deal, lead, onDealUpdate, estimate, i
       if (suggested) payload.stage = suggested;
     }
 
-    const updated = await railwayDeals.update(deal.id, payload);
+    const updateRes = await railwayDeals.update(deal.id, payload);
+    const updated = updateRes?.deal || updateRes;
     onDealUpdate(updated);
     setSaving(false);
     setEditMode(false);
@@ -341,7 +342,8 @@ export default function DealPaymentPanel({ deal, lead, onDealUpdate, estimate, i
                   payment_status:   "paid",
                   payment_date:     new Date().toISOString().split("T")[0],
                 });
-                const updated = await railwayDeals.get(deal.id);
+                const dealRes = await railwayDeals.get(deal.id);
+                const updated = dealRes?.deal || dealRes;
                 onDealUpdate(updated);
               } : undefined}
               onEditNote={hasInvoiceData ? async (m, value) => {
@@ -429,7 +431,8 @@ function ManualPaidToggle({ invoice, dealId, onDealUpdate }) {
             payment_date:     new Date().toISOString().split("T")[0],
             notes:            note.trim() || null,
           });
-          const updated = await railwayDeals.get(dealId);
+          const dealRes = await railwayDeals.get(dealId);
+          const updated = dealRes?.deal || dealRes;
           onDealUpdate(updated);
           setLoading(false);
         }}
