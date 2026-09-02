@@ -39,11 +39,12 @@ router.use(requireAuth);
 // ── Safe identifier resolution ────────────────────────────────────────────────
 // PostgreSQL throws "invalid input syntax for type uuid" if a non-UUID string
 // is compared against a uuid column. This helper builds a WHERE clause that
-// only compares against `id` when the identifier is a valid UUID, and always
+// only compares against 'id' when the identifier is a valid UUID, and always
 // compares against legacy_base44_id (TEXT). Returns { whereSql, params }.
 function dealIdWhere(identifier) {
   if (UUID_RE.test(String(identifier))) {
-    return { whereSql: 'id = $1 OR legacy_base44_id = $1', params: [identifier] };
+    // Cast $1 to uuid for the id comparison — PostgreSQL cannot compare uuid = text.
+    return { whereSql: 'id = $1::uuid OR legacy_base44_id = $1', params: [identifier] };
   }
   return { whereSql: 'legacy_base44_id = $1', params: [identifier] };
 }
