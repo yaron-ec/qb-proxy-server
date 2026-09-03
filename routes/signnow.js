@@ -83,7 +83,6 @@ router.post('/by-external/:externalRef/upload', requireAdminManager, async (req,
     const { externalRef } = req.params;
     const lead = await resolveLeadByIdentifier(externalRef);
     if (!lead) return res.status(404).json({ error: 'not_found' });
-    const lead = lead;
 
     const { file_url, document_name, signers } = req.body || {};
     if (!file_url) return res.status(400).json({ error: 'file_url required (upload the PDF first via /api/v1/lead-attachments)' });
@@ -144,7 +143,6 @@ router.post('/by-external/:externalRef/prepare', requireAdminManager, async (req
 
     const lead = await resolveLeadByIdentifier(externalRef);
     if (!lead) return res.status(404).json({ error: 'not_found' });
-    const lead = lead;
 
     if (!template_id) return res.status(400).json({ error: 'template_id required' });
 
