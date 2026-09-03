@@ -38,6 +38,7 @@ export default defineConfig(async ({ mode }) => {
   }
 
   return {
+    esbuild: { charset: 'ascii' },
     logLevel: 'error',
     // The @base44/vite-plugin injects the `@` → `/src` alias. In exit mode the
     // plugin is absent, so declare the alias explicitly. (Default mode gets it
