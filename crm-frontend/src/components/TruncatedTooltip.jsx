@@ -104,7 +104,7 @@ export default function TruncatedTooltip({ text, children, className = "", as: A
       {children}
     </Tag>
   ) : (
-    <Tag ref={ref} className={`truncate ${className}`} {...sharedHandlers}>
+    <Tag ref={ref} className={`truncate block ${className}`} {...sharedHandlers}>
       {text}
     </Tag>
   );
