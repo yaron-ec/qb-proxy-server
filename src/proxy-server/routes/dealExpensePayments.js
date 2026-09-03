@@ -47,6 +47,8 @@ const FIELDS = ['deal_id', 'expense_id', 'payment_date', 'amount', 'payment_meth
 router.get('/', async (req, res) => {
   try {
     const { expense_id, deal_id, limit: limitStr } = req.query;
+    // P0 DATA ISOLATION: at least one scope (deal_id or expense_id) is REQUIRED.
+    if (!deal_id && !expense_id) return res.json({ items: [], total: 0 });
     const limit = Math.min(parseInt(limitStr || '2000', 10), 5000);
     const where = [];
     const params = [];
@@ -59,7 +61,7 @@ router.get('/', async (req, res) => {
       if (!UUID_RE.test(String(deal_id))) return res.json({ items: [], total: 0 });
       where.push(`deal_id = $${p}`); params.push(deal_id); p++;
     }
-    const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
+    const whereClause = `WHERE ${where.join(' AND ')}`;
     const { rows } = await query(`SELECT * FROM deal_expense_payments ${whereClause} ORDER BY created_at DESC LIMIT $${p}`, [...params, limit]);
     res.json({ items: rows.map(serializePayment), total: rows.length });
   } catch (e) {
