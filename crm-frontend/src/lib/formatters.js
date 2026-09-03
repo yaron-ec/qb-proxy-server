@@ -2,7 +2,7 @@
  * Format utilities to prevent zero/null from displaying
  */
 
-// Display value safely â never show "0" or null literally
+// Display value safely — never show "0" or null literally
 export const safeDisplay = (value) => {
   if (value === null || value === undefined || value === '' || value === '0' || value === 0) {
     return '\u2014';
@@ -10,7 +10,7 @@ export const safeDisplay = (value) => {
   return value;
 };
 
-// Format money safely â never show "$0"
+// Format money safely — never show "$0"
 export const fmtMoney = (v) => {
   if (v === null || v === undefined || v === 0) {
     return '\u2014';
@@ -33,19 +33,19 @@ export const formatPhone = (raw) => {
   if (digits.length === 11 && digits[0] === '1') {
     return `+1 (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
   }
-  // US: 10 digits â assume US, prepend +1
+  // US: 10 digits — assume US, prepend +1
   if (digits.length === 10) {
     return `+1 (${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
   }
-  // Already formatted or international â return as-is
+  // Already formatted or international — return as-is
   return raw;
 };
 
-// Preserved abbreviations â always keep these uppercase
+// Preserved abbreviations — always keep these uppercase
 const ABBREVIATIONS = new Set(['ADU', 'HVAC', 'HOA', 'USA', 'CA', 'LA', 'LLC', 'AC', 'HVAC']);
 
 /**
- * Convert a string to Title Case â always normalizes.
+ * Convert a string to Title Case — always normalizes.
  * - Preserves known abbreviations (ADU, HVAC, HOA, etc.)
  * - Handles hyphenated names (Smith-Johnson)
  * - Handles apostrophe names (O'Connor)
@@ -101,6 +101,16 @@ export const fixMojibake = (str) => {
     .replace(/\u00c3\u00a2\u00c2\u20ac\u00c2\u201c/g, '\u2013')
     .replace(/\u00c3\u00a2\u00c2\u20ac\u00c2\u201d/g, '\u2014')
     .replace(/\u00c3\u00a2\u00c2\u20ac\u00c2\u2122/g, '\u2019');
+};
+
+
+// Fix field value — applies mojibake repair and handles null/undefined
+// Used for all displayed DB values that may have been corrupted during import/sync
+export const fixField = (value) => {
+  if (value === null || value === undefined) return value;
+  const s = String(value);
+  if (!s) return s;
+  return fixMojibake(s);
 };
 
 // Format project_type for display — handles JSON arrays, mojibake, and comma-separated values
