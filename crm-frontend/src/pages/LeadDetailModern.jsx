@@ -6,7 +6,7 @@ import TruncatedTooltip from "@/components/TruncatedTooltip";
 import { leads as railwayLeads, activities as railwayActivities } from "@/api/railway";
 import { useAuth } from "@/lib/AuthContext";
 import { statusBadgeClass } from "@/lib/design-system";
-import { fmtMoney, formatPhone, toTitleCase, formatProjectType } from "@/lib/formatters";
+import { fmtMoney, formatPhone, toTitleCase, formatProjectType , fixField} from "@/lib/formatters";
 import { callPhone, sendSMS, composeEmail } from "@/lib/contactActions";
 import {
   ArrowLeft, Phone, Mail, Calendar, CheckCircle2, Clock,
@@ -470,8 +470,8 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
             </div>
             {/* Status + Meeting Stage */}
             <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
-              <EditableField value={lead.status || "New"} onSave={v => updateField("status", v)} type="select" options={STATUSES} editable showPencil={false}>
-                <span className={`${statusBadgeClass(lead.status)} cursor-pointer`}>{lead.status || "New"}</span>
+              <EditableField value={fixField(lead.status) || "New"} onSave={v => updateField("status", v)} type="select" options={STATUSES} editable showPencil={false}>
+                <span className={`${statusBadgeClass(lead.status)} cursor-pointer`}>{fixField(lead.status) || "New"}</span>
               </EditableField>
               {lead.meeting_stage ? (
                 <EditableField value={lead.meeting_stage} onSave={v => updateField("meeting_stage", v)} type="select" options={["First Meeting","Second Meeting","Third Meeting"]} editable showPencil={false}>
