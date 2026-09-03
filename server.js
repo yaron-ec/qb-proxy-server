@@ -1844,9 +1844,9 @@ app.post('/admin/verify-lead-delete', requireProxySecret, async (req, res) => {
         const startAt = new Date(Date.now() + 86400000); // tomorrow
         const endAt = new Date(startAt.getTime() + 3600000); // +1h
         await client.query(
-          `INSERT INTO appointments (lead_id, owner_id, appointment_type_id, start_at, end_at, timezone, busy_range, status, calendar_sync_status)
-           VALUES ($1, $3, $2, $4, $5, 'America/Los_Angeles', tstzrange($4, $5, '[)'), 'scheduled', 'pending')`,
-          [leadId, typeId, ownerId, startAt.toISOString(), endAt.toISOString()]
+          `INSERT INTO appointments (lead_id, owner_id, appointment_type_id, start_at, end_at, timezone, busy_range, status, calendar_sync_status, idempotency_key)
+           VALUES ($1, $3, $2, $4, $5, 'America/Los_Angeles', tstzrange($4, $5, '[)'), 'scheduled', 'pending', $6)`,
+          [leadId, typeId, ownerId, startAt.toISOString(), endAt.toISOString(), `fk-test-${leadId}`]
         );
       }
 
