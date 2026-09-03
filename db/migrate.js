@@ -7,8 +7,9 @@
  * db/migrations/*.sql in filename order. All statements are idempotent
  * (IF NOT EXISTS / ON CONFLICT), so this is safe to re-run.
  *
- * The server does NOT run this automatically. Run BEFORE starting the service:
- *   node db/migrate.js        (or)   npm run migrate
+ * The Dockerfile runs this automatically before starting the server:
+ *   CMD ["sh", "-c", "node db/migrate.js && node server.js"]
+ * All migrations are idempotent, so re-runs on every deploy are safe.
  *
  * Exit: 0 = all migrations applied; 1 = failed.
  */
