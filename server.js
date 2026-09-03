@@ -1881,7 +1881,7 @@ app.post('/admin/verify-lead-delete', requireProxySecret, async (req, res) => {
       await client.query(`DELETE FROM reminder_claims WHERE lead_id = $1`, [leadId]);
       await client.query(`DELETE FROM reminder_activity_queue WHERE lead_id = $1`, [leadId]);
       await client.query(`UPDATE reminder_runs SET last_reminder_lead_id = NULL WHERE last_reminder_lead_id = $1`, [leadId]);
-      await client.query(`UPDATE qb_invoice_sale_map SET crm_lead_id = '' WHERE crm_lead_id = $2`, ['', leadId]);
+      await client.query(`UPDATE qb_invoice_sale_map SET crm_lead_id = $1::text WHERE crm_lead_id = $2`, ['', leadId]);
       await client.query('DELETE FROM leads WHERE id = $1', [leadId]);
       await client.query('COMMIT');
 

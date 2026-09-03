@@ -41,7 +41,8 @@ async function cleanupLeadTextRefs(client, leadId) {
   // reminder_runs: historical run log — unlink (SET NULL), preserve audit trail
   await client.query(`UPDATE reminder_runs SET last_reminder_lead_id = NULL WHERE last_reminder_lead_id = $1`, [leadId]);
   // qb_invoice_sale_map: invoice->sale mapping — unlink (SET empty), preserve QB invoice mapping
-  await client.query(`UPDATE qb_invoice_sale_map SET crm_lead_id = $1 WHERE crm_lead_id = $2`, ['', leadId]);
+  // Cast $1::text — PostgreSQL cannot infer the type of an empty string literal in a prepared statement.
+  await client.query(`UPDATE qb_invoice_sale_map SET crm_lead_id = $1::text WHERE crm_lead_id = $2`, ['', leadId]);
 }
 
 // ── Owner-scope resolution ───────────────────────────────────────────────────
