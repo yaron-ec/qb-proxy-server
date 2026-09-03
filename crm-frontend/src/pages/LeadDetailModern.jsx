@@ -1008,7 +1008,7 @@ function EditNameButton({ lead, onSave }) {
   );
 }
 
-// ── Mobile Integration Actions — always-visible 2�2 icon grid ────────────────
+// ── Mobile Integration Actions — always-visible 2×2 icon grid ────────────────
 function MobileIntegrationActions({ lead, onLeadUpdate }) {
   const [calendarState, setCalendarState] = useState({ loading: false, result: null });
   const [contactState, setContactState] = useState({ loading: false, result: null });
@@ -1405,7 +1405,7 @@ function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
           )}
           {editedAt && (
             <span className="text-[10px] text-slate-400 italic">
-              � edited {new Date(editedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })} at {new Date(editedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+              · edited {new Date(editedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })} at {new Date(editedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
             </span>
           )}
         </div>
