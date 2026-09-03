@@ -15,6 +15,7 @@
 const express = require('express');
 const { requireAuth } = require('../lib/rbac');
 const { query } = require('../db/client');
+const { UUID_RE } = require('../lib/leadResolver');
 
 const router = express.Router();
 
@@ -54,14 +55,22 @@ function serializeInvoice(row) {
 router.get('/', requireAuth, async (req, res) => {
   try {
     const { lead_id, deal_id, status, limit: limitStr } = req.query;
+    // P0 DATA ISOLATION: at least one scope (lead_id or deal_id) is REQUIRED.
+    if (!lead_id && !deal_id) return res.json({ items: [], total: 0 });
     const limit = Math.min(parseInt(limitStr || '500', 10), 2000);
 
     const where = [];
     const params = [];
     let p = 1;
 
-    if (lead_id) { where.push(`lead_id = $${p}`); params.push(lead_id); p++; }
-    if (deal_id) { where.push(`deal_id = $${p}`); params.push(deal_id); p++; }
+    if (lead_id) {
+      if (!UUID_RE.test(String(lead_id))) return res.json({ items: [], total: 0 });
+      where.push(`lead_id = $${p}`); params.push(lead_id); p++;
+    }
+    if (deal_id) {
+      if (!UUID_RE.test(String(deal_id))) return res.json({ items: [], total: 0 });
+      where.push(`deal_id = $${p}`); params.push(deal_id); p++;
+    }
     if (status && status !== 'all') { where.push(`status = $${p}`); params.push(status); p++; }
 
     const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';

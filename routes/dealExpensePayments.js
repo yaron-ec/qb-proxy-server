@@ -15,6 +15,7 @@
 const express = require('express');
 const { requireAuth, requireRole } = require('../lib/rbac');
 const { query } = require('../db/client');
+const { UUID_RE } = require('../lib/leadResolver');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -46,12 +47,14 @@ const FIELDS = ['deal_id', 'expense_id', 'payment_date', 'amount', 'payment_meth
 router.get('/', async (req, res) => {
   try {
     const { expense_id, deal_id, limit: limitStr } = req.query;
+    // P0 DATA ISOLATION: deal_id is REQUIRED. Never return all payments across deals.
+    if (!deal_id) return res.json({ items: [], total: 0 });
+    if (!UUID_RE.test(String(deal_id))) return res.json({ items: [], total: 0 });
     const limit = Math.min(parseInt(limitStr || '2000', 10), 5000);
-    const where = [];
-    const params = [];
-    let p = 1;
+    const where = [`deal_id = $1`];
+    const params = [deal_id];
+    let p = 2;
     if (expense_id) { where.push(`expense_id = $${p}`); params.push(expense_id); p++; }
-    if (deal_id) { where.push(`deal_id = $${p}`); params.push(deal_id); p++; }
     const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
     const { rows } = await query(`SELECT * FROM deal_expense_payments ${whereClause} ORDER BY created_at DESC LIMIT $${p}`, [...params, limit]);
     res.json({ items: rows.map(serializePayment), total: rows.length });

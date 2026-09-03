@@ -15,6 +15,7 @@
 const express = require('express');
 const { requireAuth } = require('../lib/rbac');
 const { query } = require('../db/client');
+const { UUID_RE } = require('../lib/leadResolver');
 
 const router = express.Router();
 
@@ -39,13 +40,16 @@ function serializeActivity(row) {
 router.get('/', requireAuth, async (req, res) => {
   try {
     const { lead_id, type, source, sort = '-created_date', limit: limitStr } = req.query;
+    // P0 DATA ISOLATION: lead_id is REQUIRED. Never return all activities across leads.
+    if (!lead_id) return res.json({ items: [], total: 0 });
+    if (!UUID_RE.test(String(lead_id))) return res.json({ items: [], total: 0 });
     const limit = Math.min(parseInt(limitStr || '500', 10), 2000);
 
-    const where = [];
-    const params = [];
-    let p = 1;
+    const where = [`lead_id = $1`];
+    const params = [lead_id];
+    let p = 2;
 
-    if (lead_id) { where.push(`lead_id = $${p}`); params.push(lead_id); p++; }
+
     if (type && type !== 'all') { where.push(`type = $${p}`); params.push(type); p++; }
     if (source && source !== 'all') { where.push(`source = $${p}`); params.push(source); p++; }
 

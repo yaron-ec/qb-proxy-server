@@ -15,6 +15,7 @@
 const express = require('express');
 const { requireAuth } = require('../lib/rbac');
 const { query } = require('../db/client');
+const { UUID_RE } = require('../lib/leadResolver');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -48,11 +49,13 @@ const FIELDS = ['lead_id', 'file_name', 'file_url', 'file_type', 'file_size', 's
 router.get('/', async (req, res) => {
   try {
     const { lead_id, limit: limitStr } = req.query;
+    // P0 DATA ISOLATION: lead_id is REQUIRED. Never return all attachments across leads.
+    if (!lead_id) return res.json({ items: [], total: 0 });
+    if (!UUID_RE.test(String(lead_id))) return res.json({ items: [], total: 0 });
     const limit = Math.min(parseInt(limitStr || '500', 10), 2000);
-    const where = [];
-    const params = [];
-    let p = 1;
-    if (lead_id) { where.push(`lead_id = $${p}`); params.push(lead_id); p++; }
+    const where = [`lead_id = $1`];
+    const params = [lead_id];
+    let p = 2;
     const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
     const { rows } = await query(`SELECT * FROM lead_attachments ${whereClause} ORDER BY created_at DESC LIMIT $${p}`, [...params, limit]);
     res.json({ items: rows.map(serializeAttachment), total: rows.length });
