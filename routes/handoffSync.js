@@ -377,6 +377,40 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
     }
   });
 
+  // ── POST /handoff/diagnostic-counts — production database COUNT(*) (X-Proxy-Secret) ──
+  app.post('/handoff/diagnostic-counts', requireProxySecret, async (req, res) => {
+    if (!rda.isConfigured()) {
+      return res.status(503).json({ success: false, error: 'DATABASE_URL not configured on Railway' });
+    }
+    try {
+      const { query: dbQuery } = require('../db/client');
+      const tables = [
+        'leads', 'deals', 'handoff_estimates', 'activities', 'tasks',
+        'invoices', 'estimates', 'projects', 'sync_cursors',
+        'deal_expenses', 'deal_commissions', 'deal_loan_payments',
+        'app_settings', 'users', 'auth_users',
+      ];
+      const counts = {};
+      for (const table of tables) {
+        try {
+          const { rows } = await dbQuery(`SELECT COUNT(*) as cnt FROM ${table}`);
+          counts[table] = parseInt(rows[0].cnt, 10);
+        } catch (e) {
+          counts[table] = `ERROR: ${e.message.substring(0, 80)}`;
+        }
+      }
+      // Also check the database name we're connected to
+      let dbName = 'unknown';
+      try {
+        const { rows } = await dbQuery('SELECT current_database() as db');
+        dbName = rows[0].db;
+      } catch (e) {}
+      return res.json({ success: true, database: dbName, counts });
+    } catch (e) {
+      return res.status(500).json({ success: false, error: e.message });
+    }
+  });
+
   // ── POST /handoff/diagnostic-leads — list Railway leads for testing (X-Proxy-Secret) ──
   app.post('/handoff/diagnostic-leads', requireProxySecret, async (req, res) => {
     if (!rda.isConfigured()) {
