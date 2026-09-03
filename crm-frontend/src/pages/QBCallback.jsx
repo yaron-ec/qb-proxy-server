@@ -81,12 +81,9 @@ export default function QBCallback() {
       const redirectUri = `${window.location.origin}/qb-callback`;
       console.log("[QBCallback] Using redirectUri:", redirectUri);
       const res = await railwayRequest('/qb/auth-callback', {
-        method: 'POST',
-        body: {
-          code,
-          realmId,
-          redirect_uri: redirectUri,
-        },
+        code,
+        realmId,
+        redirect_uri: redirectUri,
       });
 
       if (res?.error) {
