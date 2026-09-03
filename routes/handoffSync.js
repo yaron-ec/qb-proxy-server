@@ -16,7 +16,33 @@
  */
 'use strict';
 
+const { query } = require('../db/client');
+
 const HANDOFF_API = process.env.HANDOFF_API_BASE_URL || 'https://app.handoff.ai';
+
+// ── Settings table helpers (replaces rda for Property/key-value storage) ────
+// The Base44 "Property" entity is a key-value store. In Railway, the `settings`
+// table serves this purpose (key, value JSONB, type). We use `query` directly
+// because rda's update/delete use `id` but settings uses `key` as the unique ID.
+async function getSetting(key) {
+  const { rows } = await query('SELECT * FROM settings WHERE key = $1', [key]);
+  return rows[0] || null;
+}
+
+async function upsertSetting(key, value, type) {
+  const { rows } = await query(
+    `INSERT INTO settings (key, value, type)
+     VALUES ($1, $2, $3)
+     ON CONFLICT (key) DO UPDATE SET value = $2, type = COALESCE($3, settings.type), updated_at = NOW()
+     RETURNING *`,
+    [key, JSON.stringify(value), type || 'text']
+  );
+  return rows[0];
+}
+
+async function deleteSetting(key) {
+  await query('DELETE FROM settings WHERE key = $1', [key]);
+}
 
 module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda, handoffClient) {
 
@@ -356,11 +382,11 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
   // POST /handoff/auth/status
   app.post('/handoff/auth/status', requireProxySecret, async (req, res) => {
     try {
-      const records = await rda.filter('Property', { key: 'handoff_bearer_token' });
-      if (!records || records.length === 0) {
+      const record = await getSetting('handoff_bearer_token');
+      if (!record) {
         return res.json({ connected: false });
       }
-      const tokenData = JSON.parse(records[0].value || '{}');
+      const tokenData = JSON.parse(record.value || '{}');
       const token = tokenData.token;
       if (!token) return res.json({ connected: false });
 
@@ -453,17 +479,7 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
         last_verified_at: now,
       });
 
-      const existing = await rda.filter('Property', { key: 'handoff_bearer_token' });
-      if (existing && existing.length > 0) {
-        await rda.update('Property', existing[0].id, { value: tokenValue });
-      } else {
-        await rda.create('Property', {
-          key: 'handoff_bearer_token',
-          description: 'Handoff API Bearer Token (Phone OTP)',
-          type: 'text',
-          value: tokenValue,
-        });
-      }
+      await upsertSetting('handoff_bearer_token', JSON.parse(tokenValue), 'text');
 
       return res.json({ success: true, message: 'Successfully authenticated with Handoff' });
     } catch (e) {
@@ -502,17 +518,7 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
     // Store token
     const now = new Date().toISOString();
     const tokenValue = JSON.stringify({ token: cleanToken, connected_at: now, last_verified_at: now });
-    const existing = await rda.filter('Property', { key: 'handoff_bearer_token' });
-    if (existing && existing.length > 0) {
-      await rda.update('Property', existing[0].id, { value: tokenValue });
-    } else {
-      await rda.create('Property', {
-        key: 'handoff_bearer_token',
-        description: 'Handoff API Token',
-        type: 'text',
-        value: tokenValue,
-      });
-    }
+    await upsertSetting('handoff_bearer_token', JSON.parse(tokenValue), 'text');
 
     return res.json({ success: true, message: 'Token saved successfully', connected: true });
   });
@@ -520,10 +526,7 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
   // POST /handoff/auth/disconnect
   app.post('/handoff/auth/disconnect', requireProxySecret, async (req, res) => {
     try {
-      const existing = await rda.filter('Property', { key: 'handoff_bearer_token' });
-      if (existing && existing.length > 0) {
-        await rda.delete('Property', existing[0].id);
-      }
+      await deleteSetting('handoff_bearer_token');
       return res.json({ success: true });
     } catch (e) {
       return res.status(500).json({ error: e.message });
