@@ -20,6 +20,7 @@
 const express = require('express');
 const { requireAuth, requireRole } = require('../lib/rbac');
 const { query } = require('../db/client');
+const { resolveLeadByIdentifier } = require('../lib/leadResolver');
 const signnowClient = require('../lib/signnowClient');
 
 const router = express.Router();
@@ -45,8 +46,8 @@ router.get('/templates', async (req, res) => {
 router.get('/by-external/:externalRef', async (req, res) => {
   try {
     const { externalRef } = req.params;
-    const leadRes = await query('SELECT id FROM leads WHERE external_ref = $1', [externalRef]);
-    if (!leadRes.rows[0]) return res.status(404).json({ error: 'not_found' });
+    const lead = await resolveLeadByIdentifier(externalRef);
+    if (!lead) return res.status(404).json({ error: 'not_found' });
 
     const docs = await query(
       `SELECT * FROM signnow_documents WHERE lead_id = $1 ORDER BY created_at DESC LIMIT 100`,
@@ -80,8 +81,8 @@ router.get('/by-external/:externalRef', async (req, res) => {
 router.post('/by-external/:externalRef/upload', requireAdminManager, async (req, res) => {
   try {
     const { externalRef } = req.params;
-    const leadRes = await query('SELECT id, first_name, last_name, email FROM leads WHERE external_ref = $1', [externalRef]);
-    if (!leadRes.rows[0]) return res.status(404).json({ error: 'not_found' });
+    const lead = await resolveLeadByIdentifier(externalRef);
+    if (!lead) return res.status(404).json({ error: 'not_found' });
     const lead = leadRes.rows[0];
 
     const { file_url, document_name, signers } = req.body || {};
@@ -141,8 +142,8 @@ router.post('/by-external/:externalRef/prepare', requireAdminManager, async (req
     const { externalRef } = req.params;
     const { template_id, document_name, signers } = req.body || {};
 
-    const leadRes = await query('SELECT id, first_name, last_name, email FROM leads WHERE external_ref = $1', [externalRef]);
-    if (!leadRes.rows[0]) return res.status(404).json({ error: 'not_found' });
+    const lead = await resolveLeadByIdentifier(externalRef);
+    if (!lead) return res.status(404).json({ error: 'not_found' });
     const lead = leadRes.rows[0];
 
     if (!template_id) return res.status(400).json({ error: 'template_id required' });

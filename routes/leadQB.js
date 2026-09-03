@@ -30,6 +30,7 @@ const express = require('express');
 const { requireAuth, requireRole } = require('../lib/rbac');
 const { query } = require('../db/client');
 const qbInternal = require('../lib/qbInternal');
+const { resolveLeadByIdentifier } = require('../lib/leadResolver');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -42,14 +43,8 @@ router.get('/by-external/:externalRef', async (req, res) => {
     const { externalRef } = req.params;
 
     // 1. Read lead from Railway
-    const leadRes = await query(
-      `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
-       FROM leads l LEFT JOIN owners o ON o.id = l.owner_id
-       WHERE l.external_ref = $1`,
-      [externalRef]
-    );
-    if (!leadRes.rows[0]) return res.status(404).json({ error: 'not_found' });
-    const lead = leadRes.rows[0];
+    const lead = await resolveLeadByIdentifier(externalRef);
+    if (!lead) return res.status(404).json({ error: 'not_found' });
 
     // 2. Read CRM invoices from Railway (by lead_id)
     const invoiceRes = await query(
@@ -166,13 +161,8 @@ router.post('/by-external/:externalRef/refresh', requireAdminManager, async (req
   try {
     const { externalRef } = req.params;
 
-    const leadRes = await query(
-      `SELECT l.first_name, l.last_name, l.email, l.qb_customer_id
-       FROM leads l WHERE l.external_ref = $1`,
-      [externalRef]
-    );
-    if (!leadRes.rows[0]) return res.status(404).json({ error: 'not_found' });
-    const lead = leadRes.rows[0];
+    const lead = await resolveLeadByIdentifier(externalRef);
+    if (!lead) return res.status(404).json({ error: 'not_found' });
 
     const name = `${lead.first_name} ${lead.last_name}`.trim();
     const qbData = await qbInternal.getLeadStatus(lead.qb_customer_id, name, lead.email);
@@ -200,13 +190,8 @@ router.post('/by-external/:externalRef/sync', requireAdminManager, async (req, r
   try {
     const { externalRef } = req.params;
 
-    const leadRes = await query(
-      `SELECT l.first_name, l.last_name, l.email, l.phone, l.property_address, l.city, l.qb_customer_id
-       FROM leads l WHERE l.external_ref = $1`,
-      [externalRef]
-    );
-    if (!leadRes.rows[0]) return res.status(404).json({ error: 'not_found' });
-    const lead = leadRes.rows[0];
+    const lead = await resolveLeadByIdentifier(externalRef);
+    if (!lead) return res.status(404).json({ error: 'not_found' });
 
     const result = await qbInternal.syncLead({
       first_name: lead.first_name,
@@ -222,8 +207,8 @@ router.post('/by-external/:externalRef/sync', requireAdminManager, async (req, r
     if (result.customer_id || result.customer?.Id) {
       const qbCustomerId = result.customer_id || result.customer.Id;
       await query(
-        'UPDATE leads SET qb_customer_id = $1, qb_last_sync_at = NOW(), qb_last_sync_result = $2, updated_at = NOW() WHERE external_ref = $3',
-        [qbCustomerId, 'success', externalRef]
+        'UPDATE leads SET qb_customer_id = $1, qb_last_sync_at = NOW(), qb_last_sync_result = $2, updated_at = NOW() WHERE id = $3',
+        [qbCustomerId, 'success', lead.id]
       );
     }
 
