@@ -52,19 +52,26 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
   const initialLoadDoneRef = useRef(false);
 
   useEffect(() => {
-    load().then(() => {
+    // P0 DATA ISOLATION: Only load if we have a valid Railway UUID.
+    // lead.railway_id is set by LeadDetailModern (getDetailByExternal).
+    // lead.id is the Railway UUID from serializeLead (always present for
+    // Railway-native leads). Never call the API without a valid lead_id —
+    // the backend now REQUIRES lead_id and returns empty if missing.
+    const canonicalLeadId = lead.railway_id || lead.id;
+    if (!canonicalLeadId) {
+      setLoading(false);
+      return;
+    }
+    load(canonicalLeadId).then(() => {
       initialLoadDoneRef.current = true;
       triggerAutoSync();
     });
+  }, [lead.id, lead.railway_id]);
 
-    // Real-time subscription removed — Railway has no client-side subscribe.
-    // The auto-sync on load + manual refresh button cover the same use case.
-  }, [lead.id]);
-
-  const load = async () => {
+  const load = async (canonicalLeadId) => {
     setLoading(true);
     try {
-      const res = await railwayHandoffEstimates.list({ lead_id: lead.railway_id });
+      const res = await railwayHandoffEstimates.list({ lead_id: canonicalLeadId });
       const data = res.items || [];
 
       // Dedup by stable identifier (qb_estimate_id, fallback handoff_estimate_id, then id).
