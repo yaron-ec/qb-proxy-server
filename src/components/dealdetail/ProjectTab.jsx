@@ -10,7 +10,7 @@ export default function ProjectTab({ deal, lead, updateField, setLead, saving })
     <div className="max-w-4xl mx-auto px-4 md:px-6 py-5 space-y-5">
       {/* Handoff Estimates */}
       <div>
-        <p className="typography-section-header mb-2">HANDOFF ESTIMATE</p>
+        <p className="typography-section-header mb-2">QUICKBOOKS ESTIMATES</p>
         <div className="card-premium overflow-hidden">
           {lead ? (
             <HandoffEstimatesPanel lead={lead} onLeadUpdate={setLead} />
