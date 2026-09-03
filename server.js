@@ -1841,7 +1841,8 @@ app.post('/admin/verify-lead-delete', requireProxySecret, async (req, res) => {
       const apptTypeRes = await client.query('SELECT id FROM appointment_types ORDER BY id LIMIT 1');
       const typeId = apptTypeRes.rows[0]?.id;
       if (typeId) {
-        const startAt = new Date(Date.now() + 365 * 86400000); // 1 year from now (avoid overlap with real appointments)
+        const randomDays = 365 + Math.floor(Math.random() * 3650); // 1-11 years from now (unique per run, avoids overlap with prior test appointments)
+        const startAt = new Date(Date.now() + randomDays * 86400000);
         const endAt = new Date(startAt.getTime() + 3600000); // +1h
         await client.query(
           `INSERT INTO appointments (lead_id, owner_id, appointment_type_id, start_at, end_at, timezone, busy_range, status, calendar_sync_status, idempotency_key)
