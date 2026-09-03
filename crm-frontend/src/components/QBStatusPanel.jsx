@@ -41,7 +41,7 @@ export default function QBStatusPanel({ lead, onLeadUpdated }) {
     } catch (e) {
       // 404 "not_found" means the lead doesn't exist in Railway — show a
       // clean "Not connected" state, not a scary error.
-      if (e.status === 404 || e.message === 'not_found') {
+      if (e.status === 404 || (e.message && (e.message.includes('not_found') || e.message.includes('404')))) {
         setQbData({ qbConnected: false, crmInvoices: [], qbInvoices: [], estimates: [] });
       } else {
         setError(e.message || 'Failed to load QB status');
