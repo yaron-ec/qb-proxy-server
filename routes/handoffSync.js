@@ -386,7 +386,9 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
       if (!record) {
         return res.json({ connected: false });
       }
-      const tokenData = JSON.parse(record.value || '{}');
+      // Handle JSONB auto-parsing by pg (value may be object or string)
+      const rawVal = record.value;
+      const tokenData = typeof rawVal === 'string' ? JSON.parse(rawVal || '{}') : (rawVal || {});
       const token = tokenData.token;
       if (!token) return res.json({ connected: false });
 
@@ -395,8 +397,8 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token,
           'X-API-Key': token,
+          'User-Agent': 'EC-CRM-Railway/1.0',
         },
         body: JSON.stringify({ query: '{ __typename }' }),
       });
