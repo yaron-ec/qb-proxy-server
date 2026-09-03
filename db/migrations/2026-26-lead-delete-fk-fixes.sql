@@ -10,12 +10,17 @@
 -- This migration fixes the FK behavior for every Lead-dependent table:
 --
 --   Lead-owned (CASCADE — no independent business value without the Lead):
---     appointments          → leads(id) ON DELETE CASCADE
 --     booking_idempotency   → leads(id) ON DELETE CASCADE
 --     projection_outbox     → leads(id) ON DELETE CASCADE
 --     base44_entity_map     → leads(id) ON DELETE CASCADE
 --     calendar_outbox       → appointments(id) ON DELETE CASCADE
 --     appointment_events    → appointments(id) ON DELETE CASCADE
+--
+--   Appointments (SET NULL — appointments are IMMUTABLE, no physical DELETE):
+--     appointments.lead_id  → DROP NOT NULL + ON DELETE SET NULL
+--     The application cancels active appointments (status='cancelled') and
+--     enqueues calendar outbox cancellations BEFORE deleting the lead.
+--     The FK SET NULL preserves the immutable audit trail.
 --
 --   Business records (SET NULL — record survives, Lead reference unlinked):
 --     deals.lead_id         → DROP NOT NULL + ON DELETE SET NULL
@@ -29,10 +34,16 @@
 -- Idempotent: uses DROP CONSTRAINT IF EXISTS before ADD CONSTRAINT.
 -- =====================================================================
 
--- ── appointments → leads: CASCADE (Lead-owned scheduling data) ────────────
+-- ── appointments → leads: SET NULL (appointments are immutable, no physical DELETE) ─
+-- The appointments table has a RULE that blocks physical DELETE (audit trail).
+-- CASCADE cannot work — it tries to physically DELETE appointment rows.
+-- The application cancels active appointments + enqueues calendar outbox
+-- cancellations BEFORE deleting the lead. The FK SET NULL preserves the
+-- immutable appointment record with lead_id = NULL.
 ALTER TABLE appointments DROP CONSTRAINT IF EXISTS appointments_lead_id_fkey;
+ALTER TABLE appointments ALTER COLUMN lead_id DROP NOT NULL;
 ALTER TABLE appointments ADD CONSTRAINT appointments_lead_id_fkey
-  FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE;
+  FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE SET NULL;
 
 -- ── booking_idempotency → leads: CASCADE (Lead-owned idempotency tokens) ──
 ALTER TABLE booking_idempotency DROP CONSTRAINT IF EXISTS booking_idempotency_lead_id_fkey;

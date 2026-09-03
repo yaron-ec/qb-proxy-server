@@ -1768,8 +1768,8 @@ app.post('/admin/verify-lead-delete', requireProxySecret, async (req, res) => {
 
     // Check specific tables we care about
     // Direct FKs to leads(id):
-    const expectedCascade = ['appointments', 'booking_idempotency', 'projection_outbox'];
-    const expectedSetNull = ['deals'];
+    const expectedCascade = ['booking_idempotency', 'projection_outbox'];
+    const expectedSetNull = ['appointments', 'deals'];
     // Indirect cascade (through appointments → calendar_outbox, appointment_events):
     // These have FK to appointments(id) ON DELETE CASCADE, so they cascade
     // through the appointments cascade. base44_entity_map uses railway_lead_id.
@@ -1877,6 +1877,8 @@ app.post('/admin/verify-lead-delete', requireProxySecret, async (req, res) => {
       // ── Atomic delete (same logic as DELETE /:id) ──────────────────────────
       await client.query('BEGIN');
       await removeFromReminders(client, { id: leadId, external_ref: testExt });
+      // Cancel active appointments (appointments are immutable — no physical DELETE)
+      await client.query(`UPDATE appointments SET status = 'cancelled', version = COALESCE(version, 1) + 1, updated_at = NOW() WHERE lead_id = $1 AND status IN ('scheduled', 'confirmed')`, [leadId]);
       // cleanupLeadTextRefs
       await client.query(`DELETE FROM reminder_claims WHERE lead_id = $1`, [leadId]);
       await client.query(`DELETE FROM reminder_activity_queue WHERE lead_id = $1`, [leadId]);
@@ -1887,18 +1889,20 @@ app.post('/admin/verify-lead-delete', requireProxySecret, async (req, res) => {
 
       // ── Verify no orphans remain ───────────────────────────────────────────
       const afterLead = await client.query('SELECT count(*) as c FROM leads WHERE id = $1', [leadId]);
-      const afterAppts = await client.query('SELECT count(*) as c FROM appointments WHERE lead_id = $1', [leadId]);
+      // Appointments are immutable (SET NULL) — verify lead_id is NULL + status is cancelled
+      const afterApptsLinked = await client.query('SELECT count(*) as c FROM appointments WHERE lead_id = $1', [leadId]);
+      const afterApptsCancelled = await client.query(`SELECT count(*) as c FROM appointments WHERE id IN (SELECT appointment_id FROM appointment_events WHERE action = 'cancelled') AND status = 'cancelled'`);
       const afterClaims = await client.query('SELECT count(*) as c FROM reminder_claims WHERE lead_id = $1', [leadId]);
       const afterActs = await client.query('SELECT count(*) as c FROM activities WHERE lead_id = $1', [leadId]);
       result.e2e.after = {
         leads: parseInt(afterLead.rows[0].c),
-        appointments: parseInt(afterAppts.rows[0].c),
+        appointments_linked: parseInt(afterApptsLinked.rows[0].c),
         reminder_claims: parseInt(afterClaims.rows[0].c),
         activities: parseInt(afterActs.rows[0].c),
       };
 
       if (result.e2e.after.leads !== 0) { result.overall = 'FAIL'; result.e2e.errors = result.e2e.errors || []; result.e2e.errors.push('Lead still exists'); }
-      if (result.e2e.after.appointments !== 0) { result.overall = 'FAIL'; result.e2e.errors = result.e2e.errors || []; result.e2e.errors.push('Appointments not cascaded'); }
+      if (result.e2e.after.appointments_linked !== 0) { result.overall = 'FAIL'; result.e2e.errors = result.e2e.errors || []; result.e2e.errors.push('Appointments still linked (SET NULL failed)'); }
       if (result.e2e.after.reminder_claims !== 0) { result.overall = 'FAIL'; result.e2e.errors = result.e2e.errors || []; result.e2e.errors.push('Reminder claims not cleaned up'); }
       if (result.e2e.after.activities !== 0) { result.overall = 'FAIL'; result.e2e.errors = result.e2e.errors || []; result.e2e.errors.push('Activities not cascaded'); }
 

@@ -45,6 +45,34 @@ async function cleanupLeadTextRefs(client, leadId) {
   await client.query(`UPDATE qb_invoice_sale_map SET crm_lead_id = $1::text WHERE crm_lead_id = $2`, ['', leadId]);
 }
 
+// ── Lead deletion helper: cancel active appointments ──────────────────────
+// The appointments table is IMMUTABLE — a RULE blocks physical DELETE (audit
+// trail). The FK is ON DELETE SET NULL (not CASCADE), so the appointment rows
+// survive with lead_id = NULL. But we must first cancel any active
+// appointments (status → 'cancelled') and enqueue calendar outbox
+// cancellations so Google Calendar events are removed. This runs inside the
+// same atomic transaction as the lead DELETE.
+async function cancelAppointmentsForLeadDelete(client, leadId) {
+  const { rows } = await client.query(
+    `SELECT * FROM appointments WHERE lead_id = $1 AND status IN ('scheduled', 'confirmed')`,
+    [leadId]
+  );
+  for (const appt of rows) {
+    const newVersion = (appt.version || 1) + 1;
+    await client.query(
+      'UPDATE appointments SET status = $1, version = $2, updated_at = NOW() WHERE id = $3',
+      ['cancelled', newVersion, appt.id]
+    );
+    // Enqueue calendar outbox cancellation (Google Calendar event removal)
+    try {
+      const cancelledAppt = (await client.query('SELECT * FROM appointments WHERE id = $1', [appt.id])).rows[0];
+      await calendarOutbox.enqueueCancel(client, cancelledAppt, cancelledAppt.version);
+    } catch (e) {
+      console.warn('[leads] calendar outbox cancel failed (non-blocking):', e.message);
+    }
+  }
+}
+
 // ── Owner-scope resolution ───────────────────────────────────────────────────
 // admin/manager: no filter. office: no filter (read-only). sales_rep: own owner.
 async function resolveOwnerScope(user) {
@@ -414,6 +442,7 @@ router.delete('/by-external/:externalRef', requireAuth, async (req, res) => {
     try {
       await client.query('BEGIN');
       await removeFromReminders(client, leadR.rows[0]);
+      await cancelAppointmentsForLeadDelete(client, leadR.rows[0].id);
       await cleanupLeadTextRefs(client, leadR.rows[0].id);
       await client.query('DELETE FROM leads WHERE id = $1', [leadR.rows[0].id]);
       await client.query('COMMIT');
@@ -932,6 +961,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
     try {
       await client.query('BEGIN');
       await removeFromReminders(client, leadR.rows[0]);
+      await cancelAppointmentsForLeadDelete(client, id);
       await cleanupLeadTextRefs(client, id);
       await client.query('DELETE FROM leads WHERE id = $1', [id]);
       await client.query('COMMIT');
