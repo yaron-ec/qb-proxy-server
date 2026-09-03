@@ -2,25 +2,25 @@
  * Format utilities to prevent zero/null from displaying
  */
 
-// Display value safely — never show "0" or null literally
+// Display value safely â never show "0" or null literally
 export const safeDisplay = (value) => {
   if (value === null || value === undefined || value === '' || value === '0' || value === 0) {
-    return '—';
+    return 'â';
   }
   return value;
 };
 
-// Format money safely — never show "$0"
+// Format money safely â never show "$0"
 export const fmtMoney = (v) => {
   if (v === null || v === undefined || v === 0) {
-    return '—';
+    return 'â';
   }
   return `$${Number(v).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 };
 
 // Format date safely
 export const fmtDate = (isoStr) => {
-  if (!isoStr) return '—';
+  if (!isoStr) return 'â';
   return new Date(isoStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/Los_Angeles' });
 };
 
@@ -33,23 +33,23 @@ export const formatPhone = (raw) => {
   if (digits.length === 11 && digits[0] === '1') {
     return `+1 (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
   }
-  // US: 10 digits — assume US, prepend +1
+  // US: 10 digits â assume US, prepend +1
   if (digits.length === 10) {
     return `+1 (${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
   }
-  // Already formatted or international — return as-is
+  // Already formatted or international â return as-is
   return raw;
 };
 
-// Preserved abbreviations — always keep these uppercase
+// Preserved abbreviations â always keep these uppercase
 const ABBREVIATIONS = new Set(['ADU', 'HVAC', 'HOA', 'USA', 'CA', 'LA', 'LLC', 'AC', 'HVAC']);
 
 /**
- * Convert a string to Title Case — always normalizes.
+ * Convert a string to Title Case â always normalizes.
  * - Preserves known abbreviations (ADU, HVAC, HOA, etc.)
  * - Handles hyphenated names (Smith-Johnson)
  * - Handles apostrophe names (O'Connor)
- * - Fixes ALL CAPS, all lowercase, and mixed-case (jOE aLBARRAN → Joe Albarran)
+ * - Fixes ALL CAPS, all lowercase, and mixed-case (jOE aLBARRAN â Joe Albarran)
  */
 export const toTitleCase = (str) => {
   if (!str) return str;
@@ -78,9 +78,39 @@ export const toTitleCase = (str) => {
   }).join(' ');
 };
 
+// Fix common UTF-8 mojibake patterns (bytes interpreted as Latin-1)
+export const fixMojibake = (str) => {
+  if (!str || typeof str !== 'string') return str;
+  return str
+    .replace(/\u00e2\u20ac\u201c/g, '\u2013')
+    .replace(/\u00e2\u20ac\u201d/g, '\u2014')
+    .replace(/\u00e2\u20ac\u2122/g, '\u2019')
+    .replace(/\u00e2\u20ac\u0153/g, '\u201c')
+    .replace(/\u00e2\u20ac\u009d/g, '\u201d')
+    .replace(/\u00e2\u20ac\u00a0/g, '\u00a0')
+    .replace(/\u00c3\u00a2\u00c2\u20ac\u00c2\u201c/g, '\u2013')
+    .replace(/\u00c3\u00a2\u00c2\u20ac\u00c2\u201d/g, '\u2014')
+    .replace(/\u00c3\u00a2\u00c2\u20ac\u00c2\u2122/g, '\u2019');
+};
+
+// Format project_type for display — handles JSON arrays, mojibake, and comma-separated values
+export const formatProjectType = (raw) => {
+  if (!raw) return raw;
+  let s = String(raw).trim();
+  if (!s) return s;
+  s = fixMojibake(s);
+  if (s.startsWith('[') && s.endsWith(']')) {
+    try {
+      const arr = JSON.parse(s);
+      if (Array.isArray(arr)) return arr.filter(Boolean).join(', ');
+    } catch { /* not valid JSON */ }
+  }
+  return s;
+};
+
 // Format datetime safely
 export const fmtDateTime = (isoStr) => {
-  if (!isoStr) return '—';
+  if (!isoStr) return 'â';
   return new Date(isoStr).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
