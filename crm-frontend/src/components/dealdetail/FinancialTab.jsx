@@ -70,13 +70,15 @@ export default function FinancialTab({
         <DealPaymentPanel deal={deal} lead={lead} onDealUpdate={setDeal} invoices={invoices} />
       </div>
 
-      {/* QuickBooks */}
-      <div>
-        <p className="typography-section-header mb-2">QUICKBOOKS</p>
-        <div className="card-premium overflow-hidden">
-          <QBStatusPanel lead={{ ...lead, status: "Sold" }} onLeadUpdated={refreshLead} />
+      {/* QuickBooks — only render if a lead is linked (lead.id is the Railway UUID) */}
+      {lead?.id && (
+        <div>
+          <p className="typography-section-header mb-2">QUICKBOOKS</p>
+          <div className="card-premium overflow-hidden">
+            <QBStatusPanel lead={{ ...lead, status: "Sold" }} onLeadUpdated={refreshLead} />
+          </div>
         </div>
-      </div>
+      )}
 
 
     </div>
