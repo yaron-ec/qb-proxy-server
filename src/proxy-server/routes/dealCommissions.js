@@ -58,6 +58,8 @@ router.get('/', async (req, res) => {
   try {
     const { deal_id, recipient_user_id, limit: limitStr } = req.query;
     const limit = Math.min(parseInt(limitStr || '2000', 10), 5000);
+    // P0 DATA ISOLATION: at least one scope (deal_id or recipient_user_id) is REQUIRED.
+    if (!deal_id && !recipient_user_id) return res.json({ items: [], total: 0 });
     const where = [];
     const params = [];
     let p = 1;
@@ -66,7 +68,7 @@ router.get('/', async (req, res) => {
       where.push(`deal_id = $${p}`); params.push(deal_id); p++;
     }
     if (recipient_user_id) { where.push(`recipient_user_id = $${p}`); params.push(recipient_user_id); p++; }
-    const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
+    const whereClause = `WHERE ${where.join(' AND ')}`;
     const { rows } = await query(`SELECT * FROM deal_commissions ${whereClause} ORDER BY created_at DESC LIMIT $${p}`, [...params, limit]);
     res.json({ items: rows.map(serializeCommission), total: rows.length });
   } catch (e) {
