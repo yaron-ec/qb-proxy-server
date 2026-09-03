@@ -65,17 +65,18 @@ const FIELDS = [
 router.get('/', async (req, res) => {
   try {
     const { lead_id, match_status, qb_estimate_id, limit: limitStr } = req.query;
+    // P0 DATA ISOLATION: lead_id is REQUIRED. Without it, the query would
+    // return ALL handoff_estimates across ALL customers — a cross-customer
+    // data leak. Never allow an unfiltered query.
+    if (!lead_id) return res.json({ items: [], total: 0 });
+    if (!UUID_RE.test(String(lead_id))) return res.json({ items: [], total: 0 });
     const limit = Math.min(parseInt(limitStr || '500', 10), 2000);
-    const where = [];
-    const params = [];
-    let p = 1;
-    if (lead_id) {
-      if (!UUID_RE.test(String(lead_id))) return res.json({ items: [], total: 0 });
-      where.push(`lead_id = $${p}`); params.push(lead_id); p++;
-    }
+    const where = [`lead_id = $1`];
+    const params = [lead_id];
+    let p = 2;
     if (match_status && match_status !== 'all') { where.push(`match_status = $${p}`); params.push(match_status); p++; }
     if (qb_estimate_id) { where.push(`qb_estimate_id = $${p}`); params.push(qb_estimate_id); p++; }
-    const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
+    const whereClause = `WHERE ${where.join(' AND ')}`;
     const { rows } = await query(`SELECT * FROM handoff_estimates ${whereClause} ORDER BY created_at DESC LIMIT $${p}`, [...params, limit]);
     res.json({ items: rows.map(serializeEstimate), total: rows.length });
   } catch (e) {
