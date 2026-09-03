@@ -377,6 +377,67 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
     }
   });
 
+  // ── POST /handoff/diagnostic-leads — list Railway leads for testing (X-Proxy-Secret) ──
+  app.post('/handoff/diagnostic-leads', requireProxySecret, async (req, res) => {
+    if (!rda.isConfigured()) {
+      return res.status(503).json({ success: false, error: 'DATABASE_URL not configured on Railway' });
+    }
+    try {
+      const leads = await rda.list('Lead', '-created_date', 10, 0);
+      const summaries = leads.map(function (l) {
+        return {
+          id: l.id,
+          first_name: l.first_name,
+          last_name: l.last_name,
+          status: l.status,
+          phone: l.phone,
+          email: l.email,
+          property_address: l.property_address,
+        };
+      });
+      return res.json({ success: true, count: leads.length, leads: summaries });
+    } catch (e) {
+      return res.status(500).json({ success: false, error: e.message });
+    }
+  });
+
+  // ── POST /handoff/diagnostic-create-deal — test deal creation (X-Proxy-Secret) ──
+  app.post('/handoff/diagnostic-create-deal', requireProxySecret, async (req, res) => {
+    if (!rda.isConfigured()) {
+      return res.status(503).json({ success: false, error: 'DATABASE_URL not configured on Railway' });
+    }
+    const { lead_id, name, amount } = req.body || {};
+    if (!lead_id) return res.status(400).json({ success: false, error: 'lead_id required' });
+
+    try {
+      // Verify lead exists
+      const leads = await rda.list('Lead', '-created_date', 5000, 0);
+      const lead = leads.find(function (l) { return l.id === lead_id; });
+      if (!lead) return res.status(404).json({ success: false, error: 'Lead not found in Railway' });
+
+      // Create deal
+      const dealData = {
+        lead_id: lead.id,
+        name: name || ('Test Deal - ' + lead.first_name + ' ' + lead.last_name),
+        amount: amount || 0,
+        stage: 'Sold / Estimate Approved',
+        pipeline: 'Default Pipeline',
+        assigned_rep: lead.assigned_rep || '',
+        project_type: lead.project_type || '',
+        property_address: lead.property_address || '',
+      };
+      const deal = await rda.create('Deal', dealData);
+
+      return res.json({
+        success: true,
+        deal: { id: deal.id, name: deal.name, amount: deal.amount, stage: deal.stage, lead_id: deal.lead_id },
+        lead: { id: lead.id, name: lead.first_name + ' ' + lead.last_name },
+      });
+    } catch (e) {
+      return res.status(500).json({ success: false, error: e.message });
+    }
+  });
+
   // ═══ Handoff Auth Routes (migrated from Base44 handoffAuth function) ════════
 
   // POST /handoff/auth/status
