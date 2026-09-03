@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { railwayRequest } from "@/lib/railwayClient";
 import * as railwayLeads from "@/api/railway/leads";
 import { apiCall } from "@/api/railway/client";
@@ -35,6 +35,19 @@ export default function QuickBooksSyncTab() {
   const [histImporting, setHistImporting] = useState(false);
   const [histResult, setHistResult] = useState(null);
 
+  // Refs for OAuth popup cleanup — prevents stale postMessage listeners
+  // from surviving unmount and re-setting connectError on a new mount.
+  const onMessageRef = useRef(null);
+  const popupTimerRef = useRef(null);
+
+  // Cleanup any stale OAuth listeners on unmount.
+  useEffect(() => {
+    return () => {
+      if (onMessageRef.current) window.removeEventListener('message', onMessageRef.current);
+      if (popupTimerRef.current) clearInterval(popupTimerRef.current);
+    };
+  }, []);
+
   useEffect(() => { loadStatus(); }, []);
 
   const loadStatus = async () => {
@@ -42,7 +55,7 @@ export default function QuickBooksSyncTab() {
     setLoadError(null);
     setConnectError(null);
     try {
-      const res = await railwayRequest('/qb/auth-status', { method: 'POST' });
+      const res = await railwayRequest('/qb/auth-status');
       setStatus(res);
       if (res?.connected) loadCompany();
     } catch (e) {
@@ -76,27 +89,31 @@ export default function QuickBooksSyncTab() {
     startJob(jobId);
     try {
       const redirectUri = `${window.location.origin}/qb-callback`;
-      const res = await railwayRequest('/qb/auth-connect', { method: 'POST', body: { redirect_uri: redirectUri } });
+      const res = await railwayRequest('/qb/auth-connect', { redirect_uri: redirectUri });
       const authUrl = res?.auth_url;
       if (res?.debug) setConnectDebug(res.debug);
       if (!authUrl) throw new Error(res?.error || 'No auth URL returned from backend');
       const onMessage = async (event) => {
         if (event.data?.type === 'QB_OAUTH_CODE') {
           window.removeEventListener('message', onMessage);
+          onMessageRef.current = null;
           clearInterval(timer);
+          popupTimerRef.current = null;
           try {
-            const cbRes = await railwayRequest('/qb/auth-callback', { method: 'POST', body: { code: event.data.code, realmId: event.data.realmId, redirect_uri: redirectUri } });
+            const cbRes = await railwayRequest('/qb/auth-callback', { code: event.data.code, realmId: event.data.realmId, redirect_uri: redirectUri });
             if (cbRes?.error) { setConnectError(`Token exchange failed: ${cbRes.error}`); failJob(jobId, cbRes.error); }
             else { completeJob(jobId); loadStatus(); }
           } catch (e) { setConnectError(`Token exchange error: ${e.message}`); failJob(jobId, e.message); }
           setActionLoading(false);
         }
       };
+      onMessageRef.current = onMessage;
       window.addEventListener('message', onMessage);
       const popup = window.open(authUrl, 'qb_oauth', 'width=600,height=700');
       const timer = setInterval(() => {
-        if (!popup || popup.closed) { clearInterval(timer); window.removeEventListener('message', onMessage); loadStatus(); setActionLoading(false); }
+        if (!popup || popup.closed) { clearInterval(timer); window.removeEventListener('message', onMessage); onMessageRef.current = null; popupTimerRef.current = null; loadStatus(); setActionLoading(false); }
       }, 500);
+      popupTimerRef.current = timer;
     } catch (e) { setConnectError(e.message); failJob(jobId, e.message); setActionLoading(false); }
   };
 
