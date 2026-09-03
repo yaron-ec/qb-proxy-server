@@ -17,7 +17,7 @@ import RightPanelInfoNotice from "@/components/RightPanelInfoNotice";
 
 const fmt = (d) => d
   ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-  : "—";
+  : "â";
 
 const fmtMoney = (v) => v != null && v > 0
   ? `$${Number(v).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
@@ -57,7 +57,7 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
       triggerAutoSync();
     });
 
-    // Real-time subscription removed — Railway has no client-side subscribe.
+    // Real-time subscription removed â Railway has no client-side subscribe.
     // The auto-sync on load + manual refresh button cover the same use case.
   }, [lead.id]);
 
@@ -111,7 +111,7 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
         await load();
       }
     } catch {
-      // Silently skip on error — never surface to the user here
+      // Silently skip on error â never surface to the user here
     } finally {
       setAutoSyncing(false);
     }
@@ -205,7 +205,7 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
           )}
           {autoSyncing && (
             <span className="flex items-center gap-1 text-[10px] text-blue-500">
-              <Loader2 className="w-2.5 h-2.5 animate-spin" /> syncing…
+              <Loader2 className="w-2.5 h-2.5 animate-spin" /> syncingâ¦
             </span>
           )}
         </div>
@@ -222,16 +222,16 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
       </div>
 
       <div>
-        {/* ── NEW ESTIMATE ARRIVAL BANNER ── */}
+        {/* ââ NEW ESTIMATE ARRIVAL BANNER ââ */}
         {newEstimateBanner && (
           <div className="mx-3 mt-2 mb-1 flex items-center gap-2 px-3 py-2.5 rounded-lg bg-emerald-50 border border-emerald-300 text-xs font-semibold text-emerald-800">
             <Bell className="w-3.5 h-3.5 flex-shrink-0 text-emerald-600" />
             <span>New estimate synced from QuickBooks: <span className="font-bold">{newEstimateBanner.label}</span></span>
-            <button onClick={() => setNewEstimateBanner(null)} className="ml-auto text-emerald-500 hover:text-emerald-700 btn-compact text-lg leading-none">×</button>
+            <button onClick={() => setNewEstimateBanner(null)} className="ml-auto text-emerald-500 hover:text-emerald-700 btn-compact text-lg leading-none">Ã</button>
           </div>
         )}
 
-        {/* ── SYNC MESSAGE ── */}
+        {/* ââ SYNC MESSAGE ââ */}
         {syncMsg && (
           <div className={`mx-3 mb-2 mt-2 px-3 py-2 rounded-lg text-xs font-semibold ${
             syncMsg.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
@@ -242,7 +242,7 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
           </div>
         )}
 
-        {/* ── DIAGNOSTICS PANEL ── */}
+        {/* ââ DIAGNOSTICS PANEL ââ */}
         {diagData && (
           <div className="mx-3 mb-2 border border-blue-200 rounded-lg bg-blue-50 overflow-hidden">
             <button
@@ -253,8 +253,8 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
                 <Search className="w-3 h-3" />
                 QB Estimate Diagnostics
                 {(diagData.matchedEstimates + (diagData.matchedInvoicesCount || 0)) > 0
-                  ? <span className="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold">✓ {diagData.matchedEstimates} estimates · {diagData.matchedInvoicesCount || 0} invoices</span>
-                  : <span className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold">✗ nothing found in QB yet</span>
+                  ? <span className="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold">â {diagData.matchedEstimates} estimates Â· {diagData.matchedInvoicesCount || 0} invoices</span>
+                  : <span className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold">â nothing found in QB yet</span>
                 }
               </span>
               {diagExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
@@ -263,15 +263,15 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
               <div className="px-3 pb-3 space-y-2 text-[9px]">
                 <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
                   <div><span className="text-blue-500 uppercase tracking-wide">CRM Name</span><div className="font-bold text-blue-900">{diagData.crmDealName}</div></div>
-                  <div><span className="text-blue-500 uppercase tracking-wide">CRM Phone</span><div className="font-semibold text-blue-900">{diagData.crmPhone || '—'}</div></div>
-                  <div><span className="text-blue-500 uppercase tracking-wide">QB Estimates</span><div className="font-bold text-blue-900">{diagData.totalEstimatesInQB} total · {diagData.matchedEstimates} matched</div></div>
-                  <div><span className="text-blue-500 uppercase tracking-wide">QB Invoices</span><div className="font-bold text-blue-900">{diagData.totalInvoicesInQB} total · {diagData.matchedInvoicesCount || 0} matched</div></div>
+                  <div><span className="text-blue-500 uppercase tracking-wide">CRM Phone</span><div className="font-semibold text-blue-900">{diagData.crmPhone || 'â'}</div></div>
+                  <div><span className="text-blue-500 uppercase tracking-wide">QB Estimates</span><div className="font-bold text-blue-900">{diagData.totalEstimatesInQB} total Â· {diagData.matchedEstimates} matched</div></div>
+                  <div><span className="text-blue-500 uppercase tracking-wide">QB Invoices</span><div className="font-bold text-blue-900">{diagData.totalInvoicesInQB} total Â· {diagData.matchedInvoicesCount || 0} matched</div></div>
                 </div>
                 {diagData.matchedEstimates > 0 && (
                   <div className="bg-emerald-50 border border-emerald-200 rounded p-2">
                     <div className="font-bold text-emerald-800 mb-1">QB Estimates found:</div>
                     {diagData.matchedEstimateDetails?.map((d, i) => (
-                      <div key={i} className="text-emerald-700">#{d.docNumber} — ${d.amount} — {d.status} — via {d.matchMethod}</div>
+                      <div key={i} className="text-emerald-700">#{d.docNumber} â ${d.amount} â {d.status} â via {d.matchMethod}</div>
                     ))}
                   </div>
                 )}
@@ -297,11 +297,11 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
 
         {loading && estimates.length === 0 && (
           <div className="flex items-center gap-2 py-3 typography-helper-text px-4">
-            <Loader2 className="w-3 h-3 animate-spin" /> Loading…
+            <Loader2 className="w-3 h-3 animate-spin" /> Loadingâ¦
           </div>
         )}
 
-        {/* ── EMPTY STATE — context-aware ── */}
+        {/* ââ EMPTY STATE â context-aware ââ */}
         {!loading && estimates.length === 0 && (
           hasHandoffProject ? (
             // Project exists in Handoff but not yet invoiced in QB
@@ -309,7 +309,7 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
               <Clock className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-semibold text-amber-800">
-                  Project exists in Handoff — awaiting QuickBooks estimate
+                  Project exists in Handoff â awaiting QuickBooks estimate
                 </p>
                 <p className="text-[11px] text-amber-700 mt-0.5">
                   {lead.handoff_project_number ? `Project ${lead.handoff_project_number} has` : 'This project has'} been estimated in Handoff but the estimate has not yet been created in QuickBooks.
@@ -320,13 +320,13 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
           ) : (
             <RightPanelEmptyState
               icon={FileText}
-              title={autoSyncing ? 'Checking QuickBooks…' : 'No QB estimates yet'}
-              description={autoSyncing ? 'Scanning QuickBooks records…' : 'Estimates will appear here automatically once created in QuickBooks.'}
+              title={autoSyncing ? 'Checking QuickBooksâ¦' : 'No QB estimates yet'}
+              description={autoSyncing ? 'Scanning QuickBooks recordsâ¦' : 'Estimates will appear here automatically once created in QuickBooks.'}
             />
           )
         )}
 
-        {/* ── ESTIMATE CARDS ── */}
+        {/* ââ ESTIMATE CARDS ââ */}
         {estimates.length > 0 && (
           <div className="space-y-2 px-3 pb-2 pt-2">
             {estimates.map(est => {
@@ -348,66 +348,65 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
                   hasPdf ? "border-emerald-200 bg-emerald-50/20" :
                   "border-slate-200 bg-white"
                 }`}>
-                  {/* Header row */}
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <FileText className="w-3.5 h-3.5 text-orange flex-shrink-0" />
-                      <span className="text-[11px] font-bold text-slate-800 truncate" title={est.document_title || `Estimate ${est.qb_estimate_number || est.id}`}>
-                        {est.document_title || `Estimate ${est.qb_estimate_number || est.id}`}
-                      </span>
+                  {/* Header: title + amount (amount prominent, right-aligned) */}
+                  <div className="flex items-start justify-between gap-2 mb-2.5">
+                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                      <FileText className="w-3.5 h-3.5 text-orange flex-shrink-0 mt-0.5" />
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-bold text-slate-800 leading-tight truncate" title={est.document_title || `Estimate ${est.qb_estimate_number || est.id}`}>
+                          {est.document_title || `Estimate ${est.qb_estimate_number || est.id}`}
+                        </p>
+                        {customerDisplayName && (
+                          <p className="text-[10px] text-slate-500 leading-tight truncate mt-0.5">{customerDisplayName}</p>
+                        )}
+                      </div>
                     </div>
                     {fmtMoney(est.estimate_amount) && (
-                      <span className="text-[12px] font-bold text-slate-900 flex-shrink-0">{fmtMoney(est.estimate_amount)}</span>
+                      <span className="text-sm font-bold text-slate-900 flex-shrink-0 tabular-nums">{fmtMoney(est.estimate_amount)}</span>
                     )}
                   </div>
 
-                  {/* Details grid */}
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 mb-2 text-[9px]">
+                  {/* Details: Estimate #, Handoff #, Date — clean rows, no awkward breaks */}
+                  <div className="space-y-1 mb-2.5">
                     {est.qb_estimate_number && (
-                      <div>
-                        <span className="text-slate-400 uppercase tracking-wide">Estimate #</span>
-                        <div className="font-bold text-blue-700">{est.qb_estimate_number}</div>
-                      </div>
-                    )}
-                    {est.estimate_date && (
-                      <div>
-                        <span className="text-slate-400 uppercase tracking-wide">Date</span>
-                        <div className="font-semibold text-slate-700">{fmt(est.estimate_date)}</div>
-                      </div>
-                    )}
-                    {customerDisplayName && (
-                      <div>
-                        <span className="text-slate-400 uppercase tracking-wide">Customer</span>
-                        <div className="font-semibold text-slate-700">{customerDisplayName}</div>
+                      <div className="flex items-center justify-between gap-2 text-[10px]">
+                        <span className="text-slate-400 uppercase tracking-wide flex-shrink-0">Estimate #</span>
+                        <span className="font-bold text-blue-700 truncate" title={est.qb_estimate_number}>{est.qb_estimate_number}</span>
                       </div>
                     )}
                     {est.handoff_estimate_number && (
-                      <div>
-                        <span className="text-slate-400 uppercase tracking-wide">Handoff #</span>
-                        <div className="font-bold text-purple-700">{est.handoff_estimate_number}</div>
+                      <div className="flex items-center justify-between gap-2 text-[10px]">
+                        <span className="text-slate-400 uppercase tracking-wide flex-shrink-0">Handoff #</span>
+                        <span className="font-bold text-purple-700 truncate" title={est.handoff_estimate_number}>{est.handoff_estimate_number}</span>
+                      </div>
+                    )}
+                    {est.estimate_date && (
+                      <div className="flex items-center justify-between gap-2 text-[10px]">
+                        <span className="text-slate-400 uppercase tracking-wide flex-shrink-0">Date</span>
+                        <span className="font-semibold text-slate-600 flex-shrink-0">{fmt(est.estimate_date)}</span>
                       </div>
                     )}
                   </div>
 
-                  {/* Badges */}
-                  <div className="flex items-center gap-1 flex-wrap mb-2">
+                  {/* Status + source in a single compact row */}
+                  <div className="flex items-center gap-1 flex-wrap mb-2.5">
                     {est.estimate_status && (
-                      <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[est.estimate_status?.toLowerCase()] || "bg-slate-100 text-slate-600"}`}>
+                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${STATUS_COLOR[est.estimate_status?.toLowerCase()] || "bg-slate-100 text-slate-600"}`}>
                         {est.estimate_status}
                       </span>
                     )}
-                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${getSourceBadgeColor(sourceLabel)}`}>
+                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${getSourceBadgeColor(sourceLabel)}`}>
                       {sourceLabel}
                     </span>
                     {hasPdf && (
-                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center gap-0.5">
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center gap-0.5">
                         <ShieldCheck className="w-2.5 h-2.5" /> PDF
                       </span>
                     )}
                   </div>
 
-                  {/* Action buttons */}
-                  <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                  {/* Action buttons — aligned consistently */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     {hasPdf && est.qb_app_url && (
                       <a href={est.qb_app_url} target="_blank" rel="noreferrer"
                         className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold rounded border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors">
@@ -418,7 +417,7 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
                       <button onClick={() => handleSavePdf(est)} disabled={isLoadingPdf}
                         className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold rounded border border-orange/30 bg-orange/5 text-orange hover:bg-orange/10 transition-colors disabled:opacity-50">
                         {isLoadingPdf ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <Zap className="w-2.5 h-2.5" />}
-                        {isLoadingPdf ? 'Saving…' : 'Save PDF to Deal'}
+                        {isLoadingPdf ? 'Saving…' : 'Save PDF'}
                       </button>
                     )}
                     {pdfFailed && !isLoadingPdf && est.qb_estimate_id && (
@@ -440,7 +439,7 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
                     )}
                     {est.qb_app_url && (
                       <a href={est.qb_app_url} target="_blank" rel="noreferrer"
-                        className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold rounded border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors">
+                        className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold rounded border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors ml-auto">
                         <ExternalLink className="w-2.5 h-2.5" /> Open in QB
                       </a>
                     )}
