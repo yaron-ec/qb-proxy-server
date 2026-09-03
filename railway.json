@@ -1,0 +1,108 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "version": 2,
+  "name": "EC Construction CRM",
+  "projects": {
+    "devoted-courtesy": {
+      "services": [
+        {
+          "id": "qb-proxy-server",
+          "name": "QB Proxy Server (API)",
+          "source": ".",
+          "dockerfilePath": "Dockerfile",
+          "watchPaths": [
+            "server.js",
+            "lib/**",
+            "routes/**",
+            "db/**",
+            "scripts/**",
+            "package.json",
+            "package-lock.json"
+          ],
+          "deploy": {
+            "startCommand": "sh -c 'node db/migrate.js && node server.js'",
+            "healthcheckPath": "/health",
+            "healthcheckTimeout": 300
+          }
+        },
+        {
+          "id": "reminder-worker",
+          "name": "Reminder Worker",
+          "source": ".",
+          "dockerfilePath": "Dockerfile.worker",
+          "watchPaths": [
+            "reminderWorker.js",
+            "lib/reminderEngine.js",
+            "lib/reminderEmails.js",
+            "lib/reminderTime.js",
+            "lib/reminderHealth.js",
+            "lib/reminderAlerts.js",
+            "lib/reminderProjection.js",
+            "lib/reminderRouter.js",
+            "lib/crmRepository.js",
+            "lib/gmailSender.js",
+            "lib/emailService.js",
+            "lib/emailTemplates.js",
+            "db/**",
+            "package.json",
+            "package-lock.json"
+          ],
+          "deploy": {
+            "startCommand": "node reminderWorker.js"
+          }
+        },
+        {
+          "id": "calendar-outbox-worker",
+          "name": "Calendar Outbox Worker",
+          "source": ".",
+          "dockerfilePath": "Dockerfile.worker",
+          "watchPaths": [
+            "scripts/calendarOutboxWorker.js",
+            "lib/booking/**",
+            "lib/googleCalendarClient.js",
+            "db/**",
+            "package.json",
+            "package-lock.json"
+          ],
+          "deploy": {
+            "startCommand": "node scripts/calendarOutboxWorker.js"
+          }
+        },
+        {
+          "id": "production-watchdog",
+          "name": "Production Watchdog",
+          "source": ".",
+          "dockerfilePath": "Dockerfile",
+          "watchPaths": [
+            "productionWatchdog.js",
+            "lib/monitoring/**",
+            "db/**",
+            "package.json",
+            "package-lock.json"
+          ],
+          "deploy": {
+            "startCommand": "node productionWatchdog.js"
+          }
+        }
+      ]
+    }
+  },
+  "_worker_isolation_notes": {
+    "problem": "All Railway services in the devoted-courtesy project share the same GitHub repo. Without watch paths, any push to main triggers ALL services to redeploy, even when only one service's files changed.",
+    "solution": "Configure watch paths in the Railway dashboard for each service. The watchPaths above specify exactly which files each service depends on. Only changes to those files should trigger a redeploy of that service.",
+    "service_map": {
+      "qb-proxy-server": "Main API server (Dockerfile). Serves all /api/v1/* routes + QB proxy.",
+      "reminder-worker": "Background reminder worker (Dockerfile.worker, CMD: node reminderWorker.js). Processes appointment reminders via Gmail.",
+      "calendar-outbox-worker": "Calendar sync worker (Dockerfile.worker, CMD: node scripts/calendarOutboxWorker.js). Syncs appointments to Google Calendar.",
+      "production-watchdog": "Monitoring service (Dockerfile, CMD: node productionWatchdog.js). Health-checks all services and dispatches alerts.",
+      "crm-frontend": "Frontend (separate project ec-crm-frontend). Served by nginx, no backend."
+    },
+    "railway_service_name_mapping": {
+      "insightful-encouragement": "Likely reminder-worker or calendar-outbox-worker (auto-generated Railway name)",
+      "artistic-determination": "Likely calendar-outbox-worker or reminder-worker (auto-generated Railway name)",
+      "noble-illumination": "Likely production-watchdog (auto-generated Railway name)",
+      "adaptable-cooperation": "Purpose not conclusively determined — DO NOT DELETE until verified. May be a projection-outbox-worker or a legacy service."
+    },
+    "action_required": "Operator must configure watch paths in Railway dashboard: Settings → each service → Watch Paths. Use the watchPaths from this file."
+  }
+}
