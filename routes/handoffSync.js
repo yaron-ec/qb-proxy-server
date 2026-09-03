@@ -487,32 +487,58 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
     }
   });
 
+  // POST /handoff/auth/test-connectivity — test if the Railway proxy can reach the Handoff API
+  app.post('/handoff/auth/test-connectivity', requireProxySecret, async (req, res) => {
+    try {
+      const testRes = await fetch(HANDOFF_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: '{ __typename }' }),
+      });
+      const text = await testRes.text();
+      return res.json({
+        reachable: testRes.ok,
+        status: testRes.status,
+        content_type: testRes.headers.get('content-type'),
+        body_preview: text.substring(0, 300),
+        is_json: text.startsWith('{'),
+        handoff_api_url: HANDOFF_API,
+      });
+    } catch (e) {
+      return res.json({ reachable: false, error: e.message, handoff_api_url: HANDOFF_API });
+    }
+  });
+
   // POST /handoff/auth/store-token
+  // Body: { token: string, skip_verify?: boolean }
+  // When skip_verify is true, stores the token without calling the Handoff API
+  // (useful when the Handoff API WAF blocks Railway IPs but the token is known valid).
   app.post('/handoff/auth/store-token', requireProxySecret, async (req, res) => {
-    const { token } = req.body || {};
+    const { token, skip_verify } = req.body || {};
     if (!token || !token.trim()) return res.status(400).json({ error: 'Token required' });
 
     const cleanToken = token.trim().startsWith('Bearer ') ? token.trim().slice(7) : token.trim();
 
-    // Verify token works
-    const verifyRes = await fetch(HANDOFF_API, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + cleanToken,
-        'X-API-Key': cleanToken,
-      },
-      body: JSON.stringify({ query: '{ __typename }' }),
-    });
-    if (!verifyRes.ok) {
-      const txt = await verifyRes.text();
-      return res.status(401).json({
-        error: 'Handoff API error (' + verifyRes.status + '): ' + txt.substring(0, 200),
+    if (!skip_verify) {
+      // Verify token works by calling the Handoff API
+      const verifyRes = await fetch(HANDOFF_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': cleanToken,
+        },
+        body: JSON.stringify({ query: '{ __typename }' }),
       });
-    }
-    const verifyData = await verifyRes.json();
-    if (verifyData.errors && verifyData.errors.length) {
-      return res.status(401).json({ error: 'Handoff API error: ' + verifyData.errors[0].message });
+      if (!verifyRes.ok) {
+        const txt = await verifyRes.text();
+        return res.status(401).json({
+          error: 'Handoff API error (' + verifyRes.status + '): ' + txt.substring(0, 200),
+        });
+      }
+      const verifyData = await verifyRes.json();
+      if (verifyData.errors && verifyData.errors.length) {
+        return res.status(401).json({ error: 'Handoff API error: ' + verifyData.errors[0].message });
+      }
     }
 
     // Store token
@@ -520,7 +546,7 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
     const tokenValue = JSON.stringify({ token: cleanToken, connected_at: now, last_verified_at: now });
     await upsertSetting('handoff_bearer_token', JSON.parse(tokenValue), 'text');
 
-    return res.json({ success: true, message: 'Token saved successfully', connected: true });
+    return res.json({ success: true, message: 'Token saved successfully', connected: true, verified: !skip_verify });
   });
 
   // POST /handoff/auth/disconnect
