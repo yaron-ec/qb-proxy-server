@@ -377,6 +377,34 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
     }
   });
 
+  // ── POST /handoff/diagnostic-egress-ip — get Railway's outbound IP (X-Proxy-Secret) ──
+  app.post('/handoff/diagnostic-egress-ip', requireProxySecret, async (req, res) => {
+    try {
+      // Query multiple IP detection services for redundancy
+      const services = [
+        'https://api.ipify.org?format=json',
+        'https://ifconfig.me/all.json',
+      ];
+      const ips = {};
+      for (const url of services) {
+        try {
+          const r = await fetch(url, { method: 'GET', signal: AbortSignal.timeout(5000) });
+          if (r.ok) {
+            const data = await r.json();
+            ips[url] = data.ip || data.ip_addr || data;
+          } else {
+            ips[url] = `HTTP ${r.status}`;
+          }
+        } catch (e) {
+          ips[url] = e.message;
+        }
+      }
+      return res.json({ success: true, egress_ips: ips });
+    } catch (e) {
+      return res.status(500).json({ success: false, error: e.message });
+    }
+  });
+
   // ── POST /handoff/diagnostic-counts — production database COUNT(*) (X-Proxy-Secret) ──
   app.post('/handoff/diagnostic-counts', requireProxySecret, async (req, res) => {
     if (!rda.isConfigured()) {
