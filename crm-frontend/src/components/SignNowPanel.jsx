@@ -21,14 +21,20 @@ export default function SignNowPanel({ lead, onLeadUpdate }) {
   const { toast } = useToast();
 
   const loadDocuments = useCallback(async () => {
-    if (!lead?.id) return;
+    if (!lead?.id) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
       const data = await railwaySignnow.listDocuments(lead.id);
       setDocuments(data.documents || []);
     } catch (e) {
-      if (e.message?.includes('not_configured') || e.message?.includes('SIGNNOW')) {
+      if (e.status === 404 || e.message === 'not_found') {
+        // Lead not found in Railway — show empty state, not "Not Configured"
+        setDocuments([]);
+      } else if (e.message?.includes('not_configured') || e.message?.includes('SIGNNOW')) {
         setError('SignNow credentials not configured. Set SIGNNOW_CLIENT_ID, SIGNNOW_CLIENT_SECRET, SIGNNOW_USERNAME, and SIGNNOW_PASSWORD on Railway.');
       } else {
         setError(e.message || 'Failed to load documents');
