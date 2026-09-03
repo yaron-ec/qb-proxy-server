@@ -362,7 +362,7 @@ export default function LeadsModern() {
 
         {isGlobalSearch && filteredLeads.length > 0 && (
           <div className="mb-4 px-4 py-2.5 bg-blue-50 border border-blue-200 rounded-lg text-xs font-semibold text-blue-700">
-            🔍 Showing results from all leads ({filteredLeads.length} match{filteredLeads.length !== 1 ? 'es' : ''})
+            ������ Showing results from all leads ({filteredLeads.length} match{filteredLeads.length !== 1 ? 'es' : ''})
           </div>
         )}
 
@@ -763,7 +763,7 @@ function LeadCard({ lead, navigate, onLeadUpdate, onDragStart, isDragging, userR
                   {lead.follow_up_time ? ` • ${fmt12(lead.follow_up_time)}` : ''}
                 </span>
                 <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-full flex items-center gap-1 ${badgeClass}`}>
-                  {isMeeting ? '📅' : '📞'}
+                  {isMeeting ? '������' : '������'}
                   {fuStatus === 'overdue' ? 'Overdue' : fuStatus === 'today' ? 'Due Today' : (lead.follow_up_type || 'Follow-up')}
                 </span>
               </div>
