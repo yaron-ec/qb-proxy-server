@@ -55,6 +55,8 @@ function serializeInvoice(row) {
 router.get('/', requireAuth, async (req, res) => {
   try {
     const { lead_id, deal_id, status, limit: limitStr } = req.query;
+    // P0 DATA ISOLATION: at least one scope (lead_id or deal_id) is REQUIRED.
+    if (!lead_id && !deal_id) return res.json({ items: [], total: 0 });
     const limit = Math.min(parseInt(limitStr || '500', 10), 2000);
 
     const where = [];
@@ -71,7 +73,7 @@ router.get('/', requireAuth, async (req, res) => {
     }
     if (status && status !== 'all') { where.push(`status = $${p}`); params.push(status); p++; }
 
-    const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
+    const whereClause = `WHERE ${where.join(' AND ')}`;
     const { rows } = await query(`SELECT * FROM invoices ${whereClause} ORDER BY created_at DESC LIMIT $${p}`, [...params, limit]);
     res.json({ items: rows.map(serializeInvoice), total: rows.length });
   } catch (e) {
