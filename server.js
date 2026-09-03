@@ -1736,6 +1736,154 @@ app.post('/admin/migrate', requireProxySecret, async (req, res) => {
   }
 });
 
+// ── Admin: verify lead-delete FK constraints + E2E deletion test ──────────────
+// Creates a disposable test lead with an appointment + reminder claim, deletes
+// it via the same atomic transaction the API uses, and verifies no orphan rows
+// remain. Also queries information_schema to confirm CASCADE/SET NULL is live.
+app.post('/admin/verify-lead-delete', requireProxySecret, async (req, res) => {
+  const fs2 = require('fs');
+  const path2 = require('path');
+  const crypto = require('crypto');
+  const { query, pool } = require('./db/client');
+  const { removeFromReminders } = require('./lib/reminderProjection');
+
+  const result = { constraints: {}, e2e: {}, overall: 'PASS' };
+
+  try {
+    // ── 1. Verify FK constraints from information_schema ────────────────────
+    const fkRes = await query(`
+      SELECT tc.table_name, kcu.column_name, rc.update_rule, rc.delete_rule
+      FROM information_schema.referential_constraints rc
+      JOIN information_schema.key_column_usage kcu
+        ON kcu.constraint_name = rc.constraint_name
+      JOIN information_schema.table_constraints tc
+        ON tc.constraint_name = rc.constraint_name
+      WHERE kcu.column_name = 'lead_id'
+      ORDER BY tc.table_name
+    `);
+    result.constraints.fk_rows = fkRes.rows.map(r => ({
+      table: r.table_name, column: r.column_name,
+      on_delete: r.delete_rule, on_update: r.update_rule,
+    }));
+
+    // Check specific tables we care about
+    const expectedCascade = ['appointments', 'appointment_events', 'calendar_outbox', 'booking_idempotency', 'projection_outbox', 'base44_entity_map'];
+    const expectedSetNull = ['deals'];
+    for (const tbl of expectedCascade) {
+      const row = fkRes.rows.find(r => r.table_name === tbl);
+      if (!row || row.delete_rule !== 'CASCADE') {
+        result.overall = 'FAIL';
+        result.constraints[tbl] = `EXPECTED CASCADE, GOT ${row?.delete_rule || 'NO FK'}`;
+      } else {
+        result.constraints[tbl] = 'CASCADE ✓';
+      }
+    }
+    for (const tbl of expectedSetNull) {
+      const row = fkRes.rows.find(r => r.table_name === tbl);
+      if (!row || row.delete_rule !== 'SET NULL') {
+        result.overall = 'FAIL';
+        result.constraints[tbl] = `EXPECTED SET NULL, GOT ${row?.delete_rule || 'NO FK'}`;
+      } else {
+        result.constraints[tbl] = 'SET NULL ✓';
+      }
+    }
+
+    // ── 2. E2E deletion test ────────────────────────────────────────────────
+    const testExt = `fk-test-${crypto.randomBytes(6).toString('hex')}`;
+    const client = await pool.connect();
+    try {
+      // Create test lead
+      const leadIns = await client.query(
+        `INSERT INTO leads (external_ref, first_name, last_name, email, phone, status, source)
+         VALUES ($1, 'FKTest', 'DeleteTest', $2, '+15555550100', 'New', 'Website')
+         RETURNING id`,
+        [testExt, `${testExt}@test.local`]
+      );
+      const leadId = leadIns.rows[0].id;
+      result.e2e.leadId = leadId;
+
+      // Create appointment for the lead
+      const apptTypeRes = await client.query('SELECT id FROM appointment_types ORDER BY id LIMIT 1');
+      const typeId = apptTypeRes.rows[0]?.id;
+      if (typeId) {
+        await client.query(
+          `INSERT INTO appointments (lead_id, owner_id, appointment_type_id, start_at, end_at, timezone, busy_range, status, calendar_sync_status)
+           VALUES ($1, NULL, $2, NOW(), NOW() + INTERVAL '1 hour', 'America/Los_Angeles', tstzrange(NOW(), NOW() + INTERVAL '1 hour', '['), 'scheduled', 'pending')`,
+          [leadId, typeId]
+        );
+      }
+
+      // Create reminder_claims row (TEXT lead_id, no FK)
+      await client.query(
+        `INSERT INTO reminder_claims (reminder_key, lead_id, appointment_date, reminder_window, status, lease_expires_at, attempts)
+         VALUES ($1, $2, '2026-09-10', '24h', 'sent', NOW() + INTERVAL '120 seconds', 0)`,
+        [`fk-test:${leadId}`, leadId]
+      );
+
+      // Create activity
+      await client.query(
+        `INSERT INTO activities (lead_id, type, content, author, source)
+         VALUES ($1, 'note', 'FK test activity', 'system', 'manual')`,
+        [leadId]
+      );
+
+      // Verify rows exist
+      const beforeAppts = await client.query('SELECT count(*) as c FROM appointments WHERE lead_id = $1', [leadId]);
+      const beforeClaims = await client.query('SELECT count(*) as c FROM reminder_claims WHERE lead_id = $1', [leadId]);
+      const beforeActs = await client.query('SELECT count(*) as c FROM activities WHERE lead_id = $1', [leadId]);
+      result.e2e.before = {
+        appointments: parseInt(beforeAppts.rows[0].c),
+        reminder_claims: parseInt(beforeClaims.rows[0].c),
+        activities: parseInt(beforeActs.rows[0].c),
+      };
+
+      // ── Atomic delete (same logic as DELETE /:id) ──────────────────────────
+      await client.query('BEGIN');
+      await removeFromReminders(client, { id: leadId, external_ref: testExt });
+      // cleanupLeadTextRefs
+      await client.query(`DELETE FROM reminder_claims WHERE lead_id = $1`, [leadId]);
+      await client.query(`DELETE FROM reminder_activity_queue WHERE lead_id = $1`, [leadId]);
+      await client.query(`UPDATE reminder_runs SET last_reminder_lead_id = NULL WHERE last_reminder_lead_id = $1`, [leadId]);
+      await client.query(`UPDATE qb_invoice_sale_map SET crm_lead_id = '' WHERE crm_lead_id = $2`, ['', leadId]);
+      await client.query('DELETE FROM leads WHERE id = $1', [leadId]);
+      await client.query('COMMIT');
+
+      // ── Verify no orphans remain ───────────────────────────────────────────
+      const afterLead = await client.query('SELECT count(*) as c FROM leads WHERE id = $1', [leadId]);
+      const afterAppts = await client.query('SELECT count(*) as c FROM appointments WHERE lead_id = $1', [leadId]);
+      const afterClaims = await client.query('SELECT count(*) as c FROM reminder_claims WHERE lead_id = $1', [leadId]);
+      const afterActs = await client.query('SELECT count(*) as c FROM activities WHERE lead_id = $1', [leadId]);
+      result.e2e.after = {
+        leads: parseInt(afterLead.rows[0].c),
+        appointments: parseInt(afterAppts.rows[0].c),
+        reminder_claims: parseInt(afterClaims.rows[0].c),
+        activities: parseInt(afterActs.rows[0].c),
+      };
+
+      if (result.e2e.after.leads !== 0) { result.overall = 'FAIL'; result.e2e.errors = result.e2e.errors || []; result.e2e.errors.push('Lead still exists'); }
+      if (result.e2e.after.appointments !== 0) { result.overall = 'FAIL'; result.e2e.errors = result.e2e.errors || []; result.e2e.errors.push('Appointments not cascaded'); }
+      if (result.e2e.after.reminder_claims !== 0) { result.overall = 'FAIL'; result.e2e.errors = result.e2e.errors || []; result.e2e.errors.push('Reminder claims not cleaned up'); }
+      if (result.e2e.after.activities !== 0) { result.overall = 'FAIL'; result.e2e.errors = result.e2e.errors || []; result.e2e.errors.push('Activities not cascaded'); }
+
+      if (result.overall === 'PASS') {
+        result.e2e.message = 'Lead + all dependent records deleted successfully. No orphans.';
+      }
+    } catch (e) {
+      try { await client.query('ROLLBACK'); } catch (_) {}
+      result.overall = 'FAIL';
+      result.e2e.error = e.message;
+    } finally {
+      client.release();
+    }
+
+    res.json(result);
+  } catch (e) {
+    result.overall = 'FAIL';
+    result.fatalError = e.message;
+    res.status(500).json(result);
+  }
+});
+
 // ── Start ─────────────────────────────────────────────────────────────────────
 
 const PORT = process.env.PORT || 3000;
