@@ -17,7 +17,7 @@ import RightPanelInfoNotice from "@/components/RightPanelInfoNotice";
 
 const fmt = (d) => d
   ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-  : "Ã¢ÂÂ";
+  : "—";
 
 const fmtMoney = (v) => v != null && v > 0
   ? `$${Number(v).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
@@ -57,7 +57,7 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
       triggerAutoSync();
     });
 
-    // Real-time subscription removed Ã¢ÂÂ Railway has no client-side subscribe.
+    // Real-time subscription removed — Railway has no client-side subscribe.
     // The auto-sync on load + manual refresh button cover the same use case.
   }, [lead.id]);
 
@@ -111,7 +111,7 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
         await load();
       }
     } catch {
-      // Silently skip on error Ã¢ÂÂ never surface to the user here
+      // Silently skip on error — never surface to the user here
     } finally {
       setAutoSyncing(false);
     }
@@ -205,7 +205,7 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
           )}
           {autoSyncing && (
             <span className="flex items-center gap-1 text-[10px] text-blue-500">
-              <Loader2 className="w-2.5 h-2.5 animate-spin" /> syncingÃ¢ÂÂ¦
+              <Loader2 className="w-2.5 h-2.5 animate-spin" /> syncing…
             </span>
           )}
         </div>
@@ -222,16 +222,16 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
       </div>
 
       <div>
-        {/* Ã¢ÂÂÃ¢ÂÂ NEW ESTIMATE ARRIVAL BANNER Ã¢ÂÂÃ¢ÂÂ */}
+        {/* ── NEW ESTIMATE ARRIVAL BANNER ── */}
         {newEstimateBanner && (
           <div className="mx-3 mt-2 mb-1 flex items-center gap-2 px-3 py-2.5 rounded-lg bg-emerald-50 border border-emerald-300 text-xs font-semibold text-emerald-800">
             <Bell className="w-3.5 h-3.5 flex-shrink-0 text-emerald-600" />
             <span>New estimate synced from QuickBooks: <span className="font-bold">{newEstimateBanner.label}</span></span>
-            <button onClick={() => setNewEstimateBanner(null)} className="ml-auto text-emerald-500 hover:text-emerald-700 btn-compact text-lg leading-none">ÃÂ</button>
+            <button onClick={() => setNewEstimateBanner(null)} className="ml-auto text-emerald-500 hover:text-emerald-700 btn-compact text-lg leading-none">�</button>
           </div>
         )}
 
-        {/* Ã¢ÂÂÃ¢ÂÂ SYNC MESSAGE Ã¢ÂÂÃ¢ÂÂ */}
+        {/* ── SYNC MESSAGE ── */}
         {syncMsg && (
           <div className={`mx-3 mb-2 mt-2 px-3 py-2 rounded-lg text-xs font-semibold ${
             syncMsg.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
@@ -242,7 +242,7 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
           </div>
         )}
 
-        {/* Ã¢ÂÂÃ¢ÂÂ DIAGNOSTICS PANEL Ã¢ÂÂÃ¢ÂÂ */}
+        {/* ── DIAGNOSTICS PANEL ── */}
         {diagData && (
           <div className="mx-3 mb-2 border border-blue-200 rounded-lg bg-blue-50 overflow-hidden">
             <button
@@ -253,8 +253,8 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
                 <Search className="w-3 h-3" />
                 QB Estimate Diagnostics
                 {(diagData.matchedEstimates + (diagData.matchedInvoicesCount || 0)) > 0
-                  ? <span className="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold">Ã¢ÂÂ {diagData.matchedEstimates} estimates ÃÂ· {diagData.matchedInvoicesCount || 0} invoices</span>
-                  : <span className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold">Ã¢ÂÂ nothing found in QB yet</span>
+                  ? <span className="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold">✓ {diagData.matchedEstimates} estimates � {diagData.matchedInvoicesCount || 0} invoices</span>
+                  : <span className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold">✗ nothing found in QB yet</span>
                 }
               </span>
               {diagExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
@@ -263,15 +263,15 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
               <div className="px-3 pb-3 space-y-2 text-[9px]">
                 <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
                   <div><span className="text-blue-500 uppercase tracking-wide">CRM Name</span><div className="font-bold text-blue-900">{diagData.crmDealName}</div></div>
-                  <div><span className="text-blue-500 uppercase tracking-wide">CRM Phone</span><div className="font-semibold text-blue-900">{diagData.crmPhone || 'Ã¢ÂÂ'}</div></div>
-                  <div><span className="text-blue-500 uppercase tracking-wide">QB Estimates</span><div className="font-bold text-blue-900">{diagData.totalEstimatesInQB} total ÃÂ· {diagData.matchedEstimates} matched</div></div>
-                  <div><span className="text-blue-500 uppercase tracking-wide">QB Invoices</span><div className="font-bold text-blue-900">{diagData.totalInvoicesInQB} total ÃÂ· {diagData.matchedInvoicesCount || 0} matched</div></div>
+                  <div><span className="text-blue-500 uppercase tracking-wide">CRM Phone</span><div className="font-semibold text-blue-900">{diagData.crmPhone || '—'}</div></div>
+                  <div><span className="text-blue-500 uppercase tracking-wide">QB Estimates</span><div className="font-bold text-blue-900">{diagData.totalEstimatesInQB} total � {diagData.matchedEstimates} matched</div></div>
+                  <div><span className="text-blue-500 uppercase tracking-wide">QB Invoices</span><div className="font-bold text-blue-900">{diagData.totalInvoicesInQB} total � {diagData.matchedInvoicesCount || 0} matched</div></div>
                 </div>
                 {diagData.matchedEstimates > 0 && (
                   <div className="bg-emerald-50 border border-emerald-200 rounded p-2">
                     <div className="font-bold text-emerald-800 mb-1">QB Estimates found:</div>
                     {diagData.matchedEstimateDetails?.map((d, i) => (
-                      <div key={i} className="text-emerald-700">#{d.docNumber} Ã¢ÂÂ ${d.amount} Ã¢ÂÂ {d.status} Ã¢ÂÂ via {d.matchMethod}</div>
+                      <div key={i} className="text-emerald-700">#{d.docNumber} — ${d.amount} — {d.status} — via {d.matchMethod}</div>
                     ))}
                   </div>
                 )}
@@ -297,11 +297,11 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
 
         {loading && estimates.length === 0 && (
           <div className="flex items-center gap-2 py-3 typography-helper-text px-4">
-            <Loader2 className="w-3 h-3 animate-spin" /> LoadingÃ¢ÂÂ¦
+            <Loader2 className="w-3 h-3 animate-spin" /> Loading…
           </div>
         )}
 
-        {/* Ã¢ÂÂÃ¢ÂÂ EMPTY STATE Ã¢ÂÂ context-aware Ã¢ÂÂÃ¢ÂÂ */}
+        {/* ── EMPTY STATE — context-aware ── */}
         {!loading && estimates.length === 0 && (
           hasHandoffProject ? (
             // Project exists in Handoff but not yet invoiced in QB
@@ -309,7 +309,7 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
               <Clock className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-semibold text-amber-800">
-                  Project exists in Handoff Ã¢ÂÂ awaiting QuickBooks estimate
+                  Project exists in Handoff — awaiting QuickBooks estimate
                 </p>
                 <p className="text-[11px] text-amber-700 mt-0.5">
                   {lead.handoff_project_number ? `Project ${lead.handoff_project_number} has` : 'This project has'} been estimated in Handoff but the estimate has not yet been created in QuickBooks.
@@ -320,13 +320,13 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
           ) : (
             <RightPanelEmptyState
               icon={FileText}
-              title={autoSyncing ? 'Checking QuickBooksÃ¢ÂÂ¦' : 'No QB estimates yet'}
-              description={autoSyncing ? 'Scanning QuickBooks recordsÃ¢ÂÂ¦' : 'Estimates will appear here automatically once created in QuickBooks.'}
+              title={autoSyncing ? 'Checking QuickBooks…' : 'No QB estimates yet'}
+              description={autoSyncing ? 'Scanning QuickBooks records…' : 'Estimates will appear here automatically once created in QuickBooks.'}
             />
           )
         )}
 
-        {/* Ã¢ÂÂÃ¢ÂÂ ESTIMATE CARDS Ã¢ÂÂÃ¢ÂÂ */}
+        {/* ── ESTIMATE CARDS ── */}
         {estimates.length > 0 && (
           <div className="space-y-2 px-3 pb-2 pt-2">
             {estimates.map(est => {
