@@ -227,7 +227,7 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
           <div className="mx-3 mt-2 mb-1 flex items-center gap-2 px-3 py-2.5 rounded-lg bg-emerald-50 border border-emerald-300 text-xs font-semibold text-emerald-800">
             <Bell className="w-3.5 h-3.5 flex-shrink-0 text-emerald-600" />
             <span>New estimate synced from QuickBooks: <span className="font-bold">{newEstimateBanner.label}</span></span>
-            <button onClick={() => setNewEstimateBanner(null)} className="ml-auto text-emerald-500 hover:text-emerald-700 btn-compact text-lg leading-none">�</button>
+            <button onClick={() => setNewEstimateBanner(null)} className="ml-auto text-emerald-500 hover:text-emerald-700 btn-compact text-lg leading-none">×</button>
           </div>
         )}
 
@@ -264,7 +264,7 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
                 <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
                   <div><span className="text-blue-500 uppercase tracking-wide">CRM Name</span><div className="font-bold text-blue-900">{diagData.crmDealName}</div></div>
                   <div><span className="text-blue-500 uppercase tracking-wide">CRM Phone</span><div className="font-semibold text-blue-900">{diagData.crmPhone || '—'}</div></div>
-                  <div><span className="text-blue-500 uppercase tracking-wide">QB Estimates</span><div className="font-bold text-blue-900">{diagData.totalEstimatesInQB} total � {diagData.matchedEstimates} matched</div></div>
+                  <div><span className="text-blue-500 uppercase tracking-wide">QB Estimates</span><div className="font-bold text-blue-900">{diagData.totalEstimatesInQB} total · {diagData.matchedEstimates} matched</div></div>
                   <div><span className="text-blue-500 uppercase tracking-wide">QB Invoices</span><div className="font-bold text-blue-900">{diagData.totalInvoicesInQB} total � {diagData.matchedInvoicesCount || 0} matched</div></div>
                 </div>
                 {diagData.matchedEstimates > 0 && (
