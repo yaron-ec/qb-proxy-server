@@ -59,12 +59,15 @@ test('Lead delete: cancelAppointmentsForLeadDelete cancels appointments and enqu
     'must query appointments with status scheduled/confirmed');
 
   // Must SET status = 'cancelled' (not DELETE — appointments are immutable)
-  assert.ok(/cancelAppointmentsForLeadDelete[\s\S]*?status = .cancelled./.test(src),
-    'must cancel appointments (SET status=cancelled), not physically delete');
+  // The SQL uses parameterized query: UPDATE ... SET status = $1 ... with ['cancelled']
+  assert.ok(/cancelAppointmentsForLeadDelete[\s\S]*?status = \$1/.test(src),
+    'must cancel appointments (SET status=$1 parameterized), not physically delete');
+  assert.ok(/cancelAppointmentsForLeadDelete[\s\S]*?'cancelled'/.test(src),
+    'must pass cancelled as the status parameter value');
 
   // Must increment version for optimistic concurrency
-  assert.ok(/cancelAppointmentsForLeadDelete[\s\S]*?version = COALESCE\(version, 1\) \+ 1/.test(src),
-    'must increment appointment version');
+  assert.ok(/cancelAppointmentsForLeadDelete[\s\S]*?\(appt\.version \|\| 1\) \+ 1/.test(src),
+    'must increment appointment version in JavaScript before UPDATE');
 
   // Must enqueue calendar outbox cancellation
   assert.ok(/cancelAppointmentsForLeadDelete[\s\S]*?calendarOutbox\.enqueueCancel/.test(src),
