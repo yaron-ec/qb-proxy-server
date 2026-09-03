@@ -253,7 +253,7 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
                 <Search className="w-3 h-3" />
                 QB Estimate Diagnostics
                 {(diagData.matchedEstimates + (diagData.matchedInvoicesCount || 0)) > 0
-                  ? <span className="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold">✓ {diagData.matchedEstimates} estimates � {diagData.matchedInvoicesCount || 0} invoices</span>
+                  ? <span className="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold">✓ {diagData.matchedEstimates} estimates · {diagData.matchedInvoicesCount || 0} invoices</span>
                   : <span className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold">✗ nothing found in QB yet</span>
                 }
               </span>
@@ -265,7 +265,7 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
                   <div><span className="text-blue-500 uppercase tracking-wide">CRM Name</span><div className="font-bold text-blue-900">{diagData.crmDealName}</div></div>
                   <div><span className="text-blue-500 uppercase tracking-wide">CRM Phone</span><div className="font-semibold text-blue-900">{diagData.crmPhone || '—'}</div></div>
                   <div><span className="text-blue-500 uppercase tracking-wide">QB Estimates</span><div className="font-bold text-blue-900">{diagData.totalEstimatesInQB} total · {diagData.matchedEstimates} matched</div></div>
-                  <div><span className="text-blue-500 uppercase tracking-wide">QB Invoices</span><div className="font-bold text-blue-900">{diagData.totalInvoicesInQB} total � {diagData.matchedInvoicesCount || 0} matched</div></div>
+                  <div><span className="text-blue-500 uppercase tracking-wide">QB Invoices</span><div className="font-bold text-blue-900">{diagData.totalInvoicesInQB} total · {diagData.matchedInvoicesCount || 0} matched</div></div>
                 </div>
                 {diagData.matchedEstimates > 0 && (
                   <div className="bg-emerald-50 border border-emerald-200 rounded p-2">
