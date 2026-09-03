@@ -280,7 +280,7 @@ export default function LeadDetailModern() {
             <span>Leads</span>
           </Link>
           <span className="text-border hidden md:block">/</span>
-          <TruncatedTooltip text={`${toTitleCase(lead.first_name)} ${toTitleCase(lead.last_name)}`} className="text-base md:text-lg font-semibold text-slate-900" as="h1" />
+          <TruncatedTooltip text={`${toTitleCase(lead.first_name)} ${toTitleCase(lead.last_name)}`} className="text-base md:text-lg font-semibold text-slate-900 flex-1 min-w-0" as="h1" />
           <span className={`${statusBadgeClass(lead.status)} hidden md:inline-flex`}>{lead.status || "New"}</span>
           {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
             <EditNameButton lead={lead} onSave={async (first, last) => {
@@ -467,7 +467,7 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 min-w-0">
-              <h2 className="text-sm font-bold text-slate-900 truncate leading-tight">{toTitleCase(lead.first_name)} {toTitleCase(lead.last_name)}</h2>
+              <h2 className="text-sm font-bold text-slate-900 truncate flex-1 min-w-0 leading-tight">{toTitleCase(lead.first_name)} {toTitleCase(lead.last_name)}</h2>
               {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
                 <EditNameButton lead={lead} onSave={async (first, last) => {
                   const res = await railwayLeads.update(lead.railway_id || lead.id, { first_name: first, last_name: last });
@@ -575,6 +575,9 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
                 {lead.appointment_time && <span className="text-slate-500 ml-1.5 font-normal">at {fmt12(lead.appointment_time)}</span>}
               </span>
             </EditableField>
+            {!lead.appointment_date && lead.follow_up_date && lead.follow_up_type === "Meeting" && (
+              <p className="text-[10px] text-slate-400 mt-1">No site visit on file — next meeting is in Follow-up below.</p>
+            )}
             {/* Time picker inline below */}
             <div className="mt-1.5">
               <AppointmentTimePicker key={`apt-t-${lead.appointment_time}`} lead={lead} onSave={v => updateField("appointment_time", v)} />
@@ -1267,10 +1270,25 @@ function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
   const dateStr = ts.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   const timeStr = ts.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 
+  // Convert raw reminder idempotency keys to human-readable text
+  const formatActivityContent = (content) => {
+    if (!content) return content;
+    if (content.startsWith("REMINDER_SENT:")) return "Automated reminder sent (appointment notification)";
+    if (content.startsWith("PHONE_REMINDER_SENT:")) return "Automated phone call reminder sent";
+    if (content.startsWith("REMINDER_TEST_SENT:")) return "Test reminder sent";
+    if (content.startsWith("Reminder sent:")) return "Automated reminder sent (appointment notification)";
+    if (content.startsWith("PHONE_REMINDER:")) return "Automated phone call reminder sent";
+    if (content.startsWith("System:")) return content.replace("System:", "").trim() || "System activity";
+    return content;
+  };
+
   // System-generated entries (REMINDER_SENT:, etc.) are not editable
   const isSystemEntry = activity.content?.startsWith("REMINDER_SENT:") ||
     activity.content?.startsWith("PHONE_REMINDER_SENT:") ||
     activity.content?.startsWith("REMINDER_TEST_SENT:") ||
+    activity.content?.startsWith("Reminder sent:") ||
+    activity.content?.startsWith("PHONE_REMINDER:") ||
+    activity.content?.startsWith("System:") ||
     activity.author === "System" || activity.author === "System-Test";
 
   // Permission: admin can edit any; others can edit their own
@@ -1382,7 +1400,7 @@ function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
             </div>
           </div>
         ) : (
-          <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap mb-1.5">{activity.content}</p>
+          <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap mb-1.5">{formatActivityContent(activity.content)}</p>
         )}
 
         <div className="flex items-center gap-2 flex-wrap mt-1">
