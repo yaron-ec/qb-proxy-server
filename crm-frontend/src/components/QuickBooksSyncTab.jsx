@@ -40,6 +40,7 @@ export default function QuickBooksSyncTab() {
   const loadStatus = async () => {
     setLoading(true);
     setLoadError(null);
+    setConnectError(null);
     try {
       const res = await railwayRequest('/qb/auth-status', { method: 'POST' });
       setStatus(res);
