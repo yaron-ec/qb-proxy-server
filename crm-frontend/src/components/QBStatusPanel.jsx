@@ -29,14 +29,23 @@ export default function QBStatusPanel({ lead, onLeadUpdated }) {
   const { toast } = useToast();
 
   const loadStatus = useCallback(async () => {
-    if (!lead?.id) return;
+    if (!lead?.id) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
       const data = await railwayLeadQB.getStatus(lead.id);
       setQbData(data);
     } catch (e) {
-      setError(e.message || 'Failed to load QB status');
+      // 404 "not_found" means the lead doesn't exist in Railway — show a
+      // clean "Not connected" state, not a scary error.
+      if (e.status === 404 || e.message === 'not_found') {
+        setQbData({ qbConnected: false, crmInvoices: [], qbInvoices: [], estimates: [] });
+      } else {
+        setError(e.message || 'Failed to load QB status');
+      }
     } finally {
       setLoading(false);
     }
