@@ -25,15 +25,15 @@ const HANDOFF_API = process.env.HANDOFF_API_BASE_URL || 'https://app.handoff.ai'
 // table serves this purpose (key, value JSONB, type). We use `query` directly
 // because rda's update/delete use `id` but settings uses `key` as the unique ID.
 async function getSetting(key) {
-  const { rows } = await query('SELECT * FROM settings WHERE key = $1', [key]);
+  const { rows } = await query('SELECT * FROM app_settings WHERE key = $1', [key]);
   return rows[0] || null;
 }
 
 async function upsertSetting(key, value, type) {
   const { rows } = await query(
-    `INSERT INTO settings (key, value, type)
+    `INSERT INTO app_settings (key, value, type)
      VALUES ($1, $2, $3)
-     ON CONFLICT (key) DO UPDATE SET value = $2, type = COALESCE($3, settings.type), updated_at = NOW()
+     ON CONFLICT (key) DO UPDATE SET value = $2, type = COALESCE($3, app_settings.type), updated_at = NOW()
      RETURNING *`,
     [key, JSON.stringify(value), type || 'text']
   );
@@ -41,7 +41,7 @@ async function upsertSetting(key, value, type) {
 }
 
 async function deleteSetting(key) {
-  await query('DELETE FROM settings WHERE key = $1', [key]);
+  await query('DELETE FROM app_settings WHERE key = $1', [key]);
 }
 
 module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda, handoffClient) {
