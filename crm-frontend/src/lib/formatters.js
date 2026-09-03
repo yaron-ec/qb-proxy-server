@@ -49,7 +49,7 @@ const ABBREVIATIONS = new Set(['ADU', 'HVAC', 'HOA', 'USA', 'CA', 'LA', 'LLC', '
  * - Preserves known abbreviations (ADU, HVAC, HOA, etc.)
  * - Handles hyphenated names (Smith-Johnson)
  * - Handles apostrophe names (O'Connor)
- * - Fixes ALL CAPS, all lowercase, and mixed-case (jOE aLBARRAN â Joe Albarran)
+ * - Fixes ALL CAPS, all lowercase, and mixed-case (jOE aLBARRAN → Joe Albarran)
  */
 export const toTitleCase = (str) => {
   if (!str) return str;
