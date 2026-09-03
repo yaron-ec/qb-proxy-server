@@ -1609,4 +1609,84 @@ router.post('/diagnose-deal', async (req, res) => {
   }
 });
 
+
+// ── POST /sync-handoff-estimates ──────────────────────────────────────────
+// Replaces Base44 handoffAutoSync + handoffSyncService scheduled automations.
+// Fetches ALL estimates from the official Handoff API (verified GraphQL schema)
+// and upserts them into handoff_estimates with lead matching. Runs hourly.
+router.post('/sync-handoff-estimates', async (req, res) => {
+  const handoffClient = require('../lib/handoffClient');
+  const rda = require('../lib/railwayDataAccess');
+
+  try {
+    var token;
+    try { token = await handoffClient.getValidToken(); }
+    catch (e) { return res.json({ ok: false, error: e.message }); }
+
+    var estimates = [];
+    try { estimates = await handoffClient.fetchAllEstimates(token); }
+    catch (e) { return res.json({ ok: false, error: 'Handoff API error: ' + e.message }); }
+
+    var leads = [];
+    try { leads = await rda.list('Lead', '-created_date', 5000); } catch {}
+
+    var imported = 0, updated = 0, unmatched = 0, failed = 0;
+    var now = new Date().toISOString();
+    for (var i = 0; i < estimates.length; i++) {
+      var est = estimates[i];
+      if (!est || !est.id) { failed++; continue; }
+      try {
+        var lead_id = null, match_status = 'unmatched', match_method = 'none';
+        for (var j = 0; j < leads.length; j++) {
+          var r = handoffClient.matchEstimateToLead(est, leads[j]);
+          if (r.match) { lead_id = leads[j].id; match_status = 'matched'; match_method = r.method; break; }
+        }
+        var estimateData = {
+          handoff_estimate_id: String(est.id),
+          handoff_estimate_number: '',
+          customer_name: est.clientName || '',
+          customer_phone: est.clientPhone || '',
+          customer_email: est.clientEmail || '',
+          estimate_amount: est.total,
+          estimate_status: est.state || 'DRAFT',
+          estimate_date: est.createdAt ? est.createdAt.split('T')[0] : null,
+          document_url: est.proposalLink || '',
+          document_title: est.name || '',
+          last_synced_at: now,
+          match_status: match_status,
+          match_method: match_method,
+          lead_id: lead_id || '',
+          sync_source: 'Handoff',
+          source: 'Handoff',
+        };
+        var existing = await rda.filter('HandoffEstimate', { handoff_estimate_id: String(est.id) });
+        if (existing && existing.length > 0) {
+          await rda.update('HandoffEstimate', existing[0].id, estimateData);
+          updated++;
+        } else {
+          await rda.create('HandoffEstimate', Object.assign({}, estimateData, { pdf_status: 'pending', pdf_retry_count: 0 }));
+          imported++;
+          if (match_status === 'unmatched') unmatched++;
+        }
+      } catch (e) {
+        console.error('[cron] sync-handoff-estimates error on ' + (est && est.id) + ':', e.message);
+        failed++;
+      }
+    }
+
+    try {
+      var cursorData = { integration: 'handoff', last_successful_sync_at: now, last_updated_timestamp: now, total_synced: estimates.length, last_sync_summary: { fetched: estimates.length, imported: imported, updated: updated, unmatched: unmatched, failed: failed } };
+      var existingCursor = await rda.filter('SyncCursor', { integration: 'handoff' });
+      if (existingCursor && existingCursor.length > 0) await rda.update('SyncCursor', existingCursor[0].id, cursorData);
+      else await rda.create('SyncCursor', cursorData);
+    } catch (e) { console.error('[cron] sync-handoff-estimates cursor update failed:', e.message); }
+
+    console.log('[cron] sync-handoff-estimates done:', JSON.stringify({ fetched: estimates.length, imported, updated, unmatched, failed }));
+    res.json({ ok: true, fetched: estimates.length, imported, updated, unmatched, failed });
+  } catch (e) {
+    console.error('[cron] sync-handoff-estimates fatal:', e.message);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 module.exports = router;
