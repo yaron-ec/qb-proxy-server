@@ -356,8 +356,12 @@ app.get('/auth/status', requireProxySecret, handleAuthStatus);
 
 async function handleAuthConnect(req, res) {
   if (!QB_CLIENT_ID) return res.status(500).json({ error: 'QB_CLIENT_ID not configured on proxy' });
-  const redirectUri = req.body?.redirect_uri || req.query?.redirect_uri || QB_REDIRECT_URI;
-  if (!redirectUri) return res.status(500).json({ error: 'QB_REDIRECT_URI not configured on proxy and no redirect_uri provided' });
+  // ALWAYS use QB_REDIRECT_URI from the env — this is the URL registered with
+  // Intuit. The frontend's redirect_uri is ignored to prevent mismatch with
+  // the Intuit app configuration. If QB_REDIRECT_URI is not set, fall back to
+  // the request body (for backward compatibility during setup).
+  const redirectUri = QB_REDIRECT_URI || req.body?.redirect_uri || req.query?.redirect_uri;
+  if (!redirectUri) return res.status(500).json({ error: 'QB_REDIRECT_URI not configured on proxy. Set it in the Railway environment to match the Intuit app redirect URI.' });
   const params = new URLSearchParams({
     client_id: QB_CLIENT_ID,
     response_type: 'code',
@@ -370,10 +374,12 @@ async function handleAuthConnect(req, res) {
 }
 
 async function handleAuthCallback(req, res) {
-  const { code, realmId, redirect_uri } = req.body || {};
+  const { code, realmId } = req.body || {};
   if (!code || !realmId) return res.status(400).json({ error: 'Missing code or realmId' });
-  const redirectUri = redirect_uri || QB_REDIRECT_URI;
-  if (!redirectUri) return res.status(500).json({ error: 'QB_REDIRECT_URI not configured and no redirect_uri in request body' });
+  // ALWAYS use QB_REDIRECT_URI from the env — must match the redirect_uri
+  // used in auth-connect. The frontend's redirect_uri is ignored.
+  const redirectUri = QB_REDIRECT_URI || req.body?.redirect_uri;
+  if (!redirectUri) return res.status(500).json({ error: 'QB_REDIRECT_URI not configured. Set it in the Railway environment.' });
   console.log('[proxy] auth-callback — using redirect_uri:', redirectUri);
   try {
     const creds = Buffer.from(`${QB_CLIENT_ID}:${QB_CLIENT_SECRET}`).toString('base64');
@@ -1008,70 +1014,10 @@ app.delete('/api/files/delete', requireProxySecret, async (req, res) => {
   // ── END TEMPORARY TRACE ──
 });
 
-// ── /qb/* alias routes (thin POST wrappers over existing QB logic) ────────────
-// These match the paths the CRM frontend calls via railwayClient.js
-
-app.post('/qb/auth-status', requireProxySecret, (req, res) => {
-  if (!storedTokens) return res.json({ connected: false, reconnectRequired: true });
-  const refreshExpired = isRefreshTokenExpired(storedTokens);
-  res.json({
-    connected: !refreshExpired,
-    reconnectRequired: refreshExpired,
-    realm_id: storedTokens.realm_id,
-    environment: QB_ENVIRONMENT,
-    connected_at: storedTokens.connected_at,
-    refresh_expires_at: storedTokens.refresh_expires_at,
-    token_expires_at: storedTokens.expires_at,
-  });
-});
-
-app.post('/qb/auth-connect', requireProxySecret, (req, res) => {
-  if (!QB_CLIENT_ID) return res.status(500).json({ error: 'QB_CLIENT_ID not configured on proxy' });
-  const redirectUri = req.body.redirect_uri || QB_REDIRECT_URI;
-  if (!redirectUri) return res.status(500).json({ error: 'QB_REDIRECT_URI not configured' });
-  const params = new URLSearchParams({
-    client_id: QB_CLIENT_ID, response_type: 'code', scope: QB_SCOPES,
-    redirect_uri: redirectUri, state: 'qb_oauth',
-  });
-  res.json({ auth_url: `${QB_AUTH_URL}?${params}`, environment: QB_ENVIRONMENT, redirect_uri: redirectUri });
-});
-
-app.post('/qb/auth-callback', requireProxySecret, async (req, res) => {
-  const { code, realmId, redirect_uri } = req.body;
-  if (!code || !realmId) return res.status(400).json({ error: 'Missing code or realmId' });
-  const redirectUri = redirect_uri || QB_REDIRECT_URI;
-  const creds = Buffer.from(`${QB_CLIENT_ID}:${QB_CLIENT_SECRET}`).toString('base64');
-  const tokenRes = await fetch(QB_TOKEN_URL, {
-    method: 'POST',
-    headers: { Authorization: `Basic ${creds}`, 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
-    body: new URLSearchParams({ grant_type: 'authorization_code', code, redirect_uri: redirectUri }).toString(),
-  });
-  const tokenData = await tokenRes.json();
-  if (!tokenRes.ok) return res.status(400).json({ error: tokenData.error_description || 'Token exchange failed' });
-  storedTokens = {
-    access_token: tokenData.access_token, refresh_token: tokenData.refresh_token, realm_id: realmId,
-    environment: QB_ENVIRONMENT,
-    expires_at: new Date(Date.now() + (tokenData.expires_in || 3600) * 1000).toISOString(),
-    refresh_expires_at: new Date(Date.now() + (tokenData.x_refresh_token_expires_in || 8726400) * 1000).toISOString(),
-    connected_at: new Date().toISOString(),
-  };
-  saveTokensToFile(storedTokens);
-  res.json({ success: true, realm_id: realmId, environment: QB_ENVIRONMENT });
-});
-
-app.post('/qb/auth-disconnect', requireProxySecret, (req, res) => {
-  storedTokens = null;
-  try { if (fs.existsSync(TOKEN_FILE)) fs.unlinkSync(TOKEN_FILE); } catch (e) {}
-  res.json({ success: true });
-});
-
-app.post('/qb/get-company', requireProxySecret, async (req, res) => {
-  try {
-    const tokens = await getValidTokens();
-    const data = await qbFetch(`/companyinfo/${tokens.realm_id}?minorversion=65`);
-    res.json({ company: data.CompanyInfo });
-  } catch (e) { return handleQBError(e, res); }
-});
+// ── /qb/* alias routes ────────────────────────────────────────────────────────
+// The canonical shared handlers (handleAuthConnect, handleAuthCallback, etc.)
+// are mounted above. These duplicate inline implementations were removed to
+// prevent route shadowing and ensure the QB_REDIRECT_URI fix is always used.
 
 // QB lead-level operations — these require business logic that lives in CRM context.
 // The proxy handles raw QB API calls; orchestration (matching leads, syncing fields) 
@@ -1270,6 +1216,9 @@ app.use('/api/v1/auth', require('./routes/auth'));
 app.use('/api/v1', require('./routes/emails'));
 app.use('/api/v1', require('./routes/bookings'));
 app.use('/api/v1/gmail', require('./routes/gmail'));
+// Railway-native lead merge (must mount BEFORE leads router so /merge doesn't
+// get caught by leads /:id route)
+app.use('/api/v1/leads', require('./routes/mergeLeads'));
 // R1A: Railway CRM Lead + Owner API (read-only foundation; writes arrive in R1B)
 app.use('/api/v1/leads', require('./routes/leads'));
 app.use('/api/v1/settings', require('./routes/settings'));
@@ -1285,6 +1234,8 @@ app.use('/api/v1/lead-attachments', require('./routes/leadAttachments'));
 app.use('/api/v1/handoff-estimates', require('./routes/handoffEstimates'));
 app.use('/api/v1/sync-cursors', require('./routes/syncCursors'));
 app.use('/api/v1/company-settings', require('./routes/companySettings'));
+app.use('/api/v1/qb-executive-metrics', require('./routes/qbExecutiveMetrics'));
+app.use('/api/v1/financial-backfill', require('./routes/financialBackfill'));
 app.use('/api/v1/cron', require('./routes/cronJobs'));
 
   // Native Railway adapters for Lead Detail page (no Base44):
