@@ -91,7 +91,7 @@ export default function LeadDetailModern() {
         if (lSources) setLeadSources(lSources);
         setLoading(false);
 
-        // Clear new intake marker via Railway â update by Railway UUID (not external_ref)
+        // Clear new intake marker via Railway Ã¢ÂÂ update by Railway UUID (not external_ref)
         if (leadData?.is_new_intake_lead) {
           try {
             await railwayLeads.update(leadData.railway_id || id, { is_new_intake_lead: false, reviewed_at: new Date().toISOString() });
@@ -120,7 +120,7 @@ export default function LeadDetailModern() {
     loadData();
   }, [id]);
 
-  // Refresh lead from DB â used by QB panel after actions so financial sections update
+  // Refresh lead from DB Ã¢ÂÂ used by QB panel after actions so financial sections update
   const refreshLead = async () => {
     try {
       const res = await railwayLeads.getByExternal(id);
@@ -138,7 +138,7 @@ export default function LeadDetailModern() {
   }, [lead?.status, lead?.id]);
 
   const updateField = async (field, value) => {
-    // Always update by Railway UUID â NEVER by external_ref. Updating by
+    // Always update by Railway UUID Ã¢ÂÂ NEVER by external_ref. Updating by
     // external_ref via updateByExternal() INSERTs with external_ref as the key,
     // which creates DUPLICATE leads for Railway-native records (no external_ref).
     // The backend PUT /:id now handles both contact and CRM fields with duplicate
@@ -269,7 +269,7 @@ export default function LeadDetailModern() {
 
   return (
     <div className="flex flex-col h-full bg-slate-50 overflow-hidden">
-      {/* ââ Header ââ */}
+      {/* Ã¢ÂÂÃ¢ÂÂ Header Ã¢ÂÂÃ¢ÂÂ */}
       <div className="bg-white border-b border-border px-4 md:px-6 py-4 flex items-center justify-between flex-shrink-0 z-30" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="flex items-center gap-2 md:gap-3 min-w-0">
           <Link to="/leads" className="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors flex-shrink-0 md:hidden btn-compact">
@@ -285,14 +285,14 @@ export default function LeadDetailModern() {
         </div>
       </div>
 
-      {/* ââ Mobile Action Bar ââ */}
+      {/* Ã¢ÂÂÃ¢ÂÂ Mobile Action Bar Ã¢ÂÂÃ¢ÂÂ */}
       {(lead.phone || lead.email) && (
         <div className="md:hidden flex items-center gap-2 px-4 py-2.5 bg-white border-b border-slate-100 flex-shrink-0">
           <ContactActions phone={lead.phone} email={lead.email} size="lg" />
         </div>
       )}
 
-      {/* ââ Mobile Tab Bar ââ */}
+      {/* Ã¢ÂÂÃ¢ÂÂ Mobile Tab Bar Ã¢ÂÂÃ¢ÂÂ */}
       <div className="md:hidden flex border-b border-slate-100 bg-white flex-shrink-0">
         {[
           { id: "activity", label: "Activity" },
@@ -308,7 +308,7 @@ export default function LeadDetailModern() {
         ))}
       </div>
 
-      {/* ââ Mobile View ââ */}
+      {/* Ã¢ÂÂÃ¢ÂÂ Mobile View Ã¢ÂÂÃ¢ÂÂ */}
       <div className="md:hidden flex-1 overflow-y-auto p-3 space-y-3" style={{ paddingBottom: 'max(3rem, env(safe-area-inset-bottom) + 1rem)' }}>
         {mobileSection === "activity" && (
           <>
@@ -338,7 +338,7 @@ export default function LeadDetailModern() {
             {/* Admin: calendar sync error alert + repair */}
             {lead.google_calendar_sync_status === 'error' && (
               <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-                <p className="text-xs font-bold text-red-700 mb-1">â ï¸ Calendar sync failed</p>
+                <p className="text-xs font-bold text-red-700 mb-1">Ã¢ÂÂ Ã¯Â¸Â Calendar sync failed</p>
                 <p className="text-[11px] text-red-600">{lead.google_calendar_sync_error || 'Unknown error at intake'}</p>
                 <p className="text-[11px] text-slate-500 mt-1">Use "Calendar" button above to repair.</p>
               </div>
@@ -351,7 +351,7 @@ export default function LeadDetailModern() {
         )}
       </div>
 
-      {/* ââ Desktop 3-Column Layout ââ */}
+      {/* Ã¢ÂÂÃ¢ÂÂ Desktop 3-Column Layout Ã¢ÂÂÃ¢ÂÂ */}
       <div className="hidden md:grid md:grid-cols-[256px_1fr_272px] flex-1 overflow-hidden gap-0 bg-white">
 
         {/* LEFT COLUMN */}
@@ -362,7 +362,7 @@ export default function LeadDetailModern() {
           {/* Desktop-only integration panels */}
           {lead.google_calendar_sync_status === 'error' && (
             <div className="mx-3 mb-2 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
-              <p className="text-xs font-bold text-red-700">â ï¸ Calendar sync failed</p>
+              <p className="text-xs font-bold text-red-700">Ã¢ÂÂ Ã¯Â¸Â Calendar sync failed</p>
               <p className="text-[11px] text-red-600 mt-0.5">{lead.google_calendar_sync_error || 'Unknown error at intake'}</p>
             </div>
           )}
@@ -438,7 +438,7 @@ export default function LeadDetailModern() {
   );
 }
 
-// ââ Left Sidebar Content (shared between mobile + desktop) ââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Left Sidebar Content (shared between mobile + desktop) Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, projectTypes, leadSources, deals, handleDeleteLead, currentUser }) {
   const createdDate = lead.crm_created_date || lead.created_date;
   const fmt12 = (t) => {
@@ -449,7 +449,7 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
 
   return (
     <div className="bg-white">
-      {/* ââ Identity block ââ */}
+      {/* Ã¢ÂÂÃ¢ÂÂ Identity block Ã¢ÂÂÃ¢ÂÂ */}
       <div className="px-5 pt-5 pb-4">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-orange to-amber-600 flex items-center justify-center flex-shrink-0 shadow-sm">
@@ -485,50 +485,50 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
         </div>
       </div>
 
-      {/* ââ Contact section ââ */}
+      {/* Ã¢ÂÂÃ¢ÂÂ Contact section Ã¢ÂÂÃ¢ÂÂ */}
       <SidebarSection title="Contact Info">
         <ContactInfoEditor lead={lead} onLeadUpdate={onLeadUpdate} />
 
-        {/* Owner â editable (click row) + copy (no pencil) */}
+        {/* Owner Ã¢ÂÂ editable (click row) + copy (no pencil) */}
         <CRMField label="Owner" icon={User}>
-          <EditableField value={toTitleCase(lead.assigned_rep) || "â"} onSave={v => updateField("assigned_rep", v)} type="select" options={contactOwners} editable
+          <EditableField value={toTitleCase(lead.assigned_rep) || "Ã¢ÂÂ"} onSave={v => updateField("assigned_rep", v)} type="select" options={contactOwners} editable
             copyValue={lead.assigned_rep ? toTitleCase(lead.assigned_rep) : null} copyLabel="Owner">
             <span className="crm-value">{toTitleCase(lead.assigned_rep) || <span className="crm-empty">Unassigned</span>}</span>
           </EditableField>
         </CRMField>
 
-        {/* Job Type â editable (click row) + copy (no pencil) */}
+        {/* Job Type Ã¢ÂÂ editable (click row) + copy (no pencil) */}
         <CRMField label="Job Type" icon={Briefcase}>
           <EditableField value={lead.project_type} onSave={v => updateField("project_type", v)} type="multiselect" options={projectTypes} editable
             copyValue={lead.project_type ? toTitleCase(lead.project_type) : null} copyLabel="Job Type">
-            <span className="crm-value">{toTitleCase(lead.project_type) || <span className="crm-empty">â</span>}</span>
+            <span className="crm-value">{toTitleCase(lead.project_type) || <span className="crm-empty">Ã¢ÂÂ</span>}</span>
           </EditableField>
         </CRMField>
 
-        {/* Budget â editable (click row) + copy (no pencil) */}
+        {/* Budget Ã¢ÂÂ editable (click row) + copy (no pencil) */}
         <CRMField label="Budget" icon={DollarSign}>
-          <EditableField value={lead.budget_range || "â"} onSave={v => updateField("budget_range", v)} type="select" options={["Under $25,000","$25,000â$75,000","$75,000â$150,000","$150,000â$300,000","$300,000+"]} editable
+          <EditableField value={lead.budget_range || "Ã¢ÂÂ"} onSave={v => updateField("budget_range", v)} type="select" options={["Under $25,000","$25,000Ã¢ÂÂ$75,000","$75,000Ã¢ÂÂ$150,000","$150,000Ã¢ÂÂ$300,000","$300,000+"]} editable
             copyValue={lead.budget_range || null} copyLabel="Budget">
-            <span className="crm-value">{lead.budget_range || <span className="crm-empty">â</span>}</span>
+            <span className="crm-value">{lead.budget_range || <span className="crm-empty">Ã¢ÂÂ</span>}</span>
           </EditableField>
         </CRMField>
 
-        {/* Source â editable (click row) + copy (no pencil) */}
+        {/* Source Ã¢ÂÂ editable (click row) + copy (no pencil) */}
         <CRMField label="Source" icon={ExternalLink}>
-          <EditableField value={lead.source || "â"} onSave={v => updateField("source", v)} type="select" options={leadSources} editable
+          <EditableField value={lead.source || "Ã¢ÂÂ"} onSave={v => updateField("source", v)} type="select" options={leadSources} editable
             copyValue={lead.source || null} copyLabel="Source">
-            <span className="crm-value">{lead.source || <span className="crm-empty">â</span>}</span>
+            <span className="crm-value">{lead.source || <span className="crm-empty">Ã¢ÂÂ</span>}</span>
           </EditableField>
         </CRMField>
 
         {/* Added date */}
         <CRMField label="Added" icon={Calendar}>
           <span className="crm-value">
-            {createdDate ? new Date(createdDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : <span className="crm-empty">â</span>}
+            {createdDate ? new Date(createdDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : <span className="crm-empty">Ã¢ÂÂ</span>}
           </span>
         </CRMField>
 
-        {/* Customer reminder preference â prominent when opted out */}
+        {/* Customer reminder preference Ã¢ÂÂ prominent when opted out */}
         <div className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 border ${
           lead.customer_reminders_disabled ? 'border-amber-300 bg-amber-50' : 'border-slate-200 bg-slate-50'
         }`}>
@@ -540,7 +540,7 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
             <div className="min-w-0">
               <p className="text-xs font-semibold text-slate-700 leading-tight">Customer Reminders</p>
               <p className={`text-[11px] leading-tight mt-0.5 ${lead.customer_reminders_disabled ? 'text-amber-700' : 'text-slate-400'}`}>
-                {lead.customer_reminders_disabled ? 'Opted out â no reminder emails' : 'Reminder emails enabled'}
+                {lead.customer_reminders_disabled ? 'Opted out Ã¢ÂÂ no reminder emails' : 'Reminder emails enabled'}
               </p>
             </div>
           </div>
@@ -551,7 +551,7 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
         </div>
       </SidebarSection>
 
-      {/* ââ Schedule section ââ */}
+      {/* Ã¢ÂÂÃ¢ÂÂ Schedule section Ã¢ÂÂÃ¢ÂÂ */}
       <SidebarSection title="Schedule">
         {/* Appointment */}
         <InfoRow icon={Calendar}>
@@ -566,7 +566,7 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
               </span>
             </EditableField>
             {!lead.appointment_date && lead.follow_up_date && lead.follow_up_type === "Meeting" && (
-              <p className="text-[10px] text-slate-400 mt-1">No site visit on file â next meeting is in Follow-up below.</p>
+              <p className="text-[10px] text-slate-400 mt-1">No site visit on file Ã¢ÂÂ next meeting is in Follow-up below.</p>
             )}
             {/* Time picker inline below */}
             <div className="mt-1.5">
@@ -581,7 +581,7 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
         </div>
       </SidebarSection>
 
-      {/* ââ Notes section ââ */}
+      {/* Ã¢ÂÂÃ¢ÂÂ Notes section Ã¢ÂÂÃ¢ÂÂ */}
       {deals.length === 0 && (
         <SidebarSection title="Notes">
           <EditableField value={lead.notes || ""} onSave={v => updateField("notes", v)} editable>
@@ -592,7 +592,7 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
         </SidebarSection>
       )}
 
-      {/* ââ Danger zone ââ */}
+      {/* Ã¢ÂÂÃ¢ÂÂ Danger zone Ã¢ÂÂÃ¢ÂÂ */}
       <div className="px-5 pt-6 pb-4 border-t-2 border-slate-100 mt-2">
         <p className="sidebar-section-header text-slate-300 mb-2">Danger Zone</p>
         <button onClick={handleDeleteLead} className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors btn-compact border border-red-100 hover:border-red-200">
@@ -603,7 +603,7 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
   );
 }
 
-// ââ Reusable sidebar section wrapper ââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Reusable sidebar section wrapper Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function SidebarSection({ title, children }) {
   return (
     <div className="border-t border-slate-100 px-5 py-3.5">
@@ -614,7 +614,7 @@ function SidebarSection({ title, children }) {
 }
 
 /**
- * CRMField â single source of truth for every info row in the left sidebar.
+ * CRMField Ã¢ÂÂ single source of truth for every info row in the left sidebar.
  * icon + label stacked above value/children, all on a consistent grid.
  */
 function CRMField({ label, icon: Icon, iconClass = "text-slate-400", children }) {
@@ -644,14 +644,14 @@ function ContactRow({ icon: Icon, children, iconClass = "text-slate-400" }) {
   return <InfoRow icon={Icon} iconClass={iconClass}>{children}</InfoRow>;
 }
 
-// ââ Appointment Time Picker âââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Appointment Time Picker Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function AppointmentTimePicker({ lead, onSave }) {
   const [isEditing, setIsEditing] = useState(false);
   const [val, setVal] = useState(lead.appointment_time || '');
   const [availError, setAvailError] = useState(null);
 
   const fmt12 = (t) => {
-    if (!t) return 'â';
+    if (!t) return 'Ã¢ÂÂ';
     const [h, m] = t.split(':').map(Number);
     return `${h % 12 || 12}:${String(m).padStart(2,'0')} ${h >= 12 ? 'PM' : 'AM'}`;
   };
@@ -687,7 +687,7 @@ function AppointmentTimePicker({ lead, onSave }) {
   );
 }
 
-// ââ Copy Button â copies a value to clipboard with a "Copied" toast ââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Copy Button Ã¢ÂÂ copies a value to clipboard with a "Copied" toast Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function CopyButton({ value, label }) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
@@ -718,7 +718,7 @@ function CopyButton({ value, label }) {
   );
 }
 
-// ââ EmailEditField â async save with loading/error state ââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ EmailEditField Ã¢ÂÂ async save with loading/error state Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function EmailEditField({ lead, updateField, composeEmail }) {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
@@ -763,7 +763,7 @@ function EmailEditField({ lead, updateField, composeEmail }) {
     return (
       <button onClick={() => { setVal(''); setError(null); setIsEditing(true); }}
         className="btn-compact flex items-center gap-1.5 text-xs text-slate-400 hover:text-amber-600 transition-colors group">
-        <span className="crm-empty">â</span>
+        <span className="crm-empty">Ã¢ÂÂ</span>
         <Pencil className="w-3 h-3 text-slate-300 group-hover:text-amber-500 transition-colors" />
       </button>
     );
@@ -803,15 +803,15 @@ function EmailEditField({ lead, updateField, composeEmail }) {
   );
 }
 
-// ââ EditableField ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ EditableField Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function EditableField({ label, value, onSave, type = "text", options = [], editable = false, showPencil = false, copyValue = null, copyLabel = null, children }) {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
-  const rawValue = (value === "â" || value === null || value === undefined) ? "" : String(value);
+  const rawValue = (value === "Ã¢ÂÂ" || value === null || value === undefined) ? "" : String(value);
   const [editVal, setEditVal] = useState(rawValue);
   const [selectedMulti, setSelectedMulti] = useState(() =>
-    type === "multiselect" && value && value !== "â" ? String(value).split(",").map(v => v.trim()).filter(v => v) : []
+    type === "multiselect" && value && value !== "Ã¢ÂÂ" ? String(value).split(",").map(v => v.trim()).filter(v => v) : []
   );
 
   // Async-aware save: shows loading state, preserves edit values on error,
@@ -836,11 +836,10 @@ function EditableField({ label, value, onSave, type = "text", options = [], edit
       <div onClick={() => editable && setIsEditing(true)} className={editable ? "cursor-pointer group" : ""}>
         <div className="flex items-center justify-between gap-2">
           <div className="flex-1 min-w-0">{children}</div>
-          {copyValue ? (
-            <CopyButton value={copyValue} label={copyLabel} />
-          ) : editable && showPencil ? (
-            <Pencil className="w-3 h-3 text-slate-300 group-hover:text-amber-500 transition-colors flex-shrink-0" />
-          ) : null}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {copyValue && <CopyButton value={copyValue} label={copyLabel} />}
+            {editable && <Pencil className="w-3 h-3 text-slate-300 group-hover:text-amber-500 transition-colors flex-shrink-0" />}
+          </div>
         </div>
       </div>
     );
@@ -851,7 +850,7 @@ function EditableField({ label, value, onSave, type = "text", options = [], edit
     timeOptions.push(`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`);
 
   const fmt = (v) => {
-    if (!v || v === "â") return "â";
+    if (!v || v === "Ã¢ÂÂ") return "Ã¢ÂÂ";
     if (type === "date") return new Date(v + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
     if (type === "time") { const [h,m] = v.split(":").map(Number); return `${h%12||12}:${String(m).padStart(2,"0")} ${h>=12?"PM":"AM"}`; }
     return v;
@@ -871,14 +870,14 @@ function EditableField({ label, value, onSave, type = "text", options = [], edit
         </div>
       ) : type === "select" ? (
         <select value={editVal} onChange={e => setEditVal(e.target.value)} className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-amber-500">
-          <option value="">â Select</option>
+          <option value="">Ã¢ÂÂ Select</option>
           {options.map(o => <option key={o} value={o}>{o}</option>)}
         </select>
       ) : type === "date" ? (
         <input type="date" value={editVal} onChange={e => setEditVal(e.target.value)} className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-amber-500" />
       ) : type === "time" ? (
         <select value={editVal} onChange={e => setEditVal(e.target.value)} className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-amber-500">
-          <option value="">â Time</option>
+          <option value="">Ã¢ÂÂ Time</option>
           {timeOptions.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
       ) : type === "number" ? (
@@ -908,7 +907,7 @@ function EditableField({ label, value, onSave, type = "text", options = [], edit
             ))}
           </div>
         ) : (
-          <p className="text-xs text-slate-800">{fmt(rawValue) || <span className="text-slate-400">â</span>}</p>
+          <p className="text-xs text-slate-800">{fmt(rawValue) || <span className="text-slate-400">Ã¢ÂÂ</span>}</p>
         )}
         {editable && <Pencil className="w-3 h-3 text-slate-300 group-hover:text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />}
       </div>
@@ -916,7 +915,7 @@ function EditableField({ label, value, onSave, type = "text", options = [], edit
   );
 }
 
-// ââ Edit Name Button + Modal âââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Edit Name Button + Modal Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function EditNameButton({ lead, onSave }) {
   const [open, setOpen] = useState(false);
   const [firstName, setFirstName] = useState(lead.first_name || '');
@@ -955,7 +954,7 @@ function EditNameButton({ lead, onSave }) {
           <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-sm p-5 space-y-4" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-slate-900">Edit Name</h3>
-              <button onClick={() => setOpen(false)} className="btn-compact p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors">â</button>
+              <button onClick={() => setOpen(false)} className="btn-compact p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors">Ã¢ÂÂ</button>
             </div>
             <div className="space-y-3">
               <div>
@@ -986,7 +985,7 @@ function EditNameButton({ lead, onSave }) {
                 disabled={saving || !firstName.trim()}
                 className="flex-1 py-2.5 text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-lg transition-colors disabled:opacity-50"
               >
-                {saving ? 'Savingâ¦' : 'Save'}
+                {saving ? 'SavingÃ¢ÂÂ¦' : 'Save'}
               </button>
               <button
                 onClick={() => setOpen(false)}
@@ -1002,7 +1001,7 @@ function EditNameButton({ lead, onSave }) {
   );
 }
 
-// ââ Mobile Integration Actions â always-visible 2Ã2 icon grid ââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Mobile Integration Actions Ã¢ÂÂ always-visible 2ÃÂ2 icon grid Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function MobileIntegrationActions({ lead, onLeadUpdate }) {
   const [calendarState, setCalendarState] = useState({ loading: false, result: null });
   const [contactState, setContactState] = useState({ loading: false, result: null });
@@ -1011,7 +1010,7 @@ function MobileIntegrationActions({ lead, onLeadUpdate }) {
 
   // [DEBUG v2.1] proves the updated (backend-driven) component is executing.
   // Remove after Android build verification is confirmed.
-  console.log('[MobileIntegrationActions] v2.1 mounted â backend-driven path', {
+  console.log('[MobileIntegrationActions] v2.1 mounted Ã¢ÂÂ backend-driven path', {
     leadId: lead.id,
     contactSyncStatus: lead.google_contact_sync_status,
     hasContactResourceName: !!lead.google_contact_resource_name,
@@ -1040,7 +1039,7 @@ function MobileIntegrationActions({ lead, onLeadUpdate }) {
       state: calendarState,
       synced: !!lead.google_event_id,
       run: () => runAction('calendar', async () => {
-        // Railway-owned calendar sync â service account creates the event server-side.
+        // Railway-owned calendar sync Ã¢ÂÂ service account creates the event server-side.
         // No browser-side Google Calendar OAuth connector, no Base44.
         const apptDate = lead.follow_up_date || lead.appointment_date;
         if (!apptDate) throw new Error('No appointment date set for this lead.');
@@ -1063,7 +1062,7 @@ function MobileIntegrationActions({ lead, onLeadUpdate }) {
       error: lead.google_contact_sync_status === 'error',
       pending: lead.google_contact_sync_status === 'pending',
       run: () => runAction('contact', async () => {
-        // Railway-owned contact sync â service account creates the contact server-side.
+        // Railway-owned contact sync Ã¢ÂÂ service account creates the contact server-side.
         // No Base44 syncSingleContactToGoogle function call.
         const res = await railwayLeads.syncContact(lead.id);
         if (res?.success === false) throw new Error(res?.error || 'Contact sync failed');
@@ -1094,14 +1093,14 @@ function MobileIntegrationActions({ lead, onLeadUpdate }) {
       icon: Mail,
       state: reminderState,
       synced: false,
-      // Disabled only when customer opted out or no upcoming appointment â NOT
+      // Disabled only when customer opted out or no upcoming appointment Ã¢ÂÂ NOT
       // based on a browser-side Gmail connector check. Reminders are delivered
       // by the existing sendManualReminder backend function (Gmail API, server-side).
       disabled: !apptDate || apptDate < today || !!lead.customer_reminders_disabled,
       run: () => runAction('reminder', async () => {
         // [DEBUG v2.1] proves the reminder action takes the backend path (not connector).
-        console.log('[MobileIntegrationActions] reminder action â sendManualReminder (backend)', { leadId: lead.id });
-        // Uses existing sendManualReminder backend function â sends staff + customer
+        console.log('[MobileIntegrationActions] reminder action Ã¢ÂÂ sendManualReminder (backend)', { leadId: lead.id });
+        // Uses existing sendManualReminder backend function Ã¢ÂÂ sends staff + customer
         // reminder emails via the Gmail API path (server-side). Never checks a
         // browser-side connector, so never shows "Gmail not connected."
         const { sendManualReminder } = await import('@/lib/emailTransport');
@@ -1121,23 +1120,23 @@ function MobileIntegrationActions({ lead, onLeadUpdate }) {
           const result = state.result;
           const hasError = result && !result.ok;
           const hasSuccess = result && result.ok;
-          // A failed action never disables the card â it stays tappable for retry.
+          // A failed action never disables the card Ã¢ÂÂ it stays tappable for retry.
           // Only the underlying disabled condition (no appt / opted out) blocks taps.
           const isDisabled = !!disabled && !hasError;
           const statusText = isLoading
-            ? 'Runningâ¦'
+            ? 'RunningÃ¢ÂÂ¦'
             : hasError
-            ? 'Failed â tap to retry'
+            ? 'Failed Ã¢ÂÂ tap to retry'
             : hasSuccess
-            ? 'Done â'
+            ? 'Done Ã¢ÂÂ'
             : disabled
             ? 'Reminder disabled'
             : error
             ? 'Sync failed'
             : pending
-            ? 'Syncingâ¦'
+            ? 'SyncingÃ¢ÂÂ¦'
             : synced
-            ? 'â Synced'
+            ? 'Ã¢ÂÂ Synced'
             : 'Tap to run';
           return (
             <div key={key} className="flex flex-col gap-1">
@@ -1186,7 +1185,7 @@ function MobileIntegrationActions({ lead, onLeadUpdate }) {
   );
 }
 
-// ââ Admin Calendar Repair Button ââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Admin Calendar Repair Button Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function AdminCalendarRepairButton() {
   const [state, setState] = useState({ loading: false, result: null });
 
@@ -1215,7 +1214,7 @@ function AdminCalendarRepairButton() {
         style={{ minHeight: 'unset', minWidth: 'unset' }}
       >
         <RefreshCw className={`w-3 h-3 ${state.loading ? 'animate-spin' : ''}`} />
-        {state.loading ? 'Scanningâ¦' : 'Run Audit'}
+        {state.loading ? 'ScanningÃ¢ÂÂ¦' : 'Run Audit'}
       </button>
     </div>
       {state.result && (
@@ -1224,10 +1223,10 @@ function AdminCalendarRepairButton() {
             <>
               <p className="font-semibold">{state.result.data?.summary}</p>
               {state.result.data?.details?.missingEmail?.length > 0 && (
-                <p className="mt-1 text-amber-700">â ï¸ Missing email (non-blocking): {state.result.data.details.missingEmail.map(l => l.name).join(', ')}</p>
+                <p className="mt-1 text-amber-700">Ã¢ÂÂ Ã¯Â¸Â Missing email (non-blocking): {state.result.data.details.missingEmail.map(l => l.name).join(', ')}</p>
               )}
               {state.result.data?.details?.failed?.length > 0 && (
-                <p className="mt-1 text-red-600">â Failed: {state.result.data.details.failed.map(l => `${l.name} (${l.error})`).join(', ')}</p>
+                <p className="mt-1 text-red-600">Ã¢ÂÂ Failed: {state.result.data.details.failed.map(l => `${l.name} (${l.error})`).join(', ')}</p>
               )}
             </>
           ) : (
@@ -1239,7 +1238,7 @@ function AdminCalendarRepairButton() {
   );
 }
 
-// ââ Activity Card â modern feed style with edit support âââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Activity Card Ã¢ÂÂ modern feed style with edit support Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(activity.content);
@@ -1379,7 +1378,7 @@ function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
                 disabled={saving || !editContent.trim()}
                 className="px-3 py-1 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded transition-colors disabled:opacity-50"
               >
-                {saving ? "Savingâ¦" : "Save"}
+                {saving ? "SavingÃ¢ÂÂ¦" : "Save"}
               </button>
               <button
                 onClick={() => { setIsEditing(false); setEditContent(activity.content); }}
@@ -1399,7 +1398,7 @@ function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
           )}
           {editedAt && (
             <span className="text-[10px] text-slate-400 italic">
-              Â· edited {new Date(editedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })} at {new Date(editedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+              ÃÂ· edited {new Date(editedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })} at {new Date(editedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
             </span>
           )}
         </div>
