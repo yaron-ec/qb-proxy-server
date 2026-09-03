@@ -11,7 +11,7 @@ export default function DocumentsTab({ lead, setLead }) {
       <div>
         <p className="typography-section-header mb-2">CONTRACTS</p>
         <div className="card-premium overflow-hidden">
-          <SignNowPanel lead={lead} onLeadUpdate={setLead} />
+          {lead?.id ? <SignNowPanel lead={lead} onLeadUpdate={setLead} /> : <p className="text-sm text-slate-400 py-3 px-4">No lead linked.</p>}
         </div>
       </div>
 
