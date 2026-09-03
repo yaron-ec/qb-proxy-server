@@ -1767,8 +1767,12 @@ app.post('/admin/verify-lead-delete', requireProxySecret, async (req, res) => {
     }));
 
     // Check specific tables we care about
-    const expectedCascade = ['appointments', 'appointment_events', 'calendar_outbox', 'booking_idempotency', 'projection_outbox', 'base44_entity_map'];
+    // Direct FKs to leads(id):
+    const expectedCascade = ['appointments', 'booking_idempotency', 'projection_outbox'];
     const expectedSetNull = ['deals'];
+    // Indirect cascade (through appointments → calendar_outbox, appointment_events):
+    // These have FK to appointments(id) ON DELETE CASCADE, so they cascade
+    // through the appointments cascade. base44_entity_map uses railway_lead_id.
     for (const tbl of expectedCascade) {
       const row = fkRes.rows.find(r => r.table_name === tbl);
       if (!row || row.delete_rule !== 'CASCADE') {
@@ -1787,17 +1791,48 @@ app.post('/admin/verify-lead-delete', requireProxySecret, async (req, res) => {
         result.constraints[tbl] = 'SET NULL ✓';
       }
     }
+    // Verify indirect cascade tables (FK to appointments, not leads)
+    const indirectRes = await query(`
+      SELECT tc.table_name, rc.delete_rule
+      FROM information_schema.referential_constraints rc
+      JOIN information_schema.table_constraints tc ON tc.constraint_name = rc.constraint_name
+      WHERE tc.table_name IN ('calendar_outbox', 'appointment_events')
+        AND rc.delete_rule = 'CASCADE'
+    `);
+    for (const tbl of ['calendar_outbox', 'appointment_events']) {
+      const row = indirectRes.rows.find(r => r.table_name === tbl);
+      result.constraints[tbl] = row ? 'CASCADE (via appointments) ✓' : 'MISSING CASCADE FK to appointments';
+      if (!row) result.overall = 'FAIL';
+    }
+    // Verify base44_entity_map (uses railway_lead_id, not lead_id)
+    const bemRes = await query(`
+      SELECT rc.delete_rule FROM information_schema.referential_constraints rc
+      JOIN information_schema.key_column_usage kcu ON kcu.constraint_name = rc.constraint_name
+      JOIN information_schema.table_constraints tc ON tc.constraint_name = rc.constraint_name
+      WHERE tc.table_name = 'base44_entity_map' AND kcu.column_name = 'railway_lead_id'
+    `);
+    result.constraints.base44_entity_map = bemRes.rows[0]?.delete_rule === 'CASCADE' ? 'CASCADE ✓ (railway_lead_id)' : 'MISSING';
+    if (!bemRes.rows[0] || bemRes.rows[0].delete_rule !== 'CASCADE') result.overall = 'FAIL';
 
     // ── 2. E2E deletion test ────────────────────────────────────────────────
     const testExt = `fk-test-${crypto.randomBytes(6).toString('hex')}`;
     const client = await pool.connect();
     try {
+      // Find a valid owner_id (required NOT NULL)
+      const ownerRes = await client.query('SELECT id FROM owners WHERE is_active = true ORDER BY id LIMIT 1');
+      const ownerId = ownerRes.rows[0]?.id || null;
+      if (!ownerId) {
+        result.overall = 'FAIL';
+        result.e2e.error = 'No active owners found — cannot create test lead (owner_id NOT NULL)';
+        return res.json(result);
+      }
+
       // Create test lead
       const leadIns = await client.query(
-        `INSERT INTO leads (external_ref, first_name, last_name, email, phone, status, source)
-         VALUES ($1, 'FKTest', 'DeleteTest', $2, '+15555550100', 'New', 'Website')
+        `INSERT INTO leads (external_ref, first_name, last_name, email, phone, status, source, owner_id)
+         VALUES ($1, 'FKTest', 'DeleteTest', $2, '+15555550100', 'New', 'Website', $3)
          RETURNING id`,
-        [testExt, `${testExt}@test.local`]
+        [testExt, `${testExt}@test.local`, ownerId]
       );
       const leadId = leadIns.rows[0].id;
       result.e2e.leadId = leadId;
