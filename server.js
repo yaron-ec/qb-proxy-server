@@ -32,6 +32,7 @@ const rda = require('./lib/railwayDataAccess'); // Railway Postgres CRUD (replac
 const tokenStore = require('./lib/qbTokenStore'); // credential lifecycle metadata for /health
 const saleDb = require('./db/client'); // Railway Postgres pool (for sale-scoped invoice ownership)
 const saleMap = require('./lib/qbInvoiceSaleMap'); // qb_invoice_sale_map + qb_invoices_cache helpers
+const handoffClient = require('./lib/handoffClient'); // Official Handoff API GraphQL client (verified schema)
 
 const app = express();
 
@@ -1337,8 +1338,545 @@ app.post('/leads/submit-capture', requireProxySecret, (req, res) => {
 
 // ── /handoff/* routes ─────────────────────────────────────────────────────────
 
-app.post('/handoff/sync-estimates-for-lead', requireProxySecret, (req, res) => {
-  res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — Handoff estimate sync runs via the Handoff RPA worker service' });
+app.post('/handoff/sync-estimates-for-lead', requireProxySecret, async (req, res) => {
+  try {
+    var body = req.body || {};
+    var lead_id = body.lead_id;
+    if (!lead_id) return res.status(400).json({ success: false, error: 'lead_id required' });
+
+    var lead = null;
+    try { lead = await rda.get('Lead', lead_id); } catch {}
+    if (!lead) { try { var arr = await rda.filter('Lead', { id: lead_id }); lead = (arr && arr[0]) || null; } catch {} }
+    if (!lead) return res.status(404).json({ success: false, error: 'Lead not found' });
+
+    var token;
+    try { token = await handoffClient.getValidToken(); }
+    catch (e) { return res.status(400).json({ success: false, error: e.message }); }
+
+    var estimates = [];
+    try { estimates = await handoffClient.fetchAllEstimates(token); }
+    catch (e) { return res.status(502).json({ success: false, error: 'Handoff API error: ' + e.message }); }
+
+    var matched = [];
+    for (var i = 0; i < estimates.length; i++) {
+      var r = handoffClient.matchEstimateToLead(estimates[i], lead);
+      if (r.match) matched.push({ est: estimates[i], method: r.method });
+    }
+
+    if (matched.length === 0) {
+      return res.json({ success: true, message: 'No Handoff estimates found (searched ' + estimates.length + ')', total_fetched: estimates.length, matched: 0, imported: 0, updated: 0 });
+    }
+
+    var imported = 0, updated = 0;
+    var now = new Date().toISOString();
+    for (var j = 0; j < matched.length; j++) {
+      var m = matched[j];
+      var est = m.est;
+      var estimateData = {
+        handoff_estimate_id: String(est.id),
+        handoff_estimate_number: '',
+        lead_id: lead_id,
+        customer_name: est.clientName || ((lead.first_name || '') + ' ' + (lead.last_name || '')),
+        customer_phone: est.clientPhone || lead.phone || '',
+        customer_email: est.clientEmail || lead.email || '',
+        estimate_amount: est.total,
+        estimate_status: est.state || 'DRAFT',
+        estimate_date: est.createdAt ? est.createdAt.split('T')[0] : null,
+        document_url: est.proposalLink || '',
+        document_title: est.name || '',
+        last_synced_at: now,
+        match_status: 'matched',
+        match_method: m.method,
+        sync_source: 'Handoff',
+        source: 'Handoff',
+      };
+      var existing = await rda.filter('HandoffEstimate', { handoff_estimate_id: String(est.id) });
+      if (existing && existing.length > 0) {
+        await rda.update('HandoffEstimate', existing[0].id, estimateData);
+        updated++;
+      } else {
+        await rda.create('HandoffEstimate', Object.assign({}, estimateData, { pdf_status: 'pending', pdf_retry_count: 0 }));
+        imported++;
+        await rda.create('Activity', {
+          lead_id: lead_id, type: 'note', timestamp: now,
+          content: 'Handoff estimate synced: ' + (est.name || '#' + est.id) + ' — 
+
+// POST /handoff/import-estimate
+// Called by the Handoff RPA worker. Writes directly to the Railway
+// handoff_estimates table via railwayDataAccess (no Base44).
+app.post('/handoff/import-estimate', requireProxySecret, async (req, res) => {
+  if (!rda.isConfigured()) {
+    return res.status(503).json({ success: false, error: 'DATABASE_URL not configured on Railway' });
+  }
+
+  const { source, estimateId, estimateNumber, exportData } = req.body;
+
+  if (!estimateId && !exportData) {
+    return res.status(400).json({ success: false, error: 'estimateId or exportData required' });
+  }
+
+  let parsed = {};
+  try {
+    parsed = exportData ? JSON.parse(exportData) : req.body;
+  } catch {
+    parsed = req.body;
+  }
+
+  // Normalise fields from Handoff RPA payload
+  const customerName = parsed.customerName || parsed.customer_name || parsed.client_name || parsed.name || '';
+  const customerPhone = parsed.phone || parsed.customerPhone || parsed.client_phone || '';
+  const customerEmail = parsed.email || parsed.customerEmail || parsed.client_email || '';
+  const estimateAmount = parseFloat(parsed.amount || parsed.total || parsed.estimateAmount || 0) || 0;
+  const estimateStatus = parsed.status || parsed.txnStatus || 'Pending';
+  const estimateDate = parsed.date || parsed.txnDate || new Date().toISOString().slice(0, 10);
+  const handoffEstimateId = String(estimateId || parsed.id || '');
+  const handoffEstimateNumber = String(estimateNumber || parsed.number || parsed.estimateNumber || handoffEstimateId);
+
+  if (!customerName) {
+    return res.status(400).json({ success: false, error: 'customerName is required in estimate payload' });
+  }
+
+  try {
+    const payload = {
+      handoff_estimate_id: handoffEstimateId,
+      handoff_estimate_number: handoffEstimateNumber,
+      customer_name: customerName,
+      customer_phone: customerPhone,
+      customer_email: customerEmail,
+      estimate_amount: estimateAmount,
+      estimate_status: estimateStatus,
+      estimate_date: estimateDate,
+      source: 'Handoff',
+      sync_source: 'Handoff',
+      match_status: 'unmatched',
+      last_synced_at: new Date().toISOString(),
+      raw_payload: JSON.stringify(parsed).slice(0, 2000),
+    };
+
+    // Check if this estimate already exists by handoff_estimate_id
+    const existing = await rda.filter('HandoffEstimate', { handoff_estimate_id: handoffEstimateId });
+    const existingRecord = (existing && existing[0]) || null;
+
+    if (existingRecord) {
+      await rda.update('HandoffEstimate', existingRecord.id, payload);
+      console.log(`[handoff] Updated estimate ${handoffEstimateId} (${customerName})`);
+      return res.json({ success: true, updated: true, id: existingRecord.id });
+    } else {
+      const created = await rda.create('HandoffEstimate', Object.assign({}, payload, { pdf_status: 'pending', pdf_retry_count: 0 }));
+      console.log(`[handoff] Imported estimate ${handoffEstimateId} (${customerName}) → id ${created.id}`);
+      return res.json({ success: true, imported: true, id: created.id });
+    }
+  } catch (e) {
+    console.error('[handoff] import-estimate error:', e.message);
+    return res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// ── QB Estimate Sync (replaces Base44 scheduled syncEstimatesFromQBDirect) ────
+// Fully ported from base44/functions/syncEstimatesFromQBDirect/entry.ts (sync mode).
+// QB fetch uses internal qbQuery (static IP, managed tokens). CRM reads/writes use
+// the Base44 REST API via ./lib/base44.js (service-role key, no Base44 credits).
+// Matching engine is the verbatim port in ./lib/qbMatch.js.
+// Run manually: POST /sync/qb-estimates | POST /sync/qb-estimate-pdfs (X-Proxy-Secret).
+// Auto-run: set QB_SYNC_CRON_ENABLED=true (every 15 min) — off by default so the
+// Base44 scheduler stays the source of truth until parity is verified.
+
+const SANDBOX = process.env.QB_SANDBOX === 'true';
+
+function toDateStr(v) {
+  if (!v) return undefined;
+  try { return new Date(isNaN(Number(v)) ? v : Number(v)).toISOString().split('T')[0]; } catch { return undefined; }
+}
+
+// Fetch ALL QB estimates — same query as proxy GET /estimates?since=1970-01-01
+// (WHERE MetaData.LastUpdatedTime > '1970-01-01...', paginated).
+async function fetchAllQbEstimates() {
+  const all = [];
+  let pos = 1;
+  const whereClause = ` WHERE MetaData.LastUpdatedTime > '1970-01-01T00:00:00Z'`;
+  while (true) {
+    const qr = await qbQuery(`SELECT * FROM Estimate${whereClause} STARTPOSITION ${pos} MAXRESULTS 1000`);
+    const batch = qr?.QueryResponse?.Estimate || [];
+    all.push(...batch);
+    if (batch.length < 1000) break;
+    pos += 1000;
+  }
+  return all;
+}
+
+async function fetchQbCustomer(customerId, cache) {
+  if (cache[customerId] !== undefined) return cache[customerId];
+  try {
+    const data = await qbFetch(`/customer/${customerId}?minorversion=65`);
+    cache[customerId] = data.Customer || null;
+  } catch (e) {
+    console.warn(`[qb-sync] Failed to fetch customer ${customerId}:`, e.message);
+    cache[customerId] = null;
+  }
+  return cache[customerId];
+}
+
+// Full estimate sync — replicate syncEstimatesFromQBDirect sync mode exactly.
+async function runQbEstimateSync() {
+  if (!rda.isConfigured()) throw new Error('DATABASE_URL not configured on Railway');
+
+  const stats = { found: 0, fetched: 0, imported: 0, updated: 0, matched: 0, unmatched: 0, skipped: 0, unchanged: 0, failed: 0, errors: [] };
+
+  const qbEstimates = await fetchAllQbEstimates();
+  stats.found = qbEstimates.length;
+  stats.fetched = qbEstimates.length;
+  console.log(`[qb-sync] Estimates fetched: ${stats.found}`);
+
+  const [leads, existingEstimates] = await Promise.all([
+    rda.list('Lead', '-created_date', 2000, 0),
+    rda.list('HandoffEstimate', '-created_date', 1000, 0),
+  ]);
+  console.log(`[qb-sync] Loaded ${leads.length} leads, ${existingEstimates.length} existing estimates`);
+
+  const customerCache = {};
+
+  for (const qbEst of qbEstimates) {
+    try {
+      const qbId = qbEst.Id;
+      const qbNumber = qbEst.DocNumber;
+      const totalAmt = qbEst.TotalAmt || 0;
+      const status = qbEst.TxnStatus || qbEst.EmailStatus || 'Draft';
+      const qbAppUrl = `${SANDBOX ? 'https://sandbox.qbo.intuit.com' : 'https://app.qbo.intuit.com'}/app/estimate?txnId=${qbId}`;
+
+      const customerId = qbEst.CustomerRef?.value;
+      const customerRefName = qbEst.CustomerRef?.name || '(Unknown)';
+
+      const fullCustomer = (await fetchQbCustomer(customerId, customerCache)) || {};
+      const qbCustomer = {
+        ...fullCustomer,
+        DisplayName: fullCustomer.DisplayName || customerRefName,
+        name: customerRefName,
+      };
+
+      const existing = existingEstimates.find(e => e.qb_estimate_id === qbId);
+      const matchedLead = qbMatch.findMatchingLead(qbCustomer, leads);
+
+      const sharedBase = {
+        qb_estimate_id: qbId,
+        qb_estimate_number: qbNumber,
+        customer_name: customerRefName,
+        customer_email: fullCustomer.PrimaryEmailAddr?.Address || '',
+        customer_phone: fullCustomer.PrimaryPhone?.FreeFormNumber || '',
+        estimate_amount: totalAmt,
+        estimate_status: status,
+        estimate_date: qbEst.TxnDate,
+        last_synced_at: new Date().toISOString(),
+        sync_source: 'QuickBooks',
+        qb_app_url: qbAppUrl,
+      };
+
+      const qbUpdatedAt = qbEst.MetaData?.LastUpdatedTime;
+      const isNewer = !existing?.last_synced_at || !qbUpdatedAt || new Date(qbUpdatedAt) > new Date(existing.last_synced_at);
+
+      if (matchedLead) {
+        stats.matched++;
+        const matchedFields = { ...sharedBase, lead_id: matchedLead.id, match_status: 'matched', match_method: 'qb_direct' };
+
+        if (existing) {
+          if (!isNewer) {
+            stats.unchanged++;
+          } else {
+            const pdfReset = existing.pdf_status === 'failed' ? { pdf_status: 'pending', pdf_retry_count: 0 } : {};
+            await rda.update('HandoffEstimate', existing.id, { ...matchedFields, ...pdfReset });
+            stats.updated++;
+          }
+        } else {
+          await rda.create('HandoffEstimate', { ...matchedFields, pdf_status: 'pending', pdf_retry_count: 0, source: 'QB Direct Sync' });
+          stats.imported++;
+          leads.push(matchedLead);
+          const amtStr = totalAmt > 0 ? ` — $${Number(totalAmt).toLocaleString('en-US', { minimumFractionDigits: 0 })}` : '';
+          await rda.create('Activity', {
+            lead_id: matchedLead.id,
+            type: 'note',
+            timestamp: new Date().toISOString(),
+            content: `📋 QB estimate #${qbNumber}${amtStr} synced automatically. Status: ${status}.`,
+            author: 'QB Direct Sync',
+            source: 'manual',
+          }).catch(() => {});
+          if (matchedLead.handoff_estimate_status === 'awaiting_qb') {
+            await rda.update('Lead', matchedLead.id, { handoff_estimate_status: 'synced' }).catch(() => {});
+          }
+        }
+
+        const leadUpdate = {};
+        if (qbEst.TxnDate && !matchedLead.appointment_date) leadUpdate.appointment_date = toDateStr(qbEst.TxnDate);
+        if (qbEst.TxnDate && !matchedLead.follow_up_date) leadUpdate.follow_up_date = toDateStr(qbEst.TxnDate);
+        if (Object.keys(leadUpdate).length > 0) {
+          await rda.update('Lead', matchedLead.id, leadUpdate).catch(() => {});
+        }
+
+      } else {
+        stats.unmatched++;
+        if (existing) {
+          if (!isNewer) {
+            stats.unchanged++;
+          } else {
+            await rda.update('HandoffEstimate', existing.id, { ...sharedBase, match_status: 'unmatched', match_method: 'none' });
+            stats.updated++;
+          }
+        } else {
+          await rda.create('HandoffEstimate', { ...sharedBase, match_status: 'unmatched', match_method: 'none', pdf_status: 'pending', pdf_retry_count: 0, source: 'QB Direct Sync - Unmatched' });
+          stats.imported++;
+        }
+      }
+
+    } catch (e) {
+      console.error(`[qb-sync] Error on estimate ${qbEst.DocNumber}:`, e.message);
+      stats.errors.push(`${qbEst.DocNumber}: ${e.message}`);
+    }
+  }
+
+  // Save cursor (mirrors saveCursor('quickbooks_estimates', ...))
+  try {
+    const rows = await rda.filter('SyncCursor', { integration: 'quickbooks_estimates' });
+    const summary = { fetched: stats.fetched, imported: stats.imported, updated: stats.updated, skipped: stats.skipped, unchanged: stats.unchanged, failed: stats.failed };
+    if (rows[0]) await rda.update('SyncCursor', rows[0].id, { last_successful_sync_at: new Date().toISOString(), last_sync_summary: summary });
+    else await rda.create('SyncCursor', { integration: 'quickbooks_estimates', last_successful_sync_at: new Date().toISOString(), last_sync_summary: summary });
+  } catch (e) {
+    console.warn('[qb-sync] cursor save failed:', e.message);
+  }
+
+  console.log(`[qb-sync] done — fetched ${stats.fetched} matched ${stats.matched} imported ${stats.imported} updated ${stats.updated} unchanged ${stats.unchanged} unmatched ${stats.unmatched} errors ${stats.errors.length}`);
+  return { ok: true, stats };
+}
+
+// Ported from base44/functions/fetchEstimatePdfs/entry.ts (batch path).
+// Fetches each pending estimate's PDF from QB, marks the record ready, and stores
+// the proxy PDF link. No Base44 function invoked — zero Base44 credits.
+async function runQbEstimatePdfSync() {
+  if (!rda.isConfigured()) throw new Error('DATABASE_URL not configured on Railway');
+
+  const all = await rda.list('HandoffEstimate', '-created_date', 500, 0);
+  const needsPdf = all.filter(e => e.qb_estimate_id && e.pdf_status !== 'ready' && (e.pdf_retry_count || 0) < 5);
+  console.log(`[qb-pdf] ${needsPdf.length} estimates need PDF fetch`);
+
+  const results = { success: 0, failed: 0 };
+  // Public base for the stored proxy PDF link. Set QB_PROXY_URL on the Railway
+  // service to its own public URL (same value as the Base44 secret) for resolvable links.
+  const proxyBaseUrl = process.env.QB_PROXY_URL || '';
+
+  for (const estimate of needsPdf) {
+    const id = estimate.id;
+    const qbId = estimate.qb_estimate_id;
+    const qbNumber = estimate.qb_estimate_number;
+    try {
+      await rda.update('HandoffEstimate', id, { pdf_status: 'syncing' }).catch(() => {});
+      const tokens = await getValidTokens();
+      const pdfRes = await fetch(`${QB_API_BASE}/${tokens.realm_id}/estimate/${qbId}/pdf?minorversion=65`, {
+        headers: { Authorization: `Bearer ${tokens.access_token}`, Accept: 'application/pdf' },
+      });
+      if (!pdfRes.ok) {
+        const errText = await pdfRes.text().catch(() => '');
+        console.warn(`[qb-pdf] PDF fetch failed (${pdfRes.status}) for ${qbNumber}: ${errText.slice(0, 150)}`);
+        await rda.update('HandoffEstimate', id, { pdf_status: 'failed', pdf_retry_count: (estimate.pdf_retry_count || 0) + 1 });
+        results.failed++;
+        continue;
+      }
+      // Confirm a real PDF came back (consume bytes — UI uses the proxy link, not the bytes)
+      await pdfRes.arrayBuffer();
+      const pdfUrl = proxyBaseUrl ? `${proxyBaseUrl}/estimates/${qbId}/pdf` : `/estimates/${qbId}/pdf`;
+      await rda.update('HandoffEstimate', id, {
+        pdf_url: pdfUrl,
+        document_url: pdfUrl,
+        pdf_status: 'ready',
+        pdf_fetched_at: new Date().toISOString(),
+        qb_app_url: `https://qbo.intuit.com/app/estimate?txnId=${qbId}`,
+        pdf_retry_count: (estimate.pdf_retry_count || 0) + 1,
+      });
+      results.success++;
+    } catch (e) {
+      console.error(`[qb-pdf] Error on estimate ${qbNumber}:`, e.message);
+      await rda.update('HandoffEstimate', id, { pdf_status: 'failed', pdf_retry_count: (estimate.pdf_retry_count || 0) + 1 }).catch(() => {});
+      results.failed++;
+    }
+  }
+
+  console.log(`[qb-pdf] done — success ${results.success} failed ${results.failed}`);
+  return { ok: true, results, processed: needsPdf.length };
+}
+
+// Manual triggers (guarded by X-Proxy-Secret, same as all /qb/* routes)
+app.post('/sync/qb-estimates', requireProxySecret, async (req, res) => {
+  try {
+    const result = await runQbEstimateSync();
+    return res.json(result);
+  } catch (e) {
+    if (e.reconnectRequired) return handleQBError(e, res);
+    console.error('[qb-sync] fatal:', e.message);
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.post('/sync/qb-estimate-pdfs', requireProxySecret, async (req, res) => {
+  try {
+    const result = await runQbEstimatePdfSync();
+    return res.json(result);
+  } catch (e) {
+    if (e.reconnectRequired) return handleQBError(e, res);
+    console.error('[qb-pdf] fatal:', e.message);
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// ── Start ─────────────────────────────────────────────────────────────────────
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`[proxy] QuickBooks Proxy running on port ${PORT}`);
+  console.log(`[proxy] Environment: ${QB_ENVIRONMENT}`);
+  console.log(`[proxy] API Base: ${QB_API_BASE}`);
+
+  // ── QB Estimate Sync Cron ─────────────────────────────────────────────────
+  // Off by default. Set QB_SYNC_CRON_ENABLED=true on Railway to start the 15-min
+  // loop (estimates sync + PDF fetch). Keeps the Base44 scheduler as fallback until
+  // parity is verified, then disable the Base44 automation and leave this running.
+  let cronLib = null;
+  try { cronLib = require('node-cron'); } catch (e) {
+    console.warn('[proxy] node-cron not installed — QB sync cron disabled (npm install will add it)');
+  }
+  if (cronLib) {
+    if (process.env.QB_SYNC_CRON_ENABLED !== 'true') {
+      console.log('[proxy] QB sync cron disabled (set QB_SYNC_CRON_ENABLED=true to enable every-15-min sync)');
+    } else {
+      cronLib.schedule('*/15 * * * *', async () => {
+        const t = new Date().toISOString();
+        console.log(`[qb-cron] tick ${t}`);
+        try {
+          const r = await runQbEstimateSync();
+          console.log(`[qb-cron] sync ok — matched ${r.stats?.matched} imported ${r.stats?.imported} updated ${r.stats?.updated}`);
+        } catch (e) {
+          console.error('[qb-cron] sync failed:', e.message);
+        }
+        try {
+          await runQbEstimatePdfSync();
+        } catch (e) {
+          console.error('[qb-cron] pdf sync failed:', e.message);
+        }
+      });
+      console.log('[proxy] QB sync cron scheduled every 15 minutes (QB_SYNC_CRON_ENABLED=true)');
+    }
+  }
+}); + est.total.toFixed(2) + ' — State: ' + (est.state || 'DRAFT'),
+          author: 'Handoff Sync', source: 'manual',
+        }).catch(function () {});
+      }
+    }
+    res.json({ success: true, message: 'Found ' + matched.length + ' estimate(s) — ' + imported + ' new — ' + updated + ' updated', total_fetched: estimates.length, matched: matched.length, imported: imported, updated: updated });
+  } catch (e) {
+    console.error('[handoff/sync-estimates-for-lead] error:', e.message);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+app.post('/handoff/sync-all', requireProxySecret, async (req, res) => {
+  try {
+    var token;
+    try { token = await handoffClient.getValidToken(); }
+    catch (e) { return res.status(400).json({ success: false, error: e.message }); }
+
+    var estimates = [];
+    try { estimates = await handoffClient.fetchAllEstimates(token); }
+    catch (e) { return res.status(502).json({ success: false, error: 'Handoff API error: ' + e.message }); }
+
+    var leads = [];
+    try { leads = await rda.list('Lead', '-created_date', 5000); } catch {}
+
+    var imported = 0, updated = 0, unmatched = 0, failed = 0;
+    var now = new Date().toISOString();
+    for (var i = 0; i < estimates.length; i++) {
+      var est = estimates[i];
+      if (!est || !est.id) { failed++; continue; }
+      try {
+        var lead_id = null, match_status = 'unmatched', match_method = 'none';
+        for (var j = 0; j < leads.length; j++) {
+          var r = handoffClient.matchEstimateToLead(est, leads[j]);
+          if (r.match) { lead_id = leads[j].id; match_status = 'matched'; match_method = r.method; break; }
+        }
+        var estimateData = {
+          handoff_estimate_id: String(est.id),
+          handoff_estimate_number: '',
+          customer_name: est.clientName || '',
+          customer_phone: est.clientPhone || '',
+          customer_email: est.clientEmail || '',
+          estimate_amount: est.total,
+          estimate_status: est.state || 'DRAFT',
+          estimate_date: est.createdAt ? est.createdAt.split('T')[0] : null,
+          document_url: est.proposalLink || '',
+          document_title: est.name || '',
+          last_synced_at: now,
+          match_status: match_status,
+          match_method: match_method,
+          lead_id: lead_id || '',
+          sync_source: 'Handoff',
+          source: 'Handoff',
+        };
+        var existing = await rda.filter('HandoffEstimate', { handoff_estimate_id: String(est.id) });
+        if (existing && existing.length > 0) {
+          await rda.update('HandoffEstimate', existing[0].id, estimateData);
+          updated++;
+        } else {
+          await rda.create('HandoffEstimate', Object.assign({}, estimateData, { pdf_status: 'pending', pdf_retry_count: 0 }));
+          imported++;
+          if (match_status === 'unmatched') unmatched++;
+        }
+      } catch (e) {
+        console.error('[handoff/sync-all] Error on estimate ' + (est && est.id) + ':', e.message);
+        failed++;
+      }
+    }
+
+    try {
+      var cursorData = { integration: 'handoff', last_successful_sync_at: now, last_updated_timestamp: now, total_synced: estimates.length, last_sync_summary: { fetched: estimates.length, imported: imported, updated: updated, unmatched: unmatched, failed: failed } };
+      var existingCursor = await rda.filter('SyncCursor', { integration: 'handoff' });
+      if (existingCursor && existingCursor.length > 0) await rda.update('SyncCursor', existingCursor[0].id, cursorData);
+      else await rda.create('SyncCursor', cursorData);
+    } catch (e) { console.error('[handoff/sync-all] cursor update failed:', e.message); }
+
+    res.json({ success: true, total_fetched: estimates.length, imported: imported, updated: updated, unmatched: unmatched, failed: failed });
+  } catch (e) {
+    console.error('[handoff/sync-all] error:', e.message);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+app.post('/handoff/diagnose-lead-estimates', requireProxySecret, async (req, res) => {
+  try {
+    var body = req.body || {};
+    var lead_id = body.lead_id;
+    if (!lead_id) return res.status(400).json({ success: false, error: 'lead_id required' });
+    var lead = null;
+    try { lead = await rda.get('Lead', lead_id); } catch {}
+    if (!lead) { try { var arr = await rda.filter('Lead', { id: lead_id }); lead = (arr && arr[0]) || null; } catch {} }
+    if (!lead) return res.status(404).json({ success: false, error: 'Lead not found' });
+
+    var token;
+    try { token = await handoffClient.getValidToken(); }
+    catch (e) { return res.status(400).json({ success: false, error: e.message }); }
+
+    var estimates = [];
+    try { estimates = await handoffClient.fetchAllEstimates(token); }
+    catch (e) { return res.status(502).json({ success: false, error: 'Handoff API error: ' + e.message }); }
+
+    var results = { lead_id: lead_id, lead_name: (lead.first_name || '') + ' ' + (lead.last_name || ''), lead_phone: lead.phone || '', lead_email: lead.email || '', total_estimates: estimates.length, matched: [], unmatched_sample: [] };
+    for (var i = 0; i < estimates.length; i++) {
+      var est = estimates[i];
+      var r = handoffClient.matchEstimateToLead(est, lead);
+      if (r.match) {
+        results.matched.push({ id: est.id, name: est.name, state: est.state, total: est.total, method: r.method, clientName: est.clientName, clientPhone: est.clientPhone, clientEmail: est.clientEmail });
+      } else if (results.unmatched_sample.length < 5) {
+        results.unmatched_sample.push({ id: est.id, name: est.name, clientName: est.clientName, clientPhone: est.clientPhone, clientEmail: est.clientEmail });
+      }
+    }
+    res.json({ success: true, results: results });
+  } catch (e) {
+    console.error('[handoff/diagnose-lead-estimates] error:', e.message);
+    res.status(500).json({ success: false, error: e.message });
+  }
 });
 
 // POST /handoff/import-estimate
