@@ -1784,15 +1784,19 @@ router.post('/reconcile-calendar-appointments', async (req, res) => {
             continue;
           }
           const typeId = typeRes.rows[0].id;
+          const idempotencyKey = `reconcile:${lead.id}:${apptDate}:${apptTime}`;
           const insRes = await client.query(
-            `INSERT INTO appointments (lead_id, owner_id, appointment_type_id, start_at, end_at, timezone, busy_range, status, calendar_sync_status)
-             VALUES ($1, $2, $3, $4, $5, $6, tstzrange($7, $8, '[)'), 'scheduled', 'pending')
+            `INSERT INTO appointments (lead_id, owner_id, appointment_type_id, start_at, end_at, timezone, busy_range, status, calendar_sync_status, idempotency_key)
+             VALUES ($1, $2, $3, $4, $5, $6, tstzrange($7, $8, '[)'), 'scheduled', 'pending', $9)
+             ON CONFLICT (idempotency_key) DO NOTHING
              RETURNING *`,
             [lead.id, lead.owner_id, typeId, startAt.toISOString(), endAt.toISOString(),
-             'America/Los_Angeles', busyStart.toISOString(), busyEnd.toISOString()]
+             'America/Los_Angeles', busyStart.toISOString(), busyEnd.toISOString(), idempotencyKey]
           );
           const newAppt = insRes.rows[0];
-          await calendarOutbox.enqueueCreate(client, newAppt, lead, lead.owner_email, isPhoneCall);
+          if (newAppt) {
+            await calendarOutbox.enqueueCreate(client, newAppt, lead, lead.owner_email, isPhoneCall);
+          }
           await client.query('COMMIT');
           created++;
         } catch (e) {
