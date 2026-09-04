@@ -8,11 +8,15 @@ import { EditableInfoRow } from "./EditableFields";
 export default function ProjectTab({ deal, lead, updateField, setLead, saving }) {
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-6 py-5 space-y-5">
-      {/* Handoff Estimates */}
+      {/* Estimates (QuickBooks + Handoff) */}
       <div>
-        <p className="typography-section-header mb-2">HANDOFF ESTIMATE</p>
+        <p className="typography-section-header mb-2">ESTIMATES</p>
         <div className="card-premium overflow-hidden">
-          <HandoffEstimatesPanel lead={lead} onLeadUpdate={setLead} />
+          {lead ? (
+            <HandoffEstimatesPanel lead={lead} onLeadUpdate={setLead} />
+          ) : (
+            <p className="text-sm text-slate-400 py-3 px-4">No lead linked — estimates unavailable.</p>
+          )}
         </div>
       </div>
 
@@ -23,7 +27,7 @@ export default function ProjectTab({ deal, lead, updateField, setLead, saving })
           type="date" onSave={v => updateField("work_start_date", v)} saving={saving === "work_start_date"} />
         <EditableInfoRow icon={Calendar} label="Work End Date" value={deal.work_end_date}
           type="date" onSave={v => updateField("work_end_date", v)} saving={saving === "work_end_date"} />
-        <EditableInfoRow icon={Briefcase} label="Project Type" value={deal.project_type || lead.project_type}
+        <EditableInfoRow icon={Briefcase} label="Project Type" value={deal.project_type || lead?.project_type}
           onSave={v => updateField("project_type", v)} saving={saving === "project_type"} />
       </div>
     </div>

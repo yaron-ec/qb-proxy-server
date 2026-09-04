@@ -6,7 +6,7 @@ import TruncatedTooltip from "@/components/TruncatedTooltip";
 import { leads as railwayLeads, activities as railwayActivities } from "@/api/railway";
 import { useAuth } from "@/lib/AuthContext";
 import { statusBadgeClass } from "@/lib/design-system";
-import { fmtMoney, formatPhone, toTitleCase, formatProjectType , fixField} from "@/lib/formatters";
+import { fmtMoney, formatPhone, toTitleCase, formatProjectType } from "@/lib/formatters";
 import { callPhone, sendSMS, composeEmail } from "@/lib/contactActions";
 import {
   ArrowLeft, Phone, Mail, Calendar, CheckCircle2, Clock,
@@ -224,8 +224,8 @@ export default function LeadDetailModern() {
   // Right sidebar accordion sections
   const accordionSections = [
     {
-      id: "handoff",
-      title: "Handoff Estimates",
+      id: "estimates",
+      title: "Estimates",
       icon: FileText,
       content: <HandoffEstimatesPanel lead={lead} onLeadUpdate={setLead} />,
     },
@@ -470,8 +470,8 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
             </div>
             {/* Status + Meeting Stage */}
             <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
-              <EditableField value={fixField(lead.status) || "New"} onSave={v => updateField("status", v)} type="select" options={STATUSES} editable showPencil={false}>
-                <span className={`${statusBadgeClass(lead.status)} cursor-pointer`}>{fixField(lead.status) || "New"}</span>
+              <EditableField value={lead.status || "New"} onSave={v => updateField("status", v)} type="select" options={STATUSES} editable showPencil={false}>
+                <span className={`${statusBadgeClass(lead.status)} cursor-pointer`}>{lead.status || "New"}</span>
               </EditableField>
               {lead.meeting_stage ? (
                 <EditableField value={lead.meeting_stage} onSave={v => updateField("meeting_stage", v)} type="select" options={["First Meeting","Second Meeting","Third Meeting"]} editable showPencil={false}>
@@ -502,8 +502,8 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
         {/* Job Type — editable (click row) + copy (no pencil) */}
         <CRMField label="Job Type" icon={Briefcase}>
           <EditableField value={lead.project_type} onSave={v => updateField("project_type", v)} type="multiselect" options={projectTypes} editable
-            copyValue={lead.project_type ? toTitleCase(lead.project_type) : null} copyLabel="Job Type">
-            <span className="crm-value">{toTitleCase(lead.project_type) || <span className="crm-empty">—</span>}</span>
+            copyValue={lead.project_type ? formatProjectType(lead.project_type) : null} copyLabel="Job Type">
+            <span className="crm-value">{formatProjectType(lead.project_type) || <span className="crm-empty">—</span>}</span>
           </EditableField>
         </CRMField>
 
@@ -567,13 +567,17 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
                 {lead.appointment_time && <span className="text-slate-500 ml-1.5 font-normal">at {fmt12(lead.appointment_time)}</span>}
               </span>
             </EditableField>
-            {!lead.appointment_date && lead.follow_up_date && lead.follow_up_type === "Meeting" && (
-              <p className="text-[10px] text-slate-400 mt-1">No site visit on file — next meeting is in Follow-up below.</p>
-            )}
             {/* Time picker inline below */}
             <div className="mt-1.5">
               <AppointmentTimePicker key={`apt-t-${lead.appointment_time}`} lead={lead} onSave={v => updateField("appointment_time", v)} />
             </div>
+            {/* Clarify when no site visit is scheduled but a follow-up meeting exists —
+                prevents the contradictory "Appointment scheduled" status + "Appointment Not set" UI */}
+            {!lead.appointment_date && lead.follow_up_date && lead.follow_up_type === "Meeting" && (
+              <p className="text-[10px] text-slate-400 mt-1.5 italic">
+                No site visit on file — next meeting is in Follow-up below.
+              </p>
+            )}
           </div>
         </InfoRow>
 
@@ -1245,6 +1249,40 @@ function AdminCalendarRepairButton() {
   );
 }
 
+// ── Reminder activity formatter — converts raw internal idempotency keys ──────
+// to human-readable text for the activity feed. Handles both Base44 legacy
+// ("REMINDER_SENT:reminder:...") and Railway current ("Reminder sent: reminder:...")
+// formats, plus phone-call and test reminder variants.
+function formatActivityContent(content) {
+  if (!content) return content;
+
+  // REMINDER_SENT:reminder:<leadId>:<windowKey>:<date>  (Base44 legacy)
+  // Reminder sent: reminder:<leadId>:<windowKey>:<date>  (Railway current)
+  const reminderMatch = content.match(/^(?:REMINDER_SENT:|Reminder sent:\s*)reminder:[^:]+:([^:]+)/);
+  if (reminderMatch) {
+    const windowKey = reminderMatch[1];
+    const windowLabel = { '48h': '48 hours', '24h': '24 hours', '12h': '12 hours', '2h': '2 hours', '30min': '30 minutes' }[windowKey] || windowKey;
+    return `Automated reminder sent (${windowLabel} before appointment)`;
+  }
+
+  // PHONE_REMINDER_SENT:...
+  if (content.startsWith('PHONE_REMINDER_SENT:')) {
+    return 'Automated phone call reminder sent';
+  }
+
+  // REMINDER_TEST_SENT:...
+  if (content.startsWith('REMINDER_TEST_SENT:')) {
+    return 'Test reminder sent';
+  }
+
+  // System: <windowName> reminder sent  (Base44 sendAppointmentReminders plural)
+  if (content.startsWith('System: ') && content.endsWith(' reminder sent')) {
+    return 'Automated ' + content.replace('System: ', '');
+  }
+
+  return content;
+}
+
 // ── Activity Card — modern feed style with edit support ───────────────────────
 function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -1266,25 +1304,12 @@ function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
   const dateStr = ts.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   const timeStr = ts.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 
-  // Convert raw reminder idempotency keys to human-readable text
-  const formatActivityContent = (content) => {
-    if (!content) return content;
-    if (content.startsWith("REMINDER_SENT:")) return "Automated reminder sent (appointment notification)";
-    if (content.startsWith("PHONE_REMINDER_SENT:")) return "Automated phone call reminder sent";
-    if (content.startsWith("REMINDER_TEST_SENT:")) return "Test reminder sent";
-    if (content.startsWith("Reminder sent:")) return "Automated reminder sent (appointment notification)";
-    if (content.startsWith("PHONE_REMINDER:")) return "Automated phone call reminder sent";
-    if (content.startsWith("System:")) return content.replace("System:", "").trim() || "System activity";
-    return content;
-  };
-
   // System-generated entries (REMINDER_SENT:, etc.) are not editable
   const isSystemEntry = activity.content?.startsWith("REMINDER_SENT:") ||
+    activity.content?.startsWith("Reminder sent: reminder:") ||
     activity.content?.startsWith("PHONE_REMINDER_SENT:") ||
     activity.content?.startsWith("REMINDER_TEST_SENT:") ||
-    activity.content?.startsWith("Reminder sent:") ||
-    activity.content?.startsWith("PHONE_REMINDER:") ||
-    activity.content?.startsWith("System:") ||
+    (activity.content?.startsWith("System: ") && activity.content?.endsWith(" reminder sent")) ||
     activity.author === "System" || activity.author === "System-Test";
 
   // Permission: admin can edit any; others can edit their own

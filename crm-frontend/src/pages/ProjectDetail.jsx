@@ -34,13 +34,26 @@ export default function ProjectDetail() {
 
   const save = async () => {
     setSaving(true);
-    if (isNew) {
-      const created = await apiCall('/api/v1/deals', { method: 'POST', body: form });
-      navigate(`/projects/${created.id}`);
-    } else {
-      await apiCall(`/api/v1/deals/${id}`, { method: 'PUT', body: form });
+    try {
+      if (isNew) {
+        if (!form.lead_id) {
+          alert('Cannot create project: lead_id is required. Projects must be created from a lead.');
+          return;
+        }
+        const created = await apiCall('/api/v1/deals', { method: 'POST', body: form });
+        const deal = created?.deal || created;
+        if (!deal?.id) throw new Error('Server did not return a deal ID');
+        navigate(`/deals/${deal.id}`);
+      } else {
+        await apiCall(`/api/v1/deals/${id}`, { method: 'PUT', body: form });
+      }
+    } catch (e) {
+      console.error('[ProjectDetail] save error:', e);
+      const msg = e?.data?.details || e?.data?.error || e?.message || 'Unknown error';
+      alert('Failed to save project: ' + msg);
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const remove = async () => {

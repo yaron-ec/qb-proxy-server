@@ -7,7 +7,7 @@
  */
 import { useState, useEffect, useRef } from "react";
 import { handoffEstimates as railwayHandoffEstimates } from "@/api/railway";
-import { syncLeadEstimates, diagnoseLeadEstimates, fetchEstimatePdf, normalizeIntegrationError } from "@/lib/railwayClient";
+import { syncQBEstimatesForLead, syncHandoffEstimatesForLead, diagnoseLeadEstimates, fetchEstimatePdf, normalizeIntegrationError } from "@/lib/railwayClient";
 import {
   FileText, ExternalLink, RefreshCw, Loader2, CheckCircle, AlertTriangle, Clock,
   Download, ShieldCheck, Zap, Search, ChevronDown, ChevronRight, Bell
@@ -111,7 +111,11 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
     if (Date.now() - lastRun < AUTO_SYNC_COOLDOWN_MS) return;
     setAutoSyncing(true);
     try {
-      const data = await syncLeadEstimates(lead.id);
+      // Auto-sync from QuickBooks (the primary source). Handoff sync is
+      // a separate manual action — it requires Handoff API connectivity
+      // which may be WAF-blocked. QB sync reads from the QB proxy which
+      // is always available.
+      const data = await syncQBEstimatesForLead(lead.id);
       sessionStorage.setItem(key, String(Date.now()));
       if (data?.success) {
         setLastSyncedAt(new Date());
@@ -130,17 +134,41 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
     setDiagData(null);
     setNewEstimateBanner(null);
     try {
-      const data = await syncLeadEstimates(lead.id);
+      // Primary sync: QuickBooks (always available via QB proxy).
+      // This fetches QB estimates for this lead's customer and upserts
+      // into handoff_estimates with sync_source = 'QuickBooks'.
+      const data = await syncQBEstimatesForLead(lead.id);
       sessionStorage.setItem(`qb_auto_sync_${lead.id}`, String(Date.now()));
       if (data?.success) {
         setSyncMsg({ type: 'success', text: data.message || 'Synced successfully' });
         setLastSyncedAt(new Date());
         await load();
       } else {
-        setSyncMsg({ type: 'info', text: data?.message || `No QB estimates found yet (scanned ${data?.stats?.total_scanned ?? '?'} records)` });
+        setSyncMsg({ type: 'info', text: data?.message || 'No estimates found for this lead\'s QuickBooks customer.' });
       }
     } catch (e) {
       setSyncMsg({ type: 'error', text: normalizeIntegrationError(e) });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handleHandoffSync = async () => {
+    setSyncing(true);
+    setSyncMsg(null);
+    setDiagData(null);
+    try {
+      // Handoff sync: fetches from the Handoff API (separate integration).
+      // May fail if Handoff API is WAF-blocked or not authenticated.
+      const data = await syncHandoffEstimatesForLead(lead.id);
+      if (data?.success) {
+        setSyncMsg({ type: 'success', text: data.message || 'Handoff sync complete' });
+        await load();
+      } else {
+        setSyncMsg({ type: 'info', text: data?.message || 'No Handoff estimates found for this lead.' });
+      }
+    } catch (e) {
+      setSyncMsg({ type: 'error', text: 'Handoff sync failed: ' + normalizeIntegrationError(e) });
     } finally {
       setSyncing(false);
     }
@@ -221,8 +249,12 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
             className="text-slate-300 hover:text-blue-500 transition-colors disabled:opacity-40 btn-compact" title="Diagnose QB match">
             {diagnosing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
           </button>
+          <button onClick={handleHandoffSync} disabled={syncing || loading || autoSyncing}
+            className="text-slate-300 hover:text-purple-500 transition-colors disabled:opacity-40 btn-compact" title="Sync from Handoff">
+            {syncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+          </button>
           <button onClick={handleSync} disabled={syncing || loading || autoSyncing}
-            className="text-slate-300 hover:text-slate-600 transition-colors disabled:opacity-40 btn-compact" title="Sync from QuickBooks">
+            className="text-slate-300 hover:text-blue-500 transition-colors disabled:opacity-40 btn-compact" title="Sync from QuickBooks">
             {syncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
           </button>
         </div>
@@ -327,8 +359,8 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
           ) : (
             <RightPanelEmptyState
               icon={FileText}
-              title={autoSyncing ? 'Checking QuickBooks…' : 'No QB estimates yet'}
-              description={autoSyncing ? 'Scanning QuickBooks records…' : 'Estimates will appear here automatically once created in QuickBooks.'}
+              title={autoSyncing ? 'Checking for estimates…' : 'No estimates yet'}
+              description={autoSyncing ? 'Syncing from QuickBooks…' : 'Estimates will appear here once created in QuickBooks or synced from Handoff. Click the sync button above to check now.'}
             />
           )
         )}
@@ -373,7 +405,7 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
                     )}
                   </div>
 
-                  {/* Details: Estimate #, Handoff #, Date \u2014 clean rows, no awkward breaks */}
+                  {/* Details: Estimate #, Handoff #, Date — clean rows, no awkward breaks */}
                   <div className="space-y-1 mb-2.5">
                     {est.qb_estimate_number && (
                       <div className="flex items-center justify-between gap-2 text-[10px]">
@@ -412,7 +444,7 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
                     )}
                   </div>
 
-                  {/* Action buttons \u2014 aligned consistently */}
+                  {/* Action buttons — aligned consistently */}
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {hasPdf && est.qb_app_url && (
                       <a href={est.qb_app_url} target="_blank" rel="noreferrer"
@@ -424,7 +456,7 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
                       <button onClick={() => handleSavePdf(est)} disabled={isLoadingPdf}
                         className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold rounded border border-orange/30 bg-orange/5 text-orange hover:bg-orange/10 transition-colors disabled:opacity-50">
                         {isLoadingPdf ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <Zap className="w-2.5 h-2.5" />}
-                        {isLoadingPdf ? 'Saving\u2026' : 'Save PDF'}
+                        {isLoadingPdf ? 'Saving…' : 'Save PDF'}
                       </button>
                     )}
                     {pdfFailed && !isLoadingPdf && est.qb_estimate_id && (
@@ -435,7 +467,7 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
                     )}
                     {(pdfPending || isLoadingPdf) && !hasPdf && (
                       <span className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold rounded border border-blue-200 bg-blue-50 text-blue-600">
-                        <Loader2 className="w-2.5 h-2.5 animate-spin" /> Saving PDF\u2026
+                        <Loader2 className="w-2.5 h-2.5 animate-spin" /> Saving PDF…
                       </span>
                     )}
                     {!est.pdf_url && est.document_url && !pdfPending && (

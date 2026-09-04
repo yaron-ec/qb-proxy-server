@@ -32,6 +32,7 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
   const [type, setType] = useState(lead.follow_up_type || "");
   const [saving, setSaving] = useState(false);
   const [availabilityError, setAvailabilityError] = useState(null);
+  const [saveError, setSaveError] = useState(null);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
   const { user: authUser } = useAuth();
@@ -62,6 +63,7 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
     if (!date) return;
     setSaving(true);
     setAvailabilityError(null);
+    setSaveError(null);
 
     // Enforce 8:30 AM minimum for Meetings
     if (type === "Meeting" && time) {
@@ -87,36 +89,79 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
       }
     }
 
-    // Save ONLY appointment fields. The onLeadAppointmentChanged entity automation
-    // creates / updates / deletes the Google Calendar event.
-    const res = await railwayLeads.updateAppointmentByExternal(lead.id, {
-      follow_up_date: date,
-      follow_up_time: time || null,
-      follow_up_type: type || null,
-    });
-    onLeadUpdate(res?.lead);
-    setJustSaved(true);
-    setSaving(false);
-    setEditing(false);
+    // AbortController timeout — prevents the fetch from hanging indefinitely
+    // if the backend is unreachable or the connection stalls. Without this,
+    // the "Saving..." state can persist forever.
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    try {
+      // Use the canonical lead.id — for Railway-native leads this IS the Railway
+      // UUID (e.g. e6a54c3a-...). This hits PUT /:id/appointment, the UUID-only
+      // route that validates via UUID_RE and uses direct WHERE id = $1.
+      const res = await railwayLeads.updateAppointment(lead.id, {
+        follow_up_date: date,
+        follow_up_time: time || null,
+        follow_up_type: type || null,
+      }, { signal: controller.signal });
+      if (res?.lead) {
+        onLeadUpdate(res.lead);
+      }
+      setJustSaved(true);
+      setEditing(false);
+    } catch (e) {
+      if (e?.name === 'AbortError') {
+        setSaveError("The server took too long to respond. Please try again.");
+      } else {
+        const msg = e?.data?.message || e?.message || "Failed to save appointment.";
+        if (e?.status === 409) {
+          setAvailabilityError(msg);
+        } else {
+          setSaveError(msg);
+        }
+      }
+    } finally {
+      clearTimeout(timeoutId);
+      setSaving(false);
+    }
   };
 
   const handleClear = async () => {
-    // Clearing the follow-up fields triggers the entity automation, which deletes
-    // the existing Google Calendar event (its "not a meeting / past → clear" branch).
-    const res = await railwayLeads.updateAppointmentByExternal(lead.id, {
-      follow_up_date: null,
-      follow_up_time: null,
-      follow_up_type: null,
-    });
-    onLeadUpdate(res?.lead);
-    setDate("");
-    setTime("");
-    setType("");
-    setJustSaved(true);
+    setSaving(true);
+    setSaveError(null);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    try {
+      const res = await railwayLeads.updateAppointment(lead.id, {
+        follow_up_date: null,
+        follow_up_time: null,
+        follow_up_type: null,
+      }, { signal: controller.signal });
+      if (res?.lead) {
+        onLeadUpdate(res.lead);
+      }
+      setDate("");
+      setTime("");
+      setType("");
+      setJustSaved(true);
+    } catch (e) {
+      if (e?.name === 'AbortError') {
+        setSaveError("The server took too long to respond. Please try again.");
+      } else {
+        const msg = e?.data?.message || e?.message || "Failed to clear appointment.";
+        setSaveError(msg);
+      }
+    } finally {
+      clearTimeout(timeoutId);
+      setSaving(false);
+    }
   };
 
   const syncStatus = lead.google_calendar_sync_status;
-  const showSyncingPill = justSaved && type === "Meeting" && !lead.google_event_id && syncStatus !== 'error';
+  // Show syncing pill for both Meetings AND Phone Calls — both create calendar events now.
+  const showSyncingPill = justSaved && (type === "Meeting" || type === "Phone Call") && !lead.google_event_id && syncStatus !== 'error';
 
   // Display (not editing)
   if (!editing) {
@@ -132,6 +177,7 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
               setType(lead.follow_up_type || "");
               setJustSaved(false);
               setAvailabilityError(null);
+              setSaveError(null);
               setEditing(true);
             }}
             className="text-[10px] text-amber-600 hover:text-amber-700 font-semibold flex items-center gap-1"
@@ -158,7 +204,7 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
                 : ""}
               {lead.follow_up_time ? ` • ${fmt12(lead.follow_up_time)}` : ""}
             </p>
-            {lead.follow_up_type === "Meeting" && lead.google_event_id && (
+            {(lead.follow_up_type === "Meeting" || lead.follow_up_type === "Phone Call") && lead.google_event_id && (
               <p className="text-[10px] text-emerald-600 font-semibold">✓ Synced to Google Calendar</p>
             )}
             {showSyncingPill && (
@@ -166,7 +212,7 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
                 <Loader2 className="w-3 h-3 animate-spin" /> Syncing to Google Calendar…
               </p>
             )}
-            {lead.follow_up_type === "Meeting" && syncStatus === 'error' && (
+            {(lead.follow_up_type === "Meeting" || lead.follow_up_type === "Phone Call") && syncStatus === 'error' && (
               <p className="text-[10px] text-red-600 font-semibold">⚠ Calendar sync failed — retry from Integrations</p>
             )}
           </div>
@@ -178,6 +224,12 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
           <div className="mt-2 flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
             <AlertTriangle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
             <p className="text-[10px] text-red-700">{availabilityError}</p>
+          </div>
+        )}
+        {saveError && (
+          <div className="mt-2 flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+            <AlertTriangle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
+            <p className="text-[10px] text-red-700">{saveError}</p>
           </div>
         )}
       </div>
@@ -233,6 +285,13 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
         <div className="flex items-start gap-1.5 bg-red-50 border border-red-200 rounded-lg px-2.5 py-2">
           <AlertTriangle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
           <p className="text-xs text-red-700">{availabilityError}</p>
+        </div>
+      )}
+
+      {saveError && (
+        <div className="flex items-start gap-1.5 bg-red-50 border border-red-200 rounded-lg px-2.5 py-2">
+          <AlertTriangle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-red-700">{saveError}</p>
         </div>
       )}
 
@@ -293,8 +352,18 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
 
       {/* Phone Call info */}
       {type === "Phone Call" && (
-        <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-          <p className="text-[10px] text-green-700">CRM reminder only — no Google Calendar event.</p>
+        <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 space-y-1">
+          <p className="text-[10px] font-semibold text-green-800">
+            {isUpdate ? "Google Calendar event will be updated automatically:" : "Google Calendar event will be created automatically:"}
+          </p>
+          <ul className="text-[10px] text-green-700 list-disc list-inside space-y-0.5">
+            <li>{time ? fmt12(time) : "Selected time"} — Phone call with {clientName}</li>
+            <li>No travel buffer (no driving needed)</li>
+            <li>Reminders: 48h, 24h, 12h, 2h, 30min (email)</li>
+          </ul>
+          {ownerEmail && (
+            <p className="text-[10px] text-green-600">📋 Owner invite: {ownerEmail}</p>
+          )}
         </div>
       )}
 

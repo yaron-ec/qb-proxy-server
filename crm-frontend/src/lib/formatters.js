@@ -5,7 +5,7 @@
 // Display value safely — never show "0" or null literally
 export const safeDisplay = (value) => {
   if (value === null || value === undefined || value === '' || value === '0' || value === 0) {
-    return '\u2014';
+    return '—';
   }
   return value;
 };
@@ -13,14 +13,14 @@ export const safeDisplay = (value) => {
 // Format money safely — never show "$0"
 export const fmtMoney = (v) => {
   if (v === null || v === undefined || v === 0) {
-    return '\u2014';
+    return '—';
   }
   return `$${Number(v).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 };
 
 // Format date safely
 export const fmtDate = (isoStr) => {
-  if (!isoStr) return '\u2014';
+  if (!isoStr) return '—';
   return new Date(isoStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/Los_Angeles' });
 };
 
@@ -82,27 +82,16 @@ export const toTitleCase = (str) => {
 export const fixMojibake = (str) => {
   if (!str || typeof str !== 'string') return str;
   return str
-    // Windows-1252 mojibake (with \u20ac euro sign)
-    .replace(/\u00e2\u20ac\u201c/g, '\u2013')   // \u00e2\u20ac\u201c -> en-dash
-    .replace(/\u00e2\u20ac\u201d/g, '\u2014')   // \u00e2\u20ac\u201d -> em-dash
-    .replace(/\u00e2\u20ac\u2122/g, '\u2019')   // \u00e2\u20ac\u2122 -> rsquo
-    .replace(/\u00e2\u20ac\u0153/g, '\u201c')   // \u00e2\u20ac\u0153 -> ldquo
-    .replace(/\u00e2\u20ac\u009d/g, '\u201d')   // \u00e2\u20ac\u009d -> rdquo
-    .replace(/\u00e2\u20ac\u00a0/g, '\u00a0')   // \u00e2\u20ac\u00a0 -> nbsp
-    // Latin-1 mojibake (with \u0080 control char — common in Postgres/Node encoding issues)
-    .replace(/\u00e2\u0080\u0093/g, '\u2013')   // \u00e2\u0080\u0093 -> en-dash
-    .replace(/\u00e2\u0080\u0094/g, '\u2014')   // \u00e2\u0080\u0094 -> em-dash
-    .replace(/\u00e2\u0080\u0099/g, '\u2019')   // \u00e2\u0080\u0099 -> rsquo
-    .replace(/\u00e2\u0080\u009c/g, '\u201c')   // \u00e2\u0080\u009c -> ldquo
-    .replace(/\u00e2\u0080\u009d/g, '\u201d')   // \u00e2\u0080\u009d -> rdquo
-    .replace(/\u00e2\u0080\u00a6/g, '\u2026')   // \u00e2\u0080\u00a6 -> ellipsis
-    .replace(/\u00e2\u0080\u00a2/g, '\u2022')   // \u00e2\u0080\u00a2 -> bullet
-    // Double-encoded UTF-8 (\u00c3\u00a2 = double-encoded \u00e2)
-    .replace(/\u00c3\u00a2\u00c2\u20ac\u00c2\u201c/g, '\u2013')
-    .replace(/\u00c3\u00a2\u00c2\u20ac\u00c2\u201d/g, '\u2014')
-    .replace(/\u00c3\u00a2\u00c2\u20ac\u00c2\u2122/g, '\u2019');
+    .replace(/\u00e2\u20ac\u201c/g, '\u2013')   // â€" → – (en-dash)
+    .replace(/\u00e2\u20ac\u201d/g, '\u2014')   // â€" → — (em-dash)
+    .replace(/\u00e2\u20ac\u2122/g, '\u2019')   // â€™ → ' (right single quote)
+    .replace(/\u00e2\u20ac\u0153/g, '\u201c')   // â€" → " (left double quote)
+    .replace(/\u00e2\u20ac\u009d/g, '\u201d')   // â€ → " (right double quote)
+    .replace(/\u00e2\u20ac\u00a0/g, '\u00a0')   // â€  → nbsp
+    .replace(/\u00c3\u00a2\u00c2\u20ac\u00c2\u201c/g, '\u2013') // double-encoded en-dash
+    .replace(/\u00c3\u00a2\u00c2\u20ac\u00c2\u201d/g, '\u2014') // double-encoded em-dash
+    .replace(/\u00c3\u00a2\u00c2\u20ac\u00c2\u2122/g, '\u2019'); // double-encoded rsquo
 };
-
 
 // Fix field value — applies mojibake repair and handles null/undefined
 // Used for all displayed DB values that may have been corrupted during import/sync
@@ -118,19 +107,24 @@ export const formatProjectType = (raw) => {
   if (!raw) return raw;
   let s = String(raw).trim();
   if (!s) return s;
+
+  // Fix mojibake first
   s = fixMojibake(s);
+
+  // If it looks like a JSON array, parse and join
   if (s.startsWith('[') && s.endsWith(']')) {
     try {
       const arr = JSON.parse(s);
       if (Array.isArray(arr)) return arr.filter(Boolean).join(', ');
-    } catch { /* not valid JSON */ }
+    } catch { /* not valid JSON — fall through */ }
   }
+
   return s;
 };
 
 // Format datetime safely
 export const fmtDateTime = (isoStr) => {
-  if (!isoStr) return '\u2014';
+  if (!isoStr) return '—';
   return new Date(isoStr).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',

@@ -1,3 +1,10 @@
+// Rebuild trigger 2026-09-03: QB internal path fixes — (1) QuickBooksSyncTab
+// OAuth popup listener/timer now stored in refs and cleaned up on unmount,
+// preventing stale postMessage from re-setting connectError on page load;
+// (2) QBStatusPanel not_found handling now uses includes() to catch both exact
+// "not_found" and "Railway API 404" (non-JSON response); (3) ProjectTab label
+// corrected from "HANDOFF ESTIMATE" to "QUICKBOOKS ESTIMATES" to match the
+// panel's actual data source (HandoffEstimatesPanel shows QB estimates).
 // Rebuild trigger 2026-09-01: auth reconciliation — apiCall now refreshes on
 // 403 (stale JWT role recovery), ADMIN_EMAILS bypass removed, DealDetail
 // distinguishes 403/401/404. Forces Base44 published app to serve current code.

@@ -131,14 +131,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const ADMIN_EMAILS = ['yaron@ecconstructiongroup.com', 'michelle@ecconstructiongroup.com'];
-
   const checkUserAuth = async () => {
     try {
       setIsLoadingAuth(true);
 
       // Railway /api/v1/auth/me — validates the JWT and returns the user.
       // 10s timeout: on iOS after sleep/network switch this can hang.
+      //
+      // CANONICAL AUTHORIZATION SOURCE: the role returned by /me is read from
+      // the Railway users table by the backend (getUserById). There is NO
+      // ADMIN_EMAILS bypass — the database role is the single source of truth.
+      // This eliminates the auth split-brain where the frontend treated a
+      // user as admin via email while the backend rejected them via JWT role.
       const currentUser = await withTimeout(
         (async () => {
           const r = await railwayApi.me();
@@ -155,14 +159,6 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(false);
         setAuthChecked(true);
         setAuthError({ type: 'auth_required', message: 'Session expired. Please sign in again.' });
-        return;
-      }
-
-      if (ADMIN_EMAILS.includes(currentUser.email?.toLowerCase())) {
-        setUser(currentUser);
-        setIsAuthenticated(true);
-        setIsLoadingAuth(false);
-        setAuthChecked(true);
         return;
       }
 

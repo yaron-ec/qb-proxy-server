@@ -45,54 +45,58 @@ export default function OverviewTab({ deal, lead, updateField, setDeal, setLead,
       {/* Client Card */}
       <div className="card-premium p-4">
         <p className="typography-section-header mb-3">CLIENT</p>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange to-amber-600 flex items-center justify-center flex-shrink-0">
-            <span className="text-sm font-bold text-white">{lead.first_name?.[0]}{lead.last_name?.[0]}</span>
+        {lead ? (
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange to-amber-600 flex items-center justify-center flex-shrink-0">
+              <span className="text-sm font-bold text-white">{lead.first_name?.[0]}{lead.last_name?.[0]}</span>
+            </div>
+            <div className="flex-1 min-w-0 space-y-1">
+              <EditableClientField
+                label="Name"
+                value={`${lead.first_name || ""} ${lead.last_name || ""}`.trim()}
+                onSave={async (fullName) => {
+                  const [first, ...rest] = fullName.split(" ");
+                  const last = rest.join(" ");
+                  await railwayLeads.update(lead.id, { first_name: first, last_name: last || first });
+                  setLead(prev => ({ ...prev, first_name: first, last_name: last || first }));
+                  const newName = `${first} ${last || first}`;
+                  await railwayDeals.update(deal.id, { name: newName });
+                  setDeal(prev => ({ ...prev, name: newName }));
+                }}
+              />
+              <EditableClientField
+                label="Phone"
+                value={lead.phone || ""}
+                type="tel"
+                onSave={async (phone) => {
+                  await railwayLeads.update(lead.id, { phone });
+                  setLead(prev => ({ ...prev, phone }));
+                }}
+              />
+            </div>
           </div>
-          <div className="flex-1 min-w-0 space-y-1">
-            <EditableClientField
-              label="Name"
-              value={`${lead.first_name} ${lead.last_name}`}
-              onSave={async (fullName) => {
-                const [first, ...rest] = fullName.split(" ");
-                const last = rest.join(" ");
-                await railwayLeads.update(lead.id, { first_name: first, last_name: last || first });
-                setLead(prev => ({ ...prev, first_name: first, last_name: last || first }));
-                const newName = `${first} ${last || first}`;
-                await railwayDeals.update(deal.id, { name: newName });
-                setDeal(prev => ({ ...prev, name: newName }));
-              }}
-            />
-            <EditableClientField
-              label="Phone"
-              value={lead.phone || ""}
-              type="tel"
-              onSave={async (phone) => {
-                await railwayLeads.update(lead.id, { phone });
-                setLead(prev => ({ ...prev, phone }));
-              }}
-            />
-          </div>
-        </div>
+        ) : (
+          <p className="text-sm text-slate-400 py-2">No lead linked to this deal.</p>
+        )}
       </div>
 
       {/* Project Info */}
       <div className="card-premium p-4 space-y-3">
         <p className="typography-section-header">PROJECT INFO</p>
-        <EditableInfoRow icon={MapPin} label="Address" value={getFieldValue(deal.property_address, lead.property_address)}
+        <EditableInfoRow icon={MapPin} label="Address" value={getFieldValue(deal.property_address, lead?.property_address)}
           onSave={v => updateField("property_address", v)} saving={saving === "property_address"} />
         <div className="group cursor-pointer hover:bg-slate-50 p-1.5 rounded -mx-1.5 transition-colors">
           <ProjectTypeSelector
-            value={getFieldValue(deal.project_type, lead.project_type || lead.job_type || lead.job_types)}
+            value={getFieldValue(deal.project_type, lead?.project_type || lead?.job_type || lead?.job_types)}
             onSave={types => updateField("project_type", Array.isArray(types) ? types.join(", ") : types)}
             label="Project Type"
           />
         </div>
-        <EditableInfoRow icon={User} label="Owner / Sales Rep" value={getFieldValue(deal.assigned_rep, lead.assigned_rep)}
+        <EditableInfoRow icon={User} label="Owner / Sales Rep" value={getFieldValue(deal.assigned_rep, lead?.assigned_rep)}
           onSave={v => updateField("assigned_rep", v)} saving={saving === "assigned_rep"} />
-        <EditableInfoRow icon={Calendar} label="Sold Date" value={getFieldValue(deal.sold_date, lead.sold_date)}
+        <EditableInfoRow icon={Calendar} label="Sold Date" value={getFieldValue(deal.sold_date, lead?.sold_date)}
           type="date" onSave={v => updateField("sold_date", v)} saving={saving === "sold_date"} />
-        <EditableInfoRow icon={FileText} label="Contract Signed" value={getFieldValue(deal.deposit_paid_date, lead.signed_contract_date)}
+        <EditableInfoRow icon={FileText} label="Contract Signed" value={getFieldValue(deal.deposit_paid_date, lead?.signed_contract_date)}
           type="date" onSave={v => updateField("deposit_paid_date", v)} saving={saving === "deposit_paid_date"} />
       </div>
 

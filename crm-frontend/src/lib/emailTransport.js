@@ -222,13 +222,14 @@ export async function sendInvoiceEmail(invoiceId, { recipient, version } = {}) {
     }
     if (recipients.length === 0) throw new Error('No customer or sales rep email found');
 
-    // Fetch QB PDF via Railway proxy (no Base44 function call)
+    // Fetch QB PDF via Railway proxy (JWT-authenticated, no proxy secret from browser)
     let attachment = null;
     try {
       const proxyUrl = RAILWAY_API_URL;
       if (proxyUrl && invoice.qb_invoice_id) {
+        const token = localStorage.getItem('railway_access_token') || '';
         const pdfRes = await fetch(`${proxyUrl}/invoices/${invoice.qb_invoice_id}/pdf`, {
-          headers: { 'X-Proxy-Secret': '', Accept: 'application/pdf' },
+          headers: { Authorization: `Bearer ${token}`, Accept: 'application/pdf' },
         });
         if (pdfRes.ok) {
           const buf = await pdfRes.arrayBuffer();

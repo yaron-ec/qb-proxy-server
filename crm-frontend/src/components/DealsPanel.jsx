@@ -6,31 +6,36 @@ import { statusBadgeClass } from "@/lib/design-system";
 import RightPanelEmptyState from "@/components/RightPanelEmptyState";
 
 const STAGES = [
-  "Appointment Scheduled",
-  "Qualified to Buy",
-  "Presentation Scheduled",
-  "Decision Maker Bought In",
-  "Contract Sent",
-  "Closed Won",
-  "Closed Lost",
+  "Sold / Estimate Approved",
+  "Deposit Due",
+  "Deposit Paid",
+  "Work Scheduled",
+  "Work Started",
+  "Progress Payment Due",
+  "Progress Payment Paid",
+  "Final Payment Due",
+  "Final Payment Paid",
+  "Job Completed",
 ];
 
 const STAGE_COLORS = {
-  "Appointment Scheduled":    "bg-blue-100 text-blue-700",
-  "Qualified to Buy":         "bg-emerald-100 text-emerald-700",
-  "Presentation Scheduled":   "bg-purple-100 text-purple-700",
-  "Decision Maker Bought In": "bg-indigo-100 text-indigo-700",
-  "Contract Sent":            "bg-amber-100 text-amber-700",
-  "Closed Won":               "bg-green-100 text-green-800",
-  "Closed Lost":              "bg-red-100 text-red-700",
+  "Sold / Estimate Approved":   "bg-blue-100 text-blue-700",
+  "Deposit Due":                "bg-amber-100 text-amber-700",
+  "Deposit Paid":               "bg-emerald-100 text-emerald-700",
+  "Work Scheduled":             "bg-indigo-100 text-indigo-700",
+  "Work Started":               "bg-purple-100 text-purple-700",
+  "Progress Payment Due":       "bg-amber-100 text-amber-700",
+  "Progress Payment Paid":      "bg-emerald-100 text-emerald-700",
+  "Final Payment Due":          "bg-amber-100 text-amber-700",
+  "Final Payment Paid":         "bg-emerald-100 text-emerald-700",
+  "Job Completed":              "bg-green-100 text-green-800",
 };
 
 const EMPTY_FORM = { 
   name: "", 
   amount: "", 
-  stage: "Appointment Scheduled", 
+  stage: "Sold / Estimate Approved", 
   close_date: "",
-  sale_amount: "",
   deposit_amount: "",
   deposit_paid: "",
   progress_payment_amount: "",
@@ -54,10 +59,18 @@ export default function DealsPanel({ lead, onLeadUpdate }) {
   }, [lead.id]);
 
   const loadDeals = async () => {
-    const res = await railwayDeals.list({ leadId: lead.railway_id });
-    const data = res.items || [];
-    setDeals(data.sort((a, b) => new Date(b.created_date || b.created_at) - new Date(a.created_date || a.created_at)));
-    setLoading(false);
+    const canonicalLeadId = lead.railway_id || lead.id;
+    if (!canonicalLeadId) { setLoading(false); return; }
+    try {
+      const res = await railwayDeals.list({ leadId: canonicalLeadId });
+      const data = res.items || [];
+      setDeals(data.sort((a, b) => new Date(b.created_date || b.created_at) - new Date(a.created_date || a.created_at)));
+    } catch (e) {
+      console.error('[DealsPanel] loadDeals error:', e.message);
+      setDeals([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const openAdd = () => {
@@ -67,25 +80,38 @@ export default function DealsPanel({ lead, onLeadUpdate }) {
 
   const handleSave = async () => {
     if (!form.name.trim()) return;
+    const canonicalLeadId = lead.railway_id || lead.id;
+    if (!canonicalLeadId) {
+      alert('Cannot create deal: lead ID is missing. Please refresh the page and try again.');
+      return;
+    }
     setSaving(true);
-    const res = await railwayDeals.create({
-      lead_id: lead.railway_id,
-      name: form.name,
-      amount: form.amount ? parseFloat(form.amount) : null,
-      stage: form.stage,
-      close_date: form.close_date || null,
-      sale_amount: form.sale_amount ? parseFloat(form.sale_amount) : 0,
-      deposit_amount: form.deposit_amount ? parseFloat(form.deposit_amount) : 0,
-      deposit_paid: form.deposit_paid ? parseFloat(form.deposit_paid) : 0,
-      progress_payment_amount: form.progress_payment_amount ? parseFloat(form.progress_payment_amount) : 0,
-      progress_payment_paid: form.progress_payment_paid ? parseFloat(form.progress_payment_paid) : 0,
-      final_payment_amount: form.final_payment_amount ? parseFloat(form.final_payment_amount) : 0,
-      final_payment_paid: form.final_payment_paid ? parseFloat(form.final_payment_paid) : 0,
-    });
-    const created = res.deal;
-    setSaving(false);
-    setShowForm(false);
-    navigate(`/deals/${created.id}`);
+    try {
+      const res = await railwayDeals.create({
+        lead_id: canonicalLeadId,
+        name: form.name,
+        amount: form.amount ? parseFloat(form.amount) : 0,
+        stage: form.stage,
+        close_date: form.close_date || null,
+        deposit_amount: form.deposit_amount ? parseFloat(form.deposit_amount) : 0,
+        deposit_paid: form.deposit_paid ? parseFloat(form.deposit_paid) : 0,
+        progress_payment_amount: form.progress_payment_amount ? parseFloat(form.progress_payment_amount) : 0,
+        progress_payment_paid: form.progress_payment_paid ? parseFloat(form.progress_payment_paid) : 0,
+        final_payment_amount: form.final_payment_amount ? parseFloat(form.final_payment_amount) : 0,
+        final_payment_paid: form.final_payment_paid ? parseFloat(form.final_payment_paid) : 0,
+      });
+      const created = res?.deal || res;
+      if (!created?.id) throw new Error('Server did not return a deal ID');
+      setShowForm(false);
+      setForm(EMPTY_FORM);
+      navigate(`/deals/${created.id}`);
+    } catch (e) {
+      console.error('[DealsPanel] create deal error:', e);
+      const msg = e?.data?.details || e?.data?.error || e?.message || 'Unknown error';
+      alert('Failed to create deal: ' + msg);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async (dealId) => {
@@ -122,13 +148,7 @@ export default function DealsPanel({ lead, onLeadUpdate }) {
             onChange={e => setForm(p => ({ ...p, amount: e.target.value }))}
             className="w-full border border-slate-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:border-blue-400 bg-white"
           />
-          <input
-            type="number"
-            placeholder="Sale Amount ($)"
-            value={form.sale_amount}
-            onChange={e => setForm(p => ({ ...p, sale_amount: e.target.value }))}
-            className="w-full border border-slate-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:border-blue-400 bg-white"
-          />
+
           <select
             value={form.stage}
             onChange={e => setForm(p => ({ ...p, stage: e.target.value }))}
@@ -185,7 +205,7 @@ export default function DealsPanel({ lead, onLeadUpdate }) {
        {!loading && deals.length > 0 && (
          <div className="mx-3 mb-3 bg-emerald-50 rounded-lg p-3 border border-emerald-200">
            <p className="text-[9px] font-bold uppercase tracking-widest text-emerald-600 mb-1">Total Sales</p>
-           <p className="text-base font-bold text-emerald-900">{fmtMoney(deals.reduce((sum, d) => sum + (d.sale_amount || 0), 0))}</p>
+           <p className="text-base font-bold text-emerald-900">{fmtMoney(deals.reduce((sum, d) => sum + (d.amount || 0), 0))}</p>
          </div>
        )}
 
@@ -218,9 +238,7 @@ export default function DealsPanel({ lead, onLeadUpdate }) {
               {deal.amount && (
                 <div className="text-sm text-slate-800 font-bold mt-1">{fmtMoney(deal.amount)}</div>
               )}
-              {deal.sale_amount && (
-                <div className="text-sm text-emerald-700 font-bold mt-1">Sale: {fmtMoney(deal.sale_amount)}</div>
-              )}
+
               {deal.stage && (
                 <span className={`inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap mt-1 ${STAGE_COLORS[deal.stage] || "bg-slate-100 text-slate-600"}`}>
                   {deal.stage}

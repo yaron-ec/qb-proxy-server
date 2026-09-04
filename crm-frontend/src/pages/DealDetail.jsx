@@ -54,7 +54,7 @@ export default function DealDetail() {
       const dealRes = await railwayDeals.get(id);
       const d = dealRes?.deal || dealRes;
       const leadRes = d.lead_id ? await railwayLeads.get(d.lead_id).catch(() => null) : null;
-      const leadData = leadRes?.lead || leadRes;
+      const leadData = leadRes?.lead || null;
       if (leadData) setLead(leadData);
       if (d) setDeal(d);
     } catch { /* non-critical */ }
@@ -67,7 +67,7 @@ export default function DealDetail() {
         const dealRes = await railwayDeals.get(id);
         const d = dealRes?.deal || dealRes;
         const leadRes = d.lead_id ? await railwayLeads.get(d.lead_id).catch(() => null) : null;
-        const leadData = leadRes?.lead || leadRes;
+        const leadData = leadRes?.lead || null;
         let invoices = [];
         if (d.lead_id) {
           try {
@@ -78,16 +78,18 @@ export default function DealDetail() {
         const suggested = deriveStageFromPayments(d);
         let finalDeal = d;
         if (suggested && !d.stage_override && d.stage !== suggested) {
-          try { const stageRes = await railwayDeals.update(id, { stage: suggested }); finalDeal = stageRes?.deal || stageRes; } catch {}
+          try {
+            const updateRes = await railwayDeals.update(id, { stage: suggested });
+            finalDeal = updateRes?.deal || updateRes;
+          } catch {}
         }
         setDeal(finalDeal);
         setLead(leadData);
         setInvoices(invoices.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
         setLoading(false);
       } catch (err) {
-        // Capture the error so we can classify it in the render section.
+        // Distinguish 403 (authorization) and 404 (not found) from other errors.
         // 403 must NOT render as "Deal not found" — it masks auth defects.
-        // 503 network errors (assigned by apiCall) must show "Error loading deal".
         setDeal(null);
         setLoadError(err);
         setLoading(false);
@@ -108,12 +110,16 @@ export default function DealDetail() {
     loadInvoices();
   }, [deal?.lead_id]);
 
+  const [fieldError, setFieldError] = useState(null);
+
   const updateField = async (field, value) => {
+    const prevDeal = deal;
     setDeal(prev => ({ ...prev, [field]: value }));
     setSaving(field);
+    setFieldError(null);
     try {
-      const dealUpdateRes = await railwayDeals.update(id, { [field]: value });
-      const updatedDeal = dealUpdateRes?.deal || dealUpdateRes;
+      const updateRes = await railwayDeals.update(id, { [field]: value });
+      const updatedDeal = updateRes?.deal || updateRes;
       setDeal(updatedDeal);
       // If this field maps to a lead field, update the lead too
       const leadField = DEAL_TO_LEAD_MAP[field];
@@ -121,11 +127,19 @@ export default function DealDetail() {
         try {
           const leadUpdateRes = await railwayLeads.update(lead.id, { [leadField]: value });
           const updatedLead = leadUpdateRes?.lead || leadUpdateRes;
-          setLead(updatedLead);
-        } catch {}
+          if (updatedLead) setLead(updatedLead);
+        } catch (leadErr) {
+          // Non-critical: deal saved, lead sync failed. Show a soft warning.
+          console.warn('[DealDetail] lead field sync failed:', leadErr.message);
+        }
       }
       setSavedMsg("Saved");
       setTimeout(() => setSavedMsg(null), 2000);
+    } catch (err) {
+      // Revert the optimistic update so the UI reflects the actual saved state.
+      setDeal(prevDeal);
+      setFieldError(err?.message || 'Save failed. Please try again.');
+      setTimeout(() => setFieldError(null), 5000);
     } finally {
       setSaving(null);
     }
@@ -184,7 +198,8 @@ export default function DealDetail() {
   if (loadError && !deal) {
     // 500, network errors (503), or any other failure — NEVER show "Deal not
     // found" for these. "Deal not found" is reserved for 404 (actual missing
-    // resource). A 503 network error must not be misclassified as a missing deal.
+    // resource). A 503 network error was previously misclassified as "Deal not
+    // found" because the check only matched status === 500 exactly.
     const isServerError = (loadError?.status >= 500) || !loadError?.status;
     return (
       <div className="h-full flex flex-col items-center justify-center bg-slate-50 gap-3 px-6 text-center">
@@ -213,23 +228,21 @@ export default function DealDetail() {
     );
   }
 
-  if (!lead) {
-    return (
-      <div className="h-full flex flex-col items-center justify-center bg-slate-50 gap-3 px-6 text-center">
-        <AlertCircle className="w-12 h-12 text-amber-500" />
-        <p className="text-base font-semibold text-slate-700">No lead linked</p>
-        <p className="text-sm text-slate-500">This deal has no linked lead — customer info is unavailable.</p>
-      </div>
-    );
-  }
-
   return (
     <>
-      {showAddProject && (
+      {showAddProject && lead && (
         <AddNewProjectModal lead={lead} currentDeal={deal} onClose={() => setShowAddProject(false)} onSuccess={handleAddProjectSuccess} />
       )}
       <div className="flex flex-col h-full bg-slate-50 overflow-hidden">
         <DealHeader deal={deal} lead={lead} onAddProject={() => setShowAddProject(true)} onDeleteDeal={handleDeleteDeal} />
+        {!lead && (
+          <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 flex items-center gap-2 flex-shrink-0">
+            <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+            <p className="text-xs font-semibold text-amber-800">
+              No lead linked to this deal — customer info is unavailable. Deal fields, financials, and pipeline stages remain editable.
+            </p>
+          </div>
+        )}
         <TabBar tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
         <div className="flex-1 overflow-y-auto">
           {activeTab === "overview" && (

@@ -1,22 +1,36 @@
 import { useState, useEffect } from "react";
-import { railwayRequest } from "@/lib/railwayClient";
-import { Unlink, CheckCircle, AlertTriangle, Loader2, Eye, EyeOff, Copy, Check } from "lucide-react";
+import {
+  handoffAuthStatus, handoffAuthLogin, handoffAuthVerify,
+  handoffAuthStoreToken, handoffAuthDisconnect,
+} from "@/lib/railwayClient";
+import {
+  Unlink, CheckCircle, AlertTriangle, Loader2, Eye, EyeOff, Copy, Check,
+  Phone, KeyRound, ChevronDown, ChevronRight,
+} from "lucide-react";
 
 export default function HandoffAuthPanel({ onStatusChange }) {
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [tokenInput, setTokenInput] = useState('');
+
+  // Manual token entry
+  const [showTokenForm, setShowTokenForm] = useState(false);
+  const [tokenInput, setTokenInput] = useState("");
   const [showToken, setShowToken] = useState(false);
   const [tokenizing, setTokenizing] = useState(false);
-  const [copiedTokenPreview, setCopiedTokenPreview] = useState(false);
+
+  // Phone OTP flow
+  const [showPhoneForm, setShowPhoneForm] = useState(false);
+  const [phoneInput, setPhoneInput] = useState("");
+  const [otpStep, setOtpStep] = useState("phone"); // "phone" | "code"
+  const [otpCode, setOtpCode] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
 
   const checkStatus = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await railwayRequest('/handoff/auth', { action: 'status' });
+      const res = await handoffAuthStatus();
       setStatus(res);
       if (onStatusChange) onStatusChange(res);
     } catch (e) {
@@ -31,26 +45,22 @@ export default function HandoffAuthPanel({ onStatusChange }) {
     checkStatus();
   }, []);
 
+  // ── Manual token store ──
   const handleStoreToken = async () => {
     if (!tokenInput.trim()) {
-      setError('Bearer token cannot be empty');
+      setError("Token cannot be empty");
       return;
     }
-
     setTokenizing(true);
     setError(null);
     try {
-      const res = await railwayRequest('/handoff/auth', {
-        action: 'store_token',
-        token: tokenInput,
-      });
-
+      const res = await handoffAuthStoreToken(tokenInput);
       if (res?.success) {
-        setTokenInput('');
-        setShowForm(false);
+        setTokenInput("");
+        setShowTokenForm(false);
         await checkStatus();
       } else {
-        setError(res?.error || 'Failed to store token');
+        setError(res?.error || "Failed to store token");
       }
     } catch (e) {
       setError(e.message);
@@ -59,11 +69,59 @@ export default function HandoffAuthPanel({ onStatusChange }) {
     }
   };
 
+  // ── Phone OTP: send code ──
+  const handleSendOtp = async () => {
+    if (!phoneInput.trim()) {
+      setError("Phone number required");
+      return;
+    }
+    setOtpLoading(true);
+    setError(null);
+    try {
+      const res = await handoffAuthLogin(phoneInput);
+      if (res?.success) {
+        setOtpStep("code");
+      } else {
+        setError(res?.error || "Failed to send verification code");
+      }
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  // ── Phone OTP: verify code ──
+  const handleVerifyOtp = async () => {
+    if (!otpCode.trim()) {
+      setError("Verification code required");
+      return;
+    }
+    setOtpLoading(true);
+    setError(null);
+    try {
+      const res = await handoffAuthVerify(phoneInput, otpCode);
+      if (res?.success) {
+        setPhoneInput("");
+        setOtpCode("");
+        setOtpStep("phone");
+        setShowPhoneForm(false);
+        await checkStatus();
+      } else {
+        setError(res?.error || "Verification failed");
+      }
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
   const handleDisconnect = async () => {
-    if (!confirm('Disconnect Handoff? You will need to provide a new bearer token to sync again.')) return;
+    if (!confirm("Disconnect Handoff? You will need to re-authenticate to sync again.")) return;
     setLoading(true);
     try {
-      await railwayRequest('/handoff/auth', { action: 'disconnect' });
+      await handoffAuthDisconnect();
       setStatus(null);
       if (onStatusChange) onStatusChange(null);
     } catch (e) {
@@ -71,6 +129,14 @@ export default function HandoffAuthPanel({ onStatusChange }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const resetPhoneForm = () => {
+    setShowPhoneForm(false);
+    setPhoneInput("");
+    setOtpCode("");
+    setOtpStep("phone");
+    setError(null);
   };
 
   if (loading) {
@@ -91,7 +157,7 @@ export default function HandoffAuthPanel({ onStatusChange }) {
             <div>
               <p className="text-sm font-bold text-emerald-900">Connected to Handoff</p>
               <p className="text-xs text-emerald-700 mt-1">
-                Bearer token authenticated. Automatic hourly syncs are enabled.
+                Authenticated. Use the Re-sync button on estimates to sync.
                 {status.connected_at && ` Connected ${new Date(status.connected_at).toLocaleDateString()}.`}
               </p>
             </div>
@@ -109,31 +175,135 @@ export default function HandoffAuthPanel({ onStatusChange }) {
 
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-3">
-      {!showForm ? (
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm font-bold text-blue-900">Connect Handoff Bearer Token</p>
-            <p className="text-xs text-blue-700 mt-1">
-              Paste your bearer token from DevTools. It will be stored securely and used for automatic hourly syncs.
-            </p>
-          </div>
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg px-4 py-2 transition-colors whitespace-nowrap"
-          >
-            Add Token
-          </button>
+      {error && (
+        <div className="flex items-start gap-2 bg-red-100 border border-red-300 rounded-lg px-3 py-2">
+          <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+          <span className="text-xs font-semibold text-red-800">{error}</span>
         </div>
-      ) : (
+      )}
+
+      {!showPhoneForm && !showTokenForm && (
         <div className="space-y-3">
           <div>
-            <label className="text-xs font-semibold text-blue-900 block mb-1.5">Bearer Token</label>
+            <p className="text-sm font-bold text-blue-900">Connect Handoff</p>
+            <p className="text-xs text-blue-700 mt-1">
+              Authenticate via phone verification (recommended) or paste an API key / bearer token manually.
+            </p>
+          </div>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => { setShowPhoneForm(true); setError(null); }}
+              className="flex items-center gap-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg px-4 py-2.5 transition-colors"
+            >
+              <Phone className="w-4 h-4" /> Connect via Phone OTP
+            </button>
+            <button
+              onClick={() => { setShowTokenForm(true); setError(null); }}
+              className="flex items-center gap-2 text-sm font-bold text-blue-700 border border-blue-300 hover:bg-blue-100 rounded-lg px-4 py-2.5 transition-colors"
+            >
+              <KeyRound className="w-4 h-4" /> Enter API Key / Token Manually
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Phone OTP Form ── */}
+      {showPhoneForm && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Phone className="w-4 h-4 text-blue-600" />
+            <p className="text-sm font-bold text-blue-900">
+              {otpStep === "phone" ? "Phone Verification" : "Enter Verification Code"}
+            </p>
+          </div>
+
+          {otpStep === "phone" ? (
+            <>
+              <div>
+                <label className="text-xs font-semibold text-blue-900 block mb-1.5">
+                  Phone Number (registered with Handoff)
+                </label>
+                <input
+                  type="tel"
+                  value={phoneInput}
+                  onChange={(e) => setPhoneInput(e.target.value)}
+                  placeholder="+1 555 123 4567"
+                  className="w-full border border-blue-300 rounded-lg px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSendOtp}
+                  disabled={otpLoading || !phoneInput.trim()}
+                  className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 text-sm font-bold rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                >
+                  {otpLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Phone className="w-4 h-4" />}
+                  {otpLoading ? "Sending..." : "Send Code"}
+                </button>
+                <button
+                  onClick={resetPhoneForm}
+                  disabled={otpLoading}
+                  className="border border-slate-300 text-slate-700 px-4 py-2 text-sm font-bold rounded-lg hover:bg-slate-50 disabled:opacity-50 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-xs text-blue-700">
+                A verification code was sent to <strong>{phoneInput}</strong>.
+              </p>
+              <div>
+                <label className="text-xs font-semibold text-blue-900 block mb-1.5">Verification Code</label>
+                <input
+                  type="text"
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value)}
+                  placeholder="123456"
+                  maxLength={8}
+                  className="w-full border border-blue-300 rounded-lg px-3 py-2 text-sm font-mono bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-center tracking-widest"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleVerifyOtp}
+                  disabled={otpLoading || !otpCode.trim()}
+                  className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 text-sm font-bold rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                >
+                  {otpLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                  {otpLoading ? "Verifying..." : "Verify"}
+                </button>
+                <button
+                  onClick={() => setOtpStep("phone")}
+                  disabled={otpLoading}
+                  className="border border-slate-300 text-slate-700 px-4 py-2 text-sm font-bold rounded-lg hover:bg-slate-50 disabled:opacity-50 transition-colors"
+                >
+                  Back
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ── Manual Token Form ── */}
+      {showTokenForm && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <KeyRound className="w-4 h-4 text-blue-600" />
+            <p className="text-sm font-bold text-blue-900">API Key or Bearer Token</p>
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-blue-900 block mb-1.5">
+              Handoff API Key (hnd_...) or Bearer Token
+            </label>
             <div className="relative">
               <input
-                type={showToken ? 'text' : 'password'}
+                type={showToken ? "text" : "password"}
                 value={tokenInput}
-                onChange={e => setTokenInput(e.target.value)}
-                placeholder="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                onChange={(e) => setTokenInput(e.target.value)}
+                placeholder="hnd_... or Bearer eyJhbGci..."
                 className="w-full border border-blue-300 rounded-lg px-3 py-2 text-xs font-mono bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 pr-10"
               />
               <button
@@ -145,14 +315,6 @@ export default function HandoffAuthPanel({ onStatusChange }) {
               </button>
             </div>
           </div>
-
-          {error && (
-            <div className="flex items-start gap-2 bg-red-100 border border-red-300 rounded-lg px-3 py-2">
-              <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
-              <span className="text-xs font-semibold text-red-800">{error}</span>
-            </div>
-          )}
-
           <div className="flex gap-2">
             <button
               onClick={handleStoreToken}
@@ -160,23 +322,18 @@ export default function HandoffAuthPanel({ onStatusChange }) {
               className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 text-sm font-bold rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
               {tokenizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-              {tokenizing ? 'Verifying...' : 'Save Token'}
+              {tokenizing ? "Verifying..." : "Save Token"}
             </button>
             <button
-              onClick={() => {
-                setShowForm(false);
-                setTokenInput('');
-                setError(null);
-              }}
+              onClick={() => { setShowTokenForm(false); setTokenInput(""); setError(null); }}
               disabled={tokenizing}
-              className="flex-1 border border-slate-300 text-slate-700 px-4 py-2 text-sm font-bold rounded-lg hover:bg-slate-50 disabled:opacity-50 transition-colors"
+              className="border border-slate-300 text-slate-700 px-4 py-2 text-sm font-bold rounded-lg hover:bg-slate-50 disabled:opacity-50 transition-colors"
             >
               Cancel
             </button>
           </div>
-
           <p className="text-[10px] text-blue-700 bg-blue-100 rounded px-2 py-1.5">
-            💡 <strong>How to get your bearer token:</strong> Open Handoff in a browser, open DevTools (F12), go to Network tab, filter for "graphql", make any request, click it, scroll to Authorization header — copy the full "Bearer ..." value.
+            Create an API key in Handoff Settings, or paste a bearer token from DevTools.
           </p>
         </div>
       )}

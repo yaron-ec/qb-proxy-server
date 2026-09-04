@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { RefreshCw, CheckCircle2, AlertTriangle } from 'lucide-react';
-import { syncLeadEstimates, normalizeIntegrationError } from '@/lib/railwayClient';
+import { syncQBEstimatesForLead, normalizeIntegrationError } from '@/lib/railwayClient';
 
 export default function EstimateSyncButton({ lead }) {
   const [syncing, setSyncing] = useState(false);
@@ -10,7 +10,7 @@ export default function EstimateSyncButton({ lead }) {
     setSyncing(true);
     setResult(null);
     try {
-      const data = await syncLeadEstimates(lead.id);
+      const data = await syncQBEstimatesForLead(lead.id);
       const ok = data?.success !== false;
       setResult({ success: ok, message: ok ? (data?.message || 'Estimates synced') : (data?.error || data?.message || 'Sync failed') });
     } catch (e) {

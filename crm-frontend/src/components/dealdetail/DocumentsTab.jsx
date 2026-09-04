@@ -19,7 +19,7 @@ export default function DocumentsTab({ lead, setLead }) {
       <div>
         <p className="typography-section-header mb-2">UPLOADS & FILES</p>
         <div className="card-premium overflow-hidden">
-          <AttachmentsPanel lead={lead} />
+          {lead ? <AttachmentsPanel lead={lead} /> : <p className="text-sm text-slate-400 py-3 px-4">No lead linked.</p>}
         </div>
       </div>
     </div>

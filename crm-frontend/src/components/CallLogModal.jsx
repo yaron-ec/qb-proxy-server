@@ -67,15 +67,14 @@ export default function CallLogModal({ lead, isOpen, onClose, onSave }) {
       // If appointment scheduled, update appointment on lead via Railway API
       if (outcome === "Appointment Scheduled" && followUpDate && followUpTime) {
         // Use appointment endpoint for calendar side effects (creates/updates Google Calendar event)
-        if (lead.external_ref) {
-          await updateAppointmentByExternal(lead.external_ref, {
-            appointment_date: followUpDate,
-            appointment_time: followUpTime,
-            follow_up_date: followUpDate,
-            follow_up_time: followUpTime,
-            follow_up_type: "Meeting",
-          });
-        }
+        // lead.id is external_ref (legacy) or Railway UUID (native) — backend matches both.
+        await updateAppointmentByExternal(lead.id, {
+          appointment_date: followUpDate,
+          appointment_time: followUpTime,
+          follow_up_date: followUpDate,
+          follow_up_time: followUpTime,
+          follow_up_type: "Meeting",
+        });
         // Update status separately (not handled by appointment endpoint)
         await updateLead(lead.id, {
           status: "Appointment scheduled",

@@ -8,11 +8,15 @@
  */
 
 import { railwayRequest } from '@/lib/railwayClient';
+import { ACCESS_KEY } from '@/api/railway/client';
 
 /**
  * Upload a File object to R2/S3 via the Railway proxy.
  * Returns { url, key, fileName, contentType, size }
  * Throws on failure.
+ *
+ * Auth: Railway JWT Bearer token (browser-to-server). NEVER sends X-Proxy-Secret
+ * from the browser — the proxy secret stays server-side only.
  */
 export async function uploadFileToStorage(file) {
   // Send the file directly as multipart/form-data to the Railway proxy
@@ -20,11 +24,11 @@ export async function uploadFileToStorage(file) {
   formData.append('file', file);
 
   const API_BASE = import.meta.env.VITE_RAILWAY_API_URL || '';
-  const PROXY_SECRET = import.meta.env.VITE_PROXY_SECRET || '';
+  const token = localStorage.getItem(ACCESS_KEY) || '';
 
   const res = await fetch(`${API_BASE}/api/files/upload`, {
     method: 'POST',
-    headers: { 'X-Proxy-Secret': PROXY_SECRET },
+    headers: { Authorization: `Bearer ${token}` },
     body: formData,
   });
 

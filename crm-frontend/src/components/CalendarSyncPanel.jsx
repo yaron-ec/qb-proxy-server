@@ -18,7 +18,7 @@ async function syncLeadCalendar(lead) {
 // Module-level in-flight guard — keyed by lead ID so no two requests fire simultaneously
 const inFlight = new Set();
 
-export default function CalendarSyncPanel({ lead }) {
+export default function CalendarSyncPanel({ lead, onLeadUpdate }) {
   const [queueRecord, setQueueRecord] = useState(null);
   const [retrying, setRetrying] = useState(false);
   const [retryMsg, setRetryMsg] = useState(null);
@@ -31,12 +31,9 @@ export default function CalendarSyncPanel({ lead }) {
   const syncError = lead.google_calendar_sync_error;
   const hasEvent = !!lead.google_event_id;
   const hasBuffer = !!lead.google_travel_event_id;
-  // Canonical state — mutually exclusive. Only appointments table is truth.
-  // syncStatus='synced' WITHOUT google_event_id means the outbox marked synced
-  // but the event ID wasn't persisted — treat as pending, NOT synced.
   const isFailed = syncStatus === 'error' || syncStatus === 'failed';
+  const isPending = syncStatus === 'pending' || queueRecord?.status === 'pending';
   const isSynced = syncStatus === 'synced' && hasEvent;
-  const isPending = !isSynced && !isFailed && (syncStatus === 'pending' || !hasEvent || queueRecord?.status === 'pending');
 
   // Rep name for display
   const repFirstName = (lead.assigned_rep || '').trim().split(/\s+/)[0] || 'Rep';
@@ -52,6 +49,14 @@ export default function CalendarSyncPanel({ lead }) {
       if (data?.success) {
         const msg = data?.already_exists ? '✓ Calendar event already exists' : '✓ Calendar event synced successfully';
         setRetryMsg({ type: 'success', text: msg });
+        // Re-fetch the lead so the calendar sync status updates from the
+        // canonical appointment state (calendar_sync_status = 'pending').
+        // The outbox worker will set it to 'synced' after creating the Google
+        // event; a subsequent reload will show the final state.
+        try {
+          const updated = await railwayLeads.getByExternal(lead.id);
+          if (updated?.lead) onLeadUpdate?.(updated.lead);
+        } catch { /* non-critical — status will update on next page load */ }
       } else {
         setRetryMsg({ type: 'error', text: data?.error || 'Sync failed' });
       }

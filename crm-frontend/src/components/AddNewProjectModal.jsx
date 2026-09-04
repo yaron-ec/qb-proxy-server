@@ -89,9 +89,15 @@ export default function AddNewProjectModal({ lead, currentDeal, onClose, onSucce
 
     setLoading(true);
     try {
+      const canonicalLeadId = lead.railway_id || lead.id;
+      if (!canonicalLeadId) {
+        alert("Cannot create deal: lead ID is missing. Please refresh the page and try again.");
+        setLoading(false);
+        return;
+      }
       const projectName = formData.selected_job_types.join(", ");
       const newDeal = await railwayDeals.create({
-        lead_id: lead.id,
+        lead_id: canonicalLeadId,
         name: projectName,
         project_type: projectName,
         amount: parseFloat(formData.amount) || 0,
@@ -103,8 +109,10 @@ export default function AddNewProjectModal({ lead, currentDeal, onClose, onSucce
         pipeline: currentDeal?.pipeline || "Default Pipeline",
       });
 
-      onSuccess?.(newDeal);
-      navigate(`/deals/${newDeal.id}`);
+      const created = newDeal?.deal || newDeal;
+      if (!created?.id) throw new Error("Server did not return a deal ID");
+      onSuccess?.(created);
+      navigate(`/deals/${created.id}`);
     } catch (e) {
       console.error("Failed to create deal:", e);
       alert("Failed to create project: " + e.message);

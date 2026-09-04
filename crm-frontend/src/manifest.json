@@ -11,19 +11,19 @@
   "categories": ["business", "productivity"],
   "icons": [
     {
-      "src": "https://media.base44.com/images/public/69f42cee41d29f30bff5c013/8d257a3dd_Logo-dark.jpg",
+      "src": "/logo-dark.jpg",
       "sizes": "192x192",
       "type": "image/jpeg",
       "purpose": "any"
     },
     {
-      "src": "https://media.base44.com/images/public/69f42cee41d29f30bff5c013/8d257a3dd_Logo-dark.jpg",
+      "src": "/logo-dark.jpg",
       "sizes": "512x512",
       "type": "image/jpeg",
       "purpose": "any"
     },
     {
-      "src": "https://media.base44.com/images/public/69f42cee41d29f30bff5c013/8d257a3dd_Logo-dark.jpg",
+      "src": "/logo-dark.jpg",
       "sizes": "192x192",
       "type": "image/jpeg",
       "purpose": "maskable"
@@ -37,7 +37,7 @@
       "url": "/leads",
       "icons": [
         {
-          "src": "https://media.base44.com/images/public/69f42cee41d29f30bff5c013/8d257a3dd_Logo-dark.jpg",
+          "src": "/logo-dark.jpg",
           "sizes": "192x192",
           "type": "image/jpeg"
         }
@@ -50,7 +50,7 @@
       "url": "/daily-map",
       "icons": [
         {
-          "src": "https://media.base44.com/images/public/69f42cee41d29f30bff5c013/8d257a3dd_Logo-dark.jpg",
+          "src": "/logo-dark.jpg",
           "sizes": "192x192",
           "type": "image/jpeg"
         }
@@ -63,7 +63,7 @@
       "url": "/deals",
       "icons": [
         {
-          "src": "https://media.base44.com/images/public/69f42cee41d29f30bff5c013/8d257a3dd_Logo-dark.jpg",
+          "src": "/logo-dark.jpg",
           "sizes": "192x192",
           "type": "image/jpeg"
         }
@@ -72,13 +72,13 @@
   ],
   "screenshots": [
     {
-      "src": "https://media.base44.com/images/public/69f42cee41d29f30bff5c013/8d257a3dd_Logo-dark.jpg",
+      "src": "/logo-dark.jpg",
       "sizes": "540x720",
       "type": "image/jpeg",
       "form_factor": "narrow"
     },
     {
-      "src": "https://media.base44.com/images/public/69f42cee41d29f30bff5c013/8d257a3dd_Logo-dark.jpg",
+      "src": "/logo-dark.jpg",
       "sizes": "1280x720",
       "type": "image/jpeg",
       "form_factor": "wide"

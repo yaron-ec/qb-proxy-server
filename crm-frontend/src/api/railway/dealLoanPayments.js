@@ -10,16 +10,19 @@ export function list(params = {}) {
   return apiCall(`/api/v1/deal-loan-payments${q ? `?${q}` : ''}`, { method: 'GET' });
 }
 
-export function get(id) {
-  return apiCall(`/api/v1/deal-loan-payments/${id}`, { method: 'GET' });
+export async function get(id) {
+  const res = await apiCall(`/api/v1/deal-loan-payments/${id}`, { method: 'GET' });
+  return res?.loanPayment || res;
 }
 
-export function create(data) {
-  return apiCall('/api/v1/deal-loan-payments', { method: 'POST', body: data });
+export async function create(data) {
+  const res = await apiCall('/api/v1/deal-loan-payments', { method: 'POST', body: data });
+  return res?.loanPayment || res;
 }
 
-export function update(id, data) {
-  return apiCall(`/api/v1/deal-loan-payments/${id}`, { method: 'PUT', body: data });
+export async function update(id, data) {
+  const res = await apiCall(`/api/v1/deal-loan-payments/${id}`, { method: 'PUT', body: data });
+  return res?.loanPayment || res;
 }
 
 export function remove(id) {

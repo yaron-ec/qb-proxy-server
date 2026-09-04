@@ -6,7 +6,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Plus, Search, Phone, Mail, MapPin, ArrowRight, User, CheckCircle, RefreshCw, ExternalLink, AlertCircle, Calendar, Trash2 } from "lucide-react";
 import { sortActiveLeads, parseFollowUpDate, getTodayLocal } from "@/lib/sortActiveLeads";
 import { STATUS_STYLES, statusBadgeClass } from "@/lib/design-system";
-import { formatPhone, toTitleCase , fixField} from "@/lib/formatters";
+import { formatPhone, toTitleCase } from "@/lib/formatters";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { isActiveSalesLead } from "@/lib/activeLeadFilter";
 import PullToRefreshIndicator from "@/components/PullToRefreshIndicator";
@@ -337,7 +337,7 @@ export default function LeadsModern() {
                 }}
                 className="px-2 py-1.5 border border-slate-200 rounded-lg text-sm font-medium bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 w-auto"
               >
-                <option value="all">All Reps</option>
+                <option value="all">All Leads</option>
                 {contactOwners.map(owner => (
                   <option key={owner} value={owner}>{owner}</option>
                 ))}
@@ -502,11 +502,16 @@ function LeadCard({ lead, navigate, onLeadUpdate, onDragStart, isDragging, userR
     e.preventDefault();
     e.stopPropagation();
     setCompleting(true);
-    const updated = await railwayLeads.update(lead.id, {
-      follow_up_date: null, follow_up_time: null, follow_up_type: null,
-    });
-    onLeadUpdate(updated);
-    setCompleting(false);
+    try {
+      const updated = await railwayLeads.update(lead.id, {
+        follow_up_date: null, follow_up_time: null, follow_up_type: null,
+      });
+      onLeadUpdate(updated);
+    } catch (e) {
+      console.error('[LeadsModern] Failed to clear follow-up:', e?.message);
+    } finally {
+      setCompleting(false);
+    }
   };
 
   const majorStatusChanges = ['Closed Lost', 'DNQ', 'Sold', 'Lost', 'Closed'];
@@ -636,7 +641,7 @@ function LeadCard({ lead, navigate, onLeadUpdate, onDragStart, isDragging, userR
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setStatusDropdownOpen(!statusDropdownOpen); }}
                 className={`${statusBadgeClass(lead.status)} cursor-pointer hover:opacity-80 transition-opacity btn-compact`}
               >
-                {fixField(lead.status)}
+                {lead.status}
               </span>
               {statusDropdownOpen && (
                 <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-slate-200 rounded-lg shadow-lg z-50 p-1 max-h-64 overflow-y-auto">
@@ -647,7 +652,8 @@ function LeadCard({ lead, navigate, onLeadUpdate, onDragStart, isDragging, userR
                       disabled={updatingStatus}
                       className={`w-full text-left px-3 py-2 text-xs font-medium rounded transition-colors whitespace-nowrap ${status === lead.status ? 'bg-amber-50 text-amber-700 font-semibold' : 'text-slate-700 hover:bg-slate-100'} disabled:opacity-50`}
                     >
-                      {fixField(status)}</button>
+                      {status}
+                    </button>
                   ))}
                 </div>
               )}

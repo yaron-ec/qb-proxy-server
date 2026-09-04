@@ -31,16 +31,19 @@ export function list(params = {}) {
   return apiCall(`/api/v1/deals${q ? `?${q}` : ''}`, { method: 'GET' });
 }
 
-export function get(id) {
-  return apiCall(`/api/v1/deals/${id}`, { method: 'GET' });
+export async function get(id) {
+  const res = await apiCall(`/api/v1/deals/${id}`, { method: 'GET' });
+  return res?.deal || res;
 }
 
-export function create(data) {
-  return apiCall('/api/v1/deals', { method: 'POST', body: data });
+export async function create(data) {
+  const res = await apiCall('/api/v1/deals', { method: 'POST', body: data });
+  return res?.deal || res;
 }
 
-export function update(id, data) {
-  return apiCall(`/api/v1/deals/${id}`, { method: 'PUT', body: data });
+export async function update(id, data) {
+  const res = await apiCall(`/api/v1/deals/${id}`, { method: 'PUT', body: data });
+  return res?.deal || res;
 }
 
 export function remove(id) {

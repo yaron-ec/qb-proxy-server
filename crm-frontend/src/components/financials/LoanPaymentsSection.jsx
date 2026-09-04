@@ -111,8 +111,7 @@ export default function LoanPaymentsSection({ deal, loanPayments, canEdit, canDe
         await logActivity("loan_payment_edited", "DealLoanPayment", `Loan payment edited: ${editing.lender_name || "—"}`);
       } else {
         payload.created_by = user?.email || null;
-        const createRes = await railwayDealLoanPayments.create(payload);
-        const created = createRes?.loanPayment || createRes;
+        const created = await railwayDealLoanPayments.create(payload);
         await logActivity("loan_payment_added", "DealLoanPayment", `Loan payment added: ${editing.lender_name || "—"} (${formatCurrency(payload.total_payment_amount)})`, { record_id: created?.id });
       }
       setEditing(null);

@@ -121,7 +121,7 @@ export default function QuickBooksSyncTab() {
     if (!confirm('Disconnect QuickBooks? This will remove stored tokens.')) return;
     setActionLoading(true);
     try {
-      await railwayRequest('/qb/auth-disconnect', { method: 'POST' });
+      await railwayRequest('/qb/auth-disconnect');
       setStatus({ connected: false });
       setCompany(null);
     } catch (e) { alert('Error: ' + e.message); }

@@ -261,12 +261,24 @@ export default function FollowUpsWidget({ leads: propLeads, allLeads: propAllLea
     e.preventDefault();
     e.stopPropagation();
     setCompleting(prev => ({ ...prev, [lead.id]: true }));
-    const res = await railwayLeads.update(lead.id, {
-      follow_up_date: null, follow_up_time: null, follow_up_type: null,
-    });
-    const updated = res.lead;
-    setLeads(prev => prev.map(l => l.id === updated.id ? updated : l));
-    setCompleting(prev => ({ ...prev, [lead.id]: false }));
+    try {
+      // Use updateAppointment (PUT /:id/appointment) — NOT the generic update
+      // (PUT /:id). Only the appointment route cancels the appointment row and
+      // enqueues the calendar outbox cancellation so the Google Calendar event
+      // is removed. The generic update route only changes lead fields with no
+      // calendar side effects, which would orphan the calendar event.
+      const res = await railwayLeads.updateAppointment(lead.id, {
+        follow_up_date: null, follow_up_time: null, follow_up_type: null,
+      });
+      const updated = res?.lead || {
+        ...lead, follow_up_date: null, follow_up_time: null, follow_up_type: null,
+      };
+      setLeads(prev => prev.map(l => l.id === updated.id ? updated : l));
+    } catch (err) {
+      console.error('[FollowUpsWidget] Failed to clear follow-up:', err?.message);
+    } finally {
+      setCompleting(prev => ({ ...prev, [lead.id]: false }));
+    }
   };
 
   if (!hasAnything && activeLeads.length === 0) return null;

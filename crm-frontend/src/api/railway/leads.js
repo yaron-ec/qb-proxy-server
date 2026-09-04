@@ -87,8 +87,21 @@ export function getDetailByExternal(externalRef) {
  * follow_up_date, follow_up_time, follow_up_type). Separate from contact update.
  * Returns { lead }.
  */
-export function updateAppointmentByExternal(externalRef, data) {
-  return apiCall(`/api/v1/leads/by-external/${encodeURIComponent(externalRef)}/appointment`, { method: 'PUT', body: data });
+export function updateAppointmentByExternal(externalRef, data, opts = {}) {
+  return apiCall(`/api/v1/leads/by-external/${encodeURIComponent(externalRef)}/appointment`, { method: 'PUT', body: data, signal: opts.signal });
+}
+
+/**
+ * Update appointment fields by Railway UUID (canonical path).
+ * This is the PRIMARY appointment update route for Railway-native leads.
+ * Accepts ONLY valid Railway UUIDs — no external_ref needed.
+ * Updates ONLY appointment fields (appointment_date, appointment_time, meeting_stage,
+ * follow_up_date, follow_up_time, follow_up_type). Handles the full appointment
+ * lifecycle atomically: lead update + appointment create/update/cancel + reminder
+ * projection. Returns { lead }.
+ */
+export function updateAppointment(id, data, opts = {}) {
+  return apiCall(`/api/v1/leads/${encodeURIComponent(id)}/appointment`, { method: 'PUT', body: data, signal: opts.signal });
 }
 
 /**
