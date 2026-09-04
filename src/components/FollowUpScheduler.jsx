@@ -160,7 +160,8 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
   };
 
   const syncStatus = lead.google_calendar_sync_status;
-  const showSyncingPill = justSaved && type === "Meeting" && !lead.google_event_id && syncStatus !== 'error';
+  // Show syncing pill for both Meetings AND Phone Calls — both create calendar events now.
+  const showSyncingPill = justSaved && (type === "Meeting" || type === "Phone Call") && !lead.google_event_id && syncStatus !== 'error';
 
   // Display (not editing)
   if (!editing) {
@@ -203,7 +204,7 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
                 : ""}
               {lead.follow_up_time ? ` • ${fmt12(lead.follow_up_time)}` : ""}
             </p>
-            {lead.follow_up_type === "Meeting" && lead.google_event_id && (
+            {(lead.follow_up_type === "Meeting" || lead.follow_up_type === "Phone Call") && lead.google_event_id && (
               <p className="text-[10px] text-emerald-600 font-semibold">✓ Synced to Google Calendar</p>
             )}
             {showSyncingPill && (
@@ -211,7 +212,7 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
                 <Loader2 className="w-3 h-3 animate-spin" /> Syncing to Google Calendar…
               </p>
             )}
-            {lead.follow_up_type === "Meeting" && syncStatus === 'error' && (
+            {(lead.follow_up_type === "Meeting" || lead.follow_up_type === "Phone Call") && syncStatus === 'error' && (
               <p className="text-[10px] text-red-600 font-semibold">⚠ Calendar sync failed — retry from Integrations</p>
             )}
           </div>
@@ -351,8 +352,18 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
 
       {/* Phone Call info */}
       {type === "Phone Call" && (
-        <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-          <p className="text-[10px] text-green-700">CRM reminder only — no Google Calendar event.</p>
+        <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 space-y-1">
+          <p className="text-[10px] font-semibold text-green-800">
+            {isUpdate ? "Google Calendar event will be updated automatically:" : "Google Calendar event will be created automatically:"}
+          </p>
+          <ul className="text-[10px] text-green-700 list-disc list-inside space-y-0.5">
+            <li>{time ? fmt12(time) : "Selected time"} — Phone call with {clientName}</li>
+            <li>No travel buffer (no driving needed)</li>
+            <li>Reminders: 48h, 24h, 12h, 2h, 30min (email)</li>
+          </ul>
+          {ownerEmail && (
+            <p className="text-[10px] text-green-600">📋 Owner invite: {ownerEmail}</p>
+          )}
         </div>
       )}
 

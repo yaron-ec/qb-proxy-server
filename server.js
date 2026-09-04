@@ -948,71 +948,20 @@ app.post('/api/files/signed-url', requireProxySecret, async (req, res) => {
 // Returns: { success, key }
 app.delete('/api/files/delete', requireProxySecret, async (req, res) => {
   const { key } = req.body || {};
-  // ── TEMPORARY TRACE: R2 delete verification (remove after diagnosis) ──
-  console.log('[EXPENSE-DELETE-TRACE] proxy.delete route hit key=', key);
   if (!key || typeof key !== 'string' || !key.startsWith('uploads/')) {
-    console.log('[EXPENSE-DELETE-TRACE] proxy.delete rejecting: invalid key');
     return res.status(400).json({ success: false, error: 'Invalid key (must start with uploads/).' });
   }
   if (!s3Client) {
-    console.log('[EXPENSE-DELETE-TRACE] proxy.delete rejecting: s3Client not configured');
     return res.status(503).json({ success: false, error: 'File storage not configured on server.' });
   }
   try {
-    // Log exact S3/R2 target configuration
-    console.log('[EXPENSE-DELETE-TRACE] proxy.delete S3 config', {
-      bucket: activeBucket,
-      accountId: R2_ACCOUNT_ID || '(s3 fallback)',
-      endpoint: R2_ACCOUNT_ID ? `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com` : `aws-s3:${S3_REGION}`,
-      key,
-    });
-
-    // 1. Send DeleteObjectCommand and log the raw response
-    const deleteCmd = new DeleteObjectCommand({ Bucket: activeBucket, Key: key });
-    const deleteRes = await s3Client.send(deleteCmd);
-    console.log('[EXPENSE-DELETE-TRACE] proxy.delete DeleteObjectCommand rawResponse', {
-      $metadata: deleteRes?.$metadata,
-      DeleteMarker: deleteRes?.DeleteMarker,
-      VersionId: deleteRes?.VersionId,
-      ETag: deleteRes?.ETag,
-    });
-
-    // 2. Immediately verify with HeadObjectCommand
-    let headStatus = 'unknown';
-    let headInfo = {};
-    try {
-      const headRes = await s3Client.send(new HeadObjectCommand({ Bucket: activeBucket, Key: key }));
-      headStatus = '200_OBJECT_STILL_EXISTS';
-      headInfo = {
-        $metadata: headRes?.$metadata,
-        ContentLength: headRes?.ContentLength,
-        ContentType: headRes?.ContentType,
-        ETag: headRes?.ETag,
-        LastModified: headRes?.LastModified,
-      };
-      console.log('[EXPENSE-DELETE-TRACE] proxy.delete HeadObjectCommand result=200 OBJECT STILL EXISTS', headInfo);
-    } catch (headErr) {
-      const name = headErr?.name || '';
-      const code = headErr?.Code || headErr?.$metadata?.httpStatusCode || headErr?.$response?.status;
-      const httpStatus = headErr?.$metadata?.httpStatusCode || headErr?.$response?.status;
-      if (httpStatus === 404 || name === 'NotFound' || code === '404' || code === 'NoSuchKey') {
-        headStatus = '404_OBJECT_DELETED';
-        headInfo = { httpStatus, name, code };
-        console.log('[EXPENSE-DELETE-TRACE] proxy.delete HeadObjectCommand result=404 OBJECT CONFIRMED DELETED', headInfo);
-      } else {
-        headStatus = 'HEAD_ERROR';
-        headInfo = { httpStatus, name, code, message: headErr?.message };
-        console.log('[EXPENSE-DELETE-TRACE] proxy.delete HeadObjectCommand result=ERROR', headInfo);
-      }
-    }
-
-    console.log(`[delete] Deleted R2 object: ${key} (head=${headStatus})`);
-    res.json({ success: true, key, headStatus, headInfo });
+    await s3Client.send(new DeleteObjectCommand({ Bucket: activeBucket, Key: key }));
+    console.log(`[delete] Deleted R2 object: ${key}`);
+    res.json({ success: true, key });
   } catch (err) {
-    console.error('[EXPENSE-DELETE-TRACE] proxy.delete DeleteObjectCommand threw:', err.message, err);
+    console.error('[delete] R2 delete failed:', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
-  // ── END TEMPORARY TRACE ──
 });
 
 // ── /qb/* alias routes ────────────────────────────────────────────────────────
@@ -1340,8 +1289,7 @@ app.post('/leads/submit-capture', requireProxySecret, (req, res) => {
 
 // ── /handoff/* sync + auth routes (migrated from Base44) ─────────────────────
 // Implemented in routes/handoffSync.js: sync-estimates-for-lead, sync-all,
-// diagnose-lead-estimates, auth/status, auth/login, auth/verify,
-// auth/store-token, auth/disconnect.
+// auth/status, auth/login, auth/verify, auth/store-token, auth/disconnect.
 require('./routes/handoffSync')(app, requireProxySecret, rda, handoffClient);
 
 // POST /handoff/import-estimate
