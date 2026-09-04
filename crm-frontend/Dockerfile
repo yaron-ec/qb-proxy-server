@@ -19,4 +19,4 @@ RUN rm -f /etc/nginx/conf.d/default.conf
 COPY nginx.conf /etc/nginx/conf.d/default.template
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 80
-CMD sh -c 'envsubst "${PORT}" < /etc/nginx/conf.d/default.template > /etc/nginx/conf.d/default.conf && exec nginx -g "daemon off;"'
+CMD ["/bin/sh", "-c", "envsubst '${PORT}' < /etc/nginx/conf.d/default.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"]
