@@ -1893,4 +1893,20 @@ router.post('/drain-calendar-outbox', async (req, res) => {
   }
 });
 
+// ── POST /run-reminder-engine — manually trigger the reminder engine ──────────
+// Runs one pass of the appointment reminder engine with dryRun=false (real sends).
+// Used for end-to-end verification of the reminder pipeline.
+router.post('/run-reminder-engine', async (req, res) => {
+  try {
+    const engine = require('../lib/reminderEngine');
+    const phoneEngine = require('../lib/phoneCallReminders');
+    const apt = await engine.processReminders({ dryRun: false, triggeredBy: 'manual' });
+    const phone = await phoneEngine.processPhoneCallReminders({ dryRun: false, triggeredBy: 'manual' });
+    res.json({ ok: true, appointment: apt, phone });
+  } catch (e) {
+    console.error('[cron] run-reminder-engine error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
