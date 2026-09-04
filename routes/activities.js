@@ -16,6 +16,7 @@ const express = require('express');
 const { requireAuth } = require('../lib/rbac');
 const { query } = require('../db/client');
 const { UUID_RE } = require('../lib/leadResolver');
+const { notifyCrmActivity } = require('../lib/crmActivityNotifier');
 
 const router = express.Router();
 
@@ -49,11 +50,10 @@ router.get('/', requireAuth, async (req, res) => {
     const params = [lead_id];
     let p = 2;
 
-
     if (type && type !== 'all') { where.push(`type = $${p}`); params.push(type); p++; }
     if (source && source !== 'all') { where.push(`source = $${p}`); params.push(source); p++; }
 
-    const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
+    const whereClause = `WHERE ${where.join(' AND ')}`;
     const { rows } = await query(`SELECT * FROM activities ${whereClause} ORDER BY created_at DESC LIMIT $${p}`, [...params, limit]);
     res.json({ items: rows.map(serializeActivity), total: rows.length });
   } catch (e) {
@@ -67,6 +67,7 @@ router.post('/', requireAuth, async (req, res) => {
   try {
     const { lead_id, type, content, author, source = 'manual', metadata } = req.body || {};
     if (!lead_id) return res.status(400).json({ error: 'lead_id required' });
+    if (!UUID_RE.test(String(lead_id))) return res.status(400).json({ error: 'invalid_lead_id', message: 'lead_id must be a valid Railway UUID' });
     if (!type) return res.status(400).json({ error: 'type required' });
     if (!content) return res.status(400).json({ error: 'content required' });
 
@@ -78,6 +79,31 @@ router.post('/', requireAuth, async (req, res) => {
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
       [lead_id, type, content, author || req.user.email || null, source, JSON.stringify(metadata || null)]
     );
+
+    // ── Notify admins of the new activity (best-effort, non-blocking) ────
+    try {
+      const leadRes = await query(
+        `SELECT l.id, l.first_name, l.last_name, o.display_name AS owner_display_name, o.email AS owner_email
+         FROM leads l LEFT JOIN owners o ON o.id = l.owner_id WHERE l.id = $1`,
+        [lead_id]
+      );
+      const lead = leadRes.rows[0];
+      if (lead) {
+        const leadName = `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || 'Unknown';
+        Promise.resolve().then(() => notifyCrmActivity({
+          action: 'activity_added',
+          leadId: lead.id,
+          leadName,
+          repName: lead.owner_display_name || lead.owner_email || 'Unassigned',
+          actorEmail: req.user?.email,
+          activityType: type,
+          content,
+        })).catch(e => console.error('[activities] notification failed:', e.message));
+      }
+    } catch (e) {
+      console.error('[activities] lead fetch for notification failed:', e.message);
+    }
+
     res.status(201).json({ activity: serializeActivity(rows[0]) });
   } catch (e) {
     console.error('[activities] create error:', e.message);
