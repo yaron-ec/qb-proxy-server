@@ -1893,6 +1893,107 @@ router.post('/drain-calendar-outbox', async (req, res) => {
   }
 });
 
+// ── POST /diagnose-watchdog — runs watchdog probes inline and returns results ──
+// Diagnoses why the production-watchdog cron service might be failing.
+// Runs the SAME logic as productionWatchdog.js but returns results instead
+// of calling process.exit(). This reveals the exact failure point.
+router.post('/diagnose-watchdog', async (req, res) => {
+  try {
+    const db = require('../db/client');
+    const { getMonitoredServices } = require('../lib/monitoring/serviceInventory');
+    const { probeService } = require('../lib/monitoring/healthProbes');
+    const crashLoop = require('../lib/monitoring/crashLoopDetector');
+    const { verifyAndPromote } = require('../lib/monitoring/knownGoodBaseline');
+    const { dispatchMonitoringAlert } = require('../lib/monitoring/alertDispatcher');
+    const { evaluateRecovery } = require('../lib/monitoring/recoveryPolicy');
+
+    const steps = [];
+
+    // Step 1: ensureSchema
+    try {
+      await db.ensureSchema();
+      steps.push({ step: 'ensureSchema', ok: true });
+    } catch (e) {
+      steps.push({ step: 'ensureSchema', ok: false, error: e.message });
+      return res.json({ ok: false, steps, fatal: 'ensureSchema failed' });
+    }
+
+    // Step 2: Check monitoring tables exist
+    try {
+      const { rows } = await db.query(`
+        SELECT table_name FROM information_schema.tables
+        WHERE table_schema = 'public'
+          AND table_name IN ('monitoring_health_checks', 'monitoring_incidents', 'monitoring_known_good')
+        ORDER BY table_name
+      `);
+      steps.push({ step: 'checkTables', ok: true, tables: rows.map(r => r.table_name) });
+    } catch (e) {
+      steps.push({ step: 'checkTables', ok: false, error: e.message });
+    }
+
+    // Step 3: Get monitored services
+    let services;
+    try {
+      services = getMonitoredServices();
+      steps.push({ step: 'getServices', ok: true, count: services.length, ids: services.map(s => s.id) });
+    } catch (e) {
+      steps.push({ step: 'getServices', ok: false, error: e.message });
+      return res.json({ ok: false, steps, fatal: 'getMonitoredServices failed' });
+    }
+
+    // Step 4: Probe each service
+    const baseUrl = process.env.CRM_API_URL || 'http://localhost:' + (process.env.PORT || 3000);
+    const probeResults = [];
+    for (const service of services) {
+      try {
+        const result = await probeService(service, baseUrl);
+        probeResults.push({ serviceId: service.id, healthy: result.healthy, error: result.error, checkType: result.checkType });
+
+        try {
+          await db.query(
+            'INSERT INTO monitoring_health_checks (service_id, check_type, healthy, response_time_ms, http_status, details, error) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            [result.serviceId, result.checkType, result.healthy, result.responseTimeMs || null, result.httpStatus || null, JSON.stringify(result.details || {}), result.error || null]
+          );
+        } catch (e) {
+          probeResults.push({ serviceId: service.id, step: 'recordHealthCheck', error: e.message });
+        }
+
+        if (result.healthy) {
+          try {
+            await crashLoop.recordSuccess(service.id);
+            const commitSha = process.env.RAILWAY_GIT_COMMIT_SHA;
+            if (commitSha && service.classification === 'CRITICAL_PRODUCTION') {
+              await verifyAndPromote(service.id, commitSha, process.env.RAILWAY_DEPLOYMENT_ID, result);
+            }
+          } catch (e) {
+            probeResults.push({ serviceId: service.id, step: 'handleSuccess', error: e.message });
+          }
+        } else {
+          try {
+            const { incident, isNew, isCrashLoop } = await crashLoop.recordFailure(service.id, result.error || 'Unknown', result.checkType, result.details || {});
+            if (incident) {
+              const shouldAlert = isNew || isCrashLoop || (incident.failure_count % 5 === 0);
+              if (shouldAlert) {
+                const rd = evaluateRecovery(service.id, { errorSummary: result.error, isCrashLoop, isNewIncident: isNew, previousHealthy: !isCrashLoop });
+                await dispatchMonitoringAlert({ serviceId: service.id, level: isCrashLoop ? 'critical' : 'warning', errorSummary: result.error, errorType: result.checkType, httpStatus: result.httpStatus, isCrashLoop, recoveryAction: rd.action, recoveryResult: rd.reason, logLines: [] });
+                await crashLoop.markAlertSent(incident.id);
+              }
+            }
+          } catch (e) {
+            probeResults.push({ serviceId: service.id, step: 'handleFailure', error: e.message });
+          }
+        }
+      } catch (e) {
+        probeResults.push({ serviceId: service.id, step: 'probe', error: e.message });
+      }
+    }
+
+    res.json({ ok: true, steps, baseUrl, probeResults });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── POST /run-reminder-engine — manually trigger the reminder engine ──────────
 // Runs one pass of the appointment reminder engine with dryRun=false (real sends).
 // Used for end-to-end verification of the reminder pipeline.
