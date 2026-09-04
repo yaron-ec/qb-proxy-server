@@ -342,25 +342,16 @@ app.get('/qb/health', async (req, res) => {
 // ── Email delivery diagnostic (admin-only, JWT-protected) ────────────────────
 // Returns recent email_send_claims + attempts so we can verify CRM admin
 // notification emails were actually queued and sent to Michelle and Yaron.
-app.get('/api/v1/email-diagnostics', async (req, res) => {
+const { requireAuth } = require('./lib/rbac');
+const { query: dbQuery } = require('./db/client');
+app.get('/api/v1/email-diagnostics', requireAuth, async (req, res) => {
   try {
-    const { requireAuth } = require('./lib/rbac');
-    // Manually check auth — this endpoint is mounted before the /api/v1 routes
-    // that use requireAuth middleware. We do a lightweight JWT check here.
-    const authHeader = req.headers.authorization || '';
-    if (!authHeader.startsWith('Bearer ')) return res.status(401).json({ error: 'unauthorized' });
-    const token = authHeader.slice(7);
-    const jwt = require('jsonwebtoken');
-    const JWT_SECRET = process.env.JWT_SECRET || process.env.ENCRYPTION_KEY;
-    if (!JWT_SECRET) return res.status(500).json({ error: 'JWT_SECRET not configured' });
-    let decoded;
-    try { decoded = jwt.verify(token, JWT_SECRET); } catch { return res.status(401).json({ error: 'invalid_token' }); }
-    if (decoded.role !== 'admin' && decoded.role !== 'manager') return res.status(403).json({ error: 'forbidden' });
-
-    const { query } = require('./db/client');
+    if (req.user.role !== 'admin' && req.user.role !== 'manager') {
+      return res.status(403).json({ error: 'forbidden' });
+    }
     const since = new Date(Date.now() - 30 * 60 * 1000).toISOString(); // last 30 min
 
-    const claimsRes = await query(
+    const claimsRes = await dbQuery(
       `SELECT id, claim_key, recipient, subject, status, created_at, updated_at, last_error
        FROM email_send_claims
        WHERE created_at >= $1
@@ -369,7 +360,7 @@ app.get('/api/v1/email-diagnostics', async (req, res) => {
       [since]
     );
 
-    const attemptsRes = await query(
+    const attemptsRes = await dbQuery(
       `SELECT a.claim_id, a.attempt_number, a.status, a.error_message, a.created_at,
               c.recipient, c.subject
        FROM email_send_attempts a
