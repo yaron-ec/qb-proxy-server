@@ -1574,7 +1574,7 @@ router.post('/diagnose-reminder-delivery', async (req, res) => {
       const claimIds = emailClaims.map(c => c.id);
       const { rows: logs } = await query(
         `SELECT id, claim_id, role, recipient, sender, subject, gmail_message_id, status, error, attempts, created_at
-         FROM email_send_logs WHERE claim_id = ANY($1::int[]) ORDER BY created_at DESC LIMIT 30`,
+         FROM email_send_logs WHERE claim_id::text = ANY($1::text[]) ORDER BY created_at DESC LIMIT 30`,
         [claimIds]
       );
       emailLogs = logs;
