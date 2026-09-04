@@ -16,6 +16,7 @@ const express = require('express');
 const { requireAuth } = require('../lib/rbac');
 const { query } = require('../db/client');
 const { UUID_RE } = require('../lib/leadResolver');
+const { notifyCrmActivity } = require('../lib/crmActivityNotifier');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -56,7 +57,7 @@ router.get('/', async (req, res) => {
     const where = [`lead_id = $1`];
     const params = [lead_id];
     let p = 2;
-    const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
+    const whereClause = `WHERE ${where.join(' AND ')}`;
     const { rows } = await query(`SELECT * FROM lead_attachments ${whereClause} ORDER BY created_at DESC LIMIT $${p}`, [...params, limit]);
     res.json({ items: rows.map(serializeAttachment), total: rows.length });
   } catch (e) {
@@ -78,6 +79,30 @@ router.post('/', async (req, res) => {
     }
     const placeholders = cols.map((_, i) => `$${i + 1}`).join(', ');
     const { rows } = await query(`INSERT INTO lead_attachments (${cols.join(', ')}) VALUES (${placeholders}) RETURNING *`, vals);
+
+    // ── Notify admins of the new attachment (best-effort, non-blocking) ─
+    try {
+      const leadRes = await query(
+        `SELECT l.id, l.first_name, l.last_name, o.display_name AS owner_display_name, o.email AS owner_email
+         FROM leads l LEFT JOIN owners o ON o.id = l.owner_id WHERE l.id = $1`,
+        [body.lead_id]
+      );
+      const lead = leadRes.rows[0];
+      if (lead) {
+        const leadName = `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || 'Unknown';
+        Promise.resolve().then(() => notifyCrmActivity({
+          action: 'attachment_added',
+          leadId: lead.id,
+          leadName,
+          repName: lead.owner_display_name || lead.owner_email || 'Unassigned',
+          actorEmail: req.user?.email,
+          content: `File attached: ${rows[0].file_name || rows[0].file_url || '(unnamed)'}`,
+        })).catch(e => console.error('[lead-attachments] notification failed:', e.message));
+      }
+    } catch (e) {
+      console.error('[lead-attachments] lead fetch for notification failed:', e.message);
+    }
+
     res.status(201).json({ attachment: serializeAttachment(rows[0]) });
   } catch (e) {
     console.error('[lead-attachments] create error:', e.message);
