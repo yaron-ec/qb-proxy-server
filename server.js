@@ -361,7 +361,7 @@ app.get('/api/v1/email-diagnostics', requireAuth, async (req, res) => {
     );
 
     const logsRes = await dbQuery(
-      `SELECT claim_id, role, recipient, subject, gmail_message_id, status, error, attempts, created_at
+      `SELECT claim_id, role, recipient, cc, subject, gmail_message_id, status, error, attempts, created_at
        FROM email_send_logs
        WHERE created_at >= $1
        ORDER BY created_at DESC
