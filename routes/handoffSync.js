@@ -4,7 +4,6 @@
  *
  *   POST /handoff/sync-estimates-for-lead   Fetch + match estimates for one lead
  *   POST /handoff/sync-all                   System-wide reconciliation
- *   POST /handoff/diagnose-lead-estimates    Diagnostic matching info
  *   POST /handoff/auth/status                Check connection
  *   POST /handoff/auth/login                 Initiate phone OTP
  *   POST /handoff/auth/verify                Verify OTP + store token
@@ -315,68 +314,6 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
     }
   });
 
-  // ── POST /handoff/diagnose-lead-estimates ──────────────────────────────────
-  app.post('/handoff/diagnose-lead-estimates', requireProxySecret, async (req, res) => {
-    if (!rda.isConfigured()) {
-      return res.status(503).json({ success: false, error: 'DATABASE_URL not configured on Railway' });
-    }
-
-    const { lead_id } = req.body || {};
-    if (!lead_id) return res.status(400).json({ success: false, error: 'lead_id required' });
-
-    try {
-      let token;
-      try {
-        token = await handoffClient.getValidToken();
-      } catch (e) {
-        return res.status(401).json({ success: false, error: 'Handoff not authenticated: ' + e.message });
-      }
-
-      const leads = await rda.list('Lead', '-created_date', 5000, 0);
-      const lead = leads.find(function (l) { return l.id === lead_id || l.railway_lead_id === lead_id; });
-      if (!lead) return res.status(404).json({ success: false, error: 'Lead not found' });
-
-      let estimates;
-      try {
-        estimates = await handoffClient.fetchAllEstimates(token);
-      } catch (e) {
-        return res.status(502).json({ success: false, error: 'Handoff API error: ' + e.message });
-      }
-
-      const diagnostics = estimates.map(function (est) {
-        const result = handoffClient.matchEstimateToLead(est, lead);
-        return {
-          id: est.id,
-          name: est.name,
-          state: est.state,
-          total: est.total,
-          clientName: est.clientName,
-          clientPhone: est.clientPhone,
-          clientEmail: est.clientEmail,
-          match: result.match,
-          method: result.method,
-        };
-      });
-
-      const matched = diagnostics.filter(function (d) { return d.match; });
-
-      return res.json({
-        success: true,
-        lead: {
-          id: lead.id, first_name: lead.first_name, last_name: lead.last_name,
-          phone: lead.phone, email: lead.email,
-        },
-        total_estimates: estimates.length,
-        matched_count: matched.length,
-        matched: matched,
-        all_estimates: diagnostics.slice(0, 20),
-      });
-    } catch (e) {
-      console.error('[handoff] diagnose error:', e.message);
-      return res.status(500).json({ success: false, error: e.message });
-    }
-  });
-
   // ═══ Handoff Auth Routes (migrated from Base44 handoffAuth function) ════════
 
   // POST /handoff/auth/status
@@ -488,28 +425,6 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
       return res.json({ success: true, message: 'Successfully authenticated with Handoff' });
     } catch (e) {
       return res.status(500).json({ error: e.message });
-    }
-  });
-
-  // POST /handoff/auth/test-connectivity — test if the Railway proxy can reach the Handoff API
-  app.post('/handoff/auth/test-connectivity', requireProxySecret, async (req, res) => {
-    try {
-      const testRes = await fetch(HANDOFF_API + '/graphql', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: '{ __typename }' }),
-      });
-      const text = await testRes.text();
-      return res.json({
-        reachable: testRes.ok,
-        status: testRes.status,
-        content_type: testRes.headers.get('content-type'),
-        body_preview: text.substring(0, 300),
-        is_json: text.startsWith('{'),
-        handoff_api_url: HANDOFF_API,
-      });
-    } catch (e) {
-      return res.json({ reachable: false, error: e.message, handoff_api_url: HANDOFF_API });
     }
   });
 
