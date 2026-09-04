@@ -352,29 +352,27 @@ app.get('/api/v1/email-diagnostics', requireAuth, async (req, res) => {
     const since = new Date(Date.now() - 30 * 60 * 1000).toISOString(); // last 30 min
 
     const claimsRes = await dbQuery(
-      `SELECT id, claim_key, recipient, subject, status, created_at, updated_at, last_error
+      `SELECT id, idempotency_key, recipient, subject, status, created_at, updated_at, last_error, gmail_message_id, attempts
        FROM email_send_claims
        WHERE created_at >= $1
        ORDER BY created_at DESC
-       LIMIT 20`,
+       LIMIT 50`,
       [since]
     );
 
-    const attemptsRes = await dbQuery(
-      `SELECT a.claim_id, a.attempt_number, a.status, a.error_message, a.created_at,
-              c.recipient, c.subject
-       FROM email_send_attempts a
-       JOIN email_send_claims c ON c.id = a.claim_id
-       WHERE a.created_at >= $1
-       ORDER BY a.created_at DESC
-       LIMIT 20`,
+    const logsRes = await dbQuery(
+      `SELECT claim_id, role, recipient, subject, gmail_message_id, status, error, attempts, created_at
+       FROM email_send_logs
+       WHERE created_at >= $1
+       ORDER BY created_at DESC
+       LIMIT 50`,
       [since]
     );
 
     res.json({
       since,
       claims: claimsRes.rows,
-      attempts: attemptsRes.rows,
+      logs: logsRes.rows,
     });
   } catch (e) {
     console.error('[email-diagnostics] error:', e.message);
