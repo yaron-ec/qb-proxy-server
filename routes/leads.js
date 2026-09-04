@@ -426,6 +426,7 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
       const insertCols = ['external_ref', 'first_name', 'last_name'];
       params = [externalRef, insertFirstName, insertLastName];
       for (const col of Object.keys(allFields)) {
+        if (insertCols.includes(col)) continue; // skip duplicates (first_name, last_name)
         insertCols.push(col);
         params.push(allFields[col]);
       }
