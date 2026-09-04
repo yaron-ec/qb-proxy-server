@@ -6,7 +6,7 @@ import TruncatedTooltip from "@/components/TruncatedTooltip";
 import { leads as railwayLeads, activities as railwayActivities } from "@/api/railway";
 import { useAuth } from "@/lib/AuthContext";
 import { statusBadgeClass } from "@/lib/design-system";
-import { fmtMoney, formatPhone, toTitleCase } from "@/lib/formatters";
+import { fmtMoney, formatPhone, toTitleCase, formatProjectType } from "@/lib/formatters";
 import { callPhone, sendSMS, composeEmail } from "@/lib/contactActions";
 import {
   ArrowLeft, Phone, Mail, Calendar, CheckCircle2, Clock,
@@ -98,8 +98,22 @@ export default function LeadDetailModern() {
           } catch { /* non-critical */ }
         }
       } catch (error) {
-        const isForbidden = error?.response?.status === 403 || error?.message?.includes('Forbidden');
-        setLoadError(isForbidden ? 'You do not have access to this lead.' : (error.message || 'Failed to load page. Please try again.'));
+        // apiCall throws errors with a .status property (not .response.status).
+        // 403 = authorization denied, 401 = session expired, 404 = not found,
+        // 500/503 = server/network error. Distinguish so the UI doesn't mask
+        // auth failures as generic "Failed to load".
+        const status = error?.status;
+        const isForbidden = status === 403 || error?.message?.includes('Forbidden');
+        const isAuthExpired = status === 401;
+        const isNotFound = status === 404;
+        const msg = isForbidden
+          ? 'You do not have access to this lead.'
+          : isAuthExpired
+          ? 'Your session has expired. Please sign in again.'
+          : isNotFound
+          ? 'Lead not found. It may have been deleted.'
+          : (error.message || 'Failed to load page. Please try again.');
+        setLoadError(msg);
         setLoading(false);
       }
     };
@@ -171,7 +185,7 @@ export default function LeadDetailModern() {
 
   if (loading) return (
     <div className="h-full flex items-center justify-center bg-slate-50">
-      <div className="w-7 h-7 border-3 border-slate-200 border-t-amber-600 rounded-full animate-spin"></div>
+      <div className="w-7 h-7 border-2 border-slate-200 border-t-amber-600 rounded-full animate-spin"></div>
     </div>
   );
 
@@ -210,8 +224,8 @@ export default function LeadDetailModern() {
   // Right sidebar accordion sections
   const accordionSections = [
     {
-      id: "handoff",
-      title: "Handoff Estimates",
+      id: "estimates",
+      title: "Estimates",
       icon: FileText,
       content: <HandoffEstimatesPanel lead={lead} onLeadUpdate={setLead} />,
     },
@@ -265,16 +279,6 @@ export default function LeadDetailModern() {
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Leads</span>
           </Link>
-          <span className="text-border hidden md:block">/</span>
-          <TruncatedTooltip text={`${toTitleCase(lead.first_name)} ${toTitleCase(lead.last_name)}`} className="text-base md:text-lg font-semibold text-slate-900" as="h1" />
-          <span className={`${statusBadgeClass(lead.status)} hidden md:inline-flex`}>{lead.status || "New"}</span>
-          {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
-            <EditNameButton lead={lead} onSave={async (first, last) => {
-              const res = await railwayLeads.update(lead.railway_id || id, { first_name: first, last_name: last });
-              if (res?.lead) setLead(prev => ({ ...prev, first_name: res.lead.first_name, last_name: res.lead.last_name }));
-            }} />
-          )}
-          <CopyButton value={`${toTitleCase(lead.first_name)} ${toTitleCase(lead.last_name)}`} label="Name" />
         </div>
         <div className="flex items-center gap-1.5 md:hidden">
           <ContactActions phone={lead.phone} email={lead.email} size="md" />
@@ -348,7 +352,7 @@ export default function LeadDetailModern() {
       </div>
 
       {/* ── Desktop 3-Column Layout ── */}
-      <div className="hidden md:grid md:grid-cols-[256px_1fr_272px] flex-1 overflow-hidden gap-0 bg-white">
+      <div className="hidden md:grid md:grid-cols-[minmax(300px,340px)_1fr_minmax(300px,340px)] flex-1 overflow-hidden gap-0 bg-white">
 
         {/* LEFT COLUMN */}
         <div className="overflow-y-auto border-r border-slate-100 bg-slate-50">
@@ -452,27 +456,29 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
             <span className="text-sm font-bold text-white tracking-wide">{lead.first_name?.[0]}{lead.last_name?.[0]}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <h2 className="text-sm font-bold text-slate-900 truncate leading-tight">{toTitleCase(lead.first_name)} {toTitleCase(lead.last_name)}</h2>
+            <div className="flex items-start gap-1 min-w-0">
+              <h2 className="text-base font-bold text-slate-900 flex-1 min-w-0 leading-tight break-words">{toTitleCase(lead.first_name)} {toTitleCase(lead.last_name)}</h2>
+              <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
+                <CopyButton value={`${toTitleCase(lead.first_name)} ${toTitleCase(lead.last_name)}`} label="Name" />
               {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
                 <EditNameButton lead={lead} onSave={async (first, last) => {
                   const res = await railwayLeads.update(lead.railway_id || lead.id, { first_name: first, last_name: last });
                   if (res?.lead) onLeadUpdate({ ...lead, first_name: res.lead.first_name, last_name: res.lead.last_name });
                 }} />
               )}
-              <CopyButton value={`${toTitleCase(lead.first_name)} ${toTitleCase(lead.last_name)}`} label="Name" />
+              </div>
             </div>
             {/* Status + Meeting Stage */}
             <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
-              <EditableField value={lead.status || "New"} onSave={v => updateField("status", v)} type="select" options={STATUSES} editable>
+              <EditableField value={lead.status || "New"} onSave={v => updateField("status", v)} type="select" options={STATUSES} editable showPencil={false}>
                 <span className={`${statusBadgeClass(lead.status)} cursor-pointer`}>{lead.status || "New"}</span>
               </EditableField>
               {lead.meeting_stage ? (
-                <EditableField value={lead.meeting_stage} onSave={v => updateField("meeting_stage", v)} type="select" options={["First Meeting","Second Meeting","Third Meeting"]} editable>
+                <EditableField value={lead.meeting_stage} onSave={v => updateField("meeting_stage", v)} type="select" options={["First Meeting","Second Meeting","Third Meeting"]} editable showPencil={false}>
                   <span className="inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 cursor-pointer">{lead.meeting_stage}</span>
                 </EditableField>
               ) : (
-                <EditableField value="" onSave={v => updateField("meeting_stage", v)} type="select" options={["First Meeting","Second Meeting","Third Meeting"]} editable>
+                <EditableField value="" onSave={v => updateField("meeting_stage", v)} type="select" options={["First Meeting","Second Meeting","Third Meeting"]} editable showPencil={false}>
                   <span className="text-[11px] text-slate-400 cursor-pointer hover:text-slate-600">+ stage</span>
                 </EditableField>
               )}
@@ -496,8 +502,8 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
         {/* Job Type — editable (click row) + copy (no pencil) */}
         <CRMField label="Job Type" icon={Briefcase}>
           <EditableField value={lead.project_type} onSave={v => updateField("project_type", v)} type="multiselect" options={projectTypes} editable
-            copyValue={lead.project_type ? toTitleCase(lead.project_type) : null} copyLabel="Job Type">
-            <span className="crm-value">{toTitleCase(lead.project_type) || <span className="crm-empty">—</span>}</span>
+            copyValue={lead.project_type ? formatProjectType(lead.project_type) : null} copyLabel="Job Type">
+            <span className="crm-value">{formatProjectType(lead.project_type) || <span className="crm-empty">—</span>}</span>
           </EditableField>
         </CRMField>
 
@@ -565,6 +571,13 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
             <div className="mt-1.5">
               <AppointmentTimePicker key={`apt-t-${lead.appointment_time}`} lead={lead} onSave={v => updateField("appointment_time", v)} />
             </div>
+            {/* Clarify when no site visit is scheduled but a follow-up meeting exists —
+                prevents the contradictory "Appointment scheduled" status + "Appointment Not set" UI */}
+            {!lead.appointment_date && lead.follow_up_date && lead.follow_up_type === "Meeting" && (
+              <p className="text-[10px] text-slate-400 mt-1.5 italic">
+                No site visit on file — next meeting is in Follow-up below.
+              </p>
+            )}
           </div>
         </InfoRow>
 
@@ -797,7 +810,7 @@ function EmailEditField({ lead, updateField, composeEmail }) {
 }
 
 // ── EditableField ────────────────────────────────────────────────────────────
-function EditableField({ label, value, onSave, type = "text", options = [], editable = false, showPencil = false, copyValue = null, copyLabel = null, children }) {
+function EditableField({ label, value, onSave, type = "text", options = [], editable = false, showPencil = true, copyValue = null, copyLabel = null, children }) {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
@@ -825,16 +838,20 @@ function EditableField({ label, value, onSave, type = "text", options = [], edit
   };
 
   if (children && !isEditing) {
+    const hasActions = copyValue || (editable && showPencil);
     return (
       <div onClick={() => editable && setIsEditing(true)} className={editable ? "cursor-pointer group" : ""}>
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex-1 min-w-0">{children}</div>
-          {copyValue ? (
-            <CopyButton value={copyValue} label={copyLabel} />
-          ) : editable && showPencil ? (
-            <Pencil className="w-3 h-3 text-slate-300 group-hover:text-amber-500 transition-colors flex-shrink-0" />
-          ) : null}
-        </div>
+        {hasActions ? (
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex-1 min-w-0">{children}</div>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {copyValue && <CopyButton value={copyValue} label={copyLabel} />}
+              {editable && showPencil && <Pencil className="w-3 h-3 text-slate-300 group-hover:text-amber-500 transition-colors flex-shrink-0" />}
+            </div>
+          </div>
+        ) : (
+          <>{children}</>
+        )}
       </div>
     );
   }
@@ -903,7 +920,7 @@ function EditableField({ label, value, onSave, type = "text", options = [], edit
         ) : (
           <p className="text-xs text-slate-800">{fmt(rawValue) || <span className="text-slate-400">—</span>}</p>
         )}
-        {editable && <Pencil className="w-3 h-3 text-slate-300 group-hover:text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />}
+        {editable && showPencil && <Pencil className="w-3 h-3 text-slate-300 group-hover:text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />}
       </div>
     </div>
   );
@@ -1232,6 +1249,40 @@ function AdminCalendarRepairButton() {
   );
 }
 
+// ── Reminder activity formatter — converts raw internal idempotency keys ──────
+// to human-readable text for the activity feed. Handles both Base44 legacy
+// ("REMINDER_SENT:reminder:...") and Railway current ("Reminder sent: reminder:...")
+// formats, plus phone-call and test reminder variants.
+function formatActivityContent(content) {
+  if (!content) return content;
+
+  // REMINDER_SENT:reminder:<leadId>:<windowKey>:<date>  (Base44 legacy)
+  // Reminder sent: reminder:<leadId>:<windowKey>:<date>  (Railway current)
+  const reminderMatch = content.match(/^(?:REMINDER_SENT:|Reminder sent:\s*)reminder:[^:]+:([^:]+)/);
+  if (reminderMatch) {
+    const windowKey = reminderMatch[1];
+    const windowLabel = { '48h': '48 hours', '24h': '24 hours', '12h': '12 hours', '2h': '2 hours', '30min': '30 minutes' }[windowKey] || windowKey;
+    return `Automated reminder sent (${windowLabel} before appointment)`;
+  }
+
+  // PHONE_REMINDER_SENT:...
+  if (content.startsWith('PHONE_REMINDER_SENT:')) {
+    return 'Automated phone call reminder sent';
+  }
+
+  // REMINDER_TEST_SENT:...
+  if (content.startsWith('REMINDER_TEST_SENT:')) {
+    return 'Test reminder sent';
+  }
+
+  // System: <windowName> reminder sent  (Base44 sendAppointmentReminders plural)
+  if (content.startsWith('System: ') && content.endsWith(' reminder sent')) {
+    return 'Automated ' + content.replace('System: ', '');
+  }
+
+  return content;
+}
+
 // ── Activity Card — modern feed style with edit support ───────────────────────
 function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -1255,8 +1306,10 @@ function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
 
   // System-generated entries (REMINDER_SENT:, etc.) are not editable
   const isSystemEntry = activity.content?.startsWith("REMINDER_SENT:") ||
+    activity.content?.startsWith("Reminder sent: reminder:") ||
     activity.content?.startsWith("PHONE_REMINDER_SENT:") ||
     activity.content?.startsWith("REMINDER_TEST_SENT:") ||
+    (activity.content?.startsWith("System: ") && activity.content?.endsWith(" reminder sent")) ||
     activity.author === "System" || activity.author === "System-Test";
 
   // Permission: admin can edit any; others can edit their own
@@ -1368,7 +1421,7 @@ function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
             </div>
           </div>
         ) : (
-          <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap mb-1.5">{activity.content}</p>
+          <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap mb-1.5">{formatActivityContent(activity.content)}</p>
         )}
 
         <div className="flex items-center gap-2 flex-wrap mt-1">

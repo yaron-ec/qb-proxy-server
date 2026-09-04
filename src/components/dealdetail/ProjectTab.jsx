@@ -8,14 +8,14 @@ import { EditableInfoRow } from "./EditableFields";
 export default function ProjectTab({ deal, lead, updateField, setLead, saving }) {
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-6 py-5 space-y-5">
-      {/* Handoff Estimates */}
+      {/* Estimates (QuickBooks + Handoff) */}
       <div>
-        <p className="typography-section-header mb-2">QUICKBOOKS ESTIMATES</p>
+        <p className="typography-section-header mb-2">ESTIMATES</p>
         <div className="card-premium overflow-hidden">
           {lead ? (
             <HandoffEstimatesPanel lead={lead} onLeadUpdate={setLead} />
           ) : (
-            <p className="text-sm text-slate-400 py-3 px-4">No lead linked — handoff estimates unavailable.</p>
+            <p className="text-sm text-slate-400 py-3 px-4">No lead linked — estimates unavailable.</p>
           )}
         </div>
       </div>

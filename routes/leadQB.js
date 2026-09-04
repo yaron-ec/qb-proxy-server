@@ -42,11 +42,11 @@ router.get('/by-external/:externalRef', async (req, res) => {
   try {
     const { externalRef } = req.params;
 
-    // 1. Read lead from Railway
+    // 1. Read lead from Railway (safe identifier resolution — external_ref OR UUID)
     const lead = await resolveLeadByIdentifier(externalRef);
     if (!lead) return res.status(404).json({ error: 'not_found' });
 
-    // 2. Read CRM invoices from Railway (by lead_id)
+    // 2. Read CRM invoices from Railway (by canonical Railway UUID)
     const invoiceRes = await query(
       `SELECT * FROM invoices WHERE lead_id = $1 ORDER BY created_at DESC LIMIT 100`,
       [lead.id]
@@ -180,6 +180,165 @@ router.post('/by-external/:externalRef/refresh', requireAdminManager, async (req
       return res.status(401).json({ error: 'QUICKBOOKS_RECONNECT_REQUIRED', message: e.message });
     }
     console.error('[lead-qb] refresh error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── POST /by-external/:externalRef/sync-estimates — lead-specific QB estimate sync
+// Fetches QB estimates for this lead's QB customer (or by name/email if no QB
+// customer ID), matches them to the lead, and upserts into handoff_estimates
+// with sync_source = 'QuickBooks'. This is the lead-specific equivalent of the
+// system-wide /sync/qb-estimates cron — it only fetches estimates for THIS
+// lead's customer, not all QB estimates.
+//
+// QuickBooks and Handoff are SEPARATE integrations. This endpoint ONLY touches
+// QB-sourced estimates (sync_source = 'QuickBooks'). It does NOT call the
+// Handoff API. Handoff sync is a separate endpoint (/handoff/sync-estimates-for-lead).
+router.post('/by-external/:externalRef/sync-estimates', requireAdminManager, async (req, res) => {
+  try {
+    const { externalRef } = req.params;
+    const lead = await resolveLeadByIdentifier(externalRef);
+    if (!lead) return res.status(404).json({ error: 'not_found' });
+
+    // 1. Resolve the QB customer ID — use stored qb_customer_id, or look up by name/email
+    let qbCustomerId = lead.qb_customer_id;
+    let customerName = `${lead.first_name} ${lead.last_name}`.trim();
+
+    if (!qbCustomerId) {
+      // Look up QB customer by name or email
+      const qbData = await qbInternal.getLeadStatus(null, customerName, lead.email);
+      if (qbData.found && qbData.customer) {
+        qbCustomerId = qbData.customer.Id;
+        // Persist the QB customer ID for future syncs
+        await query(
+          'UPDATE leads SET qb_customer_id = $1, qb_last_sync_at = NOW(), qb_last_sync_result = $2, updated_at = NOW() WHERE id = $3',
+          [qbCustomerId, 'success', lead.id]
+        );
+      } else {
+        return res.json({
+          success: false,
+          message: 'No QuickBooks customer found for this lead. Sync the lead to QB first.',
+          matched: 0,
+        });
+      }
+    }
+
+    // 2. Fetch QB estimates for this customer (all statuses) via the QB proxy
+    //    GET /estimates/by-customer/:customerId returns all estimates for the customer
+    const estData = await qbInternal.callQb(`/estimates/by-customer/${qbCustomerId}`, 'GET');
+    const estimates = estData.estimates || [];
+    if (estimates.length === 0) {
+      return res.json({
+        success: true,
+        message: 'No QuickBooks estimates found for this customer.',
+        total_fetched: 0,
+        matched: 0,
+        created: 0,
+        updated: 0,
+      });
+    }
+
+    // 3. Load existing QB-sourced estimates for this lead to check for duplicates
+    const existingRes = await query(
+      `SELECT * FROM handoff_estimates WHERE lead_id = $1 AND qb_estimate_id IS NOT NULL`,
+      [lead.id]
+    );
+    const existing = existingRes.rows;
+    const existingByQbId = new Map(existing.map(e => [String(e.qb_estimate_id), e]));
+
+    let created = 0, updated = 0;
+    const SANDBOX = process.env.QB_SANDBOX === 'true';
+    const qbAppUrlBase = SANDBOX ? 'https://sandbox.qbo.intuit.com' : 'https://app.qbo.intuit.com';
+
+    for (const qbEst of estimates) {
+      const qbId = String(qbEst.Id);
+      const qbNumber = qbEst.DocNumber || qbId;
+      const totalAmt = Number(qbEst.TotalAmt) || 0;
+      const status = qbEst.TxnStatus || 'Pending';
+      const qbAppUrl = `${qbAppUrlBase}/app/estimate?txnId=${qbId}`;
+      const estimateDate = qbEst.TxnDate || null;
+
+      const estimateData = {
+        qb_estimate_id: qbId,
+        qb_estimate_number: qbNumber,
+        lead_id: lead.id,
+        customer_name: qbEst.CustomerRef?.name || customerName,
+        estimate_amount: totalAmt,
+        estimate_status: status,
+        estimate_date: estimateDate,
+        qb_app_url: qbAppUrl,
+        last_synced_at: new Date().toISOString(),
+        match_status: 'matched',
+        match_method: 'qb_direct',
+        sync_source: 'QuickBooks',
+        source: 'QB Direct Sync',
+      };
+
+      const existingRow = existingByQbId.get(qbId);
+      if (existingRow) {
+        // Update existing — reset PDF status if it was failed
+        const pdfReset = existingRow.pdf_status === 'failed'
+          ? { pdf_status: 'pending', pdf_retry_count: 0 }
+          : {};
+        await query(
+          `UPDATE handoff_estimates SET
+             qb_estimate_number = $1, estimate_amount = $2, estimate_status = $3,
+             estimate_date = $4, qb_app_url = $5, last_synced_at = $6,
+             match_status = $7, match_method = $8, sync_source = $9, source = $10,
+             ${existingRow.pdf_status === 'failed' ? 'pdf_status = $11, pdf_retry_count = $12,' : ''}
+             updated_at = NOW()
+           WHERE id = $${existingRow.pdf_status === 'failed' ? '13' : '11'}`,
+          existingRow.pdf_status === 'failed'
+            ? [qbNumber, totalAmt, status, estimateDate, qbAppUrl, estimateData.last_synced_at,
+               'matched', 'qb_direct', 'QuickBooks', 'QB Direct Sync', 'pending', 0, existingRow.id]
+            : [qbNumber, totalAmt, status, estimateDate, qbAppUrl, estimateData.last_synced_at,
+               'matched', 'qb_direct', 'QuickBooks', 'QB Direct Sync', existingRow.id]
+        );
+        updated++;
+      } else {
+        // Insert new
+        await query(
+          `INSERT INTO handoff_estimates
+             (qb_estimate_id, qb_estimate_number, lead_id, customer_name,
+              estimate_amount, estimate_status, estimate_date, qb_app_url,
+              last_synced_at, match_status, match_method, sync_source, source,
+              pdf_status, pdf_retry_count)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,'pending',0)`,
+          [qbId, qbNumber, lead.id, estimateData.customer_name,
+           totalAmt, status, estimateDate, qbAppUrl, estimateData.last_synced_at,
+           'matched', 'qb_direct', 'QuickBooks', 'QB Direct Sync']
+        );
+        created++;
+      }
+    }
+
+    // 4. Update lead handoff_estimate_status if awaiting_qb
+    if (lead.handoff_estimate_status === 'awaiting_qb' && (created > 0 || updated > 0)) {
+      await query(
+        'UPDATE leads SET handoff_estimate_status = $1, updated_at = NOW() WHERE id = $2',
+        ['synced', lead.id]
+      ).catch(() => {});
+    }
+
+    console.log(`[lead-qb] sync-estimates: customer=${qbCustomerId} fetched=${estimates.length} created=${created} updated=${updated}`);
+
+    res.json({
+      success: true,
+      message: `Synced ${estimates.length} QuickBooks estimate(s): ${created} new, ${updated} updated`,
+      total_fetched: estimates.length,
+      matched: estimates.length,
+      created,
+      updated,
+      qb_customer_id: qbCustomerId,
+    });
+  } catch (e) {
+    if (e.code === 'QB_PROXY_NOT_CONFIGURED') {
+      return res.status(503).json({ error: 'QB proxy not configured', message: e.message });
+    }
+    if (e.qbError && e.qbError.reconnectRequired) {
+      return res.status(401).json({ error: 'QUICKBOOKS_RECONNECT_REQUIRED', message: e.message });
+    }
+    console.error('[lead-qb] sync-estimates error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });

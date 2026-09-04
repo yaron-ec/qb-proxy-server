@@ -72,17 +72,35 @@ export function normalizeIntegrationError(error) {
 }
 
 /**
- * Sync QB estimates for a lead via the syncLeadEstimatesFromQB backend function.
+ * Sync QuickBooks estimates for a lead via the canonical Railway lead-qb route.
+ * Fetches QB estimates for this lead's QB customer and upserts into
+ * handoff_estimates with sync_source = 'QuickBooks'. This is SEPARATE from
+ * the Handoff sync — it only touches QB-sourced estimates.
+ *
+ * QuickBooks and Handoff are separate integrations:
+ *   - syncQBEstimatesForLead: fetches from QuickBooks API (lead-specific)
+ *   - syncHandoffEstimatesForLead: fetches from Handoff API (lead-specific)
  */
-export async function syncLeadEstimates(leadId) {
-  return railwayRequest('/qb/sync-lead-estimates', { lead_name: leadId });
+export async function syncQBEstimatesForLead(leadId) {
+  return apiCall(`/api/v1/lead-qb/by-external/${encodeURIComponent(leadId)}/sync-estimates`, { method: 'POST' });
 }
 
 /**
- * Diagnose QB estimate matching for a lead via the syncLeadEstimatesFromQB backend function.
+ * Sync Handoff estimates for a lead via the canonical Railway /handoff/ route.
+ * Fetches estimates directly from the official Handoff API, matches them to
+ * the lead, and upserts into handoff_estimates. QuickBooks sync is separate.
+ */
+export async function syncHandoffEstimatesForLead(leadId) {
+  return railwayRequest('/handoff/sync-estimates-for-lead', { lead_id: leadId });
+}
+
+/**
+ * Diagnose QB estimate matching for a lead.
+ * Calls the lead-qb status endpoint which returns QB customer info,
+ * CRM invoices, QB invoice cache, and estimates for the lead.
  */
 export async function diagnoseLeadEstimates(leadId) {
-  return railwayRequest('/qb/diagnose-lead-estimates', { lead_name: leadId });
+  return apiCall(`/api/v1/lead-qb/by-external/${encodeURIComponent(leadId)}`, { method: 'GET' });
 }
 
 /**
@@ -90,4 +108,30 @@ export async function diagnoseLeadEstimates(leadId) {
  */
 export async function fetchEstimatePdf(estimateRecordId) {
   return railwayRequest('/qb/fetch-estimate-pdf', { estimate_id: estimateRecordId });
+}
+
+// ── Handoff Auth (Railway-owned, migrated from Base44 handoffAuth) ───────────
+
+export async function handoffAuthStatus() {
+  return railwayRequest('/handoff/auth/status', {});
+}
+
+export async function handoffAuthLogin(phone) {
+  return railwayRequest('/handoff/auth/login', { phone });
+}
+
+export async function handoffAuthVerify(phone, code) {
+  return railwayRequest('/handoff/auth/verify', { phone, code });
+}
+
+export async function handoffAuthStoreToken(token) {
+  return railwayRequest('/handoff/auth/store-token', { token });
+}
+
+export async function handoffAuthDisconnect() {
+  return railwayRequest('/handoff/auth/disconnect', {});
+}
+
+export async function handoffSyncAll() {
+  return railwayRequest('/handoff/sync-all', {});
 }
