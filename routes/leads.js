@@ -26,7 +26,60 @@ const calendarOutbox = require('../lib/booking/calendarOutbox');
 const googleContactsClient = require('../lib/googleContactsClient');
 const { toUtcIso } = require('../lib/booking/slotBlocking');
 const { syncLeadToReminders, removeFromReminders } = require('../lib/reminderProjection');
+const { notifyCrmActivity } = require('../lib/crmActivityNotifier');
 const router = express.Router();
+
+// ── Lead field diff helper ──────────────────────────────────────────────────
+// Computes a changes[] array for the notification email by comparing old and
+// new lead rows. Only includes fields that actually changed.
+const LEAD_DIFF_FIELDS = [
+  { col: 'status', label: 'Status' },
+  { col: 'first_name', label: 'First Name' },
+  { col: 'last_name', label: 'Last Name' },
+  { col: 'phone', label: 'Phone' },
+  { col: 'email', label: 'Email' },
+  { col: 'property_address', label: 'Property Address' },
+  { col: 'city', label: 'City' },
+  { col: 'project_type', label: 'Project Type' },
+  { col: 'budget_range', label: 'Budget' },
+  { col: 'source', label: 'Source' },
+  { col: 'notes', label: 'Notes' },
+  { col: 'follow_up_date', label: 'Follow-Up Date' },
+  { col: 'follow_up_time', label: 'Follow-Up Time' },
+  { col: 'follow_up_type', label: 'Follow-Up Type' },
+  { col: 'meeting_stage', label: 'Meeting Stage' },
+  { col: 'assigned_rep', label: 'Owner' },
+];
+
+function computeLeadDiff(oldRow, newRow) {
+  const changes = [];
+  for (const { col, label } of LEAD_DIFF_FIELDS) {
+    const oldVal = oldRow ? String(oldRow[col] == null ? '' : oldRow[col]) : '';
+    const newVal = newRow ? String(newRow[col] == null ? '' : newRow[col]) : '';
+    if (oldVal !== newVal) {
+      changes.push({ label, prev: oldVal || '\u2014', next: newVal || '\u2014' });
+    }
+  }
+  return changes;
+}
+
+// ── Post-commit notification helper (best-effort, non-blocking) ──────────────
+function sendLeadNotification(action, leadRow, changes, actorEmail, activityType, content) {
+  if (!leadRow) return;
+  const leadName = `${leadRow.first_name || ''} ${leadRow.last_name || ''}`.trim() || 'Unknown';
+  const repName = leadRow.owner_display_name || leadRow.owner_email || 'Unassigned';
+  // Fire-and-forget — never block the response. Errors are caught inside.
+  Promise.resolve().then(() => notifyCrmActivity({
+    action,
+    leadId: leadRow.id,
+    leadName,
+    repName,
+    actorEmail,
+    changes,
+    activityType,
+    content,
+  })).catch(e => console.error('[leads] notification failed:', action, e.message));
+}
 
 // ── Lead deletion helper: clean up TEXT lead_id tables ───────────────────
 // These tables reference leads by TEXT lead_id (no FK), so PostgreSQL won't
@@ -416,6 +469,15 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
     }
     client.release();
 
+    // ── Post-commit: notify admins (best-effort) ─────────────────────────
+    const wasNew = !existingById.rows[0];
+    sendLeadNotification(
+      wasNew ? 'lead_created' : 'lead_updated',
+      fullRow,
+      wasNew ? [] : computeLeadDiff(null, fullRow),
+      req.user?.email
+    );
+
     const appt = await fetchActiveAppointment(fullRow.id);
     res.json({ lead: serializeLead(fullRow, appt) });
   } catch (e) {
@@ -542,6 +604,8 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
     // ── Atomic: lead update + appointment mutation in ONE transaction ────────
     const client = await pool.connect();
     let updatedLead;
+    let appointmentAction = null;
+    let appointmentChanges = [];
     try {
       await client.query('BEGIN');
 
@@ -597,6 +661,12 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
              JSON.stringify({ start_at: existingAppt.start_at, end_at: existingAppt.end_at }),
              JSON.stringify({ start_at: updatedAppt.start_at, end_at: updatedAppt.end_at })]
           );
+          appointmentAction = 'appointment_rescheduled';
+          appointmentChanges = [
+            { label: 'Date', prev: existingAppt.start_at ? new Date(existingAppt.start_at).toLocaleDateString('en-US') : '\u2014', next: updatedAppt.start_at ? new Date(updatedAppt.start_at).toLocaleDateString('en-US') : '\u2014' },
+            { label: 'Time', prev: existingAppt.start_at ? new Date(existingAppt.start_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '\u2014', next: updatedAppt.start_at ? new Date(updatedAppt.start_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '\u2014' },
+            { label: 'Type', prev: '\u2014', next: updatedLead.follow_up_type || '\u2014' },
+          ];
         } else {
           const typeRes = await client.query('SELECT id FROM appointment_types ORDER BY id LIMIT 1');
           if (typeRes.rows[0]) {
@@ -630,6 +700,12 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
               [newAppt.id, req.user?.email || null,
                JSON.stringify({ start_at: newAppt.start_at, end_at: newAppt.end_at, owner_id: newAppt.owner_id })]
             );
+            appointmentAction = 'appointment_created';
+            appointmentChanges = [
+              { label: 'Date', prev: '\u2014', next: newAppt.start_at ? new Date(newAppt.start_at).toLocaleDateString('en-US') : '\u2014' },
+              { label: 'Time', prev: '\u2014', next: newAppt.start_at ? new Date(newAppt.start_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '\u2014' },
+              { label: 'Type', prev: '\u2014', next: updatedLead.follow_up_type || '\u2014' },
+            ];
           }
         }
       } else {
@@ -649,6 +725,12 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
             [existingAppt.id, req.user?.email || null,
              JSON.stringify({ start_at: existingAppt.start_at, end_at: existingAppt.end_at, status: existingAppt.status })]
           );
+          appointmentAction = 'appointment_cancelled';
+          appointmentChanges = [
+            { label: 'Date', prev: existingAppt.start_at ? new Date(existingAppt.start_at).toLocaleDateString('en-US') : '\u2014', next: 'Cancelled' },
+            { label: 'Time', prev: existingAppt.start_at ? new Date(existingAppt.start_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '\u2014', next: 'Cancelled' },
+            { label: 'Type', prev: updatedLead.follow_up_type || '\u2014', next: 'Cancelled' },
+          ];
         }
       }
 
@@ -686,6 +768,11 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
       [updatedLead.id]
     );
     const leadWithOwner = fullRow.rows[0];
+
+    // ── Post-commit: notify admins of the appointment change (best-effort) ─
+    if (appointmentAction) {
+      sendLeadNotification(appointmentAction, leadWithOwner, appointmentChanges, req.user?.email);
+    }
 
     const updatedAppt = await fetchActiveAppointment(leadWithOwner.id);
     res.json({ lead: serializeLead(leadWithOwner, updatedAppt) });
@@ -842,12 +929,17 @@ router.put('/:id', requireAuth, async (req, res) => {
     if (scope.denied) return res.status(403).json({ error: 'forbidden' });
     if (scope.readOnly) return res.status(403).json({ error: 'forbidden', message: 'office role is read-only' });
 
-    // Verify lead exists + caller has access
-    const leadR = await query('SELECT id, owner_id FROM leads WHERE id = $1', [id]);
+    // Verify lead exists + caller has access — fetch FULL row for diff notification
+    const leadR = await query(
+      `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
+       FROM leads l LEFT JOIN owners o ON o.id = l.owner_id WHERE l.id = $1`,
+      [id]
+    );
     if (!leadR.rows[0]) return res.status(404).json({ error: 'not_found' });
     if (scope.ownerFilter && String(leadR.rows[0].owner_id) !== String(scope.ownerFilter)) {
       return res.status(403).json({ error: 'forbidden' });
     }
+    const oldLead = leadR.rows[0];
 
     const body = req.body || {};
     const updates = [];
@@ -969,6 +1061,21 @@ router.put('/:id', requireAuth, async (req, res) => {
       return res.status(500).json({ error: e.message });
     }
     client.release();
+
+    // ── Post-commit: notify admins of the field changes (best-effort) ──────
+    const changes = computeLeadDiff(oldLead, fullRow);
+    if (changes.length > 0) {
+      const isStatusChange = changes.some(c => c.label === 'Status');
+      const isContactChange = changes.some(c =>
+        ['First Name', 'Last Name', 'Phone', 'Email', 'Property Address', 'City'].includes(c.label));
+      let action = 'lead_updated';
+      if (isStatusChange && changes.length === 1) action = 'lead_status_changed';
+      else if (isContactChange && changes.every(c =>
+        ['First Name', 'Last Name', 'Phone', 'Email', 'Property Address', 'City'].includes(c.label))) {
+        action = 'contact_info_changed';
+      }
+      sendLeadNotification(action, fullRow, changes, req.user?.email);
+    }
 
     const appt = await fetchActiveAppointment(fullRow.id);
     res.json({ lead: serializeLead(fullRow, appt) });
@@ -1108,6 +1215,10 @@ router.post('/:id/activities', requireAuth, async (req, res) => {
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
       [leadRow.id, type, content, author || req.user.email || null, source, JSON.stringify(metadata || null)]
     );
+
+    // ── Notify admins of the new activity (best-effort) ─────────────────
+    sendLeadNotification('activity_added', leadRow, [], req.user?.email, type, content);
+
     res.status(201).json({ activity: serializeActivity(ins.rows[0]) });
   } catch (e) {
     console.error('[leads] activity create error:', e.message);
