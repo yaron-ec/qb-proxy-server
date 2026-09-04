@@ -331,29 +331,6 @@ router.get('/google/callback', async (req, res) => {
   }
 });
 
-// ── Admin: delete a user (admin-only) ─────────────────────────────────────────
-//   POST /admin-delete-user  { email }
-//   Header: X-Admin-Secret: <ADMIN_AUTH_SECRET or PROXY_SECRET>
-router.post('/admin-delete-user', async (req, res) => {
-  const adminSecret = process.env.ADMIN_AUTH_SECRET || process.env.PROXY_SECRET;
-  const provided = req.headers['x-admin-secret'];
-  if (!adminSecret || provided !== adminSecret) {
-    return res.status(401).json({ error: 'unauthorized' });
-  }
-  try {
-    const { email } = req.body || {};
-    if (!email) return res.status(400).json({ error: 'email required' });
-
-    const user = await auth.getUserByEmail(email);
-    if (!user) return res.status(404).json({ error: 'user not found' });
-
-    await require('../db/client').query('DELETE FROM users WHERE id = $1', [user.id]);
-    res.json({ ok: true, email: user.email, message: 'User deleted.' });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
 // ── END Google OAuth SSO ─────────────────────────────────────────────────────
 
 module.exports = router;
