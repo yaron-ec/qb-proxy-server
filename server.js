@@ -342,44 +342,6 @@ app.get('/qb/health', async (req, res) => {
 // ── Email delivery diagnostic (admin-only, JWT-protected) ────────────────────
 // Returns recent email_send_claims + attempts so we can verify CRM admin
 // notification emails were actually queued and sent to Michelle and Yaron.
-const { requireAuth } = require('./lib/rbac');
-const { query: dbQuery } = require('./db/client');
-app.get('/api/v1/email-diagnostics', requireAuth, async (req, res) => {
-  try {
-    if (req.user.role !== 'admin' && req.user.role !== 'manager') {
-      return res.status(403).json({ error: 'forbidden' });
-    }
-    const since = new Date(Date.now() - 30 * 60 * 1000).toISOString(); // last 30 min
-
-    const claimsRes = await dbQuery(
-      `SELECT id, idempotency_key, recipient, subject, status, created_at, updated_at, last_error, gmail_message_id, attempts
-       FROM email_send_claims
-       WHERE created_at >= $1
-       ORDER BY created_at DESC
-       LIMIT 50`,
-      [since]
-    );
-
-    const logsRes = await dbQuery(
-      `SELECT claim_id, role, recipient, cc, subject, gmail_message_id, status, error, attempts, created_at
-       FROM email_send_logs
-       WHERE created_at >= $1
-       ORDER BY created_at DESC
-       LIMIT 50`,
-      [since]
-    );
-
-    res.json({
-      since,
-      claims: claimsRes.rows,
-      logs: logsRes.rows,
-    });
-  } catch (e) {
-    console.error('[email-diagnostics] error:', e.message);
-    res.status(500).json({ error: e.message });
-  }
-});
-
 // ── Auth routes ──────────────────────────────────────────────────────────────
 
 // GET /auth/connect — returns the Intuit OAuth URL (delegates to shared handler)
