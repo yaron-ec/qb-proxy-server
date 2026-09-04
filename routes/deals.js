@@ -32,6 +32,56 @@ const {
   canAccessDeal, canWriteDeal, validateDealPayload, computePaymentStatus,
   UUID_RE,
 } = require('../lib/dealModel');
+const { notifyCrmActivity } = require('../lib/crmActivityNotifier');
+
+// ── Deal notification helper (best-effort, non-blocking) ─────────────────────
+async function sendDealNotification(action, deal, actorEmail, changes) {
+  if (!deal) return;
+  try {
+    const leadRes = await query(
+      `SELECT l.id, l.first_name, l.last_name, o.display_name AS owner_display_name, o.email AS owner_email
+       FROM leads l LEFT JOIN owners o ON o.id = l.owner_id WHERE l.id = $1`,
+      [deal.lead_id]
+    );
+    const lead = leadRes.rows[0];
+    const leadName = lead ? `${lead.first_name || ''} ${lead.last_name || ''}`.trim() : (deal.name || 'Unknown');
+    const repName = lead ? (lead.owner_display_name || lead.owner_email || 'Unassigned') : (deal.assigned_rep || 'Unassigned');
+    Promise.resolve().then(() => notifyCrmActivity({
+      action,
+      leadId: lead ? lead.id : null,
+      leadName,
+      repName,
+      actorEmail,
+      changes: changes || [],
+    })).catch(e => console.error('[deals] notification failed:', action, e.message));
+  } catch (e) {
+    console.error('[deals] lead fetch for notification failed:', e.message);
+  }
+}
+
+// ── Deal diff helper ─────────────────────────────────────────────────────────
+const DEAL_DIFF_FIELDS = [
+  { col: 'stage', label: 'Stage' },
+  { col: 'amount', label: 'Amount' },
+  { col: 'contract_amount', label: 'Contract Amount' },
+  { col: 'close_date', label: 'Close Date' },
+  { col: 'work_start_date', label: 'Work Start' },
+  { col: 'work_end_date', label: 'Work End' },
+  { col: 'assigned_rep', label: 'Assigned Rep' },
+  { col: 'notes', label: 'Notes' },
+];
+
+function computeDealDiff(oldDeal, newDeal) {
+  const changes = [];
+  for (const { col, label } of DEAL_DIFF_FIELDS) {
+    const oldVal = oldDeal ? String(oldDeal[col] == null ? '' : oldDeal[col]) : '';
+    const newVal = newDeal ? String(newDeal[col] == null ? '' : newDeal[col]) : '';
+    if (oldVal !== newVal) {
+      changes.push({ label, prev: oldVal || '\u2014', next: newVal || '\u2014' });
+    }
+  }
+  return changes;
+}
 
 const router = express.Router();
 router.use(requireAuth);
@@ -44,7 +94,8 @@ router.use(requireAuth);
 function dealIdWhere(identifier) {
   if (UUID_RE.test(String(identifier))) {
     // Use separate params: $1::uuid for id, $2 (text) for legacy_base44_id.
-    // Sharing $1 causes PostgreSQL to infer uuid type for BOTH comparisons.
+    // Sharing $1 causes PostgreSQL to infer uuid type for BOTH comparisons,
+    // making legacy_base44_id = $1 fail with "operator does not exist: text = uuid".
     return { whereSql: 'id = $1::uuid OR legacy_base44_id = $2', params: [identifier, identifier] };
   }
   return { whereSql: 'legacy_base44_id = $1', params: [identifier] };
@@ -143,6 +194,10 @@ router.post('/', async (req, res) => {
     const vals = cols.map((_, i) => `$${i + 1}`);
     const sql = `INSERT INTO deals (${cols.join(',')}) VALUES (${vals.join(',')}) RETURNING *`;
     const { rows } = await query(sql, cols.map((c) => cleaned[c]));
+
+    // ── Notify admins of the new deal (best-effort) ──────────────────────
+    sendDealNotification('deal_created', rows[0], req.user?.email);
+
     res.status(201).json({ deal: serializeDeal(rows[0]) });
   } catch (e) {
     // FK violation (23503): lead_id does not reference an existing Railway Lead.
@@ -191,6 +246,14 @@ router.put('/:id', async (req, res) => {
     const sets = cols.map((c, i) => `${c} = $${i + 1}`).join(', ');
     const sql = `UPDATE deals SET ${sets} WHERE id = $${cols.length + 1} RETURNING *`;
     const { rows: updated } = await query(sql, [...cols.map((c) => cleaned[c]), deal.id]);
+
+    // ── Notify admins of the deal update (best-effort) ───────────────────
+    const changes = computeDealDiff(deal, updated[0]);
+    if (changes.length > 0) {
+      const isStageOnly = changes.length === 1 && changes[0].label === 'Stage';
+      sendDealNotification(isStageOnly ? 'deal_stage_changed' : 'deal_updated', updated[0], req.user?.email, changes);
+    }
+
     res.json({ deal: serializeDeal(updated[0]) });
   } catch (e) {
     console.error('[deals] update error:', e.message);
