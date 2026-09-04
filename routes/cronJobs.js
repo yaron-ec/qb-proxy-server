@@ -1840,4 +1840,57 @@ router.post('/reconcile-calendar-appointments', async (req, res) => {
   }
 });
 
+// ── POST /drain-calendar-outbox ──────────────────────────────────────────────
+// Drains the calendar_outbox: reaps stuck 'processing' rows, then claims and
+// processes pending/failed rows via the canonical calendarOutbox library.
+// This is the ONE and ONLY canonical execution path for Google Calendar side
+// effects. Called by the Railway cron scheduler every 5 minutes.
+//
+// Uses the SAME lib/booking/calendarOutbox.js as scripts/calendarOutboxWorker.js
+// (the standalone continuous-loop worker, which is NOT deployed as a separate
+// Railway service). The FOR UPDATE SKIP LOCKED claim pattern prevents duplicate
+// processing even if both the cron endpoint and the standalone worker run
+// concurrently. Idempotency keys + deterministic Google event IDs prevent
+// duplicate events on retry.
+//
+// No Base44. No direct Google API calls from the caller. Uses the durable
+// outbox pattern with service-account DWD impersonation.
+router.post('/drain-calendar-outbox', async (req, res) => {
+  try {
+    const { pool } = require('../db/client');
+    const outbox = require('../lib/booking/calendarOutbox');
+
+    const workerId = `cron-drain-${process.pid}-${Date.now()}`;
+    const opts = {
+      batchSize: parseInt(process.env.CALENDAR_OUTBOX_BATCH || '20', 10),
+      leaseMs: parseInt(process.env.CALENDAR_OUTBOX_LEASE_MS || '60000', 10),
+    };
+
+    // 1. Reap stuck 'processing' rows whose lease expired → back to 'pending'
+    await outbox.reapStuck(pool, opts.leaseMs);
+
+    // 2. Claim + process pending/failed rows (FOR UPDATE SKIP LOCKED)
+    const result = await outbox.claimAndProcess(pool, workerId, opts);
+
+    // 3. Get current status counts for the response
+    const { rows: statusRows } = await query(`
+      SELECT status, count(*) as cnt FROM calendar_outbox GROUP BY status ORDER BY status
+    `);
+    const statusCounts = {};
+    for (const r of statusRows) statusCounts[r.status] = parseInt(r.cnt, 10);
+
+    res.json({
+      ok: true,
+      job: 'drain-calendar-outbox',
+      worker_id: workerId,
+      claimed: result.claimed,
+      processed: result.processed,
+      remaining: statusCounts,
+    });
+  } catch (e) {
+    console.error('[cron] drain-calendar-outbox error:', e.message);
+    res.status(500).json({ error: e.message, job: 'drain-calendar-outbox' });
+  }
+});
+
 module.exports = router;
