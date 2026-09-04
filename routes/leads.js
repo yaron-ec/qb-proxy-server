@@ -601,14 +601,27 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
           const typeRes = await client.query('SELECT id FROM appointment_types ORDER BY id LIMIT 1');
           if (typeRes.rows[0]) {
             const typeId = typeRes.rows[0].id;
+            const idempotencyKey = `appt:${updatedLead.id}:${apptDate}:${apptTime}`;
             const insRes = await client.query(
-              `INSERT INTO appointments (lead_id, owner_id, appointment_type_id, start_at, end_at, timezone, busy_range, status, calendar_sync_status)
-               VALUES ($1, $2, $3, $4, $5, $6, tstzrange($7, $8, '[)'), 'scheduled', 'pending')
+              `INSERT INTO appointments (lead_id, owner_id, appointment_type_id, start_at, end_at, timezone, busy_range, status, calendar_sync_status, idempotency_key)
+               VALUES ($1, $2, $3, $4, $5, $6, tstzrange($7, $8, '[)'), 'scheduled', 'pending', $9)
+               ON CONFLICT (idempotency_key) DO NOTHING
                RETURNING *`,
               [updatedLead.id, updatedLead.owner_id, typeId, startAt.toISOString(), endAt.toISOString(),
-               'America/Los_Angeles', busyStart.toISOString(), busyEnd.toISOString()]
+               'America/Los_Angeles', busyStart.toISOString(), busyEnd.toISOString(), idempotencyKey]
             );
             const newAppt = insRes.rows[0];
+            if (!newAppt) {
+              // Appointment already exists (idempotency conflict) — fetch it
+              const existing = await client.query(
+                `SELECT * FROM appointments WHERE idempotency_key = $1 AND status IN ('scheduled', 'confirmed') ORDER BY created_at DESC LIMIT 1`,
+                [idempotencyKey]
+              );
+              if (existing.rows[0]) {
+                await client.query('COMMIT');
+                return res.json({ success: true, appointment_id: existing.rows[0].id, message: 'Appointment already exists (idempotent).' });
+              }
+            }
             // For Phone Calls, skip travel event (no driving). Pass skipTravel=true.
             await calendarOutbox.enqueueCreate(client, newAppt, updatedLead, updatedLead.owner_email, isPhoneCall);
             await client.query(
@@ -1166,13 +1179,22 @@ router.post('/by-external/:externalRef/sync-calendar', requireAuth, async (req, 
         }
         const typeId = typeRes.rows[0].id;
 
+        const idempotencyKey = `sync-cal:${lead.id}:${apptDate}:${apptTime}`;
         const insRes = await client.query(
-          `INSERT INTO appointments (lead_id, owner_id, appointment_type_id, start_at, end_at, timezone, busy_range, status, calendar_sync_status)
-           VALUES ($1, $2, $3, $4, $5, $6, tstzrange($7, $8, '[)'), 'scheduled', 'pending')
+          `INSERT INTO appointments (lead_id, owner_id, appointment_type_id, start_at, end_at, timezone, busy_range, status, calendar_sync_status, idempotency_key)
+           VALUES ($1, $2, $3, $4, $5, $6, tstzrange($7, $8, '[)'), 'scheduled', 'pending', $9)
+           ON CONFLICT (idempotency_key) DO NOTHING
            RETURNING *`,
-          [lead.id, lead.owner_id, typeId, startAt.toISOString(), endAt.toISOString(), 'America/Los_Angeles', busyStart.toISOString(), busyEnd.toISOString()]
+          [lead.id, lead.owner_id, typeId, startAt.toISOString(), endAt.toISOString(), 'America/Los_Angeles', busyStart.toISOString(), busyEnd.toISOString(), idempotencyKey]
         );
         appointment = insRes.rows[0];
+        if (!appointment) {
+          // Appointment already exists (idempotency conflict) — fetch it
+          appointment = (await client.query(
+            `SELECT * FROM appointments WHERE idempotency_key = $1 AND status IN ('scheduled', 'confirmed') ORDER BY created_at DESC LIMIT 1`,
+            [idempotencyKey]
+          )).rows[0];
+        }
 
         // Enqueue calendar outbox create (main + travel events)
         // Phone Calls skip the travel event (no driving needed)
