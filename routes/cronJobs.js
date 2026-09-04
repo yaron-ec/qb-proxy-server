@@ -1530,6 +1530,129 @@ router.post('/backfill-reminder-leads', async (req, res) => {
   }
 });
 
+// ── POST /diagnose-reminder-delivery ─────────────────────────────────────────
+// READ-ONLY diagnostic: traces a lead's full reminder delivery pipeline.
+// Queries reminder_claims, email_send_claims, email_send_logs, and Gmail
+// message IDs for a given lead_id. No writes. Used for delivery acceptance.
+router.post('/diagnose-reminder-delivery', async (req, res) => {
+  try {
+    const { lead_id } = req.body || {};
+    if (!lead_id) return res.status(400).json({ error: 'lead_id required' });
+
+    // 1. Get the lead from reminder_leads
+    const { rows: leadRows } = await query(
+      `SELECT id, first_name, last_name, email, phone, assigned_rep,
+              appointment_date, appointment_time, follow_up_date, follow_up_time, follow_up_type,
+              customer_reminders_disabled
+       FROM reminder_leads WHERE id = $1 LIMIT 1`,
+      [lead_id]
+    );
+    const lead = leadRows[0];
+    if (!lead) return res.json({ found: false, lead_id, message: 'Lead not found in reminder_leads' });
+
+    // 2. Get reminder_claims for this lead
+    const { rows: claims } = await query(
+      `SELECT id, reminder_key, reminder_window, status, owner, sent_at, last_error, last_error_type,
+              gmail_message_ids, created_at, appointment_date
+       FROM reminder_claims WHERE lead_id = $1 ORDER BY created_at DESC LIMIT 20`,
+      [lead_id]
+    );
+
+    // 3. Get email_send_claims matching this lead's reminder keys
+    const { rows: emailClaims } = await query(
+      `SELECT id, idempotency_key, status, recipient, subject, gmail_message_id, last_error, attempts,
+              created_at, sent_at
+       FROM email_send_claims
+       WHERE idempotency_key LIKE $1
+       ORDER BY created_at DESC LIMIT 30`,
+      [`%${lead_id}%`]
+    );
+
+    // 4. Get email_send_logs for those claims
+    let emailLogs = [];
+    if (emailClaims.length > 0) {
+      const claimIds = emailClaims.map(c => c.id);
+      const { rows: logs } = await query(
+        `SELECT id, claim_id, role, recipient, sender, subject, gmail_message_id, status, error, attempts, created_at
+         FROM email_send_logs WHERE claim_id = ANY($1::int[]) ORDER BY created_at DESC LIMIT 30`,
+        [claimIds]
+      );
+      emailLogs = logs;
+    }
+
+    // 5. Summarize delivery evidence
+    const customerClaims = emailClaims.filter(c => c.idempotency_key.includes(':customer:'));
+    const staffClaims = emailClaims.filter(c => c.idempotency_key.includes(':staff:'));
+    const customerLogs = emailLogs.filter(l => l.role === 'customer');
+    const staffLogs = emailLogs.filter(l => l.role === 'staff');
+
+    res.json({
+      found: true,
+      lead: {
+        id: lead.id,
+        name: `${lead.first_name || ''} ${lead.last_name || ''}`.trim(),
+        email: lead.email,
+        phone: lead.phone,
+        assigned_rep: lead.assigned_rep,
+        appointment_date: lead.appointment_date,
+        appointment_time: lead.appointment_time,
+        customer_reminders_disabled: lead.customer_reminders_disabled,
+      },
+      reminder_claims: claims.map(c => ({
+        window: c.reminder_window,
+        status: c.status,
+        sent_at: c.sent_at,
+        gmail_message_ids: c.gmail_message_ids,
+        last_error: c.last_error,
+        last_error_type: c.last_error_type,
+        created_at: c.created_at,
+      })),
+      customer_delivery: {
+        email_exists: !!lead.email,
+        claims_count: customerClaims.length,
+        claims: customerClaims.map(c => ({
+          status: c.status,
+          recipient: c.recipient,
+          subject: c.subject,
+          gmail_message_id: c.gmail_message_id,
+          sent_at: c.sent_at,
+          last_error: c.last_error,
+        })),
+        logs_count: customerLogs.length,
+        logs: customerLogs.map(l => ({
+          status: l.status,
+          recipient: l.recipient,
+          gmail_message_id: l.gmail_message_id,
+          subject: l.subject,
+        })),
+        gmail_message_ids: customerLogs.filter(l => l.gmail_message_id).map(l => l.gmail_message_id),
+      },
+      staff_delivery: {
+        claims_count: staffClaims.length,
+        claims: staffClaims.map(c => ({
+          status: c.status,
+          recipient: c.recipient,
+          subject: c.subject,
+          gmail_message_id: c.gmail_message_id,
+          sent_at: c.sent_at,
+          last_error: c.last_error,
+        })),
+        logs_count: staffLogs.length,
+        logs: staffLogs.map(l => ({
+          status: l.status,
+          recipient: l.recipient,
+          gmail_message_id: l.gmail_message_id,
+          subject: l.subject,
+        })),
+        gmail_message_ids: staffLogs.filter(l => l.gmail_message_id).map(l => l.gmail_message_id),
+      },
+    });
+  } catch (e) {
+    console.error('[cron] diagnose-reminder-delivery error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── POST /diagnose-deal ──────────────────────────────────────────────────────
 // READ-ONLY diagnostic: queries the canonical Railway `deals` table by UUID
 // (id) or legacy_base44_id, then checks the linked lead. No writes. Used to
@@ -1547,6 +1670,7 @@ router.post('/diagnose-deal', async (req, res) => {
     let dealRows;
     if (isUuid) {
       // Use separate params: $1::uuid for id, $2 (text) for legacy_base44_id.
+      // Sharing $1 causes PostgreSQL to infer uuid type for BOTH comparisons.
       const { rows } = await query(
         'SELECT * FROM deals WHERE id = $1::uuid OR legacy_base44_id = $2 LIMIT 1',
         [deal_id, deal_id]
@@ -1609,83 +1733,106 @@ router.post('/diagnose-deal', async (req, res) => {
   }
 });
 
-
-// ── POST /sync-handoff-estimates ──────────────────────────────────────────
-// Replaces Base44 handoffAutoSync + handoffSyncService scheduled automations.
-// Fetches ALL estimates from the official Handoff API (verified GraphQL schema)
-// and upserts them into handoff_estimates with lead matching. Runs hourly.
-router.post('/sync-handoff-estimates', async (req, res) => {
-  const handoffClient = require('../lib/handoffClient');
-  const rda = require('../lib/railwayDataAccess');
+// ── POST /reconcile-calendar-appointments ─────────────────────────────────────
+// Reconciles leads that have follow_up_date + follow_up_type (Phone Call or
+// Meeting) but NO active appointment. Creates appointments + calendar outbox
+// entries for them so the outbox worker creates the Google Calendar events.
+// Also resets 'dead' calendar_outbox rows to 'pending' so the worker retries.
+// Idempotent: leads with existing active appointments are skipped.
+router.post('/reconcile-calendar-appointments', async (req, res) => {
+  const { pool } = require('../db/client');
+  const calendarOutbox = require('../lib/booking/calendarOutbox');
+  const { toUtcIso } = require('../lib/booking/slotBlocking');
 
   try {
-    var token;
-    try { token = await handoffClient.getValidToken(); }
-    catch (e) { return res.json({ ok: false, error: e.message }); }
+    // 1. Find leads with follow_up_date + follow_up_type but no active appointment
+    const { rows: orphanLeads } = await query(`
+      SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
+      FROM leads l
+      LEFT JOIN owners o ON o.id = l.owner_id
+      WHERE l.follow_up_date IS NOT NULL
+        AND l.follow_up_type IN ('Phone Call', 'Meeting')
+        AND NOT EXISTS (
+          SELECT 1 FROM appointments a
+          WHERE a.lead_id = l.id AND a.status IN ('scheduled', 'confirmed')
+        )
+      LIMIT 200
+    `);
 
-    var estimates = [];
-    try { estimates = await handoffClient.fetchAllEstimates(token); }
-    catch (e) { return res.json({ ok: false, error: 'Handoff API error: ' + e.message }); }
+    let created = 0, skipped = 0, errors = 0;
+    const errorDetails = [];
 
-    var leads = [];
-    try { leads = await rda.list('Lead', '-created_date', 5000); } catch {}
-
-    var imported = 0, updated = 0, unmatched = 0, failed = 0;
-    var now = new Date().toISOString();
-    for (var i = 0; i < estimates.length; i++) {
-      var est = estimates[i];
-      if (!est || !est.id) { failed++; continue; }
+    for (const lead of orphanLeads) {
       try {
-        var lead_id = null, match_status = 'unmatched', match_method = 'none';
-        for (var j = 0; j < leads.length; j++) {
-          var r = handoffClient.matchEstimateToLead(est, leads[j]);
-          if (r.match) { lead_id = leads[j].id; match_status = 'matched'; match_method = r.method; break; }
-        }
-        var estimateData = {
-          handoff_estimate_id: String(est.id),
-          handoff_estimate_number: '',
-          customer_name: est.clientName || '',
-          customer_phone: est.clientPhone || '',
-          customer_email: est.clientEmail || '',
-          estimate_amount: est.total,
-          estimate_status: est.state || 'DRAFT',
-          estimate_date: est.createdAt ? est.createdAt.split('T')[0] : null,
-          document_url: est.proposalLink || '',
-          document_title: est.name || '',
-          last_synced_at: now,
-          match_status: match_status,
-          match_method: match_method,
-          lead_id: lead_id || '',
-          sync_source: 'Handoff',
-          source: 'Handoff',
-        };
-        var existing = await rda.filter('HandoffEstimate', { handoff_estimate_id: String(est.id) });
-        if (existing && existing.length > 0) {
-          await rda.update('HandoffEstimate', existing[0].id, estimateData);
-          updated++;
-        } else {
-          await rda.create('HandoffEstimate', Object.assign({}, estimateData, { pdf_status: 'pending', pdf_retry_count: 0 }));
-          imported++;
-          if (match_status === 'unmatched') unmatched++;
+        const apptDate = lead.follow_up_date;
+        const apptTime = lead.follow_up_time || '09:00';
+        const isPhoneCall = lead.follow_up_type === 'Phone Call';
+        const startAt = new Date(toUtcIso(apptDate, apptTime, 'America/Los_Angeles'));
+        const durationMin = 60;
+        const endAt = new Date(startAt.getTime() + durationMin * 60 * 1000);
+        const busyStart = isPhoneCall ? startAt : new Date(startAt.getTime() - 60 * 60 * 1000);
+        const busyEnd = isPhoneCall ? endAt : new Date(endAt.getTime() + 60 * 60 * 1000);
+
+        const client = await pool.connect();
+        try {
+          await client.query('BEGIN');
+          const typeRes = await client.query('SELECT id FROM appointment_types ORDER BY id LIMIT 1');
+          if (!typeRes.rows[0]) {
+            await client.query('ROLLBACK');
+            errors++;
+            errorDetails.push({ lead_id: lead.id, error: 'No appointment types configured' });
+            continue;
+          }
+          const typeId = typeRes.rows[0].id;
+          const insRes = await client.query(
+            `INSERT INTO appointments (lead_id, owner_id, appointment_type_id, start_at, end_at, timezone, busy_range, status, calendar_sync_status)
+             VALUES ($1, $2, $3, $4, $5, $6, tstzrange($7, $8, '[)'), 'scheduled', 'pending')
+             RETURNING *`,
+            [lead.id, lead.owner_id, typeId, startAt.toISOString(), endAt.toISOString(),
+             'America/Los_Angeles', busyStart.toISOString(), busyEnd.toISOString()]
+          );
+          const newAppt = insRes.rows[0];
+          await calendarOutbox.enqueueCreate(client, newAppt, lead, lead.owner_email, isPhoneCall);
+          await client.query('COMMIT');
+          created++;
+        } catch (e) {
+          try { await client.query('ROLLBACK'); } catch (_) {}
+          errors++;
+          errorDetails.push({ lead_id: lead.id, error: e.message.substring(0, 150) });
+        } finally {
+          client.release();
         }
       } catch (e) {
-        console.error('[cron] sync-handoff-estimates error on ' + (est && est.id) + ':', e.message);
-        failed++;
+        errors++;
+        errorDetails.push({ lead_id: lead.id, error: e.message.substring(0, 150) });
       }
     }
 
+    // 2. Reset 'dead' calendar_outbox rows to 'pending' (retry)
+    let resetDead = 0;
     try {
-      var cursorData = { integration: 'handoff', last_successful_sync_at: now, last_updated_timestamp: now, total_synced: estimates.length, last_sync_summary: { fetched: estimates.length, imported: imported, updated: updated, unmatched: unmatched, failed: failed } };
-      var existingCursor = await rda.filter('SyncCursor', { integration: 'handoff' });
-      if (existingCursor && existingCursor.length > 0) await rda.update('SyncCursor', existingCursor[0].id, cursorData);
-      else await rda.create('SyncCursor', cursorData);
-    } catch (e) { console.error('[cron] sync-handoff-estimates cursor update failed:', e.message); }
+      const { rowCount } = await query(`
+        UPDATE calendar_outbox SET status = 'pending', next_attempt_at = NOW(),
+               claimed_by = NULL, claimed_at = NULL, updated_at = NOW()
+        WHERE status = 'dead'
+      `);
+      resetDead = rowCount || 0;
+    } catch (e) {
+      console.warn('[cron] reconcile-calendar: dead reset failed:', e.message);
+    }
 
-    console.log('[cron] sync-handoff-estimates done:', JSON.stringify({ fetched: estimates.length, imported, updated, unmatched, failed }));
-    res.json({ ok: true, fetched: estimates.length, imported, updated, unmatched, failed });
+    res.json({
+      ok: true,
+      job: 'reconcile-calendar-appointments',
+      orphan_leads_found: orphanLeads.length,
+      appointments_created: created,
+      errors,
+      error_details: errorDetails.slice(0, 10),
+      dead_outbox_reset: resetDead,
+    });
   } catch (e) {
-    console.error('[cron] sync-handoff-estimates fatal:', e.message);
-    res.status(500).json({ ok: false, error: e.message });
+    console.error('[cron] reconcile-calendar-appointments error:', e.message);
+    res.status(500).json({ error: e.message });
   }
 });
 

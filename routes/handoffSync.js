@@ -377,129 +377,6 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
     }
   });
 
-  // ── POST /handoff/diagnostic-egress-ip — get Railway's outbound IP (X-Proxy-Secret) ──
-  app.post('/handoff/diagnostic-egress-ip', requireProxySecret, async (req, res) => {
-    try {
-      // Query multiple IP detection services for redundancy
-      const services = [
-        'https://api.ipify.org?format=json',
-        'https://ifconfig.me/all.json',
-      ];
-      const ips = {};
-      for (const url of services) {
-        try {
-          const r = await fetch(url, { method: 'GET', signal: AbortSignal.timeout(5000) });
-          if (r.ok) {
-            const data = await r.json();
-            ips[url] = data.ip || data.ip_addr || data;
-          } else {
-            ips[url] = `HTTP ${r.status}`;
-          }
-        } catch (e) {
-          ips[url] = e.message;
-        }
-      }
-      return res.json({ success: true, egress_ips: ips });
-    } catch (e) {
-      return res.status(500).json({ success: false, error: e.message });
-    }
-  });
-
-  // ── POST /handoff/diagnostic-counts — production database COUNT(*) (X-Proxy-Secret) ──
-  app.post('/handoff/diagnostic-counts', requireProxySecret, async (req, res) => {
-    if (!rda.isConfigured()) {
-      return res.status(503).json({ success: false, error: 'DATABASE_URL not configured on Railway' });
-    }
-    try {
-      const { query: dbQuery } = require('../db/client');
-      const tables = [
-        'leads', 'deals', 'handoff_estimates', 'activities', 'tasks',
-        'invoices', 'estimates', 'projects', 'sync_cursors',
-        'deal_expenses', 'deal_commissions', 'deal_loan_payments',
-        'app_settings', 'users', 'auth_users',
-      ];
-      const counts = {};
-      for (const table of tables) {
-        try {
-          const { rows } = await dbQuery(`SELECT COUNT(*) as cnt FROM ${table}`);
-          counts[table] = parseInt(rows[0].cnt, 10);
-        } catch (e) {
-          counts[table] = `ERROR: ${e.message.substring(0, 80)}`;
-        }
-      }
-      // Also check the database name we're connected to
-      let dbName = 'unknown';
-      try {
-        const { rows } = await dbQuery('SELECT current_database() as db');
-        dbName = rows[0].db;
-      } catch (e) {}
-      return res.json({ success: true, database: dbName, counts });
-    } catch (e) {
-      return res.status(500).json({ success: false, error: e.message });
-    }
-  });
-
-  // ── POST /handoff/diagnostic-leads — list Railway leads for testing (X-Proxy-Secret) ──
-  app.post('/handoff/diagnostic-leads', requireProxySecret, async (req, res) => {
-    if (!rda.isConfigured()) {
-      return res.status(503).json({ success: false, error: 'DATABASE_URL not configured on Railway' });
-    }
-    try {
-      const leads = await rda.list('Lead', '-created_date', 10, 0);
-      const summaries = leads.map(function (l) {
-        return {
-          id: l.id,
-          first_name: l.first_name,
-          last_name: l.last_name,
-          status: l.status,
-          phone: l.phone,
-          email: l.email,
-          property_address: l.property_address,
-        };
-      });
-      return res.json({ success: true, count: leads.length, leads: summaries });
-    } catch (e) {
-      return res.status(500).json({ success: false, error: e.message });
-    }
-  });
-
-  // ── POST /handoff/diagnostic-create-deal — test deal creation (X-Proxy-Secret) ──
-  app.post('/handoff/diagnostic-create-deal', requireProxySecret, async (req, res) => {
-    if (!rda.isConfigured()) {
-      return res.status(503).json({ success: false, error: 'DATABASE_URL not configured on Railway' });
-    }
-    const { lead_id, name, amount } = req.body || {};
-    if (!lead_id) return res.status(400).json({ success: false, error: 'lead_id required' });
-
-    try {
-      // Verify lead exists
-      const leads = await rda.list('Lead', '-created_date', 5000, 0);
-      const lead = leads.find(function (l) { return l.id === lead_id; });
-      if (!lead) return res.status(404).json({ success: false, error: 'Lead not found in Railway' });
-
-      // Create deal
-      const dealData = {
-        lead_id: lead.id,
-        name: name || ('Test Deal - ' + lead.first_name + ' ' + lead.last_name),
-        amount: amount || 0,
-        stage: 'Sold / Estimate Approved',
-        pipeline: 'Default Pipeline',
-        assigned_rep: lead.assigned_rep || '',
-        project_type: lead.project_type || '',
-        property_address: lead.property_address || '',
-      };
-      const deal = await rda.create('Deal', dealData);
-
-      return res.json({
-        success: true,
-        deal: { id: deal.id, name: deal.name, amount: deal.amount, stage: deal.stage, lead_id: deal.lead_id },
-        lead: { id: lead.id, name: lead.first_name + ' ' + lead.last_name },
-      });
-    } catch (e) {
-      return res.status(500).json({ success: false, error: e.message });
-    }
-  });
-
   // ═══ Handoff Auth Routes (migrated from Base44 handoffAuth function) ════════
 
   // POST /handoff/auth/status
@@ -515,16 +392,18 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
       const token = tokenData.token;
       if (!token) return res.json({ connected: false });
 
-      // Verify token is still valid
-      const testRes = await fetch(HANDOFF_API, {
+      // Verify token is still valid — use /graphql with Bearer (the canonical
+      // path that worked in Base44 production). A 403 here means WAF blocking,
+      // not an expired token — don't mark expired for WAF blocks.
+      const testRes = await fetch(HANDOFF_API + '/graphql', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-API-Key': token,
-          'User-Agent': 'EC-CRM-Railway/1.0',
+          'Authorization': 'Bearer ' + token,
         },
         body: JSON.stringify({ query: '{ __typename }' }),
       });
+      if (testRes.status === 403) return res.json({ connected: true, connected_at: tokenData.connected_at || null, waf_blocked: true });
       if (!testRes.ok) return res.json({ connected: false, expired: true });
 
       const testData = await testRes.json();
@@ -615,7 +494,7 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
   // POST /handoff/auth/test-connectivity — test if the Railway proxy can reach the Handoff API
   app.post('/handoff/auth/test-connectivity', requireProxySecret, async (req, res) => {
     try {
-      const testRes = await fetch(HANDOFF_API, {
+      const testRes = await fetch(HANDOFF_API + '/graphql', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: '{ __typename }' }),
@@ -645,12 +524,12 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
     const cleanToken = token.trim().startsWith('Bearer ') ? token.trim().slice(7) : token.trim();
 
     if (!skip_verify) {
-      // Verify token works by calling the Handoff API
-      const verifyRes = await fetch(HANDOFF_API, {
+      // Verify token works — use /graphql with Bearer (canonical path)
+      const verifyRes = await fetch(HANDOFF_API + '/graphql', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-API-Key': cleanToken,
+          'Authorization': 'Bearer ' + cleanToken,
         },
         body: JSON.stringify({ query: '{ __typename }' }),
       });

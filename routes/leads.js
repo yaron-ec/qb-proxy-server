@@ -339,13 +339,17 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
       }
     }
     // Handle assigned_rep → owner_id mapping (look up by display name)
+    // owner_id is NOT NULL in the DB — never set it to null/empty. If the
+    // frontend clears assigned_rep, preserve the existing DB value by simply
+    // not including owner_id in the update.
     if (body.assigned_rep !== undefined && body.owner_id === undefined) {
       const ownerR = await query('SELECT id FROM owners WHERE display_name = $1 AND is_active = true', [body.assigned_rep]);
       if (ownerR.rows[0]) {
         allFields.owner_id = ownerR.rows[0].id;
       }
     }
-    if (body.owner_id !== undefined) {
+    // Only set owner_id from body if it's a non-null, non-empty value
+    if (body.owner_id !== undefined && body.owner_id !== null && body.owner_id !== '') {
       allFields.owner_id = body.owner_id;
     }
 
@@ -553,7 +557,12 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
       updatedLead = rows[0];
 
       // 2. Create / update / cancel appointment (same transaction — atomic)
-      const shouldHaveMeeting = updatedLead.follow_up_date && updatedLead.follow_up_type === 'Meeting';
+      // Both Meeting AND Phone Call follow-ups create calendar events.
+      // Phone Calls create a main event only (no travel buffer — no driving).
+      // Meetings create main + travel events (1hr buffer before/after).
+      const shouldHaveAppointment = updatedLead.follow_up_date &&
+        (updatedLead.follow_up_type === 'Meeting' || updatedLead.follow_up_type === 'Phone Call');
+      const isPhoneCall = updatedLead.follow_up_type === 'Phone Call';
 
       const apptRes = await client.query(
         `SELECT * FROM appointments WHERE lead_id = $1 AND status IN ('scheduled', 'confirmed') ORDER BY created_at DESC LIMIT 1`,
@@ -561,14 +570,15 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
       );
       const existingAppt = apptRes.rows[0];
 
-      if (shouldHaveMeeting) {
+      if (shouldHaveAppointment) {
         const apptDate = updatedLead.follow_up_date;
         const apptTime = updatedLead.follow_up_time || '09:00';
         const startAt = new Date(toUtcIso(apptDate, apptTime, 'America/Los_Angeles'));
         const durationMin = 60;
         const endAt = new Date(startAt.getTime() + durationMin * 60 * 1000);
-        const busyStart = new Date(startAt.getTime() - 60 * 60 * 1000);
-        const busyEnd = new Date(endAt.getTime() + 60 * 60 * 1000);
+        // Phone Calls: no travel buffer (no driving). Meetings: 1hr before/after.
+        const busyStart = isPhoneCall ? startAt : new Date(startAt.getTime() - 60 * 60 * 1000);
+        const busyEnd = isPhoneCall ? endAt : new Date(endAt.getTime() + 60 * 60 * 1000);
 
         if (existingAppt) {
           const newVersion = (existingAppt.version || 1) + 1;
@@ -578,7 +588,8 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
             [startAt.toISOString(), endAt.toISOString(), busyStart.toISOString(), busyEnd.toISOString(), newVersion, existingAppt.id]
           );
           const updatedAppt = (await client.query('SELECT * FROM appointments WHERE id = $1', [existingAppt.id])).rows[0];
-          await calendarOutbox.enqueueUpdate(client, updatedAppt, updatedLead, updatedLead.owner_email, updatedAppt.version, true);
+          // For Phone Calls, skip travel event (no driving). Pass skipTravel=true.
+          await calendarOutbox.enqueueUpdate(client, updatedAppt, updatedLead, updatedLead.owner_email, updatedAppt.version, !isPhoneCall);
           await client.query(
             `INSERT INTO appointment_events (appointment_id, actor, action, previous_values, new_values)
              VALUES ($1, $2, 'rescheduled', $3, $4)`,
@@ -598,7 +609,8 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
                'America/Los_Angeles', busyStart.toISOString(), busyEnd.toISOString()]
             );
             const newAppt = insRes.rows[0];
-            await calendarOutbox.enqueueCreate(client, newAppt, updatedLead, updatedLead.owner_email);
+            // For Phone Calls, skip travel event (no driving). Pass skipTravel=true.
+            await calendarOutbox.enqueueCreate(client, newAppt, updatedLead, updatedLead.owner_email, isPhoneCall);
             await client.query(
               `INSERT INTO appointment_events (appointment_id, actor, action, new_values)
                VALUES ($1, $2, 'created', $3)`,
@@ -608,7 +620,7 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
           }
         }
       } else {
-        // Phone Call or no follow-up: cancel any existing Meeting appointment.
+        // No follow-up date or no recognized follow-up type: cancel any existing appointment.
         // No new Google Calendar event, no calendar_outbox create/update.
         if (existingAppt) {
           const newVersion = (existingAppt.version || 1) + 1;
@@ -794,11 +806,15 @@ router.get('/', requireAuth, async (req, res) => {
 // by Railway UUID — it NEVER creates duplicate leads (unlike PUT /by-external,
 // which INSERTs with external_ref and can duplicate Railway-native leads).
 const UPDATABLE_FIELDS = [
-  'status', 'notes', 'owner_id', 'follow_up_date', 'follow_up_time', 'follow_up_type',
+  'status', 'notes', 'follow_up_date', 'follow_up_time', 'follow_up_type',
   'meeting_stage', 'project_type', 'budget_range', 'start_timeframe', 'source',
   'referral_name', 'lead_score', 'is_new_intake_lead', 'customer_reminders_disabled',
   'record_type', 'reviewed_at', 'message', 'photo_urls',
 ];
+// NOTE: owner_id is NOT in UPDATABLE_FIELDS — it is NOT NULL in the DB and must
+// be handled explicitly (see the assigned_rep → owner_id mapping block below).
+// Including it here would push `owner_id = NULL` on partial updates where the
+// frontend sends owner_id: null, violating the NOT NULL constraint.
 
 router.put('/:id', requireAuth, async (req, res) => {
   try {
@@ -884,9 +900,19 @@ router.put('/:id', requireAuth, async (req, res) => {
       }
     }
 
-    // Also handle assigned_rep → owner_id mapping (frontend sends assigned_rep as display name)
-    if (body.assigned_rep !== undefined && !body.owner_id) {
-      // Look up owner by display name
+    // ── owner_id handling (NOT NULL column — must never be set to null/empty) ──
+    // owner_id is NOT in UPDATABLE_FIELDS, so the loop above never touches it.
+    // We handle it explicitly here:
+    //   1. If body.owner_id is a non-null, non-empty value → use it directly.
+    //   2. If body.assigned_rep is provided → look up owner by display name.
+    //   3. Otherwise → don't include owner_id in the update (preserve existing).
+    if (body.owner_id !== undefined && body.owner_id !== null && body.owner_id !== '') {
+      params.push(body.owner_id);
+      updates.push(`owner_id = $${p}`);
+      p++;
+    } else if (body.assigned_rep !== undefined) {
+      // Frontend sends assigned_rep as display name — look up the owner.
+      // If no match found, owner_id is simply not updated (preserves existing).
       const ownerR = await query('SELECT id FROM owners WHERE display_name = $1 AND is_active = true', [body.assigned_rep]);
       if (ownerR.rows[0]) {
         params.push(ownerR.rows[0].id);
@@ -894,6 +920,7 @@ router.put('/:id', requireAuth, async (req, res) => {
         p++;
       }
     }
+    // If neither owner_id nor assigned_rep was provided, owner_id is preserved.
 
     if (updates.length === 0) {
       return res.status(400).json({ error: 'no fields to update' });
@@ -1097,11 +1124,13 @@ router.post('/by-external/:externalRef/sync-calendar', requireAuth, async (req, 
     const calendarOutbox = require('../lib/booking/calendarOutbox');
 
     // Build start/end times (LA timezone)
+    // Phone Calls: no travel buffer. Meetings: 1hr before/after.
+    const isPhoneCallSyncCal = lead.follow_up_type === 'Phone Call';
     const startAt = new Date(toUtcIso(apptDate, apptTime, 'America/Los_Angeles'));
-    const durationMin = 60; // default 1 hour meeting
+    const durationMin = 60; // default 1 hour
     const endAt = new Date(startAt.getTime() + durationMin * 60 * 1000);
-    const busyStart = new Date(startAt.getTime() - 60 * 60 * 1000); // 1hr before
-    const busyEnd = new Date(endAt.getTime() + 60 * 60 * 1000);    // 1hr after
+    const busyStart = isPhoneCallSyncCal ? startAt : new Date(startAt.getTime() - 60 * 60 * 1000);
+    const busyEnd = isPhoneCallSyncCal ? endAt : new Date(endAt.getTime() + 60 * 60 * 1000);
 
     const client = await pool.connect();
     try {
@@ -1126,8 +1155,8 @@ router.post('/by-external/:externalRef/sync-calendar', requireAuth, async (req, 
         );
         appointment = (await client.query('SELECT * FROM appointments WHERE id = $1', [appointment.id])).rows[0];
 
-        // Enqueue calendar outbox update (main + travel since duration may have changed)
-        await calendarOutbox.enqueueUpdate(client, appointment, lead, lead.owner_email, appointment.version, true);
+        // Enqueue calendar outbox update (main + travel if duration changed and not a phone call)
+        await calendarOutbox.enqueueUpdate(client, appointment, lead, lead.owner_email, appointment.version, !isPhoneCallSyncCal);
       } else {
         // Create new appointment
         const typeRes = await client.query('SELECT id FROM appointment_types ORDER BY id LIMIT 1');
@@ -1146,7 +1175,9 @@ router.post('/by-external/:externalRef/sync-calendar', requireAuth, async (req, 
         appointment = insRes.rows[0];
 
         // Enqueue calendar outbox create (main + travel events)
-        await calendarOutbox.enqueueCreate(client, appointment, lead, lead.owner_email);
+        // Phone Calls skip the travel event (no driving needed)
+        const isPhoneCallSync = lead.follow_up_type === 'Phone Call';
+        await calendarOutbox.enqueueCreate(client, appointment, lead, lead.owner_email, isPhoneCallSync);
       }
 
       await client.query('COMMIT');
