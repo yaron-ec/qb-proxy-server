@@ -1994,6 +1994,71 @@ router.post('/diagnose-watchdog', async (req, res) => {
   }
 });
 
+// ── POST /audit-reminder-ownership — TEMPORARY READ-ONLY diagnostic for retirement proof ──
+// Proves the canonical Railway reminder-worker is the sole production sender.
+// Queries email_send_logs, reminder_heartbeats, reminder_claims. No writes.
+// TO BE REMOVED after adaptable-cooperation retirement is complete.
+router.post('/audit-reminder-ownership', async (req, res) => {
+  try {
+    const sinceHours = parseInt(req.body?.hours || '168', 10);
+    const since = new Date(Date.now() - sinceHours * 3600 * 1000).toISOString();
+
+    const { rows: roleRows } = await query(`
+      SELECT role, status, count(*) as cnt, max(created_at) as last_at
+      FROM email_send_logs WHERE created_at >= $1
+      GROUP BY role, status ORDER BY role, status
+    `, [since]);
+    const byRole = {};
+    for (const r of roleRows) {
+      if (!byRole[r.role]) byRole[r.role] = {};
+      byRole[r.role][r.status] = { count: parseInt(r.cnt, 10), last_at: r.last_at };
+    }
+
+    const { rows: sentReminders } = await query(`
+      SELECT role, recipient, subject, gmail_message_id, created_at
+      FROM email_send_logs
+      WHERE created_at >= $1 AND role LIKE '%reminder%' AND status = 'sent'
+      ORDER BY created_at DESC LIMIT 10
+    `, [since]);
+
+    const { rows: heartbeats } = await query(`
+      SELECT source, status, created_at FROM reminder_heartbeats
+      ORDER BY created_at DESC LIMIT 10
+    `).catch(() => []);
+
+    const { rows: claimSummary } = await query(`
+      SELECT status, count(*) as cnt, max(created_at) as last_at
+      FROM reminder_claims GROUP BY status ORDER BY status
+    `).catch(() => []);
+
+    const { rows: failedInvoices } = await query(`
+      SELECT count(*) as cnt FROM invoices WHERE email_delivery_status = 'failed'
+    `).catch(() => []);
+
+    const { rows: base44Calls } = await query(`
+      SELECT count(*) as cnt FROM email_send_logs
+      WHERE created_at >= $1 AND role LIKE '%base44%'
+    `, [since]).catch(() => []);
+
+    res.json({
+      ok: true,
+      since_hours: sinceHours,
+      sends_by_role: byRole,
+      recent_sent_reminders: sentReminders.map(r => ({
+        role: r.role, recipient: r.recipient, has_gmail_id: !!r.gmail_message_id, created_at: r.created_at,
+      })),
+      reminder_worker_heartbeats: heartbeats,
+      reminder_claim_summary: claimSummary.map(c => ({ status: c.status, count: parseInt(c.cnt, 10), last_at: c.last_at })),
+      failed_invoice_count: parseInt(failedInvoices[0]?.cnt || 0, 10),
+      base44_function_calls_recent: parseInt(base44Calls[0]?.cnt || 0, 10),
+      canonical_reminder_active: Object.keys(byRole).some(k => k.includes('reminder') && byRole[k]['sent']),
+    });
+  } catch (e) {
+    console.error('[cron] audit-reminder-ownership error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── POST /run-reminder-engine — manually trigger the reminder engine ──────────
 // Runs one pass of the appointment reminder engine with dryRun=false (real sends).
 // Used for end-to-end verification of the reminder pipeline.
