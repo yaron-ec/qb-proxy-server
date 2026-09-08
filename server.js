@@ -1,3 +1,4 @@
+// Rebuild trigger 2026-09-08-identity: trigger deploy after identity contract fix
 // Rebuild trigger 2026-09-08h: migration 2026-35 leads google calendar columns
 // Rebuild trigger 2026-09-08g: fix-appointment-sync also fixes lead status
 // Rebuild trigger 2026-09-08f: fix e2e false positive pattern
