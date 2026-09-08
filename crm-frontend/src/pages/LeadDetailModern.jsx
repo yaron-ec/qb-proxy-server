@@ -75,7 +75,6 @@ export default function LeadDetailModern() {
         leadData = data.lead;
         if (leadData) {
           leadData.railway_id = leadData.id;
-          leadData.id = leadData.external_ref || id;
         }
         acts = data.activities || [];
         dealList = data.deals || [];
@@ -127,7 +126,6 @@ export default function LeadDetailModern() {
       if (res?.lead) {
         const r = res.lead;
         r.railway_id = r.id;
-        r.id = r.external_ref || id;
         setLead(r);
       }
     } catch { /* non-critical */ }
@@ -151,9 +149,7 @@ export default function LeadDetailModern() {
       const res = await railwayLeads.update(railwayId, { [field]: value });
       if (res?.lead) {
         const r = res.lead;
-        // Preserve the external_ref-based id for routing, keep railway_id for updates
-        r.railway_id = r.id;
-        r.id = r.external_ref || id;
+                r.railway_id = r.id;
         setLead(r);
       }
     } catch (e) {
