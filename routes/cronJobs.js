@@ -1536,26 +1536,44 @@ router.post('/backfill-reminder-leads', async (req, res) => {
 // message IDs for a given lead_id. No writes. Used for delivery acceptance.
 router.post('/diagnose-reminder-delivery', async (req, res) => {
   try {
-    const { lead_id } = req.body || {};
-    if (!lead_id) return res.status(400).json({ error: 'lead_id required' });
+    const { lead_id, name } = req.body || {};
+    if (!lead_id && !name) return res.status(400).json({ error: 'lead_id or name required' });
 
-    // 1. Get the lead from reminder_leads
-    const { rows: leadRows } = await query(
-      `SELECT id, first_name, last_name, email, phone, assigned_rep,
-              appointment_date, appointment_time, follow_up_date, follow_up_time, follow_up_type,
-              customer_reminders_disabled
-       FROM reminder_leads WHERE id = $1 LIMIT 1`,
-      [lead_id]
-    );
+    // 1. Get the lead from reminder_leads — by UUID or by name
+    let leadRows;
+    if (name) {
+      const parts = name.trim().split(/\s+/);
+      const first = parts[0] || '';
+      const last = parts.slice(1).join(' ') || '';
+      const { rows } = await query(
+        `SELECT id, first_name, last_name, email, phone, assigned_rep,
+                appointment_date, appointment_time, follow_up_date, follow_up_time, follow_up_type,
+                customer_reminders_disabled
+         FROM reminder_leads WHERE first_name ILIKE $1 AND last_name ILIKE $2 LIMIT 5`,
+        [`%${first}%`, `%${last}%`]
+      );
+      leadRows = rows;
+    } else {
+      const { rows } = await query(
+        `SELECT id, first_name, last_name, email, phone, assigned_rep,
+                appointment_date, appointment_time, follow_up_date, follow_up_time, follow_up_type,
+                customer_reminders_disabled
+         FROM reminder_leads WHERE id = $1 LIMIT 1`,
+        [lead_id]
+      );
+      leadRows = rows;
+    }
     const lead = leadRows[0];
-    if (!lead) return res.json({ found: false, lead_id, message: 'Lead not found in reminder_leads' });
+    if (!lead) return res.json({ found: false, lead_id: lead_id || name, message: 'Lead not found in reminder_leads' });
+    if (leadRows.length > 1) return res.json({ found: true, multiple: true, leads: leadRows.map(r => ({ id: r.id, name: `${r.first_name} ${r.last_name}` })) });
+    const effectiveLeadId = lead.id;
 
     // 2. Get reminder_claims for this lead
     const { rows: claims } = await query(
       `SELECT id, reminder_key, reminder_window, status, owner, sent_at, last_error, last_error_type,
               gmail_message_ids, created_at, appointment_date
        FROM reminder_claims WHERE lead_id = $1 ORDER BY created_at DESC LIMIT 20`,
-      [lead_id]
+      [effectiveLeadId]
     );
 
     // 3. Get email_send_claims matching this lead's reminder keys
@@ -1565,7 +1583,7 @@ router.post('/diagnose-reminder-delivery', async (req, res) => {
        FROM email_send_claims
        WHERE idempotency_key LIKE $1
        ORDER BY created_at DESC LIMIT 30`,
-      [`%${lead_id}%`]
+      [`%${effectiveLeadId}%`]
     );
 
     // 4. Get email_send_logs for those claims
@@ -1840,28 +1858,126 @@ router.post('/reconcile-calendar-appointments', async (req, res) => {
   }
 });
 
-// ── POST /reset-calendar-outbox-stuck — reset stuck pending/failed outbox rows ──
-// Resets calendar_outbox rows that are stuck in 'pending' or 'failed' with
-// future next_attempt_at (retry backoff) back to 'pending' with immediate
-// next_attempt_at = NOW(). Also resets 'dead' rows. Use when the standalone
-// calendar-outbox-worker is down and the backlog is growing.
-router.post('/reset-calendar-outbox-stuck', async (req, res) => {
+// ── POST /diagnose-calendar-outbox ──────────────────────────────────────────
+// READ-ONLY diagnostic: queries calendar_outbox status counts, recent entries,
+// and appointment sync state. No writes. Used to prove the outbox worker is
+// processing entries and Google Calendar events are being created/updated/cancelled.
+router.post('/diagnose-calendar-outbox', async (req, res) => {
   try {
-    const { rowCount } = await query(`
-      UPDATE calendar_outbox
-      SET status = 'pending', next_attempt_at = NOW(),
-          claimed_by = NULL, claimed_at = NULL, updated_at = NOW()
-      WHERE status IN ('pending', 'failed', 'dead', 'processing')
-        AND (next_attempt_at IS NULL OR next_attempt_at > NOW() OR status IN ('dead', 'processing'))
-    `);
+    const { lead_id } = req.body || {};
+
+    // 1. Outbox status counts
     const { rows: statusRows } = await query(`
-      SELECT status, count(*) as cnt FROM calendar_outbox GROUP BY status ORDER BY status
+      SELECT status, count(*) as cnt
+      FROM calendar_outbox
+      GROUP BY status
+      ORDER BY status
     `);
     const statusCounts = {};
     for (const r of statusRows) statusCounts[r.status] = parseInt(r.cnt, 10);
-    res.json({ ok: true, reset: rowCount, remaining: statusCounts, job: 'reset-calendar-outbox-stuck' });
+
+    // 2. Recent outbox entries (last 20)
+    const { rows: recentRows } = await query(`
+      SELECT id, appointment_id, action, slot, version, google_event_id,
+             status, attempts, last_error, created_at, updated_at, next_attempt_at
+      FROM calendar_outbox
+      ORDER BY created_at DESC
+      LIMIT 20
+    `);
+
+    // 3. Appointments with sync state
+    let appointmentStats = {};
+    const { rows: apptStatsRows } = await query(`
+      SELECT calendar_sync_status, count(*) as cnt
+      FROM appointments
+      GROUP BY calendar_sync_status
+    `);
+    for (const r of apptStatsRows) appointmentStats[r.calendar_sync_status || 'null'] = parseInt(r.cnt, 10);
+
+    // 4. Appointments with google_event_id set (proves worker processed creates)
+    const { rows: syncedAppts } = await query(`
+      SELECT a.id, a.lead_id, a.start_at, a.end_at, a.status, a.calendar_sync_status,
+             a.google_event_id, a.google_travel_event_id, a.calendar_synced_at,
+             l.first_name, l.last_name, l.follow_up_type
+      FROM appointments a
+      LEFT JOIN leads l ON l.id = a.lead_id
+      WHERE a.google_event_id IS NOT NULL
+      ORDER BY a.calendar_synced_at DESC
+      LIMIT 10
+    `);
+
+    // 5. Appointments NOT synced (pending or error)
+    const { rows: unsyncedAppts } = await query(`
+      SELECT a.id, a.lead_id, a.start_at, a.status, a.calendar_sync_status,
+             a.google_event_id, a.google_travel_event_id,
+             l.first_name, l.last_name, l.follow_up_type
+      FROM appointments a
+      LEFT JOIN leads l ON l.id = a.lead_id
+      WHERE a.calendar_sync_status IS NULL OR a.calendar_sync_status != 'synced'
+      ORDER BY a.start_at DESC
+      LIMIT 10
+    `);
+
+    // 6. If lead_id specified, get that lead's outbox entries
+    let leadOutbox = null;
+    if (lead_id) {
+      const { rows: leadAppts } = await query(
+        `SELECT id, start_at, end_at, status, calendar_sync_status,
+                google_event_id, google_travel_event_id, calendar_synced_at
+         FROM appointments WHERE lead_id = $1 ORDER BY start_at DESC LIMIT 5`,
+        [lead_id]
+      );
+      const apptIds = leadAppts.map(a => a.id);
+      let leadOutboxRows = [];
+      if (apptIds.length > 0) {
+        const { rows } = await query(
+          `SELECT id, appointment_id, action, slot, version, google_event_id,
+                  status, attempts, last_error, created_at, updated_at
+           FROM calendar_outbox WHERE appointment_id = ANY($1::uuid[])
+           ORDER BY created_at DESC LIMIT 20`,
+          [apptIds]
+        );
+        leadOutboxRows = rows;
+      }
+      leadOutbox = { appointments: leadAppts, outbox: leadOutboxRows };
+    }
+
+    res.json({
+      outbox_status_counts: statusCounts,
+      appointment_sync_counts: appointmentStats,
+      recent_outbox: recentRows.map(r => ({
+        action: r.action,
+        status: r.status,
+        google_event_id: r.google_event_id,
+        attempts: r.attempts,
+        last_error: r.last_error ? r.last_error.substring(0, 100) : null,
+        created_at: r.created_at,
+        updated_at: r.updated_at
+      })),
+      synced_appointments: syncedAppts.map(a => ({
+        id: a.id,
+        lead: a.first_name ? `${a.first_name} ${a.last_name}` : null,
+        follow_up_type: a.follow_up_type,
+        start_at: a.start_at,
+        status: a.status,
+        calendar_sync_status: a.calendar_sync_status,
+        google_event_id: a.google_event_id,
+        google_travel_event_id: a.google_travel_event_id,
+        synced_at: a.calendar_synced_at
+      })),
+      unsynced_appointments: unsyncedAppts.map(a => ({
+        id: a.id,
+        lead: a.first_name ? `${a.first_name} ${a.last_name}` : null,
+        follow_up_type: a.follow_up_type,
+        start_at: a.start_at,
+        status: a.status,
+        calendar_sync_status: a.calendar_sync_status,
+        google_event_id: a.google_event_id
+      })),
+      lead_specific: leadOutbox,
+    });
   } catch (e) {
-    console.error('[cron] reset-calendar-outbox-stuck error:', e.message);
+    console.error('[cron] diagnose-calendar-outbox error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
@@ -1869,15 +1985,16 @@ router.post('/reset-calendar-outbox-stuck', async (req, res) => {
 // ── POST /drain-calendar-outbox ──────────────────────────────────────────────
 // Drains the calendar_outbox: reaps stuck 'processing' rows, then claims and
 // processes pending/failed rows via the canonical calendarOutbox library.
-// This is the ONE and ONLY canonical execution path for Google Calendar side
-// effects. Called by the Railway cron scheduler every 5 minutes.
 //
-// Uses the SAME lib/booking/calendarOutbox.js as scripts/calendarOutboxWorker.js
-// (the standalone continuous-loop worker, which is NOT deployed as a separate
-// Railway service). The FOR UPDATE SKIP LOCKED claim pattern prevents duplicate
-// processing even if both the cron endpoint and the standalone worker run
-// concurrently. Idempotency keys + deterministic Google event IDs prevent
-// duplicate events on retry.
+// CANONICAL DRAINER: noble-illumination (scripts/calendarOutboxWorker.js,
+// continuous loop). This endpoint is a MANUAL BACKUP only — it is NOT invoked
+// by any Railway cron or scheduler. artistic-determination (the */15 cron)
+// runs reminderWorker.js only and does NOT call this endpoint.
+//
+// Uses the SAME lib/booking/calendarOutbox.js as the standalone worker.
+// The FOR UPDATE SKIP LOCKED claim pattern prevents duplicate processing
+// even if both run concurrently. Idempotency keys + deterministic Google
+// event IDs prevent duplicate events on retry.
 //
 // No Base44. No direct Google API calls from the caller. Uses the durable
 // outbox pattern with service-account DWD impersonation.
@@ -1919,6 +2036,32 @@ router.post('/drain-calendar-outbox', async (req, res) => {
   }
 });
 
+// ── POST /reset-calendar-outbox-stuck — reset stuck pending/failed outbox rows ──
+// Resets calendar_outbox rows that are stuck in 'pending' or 'failed' with
+// future next_attempt_at (retry backoff) back to 'pending' with immediate
+// next_attempt_at = NOW(). Also resets 'dead' rows. Use when the standalone
+// calendar-outbox-worker is down and the backlog is growing.
+router.post('/reset-calendar-outbox-stuck', async (req, res) => {
+  try {
+    const { rowCount } = await query(`
+      UPDATE calendar_outbox
+      SET status = 'pending', next_attempt_at = NOW(),
+          claimed_by = NULL, claimed_at = NULL, updated_at = NOW()
+      WHERE status IN ('pending', 'failed', 'dead', 'processing')
+        AND (next_attempt_at IS NULL OR next_attempt_at > NOW() OR status IN ('dead', 'processing'))
+    `);
+    const { rows: statusRows } = await query(`
+      SELECT status, count(*) as cnt FROM calendar_outbox GROUP BY status ORDER BY status
+    `);
+    const statusCounts = {};
+    for (const r of statusRows) statusCounts[r.status] = parseInt(r.cnt, 10);
+    res.json({ ok: true, reset: rowCount, remaining: statusCounts, job: 'reset-calendar-outbox-stuck' });
+  } catch (e) {
+    console.error('[cron] reset-calendar-outbox-stuck error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── POST /diagnose-watchdog — runs watchdog probes inline and returns results ──
 // Diagnoses why the production-watchdog cron service might be failing.
 // Runs the SAME logic as productionWatchdog.js but returns results instead
@@ -1940,7 +2083,7 @@ router.post('/diagnose-watchdog', async (req, res) => {
       await db.ensureSchema();
       steps.push({ step: 'ensureSchema', ok: true });
     } catch (e) {
-      steps.push({ step: 'ensureSchema', ok: false, error: e.message });
+      steps.push({ step: 'ensureSchema', ok: false, error: e.message, stack: e.stack?.split('\n').slice(0, 5).join('\n') });
       return res.json({ ok: false, steps, fatal: 'ensureSchema failed' });
     }
 
@@ -1968,45 +2111,58 @@ router.post('/diagnose-watchdog', async (req, res) => {
     }
 
     // Step 4: Probe each service
-    const baseUrl = process.env.CRM_API_URL || 'http://localhost:' + (process.env.PORT || 3000);
+    const baseUrl = process.env.CRM_API_URL || `http://localhost:${process.env.PORT || 3000}`;
     const probeResults = [];
     for (const service of services) {
       try {
         const result = await probeService(service, baseUrl);
         probeResults.push({ serviceId: service.id, healthy: result.healthy, error: result.error, checkType: result.checkType });
 
+        // Step 4a: recordHealthCheck
         try {
           await db.query(
-            'INSERT INTO monitoring_health_checks (service_id, check_type, healthy, response_time_ms, http_status, details, error) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-            [result.serviceId, result.checkType, result.healthy, result.responseTimeMs || null, result.httpStatus || null, JSON.stringify(result.details || {}), result.error || null]
+            `INSERT INTO monitoring_health_checks (service_id, check_type, healthy, response_time_ms, http_status, details, error)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [result.serviceId, result.checkType, result.healthy, result.responseTimeMs || null,
+             result.httpStatus || null, JSON.stringify(result.details || {}), result.error || null]
           );
         } catch (e) {
           probeResults.push({ serviceId: service.id, step: 'recordHealthCheck', error: e.message });
         }
 
+        // Step 4b: handleSuccess or handleFailure
         if (result.healthy) {
           try {
-            await crashLoop.recordSuccess(service.id);
+            const { resolved, incident } = await crashLoop.recordSuccess(service.id);
             const commitSha = process.env.RAILWAY_GIT_COMMIT_SHA;
+            const deploymentId = process.env.RAILWAY_DEPLOYMENT_ID;
             if (commitSha && service.classification === 'CRITICAL_PRODUCTION') {
-              await verifyAndPromote(service.id, commitSha, process.env.RAILWAY_DEPLOYMENT_ID, result);
+              await verifyAndPromote(service.id, commitSha, deploymentId, result);
             }
           } catch (e) {
-            probeResults.push({ serviceId: service.id, step: 'handleSuccess', error: e.message });
+            probeResults.push({ serviceId: service.id, step: 'handleSuccess', error: e.message, stack: e.stack?.split('\n').slice(0, 3).join('\n') });
           }
         } else {
           try {
-            const { incident, isNew, isCrashLoop } = await crashLoop.recordFailure(service.id, result.error || 'Unknown', result.checkType, result.details || {});
+            const { incident, isNew, isCrashLoop } = await crashLoop.recordFailure(
+              service.id, result.error || 'Unknown failure', result.checkType, result.details || {}
+            );
             if (incident) {
               const shouldAlert = isNew || isCrashLoop || (incident.failure_count % 5 === 0);
               if (shouldAlert) {
-                const rd = evaluateRecovery(service.id, { errorSummary: result.error, isCrashLoop, isNewIncident: isNew, previousHealthy: !isCrashLoop });
-                await dispatchMonitoringAlert({ serviceId: service.id, level: isCrashLoop ? 'critical' : 'warning', errorSummary: result.error, errorType: result.checkType, httpStatus: result.httpStatus, isCrashLoop, recoveryAction: rd.action, recoveryResult: rd.reason, logLines: [] });
+                const recoveryDecision = evaluateRecovery(service.id, {
+                  errorSummary: result.error, isCrashLoop, isNewIncident: isNew, previousHealthy: !isCrashLoop,
+                });
+                await dispatchMonitoringAlert({
+                  serviceId: service.id, level: isCrashLoop ? 'critical' : 'warning',
+                  errorSummary: result.error, errorType: result.checkType, httpStatus: result.httpStatus,
+                  isCrashLoop, recoveryAction: recoveryDecision.action, recoveryResult: recoveryDecision.reason, logLines: [],
+                });
                 await crashLoop.markAlertSent(incident.id);
               }
             }
           } catch (e) {
-            probeResults.push({ serviceId: service.id, step: 'handleFailure', error: e.message });
+            probeResults.push({ serviceId: service.id, step: 'handleFailure', error: e.message, stack: e.stack?.split('\n').slice(0, 3).join('\n') });
           }
         }
       } catch (e) {
@@ -2014,8 +2170,91 @@ router.post('/diagnose-watchdog', async (req, res) => {
       }
     }
 
-    res.json({ ok: true, steps, baseUrl, probeResults });
+    res.json({
+      ok: true,
+      steps,
+      baseUrl,
+      probeResults,
+      summary: {
+        total: probeResults.filter(r => r.healthy !== undefined).length,
+        healthy: probeResults.filter(r => r.healthy === true).length,
+        unhealthy: probeResults.filter(r => r.healthy === false).length,
+        errors: probeResults.filter(r => r.error && r.step).length,
+      },
+    });
   } catch (e) {
+    console.error('[cron] diagnose-watchdog error:', e.message);
+    res.status(500).json({ error: e.message, stack: e.stack?.split('\n').slice(0, 10).join('\n') });
+  }
+});
+
+// ── POST /audit-reminder-ownership — TEMPORARY READ-ONLY diagnostic for retirement proof ──
+// Proves the canonical Railway reminder-worker is the sole production sender.
+// Queries email_send_logs, reminder_heartbeats, reminder_claims. No writes.
+// TO BE REMOVED after adaptable-cooperation retirement is complete.
+router.post('/audit-reminder-ownership', async (req, res) => {
+  try {
+    const sinceHours = parseInt(req.body?.hours || '168', 10); // 7 days
+    const since = new Date(Date.now() - sinceHours * 3600 * 1000).toISOString();
+
+    // 1. Email send logs by role+status (last N hours)
+    const { rows: roleRows } = await query(`
+      SELECT role, status, count(*) as cnt, max(created_at) as last_at
+      FROM email_send_logs WHERE created_at >= $1
+      GROUP BY role, status ORDER BY role, status
+    `, [since]);
+    const byRole = {};
+    for (const r of roleRows) {
+      if (!byRole[r.role]) byRole[r.role] = {};
+      byRole[r.role][r.status] = { count: parseInt(r.cnt, 10), last_at: r.last_at };
+    }
+
+    // 2. Recent sent reminder emails (proves dryRun=false)
+    const { rows: sentReminders } = await query(`
+      SELECT role, recipient, subject, gmail_message_id, created_at
+      FROM email_send_logs
+      WHERE created_at >= $1 AND role LIKE '%reminder%' AND status = 'sent'
+      ORDER BY created_at DESC LIMIT 10
+    `, [since]);
+
+    // 3. Reminder heartbeats (proves worker ran)
+    const { rows: heartbeats } = await query(`
+      SELECT source, status, created_at FROM reminder_heartbeats
+      ORDER BY created_at DESC LIMIT 10
+    `).catch(() => []);
+
+    // 4. Reminder claims summary (proves idempotent execution)
+    const { rows: claimSummary } = await query(`
+      SELECT status, count(*) as cnt, max(created_at) as last_at
+      FROM reminder_claims GROUP BY status ORDER BY status
+    `).catch(() => []);
+
+    // 5. Failed invoice emails (proves whether retryFailedInvoices has work)
+    const { rows: failedInvoices } = await query(`
+      SELECT count(*) as cnt FROM invoices WHERE email_delivery_status = 'failed'
+    `).catch(() => []);
+
+    // 6. Check if ANY Base44 function calls were logged recently (proves adaptable-cooperation 405s)
+    const { rows: base44Calls } = await query(`
+      SELECT count(*) as cnt FROM email_send_logs
+      WHERE created_at >= $1 AND role LIKE '%base44%'
+    `, [since]).catch(() => []);
+
+    res.json({
+      ok: true,
+      since_hours: sinceHours,
+      sends_by_role: byRole,
+      recent_sent_reminders: sentReminders.map(r => ({
+        role: r.role, recipient: r.recipient, has_gmail_id: !!r.gmail_message_id, created_at: r.created_at,
+      })),
+      reminder_worker_heartbeats: heartbeats,
+      reminder_claim_summary: claimSummary.map(c => ({ status: c.status, count: parseInt(c.cnt, 10), last_at: c.last_at })),
+      failed_invoice_count: parseInt(failedInvoices[0]?.cnt || 0, 10),
+      base44_function_calls_recent: parseInt(base44Calls[0]?.cnt || 0, 10),
+      canonical_reminder_active: Object.keys(byRole).some(k => k.includes('reminder') && byRole[k]['sent']),
+    });
+  } catch (e) {
+    console.error('[cron] audit-reminder-ownership error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
@@ -2027,102 +2266,14 @@ router.post('/run-reminder-engine', async (req, res) => {
   try {
     const engine = require('../lib/reminderEngine');
     const phoneEngine = require('../lib/phoneCallReminders');
-    const apt = await engine.processReminders({ dryRun: false, triggeredBy: 'manual' });
-    const phone = await phoneEngine.processPhoneCallReminders({ dryRun: false, triggeredBy: 'manual' });
+    // FORCED dryRun=true — artistic-determination (reminderWorker.js) is the
+    // ONE canonical execution path for real sends. This endpoint is diagnostic
+    // only and must NOT provide a duplicate production execution path.
+    const apt = await engine.processReminders({ dryRun: true, triggeredBy: 'manual-diagnostic' });
+    const phone = await phoneEngine.processPhoneCallReminders({ dryRun: true, triggeredBy: 'manual-diagnostic' });
     res.json({ ok: true, appointment: apt, phone });
   } catch (e) {
     console.error('[cron] run-reminder-engine error:', e.message);
-    res.status(500).json({ error: e.message });
-  }
-});
-
-
-
-// ── POST /audit-user-deletion-safety ──────────────────────────────────────
-// READ-ONLY diagnostic: checks ALL FK references and text references for a
-// user before deletion. Uses PostgreSQL catalog metadata to find ALL FK
-// constraints referencing the users table. No writes. Safe to run any time.
-router.post('/audit-user-deletion-safety', async (req, res) => {
-  try {
-    const { email, user_id } = req.body || {};
-    if (!email && !user_id) return res.status(400).json({ error: 'email or user_id required' });
-
-    let user;
-    if (user_id) {
-      const { rows } = await query('SELECT id, email, full_name, role, status FROM users WHERE id = $1', [user_id]);
-      user = rows[0];
-    } else {
-      const { rows } = await query('SELECT id, email, full_name, role, status FROM users WHERE email = $1', [email]);
-      user = rows[0];
-    }
-
-    if (!user) return res.json({ found: false, safe: true, reason: 'user not found (already deleted)' });
-
-    // Find ALL FK references to users using catalog metadata
-    const { rows: fkRefs } = await query(`
-      SELECT n.nspname AS schema_name, c.relname AS table_name, a.attname AS column_name
-      FROM pg_constraint con
-      JOIN pg_class c ON c.oid = con.conrelid
-      JOIN pg_namespace n ON n.oid = c.relnamespace
-      JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = con.conkey[1]
-      WHERE con.contype = 'f' AND con.confrelid = 'users'::regclass
-    `);
-
-    const fkResults = [];
-    let totalFkRefs = 0;
-    for (const fk of fkRefs) {
-      const { rows } = await query(
-        `SELECT COUNT(*) as cnt FROM ${fk.schema_name}.${fk.table_name} WHERE ${fk.column_name} = $1`,
-        [user.id]
-      );
-      const count = parseInt(rows[0].cnt, 10);
-      fkResults.push({ table: fk.table_name, column: fk.column_name, count });
-      totalFkRefs += count;
-    }
-
-    // Check text references
-    const textChecks = [
-      { table: 'leads', column: 'assigned_rep' },
-      { table: 'deals', column: 'assigned_rep' },
-      { table: 'activities', column: 'author' },
-      { table: 'tasks', column: 'assigned_to' },
-      { table: 'reminder_leads', column: 'assigned_rep' },
-    ];
-    const textResults = [];
-    let totalTextRefs = 0;
-    for (const tc of textChecks) {
-      try {
-        const { rows } = await query(`SELECT COUNT(*) as cnt FROM ${tc.table} WHERE ${tc.column} = $1`, [user.email]);
-        const count = parseInt(rows[0].cnt, 10);
-        textResults.push({ table: tc.table, column: tc.column, count });
-        totalTextRefs += count;
-      } catch (e) {
-        textResults.push({ table: tc.table, column: tc.column, error: e.message.substring(0, 80) });
-      }
-    }
-
-    // Check owners table
-    let ownerRef = null;
-    try {
-      const { rows } = await query('SELECT id, display_name, email FROM owners WHERE email = $1', [user.email]);
-      ownerRef = rows[0] || null;
-    } catch (e) { ownerRef = { error: e.message.substring(0, 80) }; }
-
-    const safe = totalFkRefs === 0 && totalTextRefs === 0 && !ownerRef;
-
-    res.json({
-      found: true,
-      user: { id: user.id, email: user.email, full_name: user.full_name, role: user.role, status: user.status },
-      fk_references: fkResults,
-      text_references: textResults,
-      owner_reference: ownerRef,
-      total_fk: totalFkRefs,
-      total_text: totalTextRefs,
-      safe,
-      reason: safe ? 'no dependencies found — safe to delete' : 'has dependencies — DO NOT delete',
-    });
-  } catch (e) {
-    console.error('[cron] audit-user-deletion-safety error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });

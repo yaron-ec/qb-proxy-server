@@ -27,6 +27,19 @@ const taskEngine = require('./lib/taskReminderEngine');
     const phone = await phoneEngine.processPhoneCallReminders({ dryRun, triggeredBy: 'cron' });
     const task = await taskEngine.processTaskReminders({ dryRun, triggeredBy: 'cron' });
     console.log('[reminderWorker] done:', JSON.stringify({ appointment: apt, phone, task }));
+
+    // Railway-owned production watchdog — runs after reminders in the same
+    // cron tick. ONE canonical execution path (artistic-determination */15).
+    // No Base44 dependency. No duplicate schedulers. Watchdog failure does
+    // NOT fail the reminder pass — it logs and continues.
+    try {
+      const { runWatchdog } = require('./productionWatchdog');
+      const watchdogSummary = await runWatchdog();
+      console.log('[reminderWorker] watchdog:', JSON.stringify(watchdogSummary));
+    } catch (e) {
+      console.error('[reminderWorker] watchdog error:', e.message);
+    }
+
     process.exit(0);
   } catch (e) {
     console.error('[reminderWorker] fatal:', e);

@@ -17,7 +17,7 @@
  *      - Level 2 bad deploy: rollback to last known good (if API token allows).
  *      - Level 3 (MODULE_NOT_FOUND, missing env, OAuth): BLOCKED → escalate.
  *   6. Resolves incidents when health is restored.
- *   7. Sends alerts via independent channel (Railway emailService (lib/emailService) — Base44 fully decommissioned).
+ *   7. Sends alerts via independent channel (Railway emailService + Slack webhook).
  *
  * What it does NOT do:
  *   - Does NOT auto-restart services (Railway API token is read-only).
@@ -159,11 +159,12 @@ async function handleSuccess(service, result) {
   }
 }
 
-(async () => {
-  try {
-    await db.ensureSchema();
-    const services = getMonitoredServices();
-    const baseUrl = process.env.CRM_API_URL || `http://localhost:${process.env.PORT || 3000}`;
+async function runWatchdog() {
+  await db.ensureSchema();
+  const services = getMonitoredServices();
+  // When running inside artistic-determination (reminderWorker.js), there is
+  // no local Express server. Use QB_PROXY_URL as fallback for HTTP probes.
+  const baseUrl = process.env.CRM_API_URL || process.env.QB_PROXY_URL || `http://localhost:${process.env.PORT || 3000}`;
 
     const results = [];
     for (const service of services) {
@@ -186,9 +187,17 @@ async function handleSuccess(service, result) {
     };
     console.log(JSON.stringify({ event: 'PRODUCTION_WATCHDOG_SCAN', ...summary }));
 
-    process.exit(0);
-  } catch (e) {
-    console.error('[productionWatchdog] fatal:', e.message);
-    process.exit(1);
-  }
-})();
+    return summary;
+}
+
+module.exports = { runWatchdog };
+
+// If run directly (not required as a module), execute and exit
+if (require.main === module) {
+  runWatchdog()
+    .then(() => process.exit(0))
+    .catch((e) => {
+      console.error('[productionWatchdog] fatal:', e.message);
+      process.exit(1);
+    });
+}
