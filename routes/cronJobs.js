@@ -2037,4 +2037,94 @@ router.post('/run-reminder-engine', async (req, res) => {
 });
 
 
+
+// ── POST /audit-user-deletion-safety ──────────────────────────────────────
+// READ-ONLY diagnostic: checks ALL FK references and text references for a
+// user before deletion. Uses PostgreSQL catalog metadata to find ALL FK
+// constraints referencing the users table. No writes. Safe to run any time.
+router.post('/audit-user-deletion-safety', async (req, res) => {
+  try {
+    const { email, user_id } = req.body || {};
+    if (!email && !user_id) return res.status(400).json({ error: 'email or user_id required' });
+
+    let user;
+    if (user_id) {
+      const { rows } = await query('SELECT id, email, full_name, role, status FROM users WHERE id = $1', [user_id]);
+      user = rows[0];
+    } else {
+      const { rows } = await query('SELECT id, email, full_name, role, status FROM users WHERE email = $1', [email]);
+      user = rows[0];
+    }
+
+    if (!user) return res.json({ found: false, safe: true, reason: 'user not found (already deleted)' });
+
+    // Find ALL FK references to users using catalog metadata
+    const { rows: fkRefs } = await query(`
+      SELECT n.nspname AS schema_name, c.relname AS table_name, a.attname AS column_name
+      FROM pg_constraint con
+      JOIN pg_class c ON c.oid = con.conrelid
+      JOIN pg_namespace n ON n.oid = c.relnamespace
+      JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = con.conkey[1]
+      WHERE con.contype = 'f' AND con.confrelid = 'users'::regclass
+    `);
+
+    const fkResults = [];
+    let totalFkRefs = 0;
+    for (const fk of fkRefs) {
+      const { rows } = await query(
+        `SELECT COUNT(*) as cnt FROM ${fk.schema_name}.${fk.table_name} WHERE ${fk.column_name} = $1`,
+        [user.id]
+      );
+      const count = parseInt(rows[0].cnt, 10);
+      fkResults.push({ table: fk.table_name, column: fk.column_name, count });
+      totalFkRefs += count;
+    }
+
+    // Check text references
+    const textChecks = [
+      { table: 'leads', column: 'assigned_rep' },
+      { table: 'deals', column: 'assigned_rep' },
+      { table: 'activities', column: 'author' },
+      { table: 'tasks', column: 'assigned_to' },
+      { table: 'reminder_leads', column: 'assigned_rep' },
+    ];
+    const textResults = [];
+    let totalTextRefs = 0;
+    for (const tc of textChecks) {
+      try {
+        const { rows } = await query(`SELECT COUNT(*) as cnt FROM ${tc.table} WHERE ${tc.column} = $1`, [user.email]);
+        const count = parseInt(rows[0].cnt, 10);
+        textResults.push({ table: tc.table, column: tc.column, count });
+        totalTextRefs += count;
+      } catch (e) {
+        textResults.push({ table: tc.table, column: tc.column, error: e.message.substring(0, 80) });
+      }
+    }
+
+    // Check owners table
+    let ownerRef = null;
+    try {
+      const { rows } = await query('SELECT id, display_name, email FROM owners WHERE email = $1', [user.email]);
+      ownerRef = rows[0] || null;
+    } catch (e) { ownerRef = { error: e.message.substring(0, 80) }; }
+
+    const safe = totalFkRefs === 0 && totalTextRefs === 0 && !ownerRef;
+
+    res.json({
+      found: true,
+      user: { id: user.id, email: user.email, full_name: user.full_name, role: user.role, status: user.status },
+      fk_references: fkResults,
+      text_references: textResults,
+      owner_reference: ownerRef,
+      total_fk: totalFkRefs,
+      total_text: totalTextRefs,
+      safe,
+      reason: safe ? 'no dependencies found — safe to delete' : 'has dependencies — DO NOT delete',
+    });
+  } catch (e) {
+    console.error('[cron] audit-user-deletion-safety error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
