@@ -1,3 +1,4 @@
+// Rebuild trigger 2026-09-08: garbage admin cleanup migration 2026-34
 // Rebuild trigger 2026-09-08: audit-user-deletion-safety endpoint + garbage admin cleanup
 // Rebuild trigger 2026-09-08: temp user cleanup migration 2026-33
 /* eslint-disable no-undef */
