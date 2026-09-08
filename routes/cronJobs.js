@@ -2036,4 +2036,134 @@ router.post('/run-reminder-engine', async (req, res) => {
   }
 });
 
+
+// ── POST /audit-appointments — READ-ONLY comprehensive appointment+reminder audit ──
+// Queries all active appointments for a target date (Pacific), joins leads/owners,
+// checks reminder_leads projection, checks reminder_claims for all windows.
+// No writes. Temporary diagnostic — to be removed after reminder acceptance.
+router.post('/audit-appointments', async (req, res) => {
+  try {
+    const { date } = req.body || {};
+    // Default to tomorrow in Pacific time
+    const now = new Date();
+    const laParts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit'
+    }).formatToParts(now);
+    const laDate = {};
+    for (const p of laParts) { if (p.type === 'year') laDate.year = p.value; if (p.type === 'month') laDate.month = p.value; if (p.type === 'day') laDate.day = p.value; }
+    const todayLa = laDate.year + '-' + laDate.month + '-' + laDate.day;
+    const tomorrow = new Date(new Date(todayLa + 'T00:00:00').getTime() + 86400000);
+    const targetDate = date || tomorrow.toISOString().slice(0, 10);
+
+    // Query all active appointments for the target date in Pacific time
+    const { rows: appointments } = await query(`
+      SELECT a.id, a.lead_id, a.owner_id, a.appointment_type_id, a.start_at, a.end_at,
+             a.status, a.calendar_sync_status, a.google_event_id, a.google_travel_event_id,
+             a.calendar_synced_at, a.version, a.timezone, a.idempotency_key,
+             l.external_ref, l.first_name, l.last_name, l.email, l.phone,
+             l.property_address, l.city, l.project_type, l.follow_up_type,
+             o.display_name AS owner_display_name, o.email AS owner_email,
+             at.name AS appointment_type_name, at.default_duration_minutes
+      FROM appointments a
+      JOIN leads l ON l.id = a.lead_id
+      LEFT JOIN owners o ON o.id = a.owner_id
+      LEFT JOIN appointment_types at ON at.id = a.appointment_type_id
+      WHERE a.status IN ('scheduled', 'confirmed')
+        AND (a.start_at AT TIME ZONE 'America/Los_Angeles')::date = $1::date
+      ORDER BY a.start_at ASC
+    `, [targetDate]);
+
+    const results = [];
+    for (const appt of appointments) {
+      const reminderId = appt.external_ref || String(appt.lead_id);
+
+      // Check reminder_leads projection
+      const { rows: rlRows } = await query(
+        `SELECT id, first_name, last_name, email, phone, follow_up_date, follow_up_time, follow_up_type,
+                 appointment_date, appointment_time, customer_reminders_disabled,
+                 assigned_rep, assigned_rep_email, assigned_rep_name, assigned_rep_phone
+         FROM reminder_leads WHERE id = $1 LIMIT 1`,
+        [reminderId]
+      );
+      const reminderLead = rlRows[0] || null;
+
+      // Check reminder_claims for all windows
+      const { rows: claims } = await query(
+        `SELECT id, reminder_key, reminder_window, status, owner, sent_at, last_error, last_error_type,
+                gmail_message_ids, created_at, appointment_date, attempts
+         FROM reminder_claims WHERE lead_id = $1 ORDER BY created_at DESC LIMIT 30`,
+        [reminderId]
+      );
+
+      // Format Pacific times
+      const pacificStart = new Date(appt.start_at).toLocaleString('en-US', { timeZone: 'America/Los_Angeles' });
+      const pacificEnd = new Date(appt.end_at).toLocaleString('en-US', { timeZone: 'America/Los_Angeles' });
+
+      results.push({
+        appointment_uuid: appt.id,
+        lead_id: appt.lead_id,
+        external_ref: appt.external_ref,
+        pacific_start: pacificStart,
+        pacific_end: pacificEnd,
+        status: appt.status,
+        appointment_type: appt.appointment_type_name,
+        follow_up_type: appt.follow_up_type,
+        calendar_sync_status: appt.calendar_sync_status,
+        google_event_id: appt.google_event_id,
+        google_travel_event_id: appt.google_travel_event_id,
+        calendar_synced_at: appt.calendar_synced_at,
+        version: appt.version,
+        customer: {
+          first_name: appt.first_name,
+          last_name: appt.last_name,
+          email: appt.email,
+          phone: appt.phone,
+          property_address: appt.property_address,
+          city: appt.city,
+          project_type: appt.project_type,
+        },
+        salesperson: {
+          display_name: appt.owner_display_name,
+          email: appt.owner_email,
+        },
+        reminder_leads_projection: reminderLead ? {
+          id: reminderLead.id,
+          in_projection: true,
+          email: reminderLead.email,
+          phone: reminderLead.phone,
+          follow_up_date: reminderLead.follow_up_date,
+          follow_up_time: reminderLead.follow_up_time,
+          follow_up_type: reminderLead.follow_up_type,
+          appointment_date: reminderLead.appointment_date,
+          appointment_time: reminderLead.appointment_time,
+          customer_reminders_disabled: reminderLead.customer_reminders_disabled,
+          assigned_rep: reminderLead.assigned_rep,
+          assigned_rep_email: reminderLead.assigned_rep_email,
+        } : { in_projection: false },
+        reminder_claims: claims.map(c => ({
+          window: c.reminder_window,
+          status: c.status,
+          sent_at: c.sent_at,
+          gmail_message_ids: c.gmail_message_ids,
+          last_error: c.last_error,
+          last_error_type: c.last_error_type,
+          attempts: c.attempts,
+          created_at: c.created_at,
+          reminder_key: c.reminder_key,
+        })),
+      });
+    }
+
+    res.json({
+      ok: true,
+      target_date: targetDate,
+      total_appointments: appointments.length,
+      appointments: results,
+    });
+  } catch (e) {
+    console.error('[cron] audit-appointments error:', e.message, e.stack);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
