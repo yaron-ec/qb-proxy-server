@@ -162,7 +162,7 @@ router.post('/diagnose-appointment-sync', async (req, res) => {
   }
 });
 
-// POST /fix-appointment-sync — reset stale sync status + re-enqueue outbox
+// POST /fix-appointment-sync — fix stale lead + appointment calendar sync status
 router.post('/fix-appointment-sync', async (req, res) => {
   const { pool } = require('../db/client');
   const { lead_id, dry_run } = req.body || {};
@@ -171,39 +171,63 @@ router.post('/fix-appointment-sync', async (req, res) => {
   try {
     await client.query('BEGIN');
 
-    // 1. Find appointments with stale sync status (google_event_id set but calendar_sync_status != 'synced')
-    const staleRes = await client.query(
-      'SELECT id, start_at, status, calendar_sync_status, google_event_id, google_travel_event_id FROM appointments WHERE lead_id = $1 AND google_event_id IS NOT NULL AND calendar_sync_status != $2',
+    // 1. Find synced appointments for this lead
+    const syncedRes = await client.query(
+      'SELECT id, start_at, google_event_id, google_travel_event_id, calendar_synced_at FROM appointments WHERE lead_id = $1 AND calendar_sync_status = $2 AND google_event_id IS NOT NULL',
       [lead_id, 'synced']
     );
 
-    // 2. Find appointments with no outbox entry (genuinely pending)
-    const pendingRes = await client.query(
-      'SELECT id, start_at, status, calendar_sync_status FROM appointments WHERE lead_id = $1 AND (calendar_sync_status IS NULL OR calendar_sync_status = $2)',
-      [lead_id, 'pending']
+    // 2. Get the lead's current calendar sync status
+    const leadRes = await client.query(
+      'SELECT id, google_calendar_sync_status, google_event_id, google_travel_event_id, last_google_sync FROM leads WHERE id = $1',
+      [lead_id]
+    );
+    const lead = leadRes.rows[0];
+
+    // 3. If lead status is not 'synced' but a synced appointment exists, update the lead
+    let leadFixed = false;
+    let leadFixDetails = null;
+    if (lead && syncedRes.rows.length > 0 && lead.google_calendar_sync_status !== 'synced') {
+      const appt = syncedRes.rows[0];
+      leadFixed = true;
+      leadFixDetails = {
+        old_status: lead.google_calendar_sync_status,
+        new_status: 'synced',
+        google_event_id: appt.google_event_id,
+        google_travel_event_id: appt.google_travel_event_id,
+      };
+      if (!dry_run) {
+        await client.query(
+          'UPDATE leads SET google_calendar_sync_status = $1, google_event_id = COALESCE($2, google_event_id), google_travel_event_id = COALESCE($3, google_travel_event_id), last_google_sync = COALESCE($4, last_google_sync), updated_at = NOW() WHERE id = $5',
+          ['synced', appt.google_event_id, appt.google_travel_event_id, appt.calendar_synced_at, lead_id]
+        );
+      }
+    }
+
+    // 4. Also fix stale appointment sync status
+    const fixRes = await client.query(
+      'UPDATE appointments SET calendar_sync_status = $1, calendar_synced_at = COALESCE(calendar_synced_at, NOW()) WHERE lead_id = $2 AND google_event_id IS NOT NULL AND calendar_sync_status != $1 RETURNING id',
+      ['synced', lead_id]
     );
 
     if (dry_run) {
       await client.query('ROLLBACK');
       res.json({
-        ok: true,
-        dry_run: true,
-        stale_appointments: staleRes.rows,
-        pending_appointments: pendingRes.rows,
+        ok: true, dry_run: true, lead_id,
+        lead_current: lead,
+        synced_appointments: syncedRes.rows,
+        would_fix_lead: leadFixed,
+        lead_fix_details: leadFixDetails,
+        would_fix_appointments: fixRes.rows.length,
       });
     } else {
-      // Fix stale: update calendar_sync_status to 'synced' where google_event_id is set
-      const fixRes = await client.query(
-        'UPDATE appointments SET calendar_sync_status = $1, calendar_synced_at = NOW() WHERE lead_id = $2 AND google_event_id IS NOT NULL AND calendar_sync_status != $1 RETURNING id',
-        ['synced', lead_id]
-      );
       await client.query('COMMIT');
       res.json({
-        ok: true,
-        dry_run: false,
-        fixed_stale: fixRes.rows.length,
-        fixed_ids: fixRes.rows.map(r => r.id),
-        still_pending: pendingRes.rows,
+        ok: true, dry_run: false, lead_id,
+        lead_fixed: leadFixed,
+        lead_fix_details: leadFixDetails,
+        appointments_fixed: fixRes.rows.length,
+        fixed_appointment_ids: fixRes.rows.map(r => r.id),
       });
     }
   } catch (e) {
