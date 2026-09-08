@@ -412,17 +412,27 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
     // leads (external_ref = NULL) when called with their Railway UUID.
     const { whereSql: upsertWhere, params: upsertParams } = leadIdWhere(externalRef);
     const existingById = await query(`SELECT id, external_ref FROM leads WHERE ${upsertWhere} LIMIT 1`, upsertParams);
-    const isRailwayNativeUpdate = existingById.rows[0] && UUID_RE.test(String(externalRef)) && existingById.rows[0].id === externalRef;
+    const existingLead = existingById.rows[0]; // any existing lead — UUID or external_ref
 
     let sql, params;
-    if (isRailwayNativeUpdate) {
-      // UPDATE by canonical Railway UUID — no external_ref upsert, no duplicate.
+    if (existingLead) {
+      // UPDATE by canonical Railway UUID — no upsert, no duplicate, no owner_id NULL risk.
+      // Works for BOTH Railway-native leads (externalRef = UUID) AND legacy leads
+      // (externalRef = Base44 ID). owner_id is only included if explicitly provided;
+      // omitted owner_id preserves the existing value (NOT NULL is never violated).
       const setCols = Object.keys(allFields);
-      const setClause = setCols.map((col, i) => `${col} = $${i + 1}`).join(', ');
-      params = [...setCols.map(c => allFields[c]), existingById.rows[0].id];
-      sql = `UPDATE leads SET ${setClause}, updated_at = NOW() WHERE id = $${setCols.length + 1} RETURNING *`;
+      if (setCols.length === 0) {
+        const appt = await fetchActiveAppointment(existingLead.id);
+        return res.json({ lead: serializeLead(existingLead, appt) });
+      }
+      const setClause = setCols.map((col, i) => `${col} = ${i + 1}`).join(', ');
+      params = [...setCols.map(c => allFields[c]), existingLead.id];
+      sql = `UPDATE leads SET ${setClause}, updated_at = NOW() WHERE id = ${setCols.length + 1} RETURNING *`;
     } else {
-      // Upsert by external_ref (legacy leads or new inserts from Base44).
+      // INSERT new lead by external_ref (lead doesn't exist yet).
+      // owner_id is NOT NULL — if not provided, default to the first active owner
+      // (prevents NOT NULL violation on INSERT). Existing leads are always UPDATE'd
+      // above, preserving their owner_id.
       const insertCols = ['external_ref', 'first_name', 'last_name'];
       params = [externalRef, insertFirstName, insertLastName];
       for (const col of Object.keys(allFields)) {
@@ -794,22 +804,20 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
 router.put('/:id/appointment', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    if (!UUID_RE.test(String(id))) {
-      return res.status(400).json({ error: 'invalid_id', message: 'PUT /:id/appointment requires a valid Railway UUID.' });
-    }
+    // Accept BOTH Railway UUID and legacy external_ref (Base44 ID).
+    // The frontend may send either identifier — resolve to the canonical UUID.
+    const leadRow = await resolveLeadByIdentifier(id);
+    if (!leadRow) return res.status(404).json({ error: 'not_found' });
 
     const scope = await resolveOwnerScope(req.user);
     if (scope.denied) return res.status(403).json({ error: 'forbidden' });
     if (scope.readOnly) return res.status(403).json({ error: 'forbidden', message: 'office role is read-only' });
 
-    // Verify lead exists + caller has access
-    const leadR = await query('SELECT id, owner_id FROM leads WHERE id = $1', [id]);
-    if (!leadR.rows[0]) return res.status(404).json({ error: 'not_found' });
-    if (scope.ownerFilter && String(leadR.rows[0].owner_id) !== String(scope.ownerFilter)) {
+    if (scope.ownerFilter && String(leadRow.owner_id) !== String(scope.ownerFilter)) {
       return res.status(403).json({ error: 'forbidden' });
     }
 
-    return executeAppointmentUpdate(req, res, leadR.rows[0].id);
+    return executeAppointmentUpdate(req, res, leadRow.id);
   } catch (e) {
     console.error('[leads] appointment update error:', e.message);
     res.status(500).json({ error: e.message });
@@ -923,27 +931,21 @@ const UPDATABLE_FIELDS = [
 router.put('/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    // Guard: :id must be a valid UUID — this route only accepts canonical
-    // Railway UUIDs. Non-UUID identifiers (legacy external_refs) must use
-    // the /by-external/:externalRef routes instead.
-    if (!UUID_RE.test(String(id))) {
-      return res.status(400).json({ error: 'invalid_id', message: 'PUT /:id requires a valid Railway UUID. Use /by-external/:externalRef for legacy identifiers.' });
-    }
+    // Accept BOTH Railway UUID and legacy external_ref (Base44 ID).
+    // The frontend may send either identifier — resolve to the canonical UUID.
+    const leadRow = await resolveLeadByIdentifier(id);
+    if (!leadRow) return res.status(404).json({ error: 'not_found' });
+
     const scope = await resolveOwnerScope(req.user);
     if (scope.denied) return res.status(403).json({ error: 'forbidden' });
     if (scope.readOnly) return res.status(403).json({ error: 'forbidden', message: 'office role is read-only' });
 
-    // Verify lead exists + caller has access — fetch FULL row for diff notification
-    const leadR = await query(
-      `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
-       FROM leads l LEFT JOIN owners o ON o.id = l.owner_id WHERE l.id = $1`,
-      [id]
-    );
-    if (!leadR.rows[0]) return res.status(404).json({ error: 'not_found' });
-    if (scope.ownerFilter && String(leadR.rows[0].owner_id) !== String(scope.ownerFilter)) {
+    if (scope.ownerFilter && String(leadRow.owner_id) !== String(scope.ownerFilter)) {
       return res.status(403).json({ error: 'forbidden' });
     }
-    const oldLead = leadR.rows[0];
+    // Use the canonical Railway UUID for all downstream operations
+    const canonicalId = leadRow.id;
+    const oldLead = leadRow;
 
     const body = req.body || {};
     const updates = [];
@@ -973,7 +975,7 @@ router.put('/:id', requireAuth, async (req, res) => {
         if ((col === 'email' || col === 'phone') && val) {
           const dup = await query(
             `SELECT id, first_name, last_name FROM leads WHERE ${col === 'email' ? 'lower(email)' : 'phone'} = $1 AND id != $2 LIMIT 1`,
-            [val, id]
+            [val, canonicalId]
           );
           if (dup.rows[0]) {
             return res.status(409).json({
@@ -1037,8 +1039,8 @@ router.put('/:id', requireAuth, async (req, res) => {
 
     updates.push('updated_at = NOW()');
 
-    const sql = `UPDATE leads SET ${updates.join(', ')} WHERE id = $${p} RETURNING *`;
-    params.push(id);
+    const sql = `UPDATE leads SET ${updates.join(', ')} WHERE id = ${p} RETURNING *`;
+    params.push(canonicalId);
 
     // ── Atomic: lead update + reminder projection in ONE transaction ──────
     const client = await pool.connect();
@@ -1093,28 +1095,27 @@ router.put('/:id', requireAuth, async (req, res) => {
 router.delete('/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    if (!UUID_RE.test(String(id))) {
-      return res.status(400).json({ error: 'invalid_id', message: 'DELETE /:id requires a valid Railway UUID. Use /by-external/:externalRef for legacy identifiers.' });
-    }
+    // Accept BOTH Railway UUID and legacy external_ref (Base44 ID).
+    const leadRow = await resolveLeadByIdentifier(id);
+    if (!leadRow) return res.status(404).json({ error: 'not_found' });
+
     const scope = await resolveOwnerScope(req.user);
     if (scope.denied) return res.status(403).json({ error: 'forbidden' });
     if (scope.readOnly) return res.status(403).json({ error: 'forbidden', message: 'office role is read-only' });
 
-    // Verify lead exists + caller has access
-    const leadR = await query('SELECT id, external_ref, owner_id FROM leads WHERE id = $1', [id]);
-    if (!leadR.rows[0]) return res.status(404).json({ error: 'not_found' });
-    if (scope.ownerFilter && String(leadR.rows[0].owner_id) !== String(scope.ownerFilter)) {
+    if (scope.ownerFilter && String(leadRow.owner_id) !== String(scope.ownerFilter)) {
       return res.status(403).json({ error: 'forbidden' });
     }
+    const canonicalId = leadRow.id;
 
     // ── Atomic: lead delete + dependency cleanup in ONE transaction ────
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      await removeFromReminders(client, leadR.rows[0]);
-      await cancelAppointmentsForLeadDelete(client, id);
-      await cleanupLeadTextRefs(client, id);
-      await client.query('DELETE FROM leads WHERE id = $1', [id]);
+      await removeFromReminders(client, leadRow);
+      await cancelAppointmentsForLeadDelete(client, canonicalId);
+      await cleanupLeadTextRefs(client, canonicalId);
+      await client.query('DELETE FROM leads WHERE id = $1', [canonicalId]);
       await client.query('COMMIT');
     } catch (e) {
       try { await client.query('ROLLBACK'); } catch (_) {}
@@ -1123,7 +1124,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
       return res.status(500).json({ error: e.message });
     }
     client.release();
-    res.json({ success: true, id });
+    res.json({ success: true, id: canonicalId });
   } catch (e) {
     console.error('[leads] delete error:', e.message);
     res.status(500).json({ error: e.message });
