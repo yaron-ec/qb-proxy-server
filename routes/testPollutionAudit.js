@@ -20,7 +20,7 @@ router.post('/audit-test-pollution', async (req, res) => {
   try {
     const { lead_id } = req.body || {};
     const patterns = [
-      '%e2e%', '%verification test%', '%test note%', '%notification test%',
+      '%e2e-verify%', '%e2e verification%', '%e2e notification%', '%verification test%', '%test note%', '%notification test%',
       '%e2e-verify%', '%live-acceptance%', '%runtime-probe%',
       '%test phone call reminder%', '%test_catchup%',
       '%second test: confirming%', '%test client%', '%test customer%',
