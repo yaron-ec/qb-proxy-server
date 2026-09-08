@@ -576,7 +576,10 @@ router.get('/by-external/:externalRef/detail', requireAuth, async (req, res) => 
 // ── PUT /by-external/:externalRef/appointment — appointment edit/reschedule ──
 // Updates ONLY appointment fields. Separate from contact update endpoint.
 // No side effects (no calendar sync here — that's handled by the booking outbox).
-const APPOINTMENT_FIELDS = ['appointment_date', 'appointment_time', 'meeting_stage', 'follow_up_date', 'follow_up_time', 'follow_up_type'];
+// appointment_date/appointment_time are NOT on the leads table — they live in the
+// appointments table. Including them here caused a 500 error. The appointment
+// creation below derives date/time from follow_up_date/follow_up_time.
+const APPOINTMENT_FIELDS = ['meeting_stage', 'follow_up_date', 'follow_up_time', 'follow_up_type'];
 
 // ── Shared appointment update logic ──────────────────────────────────────────
 // Used by both PUT /:id/appointment (canonical Railway UUID) and
