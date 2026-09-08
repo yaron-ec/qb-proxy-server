@@ -1,3 +1,4 @@
+// Rebuild trigger 2026-09-08c: test pollution audit + clean endpoints
 // Rebuild trigger 2026-09-08: garbage admin cleanup migration 2026-34
 // Rebuild trigger 2026-09-08: audit-user-deletion-safety endpoint + garbage admin cleanup
 // Rebuild trigger 2026-09-08: temp user cleanup migration 2026-33
@@ -1193,6 +1194,7 @@ app.use('/api/v1/company-settings', require('./routes/companySettings'));
 app.use('/api/v1/qb-executive-metrics', require('./routes/qbExecutiveMetrics'));
 app.use('/api/v1/financial-backfill', require('./routes/financialBackfill'));
 app.use('/api/v1/cron', require('./routes/cronJobs'));
+app.use('/api/v1/test-pollution', require('./routes/testPollutionAudit'));
 
   // Native Railway adapters for Lead Detail page (no Base44):
   //   lead-qb         — QuickBooks lead status (reads Postgres + calls QB proxy)
