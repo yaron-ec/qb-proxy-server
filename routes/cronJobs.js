@@ -1840,6 +1840,98 @@ router.post('/reconcile-calendar-appointments', async (req, res) => {
   }
 });
 
+// ── POST /diagnose-calendar-outbox ──────────────────────────────────────────
+// READ-ONLY diagnostic: returns full details of all non-synced calendar_outbox rows.
+// No writes. Used to inspect stuck rows BEFORE any reset/retry decision.
+router.post('/diagnose-calendar-outbox', async (req, res) => {
+  try {
+    const { rows: statusRows } = await query(`
+      SELECT status, count(*) as cnt FROM calendar_outbox GROUP BY status ORDER BY status
+    `);
+    const statusCounts = {};
+    for (const r of statusRows) statusCounts[r.status] = parseInt(r.cnt, 10);
+
+    const { rows: stuckRows } = await query(`
+      SELECT id, appointment_id, action, slot, version, google_event_id,
+             calendar_id, status, attempts, max_attempts, last_error,
+             claimed_by, claimed_at, next_attempt_at,
+             created_at, updated_at, idempotency_key
+      FROM calendar_outbox
+      WHERE status IN ('pending', 'failed', 'dead', 'processing')
+      ORDER BY created_at LIMIT 50
+    `);
+
+    const apptIds = [...new Set(stuckRows.map(r => r.appointment_id))];
+    let apptMap = {};
+    if (apptIds.length > 0) {
+      const { rows: appts } = await query(
+        `SELECT id, lead_id, start_at, end_at, status, calendar_sync_status,
+                 google_event_id, google_travel_event_id, calendar_synced_at, version
+          FROM appointments WHERE id = ANY($1::uuid[])`,
+        [apptIds]
+      );
+      for (const a of appts) apptMap[a.id] = a;
+    }
+
+    const { rows: apptStatsRows } = await query(`
+      SELECT calendar_sync_status, count(*) as cnt FROM appointments GROUP BY calendar_sync_status
+    `);
+    const appointmentStats = {};
+    for (const r of apptStatsRows) appointmentStats[r.calendar_sync_status || 'null'] = parseInt(r.cnt, 10);
+
+    res.json({
+      outbox_status_counts: statusCounts,
+      appointment_sync_counts: appointmentStats,
+      stuck_rows: stuckRows.map(r => ({
+        id: r.id, appointment_id: r.appointment_id, action: r.action, slot: r.slot,
+        version: r.version, google_event_id: r.google_event_id, calendar_id: r.calendar_id,
+        status: r.status, attempts: r.attempts, max_attempts: r.max_attempts,
+        last_error: r.last_error ? r.last_error.substring(0, 300) : null,
+        claimed_by: r.claimed_by, claimed_at: r.claimed_at, next_attempt_at: r.next_attempt_at,
+        created_at: r.created_at, updated_at: r.updated_at,
+        age_hours: Math.round((Date.now() - new Date(r.created_at).getTime()) / 3600000),
+        idempotency_key: r.idempotency_key,
+        appointment: apptMap[r.appointment_id] || null,
+      })),
+    });
+  } catch (e) {
+    console.error('[cron] diagnose-calendar-outbox error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── POST /reset-calendar-outbox-attempts ──────────────────────────────────
+// Resets attempts to 0 for stuck calendar_outbox rows that have exhausted retries
+// (attempts >= max_attempts) but are stuck in 'pending' status. This allows the
+// canonical drainer to reclaim and process them. Idempotency keys + deterministic
+// Google event IDs prevent duplicate events on retry.
+router.post('/reset-calendar-outbox-attempts', async (req, res) => {
+  try {
+    const { row_ids } = req.body || {};
+    let whereClause = "WHERE status = 'pending' AND attempts >= max_attempts";
+    let params = [];
+    if (row_ids && Array.isArray(row_ids) && row_ids.length > 0) {
+      whereClause = "WHERE id = ANY($1::uuid[]) AND status = 'pending' AND attempts >= max_attempts";
+      params = [row_ids];
+    }
+    const { rowCount } = await query(`
+      UPDATE calendar_outbox
+      SET attempts = 0, status = 'pending', next_attempt_at = NOW(),
+          claimed_by = NULL, claimed_at = NULL, updated_at = NOW()
+      ${whereClause}
+    `, params);
+    const { rows: statusRows } = await query(`
+      SELECT status, count(*) as cnt FROM calendar_outbox GROUP BY status ORDER BY status
+    `);
+    const statusCounts = {};
+    for (const r of statusRows) statusCounts[r.status] = parseInt(r.cnt, 10);
+    res.json({ ok: true, reset: rowCount, remaining: statusCounts, job: 'reset-calendar-outbox-attempts' });
+  } catch (e) {
+    console.error('[cron] reset-calendar-outbox-attempts error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── POST /reset-calendar-outbox-stuck — reset stuck pending/failed outbox rows ──
 // Resets calendar_outbox rows that are stuck in 'pending' or 'failed' with
 // future next_attempt_at (retry backoff) back to 'pending' with immediate
