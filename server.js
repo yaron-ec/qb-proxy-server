@@ -126,9 +126,20 @@ function saveTokensToFile(tokens) {
   }
 }
 
-// Load tokens on startup (try Base44 first, fallback to filesystem)
+// Load tokens on startup — filesystem first (sync), then database (async, survives deploys)
 let storedTokens = loadTokensFromFile();
 let tokenStorageMethod = 'filesystem';
+// Async: override with database token if available (survives Railway deploys)
+(async () => {
+  try {
+    const dbTokens = await tokenStore.loadPersistedTokens(QB_ENVIRONMENT);
+    if (dbTokens && dbTokens.access_token) {
+      storedTokens = dbTokens;
+      tokenStorageMethod = 'postgres';
+      console.log('[proxy] Tokens loaded from database on startup');
+    }
+  } catch (e) { /* best-effort — filesystem fallback already loaded */ }
+})();
 
 // ── Auth middleware ──────────────────────────────────────────────────────────
 
@@ -237,7 +248,8 @@ async function doRefreshToken() {
     last_refresh_at: new Date().toISOString(),
   };
 
-  saveTokensToFile(storedTokens);
+    saveTokensToFile(storedTokens);
+    try { await tokenStore.savePersistedTokens(QB_ENVIRONMENT, storedTokens); } catch (e) { console.error("[proxy] Failed to save refreshed tokens to database:", e.message); }
   console.log(`[proxy] Token refreshed successfully — expires ${storedTokens.expires_at}`);
   return storedTokens;
 }
@@ -304,37 +316,37 @@ function handleQBError(e, res) {
 
 async function buildHealthPayload() {
   const now = Date.now();
-  const tokenExpired = isTokenExpiredOrClose(storedTokens);
-  const refreshExpired = isRefreshTokenExpired(storedTokens);
-  const reconnectRequired = !storedTokens || refreshExpired;
-  const connected = !!(storedTokens && !refreshExpired);
 
-  // Best-effort credential lifecycle metadata from the integration credential
-  // store (last_used_at / last_error_at). Never exposes last_error_message or
-  // any secret. Returns nulls if the store is unavailable or unwired.
-  let credentialLastUsedAt = null;
-  let credentialLastErrorAt = null;
+  // Primary source: database (integrationCredentialStore via qbTokenStore).
+  // Falls back to filesystem (ephemeral — wiped on every Railway deploy).
+  let dbTokens = null;
+  let storageMethod = 'filesystem';
   try {
-    const cred = await tokenStore.loadPersistedTokens(QB_ENVIRONMENT);
-    credentialLastUsedAt = cred?.last_used_at || null;
-    credentialLastErrorAt = cred?.last_error_at || null;
-  } catch (e) { /* best-effort — health must never fail on metadata read */ }
+    dbTokens = await tokenStore.loadPersistedTokens(QB_ENVIRONMENT);
+    if (dbTokens && dbTokens.access_token) storageMethod = 'postgres';
+  } catch (e) { /* best-effort — fall back to filesystem */ }
+
+  const activeTokens = (dbTokens && dbTokens.access_token) ? dbTokens : storedTokens;
+  const tokenExpired = isTokenExpiredOrClose(activeTokens);
+  const refreshExpired = isRefreshTokenExpired(activeTokens);
+  const reconnectRequired = !activeTokens || refreshExpired;
+  const connected = !!(activeTokens && !refreshExpired);
 
   return {
     status: 'ok',
     service_name: PROXY_SERVICE_NAME,
     environment: QB_ENVIRONMENT,
     connected,
-    realmId: storedTokens?.realm_id || null,
-    tokenExpiresAt: storedTokens?.expires_at || null,
+    realmId: activeTokens?.realm_id || null,
+    tokenExpiresAt: activeTokens?.expires_at || null,
     tokenExpired,
-    refreshExpiresAt: storedTokens?.refresh_expires_at || null,
+    refreshExpiresAt: activeTokens?.refresh_expires_at || null,
     reconnectRequired,
-    lastRefreshedAt: storedTokens?.last_refresh_at || null,
-    connectedAt: storedTokens?.connected_at || null,
-    storageMethod: 'filesystem',
-    credential_last_used_at: credentialLastUsedAt,
-    credential_last_error_at: credentialLastErrorAt,
+    lastRefreshedAt: activeTokens?.last_refresh_at || null,
+    connectedAt: activeTokens?.connected_at || null,
+    storageMethod,
+    credential_last_used_at: activeTokens?.last_used_at || null,
+    credential_last_error_at: activeTokens?.last_error_at || null,
   };
 }
 
@@ -414,6 +426,11 @@ async function handleAuthCallback(req, res) {
     };
     saveTokensToFile(storedTokens);
     tokenStorageMethod = 'filesystem';
+    // Also persist to database (survives Railway deploys)
+    try {
+      const dbStorage = await tokenStore.savePersistedTokens(QB_ENVIRONMENT, storedTokens);
+      tokenStorageMethod = dbStorage;
+    } catch (e) { console.error('[proxy] Failed to save tokens to database:', e.message); }
     console.log('[proxy] OAuth complete — realm_id:', realmId, 'env:', QB_ENVIRONMENT, 'storage:', tokenStorageMethod);
     res.json({ success: true, realm_id: realmId, environment: QB_ENVIRONMENT, storage_method: tokenStorageMethod });
   } catch (e) {
