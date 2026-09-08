@@ -1,3 +1,4 @@
+// Rebuild trigger 2026-09-08d: fixed clean-test-pollution + expanded patterns
 // Rebuild trigger 2026-09-08c: test pollution audit + clean endpoints
 // Rebuild trigger 2026-09-08: garbage admin cleanup migration 2026-34
 // Rebuild trigger 2026-09-08: audit-user-deletion-safety endpoint + garbage admin cleanup
