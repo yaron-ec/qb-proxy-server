@@ -1932,6 +1932,34 @@ router.post('/reset-calendar-outbox-attempts', async (req, res) => {
   }
 });
 
+// ── POST /mark-calendar-outbox-dead ──────────────────────────────────────────
+// Marks specific calendar_outbox rows as 'dead' without processing them.
+// Used for stale rows where the appointment state has changed (e.g., cancelled)
+// and the outbox action is no longer applicable. Requires row_ids array.
+router.post('/mark-calendar-outbox-dead', async (req, res) => {
+  try {
+    const { row_ids, reason } = req.body || {};
+    if (!row_ids || !Array.isArray(row_ids) || row_ids.length === 0) {
+      return res.status(400).json({ error: 'row_ids array required' });
+    }
+    const { rowCount } = await query(`
+      UPDATE calendar_outbox
+      SET status = 'dead', last_error = $2,
+          claimed_by = NULL, claimed_at = NULL, updated_at = NOW()
+      WHERE id = ANY($1::uuid[]) AND status IN ('pending', 'failed')
+    `, [row_ids, reason || 'Marked dead: stale outbox row (appointment state changed)']);
+    const { rows: statusRows } = await query(`
+      SELECT status, count(*) as cnt FROM calendar_outbox GROUP BY status ORDER BY status
+    `);
+    const statusCounts = {};
+    for (const r of statusRows) statusCounts[r.status] = parseInt(r.cnt, 10);
+    res.json({ ok: true, marked_dead: rowCount, remaining: statusCounts, job: 'mark-calendar-outbox-dead' });
+  } catch (e) {
+    console.error('[cron] mark-calendar-outbox-dead error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── POST /reset-calendar-outbox-stuck — reset stuck pending/failed outbox rows ──
 // Resets calendar_outbox rows that are stuck in 'pending' or 'failed' with
 // future next_attempt_at (retry backoff) back to 'pending' with immediate
