@@ -1,3 +1,4 @@
+// Rebuild trigger 2026-09-08: temp user cleanup migration 2026-33
 /* eslint-disable no-undef */
 /**
  * QuickBooks Proxy Server
