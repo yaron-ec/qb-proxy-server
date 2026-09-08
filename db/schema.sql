@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS reminder_claims (
   lead_id           TEXT NOT NULL,
   appointment_date  DATE NOT NULL,
   reminder_window   TEXT NOT NULL,                 -- 48h|24h|12h|2h|30min|catchup
-  status            TEXT NOT NULL DEFAULT 'pending', -- pending|processing|sent|failed
+  status            TEXT NOT NULL DEFAULT 'pending', -- pending|processing|sent|failed|skipped_no_recipient
   owner             TEXT,                           -- <hostname>:<pid>
   lease_expires_at  TIMESTAMPTZ,
   attempts          INTEGER NOT NULL DEFAULT 0,
