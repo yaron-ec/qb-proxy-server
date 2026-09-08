@@ -1,3 +1,4 @@
+// Rebuild trigger 2026-09-08f: fix e2e false positive pattern
 // Rebuild trigger 2026-09-08e: appointment-sync diagnose + fix endpoints
 // Rebuild trigger 2026-09-08d: fixed clean-test-pollution + expanded patterns
 // Rebuild trigger 2026-09-08c: test pollution audit + clean endpoints
