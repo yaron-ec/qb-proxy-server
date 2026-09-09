@@ -202,6 +202,7 @@ function serializeLead(row, appointment = null) {
     // We expose them on the lead object under the legacy field names so the
     // frontend CalendarSyncPanel works without interface changes.
     appointment_id: appointment?.id || row.active_appointment_id || null,
+    appointment_id: appointment?.id || null,
     google_calendar_sync_status: appointment?.calendar_sync_status || null,
     google_event_id: appointment?.google_event_id || null,
     google_travel_event_id: appointment?.google_travel_event_id || null,
