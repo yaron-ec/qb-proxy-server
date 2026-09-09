@@ -23,6 +23,7 @@ const { requireAuth } = require('../lib/rbac');
 const { canonicalEmail } = require('../lib/authorization');
 const { query, pool } = require('../db/client');
 const calendarOutbox = require('../lib/booking/calendarOutbox');
+const { acquireOwnerLockAndCheckConflict } = require('../lib/booking/appointmentWriter');
 const googleContactsClient = require('../lib/googleContactsClient');
 const { toUtcIso } = require('../lib/booking/slotBlocking');
 const { syncLeadToReminders, removeFromReminders } = require('../lib/reminderProjection');
@@ -200,6 +201,7 @@ function serializeLead(row, appointment = null) {
     //   calendar_last_error, calendar_synced_at
     // We expose them on the lead object under the legacy field names so the
     // frontend CalendarSyncPanel works without interface changes.
+    appointment_id: appointment?.id || row.active_appointment_id || null,
     google_calendar_sync_status: appointment?.calendar_sync_status || null,
     google_event_id: appointment?.google_event_id || null,
     google_travel_event_id: appointment?.google_travel_event_id || null,
@@ -600,6 +602,8 @@ const APPOINTMENT_FIELDS = ['meeting_stage', 'follow_up_date', 'follow_up_time',
 async function executeAppointmentUpdate(req, res, resolvedLeadId) {
   try {
     const body = req.body || {};
+    const adminOverride = body.admin_override === true && req.user?.role === 'admin';
+    const actorEmail = req.user?.email || null;
     const updates = [];
     const params = [];
     let p = 1;
@@ -658,12 +662,18 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
         const busyStart = isPhoneCall ? startAt : new Date(startAt.getTime() - 60 * 60 * 1000);
         const busyEnd = isPhoneCall ? endAt : new Date(endAt.getTime() + 60 * 60 * 1000);
 
+        await acquireOwnerLockAndCheckConflict(client, updatedLead.owner_id, busyStart, busyEnd, existingAppt?.id, adminOverride);
+
         if (existingAppt) {
           const newVersion = (existingAppt.version || 1) + 1;
           await client.query(
             `UPDATE appointments SET start_at = $1, end_at = $2, busy_range = tstzrange($3, $4, '[)'),
-             version = $5, calendar_sync_status = 'pending', updated_at = NOW() WHERE id = $6`,
-            [startAt.toISOString(), endAt.toISOString(), busyStart.toISOString(), busyEnd.toISOString(), newVersion, existingAppt.id]
+             version = $5, calendar_sync_status = 'pending',
+             override_authorized = $6, override_authorized_by = $7, override_authorized_at = $8,
+             updated_at = NOW() WHERE id = $9`,
+            [startAt.toISOString(), endAt.toISOString(), busyStart.toISOString(), busyEnd.toISOString(),
+             newVersion, adminOverride, adminOverride ? actorEmail : null, adminOverride ? new Date().toISOString() : null,
+             existingAppt.id]
           );
           const updatedAppt = (await client.query('SELECT * FROM appointments WHERE id = $1', [existingAppt.id])).rows[0];
           // For Phone Calls, skip travel event (no driving). Pass skipTravel=true.
@@ -689,10 +699,11 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
             const insRes = await client.query(
               `INSERT INTO appointments (lead_id, owner_id, appointment_type_id, start_at, end_at, timezone, busy_range, status, calendar_sync_status, idempotency_key)
                VALUES ($1, $2, $3, $4, $5, $6, tstzrange($7, $8, '[)'), 'scheduled', 'pending', $9)
-               ON CONFLICT (idempotency_key) DO NOTHING
+               ON CONFLICT (idempotency_key, override_authorized, override_authorized_by, override_authorized_at) DO NOTHING
                RETURNING *`,
               [updatedLead.id, updatedLead.owner_id, typeId, startAt.toISOString(), endAt.toISOString(),
-               'America/Los_Angeles', busyStart.toISOString(), busyEnd.toISOString(), idempotencyKey]
+               'America/Los_Angeles', busyStart.toISOString(), busyEnd.toISOString(), idempotencyKey,
+               adminOverride, adminOverride ? actorEmail : null, adminOverride ? new Date().toISOString() : null]
             );
             const newAppt = insRes.rows[0];
             if (!newAppt) {
@@ -762,7 +773,7 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
       try { await client.query('ROLLBACK'); } catch (_) {}
       client.release();
 
-      if (calErr.code === '23P01') {
+      if (calErr.code === 'SLOT_CONFLICT' || calErr.code === '23P01') {
         return res.status(409).json({
           error: 'slot_conflict',
           message: 'This time conflicts with another appointment. Please choose a different time.',
@@ -892,7 +903,8 @@ router.get('/', requireAuth, async (req, res) => {
     else if (sort === '-follow_up') { orderCol = 'l.follow_up_date'; orderDir = 'DESC NULLS LAST'; }
 
     const sql = `
-      SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
+      SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email,
+        (SELECT id FROM appointments WHERE lead_id = l.id AND status IN ('scheduled','confirmed') ORDER BY created_at DESC LIMIT 1) AS active_appointment_id
       FROM leads l
       LEFT JOIN owners o ON o.id = l.owner_id
       ${whereClause}
@@ -1251,6 +1263,7 @@ router.post('/by-external/:externalRef/sync-calendar', requireAuth, async (req, 
     // with 1hr buffer before/after. The worker processes them with retry + dead-letter.
     const { pool } = require('../db/client');
     const calendarOutbox = require('../lib/booking/calendarOutbox');
+const { acquireOwnerLockAndCheckConflict } = require('../lib/booking/appointmentWriter');
 
     // Build start/end times (LA timezone)
     // Phone Calls: no travel buffer. Meetings: 1hr before/after.
@@ -1272,6 +1285,8 @@ router.post('/by-external/:externalRef/sync-calendar', requireAuth, async (req, 
       );
 
       let appointment;
+
+      await acquireOwnerLockAndCheckConflict(client, lead.owner_id, busyStart, busyEnd, apptRes.rows[0]?.id, false);
 
       if (apptRes.rows[0]) {
         // Reschedule: update existing appointment's time
@@ -1298,7 +1313,7 @@ router.post('/by-external/:externalRef/sync-calendar', requireAuth, async (req, 
         const idempotencyKey = `sync-cal:${lead.id}:${apptDate}:${apptTime}`;
         const insRes = await client.query(
           `INSERT INTO appointments (lead_id, owner_id, appointment_type_id, start_at, end_at, timezone, busy_range, status, calendar_sync_status, idempotency_key)
-           VALUES ($1, $2, $3, $4, $5, $6, tstzrange($7, $8, '[)'), 'scheduled', 'pending', $9)
+           VALUES ($1, $2, $3, $4, $5, $6, tstzrange($7, $8, '[)'), 'scheduled', 'pending', $9, $10, $11, $12)
            ON CONFLICT (idempotency_key) DO NOTHING
            RETURNING *`,
           [lead.id, lead.owner_id, typeId, startAt.toISOString(), endAt.toISOString(), 'America/Los_Angeles', busyStart.toISOString(), busyEnd.toISOString(), idempotencyKey]
@@ -1358,6 +1373,9 @@ router.post('/by-external/:externalRef/sync-calendar', requireAuth, async (req, 
       client.release();
     }
   } catch (e) {
+    if (e.code === 'SLOT_CONFLICT') {
+      return res.status(409).json({ error: 'slot_conflict', message: e.message });
+    }
     console.error('[leads] sync-calendar error:', e.message);
     res.status(500).json({ error: e.message });
   }
