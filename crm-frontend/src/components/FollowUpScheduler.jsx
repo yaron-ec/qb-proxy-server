@@ -6,8 +6,6 @@ import { validateSlot } from "@/lib/calendarAvailability";
 import { Calendar, Phone, AlertTriangle, Pencil, X, ShieldAlert, Loader2 } from "lucide-react";
 import AvailableTimePicker from "@/components/AvailableTimePicker";
 
-// Emails of users who are allowed to override booking conflicts
-const ADMIN_OVERRIDE_EMAILS = ['michelle@ecconstructiongroup.com', 'yaron@ecconstructiongroup.com'];
 
 function fmt12(t) {
   if (!t) return "";
@@ -37,14 +35,10 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
   const [justSaved, setJustSaved] = useState(false);
   const { user: authUser } = useAuth();
 
-  // Check admin override from auth context
+  // Check admin override from auth context — strictly role-based, no email bypass
   useEffect(() => {
     if (authUser) {
-      const email = (authUser.email || '').toLowerCase();
-      const role = authUser.role || '';
-      const byRole = ['admin', 'owner', 'manager'].includes(role);
-      const byEmail = ADMIN_OVERRIDE_EMAILS.includes(email);
-      setIsAdminUser(byRole || byEmail);
+      setIsAdminUser(authUser.role === 'admin');
     }
   }, [authUser]);
 

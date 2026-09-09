@@ -428,9 +428,9 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
         const appt = await fetchActiveAppointment(existingLead.id);
         return res.json({ lead: serializeLead(existingLead, appt) });
       }
-      const setClause = setCols.map((col, i) => `${col} = ${i + 1}`).join(', ');
+      const setClause = setCols.map((col, i) => `${col} = $${i + 1}`).join(', ');
       params = [...setCols.map(c => allFields[c]), existingLead.id];
-      sql = `UPDATE leads SET ${setClause}, updated_at = NOW() WHERE id = ${setCols.length + 1} RETURNING *`;
+      sql = `UPDATE leads SET ${setClause}, updated_at = NOW() WHERE id = $${setCols.length + 1} RETURNING *`;
     } else {
       // INSERT new lead by external_ref (lead doesn't exist yet).
       // owner_id is NOT NULL — if not provided, default to the first active owner
