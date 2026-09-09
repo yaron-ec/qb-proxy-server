@@ -1052,7 +1052,7 @@ router.put('/:id', requireAuth, async (req, res) => {
 
     updates.push('updated_at = NOW()');
 
-    const sql = `UPDATE leads SET ${updates.join(', ')} WHERE id = ${p} RETURNING *`;
+    const sql = `UPDATE leads SET ${updates.join(', ')} WHERE id = $${p} RETURNING *`;
     params.push(canonicalId);
 
     // ── Atomic: lead update + reminder projection in ONE transaction ──────
