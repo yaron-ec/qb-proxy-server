@@ -697,9 +697,9 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
             const typeId = typeRes.rows[0].id;
             const idempotencyKey = `appt:${updatedLead.id}:${apptDate}:${apptTime}`;
             const insRes = await client.query(
-              `INSERT INTO appointments (lead_id, owner_id, appointment_type_id, start_at, end_at, timezone, busy_range, status, calendar_sync_status, idempotency_key)
+              `INSERT INTO appointments (lead_id, owner_id, appointment_type_id, start_at, end_at, timezone, busy_range, status, calendar_sync_status, idempotency_key, override_authorized, override_authorized_by, override_authorized_at)
                VALUES ($1, $2, $3, $4, $5, $6, tstzrange($7, $8, '[)'), 'scheduled', 'pending', $9)
-               ON CONFLICT (idempotency_key, override_authorized, override_authorized_by, override_authorized_at) DO NOTHING
+               ON CONFLICT (idempotency_key) DO NOTHING
                RETURNING *`,
               [updatedLead.id, updatedLead.owner_id, typeId, startAt.toISOString(), endAt.toISOString(),
                'America/Los_Angeles', busyStart.toISOString(), busyEnd.toISOString(), idempotencyKey,
@@ -1313,7 +1313,7 @@ const { acquireOwnerLockAndCheckConflict } = require('../lib/booking/appointment
         const idempotencyKey = `sync-cal:${lead.id}:${apptDate}:${apptTime}`;
         const insRes = await client.query(
           `INSERT INTO appointments (lead_id, owner_id, appointment_type_id, start_at, end_at, timezone, busy_range, status, calendar_sync_status, idempotency_key)
-           VALUES ($1, $2, $3, $4, $5, $6, tstzrange($7, $8, '[)'), 'scheduled', 'pending', $9, $10, $11, $12)
+           VALUES ($1, $2, $3, $4, $5, $6, tstzrange($7, $8, '[)'), 'scheduled', 'pending', $9)
            ON CONFLICT (idempotency_key) DO NOTHING
            RETURNING *`,
           [lead.id, lead.owner_id, typeId, startAt.toISOString(), endAt.toISOString(), 'America/Los_Angeles', busyStart.toISOString(), busyEnd.toISOString(), idempotencyKey]
