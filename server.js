@@ -1489,6 +1489,17 @@ app.get('/signnow/diagnostic', requireProxySecret, async (req, res) => {
       result.db_credential_error = e.message;
     }
 
+    // Check API Key format (length, whitespace) — never reveal the key itself
+    if (process.env.SIGNNOW_API_KEY) {
+      const key = process.env.SIGNNOW_API_KEY;
+      result.api_key_length = key.length;
+      result.api_key_has_leading_whitespace = key !== key.trimStart();
+      result.api_key_has_trailing_whitespace = key !== key.trimEnd();
+      result.api_key_has_newlines = /\n|\r/.test(key);
+      result.api_key_first_4 = key.substring(0, 4);
+      result.api_key_last_4 = key.substring(key.length - 4);
+    }
+
     // Always test the API Key against BOTH base URLs when it's set, so we can
     // see exactly which environment accepts it (auto-detection diagnostic).
     if (process.env.SIGNNOW_API_KEY) {
