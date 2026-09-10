@@ -862,6 +862,138 @@ router.put('/by-external/:externalRef/appointment', requireAuth, async (req, res
   }
 });
 
+// ── POST / — create a new lead (R1B) ─────────────────────────────────────────
+// Auth: requireAuth. admin/manager/sales_rep can create.
+// Resolves owner_id from assigned_rep (display name) or owner_email, falling
+// back to the current user's owner record. Duplicate-checks email/phone.
+// Projects the new lead into reminder_leads atomically.
+router.post('/', requireAuth, async (req, res) => {
+  try {
+    const body = req.body || {};
+    const first_name = (body.first_name || '').toString().trim();
+    const last_name = (body.last_name || '').toString().trim();
+    if (!first_name || !last_name) {
+      return res.status(400).json({ error: 'validation_failed', message: 'first_name and last_name are required' });
+    }
+
+    // ── Resolve owner_id ───────────────────────────────────────────────
+    let ownerId = null;
+    // 1. Explicit owner_id (UUID)
+    if (body.owner_id && UUID_RE.test(String(body.owner_id))) {
+      ownerId = body.owner_id;
+    }
+    // 2. assigned_rep (display name) → look up owner
+    if (!ownerId && body.assigned_rep) {
+      const r = await query('SELECT id FROM owners WHERE display_name = $1 AND is_active = true LIMIT 1', [body.assigned_rep]);
+      if (r.rows[0]) ownerId = r.rows[0].id;
+    }
+    // 3. owner_email → look up owner
+    if (!ownerId && body.owner_email) {
+      const r = await query('SELECT id FROM owners WHERE lower(email) = lower($1) AND is_active = true LIMIT 1', [body.owner_email]);
+      if (r.rows[0]) ownerId = r.rows[0].id;
+    }
+    // 4. Fall back to current user's owner record
+    if (!ownerId) {
+      const r = await query('SELECT id FROM owners WHERE lower(email) = lower($1) AND is_active = true LIMIT 1', [req.user.email]);
+      if (r.rows[0]) ownerId = r.rows[0].id;
+    }
+    if (!ownerId) {
+      return res.status(400).json({ error: 'owner_not_found', message: 'Could not resolve an active owner for this lead. Specify assigned_rep or owner_email.' });
+    }
+
+    // ── Validate + normalize contact fields ────────────────────────────
+    const email = body.email ? String(body.email).trim() : null;
+    if (email && !isValidEmail(email)) {
+      return res.status(400).json({ error: 'invalid_email', message: 'Invalid email format' });
+    }
+    const phone = body.phone ? normalizePhone(body.phone) : null;
+    if (body.phone && !phone) {
+      return res.status(400).json({ error: 'invalid_phone', message: 'Phone must be a valid US number (10 digits)' });
+    }
+
+    // ── Duplicate check (email/phone against existing leads) ──────────
+    if (email) {
+      const dup = await query('SELECT id, first_name, last_name FROM leads WHERE lower(email) = lower($1) LIMIT 1', [email]);
+      if (dup.rows[0]) {
+        return res.status(409).json({ error: 'duplicate_email', message: `Email already belongs to another lead: ${dup.rows[0].first_name} ${dup.rows[0].last_name}`, conflict: { id: dup.rows[0].id, name: `${dup.rows[0].first_name} ${dup.rows[0].last_name}` } });
+      }
+    }
+    if (phone) {
+      const dup = await query('SELECT id, first_name, last_name FROM leads WHERE phone = $1 LIMIT 1', [phone]);
+      if (dup.rows[0]) {
+        return res.status(409).json({ error: 'duplicate_phone', message: `Phone already belongs to another lead: ${dup.rows[0].first_name} ${dup.rows[0].last_name}`, conflict: { id: dup.rows[0].id, name: `${dup.rows[0].first_name} ${dup.rows[0].last_name}` } });
+      }
+    }
+
+    // ── INSERT lead ────────────────────────────────────────────────────
+    const client = await pool.connect();
+    let fullRow;
+    try {
+      await client.query('BEGIN');
+      const insertRes = await client.query(
+        `INSERT INTO leads (
+          owner_id, first_name, last_name, email, phone,
+          property_address, city, state, zip, project_type,
+          budget_range, start_timeframe, source, referral_name,
+          status, notes, message, lead_score, is_new_intake_lead,
+          customer_reminders_disabled, photo_urls, crm_created_date,
+          record_type, follow_up_date, follow_up_time, follow_up_type, meeting_stage
+        ) VALUES (
+          $1, $2, $3, $4, $5,
+          $6, $7, $8, $9, $10,
+          $11, $12, $13, $14,
+          $15, $16, $17, $18, $19,
+          $20, $21, NOW(),
+          $22, $23, $24, $25, $26
+        ) RETURNING *`,
+        [
+          ownerId, first_name, last_name, email, phone,
+          body.property_address || null, body.city || null, body.state || null, body.zip || null, body.project_type || null,
+          body.budget_range || null, body.start_timeframe || null, body.source || 'Website', body.referral_name || null,
+          body.status || 'New', body.notes || null, body.message || null, body.lead_score || 0, body.is_new_intake_lead !== false,
+          body.customer_reminders_disabled === true, body.photo_urls || [], body.record_type || 'Lead',
+          body.follow_up_date || null, body.follow_up_time || null, body.follow_up_type || null, body.meeting_stage || null,
+        ]
+      );
+      const newLead = insertRes.rows[0];
+
+      fullRow = (await client.query(
+        `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
+         FROM leads l LEFT JOIN owners o ON o.id = l.owner_id WHERE l.id = $1`,
+        [newLead.id]
+      )).rows[0];
+
+      // Project into reminder_leads (same transaction)
+      await syncLeadToReminders(client, fullRow);
+      await client.query('COMMIT');
+    } catch (e) {
+      try { await client.query('ROLLBACK'); } catch (_) {}
+      client.release();
+      console.error('[leads] create error:', e.message);
+      return res.status(500).json({ error: e.message });
+    }
+    client.release();
+
+    // ── Post-commit: activity note + notification (best-effort) ─────────
+    if (body.message) {
+      try {
+        await query(
+          `INSERT INTO activities (lead_id, type, content, author, source) VALUES ($1, 'note', $2, $3, 'manual')`,
+          [fullRow.id, String(body.message).slice(0, 4000), req.user?.email || 'CRM']
+        );
+      } catch (e) { console.warn('[leads] activity insert failed:', e.message); }
+    }
+
+    sendLeadNotification('lead_created', fullRow, [], req.user?.email, 'note', `Lead created: ${first_name} ${last_name}`);
+
+    const appt = await fetchActiveAppointment(fullRow.id);
+    res.status(201).json({ lead: serializeLead(fullRow, appt) });
+  } catch (e) {
+    console.error('[leads] create error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── GET / — list leads (owner-scoped, filtered) ──────────────────────────────
 router.get('/', requireAuth, async (req, res) => {
   try {
