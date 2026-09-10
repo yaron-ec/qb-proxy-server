@@ -207,8 +207,11 @@ router.post('/disconnect', requireAdminManager, async (req, res) => {
 // ── GET /templates — list available SignNow templates ───────────────────────
 router.get('/templates', async (req, res) => {
   try {
-    const templates = await signnowClient.listTemplates();
-    res.json({ templates });
+    const [templates, userInfo] = await Promise.all([
+      signnowClient.listTemplates(),
+      signnowClient.getUserInfo().catch(() => null),
+    ]);
+    res.json({ templates, account_email: userInfo?.email || null });
   } catch (e) {
     if (e.code === 'SIGNNOW_NOT_CONFIGURED') {
       return res.status(501).json({ error: 'signnow_not_configured', message: e.message });
@@ -271,24 +274,30 @@ router.post('/by-external/:externalRef/upload', requireAdminManager, async (req,
     // Upload to SignNow
     const doc = await signnowClient.uploadDocument(pdfBuffer, document_name || `Contract - ${lead.first_name} ${lead.last_name}`);
 
-    // Create signing link if signers provided
-    let signingUrl = null;
+    // Send field invite if signers provided (POST /document/{docId}/invite)
+    let inviteSent = false;
     const signerList = signers || (lead.email ? [{ email: lead.email, name: `${lead.first_name} ${lead.last_name}`, role: 'Signer 1' }] : []);
     if (signerList.length > 0 && doc.id) {
       try {
-        const linkResult = await signnowClient.createSigningLink(doc.id, signerList);
-        signingUrl = linkResult.link || null;
-      } catch (linkErr) {
-        console.warn('[signnow] create signing link failed:', linkErr.message);
+        const userInfo = await signnowClient.getUserInfo().catch(() => null);
+        const fromEmail = userInfo?.email || '';
+        if (!fromEmail) {
+          console.warn('[signnow] Could not determine SignNow account email for invite sender');
+        } else {
+          await signnowClient.sendInvite(doc.id, signerList, fromEmail);
+          inviteSent = true;
+        }
+      } catch (inviteErr) {
+        console.warn('[signnow] send invite failed:', inviteErr.message);
       }
     }
 
-    // Store in Postgres
+    // Store in Postgres (signing_url is null — field invite sends email, not a direct link)
     const ins = await query(
       `INSERT INTO signnow_documents (lead_id, document_id, document_name, status, signers, signing_url, created_by)
        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [lead.id, doc.id, document_name || doc.name, signingUrl ? 'sent' : 'pending',
-       JSON.stringify(signerList), signingUrl, req.user.email]
+      [lead.id, doc.id, document_name || doc.name, inviteSent ? 'sent' : 'pending',
+       JSON.stringify(signerList), null, req.user.email]
     );
 
     res.status(201).json({
@@ -322,14 +331,37 @@ router.post('/by-external/:externalRef/prepare', requireAdminManager, async (req
 
     if (!template_id) return res.status(400).json({ error: 'template_id required' });
 
-    // For template-based preparation, we'd call SignNow's template fill API.
-    // This creates a document from a template and sends it for signing.
-    // The actual SignNow API call depends on the template structure.
-    // For now, store the intent and return a placeholder.
+    // Create a signable document from the template (POST /template/{template_id}/copy)
+    let docId = null;
+    let inviteSent = false;
+    try {
+      const docResult = await signnowClient.createDocumentFromTemplate(template_id, document_name);
+      docId = docResult.id;
+
+      // Send field invite if signers provided
+      const signerList = signers || (lead.email ? [{ email: lead.email, name: `${lead.first_name} ${lead.last_name}`, role: 'Signer 1' }] : []);
+      if (signerList.length > 0 && docId) {
+        const userInfo = await signnowClient.getUserInfo().catch(() => null);
+        const fromEmail = userInfo?.email || '';
+        if (fromEmail) {
+          await signnowClient.sendInvite(docId, signerList, fromEmail);
+          inviteSent = true;
+        }
+      }
+    } catch (e) {
+      if (e.code === 'SIGNNOW_NOT_CONFIGURED') {
+        return res.status(501).json({ error: 'signnow_not_configured', message: e.message });
+      }
+      console.error('[signnow] prepare: create from template failed:', e.message);
+      return res.status(500).json({ error: e.message });
+    }
+
+    // Store in Postgres
     const ins = await query(
-      `INSERT INTO signnow_documents (lead_id, template_id, document_name, status, signers, created_by)
-       VALUES ($1, $2, $3, 'pending', $4, $5) RETURNING *`,
-      [lead.id, template_id, document_name || `Contract - ${lead.first_name} ${lead.last_name}`,
+      `INSERT INTO signnow_documents (lead_id, document_id, template_id, document_name, status, signers, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [lead.id, docId, template_id, document_name || `Contract - ${lead.first_name} ${lead.last_name}`,
+       inviteSent ? 'sent' : 'pending',
        JSON.stringify(signers || (lead.email ? [{ email: lead.email, name: `${lead.first_name} ${lead.last_name}` }] : [])),
        req.user.email]
     );
@@ -337,13 +369,13 @@ router.post('/by-external/:externalRef/prepare', requireAdminManager, async (req
     res.status(201).json({
       document: {
         id: ins.rows[0].id,
+        document_id: docId,
         template_id,
         document_name: ins.rows[0].document_name,
-        status: 'pending',
+        status: ins.rows[0].status,
         signers: ins.rows[0].signers,
         created_at: ins.rows[0].created_at,
       },
-      message: 'Document prepared from template. SignNow API call will be made by the worker.',
     });
   } catch (e) {
     console.error('[signnow] prepare error:', e.message);
@@ -362,13 +394,24 @@ router.get('/documents/:docId/status', async (req, res) => {
 
     // Try to get live status from SignNow
     let liveStatus = null;
+    let snStatus = null;
+    let snSigners = null;
     try {
       liveStatus = await signnowClient.getDocumentStatus(docId);
-      // Update our DB with the latest status
-      const snStatus = liveStatus.status || 'pending';
+      // SignNow's GET /document/{id} has no top-level 'status' field.
+      // Derive status from field_invites array:
+      //   - all fulfilled → 'completed'
+      //   - any signatures → 'signed'
+      //   - invites exist → 'sent'
+      //   - otherwise → 'pending'
+      const invites = liveStatus.field_invites || [];
+      const allFulfilled = invites.length > 0 && invites.every(i => i.status === 'fulfilled');
+      const anySigned = (liveStatus.signatures || []).length > 0;
+      snStatus = allFulfilled ? 'completed' : anySigned ? 'signed' : invites.length > 0 ? 'sent' : 'pending';
+      snSigners = invites.map(i => ({ email: i.email, role: i.role, status: i.status }));
       await query(
         'UPDATE signnow_documents SET status = $1, signers = $2, updated_at = NOW() WHERE document_id = $3',
-        [snStatus, JSON.stringify(liveStatus.signers || []), docId]
+        [snStatus, JSON.stringify(snSigners), docId]
       );
     } catch (e) {
       if (e.code === 'SIGNNOW_NOT_CONFIGURED') {
@@ -383,8 +426,8 @@ router.get('/documents/:docId/status', async (req, res) => {
         id: dbRes.rows[0].id,
         document_id: docId,
         document_name: dbRes.rows[0].document_name,
-        status: liveStatus?.status || dbRes.rows[0].status,
-        signers: liveStatus?.signers || dbRes.rows[0].signers,
+        status: snStatus || dbRes.rows[0].status,
+        signers: snSigners || dbRes.rows[0].signers,
         signing_url: dbRes.rows[0].signing_url,
         pdf_url: dbRes.rows[0].pdf_url,
         created_at: dbRes.rows[0].created_at,
