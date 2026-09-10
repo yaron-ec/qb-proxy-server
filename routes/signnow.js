@@ -65,8 +65,14 @@ router.get('/status', async (req, res) => {
       if (e.code === 'SIGNNOW_NOT_CONFIGURED') {
         return res.json({ connected: false });
       }
-      // Token exchange failed — credentials are stored but invalid
-      res.json({ connected: false, error: 'auth_failed', message: 'Stored credentials are invalid. Please reconnect.' });
+      // Token exchange failed — include the specific SignNow error code so
+      // the user understands the real reason (e.g., 11005001 = not app owner).
+      res.json({
+        connected: false,
+        error: e.code === 'SIGNNOW_NOT_APP_OWNER' ? 'not_app_owner' : 'auth_failed',
+        message: e.message,
+        signnow_error_code: e.signnowErrorCode || null,
+      });
     }
   } catch (e) {
     console.error('[signnow] status error:', e.message);
@@ -92,8 +98,18 @@ router.post('/connect', requireAdminManager, async (req, res) => {
       if (e.code === 'SIGNNOW_NOT_CONFIGURED') {
         return res.status(501).json({ success: false, error: 'signnow_not_configured', message: e.message });
       }
-      // Real auth error — NOT a 404
-      return res.status(401).json({ success: false, error: 'Invalid SignNow credentials. Please check your email and password.' });
+      // Pass through the specific error code so the user understands the real
+      // reason (e.g., 11005001 = not the API application owner).
+      // NEVER include the password, token, or client secret in the response.
+      const status = e.status || 401;
+      return res.status(status).json({
+        success: false,
+        error: e.code === 'SIGNNOW_NOT_APP_OWNER'
+          ? 'not_app_owner'
+          : 'auth_failed',
+        message: e.message,
+        signnow_error_code: e.signnowErrorCode || null,
+      });
     }
 
     // Store credentials securely in the encrypted credential store

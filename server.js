@@ -1439,6 +1439,81 @@ app.post('/signnow/check-status', requireProxySecret, (req, res) => {
   res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — needs SignNow credentials' });
 });
 
+// GET /signnow/diagnostic — check SignNow configuration WITHOUT JWT.
+// Protected by X-Proxy-Secret only. Returns whether SIGNNOW_CLIENT_ID/SECRET
+// are set in the Railway environment, whether the API base URL is reachable,
+// and whether any credentials are stored in the database. NEVER returns
+// passwords, tokens, or client secrets.
+app.get('/signnow/diagnostic', requireProxySecret, async (req, res) => {
+  try {
+    const clientId = process.env.SIGNNOW_CLIENT_ID;
+    const clientSecret = process.env.SIGNNOW_CLIENT_SECRET;
+    const apiBase = process.env.SIGNNOW_API_BASE || 'https://api.signnow.com';
+    const signnowEnv = process.env.SIGNNOW_ENVIRONMENT || 'production';
+
+    const result = {
+      client_id_configured: !!clientId,
+      client_secret_configured: !!clientSecret,
+      api_base: apiBase,
+      environment: signnowEnv,
+      env_username_configured: !!(process.env.SIGNNOW_USERNAME && process.env.SIGNNOW_PASSWORD),
+    };
+
+    // Check if credentials are stored in the database
+    try {
+      const credentialStore = require('./lib/integrationCredentialStore');
+      const cred = await credentialStore.loadActiveCredential({
+        provider: 'signnow',
+        credentialType: 'password',
+        environment: signnowEnv,
+      });
+      result.db_credential_exists = !!cred;
+      result.db_credential_username = cred?.payload?.username || null;
+      result.db_credential_status = cred?.status || null;
+    } catch (e) {
+      result.db_credential_error = e.message;
+    }
+
+    // If client_id/secret are configured, try a test token request to see if
+    // the SignNow API is reachable and responding. We do NOT send credentials
+    // here — we send an empty body to see if the API responds at all.
+    if (clientId && clientSecret) {
+      try {
+        const creds = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+        const testRes = await fetch(`${apiBase}/oauth2/token`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Basic ${creds}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({ grant_type: 'password', username: '', password: '', scope: '*' }).toString(),
+          signal: AbortSignal.timeout(10000),
+        });
+        result.api_reachable = true;
+        result.api_http_status = testRes.status;
+        // We expect a 4xx (missing credentials) — that means the API is reachable
+        // and the client_id/secret are being accepted at the HTTP level.
+        const testBody = await testRes.text().catch(() => '');
+        try {
+          const parsed = JSON.parse(testBody);
+          result.api_error_code = parsed.error || (parsed.errors && parsed.errors[0] && parsed.errors[0].code) || null;
+          result.api_error_description = (parsed.error_description || (parsed.errors && parsed.errors[0] && parsed.errors[0].message) || '').substring(0, 200);
+        } catch { result.api_raw_response = testBody.substring(0, 200); }
+      } catch (e) {
+        result.api_reachable = false;
+        result.api_error = e.message;
+      }
+    } else {
+      result.api_reachable = false;
+      result.api_error = 'SIGNNOW_CLIENT_ID or SIGNNOW_CLIENT_SECRET not configured';
+    }
+
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.post('/signnow/download-pdf', requireProxySecret, (req, res) => {
   res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — needs SignNow credentials' });
 });
