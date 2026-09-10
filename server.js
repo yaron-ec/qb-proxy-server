@@ -1491,43 +1491,10 @@ app.get('/signnow/diagnostic', requireProxySecret, async (req, res) => {
       result.db_credential_error = e.message;
     }
 
-    // Check API Key format (length, whitespace) — never reveal the key itself
-    if (process.env.SIGNNOW_API_KEY) {
-      const key = process.env.SIGNNOW_API_KEY;
-      result.api_key_length = key.length;
-      result.api_key_has_leading_whitespace = key !== key.trimStart();
-      result.api_key_has_trailing_whitespace = key !== key.trimEnd();
-      result.api_key_has_newlines = /\n|\r/.test(key);
-      result.api_key_first_4 = key.substring(0, 4);
-      result.api_key_last_4 = key.substring(key.length - 4);
-    }
-
-    // Always test the API Key against BOTH base URLs when it's set, so we can
-    // see exactly which environment accepts it (auto-detection diagnostic).
-    if (process.env.SIGNNOW_API_KEY) {
-      result.api_key_probe = {};
-      for (const base of ['https://api.signnow.com', 'https://api-eval.signnow.com']) {
-        try {
-          const testRes = await fetch(`${base}/user`, {
-            headers: { Authorization: `Bearer ${process.env.SIGNNOW_API_KEY}`, Accept: 'application/json' },
-            signal: AbortSignal.timeout(10000),
-          });
-          const testBody = await testRes.text().catch(() => '');
-          let parsed = null;
-          try { parsed = JSON.parse(testBody); } catch { /* not JSON */ }
-          result.api_key_probe[base] = {
-            http_status: testRes.status,
-            ok: testRes.ok,
-            error_code: parsed?.error || parsed?.errors?.[0]?.code || null,
-            error_description: (parsed?.error_description || parsed?.errors?.[0]?.message || '').substring(0, 150) || null,
-            user_email: parsed?.email || null,
-            user_name: parsed?.full_name || parsed?.first_name || null,
-          };
-        } catch (e) {
-          result.api_key_probe[base] = { error: e.message };
-        }
-      }
-    }
+    // SECURITY: API Key format metadata (length, first/last chars, whitespace, probe results)
+    // was REMOVED — it exposed credential-adjacent information. Only boolean "configured"
+    // flags remain. The auto-detection of the correct API base URL is handled internally
+    // by signnowClient.getEffectiveApiBase() and surfaced as `api_base` above.
 
     // If client_id/secret are configured, try a test token request to see if
     // the SignNow API is reachable and responding. We do NOT send credentials
