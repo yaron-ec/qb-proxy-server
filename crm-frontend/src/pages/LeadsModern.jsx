@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import * as railwayLeads from "@/api/railway/leads";
 import * as railwaySettings from "@/api/railway/settings";
+import * as railwayUsers from "@/api/railway/users";
 import { useAuth } from "@/lib/AuthContext";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Plus, Search, Phone, Mail, MapPin, ArrowRight, User, CheckCircle, RefreshCw, ExternalLink, AlertCircle, Calendar, Trash2 } from "lucide-react";
@@ -114,14 +115,21 @@ export default function LeadsModern() {
     if (!user) return; // Wait for auth to load the user
     const init = async () => {
       try {
-        // Load settings in parallel but don't block on failure
+        // Load contact owners from the canonical users API (not hard-coded settings).
+        // Also merges with unique assigned_rep values from leads (in loadLeads) to
+        // include historical owners who may no longer have a user account.
         withTimeout(
-          railwaySettings.get('app_lists'),
-          5000, 'Settings'
-        ).then(setting => {
-          if (setting?.value?.contactOwners) {
-            setContactOwners(setting.value.contactOwners);
-          }
+          railwayUsers.list(),
+          5000, 'Users'
+        ).then(res => {
+          const users = res.items || res.users || [];
+          const salesRoles = ['admin', 'manager', 'sales_rep'];
+          const excludeEmails = ['arturb@base44.com', 'igorko@base44.com', 'auth-verify@ecconstructiongroup.com'];
+          const ownerNames = users
+            .filter(u => salesRoles.includes(u.role) && u.user_status !== 'deactivated' && !excludeEmails.includes(u.email))
+            .map(u => u.full_name)
+            .filter(Boolean);
+          setContactOwners(prev => [...new Set([...prev, ...ownerNames])].sort());
         }).catch(() => {});
 
         resolvedUserRef.current = user;
@@ -174,6 +182,11 @@ export default function LeadsModern() {
       );
 
       setLeads(filtered);
+      // Merge unique assigned_rep values from leads into contactOwners.
+      // This ensures historical owners (who may not have a user account) still
+      // appear in the filter dropdown so admins can find their leads.
+      const repNames = [...new Set(filtered.map(l => l.assigned_rep).filter(r => r && r.trim()))];
+      setContactOwners(prev => [...new Set([...prev, ...repNames])].sort());
       setLoadError(null);
       setLoading(false);
     } catch (e) {
