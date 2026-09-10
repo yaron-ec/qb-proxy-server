@@ -30,6 +30,7 @@ const express = require('express');
 const { requireAuth, requireRole } = require('../lib/rbac');
 const { query } = require('../db/client');
 const qbInternal = require('../lib/qbInternal');
+const qbMatch = require('../lib/qbMatch');
 const { resolveLeadByIdentifier } = require('../lib/leadResolver');
 
 const router = express.Router();
@@ -226,7 +227,79 @@ router.post('/by-external/:externalRef/sync-estimates', requireAdminManager, asy
     // 2. Fetch QB estimates for this customer (all statuses) via the QB proxy
     //    GET /estimates/by-customer/:customerId returns all estimates for the customer
     const estData = await qbInternal.callQb(`/estimates/by-customer/${qbCustomerId}`, 'GET');
-    const estimates = estData.estimates || [];
+    let estimates = estData.estimates || [];
+
+    // 2b. Sub-customer handling: Handoff creates project nodes as sub-customers
+    //     (ParentRef.value == qbCustomerId). Fetch estimates for each sub-customer.
+    //     This restores the pre-migration syncLeadEstimatesFromQB behavior.
+    if (estimates.length === 0) {
+      try {
+        const allCustData = await qbInternal.callQb('/customers', 'GET');
+        const allCustomers = allCustData?.customers || [];
+        const subCustomerIds = allCustomers
+          .filter(c => String(c.ParentRef?.value) === String(qbCustomerId))
+          .map(c => String(c.Id));
+        for (const subId of subCustomerIds) {
+          try {
+            const subEstData = await qbInternal.callQb(`/estimates/by-customer/${subId}`, 'GET');
+            const subEstimates = subEstData.estimates || [];
+            estimates.push(...subEstimates);
+          } catch (e) {
+            console.warn(`[lead-qb] sub-customer ${subId} fetch failed:`, e.message);
+          }
+        }
+        if (subCustomerIds.length > 0) {
+          console.log(`[lead-qb] sub-customer fetch: ${subCustomerIds.length} subs, ${estimates.length} estimates`);
+        }
+      } catch (e) {
+        console.warn('[lead-qb] sub-customer resolution failed:', e.message);
+      }
+    }
+
+    // 2c. Full-scan fallback: fetch ALL QB estimates, match each to this lead using
+    //     qbMatch.findMatchingLead (the same matching engine as the global sync).
+    //     This catches estimates that aren't under the direct customer or sub-customers
+    //     but match by phone/email/name/address. Restores the pre-migration
+    //     syncLeadEstimatesFromQB full-scan behavior.
+    let additionalFromFullScan = [];
+    try {
+      const allEstData = await qbInternal.callQb('/estimates', 'GET');
+      const allEstimates = allEstData?.estimates || [];
+      const existingIds = new Set(estimates.map(e => String(e.Id)));
+      for (const est of allEstimates) {
+        if (existingIds.has(String(est.Id))) continue;
+        // Pre-filter: only fetch customer if estimate's customer name partially
+        // matches the lead's name OR the estimate's email matches the lead's email.
+        // This avoids fetching customers for all 100+ estimates.
+        const rawRef = est.CustomerRef?.name || '';
+        const billEmail = typeof est.BillEmail === 'string' ? est.BillEmail : est.BillEmail?.Address || '';
+        const nameMatches = qbMatch.partialNameMatch(rawRef, lead.first_name, lead.last_name);
+        const emailMatches = billEmail && qbMatch.normalizeEmail(billEmail) === qbMatch.normalizeEmail(lead.email || '');
+        if (!nameMatches && !emailMatches) continue;
+        // Fetch the full customer record for matching
+        const custRef = est.CustomerRef;
+        if (!custRef?.value) continue;
+        let customer = null;
+        try {
+          const custData = await qbInternal.callQb(`/customers/${custRef.value}`, 'GET');
+          customer = custData?.customer;
+        } catch { continue; }
+        if (!customer) continue;
+        // Match against THIS lead only
+        const matched = qbMatch.findMatchingLead(customer, [lead]);
+        if (matched) {
+          additionalFromFullScan.push(est);
+          existingIds.add(String(est.Id));
+        }
+      }
+      if (additionalFromFullScan.length > 0) {
+        console.log(`[lead-qb] full-scan fallback found ${additionalFromFullScan.length} additional estimate(s)`);
+      }
+    } catch (e) {
+      console.warn('[lead-qb] full-scan fallback failed:', e.message);
+    }
+    estimates.push(...additionalFromFullScan);
+
     if (estimates.length === 0) {
       return res.json({
         success: true,
@@ -309,6 +382,15 @@ router.post('/by-external/:externalRef/sync-estimates', requireAdminManager, asy
            'matched', 'qb_direct', 'QuickBooks', 'QB Direct Sync']
         );
         created++;
+        // Activity note for newly imported estimate (restores pre-migration behavior)
+        try {
+          const amtStr = totalAmt > 0 ? ` — $${Number(totalAmt).toLocaleString('en-US', { minimumFractionDigits: 0 })}` : '';
+          await query(
+            `INSERT INTO activities (lead_id, type, content, author, source)
+             VALUES ($1, 'note', $2, $3, 'manual')`,
+            [lead.id, `📋 QB estimate #${qbNumber}${amtStr} synced from QuickBooks. Status: ${status}.`, 'QB Direct Sync']
+          );
+        } catch (e) { console.warn('[lead-qb] activity insert failed:', e.message); }
       }
     }
 
