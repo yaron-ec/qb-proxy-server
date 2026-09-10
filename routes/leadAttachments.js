@@ -17,6 +17,7 @@ const { requireAuth } = require('../lib/rbac');
 const { query } = require('../db/client');
 const { UUID_RE } = require('../lib/leadResolver');
 const { notifyCrmActivity } = require('../lib/crmActivityNotifier');
+const { deleteObject } = require('../lib/r2Client');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -143,6 +144,22 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
+    // 1. Fetch the attachment to get storage_key for R2 deletion.
+    const { rows } = await query('SELECT storage_key FROM lead_attachments WHERE id = $1', [req.params.id]);
+    const attachment = rows[0];
+    if (!attachment) return res.status(404).json({ error: 'not_found' });
+
+    // 2. Best-effort R2 object deletion (non-fatal — DB delete still proceeds).
+    //    Preserves storage_key for retry if R2 fails.
+    if (attachment.storage_key) {
+      try {
+        await deleteObject(attachment.storage_key);
+      } catch (e) {
+        console.warn('[lead-attachments] R2 delete failed for key ' + attachment.storage_key + ':', e.message);
+      }
+    }
+
+    // 3. Delete the DB row.
     await query('DELETE FROM lead_attachments WHERE id = $1', [req.params.id]);
     res.json({ success: true, id: req.params.id });
   } catch (e) {

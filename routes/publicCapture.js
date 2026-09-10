@@ -169,6 +169,8 @@ router.post('/', submitLimiter, async (req, res) => {
       actor,
       override_conflict,
       override_actor,
+      follow_up_type: c.follow_up_type || 'Meeting',
+      skip_travel: (c.follow_up_type || 'Meeting') === 'Phone Call',
     });
 
     const leadId = booking.lead && booking.lead.id;
@@ -190,11 +192,11 @@ router.post('/', submitLimiter, async (req, res) => {
         await query(
           `UPDATE leads SET
              message = $1, photo_urls = $2, is_new_intake_lead = true,
-             follow_up_date = $3, follow_up_time = $4, follow_up_type = 'Meeting',
+             follow_up_date = $3, follow_up_time = $4, follow_up_type = $5,
              meeting_stage = 'First Meeting', crm_created_date = NOW(),
              record_type = 'Lead', updated_at = NOW()
-           WHERE id = $5`,
-          [c.message, c.photo_urls, c.appointment_date, c.appointment_time, leadId]
+           WHERE id = $6`,
+          [c.message, c.photo_urls, c.appointment_date, c.appointment_time, c.follow_up_type || 'Meeting', leadId]
         );
       } catch (e) { console.warn('[public-capture] lead extra-field update failed:', e.message); }
 

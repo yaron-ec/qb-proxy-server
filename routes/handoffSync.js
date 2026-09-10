@@ -1,14 +1,18 @@
 /* eslint-disable no-undef */
 /**
- * Handoff Sync Routes - Railway CRM Handoff integration.
+ * Handoff Sync Routes — Official REST API version.
  *
  *   POST /handoff/sync-estimates-for-lead   Fetch + match estimates for one lead
- *   POST /handoff/sync-all                   System-wide reconciliation
- *   POST /handoff/auth/status                Check connection
- *   POST /handoff/auth/login                 Initiate phone OTP
- *   POST /handoff/auth/verify                Verify OTP + store token
- *   POST /handoff/auth/store-token           Manually store API key/token
- *   POST /handoff/auth/disconnect            Remove token
+ *   POST /handoff/sync-all                   System-wide estimate reconciliation
+ *   POST /handoff/sync-projects              Fetch + match projects to leads
+ *   POST /handoff/sync-contacts             Fetch + match contacts to leads
+ *   POST /handoff/auth/status                Check API key + verify
+ *   POST /handoff/auth/store-key              Store hnd_ API key
+ *   POST /handoff/auth/disconnect            Remove API key
+ *   POST /handoff/auth/diagnose              Connectivity + key diagnostic
+ *
+ * No GraphQL. No proxy workaround. No Base44. No legacy HANDOFF_AUTH_TOKEN.
+ * API key is NEVER logged or returned in any response.
  *
  * Auth: requireProxySecret (X-Proxy-Secret or Railway JWT Bearer).
  * Data: Railway Postgres via rda (no Base44).
@@ -17,12 +21,9 @@
 
 const { query } = require('../db/client');
 
-const HANDOFF_API = process.env.HANDOFF_API_BASE_URL || 'https://app.handoff.ai';
+const HANDOFF_REST_BASE = process.env.HANDOFF_REST_BASE_URL || 'https://api.handoff.ai/core/api/v1/integrations';
 
-// ── Settings table helpers (replaces rda for Property/key-value storage) ────
-// The Base44 "Property" entity is a key-value store. In Railway, the `settings`
-// table serves this purpose (key, value JSONB, type). We use `query` directly
-// because rda's update/delete use `id` but settings uses `key` as the unique ID.
+// ── Settings table helpers ────────────────────────────────────────────────
 async function getSetting(key) {
   const { rows } = await query('SELECT * FROM app_settings WHERE key = $1', [key]);
   return rows[0] || null;
@@ -43,9 +44,30 @@ async function deleteSetting(key) {
   await query('DELETE FROM app_settings WHERE key = $1', [key]);
 }
 
+// ── Error classification helper ───────────────────────────────────────────
+function classifyHandoffError(e) {
+  const msg = String(e.message || '');
+  if (msg.indexOf('OFFICIAL_API_KEY_REQUIRED') >= 0) {
+    return { status: 401, code: 'OFFICIAL_API_KEY_REQUIRED', message: 'EXTERNAL BLOCKER — OFFICIAL HANDOFF API KEY REQUIRED. Configure HANDOFF_API_KEY env var or store via /handoff/auth/store-key.' };
+  }
+  if (msg.indexOf('AUTH_DENIED') >= 0) {
+    return { status: 401, code: 'AUTH_DENIED', message: 'Handoff API key is invalid or expired. Re-configure in Settings > Integrations > Handoff.' };
+  }
+  if (msg.indexOf('RATE_LIMITED') >= 0) {
+    return { status: 429, code: 'RATE_LIMITED', message: 'Handoff API rate limit exceeded. Retry later.' };
+  }
+  if (msg.indexOf('TRANSIENT') >= 0) {
+    return { status: 502, code: 'TRANSIENT', message: 'Handoff API transient error: ' + msg.slice(0, 200) };
+  }
+  if (msg.indexOf('NOT_FOUND') >= 0) {
+    return { status: 404, code: 'NOT_FOUND', message: msg };
+  }
+  return { status: 500, code: 'INTERNAL', message: msg };
+}
+
 module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda, handoffClient) {
 
-  // ── POST /handoff/sync-estimates-for-lead ──────────────────────────────────
+  // ── POST /handoff/sync-estimates-for-lead ──────────────────────────────
   app.post('/handoff/sync-estimates-for-lead', requireProxySecret, async (req, res) => {
     if (!rda.isConfigured()) {
       return res.status(503).json({ success: false, error: 'DATABASE_URL not configured on Railway' });
@@ -55,12 +77,13 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
     if (!lead_id) return res.status(400).json({ success: false, error: 'lead_id required' });
 
     try {
-      // 1. Get a valid Handoff token
-      let token;
+      // 1. Get API key — clear missing-key error state
+      let apiKey;
       try {
-        token = await handoffClient.getValidToken();
+        apiKey = await handoffClient.getApiKey();
       } catch (e) {
-        return res.status(401).json({ success: false, error: 'Handoff not authenticated: ' + e.message });
+        const cls = classifyHandoffError(e);
+        return res.status(cls.status).json({ success: false, error: cls.message, code: cls.code });
       }
 
       // 2. Load the lead from Railway Postgres
@@ -68,19 +91,13 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
       const lead = leads.find(function (l) { return l.id === lead_id || l.railway_lead_id === lead_id; });
       if (!lead) return res.status(404).json({ success: false, error: 'Lead not found' });
 
-      // 3. Fetch all estimates from Handoff API
+      // 3. Fetch all estimates from Handoff REST API
       let estimates;
       try {
-        estimates = await handoffClient.fetchAllEstimates(token);
+        estimates = await handoffClient.fetchEstimates(apiKey);
       } catch (e) {
-        const msg = String(e.message || '');
-        if (msg.indexOf('AUTH_DENIED') >= 0 || msg.indexOf('NOT_AUTHENTICATED') >= 0) {
-          return res.status(401).json({
-            success: false,
-            error: 'Handoff credential expired or invalid. Re-authenticate in Settings > Integrations > Handoff.'
-          });
-        }
-        return res.status(502).json({ success: false, error: 'Handoff API error: ' + msg });
+        const cls = classifyHandoffError(e);
+        return res.status(cls.status).json({ success: false, error: cls.message, code: cls.code });
       }
 
       // 4. Match estimates to this lead
@@ -99,7 +116,7 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
         });
       }
 
-      // 5. Load existing HandoffEstimate records to check for duplicates
+      // 5. Load existing HandoffEstimate records to check for duplicates (idempotency)
       const existingEstimates = await rda.filter('HandoffEstimate', { lead_id: lead.id });
 
       let created = 0, updated = 0;
@@ -115,7 +132,7 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
           customer_email: est.clientEmail || lead.email || '',
           estimate_amount: est.total || 0,
           estimate_status: est.state || 'DRAFT',
-          estimate_date: est.createdAt ? est.createdAt.split('T')[0] : null,
+          estimate_date: est.createdAt ? String(est.createdAt).split('T')[0] : null,
           document_url: est.proposalLink || null,
           document_title: est.name || '',
           last_synced_at: new Date().toISOString(),
@@ -124,7 +141,7 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
           sync_source: 'Handoff',
         };
 
-        // Check for existing record by handoff_estimate_id (deduplication)
+        // Dedup by handoff_estimate_id (idempotency)
         const existing = existingEstimates.find(function (e) {
           return e.handoff_estimate_id === handoffEstimateId;
         });
@@ -160,6 +177,18 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
         await rda.update('Lead', lead.id, { handoff_estimate_status: 'synced' }).catch(function () {});
       }
 
+      // 7. Update sync cursor
+      try {
+        const cursorRows = await rda.filter('SyncCursor', { integration: 'handoff' });
+        const summary = { fetched: estimates.length, matched: matched.length, created: created, updated: updated };
+        if (cursorRows[0]) {
+          await rda.update('SyncCursor', cursorRows[0].id, {
+            last_successful_sync_at: new Date().toISOString(),
+            last_sync_summary: summary,
+          });
+        }
+      } catch (e) { /* non-blocking */ }
+
       console.log('[handoff] sync-estimates-for-lead: fetched=' + estimates.length +
         ' matched=' + matched.length + ' created=' + created + ' updated=' + updated);
 
@@ -177,32 +206,27 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
     }
   });
 
-  // ── POST /handoff/sync-all ──────────────────────────────────────────────────
+  // ── POST /handoff/sync-all ─────────────────────────────────────────────
   app.post('/handoff/sync-all', requireProxySecret, async (req, res) => {
     if (!rda.isConfigured()) {
       return res.status(503).json({ success: false, error: 'DATABASE_URL not configured on Railway' });
     }
 
     try {
-      let token;
+      let apiKey;
       try {
-        token = await handoffClient.getValidToken();
+        apiKey = await handoffClient.getApiKey();
       } catch (e) {
-        return res.status(401).json({ success: false, error: 'Handoff not authenticated: ' + e.message });
+        const cls = classifyHandoffError(e);
+        return res.status(cls.status).json({ success: false, error: cls.message, code: cls.code });
       }
 
       let estimates;
       try {
-        estimates = await handoffClient.fetchAllEstimates(token);
+        estimates = await handoffClient.fetchEstimates(apiKey);
       } catch (e) {
-        const msg = String(e.message || '');
-        if (msg.indexOf('AUTH_DENIED') >= 0 || msg.indexOf('NOT_AUTHENTICATED') >= 0) {
-          return res.status(401).json({
-            success: false,
-            error: 'Handoff credential expired or invalid. Re-authenticate in Settings > Integrations > Handoff.'
-          });
-        }
-        return res.status(502).json({ success: false, error: 'Handoff API error: ' + msg });
+        const cls = classifyHandoffError(e);
+        return res.status(cls.status).json({ success: false, error: cls.message, code: cls.code });
       }
 
       // Load all leads and existing estimates
@@ -236,7 +260,7 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
           customer_email: est.clientEmail || '',
           estimate_amount: est.total || 0,
           estimate_status: est.state || 'DRAFT',
-          estimate_date: est.createdAt ? est.createdAt.split('T')[0] : null,
+          estimate_date: est.createdAt ? String(est.createdAt).split('T')[0] : null,
           document_url: est.proposalLink || null,
           document_title: est.name || '',
           last_synced_at: new Date().toISOString(),
@@ -314,164 +338,269 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
     }
   });
 
-  // ═══ Handoff Auth Routes (migrated from Base44 handoffAuth function) ════════
+  // ── POST /handoff/sync-projects ─────────────────────────────────────────
+  app.post('/handoff/sync-projects', requireProxySecret, async (req, res) => {
+    if (!rda.isConfigured()) {
+      return res.status(503).json({ success: false, error: 'DATABASE_URL not configured on Railway' });
+    }
+
+    try {
+      let apiKey;
+      try {
+        apiKey = await handoffClient.getApiKey();
+      } catch (e) {
+        const cls = classifyHandoffError(e);
+        return res.status(cls.status).json({ success: false, error: cls.message, code: cls.code });
+      }
+
+      let projects;
+      try {
+        projects = await handoffClient.fetchProjects(apiKey);
+      } catch (e) {
+        const cls = classifyHandoffError(e);
+        return res.status(cls.status).json({ success: false, error: cls.message, code: cls.code });
+      }
+
+      const leads = await rda.list('Lead', '-created_date', 5000, 0);
+      const stats = { fetched: projects.length, matched: 0, updated: 0, unmatched: 0 };
+
+      for (const proj of projects) {
+        let matchedLead = null;
+        for (const lead of leads) {
+          if (handoffClient.matchProjectToLead(proj, lead).match) {
+            matchedLead = lead;
+            break;
+          }
+        }
+
+        if (matchedLead) {
+          stats.matched++;
+          // Update lead with Handoff project info (idempotent — only updates if different)
+          const updates = {};
+          if (proj.id && matchedLead.handoff_project_id !== proj.id) updates.handoff_project_id = proj.id;
+          if (proj.number && matchedLead.handoff_project_number !== proj.number) updates.handoff_project_number = proj.number;
+          if (Object.keys(updates).length > 0) {
+            await rda.update('Lead', matchedLead.id, updates).catch(function () {});
+            stats.updated++;
+          }
+        } else {
+          stats.unmatched++;
+        }
+      }
+
+      console.log('[handoff] sync-projects: fetched=' + stats.fetched +
+        ' matched=' + stats.matched + ' updated=' + stats.updated + ' unmatched=' + stats.unmatched);
+
+      return res.json({ success: true, stats: stats });
+    } catch (e) {
+      console.error('[handoff] sync-projects error:', e.message);
+      return res.status(500).json({ success: false, error: e.message });
+    }
+  });
+
+  // ── POST /handoff/sync-contacts ─────────────────────────────────────────
+  app.post('/handoff/sync-contacts', requireProxySecret, async (req, res) => {
+    if (!rda.isConfigured()) {
+      return res.status(503).json({ success: false, error: 'DATABASE_URL not configured on Railway' });
+    }
+
+    try {
+      let apiKey;
+      try {
+        apiKey = await handoffClient.getApiKey();
+      } catch (e) {
+        const cls = classifyHandoffError(e);
+        return res.status(cls.status).json({ success: false, error: cls.message, code: cls.code });
+      }
+
+      let contacts;
+      try {
+        contacts = await handoffClient.fetchContacts(apiKey);
+      } catch (e) {
+        const cls = classifyHandoffError(e);
+        return res.status(cls.status).json({ success: false, error: cls.message, code: cls.code });
+      }
+
+      const leads = await rda.list('Lead', '-created_date', 5000, 0);
+      const stats = { fetched: contacts.length, matched: 0, unmatched: 0 };
+
+      for (const contact of contacts) {
+        let matchedLead = null;
+        for (const lead of leads) {
+          if (handoffClient.matchContactToLead(contact, lead).match) {
+            matchedLead = lead;
+            break;
+          }
+        }
+        if (matchedLead) stats.matched++;
+        else stats.unmatched++;
+      }
+
+      console.log('[handoff] sync-contacts: fetched=' + stats.fetched +
+        ' matched=' + stats.matched + ' unmatched=' + stats.unmatched);
+
+      return res.json({ success: true, stats: stats });
+    } catch (e) {
+      console.error('[handoff] sync-contacts error:', e.message);
+      return res.status(500).json({ success: false, error: e.message });
+    }
+  });
+
+  // ═══ Handoff Auth Routes (REST API key — no GraphQL, no phone OTP) ══════
+
+  // POST /handoff/auth/diagnose
+  // Comprehensive connectivity + key diagnostic. Tests:
+  //   1. Whether a key exists (DB or env)
+  //   2. Whether the key is valid (via GET /estimates?limit=1)
+  //   3. REST base URL configuration
+  // Returns a structured diagnostic report — no key values exposed.
+  app.post('/handoff/auth/diagnose', requireProxySecret, async (req, res) => {
+    const report = {
+      rest_base_url: HANDOFF_REST_BASE,
+      key_source: null,
+      key_present: false,
+      api_reachable: false,
+      api_status: null,
+      estimates_ok: false,
+      estimates_count: 0,
+      error: null,
+    };
+
+    try {
+      // 1. Check key source
+      let apiKey = null;
+      try {
+        const record = await getSetting('handoff_api_key');
+        if (record) {
+          const rawVal = record.value;
+          const keyData = typeof rawVal === 'string' ? JSON.parse(rawVal || '{}') : (rawVal || {});
+          if (keyData.api_key) {
+            apiKey = keyData.api_key;
+            report.key_source = 'database';
+            report.key_present = true;
+          }
+        }
+      } catch (e) { /* DB read failed */ }
+
+      if (!apiKey) {
+        const envKey = process.env.HANDOFF_API_KEY;
+        if (envKey && envKey.trim()) {
+          apiKey = envKey.trim();
+          report.key_source = 'env_var';
+          report.key_present = true;
+        }
+      }
+
+      if (!apiKey) {
+        report.error = 'OFFICIAL_API_KEY_REQUIRED: No Handoff API key in app_settings or HANDOFF_API_KEY env var';
+        return res.json(report);
+      }
+
+      // 2. Test API connectivity
+      try {
+        const result = await handoffClient.checkAuth(apiKey);
+        report.api_reachable = true;
+        report.api_status = result.connected ? 'ok' : 'auth_failed';
+        if (result.connected) {
+          report.estimates_ok = true;
+        } else {
+          report.error = 'Key invalid: ' + (result.reason || 'unknown');
+        }
+        if (result.warning) report.error = result.warning;
+      } catch (e) {
+        report.error = 'API connectivity test failed: ' + e.message;
+        report.api_status = 'error';
+      }
+
+      return res.json(report);
+    } catch (e) {
+      report.error = e.message;
+      return res.json(report);
+    }
+  });
 
   // POST /handoff/auth/status
   app.post('/handoff/auth/status', requireProxySecret, async (req, res) => {
     try {
-      const record = await getSetting('handoff_bearer_token');
-      if (!record) {
-        return res.json({ connected: false });
-      }
-      // Handle JSONB auto-parsing by pg (value may be object or string)
-      const rawVal = record.value;
-      const tokenData = typeof rawVal === 'string' ? JSON.parse(rawVal || '{}') : (rawVal || {});
-      const token = tokenData.token;
-      if (!token) return res.json({ connected: false });
+      const record = await getSetting('handoff_api_key');
+      let apiKey = null;
+      let keySource = null;
 
-      // Verify token is still valid — use /graphql with Bearer (the canonical
-      // path that worked in Base44 production). A 403 here means WAF blocking,
-      // not an expired token — don't mark expired for WAF blocks.
-      const testRes = await fetch(HANDOFF_API + '/graphql', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token,
-        },
-        body: JSON.stringify({ query: '{ __typename }' }),
-      });
-      if (testRes.status === 403) return res.json({ connected: true, connected_at: tokenData.connected_at || null, waf_blocked: true });
-      if (!testRes.ok) return res.json({ connected: false, expired: true });
-
-      const testData = await testRes.json();
-      if (testData.errors && testData.errors.length) {
-        return res.json({ connected: false, expired: true });
+      if (record) {
+        const rawVal = record.value;
+        const keyData = typeof rawVal === 'string' ? JSON.parse(rawVal || '{}') : (rawVal || {});
+        if (keyData.api_key) {
+          apiKey = keyData.api_key;
+          keySource = 'database';
+        }
       }
 
+      if (!apiKey) {
+        const envKey = process.env.HANDOFF_API_KEY;
+        if (envKey && envKey.trim()) {
+          apiKey = envKey.trim();
+          keySource = 'env_var';
+        }
+      }
+
+      if (!apiKey) {
+        return res.json({
+          connected: false,
+          key_required: true,
+          message: 'EXTERNAL BLOCKER — OFFICIAL HANDOFF API KEY REQUIRED',
+        });
+      }
+
+      // Verify key works against REST API
+      const authResult = await handoffClient.checkAuth(apiKey);
       return res.json({
-        connected: true,
-        connected_at: tokenData.connected_at || null,
+        connected: authResult.connected,
+        key_source: keySource,
+        connected_at: record ? (typeof record.value === 'string' ? JSON.parse(record.value || '{}') : record.value).connected_at : null,
+        warning: authResult.warning || null,
       });
     } catch (e) {
       return res.json({ connected: false, error: e.message });
     }
   });
 
-  // POST /handoff/auth/login
-  app.post('/handoff/auth/login', requireProxySecret, async (req, res) => {
-    const { phone } = req.body || {};
-    if (!phone || !phone.trim()) return res.status(400).json({ error: 'Phone number required' });
-
-    try {
-      const loginRes = await fetch(HANDOFF_API + '/auth/phone/request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phone.trim() }),
-      });
-      if (!loginRes.ok) {
-        const txt = await loginRes.text();
-        return res.status(loginRes.status).json({
-          error: 'Handoff API returned ' + loginRes.status + ': ' + txt.substring(0, 200),
-        });
-      }
-      return res.json({ success: true, message: 'Verification code sent to your phone' });
-    } catch (e) {
-      return res.status(500).json({ error: e.message });
-    }
-  });
-
-  // POST /handoff/auth/verify
-  app.post('/handoff/auth/verify', requireProxySecret, async (req, res) => {
-    const { phone, code } = req.body || {};
-    if (!phone || !code) {
-      return res.status(400).json({ error: 'Phone number and verification code required' });
+  // POST /handoff/auth/store-key
+  // Body: { api_key: string, skip_verify?: boolean }
+  // Stores the hnd_ API key. Never returns the key in the response.
+  app.post('/handoff/auth/store-key', requireProxySecret, async (req, res) => {
+    const { api_key, skip_verify } = req.body || {};
+    if (!api_key || !api_key.trim()) {
+      return res.status(400).json({ error: 'api_key required' });
     }
 
-    try {
-      const verifyRes = await fetch(HANDOFF_API + '/auth/phone/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phone.trim(), code: code.trim() }),
-      });
-      const verifyText = await verifyRes.text();
-      if (!verifyRes.ok) {
-        return res.status(verifyRes.status).json({
-          error: 'Handoff API returned ' + verifyRes.status + ': ' + verifyText.substring(0, 200),
-        });
-      }
-
-      let verifyData;
-      try {
-        verifyData = JSON.parse(verifyText);
-      } catch {
-        return res.status(500).json({ error: 'Invalid response from Handoff API' });
-      }
-
-      const token = verifyData.token || verifyData.access_token;
-      if (!token) return res.status(401).json({ error: 'No authentication token received' });
-
-      // Store token in Property entity
-      const cleanToken = token.trim().startsWith('Bearer ') ? token.trim().slice(7) : token.trim();
-      const now = new Date().toISOString();
-      const tokenValue = JSON.stringify({
-        token: cleanToken,
-        phone: phone.trim(),
-        connected_at: now,
-        last_verified_at: now,
-      });
-
-      await upsertSetting('handoff_bearer_token', JSON.parse(tokenValue), 'text');
-
-      return res.json({ success: true, message: 'Successfully authenticated with Handoff' });
-    } catch (e) {
-      return res.status(500).json({ error: e.message });
-    }
-  });
-
-  // POST /handoff/auth/store-token
-  // Body: { token: string, skip_verify?: boolean }
-  // When skip_verify is true, stores the token without calling the Handoff API
-  // (useful when the Handoff API WAF blocks Railway IPs but the token is known valid).
-  app.post('/handoff/auth/store-token', requireProxySecret, async (req, res) => {
-    const { token, skip_verify } = req.body || {};
-    if (!token || !token.trim()) return res.status(400).json({ error: 'Token required' });
-
-    const cleanToken = token.trim().startsWith('Bearer ') ? token.trim().slice(7) : token.trim();
+    const cleanKey = api_key.trim();
 
     if (!skip_verify) {
-      // Verify token works — use /graphql with Bearer (canonical path)
-      const verifyRes = await fetch(HANDOFF_API + '/graphql', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + cleanToken,
-        },
-        body: JSON.stringify({ query: '{ __typename }' }),
-      });
-      if (!verifyRes.ok) {
-        const txt = await verifyRes.text();
-        return res.status(401).json({
-          error: 'Handoff API error (' + verifyRes.status + '): ' + txt.substring(0, 200),
-        });
-      }
-      const verifyData = await verifyRes.json();
-      if (verifyData.errors && verifyData.errors.length) {
-        return res.status(401).json({ error: 'Handoff API error: ' + verifyData.errors[0].message });
+      // Verify key works against REST API
+      try {
+        const result = await handoffClient.checkAuth(cleanKey);
+        if (!result.connected) {
+          return res.status(401).json({
+            error: 'Handoff API key verification failed: ' + (result.reason || 'invalid key'),
+          });
+        }
+      } catch (e) {
+        return res.status(401).json({ error: 'Handoff API key verification failed: ' + e.message });
       }
     }
 
-    // Store token
+    // Store key (never log it)
     const now = new Date().toISOString();
-    const tokenValue = JSON.stringify({ token: cleanToken, connected_at: now, last_verified_at: now });
-    await upsertSetting('handoff_bearer_token', JSON.parse(tokenValue), 'text');
+    const keyValue = { api_key: cleanKey, connected_at: now, last_verified_at: now };
+    await upsertSetting('handoff_api_key', keyValue, 'text');
 
-    return res.json({ success: true, message: 'Token saved successfully', connected: true, verified: !skip_verify });
+    return res.json({ success: true, message: 'API key saved successfully', connected: true, verified: !skip_verify });
   });
 
   // POST /handoff/auth/disconnect
   app.post('/handoff/auth/disconnect', requireProxySecret, async (req, res) => {
     try {
-      await deleteSetting('handoff_bearer_token');
+      await deleteSetting('handoff_api_key');
       return res.json({ success: true });
     } catch (e) {
       return res.status(500).json({ error: e.message });

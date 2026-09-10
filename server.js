@@ -1,13 +1,3 @@
-// Rebuild trigger 2026-09-08-identity: trigger deploy after identity contract fix
-// Rebuild trigger 2026-09-08h: migration 2026-35 leads google calendar columns
-// Rebuild trigger 2026-09-08g: fix-appointment-sync also fixes lead status
-// Rebuild trigger 2026-09-08f: fix e2e false positive pattern
-// Rebuild trigger 2026-09-08e: appointment-sync diagnose + fix endpoints
-// Rebuild trigger 2026-09-08d: fixed clean-test-pollution + expanded patterns
-// Rebuild trigger 2026-09-08c: test pollution audit + clean endpoints
-// Rebuild trigger 2026-09-08: garbage admin cleanup migration 2026-34
-// Rebuild trigger 2026-09-08: audit-user-deletion-safety endpoint + garbage admin cleanup
-// Rebuild trigger 2026-09-08: temp user cleanup migration 2026-33
 /* eslint-disable no-undef */
 /**
  * QuickBooks Proxy Server
@@ -42,7 +32,7 @@ const rda = require('./lib/railwayDataAccess'); // Railway Postgres CRUD (replac
 const tokenStore = require('./lib/qbTokenStore'); // credential lifecycle metadata for /health
 const saleDb = require('./db/client'); // Railway Postgres pool (for sale-scoped invoice ownership)
 const saleMap = require('./lib/qbInvoiceSaleMap'); // qb_invoice_sale_map + qb_invoices_cache helpers
-const handoffClient = require('./lib/handoffClient'); // Official Handoff API GraphQL client
+const handoffClient = require('./lib/handoffClient'); // Official Handoff REST API client (X-API-Key auth)
 
 const app = express();
 
@@ -127,20 +117,9 @@ function saveTokensToFile(tokens) {
   }
 }
 
-// Load tokens on startup — filesystem first (sync), then database (async, survives deploys)
+// Load tokens on startup (try Base44 first, fallback to filesystem)
 let storedTokens = loadTokensFromFile();
 let tokenStorageMethod = 'filesystem';
-// Async: override with database token if available (survives Railway deploys)
-(async () => {
-  try {
-    const dbTokens = await tokenStore.loadPersistedTokens(QB_ENVIRONMENT);
-    if (dbTokens && dbTokens.access_token) {
-      storedTokens = dbTokens;
-      tokenStorageMethod = 'postgres';
-      console.log('[proxy] Tokens loaded from database on startup');
-    }
-  } catch (e) { /* best-effort — filesystem fallback already loaded */ }
-})();
 
 // ── Auth middleware ──────────────────────────────────────────────────────────
 
@@ -249,8 +228,7 @@ async function doRefreshToken() {
     last_refresh_at: new Date().toISOString(),
   };
 
-    saveTokensToFile(storedTokens);
-    try { await tokenStore.savePersistedTokens(QB_ENVIRONMENT, storedTokens); } catch (e) { console.error("[proxy] Failed to save refreshed tokens to database:", e.message); }
+  saveTokensToFile(storedTokens);
   console.log(`[proxy] Token refreshed successfully — expires ${storedTokens.expires_at}`);
   return storedTokens;
 }
@@ -317,37 +295,37 @@ function handleQBError(e, res) {
 
 async function buildHealthPayload() {
   const now = Date.now();
+  const tokenExpired = isTokenExpiredOrClose(storedTokens);
+  const refreshExpired = isRefreshTokenExpired(storedTokens);
+  const reconnectRequired = !storedTokens || refreshExpired;
+  const connected = !!(storedTokens && !refreshExpired);
 
-  // Primary source: database (integrationCredentialStore via qbTokenStore).
-  // Falls back to filesystem (ephemeral — wiped on every Railway deploy).
-  let dbTokens = null;
-  let storageMethod = 'filesystem';
+  // Best-effort credential lifecycle metadata from the integration credential
+  // store (last_used_at / last_error_at). Never exposes last_error_message or
+  // any secret. Returns nulls if the store is unavailable or unwired.
+  let credentialLastUsedAt = null;
+  let credentialLastErrorAt = null;
   try {
-    dbTokens = await tokenStore.loadPersistedTokens(QB_ENVIRONMENT);
-    if (dbTokens && dbTokens.access_token) storageMethod = 'postgres';
-  } catch (e) { /* best-effort — fall back to filesystem */ }
-
-  const activeTokens = (dbTokens && dbTokens.access_token) ? dbTokens : storedTokens;
-  const tokenExpired = isTokenExpiredOrClose(activeTokens);
-  const refreshExpired = isRefreshTokenExpired(activeTokens);
-  const reconnectRequired = !activeTokens || refreshExpired;
-  const connected = !!(activeTokens && !refreshExpired);
+    const cred = await tokenStore.loadPersistedTokens(QB_ENVIRONMENT);
+    credentialLastUsedAt = cred?.last_used_at || null;
+    credentialLastErrorAt = cred?.last_error_at || null;
+  } catch (e) { /* best-effort — health must never fail on metadata read */ }
 
   return {
     status: 'ok',
     service_name: PROXY_SERVICE_NAME,
     environment: QB_ENVIRONMENT,
     connected,
-    realmId: activeTokens?.realm_id || null,
-    tokenExpiresAt: activeTokens?.expires_at || null,
+    realmId: storedTokens?.realm_id || null,
+    tokenExpiresAt: storedTokens?.expires_at || null,
     tokenExpired,
-    refreshExpiresAt: activeTokens?.refresh_expires_at || null,
+    refreshExpiresAt: storedTokens?.refresh_expires_at || null,
     reconnectRequired,
-    lastRefreshedAt: activeTokens?.last_refresh_at || null,
-    connectedAt: activeTokens?.connected_at || null,
-    storageMethod,
-    credential_last_used_at: activeTokens?.last_used_at || null,
-    credential_last_error_at: activeTokens?.last_error_at || null,
+    lastRefreshedAt: storedTokens?.last_refresh_at || null,
+    connectedAt: storedTokens?.connected_at || null,
+    storageMethod: 'filesystem',
+    credential_last_used_at: credentialLastUsedAt,
+    credential_last_error_at: credentialLastErrorAt,
   };
 }
 
@@ -427,11 +405,6 @@ async function handleAuthCallback(req, res) {
     };
     saveTokensToFile(storedTokens);
     tokenStorageMethod = 'filesystem';
-    // Also persist to database (survives Railway deploys)
-    try {
-      const dbStorage = await tokenStore.savePersistedTokens(QB_ENVIRONMENT, storedTokens);
-      tokenStorageMethod = dbStorage;
-    } catch (e) { console.error('[proxy] Failed to save tokens to database:', e.message); }
     console.log('[proxy] OAuth complete — realm_id:', realmId, 'env:', QB_ENVIRONMENT, 'storage:', tokenStorageMethod);
     res.json({ success: true, realm_id: realmId, environment: QB_ENVIRONMENT, storage_method: tokenStorageMethod });
   } catch (e) {
@@ -1217,7 +1190,9 @@ app.use('/api/v1/company-settings', require('./routes/companySettings'));
 app.use('/api/v1/qb-executive-metrics', require('./routes/qbExecutiveMetrics'));
 app.use('/api/v1/financial-backfill', require('./routes/financialBackfill'));
 app.use('/api/v1/cron', require('./routes/cronJobs'));
-app.use('/api/v1/test-pollution', require('./routes/testPollutionAudit'));
+// Temporary read-only diagnostic: exhaustive classification of appointments without google_event_id.
+// POST /api/v1/cron/calendar-orphan-classification (X-Worker-Secret guarded, SELECT-only).
+app.use('/api/v1/cron', require('./routes/calendarOrphanClassification'));
 
   // Native Railway adapters for Lead Detail page (no Base44):
   //   lead-qb         — QuickBooks lead status (reads Postgres + calls QB proxy)

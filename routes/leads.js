@@ -678,7 +678,7 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
           );
           const updatedAppt = (await client.query('SELECT * FROM appointments WHERE id = $1', [existingAppt.id])).rows[0];
           // For Phone Calls, skip travel event (no driving). Pass skipTravel=true.
-          await calendarOutbox.enqueueUpdate(client, updatedAppt, updatedLead, updatedLead.owner_email, updatedAppt.version, !isPhoneCall);
+          await calendarOutbox.enqueueUpdate(client, updatedAppt, updatedLead, updatedLead.owner_email, updatedAppt.version, isPhoneCall);
           await client.query(
             `INSERT INTO appointment_events (appointment_id, actor, action, previous_values, new_values)
              VALUES ($1, $2, 'rescheduled', $3, $4)`,
@@ -744,7 +744,7 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
             ['cancelled', newVersion, existingAppt.id]
           );
           const cancelledAppt = (await client.query('SELECT * FROM appointments WHERE id = $1', [existingAppt.id])).rows[0];
-          await calendarOutbox.enqueueCancel(client, cancelledAppt, cancelledAppt.version);
+          await calendarOutbox.enqueueCancel(client, cancelledAppt, cancelledAppt.version, isPhoneCall);
           await client.query(
             `INSERT INTO appointment_events (appointment_id, actor, action, previous_values)
              VALUES ($1, $2, 'cancelled', $3)`,
