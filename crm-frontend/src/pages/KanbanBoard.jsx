@@ -157,7 +157,7 @@ export default function KanbanBoard() {
           <button onClick={loadLeads} className="p-2 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors" title="Refresh">
             <RefreshCw className="w-4 h-4" />
           </button>
-          <Link to="/leads/new" className="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors">
+          <Link to="/capture?returnToCRM=true" className="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors">
             <Plus className="w-4 h-4" /> New Lead
           </Link>
         </div>
