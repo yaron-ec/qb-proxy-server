@@ -4,7 +4,7 @@ import { apiCall } from "@/api/railway/client";
 import {
   Search, Plus, Pencil, Trash2, X, Check, MoreVertical,
   UserX, UserCheck, Mail, RefreshCw, Shield, Loader2, Users,
-  ChevronDown, ChevronUp, CheckCircle2, Circle, ArrowRight
+  ChevronDown, ChevronUp, CheckCircle2, Circle, ArrowRight, AlertTriangle
 } from "lucide-react";
 
 const ROLES = [
@@ -263,6 +263,7 @@ export default function UsersTab() {
   const [bulkSaving, setBulkSaving] = useState(false);
   const [confirm, setConfirm] = useState(null); // { type, user }
   const [toast, setToast] = useState(null);
+  const [loadError, setLoadError] = useState(null);
 
   useEffect(() => {
     loadUsers();
@@ -275,12 +276,14 @@ export default function UsersTab() {
 
   const loadUsers = async () => {
     setLoading(true);
+    setLoadError(null);
     try {
-      // Use backend function so it works in published app (service role bypasses RLS)
       const data = await apiCall('/api/v1/users', { method: 'GET' }).then(r => r.items || r.users || []);
       setUsers(data);
     } catch (e) {
       console.error("loadUsers error:", e);
+      setLoadError(e?.message || "Failed to load users");
+      setUsers([]);
     }
     setLoading(false);
   };
@@ -514,6 +517,20 @@ export default function UsersTab() {
         </button>
       </div>
 
+      {/* Error banner — shown when the API fails (never silently show "0 users") */}
+      {loadError && !loading && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm font-bold text-red-700">Failed to load users</p>
+            <p className="text-xs text-red-600 mt-0.5">{loadError}</p>
+            <button onClick={loadUsers} className="mt-2 text-xs font-semibold text-red-700 underline hover:text-red-800">
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Users table */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
         {/* Table header */}
@@ -529,6 +546,12 @@ export default function UsersTab() {
         {loading ? (
           <div className="flex items-center justify-center py-16 text-slate-400 gap-2">
             <Loader2 className="w-5 h-5 animate-spin" /> Loading users...
+          </div>
+        ) : loadError ? (
+          <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+            <AlertTriangle className="w-10 h-10 mb-3 text-red-300" />
+            <div className="text-sm font-semibold text-red-600">Could not load users</div>
+            <div className="text-xs mt-1">The server returned an error. Click retry above.</div>
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-slate-400">
