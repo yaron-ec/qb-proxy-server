@@ -96,56 +96,94 @@ const QB_API_BASE = QB_ENVIRONMENT === 'production'
   ? 'https://quickbooks.api.intuit.com/v3/company'
   : 'https://sandbox-quickbooks.api.intuit.com/v3/company';
 
-// ── Persistent Token Storage ────────────────────────────────────────────────
+// ── Durable Token Storage (PostgreSQL via integrationCredentialStore) ────────
+//
+// PRODUCTION: QuickBooks OAuth tokens are stored in PostgreSQL
+// (integration_credentials table, AES-256-CBC encrypted with ENCRYPTION_KEY).
+// This survives Railway redeployments — the ephemeral filesystem does NOT.
+//
+// The filesystem (.qb-tokens.encrypted) is ONLY a one-time migration source:
+// if it exists on startup AND no PostgreSQL credential exists, the tokens are
+// migrated to PostgreSQL and the filesystem file is deleted. After migration,
+// the filesystem is never used again.
+//
+// Refresh mutex (_refreshPromise) prevents concurrent refresh races: if two
+// requests arrive with an expired token, only ONE refresh runs; the second
+// waits for the first and reuses its result.
 
-const TOKEN_FILE = path.join(__dirname, '.qb-tokens.encrypted');
+let storedTokens = null;
+let tokenStorageMethod = 'postgres';
+let _tokensLoaded = false;
+let _refreshPromise = null;
 
-function encryptToken(data) {
-  const key = crypto.scryptSync(ENCRYPTION_KEY, 'salt', 32);
-  const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
-  let encrypted = cipher.update(JSON.stringify(data), 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-  return iv.toString('hex') + ':' + encrypted;
-}
-
-function decryptToken(encryptedData) {
-  const key = crypto.scryptSync(ENCRYPTION_KEY, 'salt', 32);
-  const [ivHex, encrypted] = encryptedData.split(':');
-  const iv = Buffer.from(ivHex, 'hex');
-  const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-  let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-  decrypted += decipher.final('utf8');
-  return JSON.parse(decrypted);
-}
-
-// ── Filesystem Token Storage ─────────────────────────────────────────────────
-function loadTokensFromFile() {
+// Load tokens from PostgreSQL on startup. Called once; subsequent calls are no-ops.
+async function loadTokensFromStore() {
+  if (_tokensLoaded) return storedTokens;
+  _tokensLoaded = true;
   try {
-    if (fs.existsSync(TOKEN_FILE)) {
-      const encrypted = fs.readFileSync(TOKEN_FILE, 'utf8');
-      console.log('[proxy] Tokens loaded from filesystem (.qb-tokens.encrypted)');
-      return decryptToken(encrypted);
+    storedTokens = await tokenStore.loadPersistedTokens(QB_ENVIRONMENT);
+    if (storedTokens) {
+      console.log('[proxy] Tokens loaded from PostgreSQL (durable storage) — realm_id:', storedTokens.realm_id);
+    } else {
+      console.log('[proxy] No tokens found in PostgreSQL — QB not connected');
     }
   } catch (e) {
-    console.error('[proxy] Failed to load tokens from file:', e.message);
+    console.error('[proxy] Failed to load tokens from PostgreSQL:', e.message);
   }
-  return null;
+  return storedTokens;
 }
 
-function saveTokensToFile(tokens) {
+// Save tokens to PostgreSQL (durable). Throws on persistence failure — the
+// caller MUST know if the durable write failed (unlike the old filesystem save
+// which silently logged and continued).
+async function saveTokensToStore(tokens) {
+  await tokenStore.savePersistedTokens(QB_ENVIRONMENT, tokens);
+  console.log('[proxy] Tokens saved to PostgreSQL (durable storage)');
+}
+
+// Delete tokens from PostgreSQL (disconnect).
+async function deleteTokensFromStore() {
+  const realmId = storedTokens?.realm_id;
+  await tokenStore.deletePersistedTokens(QB_ENVIRONMENT, realmId);
+  console.log('[proxy] Tokens deleted from PostgreSQL');
+}
+
+// One-time migration: if .qb-tokens.encrypted exists AND no PostgreSQL
+// credential exists, migrate the filesystem tokens to PostgreSQL then delete
+// the filesystem file. If PostgreSQL tokens already exist, just delete the
+// stale filesystem file. Runs once on startup, before loadTokensFromStore.
+async function migrateFilesystemTokensIfNeeded() {
+  const TOKEN_FILE = path.join(__dirname, '.qb-tokens.encrypted');
+  if (!fs.existsSync(TOKEN_FILE)) return false;
+
   try {
-    const encrypted = encryptToken(tokens);
-    fs.writeFileSync(TOKEN_FILE, encrypted, 'utf8');
-    console.log('[proxy] Tokens saved to filesystem (.qb-tokens.encrypted)');
+    // Already have PostgreSQL tokens? Just remove the stale filesystem file.
+    const pgTokens = await tokenStore.loadPersistedTokens(QB_ENVIRONMENT);
+    if (pgTokens) {
+      console.log('[proxy] PostgreSQL tokens already exist — removing stale .qb-tokens.encrypted');
+      fs.unlinkSync(TOKEN_FILE);
+      return false;
+    }
+
+    // Migrate filesystem tokens to PostgreSQL.
+    const encrypted = fs.readFileSync(TOKEN_FILE, 'utf8');
+    const key = crypto.scryptSync(ENCRYPTION_KEY, 'salt', 32);
+    const [ivHex, encryptedData] = encrypted.split(':');
+    const iv = Buffer.from(ivHex, 'hex');
+    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+    let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    const fsTokens = JSON.parse(decrypted);
+
+    await tokenStore.savePersistedTokens(QB_ENVIRONMENT, fsTokens);
+    fs.unlinkSync(TOKEN_FILE);
+    console.log('[proxy] Migrated filesystem tokens to PostgreSQL — removed .qb-tokens.encrypted');
+    return true;
   } catch (e) {
-    console.error('[proxy] Failed to save tokens to file:', e.message);
+    console.error('[proxy] Filesystem token migration failed (non-blocking):', e.message);
+    return false;
   }
 }
-
-// Load tokens on startup (try Base44 first, fallback to filesystem)
-let storedTokens = loadTokensFromFile();
-let tokenStorageMethod = 'filesystem';
 
 // ── Auth middleware ──────────────────────────────────────────────────────────
 
@@ -209,64 +247,94 @@ function isRefreshTokenExpired(tokens) {
 }
 
 async function doRefreshToken() {
-  if (!storedTokens || !storedTokens.refresh_token) {
-    throw new ReconnectRequiredError('No refresh token stored');
-  }
-  if (isRefreshTokenExpired(storedTokens)) {
-    console.error('[proxy] Refresh token is expired — reconnect required');
-    throw new ReconnectRequiredError('Refresh token expired');
+  // Mutex: if a refresh is already in progress, wait for it and return its
+  // result. This prevents concurrent refresh races where two requests with
+  // expired tokens both try to refresh simultaneously, which can cause the
+  // second refresh to fail (Intuit rotates the refresh token on each use).
+  if (_refreshPromise) {
+    console.log('[proxy] Refresh already in progress — waiting for existing refresh');
+    return _refreshPromise;
   }
 
-  console.log('[proxy] Access token expired or close to expiry — refreshing...');
-  const creds = Buffer.from(`${QB_CLIENT_ID}:${QB_CLIENT_SECRET}`).toString('base64');
-  const res = await fetch(QB_TOKEN_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Basic ${creds}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Accept: 'application/json',
-    },
-    body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: storedTokens.refresh_token }).toString(),
-  });
-  const data = await res.json();
+  _refreshPromise = (async () => {
+    try {
+      if (!storedTokens || !storedTokens.refresh_token) {
+        throw new ReconnectRequiredError('No refresh token stored');
+      }
+      if (isRefreshTokenExpired(storedTokens)) {
+        console.error('[proxy] Refresh token is expired — reconnect required');
+        throw new ReconnectRequiredError('Refresh token expired');
+      }
 
-  if (!res.ok) {
-    const errCode = data.error || '';
-    const errDesc = data.error_description || errCode;
-    // Intuit returns these codes when the refresh token is invalid/revoked
-    if (['invalid_grant', 'token_revoked', 'AuthenticationFailed'].includes(errCode)) {
-      console.error(`[proxy] Refresh token invalid/revoked (${errCode}) — reconnect required`);
-      throw new ReconnectRequiredError(`Refresh failed: ${errDesc}`);
+      console.log('[proxy] Access token expired or close to expiry — refreshing...');
+      const creds = Buffer.from(`${QB_CLIENT_ID}:${QB_CLIENT_SECRET}`).toString('base64');
+      const res = await fetch(QB_TOKEN_URL, {
+        method: 'POST',
+        headers: {
+          Authorization: `Basic ${creds}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Accept: 'application/json',
+        },
+        body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: storedTokens.refresh_token }).toString(),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        const errCode = data.error || '';
+        const errDesc = data.error_description || errCode;
+        // Intuit returns these codes when the refresh token is invalid/revoked
+        if (['invalid_grant', 'token_revoked', 'AuthenticationFailed'].includes(errCode)) {
+          console.error(`[proxy] Refresh token invalid/revoked (${errCode}) — reconnect required`);
+          try { await tokenStore.markRevoked(QB_ENVIRONMENT); } catch (e) { /* best-effort */ }
+          throw new ReconnectRequiredError(`Refresh failed: ${errDesc}`);
+        }
+        console.error(`[proxy] Token refresh failed: ${errDesc}`);
+        try { await tokenStore.markError(QB_ENVIRONMENT, storedTokens.realm_id, `Refresh failed: ${errCode}`); } catch (e) { /* best-effort */ }
+        throw new Error(`Token refresh failed: ${errDesc}`);
+      }
+
+      storedTokens = {
+        ...storedTokens,
+        access_token: data.access_token,
+        refresh_token: data.refresh_token || storedTokens.refresh_token,
+        expires_at: new Date(Date.now() + (data.expires_in || 3600) * 1000).toISOString(),
+        // Intuit rotates refresh token expiry on each use
+        refresh_expires_at: data.x_refresh_token_expires_in
+          ? new Date(Date.now() + data.x_refresh_token_expires_in * 1000).toISOString()
+          : storedTokens.refresh_expires_at,
+        last_refresh_at: new Date().toISOString(),
+      };
+
+      // Persist refreshed tokens to PostgreSQL (durable). If this fails, the
+      // in-memory token is still valid for this request, but the NEXT process
+      // restart will lose it — log the error but don't fail the API call.
+      try {
+        await saveTokensToStore(storedTokens);
+      } catch (e) {
+        console.error('[proxy] CRITICAL: Token refresh succeeded but PostgreSQL persist failed:', e.message);
+      }
+
+      console.log(`[proxy] Token refreshed successfully — expires ${storedTokens.expires_at}`);
+      return storedTokens;
+    } finally {
+      _refreshPromise = null;
     }
-    console.error(`[proxy] Token refresh failed: ${errDesc}`);
-    throw new Error(`Token refresh failed: ${errDesc}`);
-  }
+  })();
 
-  storedTokens = {
-    ...storedTokens,
-    access_token: data.access_token,
-    refresh_token: data.refresh_token || storedTokens.refresh_token,
-    expires_at: new Date(Date.now() + (data.expires_in || 3600) * 1000).toISOString(),
-    // Intuit rotates refresh token expiry on each use
-    refresh_expires_at: data.x_refresh_token_expires_in
-      ? new Date(Date.now() + data.x_refresh_token_expires_in * 1000).toISOString()
-      : storedTokens.refresh_expires_at,
-    last_refresh_at: new Date().toISOString(),
-  };
-
-  saveTokensToFile(storedTokens);
-  console.log(`[proxy] Token refreshed successfully — expires ${storedTokens.expires_at}`);
-  return storedTokens;
+  return _refreshPromise;
 }
 
 async function getValidTokens() {
+  // Load from PostgreSQL if not yet loaded (startup or first request after disconnect)
+  if (!storedTokens && !_tokensLoaded) {
+    await loadTokensFromStore();
+  }
   if (!storedTokens) {
     throw new ReconnectRequiredError('No tokens stored — QB has never been connected');
   }
   if (isTokenExpiredOrClose(storedTokens)) {
     return await doRefreshToken();
   }
-  console.log(`[proxy] Token valid — expires ${storedTokens.expires_at}`);
   return storedTokens;
 }
 
@@ -295,8 +363,13 @@ async function qbFetch(path, options = {}, retried = false) {
 
   if (!res.ok) {
     const detail = json?.Fault?.Error?.[0]?.Detail || json?.Fault?.Error?.[0]?.Message || text.slice(0, 300);
+    // Record the error in the credential lifecycle (sanitized, no secrets)
+    try { await tokenStore.markError(QB_ENVIRONMENT, tokens.realm_id, `QB ${res.status}`); } catch (e) { /* best-effort */ }
     throw Object.assign(new Error(`QB ${res.status}: ${detail}`), { status: res.status, qbError: json });
   }
+
+  // Record successful authenticated QB request (updates last_used_at)
+  try { await tokenStore.markUsed(QB_ENVIRONMENT, tokens.realm_id); } catch (e) { /* best-effort */ }
   return json;
 }
 
@@ -349,7 +422,7 @@ async function buildHealthPayload() {
     reconnectRequired,
     lastRefreshedAt: storedTokens?.last_refresh_at || null,
     connectedAt: storedTokens?.connected_at || null,
-    storageMethod: 'filesystem',
+    storageMethod: 'postgres',
     credential_last_used_at: credentialLastUsedAt,
     credential_last_error_at: credentialLastErrorAt,
   };
@@ -429,18 +502,26 @@ async function handleAuthCallback(req, res) {
       refresh_expires_at: new Date(Date.now() + (tokenData.x_refresh_token_expires_in || 8726400) * 1000).toISOString(),
       connected_at: new Date().toISOString(),
     };
-    saveTokensToFile(storedTokens);
-    tokenStorageMethod = 'filesystem';
-    console.log('[proxy] OAuth complete — realm_id:', realmId, 'env:', QB_ENVIRONMENT, 'storage:', tokenStorageMethod);
-    res.json({ success: true, realm_id: realmId, environment: QB_ENVIRONMENT, storage_method: tokenStorageMethod });
+    // Persist to PostgreSQL (durable — survives redeployments)
+    await saveTokensToStore(storedTokens);
+    _tokensLoaded = true; // mark as loaded so getValidTokens doesn't re-load
+    tokenStorageMethod = 'postgres';
+    console.log('[proxy] OAuth complete — realm_id:', realmId, 'env:', QB_ENVIRONMENT, 'storage: postgres');
+    res.json({ success: true, realm_id: realmId, environment: QB_ENVIRONMENT, storage_method: 'postgres' });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 }
 
-function handleAuthDisconnect(req, res) {
+async function handleAuthDisconnect(req, res) {
   storedTokens = null;
-  try { if (fs.existsSync(TOKEN_FILE)) fs.unlinkSync(TOKEN_FILE); } catch (e) { /* best-effort */ }
+  _tokensLoaded = true; // prevent auto-reload after disconnect
+  _refreshPromise = null;
+  try {
+    await deleteTokensFromStore();
+  } catch (e) {
+    console.error('[proxy] Disconnect: failed to delete from PostgreSQL:', e.message);
+  }
   res.json({ success: true });
 }
 
@@ -1697,10 +1778,20 @@ app.post('/sync/qb-estimate-pdfs', requireProxySecret, async (req, res) => {
 // ── Start ─────────────────────────────────────────────────────────────────────
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`[proxy] QuickBooks Proxy running on port ${PORT}`);
   console.log(`[proxy] Environment: ${QB_ENVIRONMENT}`);
   console.log(`[proxy] API Base: ${QB_API_BASE}`);
+
+  // Load QB tokens from PostgreSQL on startup (with one-time filesystem migration).
+  // This is async and non-blocking — the server is already listening. The first
+  // QB API request will await loadTokensFromStore() if tokens aren't loaded yet.
+  try {
+    await migrateFilesystemTokensIfNeeded();
+    await loadTokensFromStore();
+  } catch (e) {
+    console.error('[proxy] Startup token load failed:', e.message);
+  }
 
   // ── QB Estimate Sync Cron ─────────────────────────────────────────────────
   // Off by default. Set QB_SYNC_CRON_ENABLED=true on Railway to start the 15-min
