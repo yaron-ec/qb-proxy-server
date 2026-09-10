@@ -9,6 +9,19 @@
 
 import { apiCall } from './client';
 
+/**
+ * Create a new lead (R1B).
+ * Accepts: first_name, last_name (required), email, phone, property_address,
+ * city, state, zip, project_type, budget_range, start_timeframe, source,
+ * referral_name, notes, message, assigned_rep, owner_email, lead_score,
+ * is_new_intake_lead, customer_reminders_disabled, photo_urls, record_type,
+ * follow_up_date, follow_up_time, follow_up_type, meeting_stage.
+ * Returns { lead } on success, throws 409 on duplicate email/phone.
+ */
+export function create(data) {
+  return apiCall('/api/v1/leads', { method: 'POST', body: data });
+}
+
 export function list(params = {}) {
   const qs = new URLSearchParams();
   if (params.status && params.status !== 'all') qs.set('status', params.status);
