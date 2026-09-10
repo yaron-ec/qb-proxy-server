@@ -1448,17 +1448,26 @@ app.get('/signnow/diagnostic', requireProxySecret, async (req, res) => {
   try {
     const clientId = process.env.SIGNNOW_CLIENT_ID;
     const clientSecret = process.env.SIGNNOW_CLIENT_SECRET;
-    const apiBase = process.env.SIGNNOW_API_BASE || 'https://api.signnow.com';
     const signnowEnv = process.env.SIGNNOW_ENVIRONMENT || 'production';
+
+    // Derive the effective API base URL the same way signnowClient.js does,
+    // so the diagnostic shows the ACTUAL URL being used (not just the raw env var).
+    const signnowClient = require('./lib/signnowClient');
+    const effectiveApiBase = signnowClient.getApiBase();
 
     const result = {
       client_id_configured: !!clientId,
       client_secret_configured: !!clientSecret,
-      api_base: apiBase,
+      api_base: effectiveApiBase,
+      api_base_env_var: process.env.SIGNNOW_API_BASE || null,
       environment: signnowEnv,
       env_username_configured: !!(process.env.SIGNNOW_USERNAME && process.env.SIGNNOW_PASSWORD),
       api_key_configured: !!process.env.SIGNNOW_API_KEY,
       basic_auth_token_configured: !!process.env.SIGNNOW_BASIC_AUTH_TOKEN,
+      environment_mismatch_warning:
+        process.env.SIGNNOW_API_KEY && signnowEnv === 'production' && !process.env.SIGNNOW_API_BASE
+          ? 'API Key is set but SIGNNOW_ENVIRONMENT=production (default). If the API Key is from a Development/Sandbox application, set SIGNNOW_ENVIRONMENT=sandbox to use https://api-eval.signnow.com.'
+          : null,
     };
 
     // Check if credentials are stored in the database
@@ -1482,7 +1491,7 @@ app.get('/signnow/diagnostic', requireProxySecret, async (req, res) => {
     if (clientId && clientSecret) {
       try {
         const creds = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-        const testRes = await fetch(`${apiBase}/oauth2/token`, {
+        const testRes = await fetch(`${effectiveApiBase}/oauth2/token`, {
           method: 'POST',
           headers: {
             Authorization: `Basic ${creds}`,
@@ -1505,9 +1514,32 @@ app.get('/signnow/diagnostic', requireProxySecret, async (req, res) => {
         result.api_reachable = false;
         result.api_error = e.message;
       }
+    } else if (process.env.SIGNNOW_API_KEY) {
+      // API Key mode — test reachability by calling /user with the API Key
+      try {
+        const testRes = await fetch(`${effectiveApiBase}/user`, {
+          headers: { Authorization: `Bearer ${process.env.SIGNNOW_API_KEY}` },
+          signal: AbortSignal.timeout(10000),
+        });
+        result.api_reachable = true;
+        result.api_http_status = testRes.status;
+        if (testRes.ok) {
+          result.api_key_valid = true;
+        } else {
+          const testBody = await testRes.text().catch(() => '');
+          try {
+            const parsed = JSON.parse(testBody);
+            result.api_error_code = parsed.error || (parsed.errors && parsed.errors[0] && parsed.errors[0].code) || null;
+            result.api_error_description = (parsed.error_description || (parsed.errors && parsed.errors[0] && parsed.errors[0].message) || '').substring(0, 200);
+          } catch { result.api_raw_response = testBody.substring(0, 200); }
+        }
+      } catch (e) {
+        result.api_reachable = false;
+        result.api_error = e.message;
+      }
     } else {
       result.api_reachable = false;
-      result.api_error = 'SIGNNOW_CLIENT_ID or SIGNNOW_CLIENT_SECRET not configured';
+      result.api_error = 'SIGNNOW_API_KEY or SIGNNOW_CLIENT_ID/SECRET not configured';
     }
 
     res.json(result);
