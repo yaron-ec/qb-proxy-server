@@ -21,9 +21,9 @@
 const express = require('express');
 const { requireAuth } = require('../lib/rbac');
 const { canonicalEmail } = require('../lib/authorization');
+const { isOverrideAdminEmail } = require('../lib/captureOverrideAuth');
 const { query, pool } = require('../db/client');
 const calendarOutbox = require('../lib/booking/calendarOutbox');
-const { acquireOwnerLockAndCheckConflict } = require('../lib/booking/appointmentWriter');
 const googleContactsClient = require('../lib/googleContactsClient');
 const { toUtcIso } = require('../lib/booking/slotBlocking');
 const { syncLeadToReminders, removeFromReminders } = require('../lib/reminderProjection');
@@ -201,8 +201,6 @@ function serializeLead(row, appointment = null) {
     //   calendar_last_error, calendar_synced_at
     // We expose them on the lead object under the legacy field names so the
     // frontend CalendarSyncPanel works without interface changes.
-    appointment_id: appointment?.id || row.active_appointment_id || null,
-    appointment_id: appointment?.id || null,
     google_calendar_sync_status: appointment?.calendar_sync_status || null,
     google_event_id: appointment?.google_event_id || null,
     google_travel_event_id: appointment?.google_travel_event_id || null,
@@ -415,27 +413,17 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
     // leads (external_ref = NULL) when called with their Railway UUID.
     const { whereSql: upsertWhere, params: upsertParams } = leadIdWhere(externalRef);
     const existingById = await query(`SELECT id, external_ref FROM leads WHERE ${upsertWhere} LIMIT 1`, upsertParams);
-    const existingLead = existingById.rows[0]; // any existing lead — UUID or external_ref
+    const isRailwayNativeUpdate = existingById.rows[0] && UUID_RE.test(String(externalRef)) && existingById.rows[0].id === externalRef;
 
     let sql, params;
-    if (existingLead) {
-      // UPDATE by canonical Railway UUID — no upsert, no duplicate, no owner_id NULL risk.
-      // Works for BOTH Railway-native leads (externalRef = UUID) AND legacy leads
-      // (externalRef = Base44 ID). owner_id is only included if explicitly provided;
-      // omitted owner_id preserves the existing value (NOT NULL is never violated).
+    if (isRailwayNativeUpdate) {
+      // UPDATE by canonical Railway UUID — no external_ref upsert, no duplicate.
       const setCols = Object.keys(allFields);
-      if (setCols.length === 0) {
-        const appt = await fetchActiveAppointment(existingLead.id);
-        return res.json({ lead: serializeLead(existingLead, appt) });
-      }
       const setClause = setCols.map((col, i) => `${col} = $${i + 1}`).join(', ');
-      params = [...setCols.map(c => allFields[c]), existingLead.id];
+      params = [...setCols.map(c => allFields[c]), existingById.rows[0].id];
       sql = `UPDATE leads SET ${setClause}, updated_at = NOW() WHERE id = $${setCols.length + 1} RETURNING *`;
     } else {
-      // INSERT new lead by external_ref (lead doesn't exist yet).
-      // owner_id is NOT NULL — if not provided, default to the first active owner
-      // (prevents NOT NULL violation on INSERT). Existing leads are always UPDATE'd
-      // above, preserving their owner_id.
+      // Upsert by external_ref (legacy leads or new inserts from Base44).
       const insertCols = ['external_ref', 'first_name', 'last_name'];
       params = [externalRef, insertFirstName, insertLastName];
       for (const col of Object.keys(allFields)) {
@@ -603,8 +591,25 @@ const APPOINTMENT_FIELDS = ['meeting_stage', 'follow_up_date', 'follow_up_time',
 async function executeAppointmentUpdate(req, res, resolvedLeadId) {
   try {
     const body = req.body || {};
-    const adminOverride = body.admin_override === true && req.user?.role === 'admin';
-    const actorEmail = req.user?.email || null;
+    // ── Admin Override authorization (CANONICAL CONTRACT) ─────────────────
+    // Frontend sends admin_override=true when an admin has explicitly toggled
+    // the override switch for a conflicting slot. The backend is the
+    // AUTHORITATIVE gate: role must be 'admin' AND email must be in the
+    // server-side allowlist (same pattern as captureOverrideAuth.js).
+    // A non-admin who spoofs admin_override=true gets 403, never a bypass.
+    // override_conflict is the ONE canonical field — no competing names.
+    const adminOverrideRequested = body.admin_override === true;
+    if (adminOverrideRequested) {
+      const overrideRole = String((req.user && req.user.role) || '').toLowerCase();
+      const overrideEmail = canonicalEmail(req.user && req.user.email);
+      if (overrideRole !== 'admin' || !isOverrideAdminEmail(overrideEmail)) {
+        return res.status(403).json({
+          error: 'override_forbidden',
+          message: 'Only authorized admins may override appointment conflicts.',
+        });
+      }
+    }
+    const overrideActor = adminOverrideRequested ? (req.user && req.user.email) || null : null;
     const updates = [];
     const params = [];
     let p = 1;
@@ -663,28 +668,22 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
         const busyStart = isPhoneCall ? startAt : new Date(startAt.getTime() - 60 * 60 * 1000);
         const busyEnd = isPhoneCall ? endAt : new Date(endAt.getTime() + 60 * 60 * 1000);
 
-        await acquireOwnerLockAndCheckConflict(client, updatedLead.owner_id, busyStart, busyEnd, existingAppt?.id, adminOverride);
-
         if (existingAppt) {
           const newVersion = (existingAppt.version || 1) + 1;
           await client.query(
             `UPDATE appointments SET start_at = $1, end_at = $2, busy_range = tstzrange($3, $4, '[)'),
-             version = $5, calendar_sync_status = 'pending',
-             override_authorized = $6, override_authorized_by = $7, override_authorized_at = $8,
-             updated_at = NOW() WHERE id = $9`,
-            [startAt.toISOString(), endAt.toISOString(), busyStart.toISOString(), busyEnd.toISOString(),
-             newVersion, adminOverride, adminOverride ? actorEmail : null, adminOverride ? new Date().toISOString() : null,
-             existingAppt.id]
+             version = $5, calendar_sync_status = 'pending', override_conflict = $6, updated_at = NOW() WHERE id = $7`,
+            [startAt.toISOString(), endAt.toISOString(), busyStart.toISOString(), busyEnd.toISOString(), newVersion, adminOverrideRequested, existingAppt.id]
           );
           const updatedAppt = (await client.query('SELECT * FROM appointments WHERE id = $1', [existingAppt.id])).rows[0];
           // For Phone Calls, skip travel event (no driving). Pass skipTravel=true.
-          await calendarOutbox.enqueueUpdate(client, updatedAppt, updatedLead, updatedLead.owner_email, updatedAppt.version, isPhoneCall);
+          await calendarOutbox.enqueueUpdate(client, updatedAppt, updatedLead, updatedLead.owner_email, updatedAppt.version, !isPhoneCall);
           await client.query(
             `INSERT INTO appointment_events (appointment_id, actor, action, previous_values, new_values)
              VALUES ($1, $2, 'rescheduled', $3, $4)`,
             [existingAppt.id, req.user?.email || null,
              JSON.stringify({ start_at: existingAppt.start_at, end_at: existingAppt.end_at }),
-             JSON.stringify({ start_at: updatedAppt.start_at, end_at: updatedAppt.end_at })]
+             JSON.stringify({ start_at: updatedAppt.start_at, end_at: updatedAppt.end_at, override_conflict: adminOverrideRequested, override_actor: overrideActor })]
           );
           appointmentAction = 'appointment_rescheduled';
           appointmentChanges = [
@@ -698,13 +697,12 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
             const typeId = typeRes.rows[0].id;
             const idempotencyKey = `appt:${updatedLead.id}:${apptDate}:${apptTime}`;
             const insRes = await client.query(
-              `INSERT INTO appointments (lead_id, owner_id, appointment_type_id, start_at, end_at, timezone, busy_range, status, calendar_sync_status, idempotency_key, override_authorized, override_authorized_by, override_authorized_at)
-               VALUES ($1, $2, $3, $4, $5, $6, tstzrange($7, $8, '[)'), 'scheduled', 'pending', $9, $10, $11, $12)
+              `INSERT INTO appointments (lead_id, owner_id, appointment_type_id, start_at, end_at, timezone, busy_range, status, calendar_sync_status, idempotency_key, override_conflict)
+               VALUES ($1, $2, $3, $4, $5, $6, tstzrange($7, $8, '[)'), 'scheduled', 'pending', $9, $10)
                ON CONFLICT (idempotency_key) DO NOTHING
                RETURNING *`,
               [updatedLead.id, updatedLead.owner_id, typeId, startAt.toISOString(), endAt.toISOString(),
-               'America/Los_Angeles', busyStart.toISOString(), busyEnd.toISOString(), idempotencyKey,
-               adminOverride, adminOverride ? actorEmail : null, adminOverride ? new Date().toISOString() : null]
+               'America/Los_Angeles', busyStart.toISOString(), busyEnd.toISOString(), idempotencyKey, adminOverrideRequested]
             );
             const newAppt = insRes.rows[0];
             if (!newAppt) {
@@ -724,7 +722,7 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
               `INSERT INTO appointment_events (appointment_id, actor, action, new_values)
                VALUES ($1, $2, 'created', $3)`,
               [newAppt.id, req.user?.email || null,
-               JSON.stringify({ start_at: newAppt.start_at, end_at: newAppt.end_at, owner_id: newAppt.owner_id })]
+               JSON.stringify({ start_at: newAppt.start_at, end_at: newAppt.end_at, owner_id: newAppt.owner_id, override_conflict: adminOverrideRequested, override_actor: overrideActor })]
             );
             appointmentAction = 'appointment_created';
             appointmentChanges = [
@@ -744,7 +742,7 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
             ['cancelled', newVersion, existingAppt.id]
           );
           const cancelledAppt = (await client.query('SELECT * FROM appointments WHERE id = $1', [existingAppt.id])).rows[0];
-          await calendarOutbox.enqueueCancel(client, cancelledAppt, cancelledAppt.version, isPhoneCall);
+          await calendarOutbox.enqueueCancel(client, cancelledAppt, cancelledAppt.version);
           await client.query(
             `INSERT INTO appointment_events (appointment_id, actor, action, previous_values)
              VALUES ($1, $2, 'cancelled', $3)`,
@@ -774,7 +772,7 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
       try { await client.query('ROLLBACK'); } catch (_) {}
       client.release();
 
-      if (calErr.code === 'SLOT_CONFLICT' || calErr.code === '23P01') {
+      if (calErr.code === '23P01') {
         return res.status(409).json({
           error: 'slot_conflict',
           message: 'This time conflicts with another appointment. Please choose a different time.',
@@ -816,20 +814,22 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
 router.put('/:id/appointment', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    // Accept BOTH Railway UUID and legacy external_ref (Base44 ID).
-    // The frontend may send either identifier — resolve to the canonical UUID.
-    const leadRow = await resolveLeadByIdentifier(id);
-    if (!leadRow) return res.status(404).json({ error: 'not_found' });
+    if (!UUID_RE.test(String(id))) {
+      return res.status(400).json({ error: 'invalid_id', message: 'PUT /:id/appointment requires a valid Railway UUID.' });
+    }
 
     const scope = await resolveOwnerScope(req.user);
     if (scope.denied) return res.status(403).json({ error: 'forbidden' });
     if (scope.readOnly) return res.status(403).json({ error: 'forbidden', message: 'office role is read-only' });
 
-    if (scope.ownerFilter && String(leadRow.owner_id) !== String(scope.ownerFilter)) {
+    // Verify lead exists + caller has access
+    const leadR = await query('SELECT id, owner_id FROM leads WHERE id = $1', [id]);
+    if (!leadR.rows[0]) return res.status(404).json({ error: 'not_found' });
+    if (scope.ownerFilter && String(leadR.rows[0].owner_id) !== String(scope.ownerFilter)) {
       return res.status(403).json({ error: 'forbidden' });
     }
 
-    return executeAppointmentUpdate(req, res, leadRow.id);
+    return executeAppointmentUpdate(req, res, leadR.rows[0].id);
   } catch (e) {
     console.error('[leads] appointment update error:', e.message);
     res.status(500).json({ error: e.message });
@@ -904,8 +904,7 @@ router.get('/', requireAuth, async (req, res) => {
     else if (sort === '-follow_up') { orderCol = 'l.follow_up_date'; orderDir = 'DESC NULLS LAST'; }
 
     const sql = `
-      SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email,
-        (SELECT id FROM appointments WHERE lead_id = l.id AND status IN ('scheduled','confirmed') ORDER BY created_at DESC LIMIT 1) AS active_appointment_id
+      SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
       FROM leads l
       LEFT JOIN owners o ON o.id = l.owner_id
       ${whereClause}
@@ -944,21 +943,27 @@ const UPDATABLE_FIELDS = [
 router.put('/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    // Accept BOTH Railway UUID and legacy external_ref (Base44 ID).
-    // The frontend may send either identifier — resolve to the canonical UUID.
-    const leadRow = await resolveLeadByIdentifier(id);
-    if (!leadRow) return res.status(404).json({ error: 'not_found' });
-
+    // Guard: :id must be a valid UUID — this route only accepts canonical
+    // Railway UUIDs. Non-UUID identifiers (legacy external_refs) must use
+    // the /by-external/:externalRef routes instead.
+    if (!UUID_RE.test(String(id))) {
+      return res.status(400).json({ error: 'invalid_id', message: 'PUT /:id requires a valid Railway UUID. Use /by-external/:externalRef for legacy identifiers.' });
+    }
     const scope = await resolveOwnerScope(req.user);
     if (scope.denied) return res.status(403).json({ error: 'forbidden' });
     if (scope.readOnly) return res.status(403).json({ error: 'forbidden', message: 'office role is read-only' });
 
-    if (scope.ownerFilter && String(leadRow.owner_id) !== String(scope.ownerFilter)) {
+    // Verify lead exists + caller has access — fetch FULL row for diff notification
+    const leadR = await query(
+      `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
+       FROM leads l LEFT JOIN owners o ON o.id = l.owner_id WHERE l.id = $1`,
+      [id]
+    );
+    if (!leadR.rows[0]) return res.status(404).json({ error: 'not_found' });
+    if (scope.ownerFilter && String(leadR.rows[0].owner_id) !== String(scope.ownerFilter)) {
       return res.status(403).json({ error: 'forbidden' });
     }
-    // Use the canonical Railway UUID for all downstream operations
-    const canonicalId = leadRow.id;
-    const oldLead = leadRow;
+    const oldLead = leadR.rows[0];
 
     const body = req.body || {};
     const updates = [];
@@ -988,7 +993,7 @@ router.put('/:id', requireAuth, async (req, res) => {
         if ((col === 'email' || col === 'phone') && val) {
           const dup = await query(
             `SELECT id, first_name, last_name FROM leads WHERE ${col === 'email' ? 'lower(email)' : 'phone'} = $1 AND id != $2 LIMIT 1`,
-            [val, canonicalId]
+            [val, id]
           );
           if (dup.rows[0]) {
             return res.status(409).json({
@@ -1053,7 +1058,7 @@ router.put('/:id', requireAuth, async (req, res) => {
     updates.push('updated_at = NOW()');
 
     const sql = `UPDATE leads SET ${updates.join(', ')} WHERE id = $${p} RETURNING *`;
-    params.push(canonicalId);
+    params.push(id);
 
     // ── Atomic: lead update + reminder projection in ONE transaction ──────
     const client = await pool.connect();
@@ -1108,27 +1113,28 @@ router.put('/:id', requireAuth, async (req, res) => {
 router.delete('/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    // Accept BOTH Railway UUID and legacy external_ref (Base44 ID).
-    const leadRow = await resolveLeadByIdentifier(id);
-    if (!leadRow) return res.status(404).json({ error: 'not_found' });
-
+    if (!UUID_RE.test(String(id))) {
+      return res.status(400).json({ error: 'invalid_id', message: 'DELETE /:id requires a valid Railway UUID. Use /by-external/:externalRef for legacy identifiers.' });
+    }
     const scope = await resolveOwnerScope(req.user);
     if (scope.denied) return res.status(403).json({ error: 'forbidden' });
     if (scope.readOnly) return res.status(403).json({ error: 'forbidden', message: 'office role is read-only' });
 
-    if (scope.ownerFilter && String(leadRow.owner_id) !== String(scope.ownerFilter)) {
+    // Verify lead exists + caller has access
+    const leadR = await query('SELECT id, external_ref, owner_id FROM leads WHERE id = $1', [id]);
+    if (!leadR.rows[0]) return res.status(404).json({ error: 'not_found' });
+    if (scope.ownerFilter && String(leadR.rows[0].owner_id) !== String(scope.ownerFilter)) {
       return res.status(403).json({ error: 'forbidden' });
     }
-    const canonicalId = leadRow.id;
 
     // ── Atomic: lead delete + dependency cleanup in ONE transaction ────
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      await removeFromReminders(client, leadRow);
-      await cancelAppointmentsForLeadDelete(client, canonicalId);
-      await cleanupLeadTextRefs(client, canonicalId);
-      await client.query('DELETE FROM leads WHERE id = $1', [canonicalId]);
+      await removeFromReminders(client, leadR.rows[0]);
+      await cancelAppointmentsForLeadDelete(client, id);
+      await cleanupLeadTextRefs(client, id);
+      await client.query('DELETE FROM leads WHERE id = $1', [id]);
       await client.query('COMMIT');
     } catch (e) {
       try { await client.query('ROLLBACK'); } catch (_) {}
@@ -1137,7 +1143,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
       return res.status(500).json({ error: e.message });
     }
     client.release();
-    res.json({ success: true, id: canonicalId });
+    res.json({ success: true, id });
   } catch (e) {
     console.error('[leads] delete error:', e.message);
     res.status(500).json({ error: e.message });
@@ -1264,7 +1270,6 @@ router.post('/by-external/:externalRef/sync-calendar', requireAuth, async (req, 
     // with 1hr buffer before/after. The worker processes them with retry + dead-letter.
     const { pool } = require('../db/client');
     const calendarOutbox = require('../lib/booking/calendarOutbox');
-const { acquireOwnerLockAndCheckConflict } = require('../lib/booking/appointmentWriter');
 
     // Build start/end times (LA timezone)
     // Phone Calls: no travel buffer. Meetings: 1hr before/after.
@@ -1286,8 +1291,6 @@ const { acquireOwnerLockAndCheckConflict } = require('../lib/booking/appointment
       );
 
       let appointment;
-
-      await acquireOwnerLockAndCheckConflict(client, lead.owner_id, busyStart, busyEnd, apptRes.rows[0]?.id, false);
 
       if (apptRes.rows[0]) {
         // Reschedule: update existing appointment's time
@@ -1374,9 +1377,6 @@ const { acquireOwnerLockAndCheckConflict } = require('../lib/booking/appointment
       client.release();
     }
   } catch (e) {
-    if (e.code === 'SLOT_CONFLICT') {
-      return res.status(409).json({ error: 'slot_conflict', message: e.message });
-    }
     console.error('[leads] sync-calendar error:', e.message);
     res.status(500).json({ error: e.message });
   }
