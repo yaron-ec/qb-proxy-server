@@ -6,6 +6,8 @@ import { validateSlot } from "@/lib/calendarAvailability";
 import { Calendar, Phone, AlertTriangle, Pencil, X, ShieldAlert, Loader2 } from "lucide-react";
 import AvailableTimePicker from "@/components/AvailableTimePicker";
 
+// Emails of users who are allowed to override booking conflicts
+const ADMIN_OVERRIDE_EMAILS = ['michelle@ecconstructiongroup.com', 'yaron@ecconstructiongroup.com'];
 
 function fmt12(t) {
   if (!t) return "";
@@ -32,13 +34,18 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
   const [availabilityError, setAvailabilityError] = useState(null);
   const [saveError, setSaveError] = useState(null);
   const [isAdminUser, setIsAdminUser] = useState(false);
+  const [overrideEnabled, setOverrideEnabled] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
   const { user: authUser } = useAuth();
 
-  // Check admin override from auth context — strictly role-based, no email bypass
+  // Check admin override from auth context
   useEffect(() => {
     if (authUser) {
-      setIsAdminUser(authUser.role === 'admin');
+      const email = (authUser.email || '').toLowerCase();
+      const role = authUser.role || '';
+      const byRole = role === 'admin';
+      const byEmail = ADMIN_OVERRIDE_EMAILS.includes(email);
+      setIsAdminUser(byRole || byEmail);
     }
   }, [authUser]);
 
@@ -72,8 +79,8 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
     // Client-side availability check for Meeting type (admin may override)
     if (type === "Meeting" && time && lead.assigned_rep) {
       try {
-        const avData = await validateSlot(date, time, lead.assigned_rep);
-        if (avData?.blocked === true && !isAdminUser) {
+        const avData = await validateSlot(date, time, lead.assigned_rep, { excludeAppointmentId: lead.appointment_id });
+        if (avData?.blocked === true && !(isAdminUser && overrideEnabled)) {
           setAvailabilityError(`This owner is not available at ${fmt12(time)}. Please select a different time.`);
           setSaving(false);
           return;
@@ -97,6 +104,7 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
         follow_up_date: date,
         follow_up_time: time || null,
         follow_up_type: type || null,
+        admin_override: isAdminUser && overrideEnabled,
       }, { signal: controller.signal });
       if (res?.lead) {
         onLeadUpdate(res.lead);
@@ -109,7 +117,19 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
       } else {
         const msg = e?.data?.message || e?.message || "Failed to save appointment.";
         if (e?.status === 409) {
-          setAvailabilityError(msg);
+          // Only show the red blocking error if override is NOT active.
+          // When override is active, the backend should not return 409 (the
+          // EXCLUDE constraint exempts override_conflict=true rows). If a 409
+          // somehow arrives despite override, show it as saveError — never
+          // show both the red blocking error and the amber override warning.
+          if (isAdminUser && overrideEnabled) {
+            setSaveError(msg);
+          } else {
+            setAvailabilityError(msg);
+          }
+        } else if (e?.status === 403 && e?.data?.error === 'override_forbidden') {
+          setSaveError(msg);
+          setOverrideEnabled(false);
         } else {
           setSaveError(msg);
         }
@@ -172,6 +192,7 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
               setJustSaved(false);
               setAvailabilityError(null);
               setSaveError(null);
+              setOverrideEnabled(false);
               setEditing(true);
             }}
             className="text-[10px] text-amber-600 hover:text-amber-700 font-semibold flex items-center gap-1"
@@ -251,7 +272,7 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
         <input
           type="date"
           value={date}
-          onChange={e => { setDate(e.target.value); setAvailabilityError(null); }}
+          onChange={e => { setDate(e.target.value); setAvailabilityError(null); setOverrideEnabled(false); }}
           className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
         />
       </div>
@@ -261,17 +282,25 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
         <div className="flex items-center gap-1.5 mb-1">
           <label className="text-[10px] font-semibold text-slate-500 uppercase">Time</label>
           {isAdminUser && (
-            <span className="flex items-center gap-0.5 text-[9px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full">
-              <ShieldAlert className="w-2.5 h-2.5" /> Admin Override
-            </span>
+            <button
+              onClick={() => { setOverrideEnabled(!overrideEnabled); setAvailabilityError(null); }}
+              className={`flex items-center gap-0.5 text-[9px] font-semibold px-1.5 py-0.5 rounded-full transition-colors ${
+                overrideEnabled
+                  ? 'text-white bg-amber-500 border border-amber-500'
+                  : 'text-amber-600 bg-amber-50 border border-amber-200 hover:bg-amber-100'
+              }`}
+            >
+              <ShieldAlert className="w-2.5 h-2.5" /> Override {overrideEnabled ? 'ON' : 'OFF'}
+            </button>
           )}
         </div>
         <AvailableTimePicker
           value={time}
-          onChange={v => { setTime(v); setAvailabilityError(null); }}
+          onChange={v => { setTime(v); setAvailabilityError(null); setOverrideEnabled(false); }}
           date={date}
           ownerName={lead.assigned_rep}
-          adminOverride={isAdminUser}
+          adminOverride={isAdminUser && overrideEnabled}
+          excludeAppointmentId={lead.appointment_id}
         />
       </div>
 
@@ -295,7 +324,7 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
           <label className="text-[10px] font-semibold text-slate-500 uppercase block mb-2">Type</label>
           <div className="grid grid-cols-2 gap-2">
             <button
-              onClick={() => { setType("Phone Call"); setAvailabilityError(null); }}
+              onClick={() => { setType("Phone Call"); setAvailabilityError(null); setOverrideEnabled(false); }}
               className={`flex flex-col items-center gap-1.5 px-3 py-3 rounded-lg border-2 text-xs font-semibold transition-colors ${
                 type === "Phone Call"
                   ? "border-green-500 bg-green-50 text-green-700"
@@ -306,7 +335,7 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
               Phone Call
             </button>
             <button
-              onClick={() => { setType("Meeting"); setAvailabilityError(null); }}
+              onClick={() => { setType("Meeting"); setAvailabilityError(null); setOverrideEnabled(false); }}
               className={`flex flex-col items-center gap-1.5 px-3 py-3 rounded-lg border-2 text-xs font-semibold transition-colors ${
                 type === "Meeting"
                   ? "border-blue-500 bg-blue-50 text-blue-700"
@@ -330,7 +359,7 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
           <ul className="text-[10px] text-blue-700 list-disc list-inside space-y-0.5">
             <li>{time ? fmt12(time) : "Selected time"} — 1hr meeting with {clientName}</li>
             <li>+1hr: Driving / Travel Time (busy, no client invite)</li>
-            <li>Reminders: 48h, 24h, 12h, 2h, 30min (email)</li>
+            <li>Reminders: 12h, 2h, 30min (email)</li>
           </ul>
           {ownerEmail && (
             <p className="text-[10px] text-blue-600">📋 Owner invite: {ownerEmail}</p>
@@ -353,7 +382,7 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
           <ul className="text-[10px] text-green-700 list-disc list-inside space-y-0.5">
             <li>{time ? fmt12(time) : "Selected time"} — Phone call with {clientName}</li>
             <li>No travel buffer (no driving needed)</li>
-            <li>Reminders: 48h, 24h, 12h, 2h, 30min (email)</li>
+            <li>Reminders: 12h, 2h, 30min (email)</li>
           </ul>
           {ownerEmail && (
             <p className="text-[10px] text-green-600">📋 Owner invite: {ownerEmail}</p>
