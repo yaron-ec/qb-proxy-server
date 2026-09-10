@@ -28,6 +28,118 @@ router.use(requireAuth);
 
 const requireAdminManager = requireRole('admin', 'manager');
 
+// ── GET /status — SignNow connection status ──────────────────────────────────
+router.get('/status', async (req, res) => {
+  try {
+    const credentialStore = require('../lib/integrationCredentialStore');
+    const SIGNNOW_ENV = process.env.SIGNNOW_ENVIRONMENT || 'production';
+
+    // Check if credentials are stored in the database
+    let dbCred = null;
+    try {
+      dbCred = await credentialStore.loadActiveCredential({
+        provider: 'signnow',
+        credentialType: 'password',
+        environment: SIGNNOW_ENV,
+      });
+    } catch (e) { /* store may not be configured */ }
+
+    const hasDbCreds = !!(dbCred && dbCred.payload && dbCred.payload.username);
+    const hasEnvCreds = !!(process.env.SIGNNOW_USERNAME && process.env.SIGNNOW_PASSWORD);
+
+    if (!hasDbCreds && !hasEnvCreds) {
+      return res.json({ connected: false });
+    }
+
+    // Verify the connection by attempting to get an access token
+    try {
+      await signnowClient.getAccessToken();
+      const username = hasDbCreds ? dbCred.payload.username : process.env.SIGNNOW_USERNAME;
+      res.json({
+        connected: true,
+        name: username,
+        email: username.includes('@') ? username : null,
+        username,
+      });
+    } catch (e) {
+      if (e.code === 'SIGNNOW_NOT_CONFIGURED') {
+        return res.json({ connected: false });
+      }
+      // Token exchange failed — credentials are stored but invalid
+      res.json({ connected: false, error: 'auth_failed', message: 'Stored credentials are invalid. Please reconnect.' });
+    }
+  } catch (e) {
+    console.error('[signnow] status error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── POST /connect — validate and store SignNow credentials (admin/manager only)
+// Verifies credentials by attempting an OAuth2 token exchange BEFORE storing.
+// Invalid credentials return 401 (real auth error), NOT 404.
+// Password is NEVER returned in any response, log, or activity.
+router.post('/connect', requireAdminManager, async (req, res) => {
+  try {
+    const { username, password } = req.body || {};
+    if (!username || !password) {
+      return res.status(400).json({ success: false, error: 'username and password required' });
+    }
+
+    // Verify credentials by attempting a token exchange (does NOT store)
+    try {
+      await signnowClient.verifyCredentials(username, password);
+    } catch (e) {
+      if (e.code === 'SIGNNOW_NOT_CONFIGURED') {
+        return res.status(501).json({ success: false, error: 'signnow_not_configured', message: e.message });
+      }
+      // Real auth error — NOT a 404
+      return res.status(401).json({ success: false, error: 'Invalid SignNow credentials. Please check your email and password.' });
+    }
+
+    // Store credentials securely in the encrypted credential store
+    const credentialStore = require('../lib/integrationCredentialStore');
+    const SIGNNOW_ENV = process.env.SIGNNOW_ENVIRONMENT || 'production';
+    await credentialStore.saveCredential({
+      provider: 'signnow',
+      credentialType: 'password',
+      environment: SIGNNOW_ENV,
+      accountIdentifier: username,
+      displayName: username,
+      status: 'connected',
+      payload: { username, password },
+    });
+
+    // Clear the token cache so the next call uses the new credentials
+    signnowClient.clearTokenCache();
+
+    res.json({ success: true, name: username, email: username.includes('@') ? username : null });
+  } catch (e) {
+    console.error('[signnow] connect error:', e.message);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// ── POST /disconnect — clear stored SignNow credentials (admin/manager only)
+router.post('/disconnect', requireAdminManager, async (req, res) => {
+  try {
+    const credentialStore = require('../lib/integrationCredentialStore');
+    const SIGNNOW_ENV = process.env.SIGNNOW_ENVIRONMENT || 'production';
+    await credentialStore.deleteCredentials({
+      provider: 'signnow',
+      credentialType: 'password',
+      environment: SIGNNOW_ENV,
+    });
+
+    // Clear the token cache
+    signnowClient.clearTokenCache();
+
+    res.json({ success: true });
+  } catch (e) {
+    console.error('[signnow] disconnect error:', e.message);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
 // ── GET /templates — list available SignNow templates ───────────────────────
 router.get('/templates', async (req, res) => {
   try {
