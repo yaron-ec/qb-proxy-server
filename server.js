@@ -1457,6 +1457,8 @@ app.get('/signnow/diagnostic', requireProxySecret, async (req, res) => {
       api_base: apiBase,
       environment: signnowEnv,
       env_username_configured: !!(process.env.SIGNNOW_USERNAME && process.env.SIGNNOW_PASSWORD),
+      api_key_configured: !!process.env.SIGNNOW_API_KEY,
+      basic_auth_token_configured: !!process.env.SIGNNOW_BASIC_AUTH_TOKEN,
     };
 
     // Check if credentials are stored in the database
