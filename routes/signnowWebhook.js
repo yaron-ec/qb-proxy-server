@@ -69,8 +69,16 @@ router.post('/', express.json(), async (req, res) => {
     const eventType = payload.event || payload.type || payload.action || payload.event_type || '';
     const docId = payload.document_id || payload.data?.document_id || payload.meta?.document_id || payload.document?.id || '';
 
+    // SignNow webhook event types (from docs.signnow.com):
+    //   document.complete — all required fields filled
+    //   document.fieldinvite.signed — a field invite was signed
+    //   document.fieldinvite.decline — invite declined (not a completion)
+    //   user.document.fieldinvite.signed — user-scoped variant
     const isCompletionEvent = (
       eventType === 'document.complete' ||
+      eventType === 'document.fieldinvite.signed' ||
+      eventType === 'user.document.fieldinvite.signed' ||
+      eventType === 'user.document.complete' ||
       eventType === 'document.update' ||
       eventType === 'invite.update' ||
       (payload.meta?.action === 'done') ||
