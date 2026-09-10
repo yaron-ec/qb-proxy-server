@@ -32,7 +32,33 @@ const rda = require('./lib/railwayDataAccess'); // Railway Postgres CRUD (replac
 const tokenStore = require('./lib/qbTokenStore'); // credential lifecycle metadata for /health
 const saleDb = require('./db/client'); // Railway Postgres pool (for sale-scoped invoice ownership)
 const saleMap = require('./lib/qbInvoiceSaleMap'); // qb_invoice_sale_map + qb_invoices_cache helpers
-const handoffClient = require('./lib/handoffClient'); // Official Handoff REST API client (X-API-Key auth)
+
+// Ensure qb_sync_jobs table exists (async job pattern for QB sync — prevents frontend timeout).
+// CREATE TABLE IF NOT EXISTS is idempotent. Non-blocking: if DB is not configured, the
+// /sync/qb-estimates endpoint will return a clear error instead of hanging.
+(async () => {
+  try {
+    if (saleDb && saleDb.query) {
+      await saleDb.query(`
+        CREATE TABLE IF NOT EXISTS qb_sync_jobs (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          job_type TEXT NOT NULL DEFAULT 'estimate_sync',
+          status TEXT NOT NULL DEFAULT 'pending',
+          progress JSONB DEFAULT '{}',
+          error TEXT,
+          started_at TIMESTAMPTZ DEFAULT NOW(),
+          completed_at TIMESTAMPTZ,
+          triggered_by TEXT DEFAULT 'manual',
+          force_full BOOLEAN DEFAULT false
+        )
+      `);
+      console.log('[proxy] qb_sync_jobs table ensured');
+    }
+  } catch (e) {
+    console.warn('[proxy] qb_sync_jobs table creation deferred (non-blocking):', e.message);
+  }
+})();
+const handoffClient = require('./lib/handoffClient'); // Official Handoff API GraphQL client
 
 const app = express();
 
@@ -1190,9 +1216,6 @@ app.use('/api/v1/company-settings', require('./routes/companySettings'));
 app.use('/api/v1/qb-executive-metrics', require('./routes/qbExecutiveMetrics'));
 app.use('/api/v1/financial-backfill', require('./routes/financialBackfill'));
 app.use('/api/v1/cron', require('./routes/cronJobs'));
-// Temporary read-only diagnostic: exhaustive classification of appointments without google_event_id.
-// POST /api/v1/cron/calendar-orphan-classification (X-Worker-Secret guarded, SELECT-only).
-app.use('/api/v1/cron', require('./routes/calendarOrphanClassification'));
 
   // Native Railway adapters for Lead Detail page (no Base44):
   //   lead-qb         — QuickBooks lead status (reads Postgres + calls QB proxy)
@@ -1542,6 +1565,27 @@ async function runQbEstimateSync() {
   return { ok: true, stats };
 }
 
+// Async job wrapper — runs runQbEstimateSync in the background, updates job
+// status in PostgreSQL. The /sync/qb-estimates endpoint creates a job record,
+// starts this function (non-awaited), and returns 202 immediately. The frontend
+// polls /sync/qb-estimates/status/:jobId for progress.
+// Idempotency: runQbEstimateSync uses qb_estimate_id to prevent duplicate
+// HandoffEstimate records. Activity notes are only created for NEW estimates
+// (existing check prevents duplicates on retry).
+async function runQbEstimateSyncJob(jobId, forceFull) {
+  try {
+    await saleDb.query('UPDATE qb_sync_jobs SET status = $1, started_at = NOW() WHERE id = $2', ['running', jobId]);
+    const result = await runQbEstimateSync(forceFull);
+    await saleDb.query('UPDATE qb_sync_jobs SET status = $1, progress = $2, completed_at = NOW() WHERE id = $3',
+      ['completed', JSON.stringify(result.stats || {}), jobId]);
+    return result;
+  } catch (e) {
+    await saleDb.query('UPDATE qb_sync_jobs SET status = $1, error = $2, completed_at = NOW() WHERE id = $3',
+      ['failed', e.message, jobId]);
+    throw e;
+  }
+}
+
 // Ported from base44/functions/fetchEstimatePdfs/entry.ts (batch path).
 // Fetches each pending estimate's PDF from QB, marks the record ready, and stores
 // the proxy PDF link. No Base44 function invoked — zero Base44 credits.
@@ -1598,13 +1642,43 @@ async function runQbEstimatePdfSync() {
 }
 
 // Manual triggers (guarded by X-Proxy-Secret, same as all /qb/* routes)
+// POST /sync/qb-estimates — async job pattern (prevents frontend timeout).
+// Creates a job record, starts the sync in the background (non-awaited), and
+// returns 202 immediately with the job_id. The frontend polls
+// GET /sync/qb-estimates/status/:jobId for progress.
+// Idempotency: runQbEstimateSync uses qb_estimate_id to prevent duplicate
+// HandoffEstimate records. Retry is safe — already-imported estimates are
+// found as "existing" and updated (not duplicated).
 app.post('/sync/qb-estimates', requireProxySecret, async (req, res) => {
   try {
-    const result = await runQbEstimateSync();
-    return res.json(result);
+    const { force_full, triggered_by } = req.body || {};
+    // Create a job record in PostgreSQL
+    const { rows } = await saleDb.query(
+      `INSERT INTO qb_sync_jobs (job_type, status, triggered_by, force_full) VALUES ('estimate_sync', 'pending', $1, $2) RETURNING id`,
+      [triggered_by || 'manual', force_full || false]
+    );
+    const jobId = rows[0].id;
+    // Start the sync in the background (non-awaited — does not block the response)
+    runQbEstimateSyncJob(jobId, force_full).catch(e => {
+      console.error('[qb-sync] background job error:', e.message);
+    });
+    // Return immediately with 202 Accepted
+    return res.status(202).json({ ok: true, job_id: jobId, status: 'pending', message: 'Sync started in background.' });
   } catch (e) {
     if (e.reconnectRequired) return handleQBError(e, res);
-    console.error('[qb-sync] fatal:', e.message);
+    console.error('[qb-sync] job creation error:', e.message);
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// GET /sync/qb-estimates/status/:jobId — poll async sync job status
+app.get('/sync/qb-estimates/status/:jobId', requireProxySecret, async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    const { rows } = await saleDb.query('SELECT * FROM qb_sync_jobs WHERE id = $1', [jobId]);
+    if (!rows[0]) return res.status(404).json({ ok: false, error: 'Job not found' });
+    return res.json({ ok: true, job: rows[0] });
+  } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });
   }
 });
