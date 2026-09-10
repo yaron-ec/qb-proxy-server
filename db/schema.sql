@@ -662,3 +662,54 @@ CREATE TABLE IF NOT EXISTS reminder_leads (
   DROP TRIGGER IF EXISTS base44_entity_map_set_updated_at ON base44_entity_map;
   CREATE TRIGGER base44_entity_map_set_updated_at BEFORE UPDATE ON base44_entity_map
     FOR EACH ROW EXECUTE FUNCTION base44_entity_map_touch_updated_at();
+
+  -- =====================================================================
+  -- integration_credentials — durable encrypted credential store.
+  -- Production source of truth for QuickBooks OAuth tokens (and future
+  -- integrations: Gmail, SignNow, Handoff, etc.). AES-256-CBC encrypted
+  -- with ENCRYPTION_KEY. Survives Railway redeployments.
+  -- One logical credential per (provider, credential_type, environment, account_identifier).
+  -- =====================================================================
+  CREATE TABLE IF NOT EXISTS integration_credentials (
+    id                  BIGSERIAL    PRIMARY KEY,
+    provider            TEXT         NOT NULL,
+    credential_type     TEXT         NOT NULL,
+    environment         TEXT         NOT NULL,
+    account_identifier  TEXT         NOT NULL,
+    display_name        TEXT,
+    status              TEXT         NOT NULL DEFAULT 'connected',
+    expires_at          TIMESTAMPTZ,
+    encrypted_payload   TEXT         NOT NULL,
+    key_version         INTEGER      NOT NULL DEFAULT 1,
+    connected_at        TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    refreshed_at        TIMESTAMPTZ,
+    last_used_at        TIMESTAMPTZ,
+    last_error_at       TIMESTAMPTZ,
+    last_error_message  TEXT,
+    created_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    UNIQUE (provider, credential_type, environment, account_identifier)
+  );
+  ALTER TABLE integration_credentials ADD COLUMN IF NOT EXISTS key_version INTEGER NOT NULL DEFAULT 1;
+  ALTER TABLE integration_credentials ADD COLUMN IF NOT EXISTS last_used_at TIMESTAMPTZ;
+  ALTER TABLE integration_credentials ADD COLUMN IF NOT EXISTS last_error_at TIMESTAMPTZ;
+  ALTER TABLE integration_credentials ADD COLUMN IF NOT EXISTS last_error_message TEXT;
+  CREATE INDEX IF NOT EXISTS idx_integration_credentials_pce
+    ON integration_credentials (provider, credential_type, environment);
+  CREATE INDEX IF NOT EXISTS idx_integration_credentials_status
+    ON integration_credentials (status);
+  CREATE INDEX IF NOT EXISTS idx_integration_credentials_expires
+    ON integration_credentials (expires_at);
+  CREATE INDEX IF NOT EXISTS idx_integration_credentials_last_error
+    ON integration_credentials (last_error_at);
+  CREATE OR REPLACE FUNCTION integration_credentials_touch_updated_at()
+  RETURNS TRIGGER AS $$
+  BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+  END;
+  $$ LANGUAGE plpgsql;
+  DROP TRIGGER IF EXISTS trg_integration_credentials_touch ON integration_credentials;
+  CREATE TRIGGER trg_integration_credentials_touch
+    BEFORE UPDATE ON integration_credentials
+    FOR EACH ROW EXECUTE FUNCTION integration_credentials_touch_updated_at();
