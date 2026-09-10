@@ -1450,10 +1450,14 @@ app.get('/signnow/diagnostic', requireProxySecret, async (req, res) => {
     const clientSecret = process.env.SIGNNOW_CLIENT_SECRET;
     const signnowEnv = process.env.SIGNNOW_ENVIRONMENT || 'production';
 
-    // Derive the effective API base URL the same way signnowClient.js does,
-    // so the diagnostic shows the ACTUAL URL being used (not just the raw env var).
+    // Derive the effective API base URL. In API Key mode, this triggers a
+    // probe of both SignNow environments and returns the one that accepts
+    // the key — so the diagnostic shows the ACTUAL URL being used.
     const signnowClient = require('./lib/signnowClient');
-    const effectiveApiBase = signnowClient.getApiBase();
+    let effectiveApiBase = signnowClient.getApiBase();
+    if (process.env.SIGNNOW_API_KEY) {
+      try { effectiveApiBase = await signnowClient.getEffectiveApiBase(); } catch (e) { /* keep static */ }
+    }
 
     const result = {
       client_id_configured: !!clientId,
