@@ -95,20 +95,53 @@ export default function SignNowSettingsTab() {
   };
 
   const handleConnect = async () => {
+    // API Key mode — no username/password needed, just verify the key
+    if (status?.auth_method === 'api_key') {
+      setConnecting(true);
+      try {
+        const res = await apiCall('/api/v1/signnow/connect', { method: 'POST', body: {} }).catch(e => ({ success: false, error: e.message, message: e.message }));
+        if (res?.success) {
+          toast({ title: '✅ SignNow connected!', description: 'API Key verified', duration: 3000 });
+          loadStatus();
+        } else {
+          toast({
+            title: 'Connection failed',
+            description: res?.message || res?.error || 'API Key verification failed',
+            variant: 'destructive',
+            duration: 6000,
+          });
+        }
+      } catch (e) {
+        toast({ title: 'Connection failed', description: e.message, variant: 'destructive', duration: 6000 });
+      }
+      setConnecting(false);
+      return;
+    }
+
+    // Password grant mode — username/password required
     if (!username || !password) return;
     setConnecting(true);
     try {
-      const res = await apiCall('/api/v1/signnow/connect', { method: 'POST', body: { username, password } }).catch(e => ({ success: false, error: e.message }));
+      const res = await apiCall('/api/v1/signnow/connect', { method: 'POST', body: { username, password } }).catch(e => ({ success: false, error: e.message, message: e.message }));
       if (res?.success) {
         toast({ title: '✅ SignNow connected!', duration: 3000 });
         setPassword('');
         loadStatus();
       } else {
-        toast({ title: 'Connection failed', description: res?.error || 'Check credentials', variant: 'destructive', duration: 4000 });
+        // Display the FULL error message from the backend, including the
+        // SignNow error code (e.g., 11005001 = not the application owner).
+        const errorDesc = res?.message || res?.error || 'Check credentials';
+        const errorCode = res?.signnow_error_code ? ` (SignNow code: ${res.signnow_error_code})` : '';
+        toast({
+          title: 'Connection failed',
+          description: `${errorDesc}${errorCode}`,
+          variant: 'destructive',
+          duration: 8000,
+        });
       }
     } catch (e) {
       const msg = e?.response?.data?.error || e.message || 'Invalid credentials';
-      toast({ title: 'Connection failed', description: msg, variant: 'destructive', duration: 4000 });
+      toast({ title: 'Connection failed', description: msg, variant: 'destructive', duration: 6000 });
     }
     setConnecting(false);
   };
@@ -143,6 +176,9 @@ export default function SignNowSettingsTab() {
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-slate-800">SignNow</span>
                   <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-semibold">Connected</span>
+                  {status.auth_method === 'api_key' && (
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">API Key</span>
+                  )}
                 </div>
                 <div className="text-sm text-slate-600 mt-0.5">{status.name || status.username}</div>
                 {status.email && <div className="text-xs text-slate-400">{status.email}</div>}
@@ -151,6 +187,30 @@ export default function SignNowSettingsTab() {
             <button onClick={handleDisconnect}
               className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors font-semibold">
               <Unlink className="w-3.5 h-3.5" /> Disconnect
+            </button>
+          </div>
+        ) : status?.auth_method === 'api_key' ? (
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-xl">✍️</div>
+              <div>
+                <div className="font-bold text-slate-800">SignNow</div>
+                <div className="text-xs text-slate-500">API Key detected — click to verify and connect</div>
+              </div>
+            </div>
+            {status?.error && (
+              <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2.5 mb-3">
+                <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-red-700">{status.message || status.error}</p>
+              </div>
+            )}
+            <button
+              onClick={handleConnect}
+              disabled={connecting}
+              className="w-full bg-orange text-white py-2.5 text-sm font-bold rounded-lg hover:bg-orange/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {connecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <LinkIcon className="w-4 h-4" />}
+              Verify API Key &amp; Connect
             </button>
           </div>
         ) : (
@@ -162,6 +222,12 @@ export default function SignNowSettingsTab() {
                 <div className="text-xs text-slate-500">Enter your SignNow account credentials</div>
               </div>
             </div>
+            {status?.error && (
+              <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2.5 mb-3">
+                <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-red-700">{status.message || status.error}</p>
+              </div>
+            )}
             <div className="space-y-3">
               <div>
                 <label className="text-xs font-semibold text-slate-600 mb-1 block">Email / Username</label>
