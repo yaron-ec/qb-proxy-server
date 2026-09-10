@@ -58,6 +58,61 @@ const saleMap = require('./lib/qbInvoiceSaleMap'); // qb_invoice_sale_map + qb_i
     console.warn('[proxy] qb_sync_jobs table creation deferred (non-blocking):', e.message);
   }
 })();
+
+// Ensure integration_credentials table exists (durable QB OAuth token storage).
+// This table is the production source of truth for QuickBooks (and future
+// integration) credentials. Created idempotently on startup so the proxy never
+// depends on `npm run migrate` having been run manually.
+(async () => {
+  try {
+    if (saleDb && saleDb.query) {
+      await saleDb.query(`
+        CREATE TABLE IF NOT EXISTS integration_credentials (
+          id                  BIGSERIAL    PRIMARY KEY,
+          provider            TEXT         NOT NULL,
+          credential_type     TEXT         NOT NULL,
+          environment         TEXT         NOT NULL,
+          account_identifier  TEXT         NOT NULL,
+          display_name        TEXT,
+          status              TEXT         NOT NULL DEFAULT 'connected',
+          expires_at          TIMESTAMPTZ,
+          encrypted_payload   TEXT         NOT NULL,
+          key_version         INTEGER      NOT NULL DEFAULT 1,
+          connected_at        TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+          refreshed_at        TIMESTAMPTZ,
+          last_used_at        TIMESTAMPTZ,
+          last_error_at       TIMESTAMPTZ,
+          last_error_message  TEXT,
+          created_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+          updated_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+          UNIQUE (provider, credential_type, environment, account_identifier)
+        )
+      `);
+      await saleDb.query(`ALTER TABLE integration_credentials ADD COLUMN IF NOT EXISTS key_version INTEGER NOT NULL DEFAULT 1`);
+      await saleDb.query(`ALTER TABLE integration_credentials ADD COLUMN IF NOT EXISTS last_used_at TIMESTAMPTZ`);
+      await saleDb.query(`ALTER TABLE integration_credentials ADD COLUMN IF NOT EXISTS last_error_at TIMESTAMPTZ`);
+      await saleDb.query(`ALTER TABLE integration_credentials ADD COLUMN IF NOT EXISTS last_error_message TEXT`);
+      await saleDb.query(`CREATE INDEX IF NOT EXISTS idx_integration_credentials_pce ON integration_credentials (provider, credential_type, environment)`);
+      await saleDb.query(`CREATE INDEX IF NOT EXISTS idx_integration_credentials_status ON integration_credentials (status)`);
+      await saleDb.query(`CREATE INDEX IF NOT EXISTS idx_integration_credentials_expires ON integration_credentials (expires_at)`);
+      await saleDb.query(`CREATE INDEX IF NOT EXISTS idx_integration_credentials_last_error ON integration_credentials (last_error_at)`);
+      await saleDb.query(`
+        CREATE OR REPLACE FUNCTION integration_credentials_touch_updated_at()
+        RETURNS TRIGGER AS $$
+        BEGIN
+          NEW.updated_at = NOW();
+          RETURN NEW;
+        END;
+        $$ LANGUAGE plpgsql
+      `);
+      await saleDb.query(`DROP TRIGGER IF EXISTS trg_integration_credentials_touch ON integration_credentials`);
+      await saleDb.query(`CREATE TRIGGER trg_integration_credentials_touch BEFORE UPDATE ON integration_credentials FOR EACH ROW EXECUTE FUNCTION integration_credentials_touch_updated_at()`);
+      console.log('[proxy] integration_credentials table ensured (durable token storage)');
+    }
+  } catch (e) {
+    console.warn('[proxy] integration_credentials table creation deferred (non-blocking):', e.message);
+  }
+})();
 const handoffClient = require('./lib/handoffClient'); // Official Handoff API GraphQL client
 
 const app = express();
