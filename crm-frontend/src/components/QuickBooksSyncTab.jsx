@@ -155,19 +155,68 @@ export default function QuickBooksSyncTab() {
   const handleBulkSync = async (forceFullResync = false) => {
     setBulkSyncing(true);
     setBulkResult(null);
-    const jobId = addJob('QuickBooks Sync', 'QuickBooks');
-    startJob(jobId);
+    const syncJobId = addJob('QuickBooks Sync', 'QuickBooks');
+    startJob(syncJobId);
     try {
-      const res = await railwayRequest('/sync/qb-estimates', { action: 'resync_all', mode: 'all', force_full: forceFullResync, triggered_by: 'manual' });
-      const data = res.data;
-      if (data?.connection_error) { setBulkResult({ success: false, error: data.message || data.error || 'QB connection error. Please reconnect.' }); failJob(jobId, data.message || data.error); loadStatus(); }
-      else if (!data?.success) { const msg = data?.error || 'Sync failed.'; setBulkResult({ success: false, error: msg }); failJob(jobId, msg); }
-      else { setBulkResult({ success: true, message: data.message }); completeJob(jobId); toast({ title: 'QuickBooks sync complete', description: data.message }); }
+      // Step 1: Start the async job (returns immediately with 202 + job_id)
+      const startRes = await railwayRequest('/sync/qb-estimates', { action: 'resync_all', mode: 'all', force_full: forceFullResync, triggered_by: 'manual' });
+      const jobId = startRes?.job_id;
+      if (!jobId) {
+        // Legacy response (no job_id) — check for connection error
+        if (startRes?.reconnectRequired || startRes?.connection_error) {
+          setBulkResult({ success: false, error: startRes?.message || 'QB connection expired. Please reconnect.' });
+          failJob(syncJobId, startRes?.message || 'QB connection expired');
+          loadStatus();
+        } else if (startRes?.ok === false) {
+          setBulkResult({ success: false, error: startRes?.error || 'Sync failed.' });
+          failJob(syncJobId, startRes?.error || 'Sync failed');
+        } else {
+          setBulkResult({ success: true, message: startRes?.message || 'Sync completed.' });
+          completeJob(syncJobId);
+        }
+        return;
+      }
+
+      // Step 2: Poll for job status every 3 seconds (max 5 minutes = 100 polls)
+      const maxPolls = 100;
+      for (let i = 0; i < maxPolls; i++) {
+        await new Promise(r => setTimeout(r, 3000));
+        const statusRes = await apiCall(`/sync/qb-estimates/status/${jobId}`, { method: 'GET' });
+        const job = statusRes?.job;
+        if (!job) continue;
+        if (job.status === 'completed') {
+          const stats = job.progress || {};
+          const msg = `Sync complete — ${stats.fetched || 0} fetched, ${stats.matched || 0} matched, ${stats.imported || 0} imported, ${stats.updated || 0} updated`;
+          setBulkResult({ success: true, message: msg, stats });
+          completeJob(syncJobId);
+          toast({ title: 'QuickBooks sync complete', description: msg });
+          return;
+        }
+        if (job.status === 'failed') {
+          const errMsg = job.error || 'Sync failed.';
+          const isConn = errMsg.includes('RECONNECT') || errMsg.includes('reconnect');
+          setBulkResult({ success: false, error: errMsg });
+          failJob(syncJobId, errMsg);
+          if (isConn) loadStatus();
+          return;
+        }
+        // Still running — update progress display
+        if (job.progress && Object.keys(job.progress).length > 0) {
+          setBulkResult({ success: null, message: `Syncing... ${job.progress.fetched || 0} fetched, ${job.progress.matched || 0} matched so far` });
+        }
+      }
+      // Timeout — job didn't complete within 5 minutes
+      setBulkResult({ success: false, error: 'Sync is taking longer than expected. Check back later.' });
+      failJob(syncJobId, 'Polling timeout');
     } catch (e) {
-      const isConn = e?.response?.data?.connection_error;
-      const errMsg = isConn ? (e?.response?.data?.message || 'QB connection expired. Please reconnect.') : (e?.response?.data?.error || e.message || 'Sync failed');
-      setBulkResult({ success: false, error: errMsg }); failJob(jobId, errMsg); if (isConn) loadStatus();
-    } finally { setBulkSyncing(false); }
+      const isConn = e?.data?.reconnectRequired || e?.message?.includes('RECONNECT');
+      const errMsg = isConn ? 'QB connection expired. Please reconnect.' : (e?.message || 'Sync failed');
+      setBulkResult({ success: false, error: errMsg });
+      failJob(syncJobId, errMsg);
+      if (isConn) loadStatus();
+    } finally {
+      setBulkSyncing(false);
+    }
   };
 
   const getItemStatus = (action, id) => syncResults.find(r => r.key === `${action}_${id}`)?.status;
