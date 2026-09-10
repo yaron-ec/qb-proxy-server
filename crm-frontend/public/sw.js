@@ -1,18 +1,32 @@
 /**
- * EC CRM Service Worker — Build: 2026-08-30-capture-fix
- * Cache version: ec-crm-v6-capture-fix
+ * EC CRM Service Worker — Build: __BUILD_HASH__
+ * Cache version: ec-crm-v__BUILD_HASH__
  *
- * Cache invalidation strategy:
+ * CACHE INVALIDATION STRATEGY (auto-update, no manual action required):
+ *
+ * The __BUILD_HASH__ placeholder is replaced at build time by the Vite plugin
+ * (swBuildHashPlugin in vite.config.js) with the main JS bundle's content hash.
+ * This means the SW file content changes on EVERY code change, which triggers
+ * the browser's service-worker update lifecycle:
+ *
+ *   1. Browser detects /sw.js content changed (byte-for-byte comparison)
+ *   2. New SW is installed → skipWaiting() activates it immediately
+ *   3. On activate: ALL old caches are deleted, clients are claimed
+ *   4. main.jsx detects controllerchange → page reloads with fresh content
+ *
+ * Cache strategy:
  * - Navigation/HTML: network-only (never serve stale app shell)
- * - Hashed static assets: network-first, cache fallback (safe — hashes are immutable)
- * - On update: skipWaiting() + clients.claim() for immediate takeover
- * - On activate: delete ALL old caches, notify clients to reload
+ * - Hashed static assets: cache-first (safe — Vite hashes filenames, so a
+ *   cached file for a given URL is always the correct version; new builds
+ *   produce new URLs that aren't in the cache, so they're fetched fresh)
+ * - On activate: delete ALL old caches (clears stale assets from previous builds)
  *
- * This ensures every new deployment automatically invalidates obsolete
- * cached bundles without requiring users to clear browser storage.
+ * This ensures every new deployment automatically invalidates obsolete cached
+ * bundles without requiring users to clear browser storage, use incognito
+ * mode, or hard-refresh.
  */
 
-const CACHE_VERSION = 'ec-crm-v6-capture-fix';
+const CACHE_VERSION = 'ec-crm-v__BUILD_HASH__';
 
 // On install: skip waiting so new SW activates immediately
 self.addEventListener('install', (event) => {
@@ -65,7 +79,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Hashed static assets (JS, CSS, images, fonts): network-first, cache fallback.
+  // Hashed static assets (JS, CSS, images, fonts): cache-first.
   // These are safe to cache because Vite hashes filenames — a new deploy
   // produces new filenames, so a cached old file is never served for a new URL.
   // CRITICAL: never cache an empty body (causes SyntaxError on JS files).
@@ -73,13 +87,18 @@ self.addEventListener('fetch', (event) => {
   if (isStaticAsset) {
     event.respondWith(
       (async () => {
+        const cache = await caches.open(CACHE_VERSION);
+        const cached = await cache.match(request);
+        if (cached) {
+          return cached;
+        }
+        // Not in cache — fetch from network, cache, and return
         try {
           const response = await fetch(request);
           if (response.ok) {
             const clone = response.clone();
             const text = await clone.text();
             if (text && text.length > 0) {
-              const cache = await caches.open(CACHE_VERSION);
               await cache.put(request, new Response(text, {
                 status: response.status,
                 statusText: response.statusText,
@@ -89,7 +108,8 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         } catch {
-          return caches.match(request);
+          // Network failed and not in cache — return a basic error
+          return new Response('Offline', { status: 503, statusText: 'Offline' });
         }
       })()
     );
