@@ -62,13 +62,26 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
       setLoading(false);
       return;
     }
-    load(canonicalLeadId).then(() => {
+    load().then(() => {
       initialLoadDoneRef.current = true;
       triggerAutoSync();
     });
   }, [lead.id, lead.railway_id]);
 
-  const load = async (canonicalLeadId) => {
+  // load() derives canonicalLeadId from the lead closure — callers MUST NOT
+  // pass an argument. Previously load(canonicalLeadId) took a parameter, but
+  // 4 of 5 call sites (handleSync, triggerAutoSync, handleHandoffSync,
+  // handleSavePdf) called load() with no argument, passing undefined as
+  // lead_id → backend returned { items: [], total: 0 } → "No estimates yet"
+  // even though the sync had just persisted the record. This was the
+  // Joel Jhonstone production defect: sync reported "0 new, 1 updated" but
+  // the panel showed "No estimates yet".
+  const load = async () => {
+    const canonicalLeadId = lead.railway_id || lead.id;
+    if (!canonicalLeadId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const res = await railwayHandoffEstimates.list({ lead_id: canonicalLeadId });
@@ -360,7 +373,7 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
             <RightPanelEmptyState
               icon={FileText}
               title={autoSyncing ? 'Checking for estimates…' : 'No estimates yet'}
-              description={autoSyncing ? 'Syncing from QuickBooks…' : 'Estimates will appear here once created in QuickBooks or synced from Handoff. Click the sync button above to check now.'}
+              description={autoSyncing ? 'Syncing from QuickBooks…' : 'Estimates will appear here once created in QuickBooks. Click the sync button above to check now.'}
             />
           )
         )}
