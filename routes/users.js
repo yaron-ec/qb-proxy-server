@@ -47,8 +47,8 @@ function mapUser(r) {
     role: r.role,
     user_status: r.status === 'disabled' ? 'deactivated' : 'active',
     owner_name: r.owner_name || null,
-    has_google_sso: r.google_sub != null,
-    has_password: r.password_hash != null,
+    has_google_sso: r.has_google_sso,
+    has_password: r.has_password,
     created_date: r.created_at,
     updated_date: r.updated_at,
   };
@@ -62,7 +62,9 @@ router.get('/', requireAdmin, async (req, res) => {
     try {
       const result = await query(
         `SELECT id, email, full_name, role, status, owner_name,
-                google_sub, password_hash, created_at, updated_at
+                (google_sub IS NOT NULL) AS has_google_sso,
+                (password_hash IS NOT NULL) AS has_password,
+                created_at, updated_at
          FROM users ORDER BY email`
       );
       rows = result.rows;
@@ -70,7 +72,9 @@ router.get('/', requireAdmin, async (req, res) => {
       // Fallback: owner_name column might not exist yet — query without it
       const result = await query(
         `SELECT id, email, full_name, role, status,
-                google_sub, password_hash, created_at, updated_at
+                (google_sub IS NOT NULL) AS has_google_sso,
+                (password_hash IS NOT NULL) AS has_password,
+                created_at, updated_at
          FROM users ORDER BY email`
       );
       rows = result.rows.map(r => ({ ...r, owner_name: null }));
@@ -123,7 +127,10 @@ router.put('/:id', requireAdmin, async (req, res) => {
     const result = await query(
       `UPDATE users SET ${sets.join(', ')}, updated_at = NOW()
        WHERE id = $${idx}
-       RETURNING id, email, full_name, role, status, owner_name, google_sub, password_hash, created_at, updated_at`,
+       RETURNING id, email, full_name, role, status, owner_name,
+                 (google_sub IS NOT NULL) AS has_google_sso,
+                 (password_hash IS NOT NULL) AS has_password,
+                 created_at, updated_at`,
       vals
     );
 
