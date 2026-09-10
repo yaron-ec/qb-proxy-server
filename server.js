@@ -1489,6 +1489,33 @@ app.get('/signnow/diagnostic', requireProxySecret, async (req, res) => {
       result.db_credential_error = e.message;
     }
 
+    // Always test the API Key against BOTH base URLs when it's set, so we can
+    // see exactly which environment accepts it (auto-detection diagnostic).
+    if (process.env.SIGNNOW_API_KEY) {
+      result.api_key_probe = {};
+      for (const base of ['https://api.signnow.com', 'https://api-eval.signnow.com']) {
+        try {
+          const testRes = await fetch(`${base}/user`, {
+            headers: { Authorization: `Bearer ${process.env.SIGNNOW_API_KEY}`, Accept: 'application/json' },
+            signal: AbortSignal.timeout(10000),
+          });
+          const testBody = await testRes.text().catch(() => '');
+          let parsed = null;
+          try { parsed = JSON.parse(testBody); } catch { /* not JSON */ }
+          result.api_key_probe[base] = {
+            http_status: testRes.status,
+            ok: testRes.ok,
+            error_code: parsed?.error || parsed?.errors?.[0]?.code || null,
+            error_description: (parsed?.error_description || parsed?.errors?.[0]?.message || '').substring(0, 150) || null,
+            user_email: parsed?.email || null,
+            user_name: parsed?.full_name || parsed?.first_name || null,
+          };
+        } catch (e) {
+          result.api_key_probe[base] = { error: e.message };
+        }
+      }
+    }
+
     // If client_id/secret are configured, try a test token request to see if
     // the SignNow API is reachable and responding. We do NOT send credentials
     // here — we send an empty body to see if the API responds at all.
