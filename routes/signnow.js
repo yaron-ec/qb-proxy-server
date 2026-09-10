@@ -31,10 +31,33 @@ const requireAdminManager = requireRole('admin', 'manager');
 // ── GET /status — SignNow connection status ──────────────────────────────────
 router.get('/status', async (req, res) => {
   try {
+    const authMethod = signnowClient.getAuthMethod();
+
+    // API Key mode — verify the API Key works by calling a SignNow endpoint
+    if (authMethod === 'api_key') {
+      try {
+        const userData = await signnowClient.verifyApiKey();
+        return res.json({
+          connected: true,
+          auth_method: 'api_key',
+          name: userData.full_name || userData.first_name || 'API Key',
+          email: userData.email || null,
+        });
+      } catch (e) {
+        return res.json({
+          connected: false,
+          auth_method: 'api_key',
+          error: e.code === 'SIGNNOW_AUTH_FAILED' ? 'auth_failed' : 'error',
+          message: e.message,
+          signnow_error_code: e.signnowErrorCode || null,
+        });
+      }
+    }
+
+    // Password grant mode — check for stored credentials
     const credentialStore = require('../lib/integrationCredentialStore');
     const SIGNNOW_ENV = process.env.SIGNNOW_ENVIRONMENT || 'production';
 
-    // Check if credentials are stored in the database
     let dbCred = null;
     try {
       dbCred = await credentialStore.loadActiveCredential({
@@ -48,7 +71,7 @@ router.get('/status', async (req, res) => {
     const hasEnvCreds = !!(process.env.SIGNNOW_USERNAME && process.env.SIGNNOW_PASSWORD);
 
     if (!hasDbCreds && !hasEnvCreds) {
-      return res.json({ connected: false });
+      return res.json({ connected: false, auth_method: 'password_grant' });
     }
 
     // Verify the connection by attempting to get an access token
@@ -57,18 +80,18 @@ router.get('/status', async (req, res) => {
       const username = hasDbCreds ? dbCred.payload.username : process.env.SIGNNOW_USERNAME;
       res.json({
         connected: true,
+        auth_method: 'password_grant',
         name: username,
         email: username.includes('@') ? username : null,
         username,
       });
     } catch (e) {
       if (e.code === 'SIGNNOW_NOT_CONFIGURED') {
-        return res.json({ connected: false });
+        return res.json({ connected: false, auth_method: 'password_grant' });
       }
-      // Token exchange failed — include the specific SignNow error code so
-      // the user understands the real reason (e.g., 11005001 = not app owner).
       res.json({
         connected: false,
+        auth_method: 'password_grant',
         error: e.code === 'SIGNNOW_NOT_APP_OWNER' ? 'not_app_owner' : 'auth_failed',
         message: e.message,
         signnow_error_code: e.signnowErrorCode || null,
@@ -81,11 +104,41 @@ router.get('/status', async (req, res) => {
 });
 
 // ── POST /connect — validate and store SignNow credentials (admin/manager only)
-// Verifies credentials by attempting an OAuth2 token exchange BEFORE storing.
-// Invalid credentials return 401 (real auth error), NOT 404.
+//
+// API KEY mode: If SIGNNOW_API_KEY is set in the environment, this route just
+// verifies the API Key works (no username/password needed). The request body
+// is ignored — the API Key is in the environment, not the request.
+//
+// PASSWORD GRANT mode: Verifies credentials by attempting an OAuth2 token
+// exchange BEFORE storing. Invalid credentials return 401 (real auth error).
 // Password is NEVER returned in any response, log, or activity.
 router.post('/connect', requireAdminManager, async (req, res) => {
   try {
+    const authMethod = signnowClient.getAuthMethod();
+
+    // API Key mode — verify the key, no username/password needed
+    if (authMethod === 'api_key') {
+      try {
+        const userData = await signnowClient.verifyApiKey();
+        return res.json({
+          success: true,
+          auth_method: 'api_key',
+          name: userData.full_name || userData.first_name || 'API Key',
+          email: userData.email || null,
+        });
+      } catch (e) {
+        const status = e.status || 401;
+        return res.status(status).json({
+          success: false,
+          auth_method: 'api_key',
+          error: e.code === 'SIGNNOW_AUTH_FAILED' ? 'auth_failed' : 'error',
+          message: e.message,
+          signnow_error_code: e.signnowErrorCode || null,
+        });
+      }
+    }
+
+    // Password grant mode — verify and store user credentials
     const { username, password } = req.body || {};
     if (!username || !password) {
       return res.status(400).json({ success: false, error: 'username and password required' });
@@ -98,15 +151,11 @@ router.post('/connect', requireAdminManager, async (req, res) => {
       if (e.code === 'SIGNNOW_NOT_CONFIGURED') {
         return res.status(501).json({ success: false, error: 'signnow_not_configured', message: e.message });
       }
-      // Pass through the specific error code so the user understands the real
-      // reason (e.g., 11005001 = not the API application owner).
-      // NEVER include the password, token, or client secret in the response.
       const status = e.status || 401;
       return res.status(status).json({
         success: false,
-        error: e.code === 'SIGNNOW_NOT_APP_OWNER'
-          ? 'not_app_owner'
-          : 'auth_failed',
+        auth_method: 'password_grant',
+        error: e.code === 'SIGNNOW_NOT_APP_OWNER' ? 'not_app_owner' : 'auth_failed',
         message: e.message,
         signnow_error_code: e.signnowErrorCode || null,
       });
@@ -125,10 +174,9 @@ router.post('/connect', requireAdminManager, async (req, res) => {
       payload: { username, password },
     });
 
-    // Clear the token cache so the next call uses the new credentials
     signnowClient.clearTokenCache();
 
-    res.json({ success: true, name: username, email: username.includes('@') ? username : null });
+    res.json({ success: true, auth_method: 'password_grant', name: username, email: username.includes('@') ? username : null });
   } catch (e) {
     console.error('[signnow] connect error:', e.message);
     res.status(500).json({ success: false, error: e.message });
