@@ -28,6 +28,7 @@ const googleContactsClient = require('../lib/googleContactsClient');
 const { toUtcIso } = require('../lib/booking/slotBlocking');
 const { syncLeadToReminders, removeFromReminders } = require('../lib/reminderProjection');
 const { notifyCrmActivity } = require('../lib/crmActivityNotifier');
+const { processAddress, buildAddressFieldMap, ensureAddressColumns } = require('../lib/addressPipeline');
 const router = express.Router();
 
 // ── Lead field diff helper ──────────────────────────────────────────────────
@@ -950,6 +951,25 @@ router.post('/', requireAuth, async (req, res) => {
       }
     }
 
+    // ── Canonical address pipeline (BEFORE the INSERT) ────────────────
+    // Run the address through the canonical pipeline so the lead is created
+    // with verified Street/City/State/ZIP + lat/lng from the start — not raw
+    // customer-entered fields. This is the PERMANENT ingestion rule: every
+    // new lead enters the CRM with a canonical address.
+    let addrFields = null;
+    if (body.property_address) {
+      await ensureAddressColumns();
+      try {
+        const addressResult = await processAddress({
+          street: body.property_address,
+          city: body.city || '',
+          state: body.state || '',
+          zip: body.zip || '',
+        });
+        addrFields = buildAddressFieldMap(addressResult, null);
+      } catch (e) { console.warn('[leads] address pipeline (POST /) failed (non-blocking):', e.message); }
+    }
+
     // ── INSERT lead ────────────────────────────────────────────────────
     const client = await pool.connect();
     let fullRow;
@@ -962,22 +982,36 @@ router.post('/', requireAuth, async (req, res) => {
           budget_range, start_timeframe, source, referral_name,
           status, notes, message, lead_score, is_new_intake_lead,
           customer_reminders_disabled, photo_urls, crm_created_date,
-          record_type, follow_up_date, follow_up_time, follow_up_type, meeting_stage
+          record_type, follow_up_date, follow_up_time, follow_up_type, meeting_stage,
+          verified_property_address, property_lat, property_lng, google_place_id,
+          property_geocode_status, original_property_address, original_city
         ) VALUES (
           $1, $2, $3, $4, $5,
           $6, $7, $8, $9, $10,
           $11, $12, $13, $14,
           $15, $16, $17, $18, $19,
           $20, $21, NOW(),
-          $22, $23, $24, $25, $26
+          $22, $23, $24, $25, $26,
+          $27, $28, $29, $30, $31, $32, $33
         ) RETURNING *`,
         [
           ownerId, first_name, last_name, email, phone,
-          body.property_address || null, body.city || null, body.state || null, body.zip || null, body.project_type || null,
+          addrFields?.property_address || body.property_address || null,
+          addrFields?.city || body.city || null,
+          addrFields?.state || body.state || null,
+          addrFields?.zip || body.zip || null,
+          body.project_type || null,
           body.budget_range || null, body.start_timeframe || null, body.source || 'Website', body.referral_name || null,
           body.status || 'New', body.notes || null, body.message || null, body.lead_score || 0, body.is_new_intake_lead !== false,
           body.customer_reminders_disabled === true, body.photo_urls || [], body.record_type || 'Lead',
           body.follow_up_date || null, body.follow_up_time || null, body.follow_up_type || null, body.meeting_stage || null,
+          addrFields?.verified_property_address || null,
+          addrFields?.property_lat || null,
+          addrFields?.property_lng || null,
+          addrFields?.google_place_id || null,
+          addrFields?.property_geocode_status || 'pending',
+          addrFields?.original_property_address || null,
+          addrFields?.original_city || null,
         ]
       );
       const newLead = insertRes.rows[0];
