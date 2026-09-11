@@ -4,7 +4,7 @@ export default function MapFilters({
   ownerFilter, setOwnerFilter,
   cityFilter, setCityFilter,
   projectTypeFilter, setProjectTypeFilter,
-  owners, cities, projectTypes,
+  owners = [], cities = [], projectTypes = [],
   hideOwnerFilter = false
 }) {
   return (
