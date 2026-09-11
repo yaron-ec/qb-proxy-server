@@ -1374,7 +1374,7 @@ app.use('/api/v1/signnow-webhook', require('./routes/signnowWebhook'));
 app.use('/api/v1/owners', require('./routes/owners'));
 // Railway-native user management (admin-only: list, update role/status, delete)
 app.use('/api/v1/users', require('./routes/users'));
-// Daily Appointment Routing — traffic-aware Google routing with required departure times
+// Daily Appointment Routing — traffic-aware Google Routes API + geocoding + departure times
 app.use('/api/v1/routing', require('./routes/routing'));
 // Stage 2: Railway CRM Deal CRUD (mounted before dealFinancials so /:id/financials still resolves)
 app.use('/api/v1/deals', require('./routes/deals')); // CRUD (mounted first: /:id matches one segment only)
@@ -1528,10 +1528,19 @@ app.get('/signnow/diagnostic', requireProxySecret, async (req, res) => {
         result.api_error = e.message;
       }
     } else if (process.env.SIGNNOW_API_KEY) {
-      // API Key mode — test reachability by calling /user with the API Key
+      // API Key mode — test reachability by calling /user with the API Key.
+      // SignNow requires both Accept and Content-Type headers (per docs).
+      // Using signnowClient.authHeaders ensures the diagnostic uses the SAME
+      // headers as verifyApiKey(), so the diagnostic result matches the actual
+      // connection status.
       try {
+        const signnowClient = require('./lib/signnowClient');
         const testRes = await fetch(`${effectiveApiBase}/user`, {
-          headers: { Authorization: `Bearer ${process.env.SIGNNOW_API_KEY}` },
+          headers: signnowClient.authHeaders ? signnowClient.authHeaders(process.env.SIGNNOW_API_KEY) : {
+            Authorization: `Bearer ${process.env.SIGNNOW_API_KEY}`,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
           signal: AbortSignal.timeout(10000),
         });
         result.api_reachable = true;
