@@ -46,24 +46,12 @@ function fmt12(t) {
 
 export { fmt12 };
 
-async function geocodeAddress(address) {
-  const query = encodeURIComponent(address);
-  const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`, {
-    headers: { "Accept-Language": "en" }
-  });
-  const data = await res.json();
-  if (data?.length > 0) {
-    return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
-  }
-  return null;
-}
-
-export { geocodeAddress };
 
 export default function DailyMap() {
   const [selectedDate, setSelectedDate] = useState(getTodayLocal());
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [routeError, setRouteError] = useState(null);
   const [view, setView] = useState("split");
   const [ownerFilter, setOwnerFilter] = useState("all");
   const [cityFilter, setCityFilter] = useState("all");
@@ -77,6 +65,7 @@ export default function DailyMap() {
 
   const loadSchedule = useCallback(async () => {
     setLoading(true);
+    setRouteError(null);
     try {
       const data = await routingApi.getDailySchedule({
         owner: ownerFilter,
@@ -99,7 +88,8 @@ export default function DailyMap() {
       setContactOwners(owners);
     } catch (e) {
       console.error('[DailyMap] Failed to load schedule:', e);
-      setAppointments([]);
+      setRouteError(e.message || 'Failed to load daily schedule. Please try refreshing.');
+      // Do NOT clear appointments — preserve any previously loaded data
     } finally {
       setLoading(false);
     }
@@ -150,18 +140,10 @@ export default function DailyMap() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <RefreshCw className="w-6 h-6 text-slate-400 animate-spin" />
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200">
+      <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200 flex-shrink-0">
         <div className="flex items-center gap-3">
           <h1 className="text-lg font-bold text-slate-900">Daily Map</h1>
           <input
@@ -216,8 +198,42 @@ export default function DailyMap() {
         appointments={appointments}
       />
 
-      {/* Content */}
-      <div className="flex-1 flex overflow-hidden">
+      {/* Error banner */}
+      {routeError && (
+        <div className="px-4 py-2 bg-red-50 border-b border-red-200 flex items-center gap-2 flex-shrink-0">
+          <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
+          <p className="text-xs text-red-700 font-semibold">{routeError}</p>
+        </div>
+      )}
+
+      {/* Content — always rendered to preserve layout in all states */}
+      <div className="flex-1 flex overflow-hidden min-h-0">
+        {loading ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <RefreshCw className="w-6 h-6 text-slate-400 animate-spin mx-auto mb-2" />
+              <p className="text-sm text-slate-500">Loading daily schedule...</p>
+            </div>
+          </div>
+        ) : routeError && appointments.length === 0 ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center max-w-md px-4">
+              <AlertTriangle className="w-10 h-10 text-red-400 mx-auto mb-3" />
+              <p className="text-base font-semibold text-slate-700">Failed to load schedule</p>
+              <p className="text-sm text-slate-500 mt-1">{routeError}</p>
+              <button onClick={loadSchedule} className="mt-4 px-4 py-2 text-xs font-semibold text-white bg-amber-600 rounded-lg hover:bg-amber-700">Try Again</button>
+            </div>
+          </div>
+        ) : appointments.length === 0 ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <MapPin className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-base font-semibold text-slate-600">No appointments on this day</p>
+              <p className="text-sm text-slate-400 mt-1">Select a different date or check filters</p>
+            </div>
+          </div>
+        ) : (
+          <>
         {(view === "map" || view === "split") && (
           <div className={view === "split" ? "w-1/2 h-full" : "w-full h-full"}>
             <MapView
@@ -238,6 +254,8 @@ export default function DailyMap() {
               ownerConfig={ownerConfig}
             />
           </div>
+        )}
+          </>
         )}
       </div>
     </div>

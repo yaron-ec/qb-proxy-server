@@ -12,11 +12,11 @@ import { apiCall } from './client';
 
 export function getDailySchedule({ owner = 'all', date, city = 'all', projectType = 'all' } = {}) {
   const params = new URLSearchParams({ owner, date, city, project_type: projectType });
-  return apiCall(`/api/v1/routing/daily-schedule?${params.toString()}`);
+  return apiCall(`/api/v1/routing/daily-schedule?${params.toString()}`, { method: 'GET' });
 }
 
 export function getOwnerConfig() {
-  return apiCall('/api/v1/routing/owner-config');
+  return apiCall('/api/v1/routing/owner-config', { method: 'GET' });
 }
 
 export function updateOwnerConfig(config) {
