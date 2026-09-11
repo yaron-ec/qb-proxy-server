@@ -1,26 +1,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Clock, MapPin, User, Phone, ExternalLink, AlertTriangle, Navigation } from "lucide-react";
+import {
+  Clock, MapPin, ExternalLink, AlertTriangle, Navigation,
+  Flag, Car, Home
+} from "lucide-react";
 import { fmt12 } from "@/pages/DailyMap";
 import { formatPhone, toTitleCase } from "@/lib/formatters";
 import { OWNER_COLORS } from "@/pages/DailyMap";
-
-function haversineKm(a, b) {
-  if (!a || !b) return null;
-  const R = 6371;
-  const dLat = (b.lat - a.lat) * Math.PI / 180;
-  const dLng = (b.lng - a.lng) * Math.PI / 180;
-  const h = Math.sin(dLat/2)**2 + Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1-h));
-}
-
-function kmToMiles(km) { return (km * 0.621371).toFixed(1); }
-function estimateDrive(km) {
-  if (!km) return null;
-  const mins = Math.round((km / 50) * 60); // ~50 km/h avg
-  if (mins < 60) return `~${mins} min`;
-  return `~${Math.floor(mins/60)}h ${mins%60}m`;
-}
 
 export default function AppointmentList({ appointments, selectedLead, onSelectLead, onReassign, contactOwners = [], userRole }) {
   const [reassigning, setReassigning] = useState(null);
@@ -31,32 +17,76 @@ export default function AppointmentList({ appointments, selectedLead, onSelectLe
     setReassigning(null);
   };
 
+  // Check if routing data is available (required departure times from Google traffic-aware API)
+  const hasRouting = appointments.some(a => a.requiredDeparture);
+
   return (
     <div className="divide-y divide-slate-100">
       <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
         <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
           {appointments.length} Appointment{appointments.length !== 1 ? "s" : ""} — Sorted by Time
         </p>
+        {hasRouting && (
+          <p className="text-[10px] text-amber-600 font-semibold mt-0.5">
+            🚗 Traffic-aware routing · Arrive 10 min before each appointment
+          </p>
+        )}
       </div>
 
       {appointments.map((appt, idx) => {
-        const prev = idx > 0 ? appointments[idx - 1] : null;
-        const distKm = prev?.coords && appt.coords ? haversineKm(prev.coords, appt.coords) : null;
         const isSelected = selectedLead === appt.id;
-        const colorCfg = appt.colorConfig;
+        const colorCfg = appt.colorConfig || OWNER_COLORS[appt.assigned_rep] || OWNER_COLORS["Unassigned"];
+        const hasRoute = !!appt.requiredDeparture;
+        const hasConflict = !!appt.conflict;
 
         return (
           <div key={appt.id}>
-            {/* Distance from previous */}
-            {distKm !== null && (
-              <div className="flex items-center gap-2 px-4 py-1.5 bg-blue-50 border-b border-blue-100">
-                <Navigation className="w-3 h-3 text-blue-400 flex-shrink-0" />
-                <span className="text-xs text-blue-600 font-semibold">
-                  {kmToMiles(distKm)} mi from previous · {estimateDrive(distKm)}
-                </span>
+            {/* Routing segment: origin → destination */}
+            {hasRoute && (
+              <div className={`px-4 py-2 border-b ${hasConflict ? 'bg-red-50 border-red-100' : 'bg-blue-50 border-blue-100'}`}>
+                <div className="flex items-center gap-2 mb-1">
+                  <Home className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                  <span className="text-[10px] text-slate-500 font-semibold truncate">
+                    From: {appt.originName || 'Starting location'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 ml-5">
+                  <div className="w-px h-3 bg-slate-300" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Flag className="w-3 h-3 text-amber-500 flex-shrink-0" />
+                  <span className="text-[10px] text-slate-600 font-semibold truncate">
+                    To: {toTitleCase(appt.first_name)} {toTitleCase(appt.last_name)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 mt-1.5 ml-5">
+                  <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                    <Car className="w-3 h-3" /> {appt.driveDuration || '—'}
+                  </span>
+                  <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                    <Navigation className="w-3 h-3" /> {appt.driveDistance || '—'}
+                  </span>
+                </div>
               </div>
             )}
 
+            {/* Schedule conflict warning */}
+            {hasConflict && (
+              <div className="px-4 py-2 bg-red-50 border-b border-red-100">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-[10px] font-bold text-red-700 uppercase tracking-wide">⚠ Schedule Conflict</p>
+                    <p className="text-[10px] text-red-600 mt-0.5">
+                      Must leave by {appt.conflict.requiredDeparture} but previous appointment ends at {appt.conflict.prevEndsAt}
+                    </p>
+                    <p className="text-[10px] text-red-500 mt-0.5">Cannot arrive 10 minutes early</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Main appointment card */}
             <div
               className={`px-4 py-3 cursor-pointer transition-colors ${isSelected ? "bg-amber-50 border-l-4 border-amber-500" : "hover:bg-slate-50"}`}
               onClick={() => onSelectLead(isSelected ? null : appt.id)}
@@ -83,7 +113,25 @@ export default function AppointmentList({ appointments, selectedLead, onSelectLe
                 </div>
               </div>
 
-              {/* Row 2: Address + Project */}
+              {/* Row 2: Routing details (Leave By, Expected Arrival, Drive Time, Distance) */}
+              {hasRoute && (
+                <div className="ml-8.5 mb-2 bg-slate-50 rounded-lg px-2.5 py-2 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold text-slate-500 uppercase">Leave By</span>
+                    <span className="text-sm font-bold text-amber-600">{fmt12(appt.requiredDeparture)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold text-slate-500 uppercase">Expected Arrival</span>
+                    <span className="text-xs font-semibold text-emerald-600">{fmt12(appt.targetArrival)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-slate-500">
+                    <span className="flex items-center gap-1"><Car className="w-2.5 h-2.5" /> {appt.driveDuration || '—'}</span>
+                    <span className="flex items-center gap-1"><Navigation className="w-2.5 h-2.5" /> {appt.driveDistance || '—'}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Row 3: Address + Project */}
               <div className="ml-8.5 space-y-0.5">
                 <div className="flex items-start gap-1.5">
                   {appt.geocodeError ? (
@@ -92,7 +140,7 @@ export default function AppointmentList({ appointments, selectedLead, onSelectLe
                     <MapPin className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" />
                   )}
                   <span className={`text-xs ${appt.geocodeError ? "text-amber-600 font-semibold" : "text-slate-600"}`}>
-                    {appt.geocodeError ? "⚠ Address needs review — " : ""}{appt.fullAddress}
+                    {appt.geocodeError ? "⚠ Address needs review — " : ""}{appt.verifiedAddress || appt.normalizedAddress || appt.fullAddress}
                   </span>
                 </div>
                 {appt.project_type && (
@@ -130,7 +178,7 @@ export default function AppointmentList({ appointments, selectedLead, onSelectLe
                     </Link>
                     {appt.coords && (
                       <a
-                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(appt.fullAddress)}`}
+                        href={`https://www.google.com/maps/search/?api=1&query=${appt.coords.lat},${appt.coords.lng}`}
                         target="_blank" rel="noreferrer"
                         className="flex items-center justify-center gap-1 text-xs font-semibold text-blue-600 border border-blue-200 py-1.5 px-2.5 rounded-lg hover:bg-blue-50 transition-colors"
                         onClick={e => e.stopPropagation()}
