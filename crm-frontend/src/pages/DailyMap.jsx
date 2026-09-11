@@ -73,6 +73,7 @@ export default function DailyMap() {
   const [contactOwners, setContactOwners] = useState([]);
   const [userRole, setUserRole] = useState(null);
   const [ownerConfig, setOwnerConfig] = useState({});
+  const [routeDropdownOpen, setRouteDropdownOpen] = useState(false);
 
   const { user } = useAuth();
 
@@ -128,29 +129,26 @@ export default function DailyMap() {
   };
 
   const openGoogleMapsRoute = () => {
-    const withCoords = appointments.filter(a => a.coords);
-    if (!withCoords.length) return;
-    // Group by owner to build separate routes
-    const byOwner = {};
-    for (const a of withCoords) {
-      const o = a.assigned_rep || 'Unassigned';
-      if (!byOwner[o]) byOwner[o] = [];
-      byOwner[o].push(a);
+    // Single owner selected — open route for that owner
+    if (ownerFilter !== 'all') {
+      openOwnerRoute(ownerFilter);
     }
-    // For each owner, build a route from their starting location through their appointments
-    for (const [owner, appts] of Object.entries(byOwner)) {
-      appts.sort((a, b) => (a.follow_up_time || '23:59').localeCompare(b.follow_up_time || '23:59'));
-      const startConfig = ownerConfig[owner];
-      const waypoints = [];
-      if (startConfig?.address) {
-        waypoints.push(encodeURIComponent(startConfig.address));
-      }
-      for (const a of appts) {
-        waypoints.push(encodeURIComponent(a.fullAddress));
-      }
-      window.open(`https://www.google.com/maps/dir/${waypoints.join('/')}`, '_blank');
-      break; // Open one owner's route at a time
+  };
+
+  const openOwnerRoute = (ownerName) => {
+    setRouteDropdownOpen(false);
+    const ownerAppts = appointments.filter(a => a.coords && (a.assigned_rep || 'Unassigned') === ownerName);
+    if (!ownerAppts.length) return;
+    ownerAppts.sort((a, b) => (a.follow_up_time || '23:59').localeCompare(b.follow_up_time || '23:59'));
+    const startConfig = ownerConfig[ownerName];
+    const waypoints = [];
+    if (startConfig?.address) {
+      waypoints.push(encodeURIComponent(startConfig.address));
     }
+    for (const a of ownerAppts) {
+      waypoints.push(encodeURIComponent(a.fullAddress));
+    }
+    window.open(`https://www.google.com/maps/dir/${waypoints.join('/')}`, '_blank');
   };
 
   return (
@@ -173,12 +171,42 @@ export default function DailyMap() {
           >
             <RefreshCw className="w-3.5 h-3.5" /> Refresh
           </button>
-          <button
-            onClick={openGoogleMapsRoute}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-          >
-            <Navigation className="w-3.5 h-3.5" /> Open Route
-          </button>
+          {appointments.filter(a => a.coords).length > 0 && (
+            ownerFilter !== "all" ? (
+              <button
+                onClick={openGoogleMapsRoute}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+              >
+                <Navigation className="w-3.5 h-3.5" /> Open Route
+              </button>
+            ) : (
+              <div className="relative">
+                <button
+                  onClick={() => setRouteDropdownOpen(!routeDropdownOpen)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                >
+                  <Navigation className="w-3.5 h-3.5" /> Open Route
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+                {routeDropdownOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setRouteDropdownOpen(false)} />
+                    <div className="absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 min-w-[180px]">
+                      {[...new Set(appointments.filter(a => a.coords).map(a => a.assigned_rep || "Unassigned"))].map(ownerName => (
+                        <button
+                          key={ownerName}
+                          onClick={() => openOwnerRoute(ownerName)}
+                          className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0"
+                        >
+                          {ownerName}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )
+          )}
           <div className="flex items-center gap-1 ml-2">
             <button
               onClick={() => setView("map")}
