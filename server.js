@@ -1376,6 +1376,8 @@ app.use('/api/v1/owners', require('./routes/owners'));
 app.use('/api/v1/users', require('./routes/users'));
 // Daily Appointment Routing — traffic-aware Google Routes API + geocoding + departure times
 app.use('/api/v1/routing', require('./routes/routing'));
+// Diagnostic endpoint (X-Proxy-Secret, no JWT) for verifying geocoding pipeline
+app.use('/routing', require('./routes/routingDiagnostic'));
 // Stage 2: Railway CRM Deal CRUD (mounted before dealFinancials so /:id/financials still resolves)
 app.use('/api/v1/deals', require('./routes/deals')); // CRUD (mounted first: /:id matches one segment only)
 // Sale-scoped QuickBooks invoice ownership (read-only financials + mapping contract)
