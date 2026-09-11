@@ -1700,41 +1700,11 @@ app.get('/signnow/diagnostic', requireProxySecret, async (req, res) => {
     // flags remain. The auto-detection of the correct API base URL is handled internally
     // by signnowClient.getEffectiveApiBase() and surfaced as `api_base` above.
 
-    // If client_id/secret are configured, try a test token request to see if
-    // the SignNow API is reachable and responding. We do NOT send credentials
-    // here — we send an empty body to see if the API responds at all.
-    if (clientId && clientSecret) {
-      try {
-        const creds = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-        const testRes = await fetch(`${effectiveApiBase}/oauth2/token`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Basic ${creds}`,
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: new URLSearchParams({ grant_type: 'password', username: '', password: '', scope: '*' }).toString(),
-          signal: AbortSignal.timeout(10000),
-        });
-        result.api_reachable = true;
-        result.api_http_status = testRes.status;
-        // We expect a 4xx (missing credentials) — that means the API is reachable
-        // and the client_id/secret are being accepted at the HTTP level.
-        const testBody = await testRes.text().catch(() => '');
-        try {
-          const parsed = JSON.parse(testBody);
-          result.api_error_code = parsed.error || (parsed.errors && parsed.errors[0] && parsed.errors[0].code) || null;
-          result.api_error_description = (parsed.error_description || (parsed.errors && parsed.errors[0] && parsed.errors[0].message) || '').substring(0, 200);
-        } catch { result.api_raw_response = testBody.substring(0, 200); }
-      } catch (e) {
-        result.api_reachable = false;
-        result.api_error = e.message;
-      }
-    } else if (process.env.SIGNNOW_API_KEY) {
-      // API Key mode — test reachability by calling /user with the API Key.
-      // SignNow requires both Accept and Content-Type headers (per docs).
-      // Using signnowClient.authHeaders ensures the diagnostic uses the SAME
-      // headers as verifyApiKey(), so the diagnostic result matches the actual
-      // connection status.
+    // API Key mode takes priority — if SIGNNOW_API_KEY is set, test it directly
+    // against /user (the same endpoint verifyApiKey uses). This is the actual
+    // authentication method used by all API calls, so the diagnostic must reflect
+    // it. Only fall back to the OAuth2 token test if API Key is not set.
+    if (process.env.SIGNNOW_API_KEY) {
       try {
         const signnowClient = require('./lib/signnowClient');
         const testRes = await fetch(`${effectiveApiBase}/user`, {
@@ -1757,6 +1727,32 @@ app.get('/signnow/diagnostic', requireProxySecret, async (req, res) => {
             result.api_error_description = (parsed.error_description || (parsed.errors && parsed.errors[0] && parsed.errors[0].message) || '').substring(0, 200);
           } catch { result.api_raw_response = testBody.substring(0, 200); }
         }
+      } catch (e) {
+        result.api_reachable = false;
+        result.api_error = e.message;
+      }
+    } else if (clientId && clientSecret) {
+      try {
+        const creds = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+        const testRes = await fetch(`${effectiveApiBase}/oauth2/token`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Basic ${creds}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({ grant_type: 'password', username: '', password: '', scope: '*' }).toString(),
+          signal: AbortSignal.timeout(10000),
+        });
+        result.api_reachable = true;
+        result.api_http_status = testRes.status;
+        // We expect a 4xx (missing credentials) — that means the API is reachable
+        // and the client_id/secret are being accepted at the HTTP level.
+        const testBody = await testRes.text().catch(() => '');
+        try {
+          const parsed = JSON.parse(testBody);
+          result.api_error_code = parsed.error || (parsed.errors && parsed.errors[0] && parsed.errors[0].code) || null;
+          result.api_error_description = (parsed.error_description || (parsed.errors && parsed.errors[0] && parsed.errors[0].message) || '').substring(0, 200);
+        } catch { result.api_raw_response = testBody.substring(0, 200); }
       } catch (e) {
         result.api_reachable = false;
         result.api_error = e.message;
