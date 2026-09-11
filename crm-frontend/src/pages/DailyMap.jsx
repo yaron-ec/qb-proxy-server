@@ -37,6 +37,15 @@ function getTodayLocal() {
   return `${y}-${m}-${day}`;
 }
 
+function fmt12(t) {
+  if (!t) return "—";
+  const [h, m] = t.split(":").map(Number);
+  const ampm = h >= 12 ? "PM" : "AM";
+  return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${ampm}`;
+}
+
+export { fmt12 };
+
 export default function DailyMap() {
   const [selectedDate, setSelectedDate] = useState(getTodayLocal());
   const [appointments, setAppointments] = useState([]);
