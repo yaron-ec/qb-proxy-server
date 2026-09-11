@@ -1359,6 +1359,7 @@ app.use('/api/v1/cron', require('./routes/cronJobs'));
   //   lead-submissions — Submission history (reads from Postgres)
   app.use('/api/v1/lead-qb', require('./routes/leadQB'));
   app.use('/api/v1/signnow', require('./routes/signnow'));
+app.use('/api/v1/signnow/webhook', require('./routes/signnowWebhook'));
   app.use('/api/v1/lead-submissions', require('./routes/leadSubmissions'));
 
 // PUBLIC Railway endpoints for the Lead Capture form (no JWT, rate-limited).
