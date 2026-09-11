@@ -279,8 +279,8 @@ router.get('/daily-schedule', async (req, res) => {
     const dayEndUtc = new Date(dayStartUtc.getTime() + 24 * 60 * 60 * 1000);
 
     const params = [dayStartUtc.toISOString(), dayEndUtc.toISOString(), date];
-    let apptWhere = `a.start_at >= $1::timestamptz AND a.start_at < $2::timestamptz AND a.status IN ('scheduled', 'confirmed') AND l.follow_up_type = 'Meeting'`;
-    let legacyWhere = `l.follow_up_date = $3 AND l.follow_up_type = 'Meeting' AND NOT EXISTS (SELECT 1 FROM appointments a2 WHERE a2.lead_id = l.id AND a2.status IN ('scheduled', 'confirmed') AND a2.start_at >= $1::timestamptz AND a2.start_at < $2::timestamptz)`;
+    let apptWhere = `a.start_at >= $1::timestamptz AND a.start_at < $2::timestamptz AND a.status IN ('scheduled', 'confirmed') AND l.follow_up_type = 'Meeting' AND (l.status IS NULL OR l.status NOT IN ('Lost', 'DNQ'))`;
+    let legacyWhere = `l.follow_up_date = $3 AND l.follow_up_type = 'Meeting' AND (l.status IS NULL OR l.status NOT IN ('Lost', 'DNQ')) AND NOT EXISTS (SELECT 1 FROM appointments a2 WHERE a2.lead_id = l.id AND a2.status IN ('scheduled', 'confirmed') AND a2.start_at >= $1::timestamptz AND a2.start_at < $2::timestamptz)`;
 
     if (owner && owner !== 'all') {
       if (owner === 'Unassigned') {
