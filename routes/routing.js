@@ -269,41 +269,69 @@ router.get('/daily-schedule', async (req, res) => {
       });
     }
 
-    // Fetch appointments for this date from Postgres.
-    // Appointment eligibility is based on the appointment record itself
-    // (follow_up_date + follow_up_type = 'Meeting'), NOT on lead sales status.
-    // Lead status (Lost, Sold, etc.) is independent business state and must not
-    // affect map/routing visibility.
-    const params = [date];
-    let whereClause = `l.follow_up_date = $1 AND l.follow_up_type = 'Meeting'`;
+    // Query the CANONICAL appointments table (source of truth for appointments).
+    // Join to leads for address info. Filter by appointment status (not lead
+    // status) — Lost/Sold leads with active appointments MUST appear.
+    // follow_up_type = 'Meeting' filter excludes phone calls (no driving needed).
+    // Also UNION legacy leads with follow_up_date but no appointments row.
+    const offsetMs = getLaOffsetMs(date);
+    const dayStartUtc = new Date(new Date(`${date}T00:00:00`).getTime() - offsetMs);
+    const dayEndUtc = new Date(dayStartUtc.getTime() + 24 * 60 * 60 * 1000);
+
+    const params = [dayStartUtc.toISOString(), dayEndUtc.toISOString(), date];
+    let apptWhere = `a.start_at >= $1::timestamptz AND a.start_at < $2::timestamptz AND a.status IN ('scheduled', 'confirmed') AND l.follow_up_type = 'Meeting'`;
+    let legacyWhere = `l.follow_up_date = $3 AND l.follow_up_type = 'Meeting' AND NOT EXISTS (SELECT 1 FROM appointments a2 WHERE a2.lead_id = l.id AND a2.status IN ('scheduled', 'confirmed') AND a2.start_at >= $1::timestamptz AND a2.start_at < $2::timestamptz)`;
 
     if (owner && owner !== 'all') {
       if (owner === 'Unassigned') {
-        whereClause += ` AND l.owner_id IS NULL`;
+        apptWhere += ` AND a.owner_id IS NULL`;
+        legacyWhere += ` AND l.owner_id IS NULL`;
       } else {
-        whereClause += ` AND (o.display_name = $${params.length + 1} OR o.email = $${params.length + 1})`;
+        apptWhere += ` AND (o.display_name = $${params.length + 1} OR o.email = $${params.length + 1})`;
+        legacyWhere += ` AND (o.display_name = $${params.length + 1} OR o.email = $${params.length + 1})`;
         params.push(owner);
       }
     }
     if (city && city !== 'all') {
-      whereClause += ` AND LOWER(l.city) = LOWER($${params.length + 1})`;
+      apptWhere += ` AND LOWER(l.city) = LOWER($${params.length + 1})`;
+      legacyWhere += ` AND LOWER(l.city) = LOWER($${params.length + 1})`;
       params.push(city);
     }
     if (project_type && project_type !== 'all') {
-      whereClause += ` AND LOWER(l.project_type) LIKE LOWER($${params.length + 1})`;
+      apptWhere += ` AND LOWER(l.project_type) LIKE LOWER($${params.length + 1})`;
+      legacyWhere += ` AND LOWER(l.project_type) LIKE LOWER($${params.length + 1})`;
       params.push(`%${project_type}%`);
     }
 
-    const { rows: leads } = await query(
-      `SELECT l.id, l.first_name, l.last_name, l.property_address, l.city, l.zip, l.phone, l.email,
+    const { rows: apptRows } = await query(
+      `SELECT l.id, l.first_name, l.last_name, l.property_address, l.city, l.state, l.zip, l.phone, l.email,
               l.project_type, COALESCE(o.display_name, o.email) AS assigned_rep,
-              l.follow_up_date, l.follow_up_time, l.status,
-              l.verified_property_address, l.property_lat, l.property_lng, l.property_geocode_status
-       FROM leads l LEFT JOIN owners o ON o.id = l.owner_id
-       WHERE ${whereClause}
-       ORDER BY l.follow_up_time ASC`,
+              l.follow_up_time, l.status,
+              l.verified_property_address, l.property_lat, l.property_lng, l.property_geocode_status,
+              a.start_at, a.id AS appointment_id
+       FROM appointments a
+       JOIN leads l ON l.id = a.lead_id
+       LEFT JOIN owners o ON o.id = a.owner_id
+       WHERE ${apptWhere}
+       UNION
+       SELECT l.id, l.first_name, l.last_name, l.property_address, l.city, l.state, l.zip, l.phone, l.email,
+              l.project_type, COALESCE(o.display_name, o.email) AS assigned_rep,
+              l.follow_up_time, l.status,
+              l.verified_property_address, l.property_lat, l.property_lng, l.property_geocode_status,
+              NULL AS start_at, NULL AS appointment_id
+       FROM leads l
+       LEFT JOIN owners o ON o.id = l.owner_id
+       WHERE ${legacyWhere}
+       ORDER BY start_at ASC NULLS LAST, follow_up_time ASC`,
       params
     );
+
+    // Convert start_at to follow_up_time for display (appointments table uses TIMESTAMPTZ)
+    const leads = apptRows.map(r => ({
+      ...r,
+      follow_up_time: r.start_at ? isoToLaTime(r.start_at) : r.follow_up_time,
+      follow_up_date: date,
+    }));
 
     if (leads.length === 0) {
       return res.json({ appointments: [], schedule: [], owner_config: await getOwnerStarts() });
@@ -315,12 +343,27 @@ router.get('/daily-schedule', async (req, res) => {
     // Sort by time (ensure chronological order)
     leads.sort((a, b) => (a.follow_up_time || '23:59').localeCompare(b.follow_up_time || '23:59'));
 
-    // Geocode all addresses (with cache + persistence to leads table)
-    // Use verified_property_address when available (Google-verified canonical address)
+    // Geocode all addresses — use cached coordinates from leads table when
+    // available (skip re-geocoding already-verified addresses to prevent false
+    // "needs review" flags on addresses that were already reconciled).
     const geocodePromises = leads.map(async (lead) => {
       const normalizedAddr = lead.verified_property_address || gmaps.normalizeAddress(lead.property_address, lead.city);
 
-      // Check cache
+      // FAST PATH: leads table already has verified coordinates (from
+      // reconciliation or prior geocoding). Use them directly — no Google
+      // API call, no risk of a partial-match "needs_review" false positive.
+      if (lead.property_lat && lead.property_lng) {
+        return {
+          ...lead,
+          normalizedAddress: normalizedAddr,
+          verifiedAddress: lead.verified_property_address || normalizedAddr,
+          coords: { lat: lead.property_lat, lng: lead.property_lng },
+          geocodeError: false,
+          geocodeStatus: 'ok',
+        };
+      }
+
+      // No cached coords on leads table — check geocode cache table
       let coords = await getCachedGeocode(lead.id, normalizedAddr);
       let geocodeStatus = 'ok';
       let geocodeError = false;
@@ -331,10 +374,8 @@ router.get('/daily-schedule', async (req, res) => {
         try {
           coords = await gmaps.geocodeAddress(normalizedAddr);
           if (coords) {
-            // Use Google's formatted_address as the verified canonical address
             verifiedAddress = coords.formattedAddress || normalizedAddr;
             await saveGeocode(lead.id, normalizedAddr, coords, 'ok', verifiedAddress);
-            // Persist to leads table so every CRM page shows the verified address
             await persistVerifiedAddress(lead.id, verifiedAddress, coords, 'verified');
           } else {
             geocodeError = true;
@@ -348,9 +389,7 @@ router.get('/daily-schedule', async (req, res) => {
           console.warn(`[routing] Geocode failed for lead ${lead.id}:`, e.message);
         }
       } else {
-        // Cache hit — use the cached verified address
         verifiedAddress = coords.verifiedAddress || coords.formattedAddress || normalizedAddr;
-        // Ensure leads table is also updated (in case it was geocoded before the column existed)
         await persistVerifiedAddress(lead.id, verifiedAddress, coords, 'verified');
       }
 
@@ -378,7 +417,9 @@ router.get('/daily-schedule', async (req, res) => {
 
       for (let i = 0; i < geocoded.length; i++) {
         const appt = geocoded[i];
-        const apptTimeIso = timeToIso(date, appt.follow_up_time);
+        // Use start_at from appointments table when available (canonical source);
+        // fall back to timeToIso for legacy leads without an appointments row.
+        const apptTimeIso = appt.start_at ? new Date(appt.start_at).toISOString() : timeToIso(date, appt.follow_up_time);
         const targetArrivalIso = apptTimeIso
           ? new Date(new Date(apptTimeIso).getTime() - 10 * 60 * 1000).toISOString()
           : null;
