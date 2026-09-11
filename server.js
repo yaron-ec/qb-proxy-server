@@ -1561,6 +1561,53 @@ app.get('/signnow/diagnostic', requireProxySecret, async (req, res) => {
   }
 });
 
+// GET /routing/diagnostic — check Google Maps configuration WITHOUT JWT.
+// Protected by X-Proxy-Secret only. Tests actual Geocoding API and Routes API
+// calls to verify the GOOGLE_MAPS_API_KEY works end-to-end in production.
+app.get('/routing/diagnostic', requireProxySecret, async (req, res) => {
+  try {
+    const gmaps = require('./lib/googleMapsClient');
+    const result = {
+      api_key_configured: !!process.env.GOOGLE_MAPS_API_KEY,
+      service_account_configured: !!process.env.GOOGLE_SERVICE_ACCOUNT_KEY,
+      is_configured: gmaps.isConfigured(),
+    };
+
+    // Test 1: Geocoding API — geocode a known address (Woodland Hills base)
+    try {
+      const geo = await gmaps.geocodeAddress('23622 Calabasas Rd, Woodland Hills, CA 91367');
+      result.geocoding = {
+        works: !!geo,
+        lat: geo?.lat || null,
+        lng: geo?.lng || null,
+        formatted_address: geo?.formattedAddress || null,
+      };
+    } catch (e) {
+      result.geocoding = { works: false, error: e.message };
+    }
+
+    // Test 2: Routes API — traffic-aware route from Woodland Hills to Corona
+    try {
+      const route = await gmaps.computeRoute(
+        '23622 Calabasas Rd, Woodland Hills, CA 91367',
+        '14572 Fountain Brook Ln, Corona, CA 92881',
+        null
+      );
+      result.routing = {
+        works: !!route,
+        duration_seconds: route?.durationSeconds || null,
+        distance_meters: route?.distanceMeters || null,
+      };
+    } catch (e) {
+      result.routing = { works: false, error: e.message };
+    }
+
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.post('/signnow/download-pdf', requireProxySecret, (req, res) => {
   res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — needs SignNow credentials' });
 });
