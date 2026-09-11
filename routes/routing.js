@@ -265,40 +265,35 @@ router.get('/daily-schedule', async (req, res) => {
     // Fetch appointments for this date from Postgres
     const excluded = ['Lost', 'DNQ', 'Cancelled', 'Closed Lost'];
     const params = [date];
-    let paramIdx = 1;
-    let whereClause = `follow_up_date = $${paramIdx++} AND follow_up_type = 'Meeting'`;
-    // Exclude cancelled/lost statuses
-    whereClause += ` AND (status IS NULL OR status NOT IN (${excluded.map((s, i) => `$${
-      paramIdx + i
-    }`).join(',')}) OR status = '')`;
-    // Fix: build the NOT IN clause properly
-    paramIdx = 2;
-    const notInPlaceholders = excluded.map((s, i) => `$${paramIdx + i}`).join(',');
-    whereClause = `follow_up_date = $1 AND follow_up_type = 'Meeting' AND (status IS NULL OR status = '' OR status NOT IN (${notInPlaceholders}))`;
+    const notInPlaceholders = excluded.map((s, i) => `$${i + 2}`).join(',');
+    let whereClause = `l.follow_up_date = $1 AND l.follow_up_type = 'Meeting' AND (l.status IS NULL OR l.status = '' OR l.status NOT IN (${notInPlaceholders}))`;
     params.push(...excluded);
 
     if (owner && owner !== 'all') {
       if (owner === 'Unassigned') {
-        whereClause += ` AND (assigned_rep IS NULL OR assigned_rep = '')`;
+        whereClause += ` AND l.owner_id IS NULL`;
       } else {
-        whereClause += ` AND assigned_rep = $${params.length + 1}`;
+        whereClause += ` AND (o.display_name = $${params.length + 1} OR o.email = $${params.length + 1})`;
         params.push(owner);
       }
     }
     if (city && city !== 'all') {
-      whereClause += ` AND LOWER(city) = LOWER($${params.length + 1})`;
+      whereClause += ` AND LOWER(l.city) = LOWER($${params.length + 1})`;
       params.push(city);
     }
     if (project_type && project_type !== 'all') {
-      whereClause += ` AND LOWER(project_type) LIKE LOWER($${params.length + 1})`;
+      whereClause += ` AND LOWER(l.project_type) LIKE LOWER($${params.length + 1})`;
       params.push(`%${project_type}%`);
     }
 
     const { rows: leads } = await query(
-      `SELECT id, first_name, last_name, property_address, city, state, phone, email,
-              project_type, assigned_rep, follow_up_date, follow_up_time, status
-       FROM leads WHERE ${whereClause}
-       ORDER BY follow_up_time ASC`,
+      `SELECT l.id, l.first_name, l.last_name, l.property_address, l.city, l.zip, l.phone, l.email,
+              l.project_type, COALESCE(o.display_name, o.email) AS assigned_rep,
+              l.follow_up_date, l.follow_up_time, l.status,
+              l.verified_property_address, l.property_lat, l.property_lng, l.property_geocode_status
+       FROM leads l LEFT JOIN owners o ON o.id = l.owner_id
+       WHERE ${whereClause}
+       ORDER BY l.follow_up_time ASC`,
       params
     );
 
@@ -314,7 +309,7 @@ router.get('/daily-schedule', async (req, res) => {
 
     // Geocode all addresses (with cache + persistence to leads table)
     const geocodePromises = leads.map(async (lead) => {
-      const normalizedAddr = gmaps.normalizeAddress(lead.property_address, lead.city, lead.state);
+      const normalizedAddr = gmaps.normalizeAddress(lead.property_address, lead.city);
 
       // Check cache
       let coords = await getCachedGeocode(lead.id, normalizedAddr);
@@ -488,7 +483,7 @@ router.post('/backfill-geocodes', requireAdmin, async (req, res) => {
 
     // Fetch all leads with addresses that need geocoding
     const { rows: leads } = await query(`
-      SELECT id, property_address, city, state
+      SELECT id, property_address, city
       FROM leads
       WHERE property_address IS NOT NULL AND property_address != ''
         AND (status IS NULL OR status NOT IN ('Lost', 'DNQ', 'Cancelled', 'Closed Lost') OR status = '')
@@ -501,7 +496,7 @@ router.post('/backfill-geocodes', requireAdmin, async (req, res) => {
     let skipped = 0;
 
     for (const lead of leads) {
-      const normalizedAddr = gmaps.normalizeAddress(lead.property_address, lead.city, lead.state);
+      const normalizedAddr = gmaps.normalizeAddress(lead.property_address, lead.city);
 
       // Check if already cached with this address hash
       const cached = await getCachedGeocode(lead.id, normalizedAddr);
