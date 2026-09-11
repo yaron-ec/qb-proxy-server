@@ -269,12 +269,13 @@ router.get('/daily-schedule', async (req, res) => {
       });
     }
 
-    // Fetch appointments for this date from Postgres
-    const excluded = ['Lost', 'DNQ', 'Cancelled', 'Closed Lost'];
+    // Fetch appointments for this date from Postgres.
+    // Appointment eligibility is based on the appointment record itself
+    // (follow_up_date + follow_up_type = 'Meeting'), NOT on lead sales status.
+    // Lead status (Lost, Sold, etc.) is independent business state and must not
+    // affect map/routing visibility.
     const params = [date];
-    const notInPlaceholders = excluded.map((s, i) => `$${i + 2}`).join(',');
-    let whereClause = `l.follow_up_date = $1 AND l.follow_up_type = 'Meeting' AND (l.status IS NULL OR l.status = '' OR l.status NOT IN (${notInPlaceholders}))`;
-    params.push(...excluded);
+    let whereClause = `l.follow_up_date = $1 AND l.follow_up_type = 'Meeting'`;
 
     if (owner && owner !== 'all') {
       if (owner === 'Unassigned') {
@@ -495,7 +496,6 @@ router.post('/backfill-geocodes', requireAdmin, async (req, res) => {
       SELECT id, property_address, city
       FROM leads
       WHERE property_address IS NOT NULL AND property_address != ''
-        AND (status IS NULL OR status NOT IN ('Lost', 'DNQ', 'Cancelled', 'Closed Lost') OR status = '')
       ORDER BY created_at DESC
       LIMIT 500
     `);
@@ -573,6 +573,9 @@ router.post('/reconcile-addresses', requireAdmin, async (req, res) => {
 
     // If lead_id is provided, process ONLY that lead (ignoring status filter).
     // Otherwise, fetch all leads with addresses that haven't been reconciled yet.
+    // NOTE: Lead sales status (Lost, Sold, etc.) is independent business state and
+    // must NEVER be mutated by reconciliation/routing. Address reconciliation covers
+    // ALL leads regardless of sales status.
     const { lead_id } = req.body || {};
     let leads;
     if (lead_id) {
@@ -591,7 +594,6 @@ router.post('/reconcile-addresses', requireAdmin, async (req, res) => {
         FROM leads
         WHERE property_address IS NOT NULL AND property_address != ''
           AND (property_geocode_status IS NULL OR property_geocode_status NOT IN ('reconciled', 'needs_review'))
-          AND (status IS NULL OR status NOT IN ('Lost', 'DNQ', 'Cancelled', 'Closed Lost') OR status = '')
         ORDER BY created_at DESC
         LIMIT 500
       `)).rows;
