@@ -24,6 +24,7 @@ router.get('/daily-diagnostic', async (req, res) => {
     await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_lat DOUBLE PRECISION');
     await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_lng DOUBLE PRECISION');
     await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_geocode_status TEXT DEFAULT \'pending\'');
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS state TEXT');
 
     // Query appointments for this date (JOIN owners for assigned_rep)
     const excluded = ['Lost', 'DNQ', 'Cancelled', 'Closed Lost'];
@@ -35,7 +36,7 @@ router.get('/daily-diagnostic', async (req, res) => {
     }
 
     const { rows: leads } = await query(
-      `SELECT l.id, l.first_name, l.last_name, l.property_address, l.city, l.zip, l.phone, l.email,
+      `SELECT l.id, l.first_name, l.last_name, l.property_address, l.city, l.state, l.zip, l.phone, l.email,
               l.project_type, COALESCE(o.display_name, o.email) AS assigned_rep,
               l.follow_up_date, l.follow_up_time, l.status,
               l.verified_property_address, l.property_lat, l.property_lng, l.property_geocode_status
@@ -74,6 +75,7 @@ router.get('/daily-diagnostic', async (req, res) => {
         assigned_rep: lead.assigned_rep,
         raw_address: lead.property_address,
         raw_city: lead.city,
+        raw_state: lead.state,
         raw_zip: lead.zip,
         normalized_address: normalizedAddr,
         google_verified_address: geocodeResult?.formattedAddress || null,
@@ -95,6 +97,154 @@ router.get('/daily-diagnostic', async (req, res) => {
       total_appointments: leads.length,
       appointments: details,
     });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /reconcile-addresses — system-wide address field reconciliation.
+// For each lead: reconstruct full address → geocode with Google → if
+// high-confidence match, split into Street/City/State/ZIP and overwrite the
+// leads table fields. Preserves original raw values in original_* columns.
+// Ambiguous records are marked 'needs_review' and left untouched.
+router.post('/reconcile-addresses', async (req, res) => {
+  try {
+    if (!gmaps.isConfigured()) {
+      return res.status(503).json({
+        error: 'google_maps_not_configured',
+        message: 'Set GOOGLE_MAPS_API_KEY on Railway.',
+      });
+    }
+
+    // Ensure all columns exist (including state + original_* audit columns)
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS verified_property_address TEXT');
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_lat DOUBLE PRECISION');
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_lng DOUBLE PRECISION');
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_geocode_status TEXT DEFAULT \'pending\'');
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS state TEXT');
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS original_property_address TEXT');
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS original_city TEXT');
+
+    // Fetch leads that haven't been reconciled yet
+    const { rows: leads } = await query(`
+      SELECT id, property_address, city, state, zip,
+             verified_property_address, property_geocode_status,
+             original_property_address, original_city
+      FROM leads
+      WHERE property_address IS NOT NULL AND property_address != ''
+        AND (property_geocode_status IS NULL OR property_geocode_status NOT IN ('reconciled', 'needs_review'))
+        AND (status IS NULL OR status NOT IN ('Lost', 'DNQ', 'Cancelled', 'Closed Lost') OR status = '')
+      ORDER BY created_at DESC
+      LIMIT 500
+    `);
+
+    let reconciled = 0;
+    let needsReview = 0;
+    let failed = 0;
+    const errors = [];
+    const reconciledDetails = [];
+
+    for (const lead of leads) {
+      try {
+        const normalizedAddr = gmaps.normalizeAddress(lead.property_address, lead.city);
+        const coords = await gmaps.geocodeAddress(normalizedAddr);
+
+        if (!coords) {
+          await query('UPDATE leads SET property_geocode_status = $1 WHERE id = $2', ['needs_review', lead.id]);
+          needsReview++;
+          continue;
+        }
+
+        if (!coords.isHighConfidence || coords.partialMatch) {
+          await query(
+            `UPDATE leads SET verified_property_address = $1, property_lat = $2, property_lng = $3, property_geocode_status = 'needs_review' WHERE id = $4`,
+            [coords.formattedAddress, coords.lat, coords.lng, lead.id]
+          );
+          needsReview++;
+          continue;
+        }
+
+        const { street, city, state, zip } = coords.addressComponents;
+
+        // Preserve original raw values (only if not already preserved)
+        const updates = [];
+        const params = [];
+        let idx = 1;
+
+        if (!lead.original_property_address && lead.property_address) {
+          updates.push(`original_property_address = $${idx++}`);
+          params.push(lead.property_address);
+        }
+        if (!lead.original_city && lead.city) {
+          updates.push(`original_city = $${idx++}`);
+          params.push(lead.city);
+        }
+
+        updates.push(`property_address = $${idx++}`); params.push(street);
+        updates.push(`city = $${idx++}`); params.push(city);
+        updates.push(`state = $${idx++}`); params.push(state);
+        updates.push(`zip = $${idx++}`); params.push(zip);
+        updates.push(`verified_property_address = $${idx++}`); params.push(coords.formattedAddress);
+        updates.push(`property_lat = $${idx++}`); params.push(coords.lat);
+        updates.push(`property_lng = $${idx++}`); params.push(coords.lng);
+        updates.push(`property_geocode_status = $${idx++}`); params.push('reconciled');
+
+        params.push(lead.id);
+        await query(`UPDATE leads SET ${updates.join(', ')} WHERE id = $${idx}`, params);
+
+        reconciledDetails.push({
+          id: lead.id,
+          before: { property_address: lead.property_address, city: lead.city, state: lead.state, zip: lead.zip },
+          after: { property_address: street, city, state, zip },
+          verified: coords.formattedAddress,
+        });
+        reconciled++;
+      } catch (e) {
+        console.warn(`[routing-diag] reconcile failed for lead ${lead.id}:`, e.message);
+        errors.push(`${lead.id}: ${e.message}`);
+        failed++;
+      }
+      await new Promise(r => setTimeout(r, 100));
+    }
+
+    res.json({
+      total: leads.length,
+      reconciled,
+      needs_review: needsReview,
+      failed,
+      message: `Reconciled ${reconciled}, ${needsReview} need review, ${failed} failed`,
+      reconciled_details: reconciledDetails.slice(0, 20),
+      errors: errors.slice(0, 10),
+    });
+  } catch (e) {
+    console.error('[routing-diag] reconcile error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /reconcile-status — check which leads have been reconciled and which need review
+router.get('/reconcile-status', async (req, res) => {
+  try {
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS state TEXT');
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_geocode_status TEXT DEFAULT \'pending\'');
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS verified_property_address TEXT');
+
+    const { rows } = await query(`
+      SELECT property_geocode_status, COUNT(*) as count
+      FROM leads
+      WHERE property_address IS NOT NULL AND property_address != ''
+      GROUP BY property_geocode_status
+      ORDER BY count DESC
+    `);
+
+    const { rows: needsReview } = await query(`
+      SELECT id, first_name, last_name, property_address, city, state, zip, verified_property_address
+      FROM leads
+      WHERE property_geocode_status = 'needs_review'
+      LIMIT 20
+    `);
+
+    res.json({ status_counts: rows, needs_review_samples: needsReview });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
