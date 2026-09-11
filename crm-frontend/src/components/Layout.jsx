@@ -150,7 +150,7 @@ function LayoutComponent() {
         <div className="flex items-center border-b border-white/10 h-24 flex-shrink-0" style={{ padding: collapsed ? '0.75rem' : '0.75rem 1rem' }}>
           <div className="flex items-center" style={{ width: '100%', justifyContent: collapsed ? 'center' : 'flex-start', gap: collapsed ? 0 : '0.75rem' }}>
             {logoUrl ? (
-              <img src={logoUrl} alt="EC Construction Group" style={{ height: 56, width: 56, flexShrink: 0, objectFit: 'contain' }} className="rounded-lg" />
+              <img src={logoUrl} alt="EC Construction Group" style={{ height: 56, width: 56, flexShrink: 0, objectFit: 'contain' }} className="rounded-lg" onError={() => { if (logoUrl !== LOCAL_LOGO_URL) setLogoUrl(LOCAL_LOGO_URL); }} />
             ) : (
               <div
                 style={{ height: 56, width: 56, flexShrink: 0 }}
