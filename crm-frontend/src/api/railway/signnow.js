@@ -11,6 +11,7 @@
  */
 
 import { apiCall } from './client';
+import { RAILWAY_API_URL } from '@/lib/apiConfig';
 
 export function listDocuments(externalRef) {
   return apiCall(`/api/v1/signnow/by-external/${encodeURIComponent(externalRef)}`, { method: 'GET' });
@@ -30,6 +31,15 @@ export function getDocumentStatus(docId) {
 
 export function deleteDocument(docId) {
   return apiCall(`/api/v1/signnow/documents/${encodeURIComponent(docId)}`, { method: 'DELETE' });
+}
+
+export async function downloadSignedPdf(docId) {
+  const access = localStorage.getItem('railway_access_token') || '';
+  const res = await fetch(`${RAILWAY_API_URL}/api/v1/signnow/documents/${encodeURIComponent(docId)}/pdf`, {
+    headers: { 'Authorization': `Bearer ${access}` },
+  });
+  if (!res.ok) throw new Error('Failed to download PDF: ' + res.status);
+  return await res.blob();
 }
 
 export function listTemplates() {
