@@ -15,7 +15,7 @@
  * reservation (409 on conflict, zero leads/appointments/side-effects on 409).
  *
  * Side effects ported from base44/functions/submitLeadCapture:
- *   - lead create (Railway leads) + projection_outbox → Base44  [bookingService]
+ *   - lead create (Railway leads)  [bookingService]
  *   - appointment create + calendar_outbox → Google Calendar   [bookingService]
  *   - activity note (Railway activities)                       [post-commit]
  *   - reminder ingestion (Railway reminder_leads)             [post-commit]
@@ -48,8 +48,7 @@ const DEV_ORIGINS = ['http://localhost:5173', 'http://localhost:3000', 'http://1
 
 function corsCapture(req, res, next) {
   const origin = req.headers.origin || '';
-  const isAllowed = ALLOWED_ORIGINS.includes(origin) || DEV_ORIGINS.includes(origin)
-    || /\.base44\.(app|dev|com)$/.test(origin) || /-base44\./.test(origin);
+  const isAllowed = ALLOWED_ORIGINS.includes(origin) || DEV_ORIGINS.includes(origin);
   if (origin && isAllowed) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Vary', 'Origin');
@@ -169,8 +168,6 @@ router.post('/', submitLimiter, async (req, res) => {
       actor,
       override_conflict,
       override_actor,
-      follow_up_type: c.follow_up_type || 'Meeting',
-      skip_travel: (c.follow_up_type || 'Meeting') === 'Phone Call',
     });
 
     const leadId = booking.lead && booking.lead.id;
@@ -192,13 +189,28 @@ router.post('/', submitLimiter, async (req, res) => {
         await query(
           `UPDATE leads SET
              message = $1, photo_urls = $2, is_new_intake_lead = true,
-             follow_up_date = $3, follow_up_time = $4, follow_up_type = $5,
+             follow_up_date = $3, follow_up_time = $4, follow_up_type = 'Meeting',
              meeting_stage = 'First Meeting', crm_created_date = NOW(),
              record_type = 'Lead', updated_at = NOW()
-           WHERE id = $6`,
-          [c.message, c.photo_urls, c.appointment_date, c.appointment_time, c.follow_up_type || 'Meeting', leadId]
+           WHERE id = $5`,
+          [c.message, c.photo_urls, c.appointment_date, c.appointment_time, leadId]
         );
       } catch (e) { console.warn('[public-capture] lead extra-field update failed:', e.message); }
+
+      // 1b. Canonical address pipeline — normalize + geocode the form-submitted
+      // address through the same pipeline used by every other write path.
+      if (c.property_address) {
+        try {
+          const { processAddress, persistAddressForLead } = require('../lib/addressPipeline');
+          const addressResult = await processAddress({
+            street: c.property_address,
+            city: c.city,
+            state: '',
+            zip: '',
+          });
+          await persistAddressForLead(leadId, addressResult);
+        } catch (e) { console.warn('[public-capture] address pipeline failed (non-blocking):', e.message); }
+      }
 
       // 2. Activity note for the message (mirrors submitLeadCapture Activity.create).
       if (c.message) {
