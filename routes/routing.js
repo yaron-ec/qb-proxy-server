@@ -315,8 +315,9 @@ router.get('/daily-schedule', async (req, res) => {
     leads.sort((a, b) => (a.follow_up_time || '23:59').localeCompare(b.follow_up_time || '23:59'));
 
     // Geocode all addresses (with cache + persistence to leads table)
+    // Use verified_property_address when available (Google-verified canonical address)
     const geocodePromises = leads.map(async (lead) => {
-      const normalizedAddr = gmaps.normalizeAddress(lead.property_address, lead.city);
+      const normalizedAddr = lead.verified_property_address || gmaps.normalizeAddress(lead.property_address, lead.city);
 
       // Check cache
       let coords = await getCachedGeocode(lead.id, normalizedAddr);
@@ -391,8 +392,8 @@ router.get('/daily-schedule', async (req, res) => {
             originName = ownerConfig.name || 'Starting Location';
           }
         } else {
-          // Subsequent: use previous appointment address
-          originAddr = geocoded[i - 1].normalizedAddress;
+          // Subsequent: use previous appointment's verified address (Google-verified)
+          originAddr = geocoded[i - 1].verifiedAddress || geocoded[i - 1].normalizedAddress;
           originName = `${geocoded[i - 1].first_name} ${geocoded[i - 1].last_name}`;
         }
 
@@ -400,9 +401,10 @@ router.get('/daily-schedule', async (req, res) => {
         let departureIso = null;
         let conflict = null;
 
-        if (originAddr && appt.normalizedAddress && appt.coords && targetArrivalIso) {
+        if (originAddr && (appt.verifiedAddress || appt.normalizedAddress) && appt.coords && targetArrivalIso) {
           try {
-            route = await gmaps.computeRoute(originAddr, appt.normalizedAddress, targetArrivalIso);
+            const routeDest = appt.verifiedAddress || appt.normalizedAddress;
+            route = await gmaps.computeRoute(originAddr, routeDest, targetArrivalIso);
             if (route?.durationSeconds > 0) {
               const departureMs = new Date(targetArrivalIso).getTime() - route.durationSeconds * 1000;
               departureIso = new Date(departureMs).toISOString();
@@ -569,19 +571,31 @@ router.post('/reconcile-addresses', requireAdmin, async (req, res) => {
       });
     }
 
-    // Fetch all leads with addresses that haven't been reconciled yet
-    // (property_geocode_status IS NULL or != 'reconciled')
-    const { rows: leads } = await query(`
-      SELECT id, property_address, city, state, zip,
-             verified_property_address, property_geocode_status,
-             original_property_address, original_city
-      FROM leads
-      WHERE property_address IS NOT NULL AND property_address != ''
-        AND (property_geocode_status IS NULL OR property_geocode_status NOT IN ('reconciled', 'needs_review'))
-        AND (status IS NULL OR status NOT IN ('Lost', 'DNQ', 'Cancelled', 'Closed Lost') OR status = '')
-      ORDER BY created_at DESC
-      LIMIT 500
-    `);
+    // If lead_id is provided, process ONLY that lead (ignoring status filter).
+    // Otherwise, fetch all leads with addresses that haven't been reconciled yet.
+    const { lead_id } = req.body || {};
+    let leads;
+    if (lead_id) {
+      leads = (await query(`
+        SELECT id, property_address, city, state, zip,
+               verified_property_address, property_geocode_status,
+               original_property_address, original_city
+        FROM leads
+        WHERE id = $1 AND property_address IS NOT NULL AND property_address != ''
+      `, [lead_id])).rows;
+    } else {
+      leads = (await query(`
+        SELECT id, property_address, city, state, zip,
+               verified_property_address, property_geocode_status,
+               original_property_address, original_city
+        FROM leads
+        WHERE property_address IS NOT NULL AND property_address != ''
+          AND (property_geocode_status IS NULL OR property_geocode_status NOT IN ('reconciled', 'needs_review'))
+          AND (status IS NULL OR status NOT IN ('Lost', 'DNQ', 'Cancelled', 'Closed Lost') OR status = '')
+        ORDER BY created_at DESC
+        LIMIT 500
+      `)).rows;
+    }
 
     let reconciled = 0;
     let needsReview = 0;
