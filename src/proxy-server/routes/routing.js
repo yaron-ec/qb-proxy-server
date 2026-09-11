@@ -67,6 +67,7 @@ async function ensureGeocodeTable() {
         lead_id TEXT PRIMARY KEY,
         address_hash TEXT NOT NULL,
         normalized_address TEXT,
+        verified_address TEXT,
         latitude DOUBLE PRECISION,
         longitude DOUBLE PRECISION,
         google_place_id TEXT,
@@ -76,8 +77,50 @@ async function ensureGeocodeTable() {
       )
     `);
     await query('CREATE INDEX IF NOT EXISTS idx_lead_geocodes_hash ON lead_geocodes (address_hash)');
+    // Add verified_address column to existing tables
+    await query('ALTER TABLE lead_geocodes ADD COLUMN IF NOT EXISTS verified_address TEXT');
   } catch (e) {
     console.warn('[routing] lead_geocodes table creation deferred:', e.message);
+  }
+}
+
+// Add geocode columns to the leads table so the verified address, coordinates,
+// and verification status are persisted alongside the raw customer-entered
+// property_address (which is preserved unchanged for audit).
+async function ensureLeadsGeocodeColumns() {
+  try {
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS verified_property_address TEXT');
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_lat DOUBLE PRECISION');
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_lng DOUBLE PRECISION');
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_geocode_status TEXT DEFAULT \'pending\'');
+    // Add state column — the leads table was created without it, but the CRM
+    // ContactInfoEditor displays it. Address reconciliation populates it from
+    // Google's verified address_components.
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS state TEXT');
+    // Preserve the original raw address for audit/history before reconciliation overwrites it
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS original_property_address TEXT');
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS original_city TEXT');
+  } catch (e) {
+    console.warn('[routing] leads geocode columns creation deferred:', e.message);
+  }
+}
+
+// Persist the Google-verified address, coordinates, and status to the leads
+// table so every CRM page (Lead Detail, Daily Map, etc.) displays the
+// canonical normalized address — not the raw customer-entered string.
+async function persistVerifiedAddress(leadId, verifiedAddress, coords, status) {
+  try {
+    await query(
+      `UPDATE leads SET
+         verified_property_address = $1,
+         property_lat = $2,
+         property_lng = $3,
+         property_geocode_status = $4
+       WHERE id = $5`,
+      [verifiedAddress || null, coords?.lat || null, coords?.lng || null, status, leadId]
+    );
+  } catch (e) {
+    console.warn('[routing] persist verified address failed:', e.message);
   }
 }
 
@@ -98,7 +141,8 @@ async function getCachedGeocode(leadId, normalizedAddr) {
       return {
         lat: r.rows[0].latitude,
         lng: r.rows[0].longitude,
-        formattedAddress: r.rows[0].normalized_address,
+        formattedAddress: r.rows[0].verified_address || r.rows[0].normalized_address,
+        verifiedAddress: r.rows[0].verified_address,
         placeId: r.rows[0].google_place_id,
       };
     }
@@ -108,17 +152,17 @@ async function getCachedGeocode(leadId, normalizedAddr) {
   }
 }
 
-// Save geocode to cache
-async function saveGeocode(leadId, normalizedAddr, coords, status) {
+// Save geocode to cache (verifiedAddress = Google's formatted_address)
+async function saveGeocode(leadId, normalizedAddr, coords, status, verifiedAddress) {
   try {
     const hash = addrHash(normalizedAddr);
     await query(
-      `INSERT INTO lead_geocodes (lead_id, address_hash, normalized_address, latitude, longitude, google_place_id, geocode_status, geocoded_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+      `INSERT INTO lead_geocodes (lead_id, address_hash, normalized_address, verified_address, latitude, longitude, google_place_id, geocode_status, geocoded_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
        ON CONFLICT (lead_id) DO UPDATE SET
-         address_hash = $2, normalized_address = $3, latitude = $4, longitude = $5,
-         google_place_id = $6, geocode_status = $7, geocoded_at = NOW(), updated_at = NOW()`,
-      [leadId, hash, normalizedAddr, coords?.lat || null, coords?.lng || null, coords?.placeId || null, status]
+         address_hash = $2, normalized_address = $3, verified_address = $4, latitude = $5, longitude = $6,
+         google_place_id = $7, geocode_status = $8, geocoded_at = NOW(), updated_at = NOW()`,
+      [leadId, hash, normalizedAddr, verifiedAddress || null, coords?.lat || null, coords?.lng || null, coords?.placeId || null, status]
     );
   } catch (e) {
     console.warn('[routing] geocode save failed:', e.message);
@@ -212,6 +256,7 @@ function formatDistance(meters) {
 router.get('/daily-schedule', async (req, res) => {
   try {
     await ensureGeocodeTable();
+    await ensureLeadsGeocodeColumns();
 
     const { owner, date, city, project_type } = req.query;
     if (!date) return res.status(400).json({ error: 'date required (YYYY-MM-DD)' });
@@ -224,45 +269,69 @@ router.get('/daily-schedule', async (req, res) => {
       });
     }
 
-    // Fetch appointments for this date from Postgres
-    const excluded = ['Lost', 'DNQ', 'Cancelled', 'Closed Lost'];
-    const params = [date];
-    let paramIdx = 1;
-    let whereClause = `follow_up_date = $${paramIdx++} AND follow_up_type = 'Meeting'`;
-    // Exclude cancelled/lost statuses
-    whereClause += ` AND (status IS NULL OR status NOT IN (${excluded.map((s, i) => `$${
-      paramIdx + i
-    }`).join(',')}) OR status = '')`;
-    // Fix: build the NOT IN clause properly
-    paramIdx = 2;
-    const notInPlaceholders = excluded.map((s, i) => `$${paramIdx + i}`).join(',');
-    whereClause = `follow_up_date = $1 AND follow_up_type = 'Meeting' AND (status IS NULL OR status = '' OR status NOT IN (${notInPlaceholders}))`;
-    params.push(...excluded);
+    // Query the CANONICAL appointments table (source of truth for appointments).
+    // Join to leads for address info. Filter by appointment status (not lead
+    // status) — Lost/Sold leads with active appointments MUST appear.
+    // follow_up_type = 'Meeting' filter excludes phone calls (no driving needed).
+    // Also UNION legacy leads with follow_up_date but no appointments row.
+    const offsetMs = getLaOffsetMs(date);
+    const dayStartUtc = new Date(new Date(`${date}T00:00:00`).getTime() - offsetMs);
+    const dayEndUtc = new Date(dayStartUtc.getTime() + 24 * 60 * 60 * 1000);
+
+    const params = [dayStartUtc.toISOString(), dayEndUtc.toISOString(), date];
+    let apptWhere = `a.start_at >= $1::timestamptz AND a.start_at < $2::timestamptz AND a.status IN ('scheduled', 'confirmed') AND l.follow_up_type = 'Meeting'`;
+    let legacyWhere = `l.follow_up_date = $3 AND l.follow_up_type = 'Meeting' AND NOT EXISTS (SELECT 1 FROM appointments a2 WHERE a2.lead_id = l.id AND a2.status IN ('scheduled', 'confirmed') AND a2.start_at >= $1::timestamptz AND a2.start_at < $2::timestamptz)`;
 
     if (owner && owner !== 'all') {
       if (owner === 'Unassigned') {
-        whereClause += ` AND (assigned_rep IS NULL OR assigned_rep = '')`;
+        apptWhere += ` AND a.owner_id IS NULL`;
+        legacyWhere += ` AND l.owner_id IS NULL`;
       } else {
-        whereClause += ` AND assigned_rep = $${params.length + 1}`;
+        apptWhere += ` AND (o.display_name = $${params.length + 1} OR o.email = $${params.length + 1})`;
+        legacyWhere += ` AND (o.display_name = $${params.length + 1} OR o.email = $${params.length + 1})`;
         params.push(owner);
       }
     }
     if (city && city !== 'all') {
-      whereClause += ` AND LOWER(city) = LOWER($${params.length + 1})`;
+      apptWhere += ` AND LOWER(l.city) = LOWER($${params.length + 1})`;
+      legacyWhere += ` AND LOWER(l.city) = LOWER($${params.length + 1})`;
       params.push(city);
     }
     if (project_type && project_type !== 'all') {
-      whereClause += ` AND LOWER(project_type) LIKE LOWER($${params.length + 1})`;
+      apptWhere += ` AND LOWER(l.project_type) LIKE LOWER($${params.length + 1})`;
+      legacyWhere += ` AND LOWER(l.project_type) LIKE LOWER($${params.length + 1})`;
       params.push(`%${project_type}%`);
     }
 
-    const { rows: leads } = await query(
-      `SELECT id, first_name, last_name, property_address, city, state, phone, email,
-              project_type, assigned_rep, follow_up_date, follow_up_time, status
-       FROM leads WHERE ${whereClause}
-       ORDER BY follow_up_time ASC`,
+    const { rows: apptRows } = await query(
+      `SELECT l.id, l.first_name, l.last_name, l.property_address, l.city, l.state, l.zip, l.phone, l.email,
+              l.project_type, COALESCE(o.display_name, o.email) AS assigned_rep,
+              l.follow_up_time, l.status,
+              l.verified_property_address, l.property_lat, l.property_lng, l.property_geocode_status,
+              a.start_at, a.id AS appointment_id
+       FROM appointments a
+       JOIN leads l ON l.id = a.lead_id
+       LEFT JOIN owners o ON o.id = a.owner_id
+       WHERE ${apptWhere}
+       UNION
+       SELECT l.id, l.first_name, l.last_name, l.property_address, l.city, l.state, l.zip, l.phone, l.email,
+              l.project_type, COALESCE(o.display_name, o.email) AS assigned_rep,
+              l.follow_up_time, l.status,
+              l.verified_property_address, l.property_lat, l.property_lng, l.property_geocode_status,
+              NULL AS start_at, NULL AS appointment_id
+       FROM leads l
+       LEFT JOIN owners o ON o.id = l.owner_id
+       WHERE ${legacyWhere}
+       ORDER BY start_at ASC NULLS LAST, follow_up_time ASC`,
       params
     );
+
+    // Convert start_at to follow_up_time for display (appointments table uses TIMESTAMPTZ)
+    const leads = apptRows.map(r => ({
+      ...r,
+      follow_up_time: r.start_at ? isoToLaTime(r.start_at) : r.follow_up_time,
+      follow_up_date: date,
+    }));
 
     if (leads.length === 0) {
       return res.json({ appointments: [], schedule: [], owner_config: await getOwnerStarts() });
@@ -274,36 +343,60 @@ router.get('/daily-schedule', async (req, res) => {
     // Sort by time (ensure chronological order)
     leads.sort((a, b) => (a.follow_up_time || '23:59').localeCompare(b.follow_up_time || '23:59'));
 
-    // Geocode all addresses (with cache)
+    // Geocode all addresses — use cached coordinates from leads table when
+    // available (skip re-geocoding already-verified addresses to prevent false
+    // "needs review" flags on addresses that were already reconciled).
     const geocodePromises = leads.map(async (lead) => {
-      const normalizedAddr = gmaps.normalizeAddress(lead.property_address, lead.city, lead.state);
+      const normalizedAddr = lead.verified_property_address || gmaps.normalizeAddress(lead.property_address, lead.city);
 
-      // Check cache
+      // FAST PATH: leads table already has verified coordinates (from
+      // reconciliation or prior geocoding). Use them directly — no Google
+      // API call, no risk of a partial-match "needs_review" false positive.
+      if (lead.property_lat && lead.property_lng) {
+        return {
+          ...lead,
+          normalizedAddress: normalizedAddr,
+          verifiedAddress: lead.verified_property_address || normalizedAddr,
+          coords: { lat: lead.property_lat, lng: lead.property_lng },
+          geocodeError: false,
+          geocodeStatus: 'ok',
+        };
+      }
+
+      // No cached coords on leads table — check geocode cache table
       let coords = await getCachedGeocode(lead.id, normalizedAddr);
       let geocodeStatus = 'ok';
       let geocodeError = false;
+      let verifiedAddress = null;
 
       if (!coords) {
         // Geocode via Google
         try {
           coords = await gmaps.geocodeAddress(normalizedAddr);
           if (coords) {
-            await saveGeocode(lead.id, normalizedAddr, coords, 'ok');
+            verifiedAddress = coords.formattedAddress || normalizedAddr;
+            await saveGeocode(lead.id, normalizedAddr, coords, 'ok', verifiedAddress);
+            await persistVerifiedAddress(lead.id, verifiedAddress, coords, 'verified');
           } else {
             geocodeError = true;
             geocodeStatus = 'not_found';
-            await saveGeocode(lead.id, normalizedAddr, null, 'not_found');
+            await saveGeocode(lead.id, normalizedAddr, null, 'not_found', null);
+            await persistVerifiedAddress(lead.id, null, null, 'not_found');
           }
         } catch (e) {
           geocodeError = true;
           geocodeStatus = 'error';
           console.warn(`[routing] Geocode failed for lead ${lead.id}:`, e.message);
         }
+      } else {
+        verifiedAddress = coords.verifiedAddress || coords.formattedAddress || normalizedAddr;
+        await persistVerifiedAddress(lead.id, verifiedAddress, coords, 'verified');
       }
 
       return {
         ...lead,
         normalizedAddress: normalizedAddr,
+        verifiedAddress: verifiedAddress || normalizedAddr,
         coords: coords || null,
         geocodeError,
         geocodeStatus,
@@ -324,7 +417,9 @@ router.get('/daily-schedule', async (req, res) => {
 
       for (let i = 0; i < geocoded.length; i++) {
         const appt = geocoded[i];
-        const apptTimeIso = timeToIso(date, appt.follow_up_time);
+        // Use start_at from appointments table when available (canonical source);
+        // fall back to timeToIso for legacy leads without an appointments row.
+        const apptTimeIso = appt.start_at ? new Date(appt.start_at).toISOString() : timeToIso(date, appt.follow_up_time);
         const targetArrivalIso = apptTimeIso
           ? new Date(new Date(apptTimeIso).getTime() - 10 * 60 * 1000).toISOString()
           : null;
@@ -339,8 +434,8 @@ router.get('/daily-schedule', async (req, res) => {
             originName = ownerConfig.name || 'Starting Location';
           }
         } else {
-          // Subsequent: use previous appointment address
-          originAddr = geocoded[i - 1].normalizedAddress;
+          // Subsequent: use previous appointment's verified address (Google-verified)
+          originAddr = geocoded[i - 1].verifiedAddress || geocoded[i - 1].normalizedAddress;
           originName = `${geocoded[i - 1].first_name} ${geocoded[i - 1].last_name}`;
         }
 
@@ -348,9 +443,10 @@ router.get('/daily-schedule', async (req, res) => {
         let departureIso = null;
         let conflict = null;
 
-        if (originAddr && appt.normalizedAddress && appt.coords && targetArrivalIso) {
+        if (originAddr && (appt.verifiedAddress || appt.normalizedAddress) && appt.coords && targetArrivalIso) {
           try {
-            route = await gmaps.computeRoute(originAddr, appt.normalizedAddress, targetArrivalIso);
+            const routeDest = appt.verifiedAddress || appt.normalizedAddress;
+            route = await gmaps.computeRoute(originAddr, routeDest, targetArrivalIso);
             if (route?.durationSeconds > 0) {
               const departureMs = new Date(targetArrivalIso).getTime() - route.durationSeconds * 1000;
               departureIso = new Date(departureMs).toISOString();
@@ -420,6 +516,7 @@ router.get('/daily-schedule', async (req, res) => {
 router.post('/backfill-geocodes', requireAdmin, async (req, res) => {
   try {
     await ensureGeocodeTable();
+    await ensureLeadsGeocodeColumns();
 
     if (!gmaps.isConfigured()) {
       return res.status(503).json({
@@ -428,12 +525,18 @@ router.post('/backfill-geocodes', requireAdmin, async (req, res) => {
       });
     }
 
+    // Clear ALL stale geocode errors so they get re-geocoded with the fixed
+    // normalization pipeline. Only entries with geocode_status = 'ok' are
+    // kept as cache; everything else is deleted and re-processed.
+    await query(`DELETE FROM lead_geocodes WHERE geocode_status != 'ok'`);
+    // Also reset leads that were previously marked as geocode errors
+    await query(`UPDATE leads SET property_geocode_status = 'pending' WHERE property_geocode_status IN ('not_found', 'error', 'pending') OR property_geocode_status IS NULL`);
+
     // Fetch all leads with addresses that need geocoding
     const { rows: leads } = await query(`
-      SELECT id, property_address, city, state
+      SELECT id, property_address, city
       FROM leads
       WHERE property_address IS NOT NULL AND property_address != ''
-        AND (status IS NULL OR status NOT IN ('Lost', 'DNQ', 'Cancelled', 'Closed Lost') OR status = '')
       ORDER BY created_at DESC
       LIMIT 500
     `);
@@ -443,11 +546,14 @@ router.post('/backfill-geocodes', requireAdmin, async (req, res) => {
     let skipped = 0;
 
     for (const lead of leads) {
-      const normalizedAddr = gmaps.normalizeAddress(lead.property_address, lead.city, lead.state);
+      const normalizedAddr = gmaps.normalizeAddress(lead.property_address, lead.city);
 
       // Check if already cached with this address hash
       const cached = await getCachedGeocode(lead.id, normalizedAddr);
       if (cached) {
+        // Persist the cached verified address to the leads table
+        const verifiedAddr = cached.verifiedAddress || cached.formattedAddress || normalizedAddr;
+        await persistVerifiedAddress(lead.id, verifiedAddr, cached, 'verified');
         skipped++;
         continue;
       }
@@ -455,14 +561,18 @@ router.post('/backfill-geocodes', requireAdmin, async (req, res) => {
       try {
         const coords = await gmaps.geocodeAddress(normalizedAddr);
         if (coords) {
-          await saveGeocode(lead.id, normalizedAddr, coords, 'ok');
+          const verifiedAddr = coords.formattedAddress || normalizedAddr;
+          await saveGeocode(lead.id, normalizedAddr, coords, 'ok', verifiedAddr);
+          await persistVerifiedAddress(lead.id, verifiedAddr, coords, 'verified');
           success++;
         } else {
-          await saveGeocode(lead.id, normalizedAddr, null, 'not_found');
+          await saveGeocode(lead.id, normalizedAddr, null, 'not_found', null);
+          await persistVerifiedAddress(lead.id, null, null, 'not_found');
           failed++;
         }
       } catch (e) {
-        await saveGeocode(lead.id, normalizedAddr, null, 'error');
+        await saveGeocode(lead.id, normalizedAddr, null, 'error', null);
+        await persistVerifiedAddress(lead.id, null, null, 'error');
         failed++;
       }
 
@@ -479,6 +589,151 @@ router.post('/backfill-geocodes', requireAdmin, async (req, res) => {
     });
   } catch (e) {
     console.error('[routing] backfill error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── POST /reconcile-addresses ────────────────────────────────────────────────
+// System-wide address reconciliation: for each lead with a property_address,
+// reconstruct the full address, geocode with Google, and if Google returns a
+// high-confidence unambiguous match, split the verified result back into
+// Street / City / State / ZIP and persist to the leads table.
+// Ambiguous records are marked 'needs_review' and left untouched.
+// Original raw values are preserved in original_property_address / original_city.
+router.post('/reconcile-addresses', requireAdmin, async (req, res) => {
+  try {
+    await ensureGeocodeTable();
+    await ensureLeadsGeocodeColumns();
+
+    if (!gmaps.isConfigured()) {
+      return res.status(503).json({
+        error: 'google_maps_not_configured',
+        message: 'Set GOOGLE_MAPS_API_KEY on Railway.',
+      });
+    }
+
+    // If lead_id is provided, process ONLY that lead (ignoring status filter).
+    // Otherwise, fetch all leads with addresses that haven't been reconciled yet.
+    // NOTE: Lead sales status (Lost, Sold, etc.) is independent business state and
+    // must NEVER be mutated by reconciliation/routing. Address reconciliation covers
+    // ALL leads regardless of sales status.
+    const { lead_id } = req.body || {};
+    let leads;
+    if (lead_id) {
+      leads = (await query(`
+        SELECT id, property_address, city, state, zip,
+               verified_property_address, property_geocode_status,
+               original_property_address, original_city
+        FROM leads
+        WHERE id = $1 AND property_address IS NOT NULL AND property_address != ''
+      `, [lead_id])).rows;
+    } else {
+      leads = (await query(`
+        SELECT id, property_address, city, state, zip,
+               verified_property_address, property_geocode_status,
+               original_property_address, original_city
+        FROM leads
+        WHERE property_address IS NOT NULL AND property_address != ''
+          AND (property_geocode_status IS NULL OR property_geocode_status NOT IN ('reconciled', 'needs_review'))
+        ORDER BY created_at DESC
+        LIMIT 500
+      `)).rows;
+    }
+
+    let reconciled = 0;
+    let needsReview = 0;
+    let failed = 0;
+    let skipped = 0;
+    const errors = [];
+
+    for (const lead of leads) {
+      try {
+        // Reconstruct the full address from raw fields
+        const normalizedAddr = gmaps.normalizeAddress(lead.property_address, lead.city);
+
+        // Geocode with Google (bypass cache — we need address_components)
+        const coords = await gmaps.geocodeAddress(normalizedAddr);
+
+        if (!coords) {
+          await query('UPDATE leads SET property_geocode_status = $1 WHERE id = $2', ['needs_review', lead.id]);
+          needsReview++;
+          continue;
+        }
+
+        // Only auto-correct when Google returns a high-confidence unambiguous match
+        if (!coords.isHighConfidence || coords.partialMatch) {
+          // Persist verified address + coords but don't overwrite the raw fields
+          await persistVerifiedAddress(lead.id, coords.formattedAddress, coords, 'needs_review');
+          needsReview++;
+          continue;
+        }
+
+        const { street, city, state, zip } = coords.addressComponents;
+
+        // Preserve original raw values (only if not already preserved)
+        const updates = [];
+        const params = [];
+        let paramIdx = 1;
+
+        if (!lead.original_property_address && lead.property_address) {
+          updates.push(`original_property_address = $${paramIdx++}`);
+          params.push(lead.property_address);
+        }
+        if (!lead.original_city && lead.city) {
+          updates.push(`original_city = $${paramIdx++}`);
+          params.push(lead.city);
+        }
+
+        // Overwrite with Google-verified components
+        updates.push(`property_address = $${paramIdx++}`);
+        params.push(street);
+        updates.push(`city = $${paramIdx++}`);
+        params.push(city);
+        updates.push(`state = $${paramIdx++}`);
+        params.push(state);
+        updates.push(`zip = $${paramIdx++}`);
+        params.push(zip);
+        updates.push(`verified_property_address = $${paramIdx++}`);
+        params.push(coords.formattedAddress);
+        updates.push(`property_lat = $${paramIdx++}`);
+        params.push(coords.lat);
+        updates.push(`property_lng = $${paramIdx++}`);
+        params.push(coords.lng);
+        updates.push(`property_geocode_status = $${paramIdx++}`);
+        params.push('reconciled');
+
+        params.push(lead.id);
+
+        await query(
+          `UPDATE leads SET ${updates.join(', ')} WHERE id = $${paramIdx}`,
+          params
+        );
+
+        // Also update the geocode cache with the reconcled address
+        await saveGeocode(lead.id, normalizedAddr, coords, 'ok', coords.formattedAddress);
+
+        reconciled++;
+      } catch (e) {
+        console.warn(`[routing] reconcile failed for lead ${lead.id}:`, e.message);
+        errors.push(`${lead.id}: ${e.message}`);
+        failed++;
+      }
+
+      // Small delay to avoid rate limiting
+      await new Promise(r => setTimeout(r, 100));
+    }
+
+    res.json({
+      total: leads.length,
+      reconciled,
+      needs_review: needsReview,
+      failed,
+      skipped,
+      message: `Reconciled ${reconciled}, ${needsReview} need review, ${failed} failed`,
+      errors: errors.slice(0, 10),
+    });
+  } catch (e) {
+    console.error('[routing] reconcile-addresses error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
