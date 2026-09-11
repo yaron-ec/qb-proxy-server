@@ -1750,6 +1750,64 @@ app.get('/signnow/template-search', requireProxySecret, async (req, res) => {
   }
 });
 
+// GET /signnow/folder-templates — diagnostic: fetch templates via the corrected
+// folder-based approach (GET /folder → GET /folder/{templates_folder_id}).
+// Returns the raw Templates folder contents so we can verify the 5 templates
+// are correctly retrieved before trusting the production listTemplates() path.
+app.get('/signnow/folder-templates', requireProxySecret, async (req, res) => {
+  try {
+    const signnowClient = require('./lib/signnowClient');
+    const token = await signnowClient.getAccessToken();
+    const apiBase = await signnowClient.getEffectiveApiBase();
+    const headers = signnowClient.authHeaders(token);
+
+    // Step 1: Get all folders
+    const folderRes = await fetch(`${apiBase}/folder`, { headers, signal: AbortSignal.timeout(15000) });
+    const folderData = await folderRes.json();
+    const allFolders = folderData.folders || [];
+    const templateFolders = allFolders.filter(f => parseInt(f.template_count || '0') > 0);
+
+    // Step 2: For each template folder, get its full contents
+    const folderDetails = [];
+    for (const folder of templateFolders) {
+      const contentsRes = await fetch(`${apiBase}/folder/${folder.id}?limit=100&offset=0`, { headers, signal: AbortSignal.timeout(30000) });
+      const contentsData = await contentsRes.ok ? await contentsRes.json() : { error: `HTTP ${contentsRes.status}` };
+      folderDetails.push({
+        folder_id: folder.id,
+        folder_name: folder.name,
+        template_count: folder.template_count,
+        shared: folder.shared,
+        team_name: folder.team_name || null,
+        documents: (contentsData.documents || []).map(d => ({
+          id: d.id,
+          name: d.document_name || d.name,
+          template: d.template,
+          page_count: d.page_count,
+          roles: (d.roles || []).map(r => ({ name: r.name, signing_order: r.signing_order })),
+          owner: d.owner,
+          origin_document_id: d.origin_document_id,
+          created: d.created,
+        })),
+        total_documents_returned: (contentsData.documents || []).length,
+      });
+    }
+
+    // Step 3: Also call the corrected listTemplates() for the production-shaped result
+    const productionTemplates = await signnowClient.listTemplates();
+
+    res.json({
+      account_email: 'yaron@ecconstructiongroup.com',
+      api_base: apiBase,
+      template_folders_found: templateFolders.length,
+      folder_details: folderDetails,
+      production_listTemplates_result: productionTemplates,
+      production_template_count: productionTemplates.length,
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message, code: e.code || null });
+  }
+});
+
 app.post('/signnow/list-templates', requireProxySecret, (req, res) => {
   res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — needs SIGNNOW_CLIENT_ID, SIGNNOW_CLIENT_SECRET' });
 });
