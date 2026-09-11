@@ -12,6 +12,44 @@ const { query } = require('../db/client');
 
 const router = express.Router();
 
+// ── Time helpers (mirrored from routing.js for the appointments-table query) ──
+
+// Get the UTC offset for America/Los_Angeles on a given date (handles DST)
+function getLaOffsetMs(dateStr) {
+  const dt = new Date(dateStr + 'T12:00:00Z');
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles',
+    timeZoneName: 'shortOffset',
+  });
+  const parts = formatter.formatToParts(dt);
+  const tzPart = parts.find(p => p.type === 'timeZoneName');
+  if (tzPart) {
+    const match = tzPart.value.match(/GMT([+-])(\d+)/);
+    if (match) {
+      const sign = match[1] === '+' ? 1 : -1;
+      const hours = parseInt(match[2], 10);
+      return sign * hours * 3600 * 1000;
+    }
+  }
+  return -7 * 3600 * 1000;
+}
+
+// Convert ISO UTC to "HH:MM" in America/Los_Angeles
+function isoToLaTime(iso) {
+  if (!iso) return null;
+  const dt = new Date(iso);
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+  const parts = formatter.formatToParts(dt);
+  const h = parts.find(p => p.type === 'hour')?.value || '00';
+  const m = parts.find(p => p.type === 'minute')?.value || '00';
+  return `${h}:${m}`;
+}
+
 // GET /daily-diagnostic?date=YYYY-MM-DD&owner=...
 // Returns the full daily schedule with geocoding details for debugging.
 router.get('/daily-diagnostic', async (req, res) => {
@@ -26,26 +64,52 @@ router.get('/daily-diagnostic', async (req, res) => {
     await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_geocode_status TEXT DEFAULT \'pending\'');
     await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS state TEXT');
 
-    // Query appointments for this date (JOIN owners for assigned_rep).
-    // Appointment eligibility is based on the appointment record itself
-    // (follow_up_date + follow_up_type = 'Meeting'), NOT on lead sales status.
-    let whereClause = `l.follow_up_date = $1 AND l.follow_up_type = 'Meeting'`;
-    const params = [date];
+    // Query the CANONICAL appointments table (source of truth).
+    // Filter by appointment status (not lead status) — Lost/Sold leads with
+    // active appointments MUST appear. follow_up_type = 'Meeting' excludes
+    // phone calls. Also UNION legacy leads with follow_up_date but no appts row.
+    const offsetMs = getLaOffsetMs(date);
+    const dayStartUtc = new Date(new Date(`${date}T00:00:00`).getTime() - offsetMs);
+    const dayEndUtc = new Date(dayStartUtc.getTime() + 24 * 60 * 60 * 1000);
+
+    const params = [dayStartUtc.toISOString(), dayEndUtc.toISOString(), date];
+    let apptWhere = `a.start_at >= $1::timestamptz AND a.start_at < $2::timestamptz AND a.status IN ('scheduled', 'confirmed') AND l.follow_up_type = 'Meeting'`;
+    let legacyWhere = `l.follow_up_date = $3 AND l.follow_up_type = 'Meeting' AND NOT EXISTS (SELECT 1 FROM appointments a2 WHERE a2.lead_id = l.id AND a2.status IN ('scheduled', 'confirmed') AND a2.start_at >= $1::timestamptz AND a2.start_at < $2::timestamptz)`;
     if (owner && owner !== 'all') {
-      whereClause += ` AND (o.display_name = $${params.length + 1} OR o.email = $${params.length + 1})`;
+      apptWhere += ` AND (o.display_name = $${params.length + 1} OR o.email = $${params.length + 1})`;
+      legacyWhere += ` AND (o.display_name = $${params.length + 1} OR o.email = $${params.length + 1})`;
       params.push(owner);
     }
 
-    const { rows: leads } = await query(
+    const { rows: apptRows } = await query(
       `SELECT l.id, l.first_name, l.last_name, l.property_address, l.city, l.state, l.zip, l.phone, l.email,
               l.project_type, COALESCE(o.display_name, o.email) AS assigned_rep,
-              l.follow_up_date, l.follow_up_time, l.status,
-              l.verified_property_address, l.property_lat, l.property_lng, l.property_geocode_status
-       FROM leads l LEFT JOIN owners o ON o.id = l.owner_id
-       WHERE ${whereClause}
-       ORDER BY l.follow_up_time ASC`,
+              l.follow_up_time, l.status,
+              l.verified_property_address, l.property_lat, l.property_lng, l.property_geocode_status,
+              a.start_at, a.id AS appointment_id
+       FROM appointments a
+       JOIN leads l ON l.id = a.lead_id
+       LEFT JOIN owners o ON o.id = a.owner_id
+       WHERE ${apptWhere}
+       UNION
+       SELECT l.id, l.first_name, l.last_name, l.property_address, l.city, l.state, l.zip, l.phone, l.email,
+              l.project_type, COALESCE(o.display_name, o.email) AS assigned_rep,
+              l.follow_up_time, l.status,
+              l.verified_property_address, l.property_lat, l.property_lng, l.property_geocode_status,
+              NULL AS start_at, NULL AS appointment_id
+       FROM leads l
+       LEFT JOIN owners o ON o.id = l.owner_id
+       WHERE ${legacyWhere}
+       ORDER BY start_at ASC NULLS LAST, follow_up_time ASC`,
       params
     );
+
+    // Convert start_at to follow_up_time for display
+    const leads = apptRows.map(r => ({
+      ...r,
+      follow_up_time: r.start_at ? isoToLaTime(r.start_at) : r.follow_up_time,
+      follow_up_date: date,
+    }));
 
     // For each lead, show the normalization and geocoding details
     const details = [];
