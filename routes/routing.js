@@ -406,37 +406,41 @@ router.get('/daily-schedule', async (req, res) => {
     const geocoded = await Promise.all(geocodePromises);
 
     // Build the schedule with routing
-    // Only calculate routing when a specific owner is selected (not "all")
+    // ALWAYS calculate traffic-aware routing — for "all" owners, group by
+    // owner and calculate a completely separate route for each owner.
+    // NEVER chain one owner's appointments into another owner's route.
     const schedule = [];
 
-    if (owner && owner !== 'all') {
-      const ownerConfig = ownerStarts[owner];
-      let prevCoords = null;
-      let prevAddr = null;
-      let prevEndTime = null; // ISO of when the previous appointment ends (start + 1 hour)
+    // Helper: build a chronological route for a single owner's appointments.
+    // Appointments remain in scheduled time order (NOT rearranged).
+    // Target arrival = appointment start - 10 minutes.
+    // First appointment origin = owner's configured starting location.
+    // Subsequent origins = previous appointment's verified address.
+    // Travel time from Google Routes API (traffic-aware, arrivalTime-based).
+    // Required departure = target arrival - travel duration.
+    // Schedule conflict = required departure < previous appointment end time.
+    async function buildOwnerRoute(ownerName, ownerAppts) {
+      const ownerConfig = ownerStarts[ownerName];
+      let prevEndTime = null;
+      const ownerSchedule = [];
 
-      for (let i = 0; i < geocoded.length; i++) {
-        const appt = geocoded[i];
-        // Use start_at from appointments table when available (canonical source);
-        // fall back to timeToIso for legacy leads without an appointments row.
+      for (let i = 0; i < ownerAppts.length; i++) {
+        const appt = ownerAppts[i];
         const apptTimeIso = appt.start_at ? new Date(appt.start_at).toISOString() : timeToIso(date, appt.follow_up_time);
         const targetArrivalIso = apptTimeIso
           ? new Date(new Date(apptTimeIso).getTime() - 10 * 60 * 1000).toISOString()
           : null;
 
-        // Determine origin
         let originAddr = null;
         let originName = null;
         if (i === 0) {
-          // First appointment: use owner's starting location
           if (ownerConfig?.address) {
             originAddr = gmaps.normalizeAddress(ownerConfig.address, '', 'CA');
             originName = ownerConfig.name || 'Starting Location';
           }
         } else {
-          // Subsequent: use previous appointment's verified address (Google-verified)
-          originAddr = geocoded[i - 1].verifiedAddress || geocoded[i - 1].normalizedAddress;
-          originName = `${geocoded[i - 1].first_name} ${geocoded[i - 1].last_name}`;
+          originAddr = ownerAppts[i - 1].verifiedAddress || ownerAppts[i - 1].normalizedAddress;
+          originName = `${ownerAppts[i - 1].first_name} ${ownerAppts[i - 1].last_name}`;
         }
 
         let route = null;
@@ -450,9 +454,6 @@ router.get('/daily-schedule', async (req, res) => {
             if (route?.durationSeconds > 0) {
               const departureMs = new Date(targetArrivalIso).getTime() - route.durationSeconds * 1000;
               departureIso = new Date(departureMs).toISOString();
-
-              // Check for schedule conflict
-              // Previous appointment ends at prevEndTime (start + 1 hour)
               if (prevEndTime && departureMs < new Date(prevEndTime).getTime()) {
                 conflict = {
                   type: 'schedule_conflict',
@@ -463,21 +464,19 @@ router.get('/daily-schedule', async (req, res) => {
               }
             }
           } catch (e) {
-            console.warn(`[routing] Route computation failed for segment ${i}:`, e.message);
+            console.warn(`[routing] Route computation failed for ${ownerName} segment ${i}:`, e.message);
             route = { error: e.message };
           }
         }
 
-        // Previous appointment end time = start + 1 hour (default meeting duration)
         prevEndTime = apptTimeIso
           ? new Date(new Date(apptTimeIso).getTime() + 60 * 60 * 1000).toISOString()
           : null;
-        prevCoords = appt.coords;
-        prevAddr = appt.normalizedAddress;
 
-        schedule.push({
+        ownerSchedule.push({
           ...appt,
           index: i + 1,
+          owner: ownerName,
           originName,
           originAddress: originAddr,
           targetArrival: isoToLaTime(targetArrivalIso),
@@ -490,13 +489,33 @@ router.get('/daily-schedule', async (req, res) => {
           driveDistanceMeters: route?.distanceMeters || 0,
           conflict,
           routeError: route?.error || null,
+          startingLocationRequired: (!ownerConfig?.address && i === 0) ? true : false,
         });
       }
+      return ownerSchedule;
+    }
+
+    if (owner && owner !== 'all') {
+      // Single owner: calculate route for that owner only
+      const ownerSchedule = await buildOwnerRoute(owner, geocoded);
+      schedule.push(...ownerSchedule);
     } else {
-      // "all" owners — no routing, just geocoded appointments
-      geocoded.forEach((appt, i) => {
-        schedule.push({ ...appt, index: i + 1 });
-      });
+      // "all" owners: group by owner, calculate separate route for each.
+      // NEVER chain one owner's appointments into another owner's route.
+      const byOwner = {};
+      for (const appt of geocoded) {
+        const o = appt.assigned_rep || 'Unassigned';
+        if (!byOwner[o]) byOwner[o] = [];
+        byOwner[o].push(appt);
+      }
+      // Sort each owner's appointments chronologically and build separate routes
+      for (const o of Object.keys(byOwner)) {
+        byOwner[o].sort((a, b) => (a.follow_up_time || '23:59').localeCompare(b.follow_up_time || '23:59'));
+        const ownerSchedule = await buildOwnerRoute(o, byOwner[o]);
+        schedule.push(...ownerSchedule);
+      }
+      // Sort the combined schedule by time for display
+      schedule.sort((a, b) => (a.follow_up_time || '23:59').localeCompare(b.follow_up_time || '23:59'));
     }
 
     res.json({
