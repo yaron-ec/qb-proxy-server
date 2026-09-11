@@ -96,15 +96,7 @@ self.addEventListener('fetch', (event) => {
         try {
           const response = await fetch(request);
           if (response.ok) {
-            const clone = response.clone();
-            const text = await clone.text();
-            if (text && text.length > 0) {
-              await cache.put(request, new Response(text, {
-                status: response.status,
-                statusText: response.statusText,
-                headers: response.headers,
-              }));
-            }
+            await cache.put(request, response.clone());
           }
           return response;
         } catch {
