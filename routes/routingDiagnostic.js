@@ -250,6 +250,26 @@ router.get('/reconcile-status', async (req, res) => {
   }
 });
 
+// GET /lead-search?name=... — query a lead by name to verify address fields
+router.get('/lead-search', async (req, res) => {
+  try {
+    const name = req.query.name || '';
+    const { rows } = await query(
+      `SELECT id, first_name, last_name, property_address, city, state, zip,
+              verified_property_address, property_lat, property_lng, property_geocode_status,
+              follow_up_date, follow_up_time, follow_up_type, status,
+              original_property_address, original_city
+       FROM leads
+       WHERE first_name ILIKE $1 OR last_name ILIKE $1
+       LIMIT 10`,
+      [`%${name}%`]
+    );
+    res.json({ leads: rows });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // POST /backfill-geocodes — system-wide reconciliation (X-Proxy-Secret auth).
 // Clears ALL stale geocode errors, re-geocodes every active lead through the
 // corrected normalization pipeline, and persists the Google-verified address,
