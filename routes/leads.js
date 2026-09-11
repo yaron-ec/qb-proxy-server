@@ -407,6 +407,31 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
       allFields.owner_id = body.owner_id;
     }
 
+    // ── Canonical address pipeline (when address fields are present) ──
+    // Run the canonical pipeline on the address fields and merge the
+    // canonical Street/City/State/ZIP + verified/lat/lng/placeId into allFields.
+    if (allFields.property_address !== undefined && allFields.property_address) {
+      await ensureAddressColumns();
+      try {
+        const addressResult = await processAddress({
+          street: allFields.property_address,
+          city: allFields.city || '',
+          state: allFields.state || '',
+          zip: allFields.zip || '',
+        });
+        const addrMap = buildAddressFieldMap(addressResult, null);
+        // Canonical fields override the raw values
+        for (const col of ['property_address', 'city', 'state', 'zip',
+                           'verified_property_address', 'property_lat', 'property_lng',
+                           'google_place_id', 'property_geocode_status',
+                           'original_property_address', 'original_city']) {
+          if (addrMap[col] !== undefined) {
+            allFields[col] = addrMap[col];
+          }
+        }
+      } catch (e) { console.warn('[leads] address pipeline (upsert) failed (non-blocking):', e.message); }
+    }
+
     // ── Railway UUID resolution: if the identifier is a valid UUID and a lead
     // exists with that id, UPDATE by id instead of upserting. The upsert's
     // ON CONFLICT (external_ref) would INSERT a duplicate row for Railway-native
@@ -1102,11 +1127,34 @@ router.put('/:id', requireAuth, async (req, res) => {
     const params = [];
     let p = 1;
 
+    // ── Canonical address pipeline (when address fields change) ──────
+    const ADDRESS_COLS = ['property_address', 'city', 'state', 'zip'];
+    const addressInBody = ADDRESS_COLS.some(f => body[f] !== undefined);
+    let addrFields = null;
+    if (addressInBody) {
+      await ensureAddressColumns();
+      const newStreet = body.property_address !== undefined ? String(body.property_address || '').trim() : (oldLead.property_address || '');
+      const newCity = body.city !== undefined ? String(body.city || '').trim() : (oldLead.city || '');
+      const newState = body.state !== undefined ? String(body.state || '').trim() : (oldLead.state || '');
+      const newZip = body.zip !== undefined ? String(body.zip || '').trim() : (oldLead.zip || '');
+      if (newStreet) {
+        try {
+          const addressResult = await processAddress({ street: newStreet, city: newCity, state: newState, zip: newZip });
+          addrFields = buildAddressFieldMap(addressResult, oldLead);
+        } catch (e) { console.warn('[leads] address pipeline (PUT /:id) failed (non-blocking):', e.message); }
+      }
+    }
+
     // ── Contact fields (with validation + duplicate checking) ──────────
     for (const col of CONTACT_FIELDS) {
       if (body[col] !== undefined) {
-        let val = typeof body[col] === 'string' ? body[col].trim() : body[col];
-        if (val === '') val = null;
+        let val;
+        if (addrFields && addrFields[col] !== undefined) {
+          val = addrFields[col];
+        } else {
+          val = typeof body[col] === 'string' ? body[col].trim() : body[col];
+          if (val === '') val = null;
+        }
 
         // Validate email format
         if (col === 'email' && val !== null && !isValidEmail(val)) {
@@ -1139,6 +1187,19 @@ router.put('/:id', requireAuth, async (req, res) => {
         params.push(val);
         updates.push(`${col} = $${p}`);
         p++;
+      }
+    }
+
+    // ── Extra canonical address fields (verified, lat/lng, placeId, etc.) ──
+    if (addrFields) {
+      for (const col of ['verified_property_address', 'property_lat', 'property_lng',
+                         'google_place_id', 'property_geocode_status',
+                         'original_property_address', 'original_city']) {
+        if (addrFields[col] !== undefined) {
+          params.push(addrFields[col]);
+          updates.push(`${col} = $${p}`);
+          p++;
+        }
       }
     }
 
