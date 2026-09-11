@@ -1427,6 +1427,145 @@ app.post('/gmail/sync-emails', requireProxySecret, (req, res) => {
 // ── /signnow/* routes ─────────────────────────────────────────────────────────
 // Requires: SIGNNOW_CLIENT_ID, SIGNNOW_CLIENT_SECRET, SIGNNOW_USERNAME, SIGNNOW_PASSWORD
 
+// GET /signnow/deep-diagnostic — exhaustive SignNow API key validation.
+// Tests the API key against BOTH SignNow environments with the correct headers,
+// returns full response bodies, and checks for whitespace/formatting issues.
+// NEVER exposes the API key itself — only length, whitespace, and first/last chars.
+app.get('/signnow/deep-diagnostic', requireProxySecret, async (req, res) => {
+  try {
+    const signnowClient = require('./lib/signnowClient');
+    const apiKey = process.env.SIGNNOW_API_KEY;
+    const clientId = process.env.SIGNNOW_CLIENT_ID;
+    const clientSecret = process.env.SIGNNOW_CLIENT_SECRET;
+
+    const result = {
+      api_key_configured: !!apiKey,
+      api_key_length: apiKey ? apiKey.length : 0,
+      api_key_has_leading_whitespace: apiKey ? apiKey !== apiKey.trimStart() : false,
+      api_key_has_trailing_whitespace: apiKey ? apiKey !== apiKey.trimEnd() : false,
+      api_key_first_4_chars: apiKey ? apiKey.slice(0, 4) : null,
+      api_key_last_4_chars: apiKey ? apiKey.slice(-4) : null,
+      client_id_configured: !!clientId,
+      client_secret_configured: !!clientSecret,
+      environment: process.env.SIGNNOW_ENVIRONMENT || 'production',
+      tests: {},
+    };
+
+    if (!apiKey) {
+      return res.json({ ...result, error: 'SIGNNOW_API_KEY not configured' });
+    }
+
+    const headers = signnowClient.authHeaders
+      ? signnowClient.authHeaders(apiKey)
+      : { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json', Accept: 'application/json' };
+
+    // Test 1: GET /user on production base
+    try {
+      const test1 = await fetch('https://api.signnow.com/user', {
+        headers,
+        signal: AbortSignal.timeout(10000),
+      });
+      const body1 = await test1.text().catch(() => '');
+      result.tests.production_user = {
+        url: 'https://api.signnow.com/user',
+        method: 'GET',
+        http_status: test1.status,
+        ok: test1.ok,
+        response_body: body1.substring(0, 500),
+        response_headers: {
+          'content-type': test1.headers.get('content-type'),
+        },
+      };
+    } catch (e) {
+      result.tests.production_user = { error: e.message };
+    }
+
+    // Test 2: GET /user on sandbox/eval base
+    try {
+      const test2 = await fetch('https://api-eval.signnow.com/user', {
+        headers,
+        signal: AbortSignal.timeout(10000),
+      });
+      const body2 = await test2.text().catch(() => '');
+      result.tests.sandbox_user = {
+        url: 'https://api-eval.signnow.com/user',
+        method: 'GET',
+        http_status: test2.status,
+        ok: test2.ok,
+        response_body: body2.substring(0, 500),
+      };
+    } catch (e) {
+      result.tests.sandbox_user = { error: e.message };
+    }
+
+    // Test 3: GET /user/documents on production base (different endpoint)
+    try {
+      const test3 = await fetch('https://api.signnow.com/user/documents', {
+        headers,
+        signal: AbortSignal.timeout(10000),
+      });
+      const body3 = await test3.text().catch(() => '');
+      result.tests.production_documents = {
+        url: 'https://api.signnow.com/user/documents',
+        method: 'GET',
+        http_status: test3.status,
+        ok: test3.ok,
+        response_body: body3.substring(0, 500),
+      };
+    } catch (e) {
+      result.tests.production_documents = { error: e.message };
+    }
+
+    // Test 4: Try with trimmed key (in case whitespace is the issue)
+    if (result.api_key_has_leading_whitespace || result.api_key_has_trailing_whitespace) {
+      const trimmedKey = apiKey.trim();
+      const trimmedHeaders = signnowClient.authHeaders
+        ? signnowClient.authHeaders(trimmedKey)
+        : { Authorization: `Bearer ${trimmedKey}`, 'Content-Type': 'application/json', Accept: 'application/json' };
+      try {
+        const test4 = await fetch('https://api.signnow.com/user', {
+          headers: trimmedHeaders,
+          signal: AbortSignal.timeout(10000),
+        });
+        const body4 = await test4.text().catch(() => '');
+        result.tests.trimmed_key_production_user = {
+          url: 'https://api.signnow.com/user',
+          method: 'GET',
+          http_status: test4.status,
+          ok: test4.ok,
+          response_body: body4.substring(0, 500),
+          note: 'API key was trimmed before sending',
+        };
+      } catch (e) {
+        result.tests.trimmed_key_production_user = { error: e.message };
+      }
+    }
+
+    // Test 5: Call verifyApiKey() directly (the actual function used by /status)
+    try {
+      const userData = await signnowClient.verifyApiKey();
+      result.tests.verifyApiKey = {
+        ok: true,
+        user_email: userData.email || null,
+        user_name: userData.full_name || userData.first_name || null,
+      };
+    } catch (e) {
+      result.tests.verifyApiKey = {
+        ok: false,
+        error: e.message,
+        code: e.code,
+        status: e.status,
+        signnow_error_code: e.signnowErrorCode || null,
+        api_base: e.apiBase || null,
+      };
+    }
+
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.post('/signnow/list-templates', requireProxySecret, (req, res) => {
   res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — needs SIGNNOW_CLIENT_ID, SIGNNOW_CLIENT_SECRET' });
 });
