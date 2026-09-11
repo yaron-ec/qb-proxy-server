@@ -212,7 +212,7 @@ export default function DailyMap() {
         ownerFilter={ownerFilter} setOwnerFilter={userRole === 'sales_rep' ? () => {} : setOwnerFilter}
         cityFilter={cityFilter} setCityFilter={setCityFilter}
         projectTypeFilter={projectTypeFilter} setProjectTypeFilter={setProjectTypeFilter}
-        contactOwners={contactOwners}
+        owners={contactOwners}
         appointments={appointments}
       />
 
