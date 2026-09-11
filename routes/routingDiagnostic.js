@@ -26,10 +26,11 @@ router.get('/daily-diagnostic', async (req, res) => {
     await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_geocode_status TEXT DEFAULT \'pending\'');
     await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS state TEXT');
 
-    // Query appointments for this date (JOIN owners for assigned_rep)
-    const excluded = ['Lost', 'DNQ', 'Cancelled', 'Closed Lost'];
-    let whereClause = `l.follow_up_date = $1 AND l.follow_up_type = 'Meeting' AND (l.status IS NULL OR l.status = '' OR l.status NOT IN (${excluded.map((s, i) => `$${i + 2}`).join(',')}))`;
-    const params = [date, ...excluded];
+    // Query appointments for this date (JOIN owners for assigned_rep).
+    // Appointment eligibility is based on the appointment record itself
+    // (follow_up_date + follow_up_type = 'Meeting'), NOT on lead sales status.
+    let whereClause = `l.follow_up_date = $1 AND l.follow_up_type = 'Meeting'`;
+    const params = [date];
     if (owner && owner !== 'all') {
       whereClause += ` AND (o.display_name = $${params.length + 1} OR o.email = $${params.length + 1})`;
       params.push(owner);
@@ -133,7 +134,6 @@ router.post('/reconcile-addresses', async (req, res) => {
       FROM leads
       WHERE property_address IS NOT NULL AND property_address != ''
         AND (property_geocode_status IS NULL OR property_geocode_status NOT IN ('reconciled', 'needs_review'))
-        AND (status IS NULL OR status NOT IN ('Lost', 'DNQ', 'Cancelled', 'Closed Lost') OR status = '')
       ORDER BY created_at DESC
       LIMIT 500
     `);
@@ -295,12 +295,12 @@ router.post('/backfill-geocodes', async (req, res) => {
     await query(`DELETE FROM lead_geocodes WHERE geocode_status != 'ok'`);
     await query(`UPDATE leads SET property_geocode_status = 'pending' WHERE property_geocode_status IN ('not_found', 'error', 'pending') OR property_geocode_status IS NULL`);
 
-    // Fetch all leads with addresses
+    // Fetch all leads with addresses (regardless of sales status — address state
+    // is independent of business status)
     const { rows: leads } = await query(`
       SELECT id, property_address, city
       FROM leads
       WHERE property_address IS NOT NULL AND property_address != ''
-        AND (status IS NULL OR status NOT IN ('Lost', 'DNQ', 'Cancelled', 'Closed Lost') OR status = '')
       ORDER BY created_at DESC
       LIMIT 500
     `);
