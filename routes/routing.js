@@ -93,6 +93,13 @@ async function ensureLeadsGeocodeColumns() {
     await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_lat DOUBLE PRECISION');
     await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_lng DOUBLE PRECISION');
     await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_geocode_status TEXT DEFAULT \'pending\'');
+    // Add state column — the leads table was created without it, but the CRM
+    // ContactInfoEditor displays it. Address reconciliation populates it from
+    // Google's verified address_components.
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS state TEXT');
+    // Preserve the original raw address for audit/history before reconciliation overwrites it
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS original_property_address TEXT');
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS original_city TEXT');
   } catch (e) {
     console.warn('[routing] leads geocode columns creation deferred:', e.message);
   }
@@ -539,6 +546,137 @@ router.post('/backfill-geocodes', requireAdmin, async (req, res) => {
     });
   } catch (e) {
     console.error('[routing] backfill error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── POST /reconcile-addresses ────────────────────────────────────────────────
+// System-wide address reconciliation: for each lead with a property_address,
+// reconstruct the full address, geocode with Google, and if Google returns a
+// high-confidence unambiguous match, split the verified result back into
+// Street / City / State / ZIP and persist to the leads table.
+// Ambiguous records are marked 'needs_review' and left untouched.
+// Original raw values are preserved in original_property_address / original_city.
+router.post('/reconcile-addresses', requireAdmin, async (req, res) => {
+  try {
+    await ensureGeocodeTable();
+    await ensureLeadsGeocodeColumns();
+
+    if (!gmaps.isConfigured()) {
+      return res.status(503).json({
+        error: 'google_maps_not_configured',
+        message: 'Set GOOGLE_MAPS_API_KEY on Railway.',
+      });
+    }
+
+    // Fetch all leads with addresses that haven't been reconciled yet
+    // (property_geocode_status IS NULL or != 'reconciled')
+    const { rows: leads } = await query(`
+      SELECT id, property_address, city, state, zip,
+             verified_property_address, property_geocode_status,
+             original_property_address, original_city
+      FROM leads
+      WHERE property_address IS NOT NULL AND property_address != ''
+        AND (property_geocode_status IS NULL OR property_geocode_status NOT IN ('reconciled', 'needs_review'))
+        AND (status IS NULL OR status NOT IN ('Lost', 'DNQ', 'Cancelled', 'Closed Lost') OR status = '')
+      ORDER BY created_at DESC
+      LIMIT 500
+    `);
+
+    let reconciled = 0;
+    let needsReview = 0;
+    let failed = 0;
+    let skipped = 0;
+    const errors = [];
+
+    for (const lead of leads) {
+      try {
+        // Reconstruct the full address from raw fields
+        const normalizedAddr = gmaps.normalizeAddress(lead.property_address, lead.city);
+
+        // Geocode with Google (bypass cache — we need address_components)
+        const coords = await gmaps.geocodeAddress(normalizedAddr);
+
+        if (!coords) {
+          await query('UPDATE leads SET property_geocode_status = $1 WHERE id = $2', ['needs_review', lead.id]);
+          needsReview++;
+          continue;
+        }
+
+        // Only auto-correct when Google returns a high-confidence unambiguous match
+        if (!coords.isHighConfidence || coords.partialMatch) {
+          // Persist verified address + coords but don't overwrite the raw fields
+          await persistVerifiedAddress(lead.id, coords.formattedAddress, coords, 'needs_review');
+          needsReview++;
+          continue;
+        }
+
+        const { street, city, state, zip } = coords.addressComponents;
+
+        // Preserve original raw values (only if not already preserved)
+        const updates = [];
+        const params = [];
+        let paramIdx = 1;
+
+        if (!lead.original_property_address && lead.property_address) {
+          updates.push(`original_property_address = $${paramIdx++}`);
+          params.push(lead.property_address);
+        }
+        if (!lead.original_city && lead.city) {
+          updates.push(`original_city = $${paramIdx++}`);
+          params.push(lead.city);
+        }
+
+        // Overwrite with Google-verified components
+        updates.push(`property_address = $${paramIdx++}`);
+        params.push(street);
+        updates.push(`city = $${paramIdx++}`);
+        params.push(city);
+        updates.push(`state = $${paramIdx++}`);
+        params.push(state);
+        updates.push(`zip = $${paramIdx++}`);
+        params.push(zip);
+        updates.push(`verified_property_address = $${paramIdx++}`);
+        params.push(coords.formattedAddress);
+        updates.push(`property_lat = $${paramIdx++}`);
+        params.push(coords.lat);
+        updates.push(`property_lng = $${paramIdx++}`);
+        params.push(coords.lng);
+        updates.push(`property_geocode_status = $${paramIdx++}`);
+        params.push('reconciled');
+
+        params.push(lead.id);
+
+        await query(
+          `UPDATE leads SET ${updates.join(', ')} WHERE id = $${paramIdx}`,
+          params
+        );
+
+        // Also update the geocode cache with the reconcled address
+        await saveGeocode(lead.id, normalizedAddr, coords, 'ok', coords.formattedAddress);
+
+        reconciled++;
+      } catch (e) {
+        console.warn(`[routing] reconcile failed for lead ${lead.id}:`, e.message);
+        errors.push(`${lead.id}: ${e.message}`);
+        failed++;
+      }
+
+      // Small delay to avoid rate limiting
+      await new Promise(r => setTimeout(r, 100));
+    }
+
+    res.json({
+      total: leads.length,
+      reconciled,
+      needs_review: needsReview,
+      failed,
+      skipped,
+      message: `Reconciled ${reconciled}, ${needsReview} need review, ${failed} failed`,
+      errors: errors.slice(0, 10),
+    });
+  } catch (e) {
+    console.error('[routing] reconcile-addresses error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
