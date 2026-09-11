@@ -46,6 +46,20 @@ function fmt12(t) {
 
 export { fmt12 };
 
+async function geocodeAddress(address) {
+  const query = encodeURIComponent(address);
+  const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`, {
+    headers: { "Accept-Language": "en" }
+  });
+  const data = await res.json();
+  if (data?.length > 0) {
+    return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+  }
+  return null;
+}
+
+export { geocodeAddress };
+
 export default function DailyMap() {
   const [selectedDate, setSelectedDate] = useState(getTodayLocal());
   const [appointments, setAppointments] = useState([]);
