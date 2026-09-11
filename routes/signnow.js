@@ -307,7 +307,7 @@ router.post('/by-external/:externalRef/upload', requireAdminManager, async (req,
         document_name: ins.rows[0].document_name,
         status: ins.rows[0].status,
         signers: ins.rows[0].signers,
-        signing_url: signingUrl,
+        signing_url: null,
         created_at: ins.rows[0].created_at,
       },
     });
