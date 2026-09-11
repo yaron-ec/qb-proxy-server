@@ -5,4 +5,5 @@ RUN npm ci --only=production
 COPY db ./db
 COPY lib ./lib
 COPY scripts ./scripts
+COPY reminderWorker.js productionWatchdog.js ./
 CMD ["node", "scripts/calendarOutboxWorker.js"]
