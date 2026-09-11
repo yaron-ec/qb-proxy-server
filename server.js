@@ -1374,6 +1374,8 @@ app.use('/api/v1/signnow-webhook', require('./routes/signnowWebhook'));
 app.use('/api/v1/owners', require('./routes/owners'));
 // Railway-native user management (admin-only: list, update role/status, delete)
 app.use('/api/v1/users', require('./routes/users'));
+// Daily Appointment Routing — traffic-aware Google routing with required departure times
+app.use('/api/v1/routing', require('./routes/routing'));
 // Stage 2: Railway CRM Deal CRUD (mounted before dealFinancials so /:id/financials still resolves)
 app.use('/api/v1/deals', require('./routes/deals')); // CRUD (mounted first: /:id matches one segment only)
 // Sale-scoped QuickBooks invoice ownership (read-only financials + mapping contract)

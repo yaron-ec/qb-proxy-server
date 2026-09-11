@@ -320,27 +320,53 @@ router.post('/by-external/:externalRef/upload', requireAdminManager, async (req,
   }
 });
 
-// ── POST /by-external/:externalRef/prepare — prepare from template ──────────
+// ── POST /by-external/:externalRef/prepare — create contract from template ────
+// Creates a NEW COPY of the SignNow template (original is never modified).
+// Auto-names: "[Customer Name] - [Template Name]"
+// Idempotency: rejects if a pending/sent document from the same template exists.
 router.post('/by-external/:externalRef/prepare', requireAdminManager, async (req, res) => {
   try {
     const { externalRef } = req.params;
-    const { template_id, document_name, signers } = req.body || {};
+    const { template_id, template_name, document_name, signers, send_invite } = req.body || {};
 
     const lead = await resolveLeadByIdentifier(externalRef);
     if (!lead) return res.status(404).json({ error: 'not_found' });
 
     if (!template_id) return res.status(400).json({ error: 'template_id required' });
 
+    // Idempotency: check for existing non-terminal document from this template
+    const existing = await query(
+      `SELECT * FROM signnow_documents
+       WHERE lead_id = $1 AND template_id = $2
+       AND status NOT IN ('completed', 'voided', 'error')
+       ORDER BY created_at DESC LIMIT 1`,
+      [lead.id, template_id]
+    );
+    if (existing.rows[0]) {
+      return res.status(409).json({
+        error: 'duplicate',
+        message: 'A pending contract from this template already exists for this lead.',
+        document: existing.rows[0],
+      });
+    }
+
+    // Auto-name: [Customer Name] - [Template Name]
+    const customerName = `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || 'Customer';
+    const templateName = template_name || 'Contract';
+    const finalDocName = document_name || `${customerName} - ${templateName}`;
+
     // Create a signable document from the template (POST /template/{template_id}/copy)
+    // The original template is NEVER modified — only copied.
     let docId = null;
     let inviteSent = false;
     try {
-      const docResult = await signnowClient.createDocumentFromTemplate(template_id, document_name);
+      const docResult = await signnowClient.createDocumentFromTemplate(template_id, finalDocName);
       docId = docResult.id;
 
-      // Send field invite if signers provided
-      const signerList = signers || (lead.email ? [{ email: lead.email, name: `${lead.first_name} ${lead.last_name}`, role: 'Signer 1' }] : []);
-      if (signerList.length > 0 && docId) {
+      // Send field invite (default: true) to the lead's email
+      const shouldSend = send_invite !== false;
+      const signerList = signers || (lead.email ? [{ email: lead.email, name: customerName, role: 'Signer 1' }] : []);
+      if (shouldSend && signerList.length > 0 && docId) {
         const userInfo = await signnowClient.getUserInfo().catch(() => null);
         const fromEmail = userInfo?.email || '';
         if (fromEmail) {
@@ -360,9 +386,9 @@ router.post('/by-external/:externalRef/prepare', requireAdminManager, async (req
     const ins = await query(
       `INSERT INTO signnow_documents (lead_id, document_id, template_id, document_name, status, signers, created_by)
        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [lead.id, docId, template_id, document_name || `Contract - ${lead.first_name} ${lead.last_name}`,
+      [lead.id, docId, template_id, finalDocName,
        inviteSent ? 'sent' : 'pending',
-       JSON.stringify(signers || (lead.email ? [{ email: lead.email, name: `${lead.first_name} ${lead.last_name}` }] : [])),
+       JSON.stringify(signers || (lead.email ? [{ email: lead.email, name: customerName }] : [])),
        req.user.email]
     );
 
