@@ -1629,6 +1629,127 @@ app.get('/signnow/templates-diag', requireProxySecret, async (req, res) => {
   }
 });
 
+// GET /signnow/template-search — exhaustive template discovery.
+// Probes ALL possible SignNow endpoints that might list templates, returns
+// full response bodies (truncated per field for safety), and shows which
+// endpoints exist vs 404. This finds templates that /user/documents misses.
+app.get('/signnow/template-search', requireProxySecret, async (req, res) => {
+  try {
+    const signnowClient = require('./lib/signnowClient');
+    const token = await signnowClient.getAccessToken();
+    const apiBase = await signnowClient.getEffectiveApiBase();
+    const headers = signnowClient.authHeaders(token);
+
+    const results = {
+      api_base: apiBase,
+      token_type: process.env.SIGNNOW_API_KEY ? 'api_key' : 'password_grant',
+      endpoints: {},
+    };
+
+    // 1. GET /user — full user profile (workspace/team info)
+    try {
+      const r = await fetch(`${apiBase}/user`, { headers, signal: AbortSignal.timeout(15000) });
+      const body = await r.text().catch(() => '');
+      results.endpoints.user = {
+        status: r.status,
+        ok: r.ok,
+        body: body.substring(0, 2000),
+      };
+    } catch (e) { results.endpoints.user = { error: e.message }; }
+
+    // 2. GET /user/documents — all documents (check EVERY field for template indicators)
+    try {
+      const r = await fetch(`${apiBase}/user/documents`, { headers, signal: AbortSignal.timeout(30000) });
+      const body = await r.text().catch(() => '');
+      let docs = [];
+      try { const parsed = JSON.parse(body); docs = Array.isArray(parsed) ? parsed : (parsed.documents || []); } catch {}
+      // Show ALL fields of each document (not just filtered) so we can see
+      // what template-related fields exist: template, entity_type, is_template, etc.
+      results.endpoints.user_documents = {
+        status: r.status,
+        ok: r.ok,
+        total: docs.length,
+        documents: docs.map(d => ({
+          id: d.id,
+          name: d.document_name || d.name,
+          template: d.template,
+          entity_type: d.entity_type,
+          is_template: d.is_template,
+          origin_document_id: d.origin_document_id,
+          parent_id: d.parent_id,
+          owner: d.owner,
+          page_count: d.page_count,
+          roles: d.roles,
+          // Include ALL top-level keys so we can see what fields exist
+          all_keys: Object.keys(d),
+        })),
+      };
+    } catch (e) { results.endpoints.user_documents = { error: e.message }; }
+
+    // 3. GET /user/templates — dedicated templates endpoint (might exist)
+    try {
+      const r = await fetch(`${apiBase}/user/templates`, { headers, signal: AbortSignal.timeout(15000) });
+      const body = await r.text().catch(() => '');
+      results.endpoints.user_templates = {
+        status: r.status,
+        ok: r.ok,
+        body: body.substring(0, 3000),
+      };
+    } catch (e) { results.endpoints.user_templates = { error: e.message }; }
+
+    // 4. GET /v2/templates — v2 templates list endpoint (might exist)
+    try {
+      const r = await fetch(`${apiBase}/v2/templates`, { headers, signal: AbortSignal.timeout(15000) });
+      const body = await r.text().catch(() => '');
+      results.endpoints.v2_templates = {
+        status: r.status,
+        ok: r.ok,
+        body: body.substring(0, 3000),
+      };
+    } catch (e) { results.endpoints.v2_templates = { error: e.message }; }
+
+    // 5. GET /folder — list folders (templates folder)
+    try {
+      const r = await fetch(`${apiBase}/folder`, { headers, signal: AbortSignal.timeout(15000) });
+      const body = await r.text().catch(() => '');
+      results.endpoints.folder = {
+        status: r.status,
+        ok: r.ok,
+        body: body.substring(0, 3000),
+      };
+    } catch (e) { results.endpoints.folder = { error: e.message }; }
+
+    // 6. GET /user/documents?template=true — query param filter (might work)
+    try {
+      const r = await fetch(`${apiBase}/user/documents?template=true`, { headers, signal: AbortSignal.timeout(15000) });
+      const body = await r.text().catch(() => '');
+      let docs = [];
+      try { const parsed = JSON.parse(body); docs = Array.isArray(parsed) ? parsed : (parsed.documents || []); } catch {}
+      results.endpoints.user_documents_template_filter = {
+        status: r.status,
+        ok: r.ok,
+        total: docs.length,
+        names: docs.map(d => d.document_name || d.name || 'Untitled').slice(0, 20),
+      };
+    } catch (e) { results.endpoints.user_documents_template_filter = { error: e.message }; }
+
+    // 7. GET /user/documentgroup-templates — DGT endpoint (might list DGTs)
+    try {
+      const r = await fetch(`${apiBase}/user/documentgroup-templates`, { headers, signal: AbortSignal.timeout(15000) });
+      const body = await r.text().catch(() => '');
+      results.endpoints.user_dgt = {
+        status: r.status,
+        ok: r.ok,
+        body: body.substring(0, 3000),
+      };
+    } catch (e) { results.endpoints.user_dgt = { error: e.message }; }
+
+    res.json(results);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.post('/signnow/list-templates', requireProxySecret, (req, res) => {
   res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — needs SIGNNOW_CLIENT_ID, SIGNNOW_CLIENT_SECRET' });
 });
