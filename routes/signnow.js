@@ -392,6 +392,19 @@ router.post('/by-external/:externalRef/prepare', requireAdminManager, async (req
        req.user.email]
     );
 
+    // Activity log — record the contract creation
+    try {
+      await query(
+        `INSERT INTO activities (lead_id, type, content, author, source, created_at)
+         VALUES ($1, 'note', $2, $3, 'manual', NOW())`,
+        [lead.id,
+         `📄 SignNow contract created from template "${templateName}" — ${inviteSent ? 'sent to ' + (lead.email || 'signer') : 'pending (not sent)'}. Document: ${finalDocName}`,
+         req.user.email]
+      );
+    } catch (actErr) {
+      console.warn('[signnow] activity log failed:', actErr.message);
+    }
+
     res.status(201).json({
       document: {
         id: ins.rows[0].id,
