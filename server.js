@@ -1566,6 +1566,69 @@ app.get('/signnow/deep-diagnostic', requireProxySecret, async (req, res) => {
   }
 });
 
+// GET /signnow/templates-diag — list SignNow templates (X-Proxy-Secret protected, no JWT).
+// Calls signnowClient.listTemplates() and returns all templates + account info.
+// Also returns ALL documents so we can see which ones are templates vs regular docs.
+app.get('/signnow/templates-diag', requireProxySecret, async (req, res) => {
+  try {
+    const signnowClient = require('./lib/signnowClient');
+    const token = await signnowClient.getAccessToken();
+    const apiBase = await signnowClient.getEffectiveApiBase();
+
+    // Get user info
+    let userInfo = null;
+    try { userInfo = await signnowClient.getUserInfo(); } catch (e) { /* non-fatal */ }
+
+    // Get ALL documents (not just templates) so we can see what's in the account
+    const docsRes = await fetch(`${apiBase}/user/documents`, {
+      headers: signnowClient.authHeaders(token),
+      signal: AbortSignal.timeout(30000),
+    });
+    let allDocs = [];
+    if (docsRes.ok) {
+      const docsData = await docsRes.json();
+      allDocs = Array.isArray(docsData) ? docsData : (docsData.documents || []);
+    }
+
+    // Filter for templates (template === true)
+    const templates = allDocs
+      .filter(d => d.template === true)
+      .map(d => ({
+        id: d.id,
+        name: d.document_name || d.name || 'Untitled',
+        page_count: d.page_count,
+        template: d.template,
+        roles: (d.roles || []).map(r => ({ name: r.name, signing_order: r.signing_order })),
+        created: d.created,
+        owner: d.owner,
+      }));
+
+    // Also show non-template documents (so we can see what's available)
+    const nonTemplates = allDocs
+      .filter(d => d.template !== true)
+      .map(d => ({
+        id: d.id,
+        name: d.document_name || d.name || 'Untitled',
+        page_count: d.page_count,
+        template: d.template,
+        owner: d.owner,
+      }));
+
+    res.json({
+      account_email: userInfo?.email || null,
+      account_name: userInfo?.full_name || userInfo?.first_name || null,
+      api_base: apiBase,
+      total_documents: allDocs.length,
+      template_count: templates.length,
+      templates,
+      non_template_documents: nonTemplates.slice(0, 20), // first 20 for visibility
+      non_template_count: nonTemplates.length,
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message, code: e.code || null });
+  }
+});
+
 app.post('/signnow/list-templates', requireProxySecret, (req, res) => {
   res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — needs SIGNNOW_CLIENT_ID, SIGNNOW_CLIENT_SECRET' });
 });
