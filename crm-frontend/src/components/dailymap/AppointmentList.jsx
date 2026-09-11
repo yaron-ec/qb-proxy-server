@@ -22,7 +22,7 @@ function estimateDrive(km) {
   return `~${Math.floor(mins/60)}h ${mins%60}m`;
 }
 
-export default function AppointmentList({ appointments, selectedLead, onSelectLead, onReassign, contactOwners, userRole }) {
+export default function AppointmentList({ appointments, selectedLead, onSelectLead, onReassign, contactOwners = [], userRole }) {
   const [reassigning, setReassigning] = useState(null);
 
   const handleReassign = async (leadId, newOwner) => {
