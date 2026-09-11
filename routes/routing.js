@@ -67,6 +67,7 @@ async function ensureGeocodeTable() {
         lead_id TEXT PRIMARY KEY,
         address_hash TEXT NOT NULL,
         normalized_address TEXT,
+        verified_address TEXT,
         latitude DOUBLE PRECISION,
         longitude DOUBLE PRECISION,
         google_place_id TEXT,
@@ -76,8 +77,43 @@ async function ensureGeocodeTable() {
       )
     `);
     await query('CREATE INDEX IF NOT EXISTS idx_lead_geocodes_hash ON lead_geocodes (address_hash)');
+    // Add verified_address column to existing tables
+    await query('ALTER TABLE lead_geocodes ADD COLUMN IF NOT EXISTS verified_address TEXT');
   } catch (e) {
     console.warn('[routing] lead_geocodes table creation deferred:', e.message);
+  }
+}
+
+// Add geocode columns to the leads table so the verified address, coordinates,
+// and verification status are persisted alongside the raw customer-entered
+// property_address (which is preserved unchanged for audit).
+async function ensureLeadsGeocodeColumns() {
+  try {
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS verified_property_address TEXT');
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_lat DOUBLE PRECISION');
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_lng DOUBLE PRECISION');
+    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_geocode_status TEXT DEFAULT \'pending\'');
+  } catch (e) {
+    console.warn('[routing] leads geocode columns creation deferred:', e.message);
+  }
+}
+
+// Persist the Google-verified address, coordinates, and status to the leads
+// table so every CRM page (Lead Detail, Daily Map, etc.) displays the
+// canonical normalized address — not the raw customer-entered string.
+async function persistVerifiedAddress(leadId, verifiedAddress, coords, status) {
+  try {
+    await query(
+      `UPDATE leads SET
+         verified_property_address = $1,
+         property_lat = $2,
+         property_lng = $3,
+         property_geocode_status = $4
+       WHERE id = $5`,
+      [verifiedAddress || null, coords?.lat || null, coords?.lng || null, status, leadId]
+    );
+  } catch (e) {
+    console.warn('[routing] persist verified address failed:', e.message);
   }
 }
 
@@ -98,7 +134,8 @@ async function getCachedGeocode(leadId, normalizedAddr) {
       return {
         lat: r.rows[0].latitude,
         lng: r.rows[0].longitude,
-        formattedAddress: r.rows[0].normalized_address,
+        formattedAddress: r.rows[0].verified_address || r.rows[0].normalized_address,
+        verifiedAddress: r.rows[0].verified_address,
         placeId: r.rows[0].google_place_id,
       };
     }
@@ -108,17 +145,17 @@ async function getCachedGeocode(leadId, normalizedAddr) {
   }
 }
 
-// Save geocode to cache
-async function saveGeocode(leadId, normalizedAddr, coords, status) {
+// Save geocode to cache (verifiedAddress = Google's formatted_address)
+async function saveGeocode(leadId, normalizedAddr, coords, status, verifiedAddress) {
   try {
     const hash = addrHash(normalizedAddr);
     await query(
-      `INSERT INTO lead_geocodes (lead_id, address_hash, normalized_address, latitude, longitude, google_place_id, geocode_status, geocoded_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+      `INSERT INTO lead_geocodes (lead_id, address_hash, normalized_address, verified_address, latitude, longitude, google_place_id, geocode_status, geocoded_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
        ON CONFLICT (lead_id) DO UPDATE SET
-         address_hash = $2, normalized_address = $3, latitude = $4, longitude = $5,
-         google_place_id = $6, geocode_status = $7, geocoded_at = NOW(), updated_at = NOW()`,
-      [leadId, hash, normalizedAddr, coords?.lat || null, coords?.lng || null, coords?.placeId || null, status]
+         address_hash = $2, normalized_address = $3, verified_address = $4, latitude = $5, longitude = $6,
+         google_place_id = $7, geocode_status = $8, geocoded_at = NOW(), updated_at = NOW()`,
+      [leadId, hash, normalizedAddr, verifiedAddress || null, coords?.lat || null, coords?.lng || null, coords?.placeId || null, status]
     );
   } catch (e) {
     console.warn('[routing] geocode save failed:', e.message);
@@ -212,6 +249,7 @@ function formatDistance(meters) {
 router.get('/daily-schedule', async (req, res) => {
   try {
     await ensureGeocodeTable();
+    await ensureLeadsGeocodeColumns();
 
     const { owner, date, city, project_type } = req.query;
     if (!date) return res.status(400).json({ error: 'date required (YYYY-MM-DD)' });
@@ -274,7 +312,7 @@ router.get('/daily-schedule', async (req, res) => {
     // Sort by time (ensure chronological order)
     leads.sort((a, b) => (a.follow_up_time || '23:59').localeCompare(b.follow_up_time || '23:59'));
 
-    // Geocode all addresses (with cache)
+    // Geocode all addresses (with cache + persistence to leads table)
     const geocodePromises = leads.map(async (lead) => {
       const normalizedAddr = gmaps.normalizeAddress(lead.property_address, lead.city, lead.state);
 
@@ -282,28 +320,40 @@ router.get('/daily-schedule', async (req, res) => {
       let coords = await getCachedGeocode(lead.id, normalizedAddr);
       let geocodeStatus = 'ok';
       let geocodeError = false;
+      let verifiedAddress = null;
 
       if (!coords) {
         // Geocode via Google
         try {
           coords = await gmaps.geocodeAddress(normalizedAddr);
           if (coords) {
-            await saveGeocode(lead.id, normalizedAddr, coords, 'ok');
+            // Use Google's formatted_address as the verified canonical address
+            verifiedAddress = coords.formattedAddress || normalizedAddr;
+            await saveGeocode(lead.id, normalizedAddr, coords, 'ok', verifiedAddress);
+            // Persist to leads table so every CRM page shows the verified address
+            await persistVerifiedAddress(lead.id, verifiedAddress, coords, 'verified');
           } else {
             geocodeError = true;
             geocodeStatus = 'not_found';
-            await saveGeocode(lead.id, normalizedAddr, null, 'not_found');
+            await saveGeocode(lead.id, normalizedAddr, null, 'not_found', null);
+            await persistVerifiedAddress(lead.id, null, null, 'not_found');
           }
         } catch (e) {
           geocodeError = true;
           geocodeStatus = 'error';
           console.warn(`[routing] Geocode failed for lead ${lead.id}:`, e.message);
         }
+      } else {
+        // Cache hit — use the cached verified address
+        verifiedAddress = coords.verifiedAddress || coords.formattedAddress || normalizedAddr;
+        // Ensure leads table is also updated (in case it was geocoded before the column existed)
+        await persistVerifiedAddress(lead.id, verifiedAddress, coords, 'verified');
       }
 
       return {
         ...lead,
         normalizedAddress: normalizedAddr,
+        verifiedAddress: verifiedAddress || normalizedAddr,
         coords: coords || null,
         geocodeError,
         geocodeStatus,
@@ -420,6 +470,7 @@ router.get('/daily-schedule', async (req, res) => {
 router.post('/backfill-geocodes', requireAdmin, async (req, res) => {
   try {
     await ensureGeocodeTable();
+    await ensureLeadsGeocodeColumns();
 
     if (!gmaps.isConfigured()) {
       return res.status(503).json({
@@ -427,6 +478,13 @@ router.post('/backfill-geocodes', requireAdmin, async (req, res) => {
         message: 'Set GOOGLE_MAPS_API_KEY or GOOGLE_SERVICE_ACCOUNT_KEY on Railway.',
       });
     }
+
+    // Clear ALL stale geocode errors so they get re-geocoded with the fixed
+    // normalization pipeline. Only entries with geocode_status = 'ok' are
+    // kept as cache; everything else is deleted and re-processed.
+    await query(`DELETE FROM lead_geocodes WHERE geocode_status != 'ok'`);
+    // Also reset leads that were previously marked as geocode errors
+    await query(`UPDATE leads SET property_geocode_status = 'pending' WHERE property_geocode_status IN ('not_found', 'error', 'pending') OR property_geocode_status IS NULL`);
 
     // Fetch all leads with addresses that need geocoding
     const { rows: leads } = await query(`
@@ -448,6 +506,9 @@ router.post('/backfill-geocodes', requireAdmin, async (req, res) => {
       // Check if already cached with this address hash
       const cached = await getCachedGeocode(lead.id, normalizedAddr);
       if (cached) {
+        // Persist the cached verified address to the leads table
+        const verifiedAddr = cached.verifiedAddress || cached.formattedAddress || normalizedAddr;
+        await persistVerifiedAddress(lead.id, verifiedAddr, cached, 'verified');
         skipped++;
         continue;
       }
@@ -455,14 +516,18 @@ router.post('/backfill-geocodes', requireAdmin, async (req, res) => {
       try {
         const coords = await gmaps.geocodeAddress(normalizedAddr);
         if (coords) {
-          await saveGeocode(lead.id, normalizedAddr, coords, 'ok');
+          const verifiedAddr = coords.formattedAddress || normalizedAddr;
+          await saveGeocode(lead.id, normalizedAddr, coords, 'ok', verifiedAddr);
+          await persistVerifiedAddress(lead.id, verifiedAddr, coords, 'verified');
           success++;
         } else {
-          await saveGeocode(lead.id, normalizedAddr, null, 'not_found');
+          await saveGeocode(lead.id, normalizedAddr, null, 'not_found', null);
+          await persistVerifiedAddress(lead.id, null, null, 'not_found');
           failed++;
         }
       } catch (e) {
-        await saveGeocode(lead.id, normalizedAddr, null, 'error');
+        await saveGeocode(lead.id, normalizedAddr, null, 'error', null);
+        await persistVerifiedAddress(lead.id, null, null, 'error');
         failed++;
       }
 
