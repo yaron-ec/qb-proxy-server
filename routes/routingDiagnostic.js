@@ -126,17 +126,30 @@ router.post('/reconcile-addresses', async (req, res) => {
     await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS original_property_address TEXT');
     await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS original_city TEXT');
 
-    // Fetch leads that haven't been reconciled yet
-    const { rows: leads } = await query(`
-      SELECT id, property_address, city, state, zip,
-             verified_property_address, property_geocode_status,
-             original_property_address, original_city
-      FROM leads
-      WHERE property_address IS NOT NULL AND property_address != ''
-        AND (property_geocode_status IS NULL OR property_geocode_status NOT IN ('reconciled', 'needs_review'))
-      ORDER BY created_at DESC
-      LIMIT 500
-    `);
+    // If lead_id is provided, process ONLY that lead (targeted reconciliation).
+    // Otherwise, fetch all leads that haven't been reconciled yet.
+    const { lead_id } = req.body || {};
+    let leads;
+    if (lead_id) {
+      leads = (await query(`
+        SELECT id, property_address, city, state, zip,
+               verified_property_address, property_geocode_status,
+               original_property_address, original_city
+        FROM leads
+        WHERE id = $1 AND property_address IS NOT NULL AND property_address != ''
+      `, [lead_id])).rows;
+    } else {
+      leads = (await query(`
+        SELECT id, property_address, city, state, zip,
+               verified_property_address, property_geocode_status,
+               original_property_address, original_city
+        FROM leads
+        WHERE property_address IS NOT NULL AND property_address != ''
+          AND (property_geocode_status IS NULL OR property_geocode_status NOT IN ('reconciled', 'needs_review'))
+        ORDER BY created_at DESC
+        LIMIT 500
+      `)).rows;
+    }
 
     let reconciled = 0;
     let needsReview = 0;
