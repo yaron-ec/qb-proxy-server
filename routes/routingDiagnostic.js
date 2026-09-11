@@ -25,28 +25,30 @@ router.get('/daily-diagnostic', async (req, res) => {
     await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_lng DOUBLE PRECISION');
     await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_geocode_status TEXT DEFAULT \'pending\'');
 
-    // Query appointments for this date
+    // Query appointments for this date (JOIN owners for assigned_rep)
     const excluded = ['Lost', 'DNQ', 'Cancelled', 'Closed Lost'];
-    let whereClause = `follow_up_date = $1 AND follow_up_type = 'Meeting' AND (status IS NULL OR status = '' OR status NOT IN (${excluded.map((s, i) => `$${i + 2}`).join(',')}))`;
+    let whereClause = `l.follow_up_date = $1 AND l.follow_up_type = 'Meeting' AND (l.status IS NULL OR l.status = '' OR l.status NOT IN (${excluded.map((s, i) => `$${i + 2}`).join(',')}))`;
     const params = [date, ...excluded];
     if (owner && owner !== 'all') {
-      whereClause += ` AND assigned_rep = $${params.length + 1}`;
+      whereClause += ` AND (o.display_name = $${params.length + 1} OR o.email = $${params.length + 1})`;
       params.push(owner);
     }
 
     const { rows: leads } = await query(
-      `SELECT id, first_name, last_name, property_address, city, state, phone, email,
-              project_type, assigned_rep, follow_up_date, follow_up_time, status,
-              verified_property_address, property_lat, property_lng, property_geocode_status
-       FROM leads WHERE ${whereClause}
-       ORDER BY follow_up_time ASC`,
+      `SELECT l.id, l.first_name, l.last_name, l.property_address, l.city, l.zip, l.phone, l.email,
+              l.project_type, COALESCE(o.display_name, o.email) AS assigned_rep,
+              l.follow_up_date, l.follow_up_time, l.status,
+              l.verified_property_address, l.property_lat, l.property_lng, l.property_geocode_status
+       FROM leads l LEFT JOIN owners o ON o.id = l.owner_id
+       WHERE ${whereClause}
+       ORDER BY l.follow_up_time ASC`,
       params
     );
 
     // For each lead, show the normalization and geocoding details
     const details = [];
     for (const lead of leads) {
-      const normalizedAddr = gmaps.normalizeAddress(lead.property_address, lead.city, lead.state);
+      const normalizedAddr = gmaps.normalizeAddress(lead.property_address, lead.city);
       let geocodeResult = null;
       let geocodeError = null;
       try {
@@ -72,7 +74,7 @@ router.get('/daily-diagnostic', async (req, res) => {
         assigned_rep: lead.assigned_rep,
         raw_address: lead.property_address,
         raw_city: lead.city,
-        raw_state: lead.state,
+        raw_zip: lead.zip,
         normalized_address: normalizedAddr,
         google_verified_address: geocodeResult?.formattedAddress || null,
         google_coords: geocodeResult ? { lat: geocodeResult.lat, lng: geocodeResult.lng } : null,
