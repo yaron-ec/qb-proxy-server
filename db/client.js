@@ -19,6 +19,16 @@ const pool = new Pool({
   ssl: process.env.DATABASE_SSL === 'false' ? false : { rejectUnauthorized: false },
   max: parseInt(process.env.DB_POOL_MAX || '5', 10),
   idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+});
+
+pool.on('connect', (client) => {
+  client.query("SET statement_timeout = '10s'").catch(() => {});
+  client.query("SET idle_in_transaction_session_timeout = '30s'").catch(() => {});
+});
+
+pool.on('error', (err, client) => {
+  console.error('[db] pool error:', err.message);
 });
 
 let _schemaEnsured = false;
