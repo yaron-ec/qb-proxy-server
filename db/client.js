@@ -30,8 +30,19 @@ async function ensureSchema() {
   }
   const schemaPath = path.join(__dirname, 'schema.sql');
   const schema = fs.readFileSync(schemaPath, 'utf8');
-  // node-postgres simple-query protocol executes the full multi-statement string.
-  await pool.query(schema);
+  // Use a dedicated client with no statement_timeout for schema execution.
+  // The pool's global statement_timeout = 10s (set in pool.on('connect'))
+  // would kill CREATE INDEX / CREATE EXTENSION on large tables during the
+  // first run. Schema statements use IF NOT EXISTS so they're no-ops on
+  // existing tables, but the first run on a large dataset needs no timeout.
+  const client = await pool.connect();
+  try {
+    await client.query("SET statement_timeout = 0");
+    // node-postgres simple-query protocol executes the full multi-statement string.
+    await client.query(schema);
+  } finally {
+    client.release();
+  }
   _schemaEnsured = true;
   // Truthfully list every table ensured — derived from schema.sql so the log
   // can never drift from the actual schema source of truth.
