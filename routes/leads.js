@@ -491,11 +491,11 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
       await client.query('COMMIT');
     } catch (e) {
       try { await client.query('ROLLBACK'); } catch (_) {}
-      client.release();
       console.error('[leads] put-by-external error:', e.message);
       return res.status(500).json({ error: e.message });
+    } finally {
+      client.release();
     }
-    client.release();
 
     // ── Post-commit: notify admins (best-effort) ─────────────────────────
     const wasNew = !existingById.rows[0];
@@ -542,11 +542,11 @@ router.delete('/by-external/:externalRef', requireAuth, async (req, res) => {
       await client.query('COMMIT');
     } catch (e) {
       try { await client.query('ROLLBACK'); } catch (_) {}
-      client.release();
       console.error('[leads] delete-by-external error:', e.message);
       return res.status(500).json({ error: e.message });
+    } finally {
+      client.release();
     }
-    client.release();
     res.json({ success: true, external_ref: externalRef });
   } catch (e) {
     console.error('[leads] delete-by-external error:', e.message);
@@ -796,7 +796,6 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
       await client.query('COMMIT');
     } catch (calErr) {
       try { await client.query('ROLLBACK'); } catch (_) {}
-      client.release();
 
       if (calErr.code === '23P01') {
         return res.status(409).json({
@@ -807,8 +806,9 @@ async function executeAppointmentUpdate(req, res, resolvedLeadId) {
 
       console.error('[leads] appointment update error:', calErr.message);
       return res.status(500).json({ error: calErr.message });
+    } finally {
+      client.release();
     }
-    client.release();
 
     // Return with owner join
     const fullRow = await query(
@@ -1027,11 +1027,11 @@ router.post('/', requireAuth, async (req, res) => {
       await client.query('COMMIT');
     } catch (e) {
       try { await client.query('ROLLBACK'); } catch (_) {}
-      client.release();
       console.error('[leads] create error:', e.message);
       return res.status(500).json({ error: e.message });
+    } finally {
+      client.release();
     }
-    client.release();
 
     // ── Post-commit: activity note + notification (best-effort) ─────────
     if (body.message) {
@@ -1307,11 +1307,11 @@ router.put('/:id', requireAuth, async (req, res) => {
       await client.query('COMMIT');
     } catch (e) {
       try { await client.query('ROLLBACK'); } catch (_) {}
-      client.release();
       console.error('[leads] put error:', e.message);
       return res.status(500).json({ error: e.message });
+    } finally {
+      client.release();
     }
-    client.release();
 
     // ── Post-commit: notify admins of the field changes (best-effort) ──────
     const changes = computeLeadDiff(oldLead, fullRow);
@@ -1365,11 +1365,11 @@ router.delete('/:id', requireAuth, async (req, res) => {
       await client.query('COMMIT');
     } catch (e) {
       try { await client.query('ROLLBACK'); } catch (_) {}
-      client.release();
       console.error('[leads] delete error:', e.message);
       return res.status(500).json({ error: e.message });
+    } finally {
+      client.release();
     }
-    client.release();
     res.json({ success: true, id });
   } catch (e) {
     console.error('[leads] delete error:', e.message);
