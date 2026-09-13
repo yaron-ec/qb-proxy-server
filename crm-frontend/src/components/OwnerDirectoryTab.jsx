@@ -9,7 +9,7 @@ export default function OwnerDirectoryTab() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiCall('/api/v1/auth/users', { method: 'GET' }).then(data => {
+    apiCall('/api/v1/users', { method: 'GET' }).then(data => {
       setUsers(data.items || data || []);
       setLoading(false);
     }).catch(err => {
