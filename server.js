@@ -2450,7 +2450,17 @@ app.listen(PORT, async () => {
       const t = new Date().toISOString();
       console.log('[qb-inbound-cron] tick ' + t);
       try {
-        const result = await syncAllMappedCustomers();
+        const workerSecret = process.env.WORKER_SECRET;
+        const port = process.env.PORT || 3000;
+        const response = await fetch('http://localhost:' + port + '/api/v1/cron/qb-inbound-reconcile', {
+          method: 'POST',
+          headers: {
+            'x-worker-secret': workerSecret,
+            'Content-Type': 'application/json',
+          },
+          signal: AbortSignal.timeout(100000),
+        });
+        const result = await response.json();
         if (result && result.skipped) {
           console.log('[qb-inbound-cron] skipped — ' + result.reason);
         } else {
