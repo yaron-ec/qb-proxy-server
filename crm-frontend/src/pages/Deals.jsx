@@ -2,12 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import * as railwayDeals from "@/api/railway/deals";
 import * as railwayLeads from "@/api/railway/leads";
-import { TrendingUp, Search, ArrowRight, Calendar, MapPin, User, DollarSign, AlertCircle, Plus } from "lucide-react";
+import { TrendingUp, Search, ArrowRight, Calendar, MapPin, User, DollarSign, AlertCircle, Plus, AlertTriangle } from "lucide-react";
 import { formatPhone } from "@/lib/formatters";
 import SelectDialog from "@/components/SelectDialog";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import PullToRefreshIndicator from "@/components/PullToRefreshIndicator";
 import { computeDealMetrics } from "@/lib/dashboardMetrics";
+import * as railwayDealFinancials from "@/api/railway/dealFinancials";
 
 const PIPELINE_STAGES = [
   "Sold / Estimate Approved",
@@ -61,7 +62,7 @@ function SummaryCard({ label, value, color, textColor }) {
 }
 
 // Deal Card Component - Professional CRM Style
-function DealCard({ deal }) {
+function DealCard({ deal, financials }) {
   const formatDate = (d) => {
     if (!d) return null;
     try {
@@ -73,9 +74,14 @@ function DealCard({ deal }) {
 
   // contract_amount is already computed by getSoldDeals with full fallback chain
   const displayContractAmount = deal.contract_amount || 0;
-  // total_paid is already computed by getSoldDeals with full fallback chain
-  const displayTotalPaid = deal.total_paid || 0;
-  const displayBalanceDue = deal.balance_due != null ? deal.balance_due : Math.max(0, displayContractAmount - displayTotalPaid);
+  // Waterfall-authoritative paid from the financials API takes precedence.
+  // deal.total_paid is a stale stored field — the waterfall allocates actual
+  // QuickBooks received money across the customer's deals chronologically.
+  const displayTotalPaid = financials?.paid != null ? financials.paid : (deal.total_paid || 0);
+  const displayBalanceDue = financials?.balance != null
+    ? financials.balance
+    : (deal.balance_due != null ? deal.balance_due : Math.max(0, displayContractAmount - displayTotalPaid));
+  const waterfallError = financials?.waterfallError;
   
   // Payment status label
   const getPaymentStatus = () => {
@@ -150,6 +156,14 @@ function DealCard({ deal }) {
             )}
           </div>
 
+          {/* Waterfall error warning — never silently show $0 as authoritative */}
+          {waterfallError && (
+            <div className="flex items-center gap-1 mb-2 text-[10px] text-amber-600 font-semibold">
+              <AlertTriangle className="w-3 h-3 flex-shrink-0" />
+              QB waterfall unavailable — paid may not reflect actual received
+            </div>
+          )}
+
           {/* Project + Financial row */}
           <div className="flex flex-wrap gap-x-5 gap-y-1 text-[11px]">
             {deal.project_type && (
@@ -191,6 +205,7 @@ function DealCard({ deal }) {
 
 export default function Deals() {
   const [allItems, setAllItems] = useState([]);
+  const [financialsMap, setFinancialsMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [queryError, setQueryError] = useState(null);
@@ -238,6 +253,38 @@ export default function Deals() {
   }, []);
 
   useEffect(() => { loadDeals(); }, [loadDeals]);
+
+  // Fetch waterfall financials for all loaded deals (concurrency-limited).
+  // This is the authoritative QB-derived payment state — deal.total_paid is
+  // a stale stored field that doesn't reflect actual QuickBooks received money.
+  useEffect(() => {
+    if (allItems.length === 0) return;
+    let cancelled = false;
+    const dealIds = allItems.map(d => d.id);
+    const saleTotals = {};
+    allItems.forEach(d => { saleTotals[d.id] = d.contract_amount || d.amount || 0; });
+    (async () => {
+      const results = {};
+      const concurrency = 5;
+      let index = 0;
+      async function worker() {
+        while (index < dealIds.length) {
+          if (cancelled) return;
+          const i = index++;
+          const dealId = dealIds[i];
+          try {
+            const fin = await railwayDealFinancials.getFinancials(dealId, saleTotals[dealId] || 0);
+            results[dealId] = fin;
+          } catch (e) {
+            results[dealId] = { error: e.message };
+          }
+        }
+      }
+      await Promise.all(Array.from({ length: Math.min(concurrency, dealIds.length) }, worker));
+      if (!cancelled) setFinancialsMap(results);
+    })();
+    return () => { cancelled = true; };
+  }, [allItems]);
 
   const { pulling, refreshing, pullDistance } = usePullToRefresh(loadDeals);
 
@@ -403,7 +450,7 @@ export default function Deals() {
             ) : (
               <div className="grid gap-3">
                 {sorted.map(item => (
-                  <DealCard key={item.id} deal={item} />
+                  <DealCard key={item.id} deal={item} financials={financialsMap[item.id]} />
                 ))}
               </div>
             )}
