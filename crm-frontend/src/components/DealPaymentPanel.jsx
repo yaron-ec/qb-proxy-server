@@ -107,7 +107,7 @@ function deriveStageFromMilestones(milestones, total) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-export default function DealPaymentPanel({ deal, lead, onDealUpdate, estimate, invoices = [], saleInvoices = [] }) {
+export default function DealPaymentPanel({ deal, lead, onDealUpdate, estimate, invoices = [], saleInvoices = [], waterfall = null }) {
   const [expanded, setExpanded] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -115,6 +115,20 @@ export default function DealPaymentPanel({ deal, lead, onDealUpdate, estimate, i
   // Determine source: use invoice milestones if available
   const invoiceMilestones = buildMilestonesFromInvoices(invoices, deal);
   const hasInvoiceData    = invoiceMilestones && invoiceMilestones.length > 0;
+
+  // ── Waterfall-allocated PAID takes precedence when available ──
+  // The customer payment waterfall allocates customer-level QB received
+  // money across eligible Deals chronologically. When applied, the
+  // allocated_paid from this_deal_allocation is the authoritative PAID.
+  const waterfallPaid = waterfall?.applied && waterfall?.this_deal_allocation
+    ? waterfall.this_deal_allocation.allocated_paid
+    : null;
+  const waterfallRemaining = waterfall?.applied && waterfall?.this_deal_allocation
+    ? waterfall.this_deal_allocation.allocated_remaining
+    : null;
+  const waterfallProgress = waterfall?.applied && waterfall?.this_deal_allocation
+    ? waterfall.this_deal_allocation.allocated_progress
+    : null;
 
   // ── Single source of truth — shared helper (same as Financial tab, Financial
   //    Summary, Dashboard, Reports). Never recalculate payment totals here.
