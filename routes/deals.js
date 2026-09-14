@@ -168,7 +168,7 @@ router.get('/', async (req, res) => {
           [leadIds]
         );
         const leadQbMap = new Map(leadRows.map(l => [l.id, l.qb_customer_id]));
-        const customerIds = [...new Set([...leadQbMap.values()].filter(Boolean));
+        const customerIds = [...new Set([...leadQbMap.values()].filter(Boolean))];
         const db = { query };
         for (const qbCustomerId of customerIds) {
           try {
