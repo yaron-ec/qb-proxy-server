@@ -3,6 +3,11 @@
  *
  * All financial values come from the shared getDealPaymentSummary helper —
  * the single source of truth across the entire CRM. Never recalculate here.
+ *
+ * WATERFALL ERROR HANDLING: When the backend waterfall computation fails,
+ * the API returns waterfallError (non-null) alongside the sale-scoped summary.
+ * The frontend MUST surface this as a warning banner — never silently display
+ * $0 paid as if it were authoritative QuickBooks received money.
  */
 import { useState, useEffect } from "react";
 import * as railwayDeals from "@/api/railway/deals";
@@ -12,6 +17,7 @@ import { getDealPaymentSummary } from "@/lib/financialCalc";
 import { EditableKPIChip, KPIChip } from "@/components/DesignSystem";
 import DealPaymentPanel from "@/components/DealPaymentPanel";
 import QBStatusPanel from "@/components/QBStatusPanel";
+import { AlertTriangle } from "lucide-react";
 
 export default function FinancialTab({
   deal, lead, invoices, setDeal, setLead, refreshLead,
@@ -21,12 +27,25 @@ export default function FinancialTab({
   // QuickBooks is authoritative. No customer-level fallback, no double counting.
   const [saleInvoices, setSaleInvoices] = useState([]);
   const [waterfall, setWaterfall] = useState(null);
+  const [waterfallError, setWaterfallError] = useState(null);
   useEffect(() => {
     if (!deal?.id) return;
     let cancelled = false;
     railwayDealFinancials.getFinancials(deal.id, deal.amount)
-      .then(res => { if (!cancelled) { setSaleInvoices(res?.invoices || []); setWaterfall(res?.waterfall || null); } })
-      .catch(() => { if (!cancelled) { setSaleInvoices([]); setWaterfall(null); } });
+      .then(res => {
+        if (!cancelled) {
+          setSaleInvoices(res?.invoices || []);
+          setWaterfall(res?.waterfall || null);
+          setWaterfallError(res?.waterfallError || null);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSaleInvoices([]);
+          setWaterfall(null);
+          setWaterfallError(null);
+        }
+      });
     return () => { cancelled = true; };
   }, [deal?.id, deal?.amount]);
 
@@ -43,6 +62,21 @@ export default function FinancialTab({
       {savedMsg && (
         <div className="px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-lg text-xs font-semibold text-emerald-700">
           ✓ {savedMsg}
+        </div>
+      )}
+
+      {/* Waterfall error warning — never silently show $0 as authoritative */}
+      {waterfallError && (
+        <div className="px-4 py-3 bg-amber-50 border border-amber-300 rounded-lg flex items-start gap-2">
+          <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-xs font-semibold text-amber-800">
+              Payment waterfall computation failed
+            </p>
+            <p className="text-[11px] text-amber-700 mt-0.5">
+              The Paid amount below may not reflect actual QuickBooks received money. Error: {waterfallError}
+            </p>
+          </div>
         </div>
       )}
 
