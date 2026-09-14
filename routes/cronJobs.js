@@ -1211,4 +1211,18 @@ router.post('/run-reminder-engine', async (req, res) => {
   }
 });
 
+
+
+// ── QB Inbound Reconciliation ────────────────────────────────────────────────
+router.post('/qb-inbound-reconcile', async (req, res) => {
+  try {
+    const workerSecret = process.env.WORKER_SECRET;
+    const provided = req.headers['x-worker-secret'] || req.headers['x-proxy-secret'];
+    if (!workerSecret || provided !== workerSecret) return res.status(401).json({ error: 'unauthorized' });
+    const { syncAllMappedCustomers } = require('../lib/qbInboundSync');
+    const result = await syncAllMappedCustomers();
+    res.json({ success: true, ...result });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 module.exports = router;

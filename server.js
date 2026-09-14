@@ -1358,6 +1358,7 @@ app.use('/api/v1/cron', require('./routes/cronJobs'));
   //   signnow         — SignNow documents (calls SignNow API directly)
   //   lead-submissions — Submission history (reads from Postgres)
   app.use('/api/v1/lead-qb', require('./routes/leadQB'));
+app.use('/api/v1/qb-inbound', require('./routes/qbInboundSync'));
   app.use('/api/v1/signnow', require('./routes/signnow'));
 app.use('/api/v1/signnow/webhook', require('./routes/signnowWebhook'));
   app.use('/api/v1/lead-submissions', require('./routes/leadSubmissions'));

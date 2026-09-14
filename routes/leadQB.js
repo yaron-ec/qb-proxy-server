@@ -166,8 +166,15 @@ router.post('/by-external/:externalRef/refresh', requireAdminManager, async (req
     if (!lead) return res.status(404).json({ error: 'not_found' });
 
     const name = `${lead.first_name} ${lead.last_name}`.trim();
+    // First, sync this customer's financials from QB (persists to database)
+    let syncResult = null;
+    if (lead.qb_customer_id) {
+      try {
+        const { syncCustomerFinancials } = require('../lib/qbInboundSync');
+        syncResult = await syncCustomerFinancials(lead.qb_customer_id);
+      } catch (e) { console.warn('[lead-qb] refresh sync error:', e.message); }
+    }
     const qbData = await qbInternal.getLeadStatus(lead.qb_customer_id, name, lead.email);
-
     res.json({
       success: true,
       qbData,

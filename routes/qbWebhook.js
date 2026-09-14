@@ -68,8 +68,8 @@ router.post('/', express.json({ verify: (req, res, buf) => { req.rawBody = buf; 
         const { name, id, operation, lastUpdated } = entity;
 
         // Only process Estimate and Invoice create/update events
-        const isRelevant = (name === 'Estimate' || name === 'Invoice') &&
-                           (operation === 'Create' || operation === 'Update');
+        const isRelevant = (name === 'Estimate' || name === 'Invoice' || name === 'Payment') &&
+                       (operation === 'Create' || operation === 'Update' || operation === 'Delete');
 
         if (!isRelevant) continue;
 
@@ -89,7 +89,9 @@ router.post('/', express.json({ verify: (req, res, buf) => { req.rawBody = buf; 
         // The sync logic is in lib/qbMatch + lib/railwayDataAccess + the QB fetch helpers.
         // For the webhook, we trigger an async sync without blocking the response.
         const { runQbEstimateSyncAsync } = require('../lib/qbSyncTrigger');
-        runQbEstimateSyncAsync().catch(e => console.error('[qb-webhook] async sync error:', e.message));
+        const { syncAllMappedCustomers } = require('../lib/qbInboundSync');
+        runQbEstimateSyncAsync().catch(e => console.error('[qb-webhook] estimate sync error:', e.message));
+        syncAllMappedCustomers().catch(e => console.error('[qb-webhook] inbound sync error:', e.message));
       } catch (e) {
         console.warn('[qb-webhook] Could not trigger async sync (non-fatal):', e.message);
       }
