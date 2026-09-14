@@ -75,29 +75,19 @@ export function commissionAmount(c, ctx) {
 /**
  * getDealPaymentSummary — THE single source of truth for deal payment KPIs.
  *
- * Every financial display component in the CRM — the Financial tab KPI chips,
- * Payment Progress, Financial Summary, Dashboard widgets, Reports — MUST call
- * this function. Never recalculate Invoiced / Paid / Balance / Remaining
- * separately in a component.
+ * WATERFALL PRECEDENCE: When the customer payment waterfall is applied
+ * (waterfallAllocation.applied === true AND this_deal_allocation exists),
+ * the waterfall's allocated_paid / allocated_remaining take PRECEDENCE over
+ * both the sale-scoped path and the legacy path. The waterfall is the
+ * authoritative customer-level allocation from QuickBooks received money.
  *
- * Reads from the lead's synchronized QuickBooks fields, which are kept current
- * by getQBLeadStatus (sums across ALL active non-voided QB invoices and writes
- * the totals back to the lead entity):
- *   lead.qb_invoice_amount   = sum of all active (non-voided) QB invoice totals
- *   lead.qb_payment_received = total payments received from QuickBooks
- *   lead.qb_balance_due      = invoiced - paid (QB-side balance)
+ * This ensures the UI never shows $0 paid when QuickBooks has received money
+ * for the customer, even when invoices are not mapped to this sale or the
+ * cache has stale paid=0 values.
  *
- * When QB is NOT connected, falls back to local Invoice records or deal milestones.
- *
- * Formula (global financial architecture):
- *   Project Total = deal.amount || lead.estimated_value
- *   Invoiced  = lead.qb_invoice_amount  (QB) || sum(local invoice amounts)
- *   Paid      = lead.qb_payment_received (QB) || sum(local invoice payments) || deal milestones
- *   Balance   = Invoiced - Paid   (unpaid portion of what's been billed)
- *   Remaining = Project Total - Paid  (total left to collect on the project)
- *   Pct Paid  = Paid / Project Total * 100
- *
- * @returns {{ hasQB, projectTotal, invoiced, paid, balance, remaining, pctPaid }}
+ * Manual payment schedule (deposit_paid, progress_payment_paid,
+ * final_payment_paid) is NEVER read or mutated here — those are displayed
+ * separately by DealPaymentPanel.
  */
 export function getDealPaymentSummary(deal, lead, invoices = [], saleInvoices = null, waterfallAllocation = null) {
   const hasQB = !!(lead?.qb_invoice_id || (Number(lead?.qb_invoice_amount) > 0));
@@ -105,25 +95,28 @@ export function getDealPaymentSummary(deal, lead, invoices = [], saleInvoices = 
 
   const projectTotal = safeNumber(deal?.amount) || safeNumber(lead?.estimated_value);
 
-  // ── Sale-scoped path (sale-level financial isolation) ──
-  // When sale-scoped QB invoices are supplied (each mapped to THIS deal's
-  // crm_sale_id via Railway qb_invoice_sale_map), compute invoiced/paid from
-  // them ONLY. No customer-level fallback is permitted for multi-Sale leads —
-  // unmapped invoices contribute to no Sale. The caller is responsible for
-  // passing saleInvoices for multi-Sale leads; omitting them for a single-Sale
-  // lead falls through to the legacy path below.
+  // Waterfall allocation — authoritative customer-level QB received money.
+  // Takes PRECEDENCE over both sale-scoped and legacy paths when applied.
+  const waterfallApplied = !!(waterfallAllocation?.applied && waterfallAllocation?.this_deal_allocation);
+  const waterfallPaid = waterfallApplied
+    ? safeNumber(waterfallAllocation.this_deal_allocation.allocated_paid)
+    : null;
+  const waterfallRemaining = waterfallApplied
+    ? safeNumber(waterfallAllocation.this_deal_allocation.allocated_remaining)
+    : null;
+
+  // Sale-scoped path — INVOICED from sale-scoped invoices, PAID from waterfall.
   if (saleInvoices && saleInvoices.length > 0) {
     const invoiced = saleInvoices.reduce((s, i) => s + safeNumber(i.total_amt ?? i.totalAmt ?? i.amount), 0);
-    const paid = saleInvoices.reduce((s, i) => s + safeNumber(i.paid ?? i.payment_received), 0);
+    const saleScopedPaid = saleInvoices.reduce((s, i) => s + safeNumber(i.paid ?? i.payment_received), 0);
+    const paid = waterfallPaid !== null ? waterfallPaid : saleScopedPaid;
     const balance = round2(Math.max(0, invoiced - paid));
-    const remaining = round2(Math.max(0, projectTotal - paid));
+    const remaining = waterfallRemaining !== null ? waterfallRemaining : round2(Math.max(0, projectTotal - paid));
     const pctPaid = projectTotal > 0 ? Math.min(100, round2((paid / projectTotal) * 100 * 100) / 100) : 0;
     return { hasQB: true, projectTotal, invoiced: round2(invoiced), paid: round2(paid), balance, remaining, pctPaid, saleScoped: true, waterfall: waterfallAllocation };
   }
 
-  // ── Legacy path (single-Sale leads / backward compatibility) ──
-  // Uses lead-level QB aggregates. Correct ONLY when the lead has exactly one
-  // Sale. For multi-Sale leads the caller MUST supply saleInvoices instead.
+  // Legacy path — single-Sale leads / backward compatibility.
   const localInvoiceTotal = invs.reduce((s, i) => s + safeNumber(i.amount), 0);
   const localInvoicePaid  = invs.reduce((s, i) => s + safeNumber(i.payment_received), 0);
   const milestonePaid =
@@ -133,13 +126,6 @@ export function getDealPaymentSummary(deal, lead, invoices = [], saleInvoices = 
 
   const invoiced = hasQB ? safeNumber(lead?.qb_invoice_amount) : localInvoiceTotal;
 
-  // Waterfall allocation takes precedence for PAID when available — allocates
-  // customer-level QB received money across eligible Deals chronologically.
-  // Falls through to legacy path when waterfall is not applied.
-  const waterfallPaid = waterfallAllocation?.applied && waterfallAllocation?.this_deal_allocation
-    ? safeNumber(waterfallAllocation.this_deal_allocation.allocated_paid)
-    : null;
-
   const paid = waterfallPaid !== null
     ? waterfallPaid
     : (hasQB
@@ -147,7 +133,7 @@ export function getDealPaymentSummary(deal, lead, invoices = [], saleInvoices = 
       : (localInvoicePaid || safeNumber(deal?.total_paid) || milestonePaid));
 
   const balance   = round2(Math.max(0, invoiced - paid));
-  const remaining = round2(Math.max(0, projectTotal - paid));
+  const remaining = waterfallRemaining !== null ? waterfallRemaining : round2(Math.max(0, projectTotal - paid));
   const pctPaid   = projectTotal > 0 ? Math.min(100, round2((paid / projectTotal) * 100 * 100) / 100) : 0;
 
   return { hasQB, projectTotal, invoiced, paid, balance, remaining, pctPaid, waterfall: waterfallAllocation };
@@ -163,11 +149,6 @@ export function computeFinancials({ deal, lead, invoices, saleInvoices, expenses
   const manualAdj = safeNumber(deal?.financial_manual_revenue_adjustment);
   const totalRevenue = round2(contractAmount + changeOrders + manualAdj);
 
-  // ── paymentsReceived delegates to the shared helper so the P&L always
-  // matches the Financial tab / Payment Progress / Financial Summary.
-  // saleInvoices (sale-scoped QB invoices from qb_invoice_sale_map) is passed
-  // through so the sale-scoped path is used when available — no customer-level
-  // fallback, no double counting. ──
   const paymentsReceived = getDealPaymentSummary(deal, lead, invoices, saleInvoices, waterfall).paid;
   const remainingCustomerBalance = round2(Math.max(0, totalRevenue - paymentsReceived));
 
