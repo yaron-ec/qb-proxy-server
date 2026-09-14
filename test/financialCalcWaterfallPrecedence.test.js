@@ -36,34 +36,64 @@ function round2(n) {
   return Math.round((n + Number.EPSILON) * 100) / 100;
 }
 
-function getDealPaymentSummary(deal, lead, invoices, saleInvoices, waterfallAllocation) {
+function getDealPaymentSummary(deal, lead, invoices, saleInvoices, waterfall) {
   invoices = invoices || [];
   const hasQB = !!(lead?.qb_invoice_id || (Number(lead?.qb_invoice_amount) > 0));
   const projectTotal = safeNumber(deal?.amount) || safeNumber(lead?.estimated_value);
 
-  const waterfallApplied = !!(waterfallAllocation?.applied && waterfallAllocation?.this_deal_allocation);
-  const waterfallPaid = waterfallApplied ? safeNumber(waterfallAllocation.this_deal_allocation.allocated_paid) : null;
-  const waterfallRemaining = waterfallApplied ? safeNumber(waterfallAllocation.this_deal_allocation.allocated_remaining) : null;
-
-  if (saleInvoices && saleInvoices.length > 0) {
-    const invoiced = saleInvoices.reduce((s, i) => s + safeNumber(i.total_amt ?? i.totalAmt ?? i.amount), 0);
-    const saleScopedPaid = saleInvoices.reduce((s, i) => s + safeNumber(i.paid ?? i.payment_received), 0);
-    const paid = waterfallPaid !== null ? waterfallPaid : saleScopedPaid;
-    const balance = round2(Math.max(0, invoiced - paid));
-    const remaining = waterfallRemaining !== null ? waterfallRemaining : round2(Math.max(0, projectTotal - paid));
-    const pctPaid = projectTotal > 0 ? Math.min(100, round2((paid / projectTotal) * 100 * 100) / 100) : 0;
-    return { hasQB: true, projectTotal, invoiced: round2(invoiced), paid: round2(paid), balance, remaining, pctPaid, saleScoped: true, waterfall: waterfallAllocation };
+  // ── Waterfall path (highest precedence) ──
+  // When the customer payment waterfall is applied, use the allocated paid
+  // amount for THIS deal. This is the authoritative QB-derived value for
+  // multi-deal customers where invoice ownership is ambiguous.
+  if (waterfall && waterfall.applied && waterfall.this_deal_allocation) {
+    const paid = safeNumber(waterfall.this_deal_allocation.allocated_paid);
+    const remaining = safeNumber(waterfall.this_deal_allocation.allocated_remaining);
+    const pctPaid = projectTotal > 0 ? Math.min(100, Math.round((paid / projectTotal) * 100)) : 0;
+    return {
+      hasQB: true,
+      projectTotal,
+      invoiced: round2(projectTotal),
+      paid: round2(paid),
+      balance: round2(remaining),
+      remaining: round2(remaining),
+      pctPaid,
+      waterfallApplied: true,
+    };
   }
 
+  // ── Sale-scoped path ──
+  if (saleInvoices && saleInvoices.length > 0) {
+    const invoiced = saleInvoices.reduce((s, i) => s + safeNumber(i.total_amt ?? i.totalAmt ?? i.amount), 0);
+    const paid = saleInvoices.reduce((s, i) => s + safeNumber(i.paid ?? i.payment_received), 0);
+    const balance = round2(Math.max(0, invoiced - paid));
+    const remaining = round2(Math.max(0, projectTotal - paid));
+    const pctPaid = projectTotal > 0 ? Math.min(100, Math.round((paid / projectTotal) * 100)) : 0;
+    return { hasQB: true, projectTotal, invoiced: round2(invoiced), paid: round2(paid), balance, remaining, pctPaid, saleScoped: true };
+  }
+
+  // ── Legacy path ──
   const localInvoiceTotal = invoices.reduce((s, i) => s + safeNumber(i.amount), 0);
   const localInvoicePaid = invoices.reduce((s, i) => s + safeNumber(i.payment_received), 0);
   const milestonePaid = safeNumber(deal?.deposit_paid) + safeNumber(deal?.progress_payment_paid) + safeNumber(deal?.final_payment_paid);
   const invoiced = hasQB ? safeNumber(lead?.qb_invoice_amount) : localInvoiceTotal;
-  const paid = waterfallPaid !== null ? waterfallPaid : (hasQB ? safeNumber(lead?.qb_payment_received) : (localInvoicePaid || safeNumber(deal?.total_paid) || milestonePaid));
+  const paid = hasQB ? safeNumber(lead?.qb_payment_received) : (localInvoicePaid || safeNumber(deal?.total_paid) || milestonePaid);
   const balance = round2(Math.max(0, invoiced - paid));
-  const remaining = waterfallRemaining !== null ? waterfallRemaining : round2(Math.max(0, projectTotal - paid));
-  const pctPaid = projectTotal > 0 ? Math.min(100, round2((paid / projectTotal) * 100 * 100) / 100) : 0;
-  return { hasQB, projectTotal, invoiced, paid, balance, remaining, pctPaid, waterfall: waterfallAllocation };
+  const remaining = round2(Math.max(0, projectTotal - paid));
+  const pctPaid = projectTotal > 0 ? Math.min(100, Math.round((paid / projectTotal) * 100)) : 0;
+  return { hasQB, projectTotal, invoiced, paid: round2(paid), balance, remaining, pctPaid };
+}
+
+// ── Deal card waterfall precedence helper ──
+// Mirrors the Deals.jsx DealCard logic: waterfall_paid takes precedence
+// over manual total_paid when waterfall_applied is true.
+function getDealCardPaid(deal) {
+  return deal.waterfall_applied ? (deal.waterfall_paid || 0) : (deal.total_paid || 0);
+}
+function getDealCardRemaining(deal) {
+  const contractAmount = deal.contract_amount || 0;
+  return deal.waterfall_applied
+    ? (deal.waterfall_remaining || 0)
+    : (deal.balance_due != null ? deal.balance_due : Math.max(0, contractAmount - getDealCardPaid(deal)));
 }
 
 function allocateWaterfall(customerTotalReceived, deals) {
