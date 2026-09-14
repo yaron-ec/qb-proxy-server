@@ -150,7 +150,49 @@ router.get('/', async (req, res) => {
     params.push(limit);
 
     const { rows } = await query(sql, params);
-    res.json({ items: rows.map(serializeDeal), total: rows.length });
+    let items = rows.map(serializeDeal);
+
+    // ── Enrich with customer payment waterfall allocations ──
+    // For each deal, compute the customer-level QB received money allocation.
+    // Multi-Deal customers get their QB received money distributed across
+    // eligible Deals chronologically. This is the AUTHORITATIVE paid value —
+    // it overrides manual total_paid on Deal cards and KPIs.
+    // Efficient: one query for lead→qb_customer_id, then per-customer waterfall
+    // (not per-deal). ~89 customers → ~179 queries total.
+    try {
+      const { getCustomerTotalReceived, getEligibleDealsForCustomer, allocateWaterfall } = require('../lib/customerPaymentWaterfall');
+      const leadIds = [...new Set(items.map(d => d.lead_id).filter(Boolean))];
+      if (leadIds.length > 0) {
+        const { rows: leadRows } = await query(
+          'SELECT id, qb_customer_id FROM leads WHERE id = ANY($1::uuid[])',
+          [leadIds]
+        );
+        const leadQbMap = new Map(leadRows.map(l => [l.id, l.qb_customer_id]));
+        const customerIds = [...new Set([...leadQbMap.values()].filter(Boolean));
+        const db = { query };
+        for (const qbCustomerId of customerIds) {
+          try {
+            const totalReceived = await getCustomerTotalReceived(db, qbCustomerId);
+            const eligibleDeals = await getEligibleDealsForCustomer(db, qbCustomerId);
+            const result = allocateWaterfall(totalReceived, eligibleDeals);
+            for (const deal of items) {
+              const allocation = result.allocations.find(a => a.deal_id === deal.id);
+              if (allocation) {
+                deal.waterfall_paid = allocation.allocated_paid;
+                deal.waterfall_remaining = allocation.allocated_remaining;
+                deal.waterfall_applied = true;
+              }
+            }
+          } catch (e) {
+            console.error('[deals] waterfall for customer', qbCustomerId, 'failed:', e.message);
+          }
+        }
+      }
+    } catch (e) {
+      console.error('[deals] waterfall enrichment failed:', e.message);
+    }
+
+    res.json({ items, total: items.length });
   } catch (e) {
     console.error('[deals] list error:', e.message);
     res.status(500).json({ error: e.message });
