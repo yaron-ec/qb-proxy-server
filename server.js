@@ -32,6 +32,7 @@ const rda = require('./lib/railwayDataAccess'); // Railway Postgres CRUD (replac
 const tokenStore = require('./lib/qbTokenStore'); // credential lifecycle metadata for /health
 const saleDb = require('./db/client'); // Railway Postgres pool (for sale-scoped invoice ownership)
 const saleMap = require('./lib/qbInvoiceSaleMap'); // qb_invoice_sale_map + qb_invoices_cache helpers
+const { syncAllMappedCustomers } = require('./lib/qbInboundSync'); // QB inbound reconciliation (invoices/payments/allocations)
 
 // Ensure qb_sync_jobs table exists (async job pattern for QB sync — prevents frontend timeout).
 // CREATE TABLE IF NOT EXISTS is idempotent. Non-blocking: if DB is not configured, the
@@ -2436,5 +2437,29 @@ app.listen(PORT, async () => {
       });
       console.log('[proxy] QB sync cron scheduled every 15 minutes (QB_SYNC_CRON_ENABLED=true)');
     }
+  }
+
+  // ── QB Inbound Reconciliation Cron ────────────────────────────────────────
+  // Runs every 15 minutes. Syncs all QuickBooks invoices/payments for mapped
+  // CRM customers. This is the AUTHORITATIVE recurring reconciliation trigger
+  // (replaces the former Base44 scheduled workflow). The webhook provides
+  // near-real-time updates; this cron is the scheduled recovery fallback.
+  // No env-var gate — this is the sole reconciliation scheduler in production.
+  if (cronLib) {
+    cronLib.schedule('*/15 * * * *', async () => {
+      const t = new Date().toISOString();
+      console.log('[qb-inbound-cron] tick ' + t);
+      try {
+        const result = await syncAllMappedCustomers();
+        if (result && result.skipped) {
+          console.log('[qb-inbound-cron] skipped — ' + result.reason);
+        } else {
+          console.log('[qb-inbound-cron] reconcile ok — total=' + (result?.total ?? '?') + ' synced=' + (result?.synced ?? '?') + ' failed=' + (result?.failed ?? 0));
+        }
+      } catch (e) {
+        console.error('[qb-inbound-cron] reconcile failed: ' + e.message);
+      }
+    });
+    console.log('[proxy] QB inbound reconciliation cron scheduled every 15 minutes');
   }
 });
