@@ -41,6 +41,17 @@ router.get('/:id/financials', async (req, res) => {
     let waterfallError = null;
     try {
       waterfall = await computeWaterfallForDeal(db, saleId);
+      // Override summary with waterfall allocation when applied — waterfall is
+      // authoritative for multi-Deal customers where invoice ownership is ambiguous.
+      // Without this, summary.paid is $0 (no mapped invoices) even though QB
+      // has received money for the customer. The frontend Deal cards and
+      // Financial tab consume summary.paid as the top-level paid value.
+      if (waterfall && waterfall.applied && waterfall.this_deal_allocation) {
+        const wfPaid = Number(waterfall.this_deal_allocation.allocated_paid) || 0;
+        summary.paid = wfPaid;
+        summary.balance = Math.max(0, saleTotal - wfPaid);
+        summary.payment_status = wfPaid >= saleTotal ? 'paid' : (wfPaid > 0 ? 'partial' : 'unpaid');
+      }
     } catch (e) {
       console.error('[dealFinancials] waterfall error (non-fatal):', e.message);
       waterfallError = e.message;
