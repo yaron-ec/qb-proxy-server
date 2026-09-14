@@ -99,7 +99,7 @@ export function commissionAmount(c, ctx) {
  *
  * @returns {{ hasQB, projectTotal, invoiced, paid, balance, remaining, pctPaid }}
  */
-export function getDealPaymentSummary(deal, lead, invoices = [], saleInvoices = null) {
+export function getDealPaymentSummary(deal, lead, invoices = [], saleInvoices = null, waterfallAllocation = null) {
   const hasQB = !!(lead?.qb_invoice_id || (Number(lead?.qb_invoice_amount) > 0));
   const invs = invoices || [];
 
@@ -117,8 +117,8 @@ export function getDealPaymentSummary(deal, lead, invoices = [], saleInvoices = 
     const paid = saleInvoices.reduce((s, i) => s + safeNumber(i.paid ?? i.payment_received), 0);
     const balance = round2(Math.max(0, invoiced - paid));
     const remaining = round2(Math.max(0, projectTotal - paid));
-    const pctPaid = projectTotal > 0 ? Math.min(100, Math.round((paid / projectTotal) * 100)) : 0;
-    return { hasQB: true, projectTotal, invoiced: round2(invoiced), paid: round2(paid), balance, remaining, pctPaid, saleScoped: true };
+    const pctPaid = projectTotal > 0 ? Math.min(100, round2((paid / projectTotal) * 100 * 100) / 100) : 0;
+    return { hasQB: true, projectTotal, invoiced: round2(invoiced), paid: round2(paid), balance, remaining, pctPaid, saleScoped: true, waterfall: waterfallAllocation };
   }
 
   // ── Legacy path (single-Sale leads / backward compatibility) ──
@@ -133,18 +133,27 @@ export function getDealPaymentSummary(deal, lead, invoices = [], saleInvoices = 
 
   const invoiced = hasQB ? safeNumber(lead?.qb_invoice_amount) : localInvoiceTotal;
 
-  const paid = hasQB
-    ? safeNumber(lead?.qb_payment_received)
-    : (localInvoicePaid || safeNumber(deal?.total_paid) || milestonePaid);
+  // Waterfall allocation takes precedence for PAID when available — allocates
+  // customer-level QB received money across eligible Deals chronologically.
+  // Falls through to legacy path when waterfall is not applied.
+  const waterfallPaid = waterfallAllocation?.applied && waterfallAllocation?.this_deal_allocation
+    ? safeNumber(waterfallAllocation.this_deal_allocation.allocated_paid)
+    : null;
+
+  const paid = waterfallPaid !== null
+    ? waterfallPaid
+    : (hasQB
+      ? safeNumber(lead?.qb_payment_received)
+      : (localInvoicePaid || safeNumber(deal?.total_paid) || milestonePaid));
 
   const balance   = round2(Math.max(0, invoiced - paid));
   const remaining = round2(Math.max(0, projectTotal - paid));
-  const pctPaid   = projectTotal > 0 ? Math.min(100, Math.round((paid / projectTotal) * 100)) : 0;
+  const pctPaid   = projectTotal > 0 ? Math.min(100, round2((paid / projectTotal) * 100 * 100) / 100) : 0;
 
-  return { hasQB, projectTotal, invoiced, paid, balance, remaining, pctPaid };
+  return { hasQB, projectTotal, invoiced, paid, balance, remaining, pctPaid, waterfall: waterfallAllocation };
 }
 
-export function computeFinancials({ deal, lead, invoices, saleInvoices, expenses, commissions, loanPayments }) {
+export function computeFinancials({ deal, lead, invoices, saleInvoices, expenses, commissions, loanPayments, waterfall }) {
   const hasQB = !!lead?.qb_invoice_id;
   const qbInvoiceAmount = safeNumber(lead?.qb_invoice_amount);
   const qbPaymentReceived = safeNumber(lead?.qb_payment_received);
@@ -159,7 +168,7 @@ export function computeFinancials({ deal, lead, invoices, saleInvoices, expenses
   // saleInvoices (sale-scoped QB invoices from qb_invoice_sale_map) is passed
   // through so the sale-scoped path is used when available — no customer-level
   // fallback, no double counting. ──
-  const paymentsReceived = getDealPaymentSummary(deal, lead, invoices, saleInvoices).paid;
+  const paymentsReceived = getDealPaymentSummary(deal, lead, invoices, saleInvoices, waterfall).paid;
   const remainingCustomerBalance = round2(Math.max(0, totalRevenue - paymentsReceived));
 
   const ctx0 = { totalRevenue, paymentsReceived };
