@@ -20,17 +20,18 @@ export default function FinancialTab({
   // ── Sale-scoped QB invoices from qb_invoice_sale_map + qb_invoices_cache ──
   // QuickBooks is authoritative. No customer-level fallback, no double counting.
   const [saleInvoices, setSaleInvoices] = useState([]);
+  const [waterfall, setWaterfall] = useState(null);
   useEffect(() => {
     if (!deal?.id) return;
     let cancelled = false;
     railwayDealFinancials.getFinancials(deal.id, deal.amount)
-      .then(res => { if (!cancelled) setSaleInvoices(res?.invoices || []); })
-      .catch(() => { if (!cancelled) setSaleInvoices([]); });
+      .then(res => { if (!cancelled) { setSaleInvoices(res?.invoices || []); setWaterfall(res?.waterfall || null); } })
+      .catch(() => { if (!cancelled) { setSaleInvoices([]); setWaterfall(null); } });
     return () => { cancelled = true; };
   }, [deal?.id, deal?.amount]);
 
   // ── Single source of truth — shared helper used by every financial component ──
-  const fin = getDealPaymentSummary(deal, lead, invoices, saleInvoices);
+  const fin = getDealPaymentSummary(deal, lead, invoices, saleInvoices, waterfall);
   const { projectTotal, invoiced: totalInvoiced, paid: totalPaid, balance: balanceDue, remaining: amountRemaining } = fin;
   const milestonePaid = (deal.deposit_paid || 0) + (deal.progress_payment_paid || 0) + (deal.final_payment_paid || 0);
 
