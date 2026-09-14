@@ -2,11 +2,10 @@
 /**
  * leadDealDetailP0.test.js — P0 regression tests for Lead Detail + Deal Detail.
  *
- * Lead Detail defect: routes/leads.js GET /by-external/:externalRef/detail
- *   queried `SELECT key, value FROM settings WHERE key IN (...)` but the
- *   canonical Railway settings table is a SINGLETON (id=1) with an
- *   app_lists JSONB column — no key/value columns. PostgreSQL threw
- *   "column key does not exist" on every Lead Detail load.
+ * Lead Detail source-of-truth: routes/leads.js GET /by-external/:externalRef/detail
+ *   reads from the canonical app_settings KV table (key='app_lists') with
+ *   camelCase JSON keys (projectTypes, sources) matching the Settings UI.
+ *   The old settings singleton (id=1) with snake_case keys is no longer used.
  *
  * Deal Detail defect: DealDetail.jsx classified a 503 network error as
  *   "Deal not found" because isServerError only matched status === 500
@@ -25,16 +24,21 @@ const leadsRouteSource = fs.readFileSync(
   path.resolve(__dirname, '../routes/leads.js'), 'utf8'
 );
 
-test('LEAD: routes/leads.js does not reference non-existent "key" column in settings query', () => {
+test('LEAD: routes/leads.js queries canonical app_settings KV table for app lists', () => {
   const hasBadSettingsQuery = /SELECT\s+key\s*,\s*value\s+FROM\s+settings/i.test(leadsRouteSource);
   assert.ok(!hasBadSettingsQuery, 'routes/leads.js must NOT query SELECT key, value FROM settings');
-  const hasFixedSettingsQuery = /SELECT\s+app_lists\s+FROM\s+settings\s+WHERE\s+id\s*=\s*1/i.test(leadsRouteSource);
-  assert.ok(hasFixedSettingsQuery, 'routes/leads.js must query SELECT app_lists FROM settings WHERE id = 1');
+  const hasOldSettingsQuery = /SELECT\s+app_lists\s+FROM\s+settings\s+WHERE\s+id\s*=\s*1/i.test(leadsRouteSource);
+  assert.ok(!hasOldSettingsQuery, 'routes/leads.js must NOT query the old settings singleton (id=1)');
+  const hasCanonicalQuery = /SELECT\s+value\s+FROM\s+app_settings\s+WHERE\s+key\s*=\s*'app_lists'/i.test(leadsRouteSource);
+  assert.ok(hasCanonicalQuery, "routes/leads.js must query SELECT value FROM app_settings WHERE key = 'app_lists'");
 });
 
-test('LEAD: routes/leads.js extracts project_types and lead_sources from app_lists JSONB', () => {
-  assert.ok(leadsRouteSource.includes('appLists.project_types'), 'must extract project_types from appLists');
-  assert.ok(leadsRouteSource.includes('appLists.lead_sources'), 'must extract lead_sources from appLists');
+test('LEAD: routes/leads.js extracts projectTypes and sources from app_settings JSONB (camelCase)', () => {
+  assert.ok(!leadsRouteSource.includes('appLists.project_types'), 'must NOT use snake_case project_types');
+  assert.ok(!leadsRouteSource.includes('appLists.lead_sources'), 'must NOT use snake_case lead_sources');
+  assert.ok(leadsRouteSource.includes('appLists.projectTypes'), 'must extract projectTypes (camelCase) from appLists');
+  assert.ok(leadsRouteSource.includes('appLists.sources'), 'must extract sources (camelCase) from appLists');
+  assert.ok(leadsRouteSource.includes('settingsRes.rows[0].value'), 'must read from app_settings value column');
 });
 
 // ── LEAD DETAIL: leadIdWhere safe identifier resolution ─────────────────────

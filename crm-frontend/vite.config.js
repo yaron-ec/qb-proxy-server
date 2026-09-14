@@ -8,63 +8,26 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // https://vite.dev/config/
 //
-// Two build modes from one config:
-//   - default (vite / vite build)        → Base44-hosted CRM (unchanged, live)
-//   - exit    (vite build --mode exit)   → standalone CRM frontend with NO
-//                                         @base44/vite-plugin dependency.
-//
-// The exit mode loads `.env.exit` automatically (Vite mode-based env files).
-// In exit mode the Base44 vite plugin is excluded entirely (dynamic import
-// guarded by !isExitBuild), so the build never requires @base44/vite-plugin
-// or Base44 app params. The default mode is functionally equivalent to the
-// previous static config.
-export default defineConfig(async ({ mode }) => {
-  const isExitBuild = mode === 'exit';
-
-  let base44Plugins = [];
-  if (!isExitBuild) {
-    // Dynamic import so exit mode never loads @base44/vite-plugin.
-    // In default mode the package is installed in the workspace.
-    const base44Module = await import("@base44/vite-plugin");
-    const base44 = base44Module.default;
-    base44Plugins = [
-      base44({
-        legacySDKImports: process.env.BASE44_LEGACY_SDK_IMPORTS === 'true',
-        hmrNotifier: true,
-        navigationNotifier: true,
-        analyticsTracker: true,
-        visualEditAgent: true
-      })
-    ];
-  }
-
-  return {
-    logLevel: 'error',
-    // The @base44/vite-plugin injects the `@` → `/src` alias. In exit mode the
-    // plugin is absent, so declare the alias explicitly. (Default mode gets it
-    // from the plugin; adding it there too is harmless but omitted to keep the
-    // live build unchanged.)
-    resolve: isExitBuild ? {
-      alias: {
-        '@': path.resolve(__dirname, 'src'),
-        // Stub @base44/sdk so ZERO Base44 SDK code reaches the standalone bundle.
-        // AuthContext.jsx's platform-required import resolves to this no-op
-        // instead of pulling in the real @base44/sdk package.
-        '@base44/sdk': path.resolve(__dirname, 'src/api/base44-sdk-stub.js'),
-      }
-    } : undefined,
-    plugins: [
-      ...base44Plugins,
-      react(),
-      // SW build-hash injection — only for exit (production standalone) builds.
-      // Replaces __BUILD_HASH__ in dist/sw.js with the main JS bundle's content
-      // hash so the SW file content changes on every deployment. This triggers
-      // the browser's service-worker update lifecycle (install → skipWaiting →
-      // activate → clear old caches → reload) automatically — no manual
-      // incognito, DevTools, or hard-refresh required.
-      ...(isExitBuild ? [swBuildHashPlugin()] : []),
-    ]
-  }
+// Standalone CRM frontend — Zero Base44.
+// The build uses `vite build --mode exit` (loads .env.exit automatically).
+// No @base44/vite-plugin, no @base44/sdk, no Base44 stubs.
+export default defineConfig({
+  logLevel: 'error',
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+    }
+  },
+  plugins: [
+    react(),
+    // SW build-hash injection — replaces __BUILD_HASH__ in dist/sw.js with
+    // the main JS bundle's content hash so the SW file content changes on
+    // every deployment. This triggers the browser's service-worker update
+    // lifecycle (install → skipWaiting → activate → clear old caches →
+    // reload) automatically — no manual incognito, DevTools, or hard-refresh
+    // required.
+    swBuildHashPlugin()
+  ]
 });
 
 /**

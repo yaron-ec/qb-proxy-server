@@ -1,12 +1,10 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { base44 } from '@/api/base44Client'; // eslint-disable-line no-unused-vars
 import * as railwayApi from '@/lib/railwayApi';
 import { isApiConfigured } from '@/lib/apiConfig';
 
 /**
  * AuthContext — Railway-only authentication.
  *
- * The base44 import is required by the platform but is NOT used for auth.
  * Railway JWT (access + refresh) is the sole auth layer.
  *
  *   - checkAppState: if no Railway session → auth_required → /login
