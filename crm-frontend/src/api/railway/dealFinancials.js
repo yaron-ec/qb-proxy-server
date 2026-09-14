@@ -1,7 +1,7 @@
 /**
  * railway dealFinancials — sale-scoped financial summary client.
  *
- *   getFinancials(dealId, saleTotal) -> { crm_sale_id, total, invoiced, paid, balance, payment_status, invoices }
+ *   getFinancials(dealId, saleTotal) -> { crm_sale_id, total, invoiced, paid, balance, payment_status, invoices, waterfall }
  *
  * Calls GET /api/v1/deals/:id/financials?sale_total=<number>
  * The backend queries qb_invoice_sale_map + qb_invoices_cache for invoices
@@ -11,6 +11,11 @@
  *   balance  = max(0, total - paid)
  *
  * QuickBooks is authoritative. No customer-level aggregation. No double counting.
+ *
+ * waterfall: customer payment waterfall allocation — allocates customer-level
+ * QB received money across eligible Deals chronologically. Separate from
+ * invoice ownership. waterfall.this_deal_allocation.allocated_paid is the
+ * authoritative PAID amount for this Deal.
  */
 import { apiCall } from './client';
 
