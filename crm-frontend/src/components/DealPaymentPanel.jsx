@@ -134,7 +134,7 @@ export default function DealPaymentPanel({ deal, lead, onDealUpdate, estimate, i
   //    Summary, Dashboard, Reports). Never recalculate payment totals here.
   //    saleInvoices (sale-scoped QB invoices) is passed through so the
   //    sale-scoped path is used when available. ──
-  const fin = getDealPaymentSummary(deal, lead, invoices, saleInvoices);
+  const fin = getDealPaymentSummary(deal, lead, invoices, saleInvoices, waterfall);
 
   // Project Total — same calc as FinancialTab/FinancialSummary
   const estimateTotal = estimate?.estimate_amount || null;
