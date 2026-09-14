@@ -19,6 +19,7 @@ const express = require('express');
 const { requireAuth } = require('../lib/rbac');
 const { query } = require('../db/client');
 const { getInvoicesForSale, computeSaleFinancials } = require('../lib/qbInvoiceSaleMap');
+const { computeWaterfallForDeal } = require('../lib/customerPaymentWaterfall');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -33,7 +34,10 @@ router.get('/:id/financials', async (req, res) => {
     const db = { query };
     const invoices = await getInvoicesForSale(db, saleId);
     const summary = computeSaleFinancials(saleTotal, invoices);
-    res.json({ crm_sale_id: saleId, ...summary, invoices });
+    // Customer payment waterfall — allocates customer-level QB received money
+    // across eligible Deals chronologically. Invoice ownership is separate.
+    const waterfall = await computeWaterfallForDeal(db, saleId);
+    res.json({ crm_sale_id: saleId, ...summary, invoices, waterfall });
   } catch (e) {
     console.error('[dealFinancials] error:', e.message);
     res.status(500).json({ error: e.message });
