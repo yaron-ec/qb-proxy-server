@@ -1,109 +1,58 @@
 # Disaster Recovery — EC Construction Group CRM
 
-**Last verified**: 2026-09-14
+## Backup Strategy
 
-## Backup
+### Database (Railway Postgres)
 
-### Railway Postgres Backups
+- Railway provides automated daily backups of the Postgres instance
+- Backups are retained per Railway's backup policy
+- Restore is performed via Railway dashboard (not automated)
 
-- **Mechanism**: Railway managed Postgres automatic backups
-- **Retention**: Railway default (7 days of daily backups)
-- **Verification**: NOT independently verified in this closure — operator should confirm in Railway dashboard
-- **Manual backup**: Railway dashboard -> Postgres -> Create Backup
+### Code (GitHub)
 
-### What is Backed Up
+- All production code is in GitHub (yaron-ec/qb-proxy-server)
+- Main branch is the canonical source of truth
+- No Base44 code is required for production
 
-- All production tables (leads, appointments, deals, etc.)
-- Integration credentials (encrypted)
-- Migration history (schema_migrations)
-- Monitoring data (monitoring_incidents, etc.)
+## Restore Procedure
 
-## Restore
+### Database Restore
 
-### Full Database Restore
+1. Access Railway dashboard
+2. Select the Postgres service
+3. Choose the backup point to restore from
+4. Railway provisions a new Postgres instance from the backup
+5. Update the `DATABASE_URL` environment variable to point to the new instance
+6. Restart qb-proxy-server
 
-1. Railway dashboard -> Postgres -> Backups
-2. Select backup point
-3. Click "Restore" (creates new database instance)
-4. Update DATABASE_URL in all services
-5. Restart all services
+**IMPORTANT**: Database restore is a destructive operation that requires explicit authorization. Do NOT perform a restore without approval.
 
-**WARNING**: Never restore over production. Always restore to a new instance, verify, then switch.
+### Code Restore
 
-### Non-Destructive Restore Validation
+1. Identify the last known good commit on `main`
+2. `git revert <bad-commit>` or `git reset --hard <good-commit>`
+3. Push to `main`
+4. Railway auto-deploys
 
-- **Status**: NOT VERIFIED in this closure
-- **Requirement**: Operator should perform an isolated restore drill on a non-production Postgres instance
-- **Procedure**: Restore backup to new instance -> run test queries -> verify data integrity -> delete test instance
+## Restore Drill Status
 
-## Deployment Rollback
+**NOT VERIFIED**
 
-### Railway Rollback
+No isolated non-production restore environment exists. A safe restore drill requires:
+1. A separate Railway project (non-production)
+2. A Postgres instance provisioned from a backup
+3. Verification of schema + data integrity
+4. No impact on production
 
-1. Railway dashboard -> qb-proxy-server -> Deployments
-2. Select previous successful deployment
-3. Click "Deploy" (rolls back to that version)
-4. Verify health: GET /health
+This drill has NOT been performed. The restore procedure above is documented for future execution.
 
-### GitHub Rollback
+## RTO/RPO
 
-1. Identify last known-good commit: git log --oneline -20
-2. Revert: git revert <commit-sha> (creates new commit)
-3. Push: git push origin main
-4. Railway auto-deploys from main
+- **RPO (Recovery Point Objective)**: 24 hours (Railway daily backups)
+- **RTO (Recovery Time Objective)**: 2-4 hours (manual restore via Railway dashboard)
 
-## Migration Recovery
+## What Is NOT Covered
 
-### Failed Migration
-
-1. Check schema_migrations table: SELECT * FROM schema_migrations ORDER BY applied_at DESC LIMIT 5
-2. If migration is marked applied but failed:
-   - Manually fix the database state
-   - Delete the migration record: DELETE FROM schema_migrations WHERE filename = '2026-XX-xxx.sql'
-   - Re-run: POST /api/v1/cron/apply-migrations
-3. If migration is NOT marked applied:
-   - Fix the SQL file
-   - Re-run: POST /api/v1/cron/apply-migrations
-
-### Missing Migration in Container
-
-**Current issue**: Migration 2026-36-restore-lead-sources.sql is in the repo but NOT in the running container (Docker layer cache served stale image with 35/36 migrations).
-
-**Fix**:
-1. Railway dashboard -> qb-proxy-server -> Deploy -> Redeploy with "Clear Build Cache"
-2. New build copies db/ directory fresh (36 files)
-3. Container startup runs 'node db/migrate.js' which applies the migration
-4. Verify: POST /api/v1/cron/apply-migrations -> should show "1 applied, 36 total"
-
-## Credential Recovery
-
-### JWT Secret
-
-- If JWT_SECRET is lost: all user sessions invalidated. Users must re-login.
-- Generate new: openssl rand -hex 32
-- Update in Railway env vars for all services
-
-### Integration OAuth Tokens
-
-- Stored in integration_credentials table (encrypted)
-- If encryption key lost: all tokens must be re-authenticated
-- If database restored: tokens are restored with it
-
-### Worker Secret
-
-- If WORKER_SECRET is lost: cron endpoints inaccessible
-- Generate new: openssl rand -hex 32
-- Update in Railway env vars for all services
-
-## Recovery Boundaries
-
-| Action | Safe? | Requires Approval? |
-|--------|-------|-------------------|
-| Restart service | Yes | No |
-| Redeploy with cache clear | Yes | No |
-| Rollback deployment | Yes | No |
-| Restore backup to new instance | Yes | No |
-| Restore backup over production | NO | YES |
-| Delete production data | NO | YES |
-| Rotate credentials | Yes (with care) | Notify users |
-| Change Railway topology | NO | YES |
+- Point-in-time recovery (not available on Railway Postgres)
+- Cross-region failover (single Railway region)
+- Automated restore testing (no isolated environment)
