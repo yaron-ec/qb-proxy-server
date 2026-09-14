@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { EC_PROJECT_TYPES } from "@/lib/projectTypes";
 import { uploadFileToStorage } from "@/lib/fileUpload";
-import { fetchCaptureAvailability, submitCapture } from "@/lib/captureRailwayClient";
+import { fetchCaptureAvailability, submitCapture, fetchAppLists } from "@/lib/captureRailwayClient";
 import { useAuth } from "@/lib/AuthContext";
 import { CheckCircle, Upload, X, Phone, MapPin, Briefcase, Clock, AlertCircle, Loader2, ArrowLeft, Calendar, ShieldAlert } from "lucide-react";
 import CaptureSlotGrid from "@/components/CaptureSlotGrid";
@@ -10,11 +10,13 @@ import CaptureSlotGrid from "@/components/CaptureSlotGrid";
 // Server-side allowlist is authoritative; this mirror only gates the UI.
 const ADMIN_OVERRIDE_EMAILS = ["yaron@ecconstructiongroup.com", "michelle@ecconstructiongroup.com"];
 
-// Fallback defaults — imported from single source of truth
+// Fallback defaults — imported from single source of truth.
+// Canonical Lead Sources match app_settings (key='app_lists') value.sources.
+// Yair is a Lead Provider only — NOT a CRM user/owner/admin.
 const DEFAULT_PROJECT_TYPES = EC_PROJECT_TYPES;
 const DEFAULT_SOURCES = [
-  "Google Search", "Google Maps / reviews", "Referral",
-  "Instagram / Facebook", "YouTube", "Repeat customer", "Sharon", "Other",
+  "Sharon", "Yair", "Yelp", "Instagram / Facebook",
+  "Referral", "Repeat customer", "Ethan", "Website", "Other",
 ];
 const DEFAULT_OWNERS = ["Ethan Magen", "Micky Gad", "Yaron Drilevich"];
 
@@ -69,6 +71,20 @@ export default function LeadCapture() {
   const [projectTypes, setProjectTypes] = useState(DEFAULT_PROJECT_TYPES);
   const [sources, setSources] = useState(DEFAULT_SOURCES);
   const [owners, setOwners] = useState(DEFAULT_OWNERS);
+
+  // Fetch canonical Lead Sources + Project Types from app_settings (key='app_lists')
+  // on mount. Falls back to DEFAULT_* if the public endpoint is unavailable.
+  useEffect(() => {
+    let cancelled = false;
+    fetchAppLists()
+      .then(data => {
+        if (cancelled) return;
+        if (data?.leadSources?.length) setSources(data.leadSources);
+        if (data?.projectTypes?.length) setProjectTypes(data.projectTypes);
+      })
+      .catch(() => { /* fallback to DEFAULT_* — non-critical */ });
+    return () => { cancelled = true; };
+  }, []);
 
   // Appointment availability — fetched from the Railway availability endpoint
   const [blockedSlots, setBlockedSlots] = useState([]);

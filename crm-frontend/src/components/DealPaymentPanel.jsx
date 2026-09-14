@@ -107,7 +107,7 @@ function deriveStageFromMilestones(milestones, total) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-export default function DealPaymentPanel({ deal, lead, onDealUpdate, estimate, invoices = [] }) {
+export default function DealPaymentPanel({ deal, lead, onDealUpdate, estimate, invoices = [], saleInvoices = [] }) {
   const [expanded, setExpanded] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -117,8 +117,10 @@ export default function DealPaymentPanel({ deal, lead, onDealUpdate, estimate, i
   const hasInvoiceData    = invoiceMilestones && invoiceMilestones.length > 0;
 
   // ── Single source of truth — shared helper (same as Financial tab, Financial
-  //    Summary, Dashboard, Reports). Never recalculate payment totals here. ──
-  const fin = getDealPaymentSummary(deal, lead, invoices);
+  //    Summary, Dashboard, Reports). Never recalculate payment totals here.
+  //    saleInvoices (sale-scoped QB invoices) is passed through so the
+  //    sale-scoped path is used when available. ──
+  const fin = getDealPaymentSummary(deal, lead, invoices, saleInvoices);
 
   // Project Total — same calc as FinancialTab/FinancialSummary
   const estimateTotal = estimate?.estimate_amount || null;
@@ -181,6 +183,7 @@ export default function DealPaymentPanel({ deal, lead, onDealUpdate, estimate, i
   // Financial Summary and the Financial tab KPI chips.
   const totalPaid = fin.paid;
   const balance   = fin.balance;
+  const remaining = fin.remaining;
   const pctPaid   = fin.pctPaid;
 
   const handleSave = async () => {
@@ -323,8 +326,8 @@ export default function DealPaymentPanel({ deal, lead, onDealUpdate, estimate, i
                 />
               </div>
               <div className="flex justify-between text-xs mt-1.5">
-                <span className={`font-semibold ${balance === 0 ? "text-green-600" : "text-slate-600"}`}>
-                  {balance === 0 ? "✓ Paid in full" : `Balance due: ${fmtMoney(balance)}`}
+                <span className={`font-semibold ${total > 0 && remaining === 0 ? "text-green-600" : "text-slate-600"}`}>
+                  {total > 0 && remaining === 0 ? "✓ Paid in full" : `Balance due: ${fmtMoney(remaining)}`}
                 </span>
                 <span className="text-slate-400">{pctPaid}%</span>
               </div>

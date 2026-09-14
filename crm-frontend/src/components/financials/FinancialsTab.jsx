@@ -5,6 +5,7 @@ import * as railwayDealExpensePayments from "@/api/railway/dealExpensePayments";
 import * as railwayDealCommissions from "@/api/railway/dealCommissions";
 import * as railwayDealLoanPayments from "@/api/railway/dealLoanPayments";
 import * as railwayActivities from "@/api/railway/activities";
+import * as railwayDealFinancials from "@/api/railway/dealFinancials";
 import { useAuth } from "@/lib/AuthContext";
 import { computeFinancials } from "@/lib/financialCalc";
 import FinancialSummary from "./FinancialSummary";
@@ -32,30 +33,35 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal }) {
   const [commissions, setCommissions] = useState([]);
   const [loanPayments, setLoanPayments] = useState([]);
   const [activities, setActivities] = useState([]);
+  const [saleInvoices, setSaleInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     if (!deal?.id) return;
     setLoading(true);
     try {
-      const [exRes, payRes, comRes, loanRes, actRes] = await Promise.all([
+      const [exRes, payRes, comRes, loanRes, actRes, finRes] = await Promise.all([
         canViewFull ? railwayDealExpenses.list({ deal_id: deal.id }) : Promise.resolve({ items: [] }),
         canViewFull ? railwayDealExpensePayments.list({ deal_id: deal.id }) : Promise.resolve({ items: [] }),
         railwayDealCommissions.list({ deal_id: deal.id }).catch(() => ({ items: [] })),
         canViewFull ? railwayDealLoanPayments.list({ deal_id: deal.id }) : Promise.resolve({ items: [] }),
         canViewFull && deal.lead_id ? railwayActivities.list({ lead_id: deal.lead_id }).catch(() => ({ items: [] })) : Promise.resolve({ items: [] }),
+        // Sale-scoped QB invoices from qb_invoice_sale_map + qb_invoices_cache.
+        // QuickBooks is authoritative — no customer-level fallback, no double counting.
+        railwayDealFinancials.getFinancials(deal.id, deal.amount).catch(() => null),
       ]);
       setExpenses(exRes.items || []);
       setExpensePayments(payRes.items || []);
       setCommissions(comRes.items || []);
       setLoanPayments(loanRes.items || []);
       setActivities((actRes.items || []).filter((a) => a.metadata?.category === "financial"));
+      setSaleInvoices(finRes?.invoices || []);
     } catch {
       // non-critical
     } finally {
       setLoading(false);
     }
-  }, [deal?.id, deal?.lead_id, canViewFull]);
+  }, [deal?.id, deal?.lead_id, deal?.amount, canViewFull]);
 
   useEffect(() => {
     load();
@@ -87,7 +93,7 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal }) {
     [deal?.lead_id, deal?.id, user?.email]
   );
 
-  const fin = computeFinancials({ deal, lead, invoices, expenses, commissions, loanPayments });
+  const fin = computeFinancials({ deal, lead, invoices, saleInvoices, expenses, commissions, loanPayments });
 
   if (loading) {
     return (

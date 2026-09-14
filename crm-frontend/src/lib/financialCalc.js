@@ -144,7 +144,7 @@ export function getDealPaymentSummary(deal, lead, invoices = [], saleInvoices = 
   return { hasQB, projectTotal, invoiced, paid, balance, remaining, pctPaid };
 }
 
-export function computeFinancials({ deal, lead, invoices, expenses, commissions, loanPayments }) {
+export function computeFinancials({ deal, lead, invoices, saleInvoices, expenses, commissions, loanPayments }) {
   const hasQB = !!lead?.qb_invoice_id;
   const qbInvoiceAmount = safeNumber(lead?.qb_invoice_amount);
   const qbPaymentReceived = safeNumber(lead?.qb_payment_received);
@@ -155,8 +155,11 @@ export function computeFinancials({ deal, lead, invoices, expenses, commissions,
   const totalRevenue = round2(contractAmount + changeOrders + manualAdj);
 
   // ── paymentsReceived delegates to the shared helper so the P&L always
-  // matches the Financial tab / Payment Progress / Financial Summary. ──
-  const paymentsReceived = getDealPaymentSummary(deal, lead, invoices).paid;
+  // matches the Financial tab / Payment Progress / Financial Summary.
+  // saleInvoices (sale-scoped QB invoices from qb_invoice_sale_map) is passed
+  // through so the sale-scoped path is used when available — no customer-level
+  // fallback, no double counting. ──
+  const paymentsReceived = getDealPaymentSummary(deal, lead, invoices, saleInvoices).paid;
   const remainingCustomerBalance = round2(Math.max(0, totalRevenue - paymentsReceived));
 
   const ctx0 = { totalRevenue, paymentsReceived };

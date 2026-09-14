@@ -7,6 +7,7 @@
 import { useState, useEffect } from "react";
 import * as railwayDeals from "@/api/railway/deals";
 import * as railwayLeads from "@/api/railway/leads";
+import * as railwayDealFinancials from "@/api/railway/dealFinancials";
 import { getDealPaymentSummary } from "@/lib/financialCalc";
 import { EditableKPIChip, KPIChip } from "@/components/DesignSystem";
 import DealPaymentPanel from "@/components/DealPaymentPanel";
@@ -16,8 +17,20 @@ export default function FinancialTab({
   deal, lead, invoices, setDeal, setLead, refreshLead,
   editingField, setEditingField, savedMsg, setSavedMsg,
 }) {
+  // ── Sale-scoped QB invoices from qb_invoice_sale_map + qb_invoices_cache ──
+  // QuickBooks is authoritative. No customer-level fallback, no double counting.
+  const [saleInvoices, setSaleInvoices] = useState([]);
+  useEffect(() => {
+    if (!deal?.id) return;
+    let cancelled = false;
+    railwayDealFinancials.getFinancials(deal.id, deal.amount)
+      .then(res => { if (!cancelled) setSaleInvoices(res?.invoices || []); })
+      .catch(() => { if (!cancelled) setSaleInvoices([]); });
+    return () => { cancelled = true; };
+  }, [deal?.id, deal?.amount]);
+
   // ── Single source of truth — shared helper used by every financial component ──
-  const fin = getDealPaymentSummary(deal, lead, invoices);
+  const fin = getDealPaymentSummary(deal, lead, invoices, saleInvoices);
   const { projectTotal, invoiced: totalInvoiced, paid: totalPaid, balance: balanceDue, remaining: amountRemaining } = fin;
   const milestonePaid = (deal.deposit_paid || 0) + (deal.progress_payment_paid || 0) + (deal.final_payment_paid || 0);
 
@@ -67,7 +80,7 @@ export default function FinancialTab({
       {/* Payment Schedule */}
       <div>
         <p className="typography-section-header mb-2">PAYMENT SCHEDULE</p>
-        <DealPaymentPanel deal={deal} lead={lead} onDealUpdate={setDeal} invoices={invoices} />
+        <DealPaymentPanel deal={deal} lead={lead} onDealUpdate={setDeal} invoices={invoices} saleInvoices={saleInvoices} />
       </div>
 
       {/* QuickBooks — only render if a lead is linked (lead.id is the Railway UUID) */}

@@ -63,6 +63,26 @@ router.use(corsCapture);
 
 const availLimiter = rateLimit({ windowMs: 60 * 1000, max: 30 });
 const submitLimiter = rateLimit({ windowMs: 60 * 1000, max: 8 });
+const appListsLimiter = rateLimit({ windowMs: 60 * 1000, max: 20 });
+
+// ── GET /app-lists — public canonical Lead Sources + Project Types ──────────
+// Returns { projectTypes, leadSources } from app_settings (key='app_lists').
+// No JWT required — read-only public endpoint for the Capture form.
+// The canonical source of truth for Lead Sources is app_settings.value.sources
+// (camelCase). No hardcoded arrays, no legacy settings.app_lists.lead_sources.
+router.get('/app-lists', appListsLimiter, async (req, res) => {
+  try {
+    const r = await query("SELECT value FROM app_settings WHERE key = 'app_lists'");
+    const appLists = (r.rows[0] && r.rows[0].value) || {};
+    res.json({
+      projectTypes: appLists.projectTypes || [],
+      leadSources: appLists.sources || [],
+    });
+  } catch (e) {
+    console.error('[publicCapture:app-lists] error:', e.message);
+    res.status(500).json({ error: 'app_lists_unavailable' });
+  }
+});
 
 // ── GET /availability?owner=...&date=YYYY-MM-DD&duration=60 ────────────────
 router.get('/availability', availLimiter, async (req, res) => {

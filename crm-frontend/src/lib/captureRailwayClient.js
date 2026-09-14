@@ -64,3 +64,23 @@ export async function submitCapture(payload, options = {}) {
 
 // Base44 fallback removed — Railway capture is the sole submission path.
 // If isRailwayCaptureEnabled() is false, submit throws (no Base44 rollback).
+
+/**
+ * fetchAppLists — PUBLIC endpoint for the Capture form to fetch canonical
+ * Lead Sources + Project Types from app_settings (key='app_lists').
+ * No JWT required — this is a public, read-only endpoint.
+ * Returns { projectTypes: [], leadSources: [] }
+ */
+export async function fetchAppLists() {
+  if (!BASE) {
+    throw Object.assign(new Error('Capture service not configured.'), { code: 'config_error' });
+  }
+  const res = await fetch(`${BASE}/api/public/capture/app-lists`, { headers: { Accept: 'application/json' } });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw Object.assign(new Error(data?.message || data?.error || 'app-lists fetch failed'), {
+      status: res.status, data, code: data?.error,
+    });
+  }
+  return data;
+}
