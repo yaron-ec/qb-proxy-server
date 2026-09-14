@@ -115,7 +115,7 @@ export default function FinancialTab({
       {/* Payment Schedule */}
       <div>
         <p className="typography-section-header mb-2">PAYMENT SCHEDULE</p>
-        <DealPaymentPanel deal={deal} lead={lead} onDealUpdate={setDeal} invoices={invoices} saleInvoices={saleInvoices} />
+        <DealPaymentPanel deal={deal} lead={lead} onDealUpdate={setDeal} invoices={invoices} saleInvoices={saleInvoices} waterfall={waterfall} />
       </div>
 
       {/* QuickBooks — only render if a lead is linked (lead.id is the Railway UUID) */}
