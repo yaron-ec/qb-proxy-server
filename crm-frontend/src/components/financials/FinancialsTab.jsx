@@ -34,6 +34,7 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal }) {
   const [loanPayments, setLoanPayments] = useState([]);
   const [activities, setActivities] = useState([]);
   const [saleInvoices, setSaleInvoices] = useState([]);
+  const [waterfall, setWaterfall] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -56,6 +57,7 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal }) {
       setLoanPayments(loanRes.items || []);
       setActivities((actRes.items || []).filter((a) => a.metadata?.category === "financial"));
       setSaleInvoices(finRes?.invoices || []);
+      setWaterfall(finRes?.waterfall || null);
     } catch {
       // non-critical
     } finally {
@@ -93,7 +95,7 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal }) {
     [deal?.lead_id, deal?.id, user?.email]
   );
 
-  const fin = computeFinancials({ deal, lead, invoices, saleInvoices, expenses, commissions, loanPayments });
+  const fin = computeFinancials({ deal, lead, invoices, saleInvoices, expenses, commissions, loanPayments, waterfall });
 
   if (loading) {
     return (
