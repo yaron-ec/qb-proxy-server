@@ -18,7 +18,7 @@ import { useState, useEffect, useCallback } from "react";
 import { leadQB as railwayLeadQB } from "@/api/railway";
 import { fmtMoney } from "@/lib/formatters";
 import { useToast } from "@/components/ui/use-toast";
-import { DollarSign, RefreshCw, ArrowRightLeft, FileText, AlertCircle, CheckCircle2, ExternalLink } from "lucide-react";
+import { DollarSign, RefreshCw, ArrowRightLeft, FileText, AlertCircle, CheckCircle2, ExternalLink, Info } from "lucide-react";
 
 export default function QBStatusPanel({ lead, onLeadUpdated }) {
   const [qbData, setQbData] = useState(null);
@@ -106,6 +106,10 @@ export default function QBStatusPanel({ lead, onLeadUpdated }) {
 
   const { qbConnected, qbReconnectRequired, crmInvoices = [], qbInvoices = [], estimates = [] } = qbData || {};
   const hasQbCustomer = !!lead.qb_customer_id || !!qbData?.lead?.qb_customer_id;
+  // When QB invoices exist at customer level, payments are allocated across
+  // projects via the customer payment waterfall. This is an informational
+  // indicator, not an error condition.
+  const hasCustomerLevelQbInvoices = qbInvoices && qbInvoices.length > 0;
 
   return (
     <div className="space-y-3">
@@ -123,6 +127,17 @@ export default function QBStatusPanel({ lead, onLeadUpdated }) {
           </span>
         )}
       </div>
+
+      {/* Customer-level QB payment allocation notice */}
+      {hasCustomerLevelQbInvoices && (
+        <div className="flex items-start gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+          <Info className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-xs font-semibold text-blue-700">Customer-level payment allocation</p>
+            <p className="text-[11px] text-blue-600 mt-0.5">QuickBooks invoices are recorded at customer level; payments are allocated across projects according to project order.</p>
+          </div>
+        </div>
+      )}
 
       {/* Customer match */}
       <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
