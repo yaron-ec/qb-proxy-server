@@ -1,3 +1,4 @@
+# P0 recovery redeploy trigger — clear exhausted DB connections
 FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./
