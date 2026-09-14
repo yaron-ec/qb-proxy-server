@@ -343,7 +343,22 @@ export default function Deals() {
   // ONE source of truth: computeDealMetrics from dashboardMetrics.js.
   // Same function used by Dashboard (FollowUpsWidget), Deal Detail, and
   // financial summary components — all screens return the same number.
-  const metrics = computeDealMetrics(sorted);
+  // Merge waterfall financials into deal objects for authoritative KPI metrics.
+  // computeDealMetrics uses deal.total_paid and deal.balance_due — without this
+  // merge, the KPI cards (Total Revenue, Open Balance) would use stale stored fields
+  // that don't reflect actual QuickBooks received money.
+  const enrichedSorted = sorted.map(d => {
+    const fin = financialsMap[d.id];
+    if (fin && !fin.error && fin.paid != null) {
+      return {
+        ...d,
+        total_paid: fin.paid,
+        balance_due: fin.balance != null ? fin.balance : d.balance_due,
+      };
+    }
+    return d;
+  });
+  const metrics = computeDealMetrics(enrichedSorted);
   const totalValue        = metrics.totalRevenue;
   const revenueThisMonth  = metrics.revenueThisMonth;
   const revenueThisYear   = metrics.revenueThisYear;
