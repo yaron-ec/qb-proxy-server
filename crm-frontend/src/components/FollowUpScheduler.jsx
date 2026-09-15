@@ -219,9 +219,10 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
                 : ""}
               {lead.follow_up_time ? ` • ${fmt12(lead.follow_up_time)}` : ""}
             </p>
-            {(lead.follow_up_type === "Meeting" || lead.follow_up_type === "Phone Call") && lead.google_event_id && (
+            {(lead.follow_up_type === "Meeting" || lead.follow_up_type === "Phone Call") && lead.google_event_id && lead.google_calendar_sync_status === 'synced' && (
               <p className="text-[10px] text-emerald-600 font-semibold">✓ Synced to Google Calendar</p>
             )}
+          {(lead.follow_up_type === "Meeting" || lead.follow_up_type === "Phone Call") && lead.google_event_id && lead.google_event_id && lead.google_calendar_sync_status && lead.google_calendar_sync_status !== 'synced' && (
             {showSyncingPill && (
               <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
                 <Loader2 className="w-3 h-3 animate-spin" /> Syncing to Google Calendar…
