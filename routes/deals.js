@@ -152,39 +152,45 @@ router.get('/', async (req, res) => {
     const { rows } = await query(sql, params);
     let items = rows.map(serializeDeal);
 
-    // ── Enrich with customer payment waterfall allocations ──
-    // For each deal, compute the customer-level QB received money allocation.
-    // Multi-Deal customers get their QB received money distributed across
-    // eligible Deals chronologically. This is the AUTHORITATIVE paid value —
-    // it overrides manual total_paid on Deal cards and KPIs.
-    // Efficient: one query for lead→qb_customer_id, then per-customer waterfall
-    // (not per-deal). ~89 customers → ~179 queries total.
+    // ── Enrich with customer payment waterfall allocations (BATCHED) ──
+    // Set-based: 2 batched queries total (received totals + eligible deals)
+    // regardless of customer count. Previously ~2*N sequential queries (N+1).
+    // Preserves EXACT same waterfall business logic and API output.
     try {
-      const { getCustomerTotalReceived, getEligibleDealsForCustomer, allocateWaterfall } = require('../lib/customerPaymentWaterfall');
+      const { allocateWaterfall, getCustomerTotalReceivedBatch, getEligibleDealsForCustomersBatch } = require('../lib/customerPaymentWaterfall');
       const leadIds = [...new Set(items.map(d => d.lead_id).filter(Boolean))];
       if (leadIds.length > 0) {
+        // 1. lead → qb_customer_id mapping (1 query)
         const { rows: leadRows } = await query(
           'SELECT id, qb_customer_id FROM leads WHERE id = ANY($1::uuid[])',
           [leadIds]
         );
         const leadQbMap = new Map(leadRows.map(l => [l.id, l.qb_customer_id]));
         const customerIds = [...new Set([...leadQbMap.values()].filter(Boolean))];
-        const db = { query };
-        for (const qbCustomerId of customerIds) {
-          try {
-            const totalReceived = await getCustomerTotalReceived(db, qbCustomerId);
-            const eligibleDeals = await getEligibleDealsForCustomer(db, qbCustomerId);
-            const result = allocateWaterfall(totalReceived, eligibleDeals);
-            for (const deal of items) {
-              const allocation = result.allocations.find(a => a.deal_id === deal.id);
-              if (allocation) {
-                deal.waterfall_paid = allocation.allocated_paid;
-                deal.waterfall_remaining = allocation.allocated_remaining;
-                deal.waterfall_applied = true;
+        if (customerIds.length > 0) {
+          // 2. Batch: ALL customer received totals + ALL eligible deals in 2 queries (parallel)
+          const db = { query };
+          const [receivedMap, dealsByCustomer] = await Promise.all([
+            getCustomerTotalReceivedBatch(db, customerIds),
+            getEligibleDealsForCustomersBatch(db, customerIds),
+          ]);
+          // 3. Compute waterfall per customer in memory (pure computation, no DB)
+          for (const qbCustomerId of customerIds) {
+            try {
+              const totalReceived = receivedMap.get(qbCustomerId) || 0;
+              const eligibleDeals = dealsByCustomer.get(qbCustomerId) || [];
+              const result = allocateWaterfall(totalReceived, eligibleDeals);
+              for (const deal of items) {
+                const allocation = result.allocations.find(a => a.deal_id === deal.id);
+                if (allocation) {
+                  deal.waterfall_paid = allocation.allocated_paid;
+                  deal.waterfall_remaining = allocation.allocated_remaining;
+                  deal.waterfall_applied = true;
+                }
               }
+            } catch (e) {
+              console.error('[deals] waterfall for customer', qbCustomerId, 'failed:', e.message);
             }
-          } catch (e) {
-            console.error('[deals] waterfall for customer', qbCustomerId, 'failed:', e.message);
           }
         }
       }
