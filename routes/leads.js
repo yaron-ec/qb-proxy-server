@@ -1045,6 +1045,12 @@ router.post('/', requireAuth, async (req, res) => {
 
     sendLeadNotification('lead_created', fullRow, [], req.user?.email, 'note', `Lead created: ${first_name} ${last_name}`);
 
+    // Post-commit: enqueue Google Contacts sync (fire-and-forget, non-blocking)
+    try {
+      const contactsOutbox = require('../lib/googleContactsOutbox');
+      await contactsOutbox.enqueueContactSync(pool, fullRow.id);
+    } catch (e) { console.warn('[leads] contacts outbox enqueue failed (non-fatal):', e.message); }
+
     const appt = await fetchActiveAppointment(fullRow.id);
     res.status(201).json({ lead: serializeLead(fullRow, appt) });
   } catch (e) {
