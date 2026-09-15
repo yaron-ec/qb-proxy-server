@@ -31,38 +31,50 @@ let _tickCount = 0;
 let _contactsOutboxEnsured = false;
 
 async function tick(workerId, opts) {
-  try {
-    // Ensure contacts outbox table exists (idempotent, safe)
-    if (!_contactsOutboxEnsured) {
+  // Ensure contacts outbox table exists (idempotent, safe) — isolated
+  if (!_contactsOutboxEnsured) {
+    try {
       await contactsOutbox.ensureContactsOutbox(pool);
       _contactsOutboxEnsured = true;
+    } catch (e) {
+      console.error('[outbox-worker] ensureContactsOutbox failed:', e.message);
     }
+  }
 
-    // 1. Calendar outbox: reap stuck + process pending
+  // 1. Calendar outbox: reap stuck + process pending (PRIMARY — always runs)
+  try {
     await outbox.reapStuck(pool, opts.leaseMs);
     var result = await outbox.claimAndProcess(pool, workerId, opts);
     if (result.claimed) {
       console.log("[outbox-worker] calendar claimed=" + result.claimed + " processed=" + result.processed);
     }
+  } catch (e) {
+    console.error('[outbox-worker] calendar tick failed:', e.message);
+  }
 
-    // 2. Contacts outbox: reap stuck + process pending
+  // 2. Contacts outbox: reap stuck + process pending (ISOLATED — never blocks Calendar)
+  try {
     await contactsOutbox.reapStuckContacts(pool, opts.contactsLeaseMs || opts.leaseMs);
     var contactsResult = await contactsOutbox.processContactsOutbox(pool, opts);
     if (contactsResult.claimed) {
       console.log("[outbox-worker] contacts claimed=" + contactsResult.claimed + " processed=" + contactsResult.processed + " errors=" + contactsResult.errors);
     }
+  } catch (e) {
+    console.error('[outbox-worker] contacts tick failed:', e.message);
+  }
 
-    // 3. Calendar reconciliation: verify synced events every N ticks
-    _tickCount++;
-    if (_tickCount >= RECONCILE_EVERY_N_TICKS) {
-      _tickCount = 0;
+  // 3. Calendar reconciliation: verify synced events every N ticks (ISOLATED)
+  _tickCount++;
+  if (_tickCount >= RECONCILE_EVERY_N_TICKS) {
+    _tickCount = 0;
+    try {
       var reconResult = await outbox.reconcileSyncedAppointments(pool, opts);
       if (reconResult.checked > 0) {
         console.log("[outbox-worker] reconcile checked=" + reconResult.checked + " verified=" + reconResult.verified + " missing=" + reconResult.missing + " repaired=" + reconResult.repaired + " errors=" + reconResult.errors);
       }
+    } catch (e) {
+      console.error('[outbox-worker] reconcile tick failed:', e.message);
     }
-  } catch (e) {
-    console.error('[outbox-worker] tick failed:', e.message);
   }
 }
 
