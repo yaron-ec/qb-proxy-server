@@ -1,5 +1,5 @@
-// Redeploy trigger 2026-09-15: contacts outbox + calendar reconciliation
 #!/usr/bin/env node
+// Redeploy trigger 2026-09-15: contacts outbox + calendar reconciliation + shebang fix
 /* eslint-disable no-undef */
 /**
  * calendarOutboxWorker — standalone Phase 2 outbox drainer.
