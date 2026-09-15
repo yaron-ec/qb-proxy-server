@@ -271,6 +271,12 @@ router.post('/', submitLimiter, async (req, res) => {
       } catch (e) { console.warn('[public-capture] new-lead alert failed (non-fatal):', e.message); }
     }
 
+    // Post-commit: enqueue Google Contacts sync (fire-and-forget, non-blocking)
+    try {
+      const contactsOutbox = require('../lib/googleContactsOutbox');
+      await contactsOutbox.enqueueContactSync(pool, leadId);
+    } catch (e) { console.warn('[public-capture] contacts outbox enqueue failed (non-fatal):', e.message); }
+
     return res.status(201).json({
       success: true,
       lead: { id: leadId, first_name: c.first_name, last_name: c.last_name },
