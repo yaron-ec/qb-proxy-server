@@ -1,3 +1,4 @@
+// Redeploy trigger 2026-09-15: contacts outbox + calendar reconciliation
 #!/usr/bin/env node
 /* eslint-disable no-undef */
 /**
