@@ -22,13 +22,43 @@
 
 const { pool } = require('../db/client');
 const outbox = require('../lib/booking/calendarOutbox');
+const contactsOutbox = require('../lib/googleContactsOutbox');
+
+// Reconciliation runs every N ticks to avoid hammering Google on every loop
+const RECONCILE_EVERY_N_TICKS = parseInt(process.env.CALENDAR_RECONCILE_INTERVAL || '30', 10);
+let _tickCount = 0;
+let _contactsOutboxEnsured = false;
 
 async function tick(workerId, opts) {
   try {
+    // Ensure contacts outbox table exists (idempotent, safe)
+    if (!_contactsOutboxEnsured) {
+      await contactsOutbox.ensureContactsOutbox(pool);
+      _contactsOutboxEnsured = true;
+    }
+
+    // 1. Calendar outbox: reap stuck + process pending
     await outbox.reapStuck(pool, opts.leaseMs);
-    const result = await outbox.claimAndProcess(pool, workerId, opts);
+    var result = await outbox.claimAndProcess(pool, workerId, opts);
     if (result.claimed) {
-      console.log(`[outbox-worker] claimed=${result.claimed} processed=${result.processed}`);
+      console.log("[outbox-worker] calendar claimed=" + result.claimed + " processed=" + result.processed);
+    }
+
+    // 2. Contacts outbox: reap stuck + process pending
+    await contactsOutbox.reapStuckContacts(pool, opts.contactsLeaseMs || opts.leaseMs);
+    var contactsResult = await contactsOutbox.processContactsOutbox(pool, opts);
+    if (contactsResult.claimed) {
+      console.log("[outbox-worker] contacts claimed=" + contactsResult.claimed + " processed=" + contactsResult.processed + " errors=" + contactsResult.errors);
+    }
+
+    // 3. Calendar reconciliation: verify synced events every N ticks
+    _tickCount++;
+    if (_tickCount >= RECONCILE_EVERY_N_TICKS) {
+      _tickCount = 0;
+      var reconResult = await outbox.reconcileSyncedAppointments(pool, opts);
+      if (reconResult.checked > 0) {
+        console.log("[outbox-worker] reconcile checked=" + reconResult.checked + " verified=" + reconResult.verified + " missing=" + reconResult.missing + " repaired=" + reconResult.repaired + " errors=" + reconResult.errors);
+      }
     }
   } catch (e) {
     console.error('[outbox-worker] tick failed:', e.message);
