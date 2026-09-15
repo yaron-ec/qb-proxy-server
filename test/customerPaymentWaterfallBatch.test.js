@@ -117,9 +117,10 @@ test('batched_eligible_deals_chronological_order', async function () {
   var map = await getEligibleDealsForCustomersBatch(db, ['QB1']);
   var qb1Deals = map.get('QB1');
   assert(qb1Deals.length === 3, 'should have 3 eligible deals');
-  assert(qb1Deals[0].id === 'd3', 'first should be d3 (created_at fallback)');
-  assert(qb1Deals[1].id === 'd1', 'second should be d1');
-  assert(qb1Deals[2].id === 'd2', 'third should be d2');
+  // COALESCE(sold_date, created_at): d1='2026-01-01', d3='2026-01-05' (fallback), d2='2026-02-01'
+  assert(qb1Deals[0].id === 'd1', 'first should be d1 (sold_date 2026-01-01)');
+  assert(qb1Deals[1].id === 'd3', 'second should be d3 (created_at fallback 2026-01-05)');
+  assert(qb1Deals[2].id === 'd2', 'third should be d2 (sold_date 2026-02-01)');
 });
 
 test('batched_eligible_deals_excludes_zero_and_lost', async function () {
