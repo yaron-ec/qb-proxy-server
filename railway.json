@@ -60,6 +60,7 @@
             "scripts/calendarOutboxWorker.js",
             "lib/booking/**",
             "lib/googleCalendarClient.js",
+            "lib/googleContactsOutbox.js",
             "db/**",
             "package.json",
             "package-lock.json"
