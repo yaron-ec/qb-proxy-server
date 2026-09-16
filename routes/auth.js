@@ -21,23 +21,34 @@ const router = express.Router();
 
 // ── Break-glass admin auth guard (shared by all /admin-* routes below) ──────
 //
-// SECURITY: these endpoints intentionally work WITHOUT a Railway JWT/RBAC
-// session — they exist for the specific case where no admin can currently
-// log in (initial provisioning, or full lockout recovery). Normal ongoing
-// administration (listing users, changing roles) should go through the
-// RBAC-gated endpoints in routes/users.js instead, which require a valid
-// admin JWT session and are the preferred path whenever one exists.
+// Two independent, equally-valid ways in:
 //
-// This guard requires a DEDICATED secret (ADMIN_AUTH_SECRET) — it no longer
-// falls back to PROXY_SECRET. PROXY_SECRET is shared across ~60 legacy
-// server-to-server QB-proxy routes; accepting it here meant anyone/anything
-// holding that broadly-distributed secret could mint admin credentials for
-// any email. If ADMIN_AUTH_SECRET is not set, these break-glass endpoints
-// are disabled (503) rather than silently falling back to a weaker secret.
+//   1. A valid Railway JWT for a user whose role is 'admin' — the NORMAL
+//      path whenever an admin is already able to log in (Google SSO or
+//      existing password). This is what makes these endpoints safe to gate
+//      behind a secret that might not be configured: an already-logged-in
+//      admin (e.g. Yaron Drilevich or Michelle Roitman Drilevich) never
+//      depends on ADMIN_AUTH_SECRET at all for password reset/role/listing
+//      operations — they just use their own session. routes/users.js
+//      already covers role/status/name changes this way; these admin-*
+//      endpoints add password set/clear, which routes/users.js does not
+//      currently support, so this JWT path is what keeps a logged-in admin
+//      able to reset ANY user's password (including their own) without
+//      ADMIN_AUTH_SECRET ever being involved.
 //
-// Comparison is constant-time (crypto.timingSafeEqual) to avoid a timing
-// side-channel on the secret. A per-IP rate limit is applied to slow down
-// brute-force guessing.
+//   2. A DEDICATED secret (ADMIN_AUTH_SECRET, header X-Admin-Secret) — true
+//      break-glass recovery for the case where NO admin can currently log
+//      in at all (initial provisioning, or a full lockout with no working
+//      JWT session). This never falls back to PROXY_SECRET — PROXY_SECRET
+//      is shared across ~60 legacy server-to-server QB-proxy routes, and
+//      accepting it here meant anyone/anything holding that broadly-
+//      distributed secret could mint admin credentials for any email. If
+//      ADMIN_AUTH_SECRET is not set, this second path is simply
+//      unavailable (falls through to 401, not a silent weaker fallback) —
+//      but path 1 above means that alone can never lock out a logged-in
+//      admin. Comparison is constant-time (crypto.timingSafeEqual) to
+//      avoid a timing side-channel on the secret. A per-IP rate limit is
+//      applied to slow down brute-force guessing of the secret.
 const adminAuthLimiter = rateLimit({ windowMs: 60 * 1000, max: 10 });
 
 function safeSecretEquals(a, b) {
@@ -48,12 +59,31 @@ function safeSecretEquals(a, b) {
 }
 
 function requireAdminSecret(req, res, next) {
+  // Path 1: an already-authenticated admin JWT. Checked first so a logged-in
+  // admin never even needs ADMIN_AUTH_SECRET to be configured.
+  const authHeader = req.headers['authorization'] || '';
+  const m = /^Bearer\s+(.+)$/i.exec(authHeader);
+  if (m) {
+    try {
+      const payload = auth.verifyAccessToken(m[1].trim());
+      if (payload && payload.role === 'admin') {
+        req.user = payload;
+        return next();
+      }
+      // Valid JWT but not an admin — fall through to try the secret path
+      // rather than granting access; do NOT leak which case this was.
+    } catch (e) {
+      // Invalid/expired JWT — fall through to try the secret path.
+    }
+  }
+
+  // Path 2: dedicated break-glass secret.
   const adminSecret = process.env.ADMIN_AUTH_SECRET;
   if (!adminSecret) {
-    return res.status(503).json({
-      error: 'admin_bootstrap_disabled',
-      message: 'Break-glass admin endpoints require ADMIN_AUTH_SECRET to be set on the server. ' +
-        'Use the authenticated admin UI (routes/users.js) for normal administration.',
+    return res.status(401).json({
+      error: 'unauthorized',
+      message: 'Provide a valid admin JWT (Authorization: Bearer <token>), or configure ' +
+        'ADMIN_AUTH_SECRET on the server for break-glass recovery when no admin session exists.',
     });
   }
   const provided = req.headers['x-admin-secret'];
