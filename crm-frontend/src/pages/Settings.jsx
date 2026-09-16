@@ -403,7 +403,7 @@ function StatusesTab({ statuses, newStatus, setNewStatus, addStatus, removeStatu
           <div key={status} className="bg-white rounded-lg border border-slate-200 px-4 py-3 flex items-center justify-between hover:shadow-sm transition-shadow">
             <span className="text-sm text-slate-700 font-medium">{status}</span>
             {!readOnly && (
-              <button onClick={() => removeStatus(status)} className="text-red-400 hover:text-red-600 transition-colors ml-2">
+              <button onClick={() => removeStatus(status)} aria-label={`Remove ${status}`} className="text-red-400 hover:text-red-600 transition-colors ml-2">
                 <X className="w-4 h-4" />
               </button>
             )}
@@ -437,7 +437,7 @@ function ProjectTypesTab({ projectTypes, newProjectType, setNewProjectType, addP
           <div key={type} className="bg-white rounded-lg border border-slate-200 px-3 py-2.5 flex items-center justify-between hover:shadow-sm transition-shadow">
             <span className="text-xs text-slate-700 font-medium truncate mr-2">{type}</span>
             {!readOnly && (
-              <button onClick={() => removeProjectType(type)} className="text-red-400 hover:text-red-600 transition-colors flex-shrink-0">
+              <button onClick={() => removeProjectType(type)} aria-label={`Remove ${type}`} className="text-red-400 hover:text-red-600 transition-colors flex-shrink-0">
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
@@ -500,7 +500,7 @@ function SourcesTab({ sources, newSource, setNewSource, addSource, removeSource,
               <span className="text-sm text-slate-700 font-medium">{source}</span>
             </div>
             {!readOnly && (
-              <button onClick={() => removeSource(source)} className="text-red-400 hover:text-red-600 transition-colors">
+              <button onClick={() => removeSource(source)} aria-label={`Remove ${source}`} className="text-red-400 hover:text-red-600 transition-colors">
                 <X className="w-4 h-4" />
               </button>
             )}
@@ -632,7 +632,7 @@ function ContactOwnersTab({ contactOwners, newContactOwner, setNewContactOwner, 
                     >
                       Edit Email
                     </button>
-                    <button onClick={() => removeContactOwner(owner)} className="px-2.5 py-1.5 text-xs font-semibold text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
+                    <button onClick={() => removeContactOwner(owner)} aria-label={`Remove ${owner}`} className="px-2.5 py-1.5 text-xs font-semibold text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>

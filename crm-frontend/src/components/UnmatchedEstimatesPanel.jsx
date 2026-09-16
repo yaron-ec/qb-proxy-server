@@ -189,7 +189,7 @@ function EstimateRow({ rec, currentUser, onLinked }) {
                 <span className="text-xs font-semibold text-slate-800">{selectedLead.first_name} {selectedLead.last_name}</span>
                 <span className="text-[11px] text-slate-400">{selectedLead.email || selectedLead.phone}</span>
               </div>
-              <button onClick={() => setSelectedLead(null)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setSelectedLead(null)} aria-label="Close" className="text-slate-400 hover:text-slate-600">
                 <X className="w-4 h-4" />
               </button>
             </div>

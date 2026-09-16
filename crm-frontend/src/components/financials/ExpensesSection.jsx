@@ -25,7 +25,7 @@ function ExpenseModal({ editing, setEditing, saving, onSave, onClose }) {
       <div className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
           <h3 className="text-sm font-bold text-slate-800">{editing.id ? "Edit Expense" : "Add Expense"}</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">✕</button>
+          <button onClick={onClose} aria-label="Close" className="text-slate-400 hover:text-slate-600">✕</button>
         </div>
         <div className="p-4 space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -106,7 +106,7 @@ function PaymentsModal({ expense, payments, deal, user, onClose, onChange, logAc
       <div className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
           <h3 className="text-sm font-bold text-slate-800">Payments — {expense.vendor_name}</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">✕</button>
+          <button onClick={onClose} aria-label="Close" className="text-slate-400 hover:text-slate-600">✕</button>
         </div>
         <div className="p-4 space-y-3">
           <div className="text-xs text-slate-600 flex justify-between gap-2">

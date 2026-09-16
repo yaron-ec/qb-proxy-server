@@ -94,7 +94,7 @@ function UserModal({ user, onSave, onClose, saving, error }) {
       <div className="bg-white rounded-xl border border-slate-200 shadow-2xl w-full max-w-md mx-4">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <h3 className="text-sm font-bold text-slate-800">{isNew ? "Add New User" : "Edit User"}</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+          <button onClick={onClose} aria-label="Close" className="text-slate-400 hover:text-slate-600 transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>

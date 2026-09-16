@@ -30,7 +30,7 @@ export default function PropertyDetailPanel({ prop, onClose, onEdit }) {
             <h3 className="text-base font-bold text-slate-800">{prop.label}</h3>
             <p className="text-xs text-slate-500 mt-0.5">{category?.icon} {category?.label}</p>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
+          <button onClick={onClose} aria-label="Close" className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>

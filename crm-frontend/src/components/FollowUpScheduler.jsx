@@ -281,7 +281,7 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
         <p className="sidebar-section-header">
           {isUpdate ? "Update Follow-up" : "Schedule Follow-up"}
         </p>
-        <button onClick={() => setEditing(false)} className="text-slate-400 hover:text-slate-600">
+        <button onClick={() => setEditing(false)} aria-label="Cancel edit" className="text-slate-400 hover:text-slate-600">
           <X className="w-3.5 h-3.5" />
         </button>
       </div>

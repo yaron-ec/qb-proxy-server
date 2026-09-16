@@ -619,7 +619,7 @@ export default function LeadCapture() {
                       <CheckCircle className="w-5 h-5 text-slate-400" />
                     )}
                     <span className="text-xs text-slate-600 flex-1 truncate">{url.split('/').pop() || `Photo ${i + 1}`}</span>
-                    <button type="button" onClick={() => removeFile(i)} className="text-slate-400 hover:text-red-500">
+                    <button type="button" onClick={() => removeFile(i)} aria-label="Remove file" className="text-slate-400 hover:text-red-500">
                       <X className="w-4 h-4" />
                     </button>
                   </div>

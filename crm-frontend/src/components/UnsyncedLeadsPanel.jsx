@@ -237,7 +237,7 @@ export default function UnsyncedLeadsPanel() {
                         className="w-full border border-slate-200 rounded-lg pl-9 pr-8 py-2 text-sm focus:outline-none focus:border-amber-500 transition-colors"
                       />
                       {search && (
-                        <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                        <button onClick={() => setSearch('')} aria-label="Clear search" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                           <X className="w-3.5 h-3.5" />
                         </button>
                       )}
