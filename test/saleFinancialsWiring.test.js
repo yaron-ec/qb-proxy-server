@@ -101,6 +101,33 @@ async function run() {
     const f = map.computeSaleFinancials(1000, []);
     assert('Voided-only sale: invoiced 0, paid 0, balance 1000, unpaid', f.invoiced === 0 && f.paid === 0 && f.balance === 1000 && f.payment_status === 'unpaid');
   }
+  // 6b. computeSaleFinancials — new `remaining`/`invoiced_unpaid` fields
+  // (financial-correctness fix: `balance` is kept byte-for-byte backward
+  // compatible — `remaining` is an explicit alias of it, `invoiced_unpaid`
+  // is the genuinely new `invoiced - paid` value that never existed before).
+  {
+    // Fully invoiced, partially paid: invoiced === total, so invoiced_unpaid
+    // and remaining/balance must be equal in this specific case.
+    const f1 = map.computeSaleFinancials(16500, [{ total_amt: 16500, paid: 1500, voided: false }]);
+    assert('remaining is an exact alias of balance', f1.remaining === f1.balance);
+    assert('invoiced_unpaid = invoiced - paid (16500-1500=15000)', f1.invoiced_unpaid === 15000);
+    assert('when fully invoiced, invoiced_unpaid === remaining', f1.invoiced_unpaid === f1.remaining);
+
+    // Partially invoiced (only $5000 of a $16500 project has been billed so
+    // far, $1500 of that is paid): remaining (vs. the whole project) and
+    // invoiced_unpaid (vs. what's actually been billed) must now DIFFER —
+    // this is the exact gap `balance` alone could never represent.
+    const f2 = map.computeSaleFinancials(16500, [{ total_amt: 5000, paid: 1500, voided: false }]);
+    assert('partial-invoice: invoiced=5000', f2.invoiced === 5000);
+    assert('partial-invoice: remaining = total-paid = 15000', f2.remaining === 15000);
+    assert('partial-invoice: invoiced_unpaid = invoiced-paid = 3500', f2.invoiced_unpaid === 3500);
+    assert('partial-invoice: invoiced_unpaid !== remaining (the bug this fix exposes/fixes)', f2.invoiced_unpaid !== f2.remaining);
+
+    // invoiced_unpaid is floored at 0, never negative (e.g. an overpayment
+    // relative to what's been invoiced so far).
+    const f3 = map.computeSaleFinancials(16500, [{ total_amt: 1000, paid: 1500, voided: false }]);
+    assert('invoiced_unpaid never negative', f3.invoiced_unpaid === 0);
+  }
   // 8. classifyExisting — UNMAPPED (no lead)
   {
     const db = mockDb({ cache: [{ qb_invoice_id: 'INV-L', qb_doc_number: '#L', qb_customer_id: 'CUST-UNK', total_amt: 9999 }] });

@@ -50,6 +50,11 @@ router.get('/:id/financials', async (req, res) => {
         const wfPaid = Number(waterfall.this_deal_allocation.allocated_paid) || 0;
         summary.paid = wfPaid;
         summary.balance = Math.max(0, saleTotal - wfPaid);
+        // Keep the same two fields added in computeSaleFinancials() in sync
+        // when the waterfall overrides paid/balance — see the field-naming
+        // note on computeSaleFinancials for what each one means.
+        summary.remaining = summary.balance;
+        summary.invoiced_unpaid = Math.max(0, summary.invoiced - wfPaid);
         summary.payment_status = wfPaid >= saleTotal ? 'paid' : (wfPaid > 0 ? 'partial' : 'unpaid');
       }
     } catch (e) {
