@@ -29,6 +29,10 @@ function serializeSettings(row) {
     company_city: row.company_city,
     company_state: row.company_state,
     company_zip: row.company_zip,
+    // Operational region label (e.g. "SoCal", "NorCal", "SoCal + NorCal")
+    // — a display-only string, not a tenancy/routing concept. NULL means
+    // not configured; consumers fall back to company_city/company_state.
+    company_region: row.company_region || null,
     admin_name: row.admin_name,
     admin_email: row.admin_email,
     company_website: row.company_website,
@@ -42,6 +46,7 @@ const FIELDS = [
   'company_name', 'company_logo_url', 'company_email', 'company_phone',
   'company_address', 'company_city', 'company_state', 'company_zip',
   'admin_name', 'admin_email', 'company_website', 'crm_activity_notifications_enabled',
+  'company_region',
 ];
 
 // ── GET / — get singleton ─────────────────────────────────────────────────────

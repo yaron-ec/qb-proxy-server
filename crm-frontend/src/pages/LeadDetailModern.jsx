@@ -537,10 +537,15 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
         </div>
       </div>
 
-      {/* ── Contact section ── */}
-      <SidebarSection title="Contact Info">
+      {/* ── Contact section — name/phone/email/address ONLY. Owner/Job Type/
+          Budget/Source are lead/deal metadata, not contact info — see the
+          "Lead / Project" section below. ── */}
+      <SidebarSection title="Contact">
         <ContactInfoEditor lead={lead} onLeadUpdate={onLeadUpdate} />
+      </SidebarSection>
 
+      {/* ── Lead / Project section ── */}
+      <SidebarSection title="Lead / Project">
         {/* Owner — editable (click row) + copy (no pencil) */}
         <CRMField label="Owner" icon={User}>
           <EditableField value={toTitleCase(lead.assigned_rep) || "—"} onSave={v => updateField("assigned_rep", v)} type="select" options={contactOwners} editable

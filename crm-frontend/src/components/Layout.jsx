@@ -142,11 +142,17 @@ function LayoutComponent() {
       if (cancelled) return;
       const settings = res?.settings;
       if (!settings) return;
+      // company_region (e.g. "SoCal", "NorCal", "SoCal + NorCal") is an
+      // explicit admin-configured operational label — preferred over the
+      // raw city/state line when set, since a single city/state pair can't
+      // represent an admin/global view covering multiple regions. Never
+      // inferred from an employee's name or email.
       setCompanyIdentity({
         name: settings.company_name || DEFAULT_COMPANY_NAME,
-        location: (settings.company_city && settings.company_state)
-          ? `${settings.company_city}, ${settings.company_state}`
-          : DEFAULT_COMPANY_LOCATION,
+        location: settings.company_region
+          || ((settings.company_city && settings.company_state)
+            ? `${settings.company_city}, ${settings.company_state}`
+            : DEFAULT_COMPANY_LOCATION),
       });
     }).catch(() => { /* keep defaults on failure */ });
     return () => { cancelled = true; };

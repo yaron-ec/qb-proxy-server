@@ -87,8 +87,11 @@ test('Layout.jsx: sidebar company identity is configuration-driven, not a hardco
   assert.ok(src.includes('DEFAULT_COMPANY_NAME = "EC Construction Group"'), 'the full, correct company name must be the fallback default');
   assert.ok(src.includes('companySettings'), 'sidebar identity must be sourced from the company-settings API module');
   assert.ok(src.includes('companyIdentity.name') && src.includes('companyIdentity.location'), 'the rendered brand block must use fetched/fallback state, not literal strings');
-  // Must not hardcode a region by employee identity/email.
-  assert.ok(!/SoCal|NorCal/.test(src), 'no fabricated SoCal/NorCal region concept (no such data exists in company_settings today)');
+  // Region (e.g. "SoCal"/"NorCal") must come from the admin-configured
+  // company_region field, never be a hardcoded literal fallback and never
+  // be derived from an employee's identity/email.
+  assert.ok(src.includes('settings.company_region'), 'region must be read from the configured company_region field');
+  assert.ok(!/DEFAULT_COMPANY_LOCATION\s*=\s*"(SoCal|NorCal)/.test(src), 'the hardcoded fallback default must not itself be a region literal — company_region is opt-in config, not a new hardcoded default');
   assert.ok(!/yaron@ecconstructiongroup\.com.*SoCal|ethan@ecconstructiongroup\.com.*NorCal/i.test(src), 'region must never be derived from a hardcoded employee identity');
 });
 

@@ -41,106 +41,120 @@ export default function OverviewTab({ deal, lead, updateField, setDeal, setLead,
   useEffect(() => { setNotesDraft(deal.notes || ""); }, [deal.notes]);
 
   return (
+    // A large desktop viewport gets a real two-column workspace (client +
+    // project side by side) instead of one narrow vertical stack; laptop
+    // widths reduce naturally to one column via the grid breakpoint, and
+    // mobile is already single-column. Kept at PAGE_WIDTH_STANDARD (not
+    // stretched to the data-table-oriented 1600px width) — these are simple
+    // field cards, not a dense table.
     <div className="max-w-4xl mx-auto px-4 md:px-6 py-5 space-y-5">
-      {/* Client Card */}
-      <div className="card-premium p-4">
-        <p className="typography-section-header mb-3">CLIENT</p>
-        {lead ? (
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange to-amber-600 flex items-center justify-center flex-shrink-0">
-              <span className="text-sm font-bold text-white">{lead.first_name?.[0]}{lead.last_name?.[0]}</span>
+      {/* WHO is the customer + WHAT/WHERE/WHO OWNS/WHEN is the project —
+          the two answers this page should lead with, side by side. */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Client Card */}
+        <div className="card-premium p-4">
+          <p className="typography-section-header mb-3">CLIENT</p>
+          {lead ? (
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange to-amber-600 flex items-center justify-center flex-shrink-0">
+                <span className="text-sm font-bold text-white">{lead.first_name?.[0]}{lead.last_name?.[0]}</span>
+              </div>
+              <div className="flex-1 min-w-0 space-y-1">
+                <EditableClientField
+                  label="Name"
+                  value={`${lead.first_name || ""} ${lead.last_name || ""}`.trim()}
+                  onSave={async (fullName) => {
+                    const [first, ...rest] = fullName.split(" ");
+                    const last = rest.join(" ");
+                    await railwayLeads.update(lead.id, { first_name: first, last_name: last || first });
+                    setLead(prev => ({ ...prev, first_name: first, last_name: last || first }));
+                    const newName = `${first} ${last || first}`;
+                    await railwayDeals.update(deal.id, { name: newName });
+                    setDeal(prev => ({ ...prev, name: newName }));
+                  }}
+                />
+                <EditableClientField
+                  label="Phone"
+                  value={lead.phone || ""}
+                  type="tel"
+                  onSave={async (phone) => {
+                    await railwayLeads.update(lead.id, { phone });
+                    setLead(prev => ({ ...prev, phone }));
+                  }}
+                />
+              </div>
             </div>
-            <div className="flex-1 min-w-0 space-y-1">
-              <EditableClientField
-                label="Name"
-                value={`${lead.first_name || ""} ${lead.last_name || ""}`.trim()}
-                onSave={async (fullName) => {
-                  const [first, ...rest] = fullName.split(" ");
-                  const last = rest.join(" ");
-                  await railwayLeads.update(lead.id, { first_name: first, last_name: last || first });
-                  setLead(prev => ({ ...prev, first_name: first, last_name: last || first }));
-                  const newName = `${first} ${last || first}`;
-                  await railwayDeals.update(deal.id, { name: newName });
-                  setDeal(prev => ({ ...prev, name: newName }));
-                }}
-              />
-              <EditableClientField
-                label="Phone"
-                value={lead.phone || ""}
-                type="tel"
-                onSave={async (phone) => {
-                  await railwayLeads.update(lead.id, { phone });
-                  setLead(prev => ({ ...prev, phone }));
-                }}
-              />
-            </div>
+          ) : (
+            <p className="text-sm text-slate-400 py-2">No lead linked to this deal.</p>
+          )}
+        </div>
+
+        {/* Project Info */}
+        <div className="card-premium p-4 space-y-3">
+          <p className="typography-section-header">PROJECT INFO</p>
+          <EditableInfoRow icon={MapPin} label="Address" value={getFieldValue(deal.property_address, lead?.property_address)}
+            onSave={v => updateField("property_address", v)} saving={saving === "property_address"} />
+          <div className="group cursor-pointer hover:bg-slate-50 p-1.5 rounded -mx-1.5 transition-colors">
+            <ProjectTypeSelector
+              value={getFieldValue(deal.project_type, lead?.project_type || lead?.job_type || lead?.job_types)}
+              onSave={types => updateField("project_type", Array.isArray(types) ? types.join(", ") : types)}
+              label="Project Type"
+            />
           </div>
-        ) : (
-          <p className="text-sm text-slate-400 py-2">No lead linked to this deal.</p>
-        )}
+          <EditableInfoRow icon={User} label="Owner / Sales Rep" value={getFieldValue(deal.assigned_rep, lead?.assigned_rep)}
+            onSave={v => updateField("assigned_rep", v)} saving={saving === "assigned_rep"} />
+          <EditableInfoRow icon={Calendar} label="Sold Date" value={getFieldValue(deal.sold_date, lead?.sold_date)}
+            type="date" onSave={v => updateField("sold_date", v)} saving={saving === "sold_date"} />
+          <EditableInfoRow icon={FileText} label="Contract Signed" value={getFieldValue(deal.deposit_paid_date, lead?.signed_contract_date)}
+            type="date" onSave={v => updateField("deposit_paid_date", v)} saving={saving === "deposit_paid_date"} />
+        </div>
       </div>
 
-      {/* Project Info */}
-      <div className="card-premium p-4 space-y-3">
-        <p className="typography-section-header">PROJECT INFO</p>
-        <EditableInfoRow icon={MapPin} label="Address" value={getFieldValue(deal.property_address, lead?.property_address)}
-          onSave={v => updateField("property_address", v)} saving={saving === "property_address"} />
-        <div className="group cursor-pointer hover:bg-slate-50 p-1.5 rounded -mx-1.5 transition-colors">
-          <ProjectTypeSelector
-            value={getFieldValue(deal.project_type, lead?.project_type || lead?.job_type || lead?.job_types)}
-            onSave={types => updateField("project_type", Array.isArray(types) ? types.join(", ") : types)}
-            label="Project Type"
+      {/* WHAT'S NEXT (notes) + CURRENT STATUS (pipeline) — secondary detail,
+          still side by side on desktop so the page uses the width it has. */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Notes */}
+        <div className="card-premium p-4">
+          <p className="typography-section-header mb-2">NOTES</p>
+          <textarea
+            value={notesDraft}
+            onChange={e => setNotesDraft(e.target.value)}
+            onBlur={() => {
+              if (notesDraft !== (deal.notes || "")) updateField("notes", notesDraft);
+            }}
+            placeholder="Project notes…"
+            rows={4}
+            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 resize-none"
           />
         </div>
-        <EditableInfoRow icon={User} label="Owner / Sales Rep" value={getFieldValue(deal.assigned_rep, lead?.assigned_rep)}
-          onSave={v => updateField("assigned_rep", v)} saving={saving === "assigned_rep"} />
-        <EditableInfoRow icon={Calendar} label="Sold Date" value={getFieldValue(deal.sold_date, lead?.sold_date)}
-          type="date" onSave={v => updateField("sold_date", v)} saving={saving === "sold_date"} />
-        <EditableInfoRow icon={FileText} label="Contract Signed" value={getFieldValue(deal.deposit_paid_date, lead?.signed_contract_date)}
-          type="date" onSave={v => updateField("deposit_paid_date", v)} saving={saving === "deposit_paid_date"} />
-      </div>
 
-      {/* Notes */}
-      <div className="card-premium p-4">
-        <p className="typography-section-header mb-2">NOTES</p>
-        <textarea
-          value={notesDraft}
-          onChange={e => setNotesDraft(e.target.value)}
-          onBlur={() => {
-            if (notesDraft !== (deal.notes || "")) updateField("notes", notesDraft);
-          }}
-          placeholder="Project notes…"
-          rows={4}
-          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 resize-none"
-        />
-      </div>
-
-      {/* Pipeline Stages */}
-      <div className="card-premium p-4">
-        <p className="typography-section-header mb-3">PIPELINE</p>
-        <div className="space-y-2">
-          {PIPELINE_STAGES.map((stage, i) => {
-            const isActive = deal.stage === stage;
-            const isPast = i < stageIndex;
-            const sc = STAGE_COLORS[stage];
-            return (
-              <button
-                key={stage}
-                onClick={async () => {
-                  await updateField("stage", stage);
-                  setDeal(prev => ({ ...prev, stage }));
-                }}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border-2 text-sm font-semibold transition-all ${
-                  isActive ? `${sc.bg} ${sc.text} ${sc.border} shadow-md`
-                  : isPast ? "bg-slate-50 border-slate-200 text-slate-400"
-                  : "bg-white border-slate-200 text-slate-600 hover:border-amber-300"
-                }`}
-              >
-                <span>{stage}</span>
-                {isActive && <span className="w-2 h-2 rounded-full bg-current"></span>}
-              </button>
-            );
-          })}
+        {/* Pipeline Stages */}
+        <div className="card-premium p-4">
+          <p className="typography-section-header mb-3">PIPELINE</p>
+          <div className="space-y-2">
+            {PIPELINE_STAGES.map((stage, i) => {
+              const isActive = deal.stage === stage;
+              const isPast = i < stageIndex;
+              const sc = STAGE_COLORS[stage];
+              return (
+                <button
+                  key={stage}
+                  onClick={async () => {
+                    await updateField("stage", stage);
+                    setDeal(prev => ({ ...prev, stage }));
+                  }}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border-2 text-sm font-semibold transition-all ${
+                    isActive ? `${sc.bg} ${sc.text} ${sc.border} shadow-md`
+                    : isPast ? "bg-slate-50 border-slate-200 text-slate-400"
+                    : "bg-white border-slate-200 text-slate-600 hover:border-amber-300"
+                  }`}
+                >
+                  <span>{stage}</span>
+                  {isActive && <span className="w-2 h-2 rounded-full bg-current"></span>}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

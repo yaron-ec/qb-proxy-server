@@ -172,6 +172,20 @@ function serializeLead(row, appointment = null) {
     city: row.city,
     zip: row.zip,
     state: row.state,
+    // ── Address verification state (canonical: lib/addressPipeline.js) ──
+    // Written by the SAME geocoding pipeline used for routing/My Day Map —
+    // never a second, independent geocode. 'verified' = Google resolved a
+    // high-confidence exact match; 'needs_review' = Google found something
+    // but it materially differs from what was entered (never silently
+    // applied — property_address/city/state/zip stay as originally entered
+    // until a human confirms verified_property_address).
+    property_geocode_status: row.property_geocode_status || null,
+    verified_property_address: row.verified_property_address || null,
+    property_lat: row.property_lat != null ? Number(row.property_lat) : null,
+    property_lng: row.property_lng != null ? Number(row.property_lng) : null,
+    google_place_id: row.google_place_id || null,
+    original_property_address: row.original_property_address || null,
+    original_city: row.original_city || null,
     project_type: row.project_type,
     budget_range: row.budget_range,
     start_timeframe: row.start_timeframe,

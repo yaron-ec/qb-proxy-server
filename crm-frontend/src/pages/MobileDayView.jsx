@@ -240,8 +240,13 @@ export default function MobileDayView() {
   const [contactOwners, setContactOwners] = useState([]);
   // Deep-linkable: /daily-map redirects to /my-day?view=map (backward
   // compatibility for the retired standalone Appointment Map nav item).
+  // Map is the default: it already shows both the map AND the appointment/
+  // route list together (DailyMap's own default "split" view — see
+  // pages/DailyMap.jsx), giving the fuller daily-work picture up front.
+  // ?view=list is still honored for anyone who prefers/deep-links to the
+  // list-only view.
   const [view, setView] = useState(() =>
-    new URLSearchParams(window.location.search).get("view") === "map" ? "map" : "list"
+    new URLSearchParams(window.location.search).get("view") === "list" ? "list" : "map"
   ); // "list" | "map"
 
   useEffect(() => {
