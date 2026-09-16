@@ -222,8 +222,27 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
             {(lead.follow_up_type === "Meeting" || lead.follow_up_type === "Phone Call") && lead.google_event_id && lead.google_calendar_sync_status === 'synced' && (
               <p className="text-[10px] text-emerald-600 font-semibold">✓ Synced to Google Calendar</p>
             )}
-          {(lead.follow_up_type === "Meeting" || lead.follow_up_type === "Phone Call") && lead.google_event_id && lead.google_event_id && lead.google_calendar_sync_status && lead.google_calendar_sync_status !== 'synced' && (
-            {showSyncingPill && (
+            {/*
+              JSX SYNTAX FIX (was a build-breaking error — see git blame on
+              this block, commit 164a914): a new "event exists but
+              sync_status isn't 'synced' yet" condition was added directly
+              above the pre-existing `showSyncingPill` pill without a
+              closing `)}`, and with `lead.google_event_id` duplicated. That
+              malformed a `<p>...</p>` for a `{...}` block as its JSX
+              expression body, which does not parse, and swallowed the
+              `syncStatus === 'error'` pill and the section's closing
+              `</div>` inside the unclosed conditional — `npm run
+              build:exit` failed on this file. Restored to valid JSX by
+              OR-ing the new condition into the existing `showSyncingPill`
+              check (both describe "still syncing, not there yet" — one
+              covers the moment right after save with no event created yet,
+              the other covers an event that exists but hasn't reached
+              sync_status='synced'), so the same pill now covers both
+              cases. If a visually distinct state was intended for the
+              second case, that's a product/design decision to make
+              explicitly — this fix only restores a working build.
+            */}
+            {(showSyncingPill || ((lead.follow_up_type === "Meeting" || lead.follow_up_type === "Phone Call") && lead.google_event_id && lead.google_calendar_sync_status && lead.google_calendar_sync_status !== 'synced')) && (
               <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
                 <Loader2 className="w-3 h-3 animate-spin" /> Syncing to Google Calendar…
               </p>
