@@ -5,6 +5,7 @@ import * as railwaySettings from "@/api/railway/settings";
 import { Link, useNavigate } from "react-router-dom";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { toTitleCase, formatPhone } from "@/lib/formatters";
+import { parseFollowUpDate, getTodayLocal } from "@/lib/sortActiveLeads";
 import { Plus, Phone, User, MapPin, AlertCircle, RefreshCw, CheckCircle2, ExternalLink } from "lucide-react";
 
 // ── Column definitions ─────────────────────────────────────────────────────
@@ -375,13 +376,20 @@ function KanbanCard({ lead, index, isUpdating, navigate, onStatusChange, current
               </button>
             </div>
 
-            {/* Project type tag */}
-            {lead.project_type && (
-              <div className="mb-2">
-                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
-                  style={{ background: accentColor + "15", color: accentColor }}>
-                  {lead.project_type}
-                </span>
+            {/* Project type + deal value tags */}
+            {(lead.project_type || lead.estimated_value > 0) && (
+              <div className="mb-2 flex flex-wrap gap-1">
+                {lead.project_type && (
+                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
+                    style={{ background: accentColor + "15", color: accentColor }}>
+                    {lead.project_type}
+                  </span>
+                )}
+                {lead.estimated_value > 0 && (
+                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">
+                    ${lead.estimated_value.toLocaleString()}
+                  </span>
+                )}
               </div>
             )}
 
@@ -407,12 +415,22 @@ function KanbanCard({ lead, index, isUpdating, navigate, onStatusChange, current
               )}
             </div>
 
-            {/* Follow-up date */}
-            {lead.follow_up_date && (
-              <div className="mt-2 text-[10px] font-semibold text-blue-600 bg-blue-50 rounded px-1.5 py-0.5 inline-block">
-                📅 {new Date(lead.follow_up_date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-              </div>
-            )}
+            {/* Follow-up date — color reflects urgency (overdue/today/upcoming),
+                matching the same status logic used on the Leads list and My Day,
+                instead of a flat blue regardless of how late it is. */}
+            {lead.follow_up_date && (() => {
+              const fuNum = parseFollowUpDate(lead.follow_up_date);
+              const todayNum = getTodayLocal();
+              const isOverdue = fuNum !== null && fuNum < todayNum;
+              const isToday = fuNum !== null && fuNum === todayNum;
+              const cls = isOverdue ? "text-red-700 bg-red-50" : isToday ? "text-amber-700 bg-amber-50" : "text-blue-600 bg-blue-50";
+              return (
+                <div className={`mt-2 text-[10px] font-semibold rounded px-1.5 py-0.5 inline-block ${cls}`}>
+                  {isOverdue ? "⚠ Overdue: " : "📅 "}
+                  {isToday ? "Today" : new Date(lead.follow_up_date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                </div>
+              );
+            })()}
 
             {/* Saving indicator */}
             {isUpdating && (
