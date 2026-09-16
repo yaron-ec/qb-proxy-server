@@ -15,8 +15,53 @@
 const express = require('express');
 const crypto = require('crypto');
 const auth = require('../lib/authService');
+const { rateLimit } = require('../lib/rateLimit');
 
 const router = express.Router();
+
+// ── Break-glass admin auth guard (shared by all /admin-* routes below) ──────
+//
+// SECURITY: these endpoints intentionally work WITHOUT a Railway JWT/RBAC
+// session — they exist for the specific case where no admin can currently
+// log in (initial provisioning, or full lockout recovery). Normal ongoing
+// administration (listing users, changing roles) should go through the
+// RBAC-gated endpoints in routes/users.js instead, which require a valid
+// admin JWT session and are the preferred path whenever one exists.
+//
+// This guard requires a DEDICATED secret (ADMIN_AUTH_SECRET) — it no longer
+// falls back to PROXY_SECRET. PROXY_SECRET is shared across ~60 legacy
+// server-to-server QB-proxy routes; accepting it here meant anyone/anything
+// holding that broadly-distributed secret could mint admin credentials for
+// any email. If ADMIN_AUTH_SECRET is not set, these break-glass endpoints
+// are disabled (503) rather than silently falling back to a weaker secret.
+//
+// Comparison is constant-time (crypto.timingSafeEqual) to avoid a timing
+// side-channel on the secret. A per-IP rate limit is applied to slow down
+// brute-force guessing.
+const adminAuthLimiter = rateLimit({ windowMs: 60 * 1000, max: 10 });
+
+function safeSecretEquals(a, b) {
+  const bufA = Buffer.from(String(a));
+  const bufB = Buffer.from(String(b));
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
+function requireAdminSecret(req, res, next) {
+  const adminSecret = process.env.ADMIN_AUTH_SECRET;
+  if (!adminSecret) {
+    return res.status(503).json({
+      error: 'admin_bootstrap_disabled',
+      message: 'Break-glass admin endpoints require ADMIN_AUTH_SECRET to be set on the server. ' +
+        'Use the authenticated admin UI (routes/users.js) for normal administration.',
+    });
+  }
+  const provided = req.headers['x-admin-secret'];
+  if (!provided || !safeSecretEquals(provided, adminSecret)) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+  next();
+}
 
 router.post('/login', async (req, res) => {
   try {
@@ -64,17 +109,12 @@ router.get('/me', require('../lib/rbac').requireAuth, async (req, res) => {
 
 // ── Admin: set/reset a user's password (PERMANENT admin tool) ────────────────
 //   POST /admin-set-password  { email, password, role? }
-//   Header: X-Admin-Secret: <ADMIN_AUTH_SECRET or QB_PROXY_SECRET>
+//   Header: X-Admin-Secret: <ADMIN_AUTH_SECRET> (dedicated secret — PROXY_SECRET fallback removed)
 //
 // Allows the admin to set a password for any user (or create one if missing),
 // so they can log in via email/password WITHOUT Base44 or Google OAuth.
 // This is a permanent admin provisioning tool, not a migration hack.
-router.post('/admin-set-password', async (req, res) => {
-  const adminSecret = process.env.ADMIN_AUTH_SECRET || process.env.PROXY_SECRET;
-  const provided = req.headers['x-admin-secret'];
-  if (!adminSecret || provided !== adminSecret) {
-    return res.status(401).json({ error: 'unauthorized' });
-  }
+router.post('/admin-set-password', adminAuthLimiter, requireAdminSecret, async (req, res) => {
   try {
     const { email, password, role } = req.body || {};
     if (!email || !password) return res.status(400).json({ error: 'email and password required' });
@@ -99,16 +139,11 @@ router.post('/admin-set-password', async (req, res) => {
 
 // ── Admin: list users (read-only, admin-only) ────────────────────────────────
 //   POST /admin-list-users
-//   Header: X-Admin-Secret: <ADMIN_AUTH_SECRET or PROXY_SECRET>
+//   Header: X-Admin-Secret: <ADMIN_AUTH_SECRET> (dedicated secret — PROXY_SECRET fallback removed)
 //
 // Returns all users with id, email, full_name, role, status, google_sub presence,
 // and password_hash presence. Does NOT return password hashes or tokens.
-router.post('/admin-list-users', async (req, res) => {
-  const adminSecret = process.env.ADMIN_AUTH_SECRET || process.env.PROXY_SECRET;
-  const provided = req.headers['x-admin-secret'];
-  if (!adminSecret || provided !== adminSecret) {
-    return res.status(401).json({ error: 'unauthorized' });
-  }
+router.post('/admin-list-users', adminAuthLimiter, requireAdminSecret, async (req, res) => {
   try {
     const { rows } = await require('../db/client').query(
       `SELECT id, email, full_name, role, status,
@@ -125,17 +160,12 @@ router.post('/admin-list-users', async (req, res) => {
 
 // ── Admin: clear a user's password (admin-only) ──────────────────────────────
 //   POST /admin-clear-password  { email }
-//   Header: X-Admin-Secret: <ADMIN_AUTH_SECRET or PROXY_SECRET>
+//   Header: X-Admin-Secret: <ADMIN_AUTH_SECRET> (dedicated secret — PROXY_SECRET fallback removed)
 //
 // Clears the password_hash for a user, disabling email/password login.
 // Google SSO (google_sub) is NOT affected. Use this to remove a temporary
 // password after admin-set-password was used for role patching.
-router.post('/admin-clear-password', async (req, res) => {
-  const adminSecret = process.env.ADMIN_AUTH_SECRET || process.env.PROXY_SECRET;
-  const provided = req.headers['x-admin-secret'];
-  if (!adminSecret || provided !== adminSecret) {
-    return res.status(401).json({ error: 'unauthorized' });
-  }
+router.post('/admin-clear-password', adminAuthLimiter, requireAdminSecret, async (req, res) => {
   try {
     const { email } = req.body || {};
     if (!email) return res.status(400).json({ error: 'email required' });
@@ -161,17 +191,12 @@ router.post('/admin-clear-password', async (req, res) => {
 
 // ── Admin: set a user's role WITHOUT changing their password (PERMANENT) ────
 //   POST /admin-set-role  { email, role }
-//   Header: X-Admin-Secret: <ADMIN_AUTH_SECRET or PROXY_SECRET>
+//   Header: X-Admin-Secret: <ADMIN_AUTH_SECRET> (dedicated secret — PROXY_SECRET fallback removed)
 //
 // Sets the role for an existing user without touching their password_hash
 // or Google SSO (google_sub). This is the canonical tool for fixing role
 // mismatches without credential side-effects.
-router.post('/admin-set-role', async (req, res) => {
-  const adminSecret = process.env.ADMIN_AUTH_SECRET || process.env.PROXY_SECRET;
-  const provided = req.headers['x-admin-secret'];
-  if (!adminSecret || provided !== adminSecret) {
-    return res.status(401).json({ error: 'unauthorized' });
-  }
+router.post('/admin-set-role', adminAuthLimiter, requireAdminSecret, async (req, res) => {
   try {
     const { email, role } = req.body || {};
     if (!email || !role) return res.status(400).json({ error: 'email and role required' });
@@ -334,3 +359,7 @@ router.get('/google/callback', async (req, res) => {
 // ── END Google OAuth SSO ─────────────────────────────────────────────────────
 
 module.exports = router;
+// Exposed for testing only (router is a function, so this is a safe extra
+// property — does not change what `require('./routes/auth')` returns as the
+// mounted Express router).
+module.exports._testables = { requireAdminSecret, safeSecretEquals };
