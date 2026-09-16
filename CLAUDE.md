@@ -266,13 +266,47 @@ cases, not evidence they need rework:
 
 ## Open, known-limitation items
 
-- **Google Contacts automatic sync** — was confirmed broken (a missing
-  `pool` import in `routes/publicCapture.js` caused a `ReferenceError` on
-  every public lead capture, silently swallowed) and has been fixed and
-  covered by a regression test (`test/googleContactsAutoSync.test.js`) in
-  this session. This was the one backend item flagged as the relevant open
-  verification/repair area going into this session; treat it as resolved
-  pending live confirmation, not as still-open.
+- **Google Contacts automatic sync** — the original `routes/publicCapture.js`
+  missing-`pool` `ReferenceError` (a prior session's fix, still valid) only
+  covered ONE of several gaps found in a later, deeper pass. Confirmed and
+  fixed in that pass (see `test/googleContactsReconciliation.test.js`):
+  (1) `routes/metaWebhook.js` (Meta/Facebook Lead Ads) created leads without
+  ever enqueueing contacts sync, in either its with-appointment or lead-only
+  branch — leads from that source never synced at all; (2) the legacy
+  `PUT /by-external/:externalRef` upsert route never enqueued either, on
+  create or update; (3) **`PUT /:id`, the canonical "Edit Lead" endpoint,
+  never re-enqueued sync when a lead's contact fields were edited after
+  creation** — a lead was only ever synced ONCE, at creation, so a later
+  phone/email/name correction left its Google Contact permanently stale
+  with no automatic path to fix it (only the manual per-lead "Sync Now"
+  button in `GoogleContactSyncPanel.jsx` could force a re-sync). This is the
+  most likely source-level explanation for a lead whose CRM record looks
+  correct but whose Google Contact/caller-ID never reflects a later
+  correction. (4) `lib/googleContactsClient.js#findContact`'s phone match
+  compared digit strings with `.includes()` in a way that only matched when
+  the stored contact had at least as many digits as the incoming
+  `+1XXXXXXXXXX`-normalized lead phone — a contact stored as a bare
+  10-digit number (common for anything a human typed in without a country
+  code) would never match, risking a duplicate contact instead of an
+  update; fixed to compare the last 10 digits of each side. All four are
+  fixed; `lib/googleContactsOutbox.js#enqueueContactSync` was also hardened
+  to be genuinely idempotent (it previously inserted an unconditional new
+  outbox row on every call) and to flip the lead's own
+  `google_contact_sync_status` to `'pending'` on enqueue so a stale
+  `'synced'`/`'error'` status is never shown while a fresh sync is
+  outstanding. Migration `2026-38` adds `google_contact_synced_at`
+  (written only on a real sync success, unlike `updated_at`) so
+  reconciliation can detect a lead edited after its last successful sync.
+  `scripts/reconcileGoogleContacts.js` classifies every lead with a phone
+  or email into CONFIRMED_SYNCED / MISSING / FAILED_RETRYABLE / PENDING /
+  STALE / CANNOT_VERIFY and, only with `--enqueue`, queues the ones that
+  need it — it never calls the Google API directly. **Not yet verified
+  against live production data or the live Google Contacts API** (no
+  outbound network access in the environment these fixes were written in)
+  — running `scripts/reconcileGoogleContacts.js` (report-only first, then
+  `--enqueue` if warranted) against production, and checking a real device
+  for the caller-ID fix, remains an open, live-environment verification
+  step, not a code-level one.
 - **`test/invoiceTemplateParity.test.js`** and
   **`test/railwayEmailSender.test.js`** — both structurally test comparison
   against `base44/functions/...` and `base44/shared/...` source files that

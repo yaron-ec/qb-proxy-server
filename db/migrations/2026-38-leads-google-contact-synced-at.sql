@@ -1,0 +1,26 @@
+-- =====================================================================
+-- 2026-38-leads-google-contact-synced-at.sql
+--
+-- Adds a dedicated "last successfully synced" timestamp for Google
+-- Contacts, distinct from leads.updated_at.
+--
+-- ROOT CAUSE THIS FIXES: leads.updated_at is bumped by every write to the
+-- leads row, INCLUDING the outbox worker's own success write
+-- ("UPDATE leads SET google_contact_sync_status = 'synced', ...,
+-- updated_at = NOW()" in lib/googleContactsOutbox.js). That means
+-- updated_at can never be compared against itself to answer "was this
+-- lead edited after its Google Contact was last synced?" — a genuine
+-- edit and a sync completion are indistinguishable in that column.
+--
+-- google_contact_synced_at is written ONLY at the moment a Google
+-- Contacts sync actually succeeds (never by unrelated lead edits), so
+-- reconciliation can classify a lead as STALE when
+-- updated_at > google_contact_synced_at.
+--
+-- Idempotent (IF NOT EXISTS). Safe to re-run. Nullable — NULL means
+-- "never successfully synced", consistent with existing
+-- google_contact_sync_status semantics.
+-- Applied via: node db/migrate.js
+-- =====================================================================
+
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS google_contact_synced_at TIMESTAMPTZ;

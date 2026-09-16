@@ -209,6 +209,15 @@ router.post('/', express.raw({ type: '*/*', verify: (req, res, buf) => { req.raw
                 const leadRow = (await query('SELECT * FROM leads WHERE id = $1', [leadId])).rows[0];
                 if (leadRow) await sendNewLeadAlert(leadRow, process.env.CRM_PUBLIC_URL || '');
               } catch (e) { console.warn('[meta-webhook] alert failed:', e.message); }
+
+              // Google Contacts sync — this webhook previously never enqueued
+              // at all, so every Meta/Facebook Lead Ads lead silently never
+              // synced to Google Contacts regardless of the outbox/worker
+              // being otherwise healthy.
+              try {
+                const contactsOutbox = require('../lib/googleContactsOutbox');
+                await contactsOutbox.enqueueContactSync(db.pool, leadId);
+              } catch (e) { console.warn('[meta-webhook] contacts outbox enqueue failed (non-fatal):', e.message); }
             }
           } else {
             // No appointment date — create lead only (no booking)
@@ -248,6 +257,13 @@ router.post('/', express.raw({ type: '*/*', verify: (req, res, buf) => { req.raw
                   const leadRow = (await q('SELECT * FROM leads WHERE id = $1', [leadId])).rows[0];
                   if (leadRow) await sendNewLeadAlert(leadRow, process.env.CRM_PUBLIC_URL || '');
                 } catch (e) { console.warn('[meta-webhook] alert failed:', e.message); }
+
+                // Google Contacts sync — see comment on the with-appointment
+                // branch above; this lead-only path had the same gap.
+                try {
+                  const contactsOutbox = require('../lib/googleContactsOutbox');
+                  await contactsOutbox.enqueueContactSync(db.pool, leadId);
+                } catch (e) { console.warn('[meta-webhook] contacts outbox enqueue failed (non-fatal):', e.message); }
               }
             } catch (e) {
               console.error('[meta-webhook] lead-only create failed:', e.message);

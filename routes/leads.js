@@ -506,6 +506,21 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
       req.user?.email
     );
 
+    // Post-commit: enqueue Google Contacts sync — this legacy upsert-by-
+    // external-ref path previously never enqueued at all (unlike POST / and
+    // publicCapture.js), so any lead created OR edited only through this
+    // route would never sync to Google Contacts, and a phone/email/name
+    // correction made through it would leave an existing Google Contact
+    // stale. Enqueue whenever the lead is new, or any contact field was
+    // part of this request.
+    const contactFieldsTouched = CONTACT_FIELDS.some(f => cleaned[f] !== undefined);
+    if (wasNew || contactFieldsTouched) {
+      try {
+        const contactsOutbox = require('../lib/googleContactsOutbox');
+        await contactsOutbox.enqueueContactSync(pool, fullRow.id);
+      } catch (e) { console.warn('[leads] contacts outbox enqueue failed (non-fatal):', e.message); }
+    }
+
     const appt = await fetchActiveAppointment(fullRow.id);
     res.json({ lead: serializeLead(fullRow, appt) });
   } catch (e) {
@@ -1334,6 +1349,20 @@ router.put('/:id', requireAuth, async (req, res) => {
       sendLeadNotification(action, fullRow, changes, req.user?.email);
     }
 
+    // Post-commit: re-enqueue Google Contacts sync when contact-relevant
+    // fields changed (first/last name, phone, email, address) — a Lead
+    // was previously only ever synced ONCE at creation; editing it after
+    // that never re-triggered sync, so the Google Contact silently drifted
+    // stale. Fire-and-forget, non-blocking, matching the creation call site.
+    const contactChanged = changes.some(c =>
+      ['First Name', 'Last Name', 'Phone', 'Email', 'Property Address', 'City'].includes(c.label));
+    if (contactChanged) {
+      try {
+        const contactsOutbox = require('../lib/googleContactsOutbox');
+        await contactsOutbox.enqueueContactSync(pool, fullRow.id);
+      } catch (e) { console.warn('[leads] contacts outbox re-enqueue failed (non-fatal):', e.message); }
+    }
+
     const appt = await fetchActiveAppointment(fullRow.id);
     res.json({ lead: serializeLead(fullRow, appt) });
   } catch (e) {
@@ -1657,11 +1686,11 @@ router.post('/by-external/:externalRef/sync-contact', requireAuth, async (req, r
       // tracking is unavailable until the migration runs.
       try {
         await query(
-          'UPDATE leads SET google_contact_sync_status = $1, google_contact_resource_name = $2, google_contact_sync_error = NULL, updated_at = NOW() WHERE id = $3',
+          'UPDATE leads SET google_contact_sync_status = $1, google_contact_resource_name = $2, google_contact_sync_error = NULL, google_contact_synced_at = NOW(), updated_at = NOW() WHERE id = $3',
           ['synced', result.resourceName, lead.id]
         );
       } catch (updateErr) {
-        console.warn('[leads] sync-contact: google_contact_* columns not yet migrated — sync status not recorded. Run migration 2026-25. Contact was still synced:', updateErr.message);
+        console.warn('[leads] sync-contact: google_contact_* columns not yet migrated — sync status not recorded. Run migration 2026-25/2026-38. Contact was still synced:', updateErr.message);
       }
 
       return res.json({
