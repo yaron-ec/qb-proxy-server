@@ -30,16 +30,12 @@ import Dashboard from './pages/Dashboard';
 import Leads from './pages/LeadsModern';
 import LeadDetailModern from './pages/LeadDetailModern';
 import LeadCapture from './pages/LeadCapture';
-import Estimates from './pages/EstimatesModern';
-import EstimateDetail from './pages/EstimateDetail';
 import Settings from './pages/Settings';
 import Integrations from './pages/Integrations';
 import QBCallback from './pages/QBCallback';
 import DealDetail from './pages/DealDetail';
 import Deals from './pages/Deals';
 import DailyMap from './pages/DailyMap';
-import AutomationCenter from './pages/AutomationCenter';
-import DailyActionCenter from './pages/DailyActionCenter';
 import Reports from './pages/Reports';
 import MobileDayView from './pages/MobileDayView';
 import KanbanBoard from './pages/KanbanBoard';
@@ -126,11 +122,8 @@ const AuthenticatedApp = () => {
         <Route path="/daily-map" element={<PageContentWrapper><DailyMap /></PageContentWrapper>} />
         <Route path="/my-day" element={<PageContentWrapper><MobileDayView /></PageContentWrapper>} />
         <Route path="/kanban" element={<PageContentWrapper><KanbanBoard /></PageContentWrapper>} />
-        <Route path="/automations" element={<PageContentWrapper><AutomationCenter /></PageContentWrapper>} />
         <Route path="/leads" element={<PageContentWrapper><Leads /></PageContentWrapper>} />
         <Route path="/leads/:id" element={<PageContentWrapper><LeadDetailModern /></PageContentWrapper>} />
-        <Route path="/estimates" element={<PageContentWrapper><Estimates /></PageContentWrapper>} />
-        <Route path="/estimates/:id" element={<PageContentWrapper><EstimateDetail /></PageContentWrapper>} />
         <Route path="/deals" element={<PageContentWrapper><Deals /></PageContentWrapper>} />
         <Route path="/deals/:id" element={<PageContentWrapper><DealDetail /></PageContentWrapper>} />
         <Route path="/reports" element={<PageContentWrapper><Reports /></PageContentWrapper>} />

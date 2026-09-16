@@ -3,32 +3,28 @@ import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import React from "react";
 import {
-  LayoutDashboard, Users, BarChart2,
-  Settings, ChevronLeft, ChevronRight, LogOut, TrendingUp, Map, FileBarChart, Kanban
+  Users, BarChart2,
+  Settings, ChevronLeft, ChevronRight, LogOut, TrendingUp, Map, FileBarChart, Kanban, CalendarDays
 } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Tip from "@/components/ui/Tip";
 // Logo uses local static asset — no runtime API dependency
 
-const NAV_ITEMS_ALL = [
-  { path: "/",              label: "Dashboard",     icon: BarChart2 },
-  { path: "/leads",         label: "Active Leads",  icon: Users },
-  { path: "/kanban",        label: "Status Board",  icon: Kanban },
+// A single nav list for every role — NAV_ITEMS_ALL/NAV_ITEMS_SALES_REP used to
+// be two separately-maintained arrays with identical contents (scaffolded
+// role differentiation that was never actually implemented). Kept as one
+// list until a real per-role navigation decision is made; splitting it again
+// is one line once that decision exists.
+const NAV_ITEMS = [
+  { path: "/",              label: "Dashboard",       icon: BarChart2 },
+  { path: "/my-day",        label: "My Day",          icon: CalendarDays },
+  { path: "/leads",         label: "Active Leads",    icon: Users },
+  { path: "/kanban",        label: "Status Board",    icon: Kanban },
   { path: "/daily-map",     label: "Appointment Map", icon: Map },
-  { path: "/deals",         label: "Deals",         icon: TrendingUp },
-  { path: "/reports",       label: "Reports",       icon: FileBarChart },
-  { path: "/settings",      label: "Settings",      icon: Settings },
-];
-
-const NAV_ITEMS_SALES_REP = [
-  { path: "/",              label: "Dashboard",     icon: BarChart2 },
-  { path: "/leads",         label: "Active Leads",  icon: Users },
-  { path: "/kanban",        label: "Status Board",  icon: Kanban },
-  { path: "/daily-map",     label: "Appointment Map", icon: Map },
-  { path: "/deals",         label: "Deals",         icon: TrendingUp },
-  { path: "/reports",       label: "Reports",       icon: FileBarChart },
-  { path: "/settings",      label: "Settings",      icon: Settings },
+  { path: "/deals",         label: "Deals",           icon: TrendingUp },
+  { path: "/reports",       label: "Reports",         icon: FileBarChart },
+  { path: "/settings",      label: "Settings",        icon: Settings },
 ];
 
 function NavItem({ path, label, icon: Icon, active, collapsed }) {
@@ -105,8 +101,6 @@ function LayoutComponent() {
   // Local static asset — always use /logo-dark.jpg from crm-frontend/public/.
   // No API override — prevents broken logo from stale company_logo_url.
   const logoUrl = '/logo-dark.jpg';
-
-  const NAV_ITEMS = currentUser?.role === 'sales_rep' ? NAV_ITEMS_SALES_REP : NAV_ITEMS_ALL;
 
   const isActive = (path) =>
     path === "/" ? location.pathname === "/" : location.pathname === path || location.pathname.startsWith(path + "/");
