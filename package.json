@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
+    "test": "node --test test/*.test.js test/*.test.cjs",
+    "test:syntax": "for f in server.js reminderWorker.js reminderWatchdog.js productionWatchdog.js $(find routes lib db scripts -name '*.js'); do node -c \"$f\" || exit 1; done",
     "reminders:worker": "node reminderWorker.js",
     "reminders:watchdog": "node reminderWatchdog.js",
     "reminders:migrate": "node -e \"require('./db/client').ensureSchema().then(()=>{console.log('schema ok');process.exit(0)}).catch(e=>{console.error(e);process.exit(1)})\"",
@@ -24,6 +26,9 @@
     "@aws-sdk/s3-request-presigner": "^3.600.0",
     "node-cron": "^3.0.3",
     "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
   },
   "engines": {
     "node": ">=18"

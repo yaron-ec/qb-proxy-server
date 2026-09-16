@@ -1,0 +1,67 @@
+name: CI
+
+# Safety gate for qb-proxy-server (backend) + crm-frontend (frontend).
+#
+# This workflow intentionally does NOT touch any live production system:
+# - No DATABASE_URL is set — backend tests run against the current
+#   repository's test suite, which is designed to be DB-independent (mock
+#   pools/clients). Any test that genuinely requires a live database
+#   self-skips when DATABASE_URL is absent (see e.g.
+#   test/integrationCredentialStore.test.js, test/qbTokenStore.test.js).
+# - No QuickBooks/Gmail/SignNow/Handoff/Google credentials are configured —
+#   nothing here calls a real external integration.
+# - The frontend build only compiles static assets; it does not deploy.
+#
+# This does not replace Railway's own deploy pipeline — it is a pre-merge
+# gate so that a build-breaking or test-breaking change is caught before it
+# ever reaches `main` (and therefore before Railway attempts to build/deploy
+# it).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    name: Backend — syntax + tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Syntax-check every backend JS file
+        run: npm run test:syntax
+
+      - name: Run backend test suite
+        run: npm test
+
+  frontend:
+    name: Frontend — production build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: crm-frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: crm-frontend
+        run: npm install --no-audit --no-fund
+
+      - name: Build frontend (production, --mode exit)
+        working-directory: crm-frontend
+        # Same command as crm-frontend/Dockerfile's build stage — if this
+        # fails, the real Railway deploy build would fail too.
+        run: npm run build:exit

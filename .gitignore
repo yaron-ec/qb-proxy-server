@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+crm-frontend/node_modules/
+
+# Build output
+crm-frontend/dist/
+dist/
+
+# Environment / secrets (never commit real env files — .env.exit is the one
+# intentional exception: it holds only public, build-time VITE_* values, no
+# secrets, and is required for `vite build --mode exit` to work).
+.env
+.env.local
+.env.*.local
+!.env.exit
+
+# Local dev-only fallback credential store (lib/integrationCredentialStore.js
+# writes here only when DATABASE_URL is unset and NODE_ENV !== 'production' —
+# never real production credentials, but never appropriate to commit either).
+.integration-credentials.dev.json
+
+# Legacy one-time local QB token file (server.js migrates this to Postgres
+# on startup and deletes it — should never exist in a fresh checkout, but
+# ignore it defensively in case a local dev run creates one).
+.qb-tokens.encrypted
+
+# OS / editor noise
+.DS_Store
+*.log
