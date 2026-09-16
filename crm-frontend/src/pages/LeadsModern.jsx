@@ -249,6 +249,13 @@ export default function LeadsModern() {
     .filter(lead => lead.status === 'Sold')
     .reduce((sum, lead) => sum + (lead.estimated_value || 0), 0);
 
+  // Attention count for the header — surfaces "how many need action today"
+  // without adding a second widget; only meaningful on the default (active,
+  // unfiltered) view, so it's suppressed during search/status filtering.
+  const overdueCount = !isGlobalSearch && statusFilter === 'all'
+    ? filteredLeads.filter(l => getFollowUpStatus(l.follow_up_date) === 'overdue').length
+    : 0;
+
   return (
     <div className="min-h-screen bg-background">
       <PullToRefreshIndicator pullDistance={pullDistance} refreshing={refreshing} />
@@ -280,10 +287,15 @@ export default function LeadsModern() {
               <h1 className="text-2xl font-bold text-foreground tracking-tight">
                 {statusFilter !== 'all' ? `${statusFilter} Leads` : 'Active Leads'}
               </h1>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                {userLoaded ? `${filteredLeads.length} lead${filteredLeads.length !== 1 ? 's' : ''}` : 'Loading…'}
+              <p className="text-sm text-muted-foreground mt-0.5 flex items-center gap-2 flex-wrap">
+                <span>{userLoaded ? `${filteredLeads.length} lead${filteredLeads.length !== 1 ? 's' : ''}` : 'Loading…'}</span>
+                {overdueCount > 0 && (
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
+                    {overdueCount} overdue follow-up{overdueCount !== 1 ? 's' : ''}
+                  </span>
+                )}
                 {statusFilter !== 'all' && (
-                  <button onClick={() => setStatusFilter('all')} className="ml-2 text-amber-600 hover:text-amber-800 font-semibold underline text-xs">
+                  <button onClick={() => setStatusFilter('all')} className="text-amber-600 hover:text-amber-800 font-semibold underline text-xs">
                     Clear filter
                   </button>
                 )}
@@ -645,9 +657,11 @@ function LeadCard({ lead, navigate, onLeadUpdate, onDragStart, isDragging, userR
         </div>
 
         <div className="flex-1 min-w-0">
-          {/* Name + Status */}
+          {/* Name + Status — the two things a rep scans for first, so they
+              lead visually: name a touch larger/bolder than everything below
+              it, status badge immediately after (never buried in metadata). */}
           <div className="flex items-center gap-2 mb-1.5 flex-wrap relative pointer-events-none">
-            <TruncatedTooltip text={`${toTitleCase(lead.first_name)} ${toTitleCase(lead.last_name)}`} className="text-sm font-semibold text-slate-900" />
+            <TruncatedTooltip text={`${toTitleCase(lead.first_name)} ${toTitleCase(lead.last_name)}`} className="text-[15px] font-bold text-slate-900" />
             <div className="relative">
               <span
                 role="button"
@@ -747,8 +761,17 @@ function LeadCard({ lead, navigate, onLeadUpdate, onDragStart, isDragging, userR
             </div>
           )}
 
-          {/* Contact + Location */}
-          <div className="flex flex-wrap gap-x-4 gap-y-0.5 mb-1.5">
+          {/* Project type — real content gap: the service/project a lead
+              wants was previously not shown on the card at all. */}
+          {lead.project_type && (
+            <div className="mb-1">
+              <span className="text-xs font-medium text-slate-600">{lead.project_type}</span>
+            </div>
+          )}
+
+          {/* Contact + Location — directly actionable info, kept at full
+              weight since Phone/Email are tap-to-contact. */}
+          <div className="flex flex-wrap gap-x-4 gap-y-0.5 mb-1">
             {lead.phone && <LabeledField icon={<Phone className="w-3 h-3 text-green-600" />} label="Phone" value={formatPhone(lead.phone)} />}
             {lead.email && (
               <div className="flex items-center gap-1" onClick={e => e.preventDefault()}>
@@ -766,10 +789,22 @@ function LeadCard({ lead, navigate, onLeadUpdate, onDragStart, isDragging, userR
               </div>
             )}
             {lead.city && <LabeledField icon={<MapPin className="w-3 h-3" />} label="City" value={toTitleCase(lead.city)} />}
-            <LabeledField icon={<User className="w-3 h-3" />} label="Owner" value={toTitleCase(lead.assigned_rep) || '—'} muted={!lead.assigned_rep} />
+          </div>
+
+          {/* Owner/Created/Source — reference metadata, visually secondary
+              to the actionable contact info above (smaller, muted). */}
+          <div className="flex flex-wrap gap-x-3 gap-y-0.5 mb-1.5 text-[11px] text-slate-400">
+            <span className="flex items-center gap-1">
+              <User className="w-3 h-3" />
+              {toTitleCase(lead.assigned_rep) || 'Unassigned'}
+            </span>
             {(lead.crm_created_date || lead.created_date) && (
-              <LabeledField icon={<Calendar className="w-3 h-3" />} label="Created" value={fmtCreateDate(lead.crm_created_date || lead.created_date)} />
+              <span className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                {fmtCreateDate(lead.crm_created_date || lead.created_date)}
+              </span>
             )}
+            {lead.source && <span>{lead.source}</span>}
           </div>
 
           {/* Follow-up row */}

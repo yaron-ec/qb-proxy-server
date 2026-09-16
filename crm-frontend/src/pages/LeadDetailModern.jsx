@@ -6,6 +6,7 @@ import TruncatedTooltip from "@/components/TruncatedTooltip";
 import { leads as railwayLeads, activities as railwayActivities } from "@/api/railway";
 import { useAuth } from "@/lib/AuthContext";
 import { statusBadgeClass } from "@/lib/design-system";
+import { parseFollowUpDate, getTodayLocal } from "@/lib/sortActiveLeads";
 import { fmtMoney, formatPhone, toTitleCase, formatProjectType } from "@/lib/formatters";
 import { callPhone, sendSMS, composeEmail } from "@/lib/contactActions";
 import {
@@ -434,6 +435,53 @@ export default function LeadDetailModern() {
   );
 }
 
+// ── Next Action — a single, deterministic answer to "what should I do next
+// for this lead?" derived from existing follow-up/appointment fields. No new
+// business rule: purely a display-layer summary of data already shown
+// elsewhere on this page (Schedule section), surfaced once, prominently,
+// at the top — the one thing this flagship screen was missing.
+function nextActionFor(lead) {
+  const todayNum = getTodayLocal();
+  const fu = lead.follow_up_date ? parseFollowUpDate(lead.follow_up_date) : null;
+  const apt = lead.appointment_date ? parseFollowUpDate(lead.appointment_date) : null;
+
+  if (fu !== null && fu < todayNum) {
+    return { tone: "overdue", text: `Overdue ${lead.follow_up_type === "Meeting" ? "meeting" : "call"} follow-up` };
+  }
+  if (apt !== null && apt === todayNum) {
+    return { tone: "today", text: "Appointment today" };
+  }
+  if (fu !== null && fu === todayNum) {
+    return { tone: "today", text: `Follow up today${lead.follow_up_type ? ` — ${lead.follow_up_type}` : ""}` };
+  }
+  if (apt !== null && apt > todayNum) {
+    return { tone: "upcoming", text: `Appointment ${new Date(lead.appointment_date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}` };
+  }
+  if (fu !== null && fu > todayNum) {
+    return { tone: "upcoming", text: `Follow up ${new Date(lead.follow_up_date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}` };
+  }
+  if (["New", "Answered, no appointment set", "No answer"].includes(lead.status)) {
+    return { tone: "action", text: "No follow-up scheduled — add one" };
+  }
+  return null;
+}
+
+function NextActionBanner({ lead }) {
+  const action = nextActionFor(lead);
+  if (!action) return null;
+  const styles = {
+    overdue: "bg-red-50 border-red-200 text-red-700",
+    today: "bg-amber-50 border-amber-200 text-amber-800",
+    upcoming: "bg-blue-50 border-blue-200 text-blue-700",
+    action: "bg-slate-50 border-slate-200 text-slate-500",
+  };
+  return (
+    <div className={`mt-2 inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg border ${styles[action.tone]}`}>
+      {action.tone === "overdue" ? "⚠" : action.tone === "today" ? "●" : "→"} {action.text}
+    </div>
+  );
+}
+
 // ── Left Sidebar Content (shared between mobile + desktop) ──────────────────
 function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, projectTypes, leadSources, deals, handleDeleteLead, currentUser }) {
   const createdDate = lead.crm_created_date || lead.created_date;
@@ -479,6 +527,8 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
                 </EditableField>
               )}
             </div>
+            {/* What should I do next — the flagship answer this page leads with. */}
+            <NextActionBanner lead={lead} />
           </div>
         </div>
       </div>
