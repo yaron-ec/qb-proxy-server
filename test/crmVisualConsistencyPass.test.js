@@ -87,17 +87,19 @@ test('MobileDayView.jsx QuickActions: tile grid layout/size preserved (action-fi
   assert.ok(quickActions.includes('grid grid-cols-4 gap-2'), 'the larger 4-tile action grid must be unchanged');
 });
 
-// ── Active Leads / Deals — wide-desktop space usage ─────────────────────────
+// ── Active Leads / Deals — ONE entity per row (superseded by
+// test/oneRowPerEntityListLayout.test.js, which covers the corrected
+// one-row-per-record layout in full; kept here only as a narrow smoke
+// check that the list container itself is single-column). ──────────────
 
-test('LeadsModern.jsx: Active Leads uses a responsive multi-column grid, not one full-width card per row', () => {
+test('LeadsModern.jsx: the leads list container is single-column (one Lead per row)', () => {
   const src = read('pages/LeadsModern.jsx');
-  assert.ok(/grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-3/.test(src), 'must define a responsive column count for the leads grid');
-  assert.ok(!/<div className="grid gap-3">\s*\n\s*\{filteredLeads\.map/.test(src), 'the old columnless single-row-per-card grid must be gone');
+  assert.ok(/<div className="grid grid-cols-1 gap-2\.5">/.test(src), 'the leads list must render one row per Lead, not a multi-column card grid');
 });
 
-test('Deals.jsx: deal list also uses a responsive multi-column grid (same defect, cross-product consistency)', () => {
+test('Deals.jsx: the deals list container is single-column (one Deal per row)', () => {
   const src = read('pages/Deals.jsx');
-  assert.ok(/grid grid-cols-1 lg:grid-cols-2 gap-3/.test(src), 'must define a responsive column count for the deals grid');
+  assert.ok(/<div className="grid grid-cols-1 gap-2\.5">/.test(src), 'the deals list must render one row per Deal, not a multi-column card grid');
 });
 
 test('LeadsModern.jsx: preserves search/filters/sort/New Lead/Website Leads/overdue indicator (no functionality removed)', () => {

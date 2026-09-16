@@ -415,12 +415,12 @@ export default function LeadsModern() {
             <p className="text-sm">{isGlobalSearch ? 'No leads match your search' : 'No leads match your filters'}</p>
           </div>
         ) : (
-          // Wide desktop space, used intelligently: a responsive multi-column
-          // grid instead of one full-1600px-wide card per row (which is what
-          // made this screen look like oversized cards with empty horizontal
-          // space). The card's own internal layout already wraps its
-          // metadata rows, so it reflows cleanly at a narrower column width.
-          <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-3 items-start">
+          // ONE Lead = ONE row (a multi-column card grid felt fragmented for
+          // an operational list). Wide desktop space is now used INSIDE each
+          // row instead — see LeadCard's own internal grid of regions
+          // (Identity/Project, Contact/Location, Ownership/Source, Next
+          // Action, Actions).
+          <div className="grid grid-cols-1 gap-2.5">
             {filteredLeads.map(lead => (
               <LeadCard
                 key={lead.id}
@@ -656,16 +656,91 @@ function LeadCard({ lead, navigate, onLeadUpdate, onDragStart, isDragging, userR
         lead.is_new_intake_lead ? 'border-amber-400 border-2 shadow-amber-100 cursor-grab' : 'border-slate-200 cursor-grab'
       }`}
     >
-      <div className="flex items-start gap-3">
-        <div className={`w-8 h-8 rounded-md ${avatarColor} flex items-center justify-center text-white font-bold text-xs flex-shrink-0 mt-0.5`}>
+      {/* Confirmation dialogs are fixed overlays — position in the tree
+          doesn't matter for layout. */}
+      {confirmingStatus && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+          <div className="bg-white rounded-lg shadow-lg p-5 max-w-sm mx-4" onClick={(e) => e.preventDefault()}>
+            <div className="flex items-start gap-3 mb-4">
+              <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">Move to {confirmingStatus}?</h3>
+                <p className="text-xs text-slate-600 mt-1">This will change the lead status and remove it from your Active Leads list.</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); updateLeadStatus(confirmingStatus); }}
+                disabled={updatingStatus}
+                className="flex-1 px-3 py-2 bg-amber-600 text-white text-xs font-bold rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
+              >
+                {updatingStatus ? 'Updating...' : 'Confirm'}
+              </button>
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirmingStatus(null); }}
+                className="flex-1 px-3 py-2 border border-slate-200 text-slate-600 text-xs font-semibold rounded-lg hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmingDelete && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirmingDelete(false); }}>
+          <div className="bg-white rounded-lg shadow-lg p-5 max-w-sm mx-4" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+            <div className="flex items-start gap-3 mb-4">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="text-sm font-bold text-slate-900">Delete Lead?</h3>
+                <p className="text-xs text-slate-600 mt-1">This action cannot be undone.</p>
+                {hasLinkedRecords && (
+                  <div className="mt-3 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
+                    <p className="text-xs font-semibold text-amber-800 mb-1">⚠ This lead is linked to:</p>
+                    <ul className="text-xs text-amber-700 list-disc list-inside">
+                      {linkedRecords.map((r, i) => <li key={i}>{r}</li>)}
+                    </ul>
+                    <p className="text-[11px] text-amber-700 mt-1.5">Deleting the lead will not remove these records from QuickBooks, Handoff, or SignNow.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleDeleteLead}
+                disabled={deleting}
+                className="flex-1 px-3 py-2 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {deleting ? 'Deleting…' : 'Delete'}
+              </button>
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirmingDelete(false); }}
+                className="flex-1 px-3 py-2 border border-slate-200 text-slate-600 text-xs font-semibold rounded-lg hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ONE Lead = ONE row. Desktop (lg+): a real horizontal record with
+          internal regions (Identity/Project, Contact/Location, Ownership/
+          Source, Next Action, Actions) using a CSS grid so the wide desktop
+          container is used inside the row instead of via a multi-column
+          card grid. Below lg, the same regions stack vertically into a
+          clean single-column card — no horizontal scrolling. */}
+      <div className="flex flex-col gap-2.5 lg:grid lg:grid-cols-[auto_minmax(170px,1.3fr)_minmax(150px,1fr)_minmax(130px,0.9fr)_minmax(160px,1.15fr)_auto] lg:items-center lg:gap-4">
+        {/* Avatar */}
+        <div className={`w-8 h-8 rounded-md ${avatarColor} flex items-center justify-center text-white font-bold text-xs flex-shrink-0`}>
           {`${lead.first_name?.[0] || ''}${lead.last_name?.[0] || ''}`.toUpperCase()}
         </div>
 
-        <div className="flex-1 min-w-0">
-          {/* Name + Status — the two things a rep scans for first, so they
-              lead visually: name a touch larger/bolder than everything below
-              it, status badge immediately after (never buried in metadata). */}
-          <div className="flex items-center gap-2 mb-1.5 flex-wrap relative pointer-events-none">
+        {/* Identity / Project — name + status lead visually; project type
+            immediately below. */}
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap relative pointer-events-none">
             <TruncatedTooltip text={`${toTitleCase(lead.first_name)} ${toTitleCase(lead.last_name)}`} className="text-[15px] font-bold text-slate-900" />
             <div className="relative">
               <span
@@ -690,168 +765,97 @@ function LeadCard({ lead, navigate, onLeadUpdate, onDragStart, isDragging, userR
                 </div>
               )}
             </div>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap mt-1">
+            {lead.project_type && <span className="text-xs font-medium text-slate-600">{lead.project_type}</span>}
             {lead.estimated_value > 0 && (
               <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full leading-tight">
                 ${lead.estimated_value.toLocaleString()}
               </span>
             )}
           </div>
+        </div>
 
-          {/* Confirmation Dialog */}
-          {confirmingStatus && (
-            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-              <div className="bg-white rounded-lg shadow-lg p-5 max-w-sm mx-4" onClick={(e) => e.preventDefault()}>
-                <div className="flex items-start gap-3 mb-4">
-                  <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900">Move to {confirmingStatus}?</h3>
-                    <p className="text-xs text-slate-600 mt-1">This will change the lead status and remove it from your Active Leads list.</p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); updateLeadStatus(confirmingStatus); }}
-                    disabled={updatingStatus}
-                    className="flex-1 px-3 py-2 bg-amber-600 text-white text-xs font-bold rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
-                  >
-                    {updatingStatus ? 'Updating...' : 'Confirm'}
-                  </button>
-                  <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirmingStatus(null); }}
-                    className="flex-1 px-3 py-2 border border-slate-200 text-slate-600 text-xs font-semibold rounded-lg hover:bg-slate-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
+        {/* Contact / Location */}
+        <div className="min-w-0 space-y-0.5">
+          {lead.phone && <LabeledField icon={<Phone className="w-3 h-3 text-green-600" />} label="Phone" value={formatPhone(lead.phone)} />}
+          {lead.email && (
+            <div className="flex items-center gap-1" onClick={e => e.preventDefault()}>
+              <Mail className="w-3 h-3 text-slate-400 flex-shrink-0" />
+              <a
+                href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(lead.email)}`}
+                target="_blank"
+                rel="noopener"
+                onClick={e => e.stopPropagation()}
+                className="text-xs text-blue-600 hover:underline truncate block"
+                title={lead.email}
+              >
+                {lead.email}
+              </a>
             </div>
           )}
+          {lead.city && <LabeledField icon={<MapPin className="w-3 h-3" />} label="City" value={toTitleCase(lead.city)} />}
+        </div>
 
-          {/* Delete confirmation dialog */}
-          {confirmingDelete && (
-            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirmingDelete(false); }}>
-              <div className="bg-white rounded-lg shadow-lg p-5 max-w-sm mx-4" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                <div className="flex items-start gap-3 mb-4">
-                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <h3 className="text-sm font-bold text-slate-900">Delete Lead?</h3>
-                    <p className="text-xs text-slate-600 mt-1">This action cannot be undone.</p>
-                    {hasLinkedRecords && (
-                      <div className="mt-3 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
-                        <p className="text-xs font-semibold text-amber-800 mb-1">⚠ This lead is linked to:</p>
-                        <ul className="text-xs text-amber-700 list-disc list-inside">
-                          {linkedRecords.map((r, i) => <li key={i}>{r}</li>)}
-                        </ul>
-                        <p className="text-[11px] text-amber-700 mt-1.5">Deleting the lead will not remove these records from QuickBooks, Handoff, or SignNow.</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleDeleteLead}
-                    disabled={deleting}
-                    className="flex-1 px-3 py-2 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
-                  >
-                    {deleting ? 'Deleting…' : 'Delete'}
-                  </button>
-                  <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirmingDelete(false); }}
-                    className="flex-1 px-3 py-2 border border-slate-200 text-slate-600 text-xs font-semibold rounded-lg hover:bg-slate-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Project type — real content gap: the service/project a lead
-              wants was previously not shown on the card at all. */}
-          {lead.project_type && (
-            <div className="mb-1">
-              <span className="text-xs font-medium text-slate-600">{lead.project_type}</span>
-            </div>
-          )}
-
-          {/* Contact + Location — directly actionable info, kept at full
-              weight since Phone/Email are tap-to-contact. */}
-          <div className="flex flex-wrap gap-x-4 gap-y-0.5 mb-1">
-            {lead.phone && <LabeledField icon={<Phone className="w-3 h-3 text-green-600" />} label="Phone" value={formatPhone(lead.phone)} />}
-            {lead.email && (
-              <div className="flex items-center gap-1" onClick={e => e.preventDefault()}>
-                <Mail className="w-3 h-3 text-slate-400" />
-                <a
-                  href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(lead.email)}`}
-                  target="_blank"
-                  rel="noopener"
-                  onClick={e => e.stopPropagation()}
-                  className="text-xs text-blue-600 hover:underline max-w-[160px] truncate block"
-                  title={lead.email}
-                >
-                  {lead.email}
-                </a>
-              </div>
-            )}
-            {lead.city && <LabeledField icon={<MapPin className="w-3 h-3" />} label="City" value={toTitleCase(lead.city)} />}
-          </div>
-
-          {/* Owner/Created/Source — reference metadata, visually secondary
-              to the actionable contact info above (smaller, muted). */}
-          <div className="flex flex-wrap gap-x-3 gap-y-0.5 mb-1.5 text-[11px] text-slate-400">
+        {/* Ownership / Source — reference metadata, visually quieter than
+            the actionable contact info. */}
+        <div className="min-w-0 space-y-0.5 text-[11px] text-slate-400">
+          <span className="flex items-center gap-1">
+            <User className="w-3 h-3 flex-shrink-0" />
+            {toTitleCase(lead.assigned_rep) || 'Unassigned'}
+          </span>
+          {(lead.crm_created_date || lead.created_date) && (
             <span className="flex items-center gap-1">
-              <User className="w-3 h-3" />
-              {toTitleCase(lead.assigned_rep) || 'Unassigned'}
+              <Calendar className="w-3 h-3 flex-shrink-0" />
+              {fmtCreateDate(lead.crm_created_date || lead.created_date)}
             </span>
-            {(lead.crm_created_date || lead.created_date) && (
-              <span className="flex items-center gap-1">
-                <Calendar className="w-3 h-3" />
-                {fmtCreateDate(lead.crm_created_date || lead.created_date)}
-              </span>
-            )}
-            {lead.source && <span>{lead.source}</span>}
-          </div>
+          )}
+          {lead.source && <span className="block truncate">{lead.source}</span>}
+        </div>
 
-          {/* Follow-up row */}
+        {/* Next Action — the follow-up/appointment state, given strong
+            operational visibility of its own column rather than being
+            buried after metadata. */}
+        <div className="min-w-0">
           {hasFollowUp ? (
-            <div className="mt-1 space-y-1.5">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-slate-500 font-semibold">Follow-up:</span>
-                <span className="text-xs text-slate-700 font-semibold">
-                  {fuStatus === 'today' ? 'Today' : formattedDate}
-                  {lead.follow_up_time ? ` • ${fmt12(lead.follow_up_time)}` : ''}
-                </span>
-                <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-full flex items-center gap-1 ${badgeClass}`}>
-                  {isMeeting ? '📅' : '📞'}
-                  {fuStatus === 'overdue' ? 'Overdue' : fuStatus === 'today' ? 'Due Today' : (lead.follow_up_type || 'Follow-up')}
-                </span>
-              </div>
-              <div className="flex gap-1 flex-wrap items-center" onClick={e => e.preventDefault()}>
-                <ContactActions phone={lead.phone} email={lead.email} size="sm" />
-                {isMeeting && (
-                  <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/leads/${lead.external_ref || lead.id}`); }}
-                    className="flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors btn-compact">
-                    <ExternalLink className="w-3 h-3" /> Calendar
-                  </button>
-                )}
-                <button onClick={handleComplete} disabled={completing}
-                  className="flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors disabled:opacity-50 btn-compact">
-                  <CheckCircle className="w-3 h-3" /> {isMeeting ? 'Done' : 'Complete'}
-                </button>
-                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/leads/${lead.external_ref || lead.id}`); }}
-                  className="flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 transition-colors btn-compact">
-                  <RefreshCw className="w-3 h-3" /> Reschedule
-                </button>
-              </div>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-xs text-slate-700 font-semibold">
+                {fuStatus === 'today' ? 'Today' : formattedDate}
+                {lead.follow_up_time ? ` • ${fmt12(lead.follow_up_time)}` : ''}
+              </span>
+              <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-full flex items-center gap-1 ${badgeClass}`}>
+                {isMeeting ? '📅' : '📞'}
+                {fuStatus === 'overdue' ? 'Overdue' : fuStatus === 'today' ? 'Due Today' : (lead.follow_up_type || 'Follow-up')}
+              </span>
             </div>
           ) : (
-            <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-0.5">
-              <DateField label="Appointment" date={lead.appointment_date} />
-            </div>
+            <DateField label="Appointment" date={lead.appointment_date} />
           )}
         </div>
 
-        <div className="flex items-center gap-1 flex-shrink-0 mt-1">
+        {/* Actions — consistently grouped on the right. Call/SMS/Email
+            always available when there's contact info; Complete/Reschedule/
+            Calendar only apply when there's an actual follow-up to act on. */}
+        <div className="flex items-center gap-1 flex-wrap lg:flex-nowrap lg:justify-end flex-shrink-0" onClick={e => e.preventDefault()}>
+          <ContactActions phone={lead.phone} email={lead.email} size="sm" />
+          {hasFollowUp && isMeeting && (
+            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/leads/${lead.external_ref || lead.id}`); }}
+              className="flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors btn-compact">
+              <ExternalLink className="w-3 h-3" /> Calendar
+            </button>
+          )}
+          {hasFollowUp && (
+            <button onClick={handleComplete} disabled={completing}
+              className="flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors disabled:opacity-50 btn-compact">
+              <CheckCircle className="w-3 h-3" /> {isMeeting ? 'Done' : 'Complete'}
+            </button>
+          )}
+          {hasFollowUp && (
+            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/leads/${lead.external_ref || lead.id}`); }}
+              className="flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 transition-colors btn-compact">
+              <RefreshCw className="w-3 h-3" /> Reschedule
+            </button>
+          )}
           {canDelete && (
             <button
               type="button"
@@ -863,7 +867,7 @@ function LeadCard({ lead, navigate, onLeadUpdate, onDragStart, isDragging, userR
               <Trash2 className="w-4 h-4" />
             </button>
           )}
-          <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-amber-500 transition-colors" />
+          <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-amber-500 transition-colors flex-shrink-0" />
         </div>
       </div>
     </Link>

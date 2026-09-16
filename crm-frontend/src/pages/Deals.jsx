@@ -92,21 +92,25 @@ function DealCard({ deal, financials }) {
   };
 
   return (
+    // ONE Deal = ONE row (same principle as Active Leads). Desktop (lg+):
+    // a horizontal record with internal regions (Identity, Project,
+    // Financial, Action) via CSS grid, so the Financial column's Value/
+    // Paid/Remaining labels line up vertically across every row for
+    // scanning. Below lg, regions stack into a clean single-column card.
     <Link
       to={`/deals/${deal.id}`}
       className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 p-4 group block"
     >
-      <div className="flex items-start gap-4">
+      <div className="flex flex-col gap-2.5 lg:grid lg:grid-cols-[auto_minmax(170px,1.2fr)_minmax(170px,1.2fr)_minmax(190px,1.3fr)_auto] lg:items-center lg:gap-4">
         {/* Avatar */}
-        <div className="w-10 h-10 rounded-lg bg-orange-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 mt-0.5">
+        <div className="w-10 h-10 rounded-lg bg-orange-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
           {deal.customer_name?.[0]?.toUpperCase() || '?'}
         </div>
 
-        {/* Main Info */}
-        <div className="flex-1 min-w-0">
-          {/* Name + Stage Badge */}
-          <div className="flex items-center gap-2 mb-2.5 flex-wrap">
-            <h3 className="text-sm font-semibold text-slate-900">{deal.customer_name || "—"}</h3>
+        {/* Identity — customer, stage, project type */}
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="text-sm font-semibold text-slate-900 truncate">{deal.customer_name || "—"}</h3>
             {deal.stage && (
               <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${
                 deal.stage === 'Job Completed' || deal.stage === 'Completed' ? 'bg-green-100 text-green-700' :
@@ -115,89 +119,73 @@ function DealCard({ deal, financials }) {
                 {deal.stage}
               </span>
             )}
-            {displayContractAmount > 0 && (
-              <span className="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
-                {fmtMoney(displayContractAmount)}
-              </span>
-            )}
           </div>
-
-          {/* Contact row - Phone, Email, City, Owner, Sold Date */}
-          <div className="flex flex-wrap gap-x-5 gap-y-1 mb-2 text-[11px]">
-            {deal.phone && (
-              <div className="flex items-center gap-1 text-slate-600">
-                <span className="text-slate-400 font-semibold">Phone:</span>
-                <span className="text-slate-900 font-medium">{formatPhone(deal.phone)}</span>
-              </div>
-            )}
-            {deal.email && (
-              <div className="flex items-center gap-1 text-slate-600 max-w-[180px]">
-                <span className="text-slate-400 font-semibold">Email:</span>
-                <span className="text-slate-900 font-medium truncate">{deal.email}</span>
-              </div>
-            )}
-            {deal.city && (
-              <div className="flex items-center gap-1 text-slate-600">
-                <span className="text-slate-400 font-semibold">City:</span>
-                <span className="text-slate-900 font-medium">{deal.city}</span>
-              </div>
-            )}
-            {deal.assigned_rep && (
-              <div className="flex items-center gap-1 text-slate-600">
-                <span className="text-slate-400 font-semibold">Owner:</span>
-                <span className="text-slate-900 font-medium">{deal.assigned_rep}</span>
-              </div>
-            )}
-            {formatDate(deal.sold_date) && (
-              <div className="flex items-center gap-1 text-slate-600">
-                <span className="text-slate-400 font-semibold">Sold:</span>
-                <span className="text-slate-900 font-medium">{formatDate(deal.sold_date)}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Waterfall error warning — never silently show $0 as authoritative */}
-          {waterfallError && (
-            <div className="flex items-center gap-1 mb-2 text-[10px] text-amber-600 font-semibold">
-              <AlertTriangle className="w-3 h-3 flex-shrink-0" />
-              QB waterfall unavailable — paid may not reflect actual received
+          {deal.project_type && <p className="text-xs text-slate-600 mt-0.5 truncate">{deal.project_type}</p>}
+          {(deal.phone || deal.email) && (
+            <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 text-[11px] text-slate-500">
+              {deal.phone && <span>{formatPhone(deal.phone)}</span>}
+              {deal.email && <span className="truncate max-w-[160px]">{deal.email}</span>}
             </div>
           )}
-
-          {/* Project + Financial row */}
-          <div className="flex flex-wrap gap-x-5 gap-y-1 text-[11px]">
-            {deal.project_type && (
-              <div className="flex items-center gap-1 text-slate-600">
-                <span className="text-slate-400 font-semibold">Project:</span>
-                <span className="text-slate-900 font-medium">{deal.project_type}</span>
-              </div>
-            )}
-            {displayContractAmount > 0 && (
-              <>
-                <div className="flex items-center gap-1 text-slate-600">
-                  <span className="text-slate-400 font-semibold">Paid:</span>
-                  <span className="text-slate-900 font-bold text-emerald-700">{fmtMoney(displayTotalPaid)}</span>
-                </div>
-                <div className="flex items-center gap-1 text-slate-600">
-                  <span className="text-slate-400 font-semibold">Total:</span>
-                  <span className="text-slate-900 font-bold">{fmtMoney(displayContractAmount)}</span>
-                </div>
-              </>
-            )}
-            {displayContractAmount > 0 && (
-              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-                getPaymentStatus() === 'Paid in Full' ? 'bg-emerald-100 text-emerald-700' :
-                getPaymentStatus() === 'Partial' ? 'bg-amber-100 text-amber-700' :
-                'bg-slate-100 text-slate-600'
-              }`}>
-                {getPaymentStatus()}
-              </span>
-            )}
-          </div>
         </div>
 
-        {/* Arrow */}
-        <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-amber-500 flex-shrink-0 transition-colors mt-1" />
+        {/* Project — city, owner, sold date */}
+        <div className="min-w-0 space-y-0.5 text-[11px] text-slate-600">
+          {deal.city && (
+            <div className="flex items-center gap-1">
+              <span className="text-slate-400 font-semibold">City:</span>
+              <span className="text-slate-900 font-medium truncate">{deal.city}</span>
+            </div>
+          )}
+          {deal.assigned_rep && (
+            <div className="flex items-center gap-1">
+              <span className="text-slate-400 font-semibold">Owner:</span>
+              <span className="text-slate-900 font-medium truncate">{deal.assigned_rep}</span>
+            </div>
+          )}
+          {formatDate(deal.sold_date) && (
+            <div className="flex items-center gap-1">
+              <span className="text-slate-400 font-semibold">Sold:</span>
+              <span className="text-slate-900 font-medium">{formatDate(deal.sold_date)}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Financial — Value/Paid/Remaining line up vertically between
+            rows since every row uses the same label+value layout. */}
+        <div className="min-w-0">
+          {displayContractAmount > 0 ? (
+            <div className="space-y-0.5 text-[11px]">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-slate-400 font-semibold">Value</span>
+                <span className="text-slate-900 font-bold">{fmtMoney(displayContractAmount)}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-slate-400 font-semibold">Paid</span>
+                <span className="text-emerald-700 font-bold">{fmtMoney(displayTotalPaid)}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-slate-400 font-semibold">{getPaymentStatus() === 'Paid in Full' ? 'Status' : 'Remaining'}</span>
+                {getPaymentStatus() === 'Paid in Full' ? (
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Paid in Full</span>
+                ) : (
+                  <span className={`font-bold ${getPaymentStatus() === 'Partial' ? 'text-amber-700' : 'text-slate-600'}`}>{fmtMoney(displayBalanceDue)}</span>
+                )}
+              </div>
+              {waterfallError && (
+                <div className="flex items-center gap-1 pt-0.5 text-[10px] text-amber-600 font-semibold">
+                  <AlertTriangle className="w-3 h-3 flex-shrink-0" />
+                  QB waterfall unavailable
+                </div>
+              )}
+            </div>
+          ) : (
+            <span className="text-[11px] text-slate-400">—</span>
+          )}
+        </div>
+
+        {/* Action */}
+        <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-amber-500 flex-shrink-0 transition-colors lg:justify-self-end" />
       </div>
     </Link>
   );
@@ -463,10 +451,11 @@ export default function Deals() {
                 <p className="text-base font-semibold text-slate-600">No deals match your filters</p>
               </div>
             ) : (
-              // Same fix as Active Leads: use the wide desktop container
-              // (max-w-[1600px]) with a responsive multi-column grid instead
-              // of one full-width card per row, for cross-product consistency.
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start">
+              // ONE Deal = ONE row (same principle as Active Leads) — the
+              // wide desktop space is used INSIDE each row via DealCard's
+              // own internal grid of regions, not via a multi-column card
+              // grid across the screen.
+              <div className="grid grid-cols-1 gap-2.5">
                 {sorted.map(item => (
                   <DealCard key={item.id} deal={item} financials={financialsMap[item.id]} />
                 ))}
