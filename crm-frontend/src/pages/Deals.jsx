@@ -93,87 +93,82 @@ function DealCard({ deal, financials }) {
 
   return (
     // ONE Deal = ONE row (same principle as Active Leads). Desktop (lg+):
-    // a horizontal record with internal regions (Identity, Project,
-    // Financial, Action) via CSS grid, so the Financial column's Value/
-    // Paid/Remaining labels line up vertically across every row for
-    // scanning. Below lg, regions stack into a clean single-column card.
+    // fixed-width internal regions in a single flex row — Identity gets
+    // breathing room, Project is tight and column-aligned between rows,
+    // and Financial is pinned via ml-auto with right-aligned numeric
+    // values so Value/Paid/Remaining line up vertically down the list.
+    // Below lg, regions stack into a clean single-column card.
     <Link
       to={`/deals/${deal.id}`}
-      className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 p-4 group block"
+      className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 p-3.5 group block"
     >
-      <div className="flex flex-col gap-2.5 lg:grid lg:grid-cols-[auto_minmax(170px,1.2fr)_minmax(170px,1.2fr)_minmax(190px,1.3fr)_auto] lg:items-center lg:gap-4">
-        {/* Avatar */}
-        <div className="w-10 h-10 rounded-lg bg-orange-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-          {deal.customer_name?.[0]?.toUpperCase() || '?'}
-        </div>
-
-        {/* Identity — customer, stage, project type */}
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="text-sm font-semibold text-slate-900 truncate">{deal.customer_name || "—"}</h3>
+      <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:gap-4">
+        {/* Identity — avatar, customer, stage, project type, phone/email */}
+        <div className="flex items-center gap-3 lg:w-[250px] lg:flex-shrink-0 min-w-0">
+          <div className="w-9 h-9 rounded-lg bg-orange-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+            {deal.customer_name?.[0]?.toUpperCase() || '?'}
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <h3 className="text-sm font-bold text-slate-900 truncate">{deal.customer_name || "—"}</h3>
+            </div>
             {deal.stage && (
-              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${
+              <span className={`inline-flex items-center h-5 mt-0.5 px-1.5 rounded text-[10px] font-semibold whitespace-nowrap ${
                 deal.stage === 'Job Completed' || deal.stage === 'Completed' ? 'bg-green-100 text-green-700' :
                 deal.stage === 'Sold / Estimate Approved' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'
               }`}>
                 {deal.stage}
               </span>
             )}
+            {deal.project_type && <p className="text-[11px] text-slate-500 mt-0.5 truncate">{deal.project_type}</p>}
           </div>
-          {deal.project_type && <p className="text-xs text-slate-600 mt-0.5 truncate">{deal.project_type}</p>}
-          {(deal.phone || deal.email) && (
-            <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 text-[11px] text-slate-500">
-              {deal.phone && <span>{formatPhone(deal.phone)}</span>}
-              {deal.email && <span className="truncate max-w-[160px]">{deal.email}</span>}
-            </div>
-          )}
         </div>
 
-        {/* Project — city, owner, sold date */}
-        <div className="min-w-0 space-y-0.5 text-[11px] text-slate-600">
+        <div className="hidden lg:block w-px h-9 bg-slate-100 flex-shrink-0" />
+
+        {/* Project — city, owner, sold date, plus phone/email if useful */}
+        <div className="lg:w-[190px] lg:flex-shrink-0 min-w-0 space-y-0.5 text-[11px] text-slate-500">
           {deal.city && (
-            <div className="flex items-center gap-1">
-              <span className="text-slate-400 font-semibold">City:</span>
-              <span className="text-slate-900 font-medium truncate">{deal.city}</span>
-            </div>
+            <div className="truncate"><span className="text-slate-400">City</span> <span className="text-slate-800 font-medium">{deal.city}</span></div>
           )}
           {deal.assigned_rep && (
-            <div className="flex items-center gap-1">
-              <span className="text-slate-400 font-semibold">Owner:</span>
-              <span className="text-slate-900 font-medium truncate">{deal.assigned_rep}</span>
-            </div>
+            <div className="truncate"><span className="text-slate-400">Owner</span> <span className="text-slate-800 font-medium">{deal.assigned_rep}</span></div>
           )}
           {formatDate(deal.sold_date) && (
-            <div className="flex items-center gap-1">
-              <span className="text-slate-400 font-semibold">Sold:</span>
-              <span className="text-slate-900 font-medium">{formatDate(deal.sold_date)}</span>
+            <div><span className="text-slate-400">Sold</span> <span className="text-slate-800 font-medium">{formatDate(deal.sold_date)}</span></div>
+          )}
+          {(deal.phone || deal.email) && (
+            <div className="truncate text-slate-400">
+              {deal.phone && <span>{formatPhone(deal.phone)}</span>}
+              {deal.phone && deal.email && ' · '}
+              {deal.email && <span title={deal.email}>{deal.email}</span>}
             </div>
           )}
         </div>
 
-        {/* Financial — Value/Paid/Remaining line up vertically between
-            rows since every row uses the same label+value layout. */}
-        <div className="min-w-0">
+        <div className="hidden lg:block w-px h-9 bg-slate-100 flex-shrink-0" />
+
+        {/* Financial — Value/Paid/Remaining, right-aligned numbers that
+            line up vertically between rows since every row uses the same
+            label+value grid. Never re-derived — same waterfall values.
+            Sits directly beside Project (not pushed to the far right) so
+            it reads as part of the same record, not floating on its own —
+            the trailing arrow absorbs any leftover row width instead. */}
+        <div className="lg:w-[210px] lg:flex-shrink-0">
           {displayContractAmount > 0 ? (
-            <div className="space-y-0.5 text-[11px]">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-slate-400 font-semibold">Value</span>
-                <span className="text-slate-900 font-bold">{fmtMoney(displayContractAmount)}</span>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-slate-400 font-semibold">Paid</span>
-                <span className="text-emerald-700 font-bold">{fmtMoney(displayTotalPaid)}</span>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-slate-400 font-semibold">{getPaymentStatus() === 'Paid in Full' ? 'Status' : 'Remaining'}</span>
-                {getPaymentStatus() === 'Paid in Full' ? (
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Paid in Full</span>
-                ) : (
-                  <span className={`font-bold ${getPaymentStatus() === 'Partial' ? 'text-amber-700' : 'text-slate-600'}`}>{fmtMoney(displayBalanceDue)}</span>
-                )}
-              </div>
+            <div className="grid grid-cols-[auto_auto] gap-x-4 gap-y-0.5 justify-end text-[11px]">
+              <span className="text-slate-400 text-right">Value</span>
+              <span className="text-slate-900 font-bold text-right tabular-nums">{fmtMoney(displayContractAmount)}</span>
+              <span className="text-slate-400 text-right">Paid</span>
+              <span className="text-emerald-700 font-bold text-right tabular-nums">{fmtMoney(displayTotalPaid)}</span>
+              <span className="text-slate-400 text-right">{getPaymentStatus() === 'Paid in Full' ? 'Status' : 'Remaining'}</span>
+              {getPaymentStatus() === 'Paid in Full' ? (
+                <span className="text-right"><span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Paid in Full</span></span>
+              ) : (
+                <span className={`text-right font-bold tabular-nums ${getPaymentStatus() === 'Partial' ? 'text-amber-700' : 'text-slate-600'}`}>{fmtMoney(displayBalanceDue)}</span>
+              )}
               {waterfallError && (
-                <div className="flex items-center gap-1 pt-0.5 text-[10px] text-amber-600 font-semibold">
+                <div className="col-span-2 flex items-center gap-1 justify-end pt-0.5 text-[10px] text-amber-600 font-semibold">
                   <AlertTriangle className="w-3 h-3 flex-shrink-0" />
                   QB waterfall unavailable
                 </div>
@@ -185,7 +180,7 @@ function DealCard({ deal, financials }) {
         </div>
 
         {/* Action */}
-        <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-amber-500 flex-shrink-0 transition-colors lg:justify-self-end" />
+        <ArrowRight className="hidden lg:block w-4 h-4 text-slate-300 group-hover:text-amber-500 flex-shrink-0 transition-colors lg:ml-auto" />
       </div>
     </Link>
   );

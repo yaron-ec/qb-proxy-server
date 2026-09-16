@@ -725,28 +725,29 @@ function LeadCard({ lead, navigate, onLeadUpdate, onDragStart, isDragging, userR
         </div>
       )}
 
-      {/* ONE Lead = ONE row. Desktop (lg+): a real horizontal record with
-          internal regions (Identity/Project, Contact/Location, Ownership/
-          Source, Next Action, Actions) using a CSS grid so the wide desktop
-          container is used inside the row instead of via a multi-column
-          card grid. Below lg, the same regions stack vertically into a
-          clean single-column card — no horizontal scrolling. */}
-      <div className="flex flex-col gap-2.5 lg:grid lg:grid-cols-[auto_minmax(170px,1.3fr)_minmax(150px,1fr)_minmax(130px,0.9fr)_minmax(160px,1.15fr)_auto] lg:items-center lg:gap-4">
-        {/* Avatar */}
-        <div className={`w-8 h-8 rounded-md ${avatarColor} flex items-center justify-center text-white font-bold text-xs flex-shrink-0`}>
-          {`${lead.first_name?.[0] || ''}${lead.last_name?.[0] || ''}`.toUpperCase()}
-        </div>
-
-        {/* Identity / Project — name + status lead visually; project type
-            immediately below. */}
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 flex-wrap relative pointer-events-none">
-            <TruncatedTooltip text={`${toTitleCase(lead.first_name)} ${toTitleCase(lead.last_name)}`} className="text-[15px] font-bold text-slate-900" />
-            <div className="relative">
+      {/* ONE Lead = ONE row. Desktop (lg+): fixed-width internal regions in
+          a single flex row (not fr-based grid tracks, which stretched into
+          scattered dead gaps between short-content columns) — Identity gets
+          a little breathing room, Contact/Ownership/Next-Action are tight
+          and aligned column-to-column between rows, and Actions is pinned
+          to the far right via ml-auto so the row always ends the same way.
+          Below lg the same regions stack into a clean single-column card. */}
+      <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:gap-4">
+        {/* Identity / Project — avatar + name lead visually; status directly
+            beside the name; project type quietly underneath. */}
+        <div className="flex items-center gap-2.5 lg:w-[220px] lg:flex-shrink-0 min-w-0">
+          <div className={`w-8 h-8 rounded-md ${avatarColor} flex items-center justify-center text-white font-bold text-xs flex-shrink-0`}>
+            {`${lead.first_name?.[0] || ''}${lead.last_name?.[0] || ''}`.toUpperCase()}
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap relative pointer-events-none">
+              <TruncatedTooltip text={`${toTitleCase(lead.first_name)} ${toTitleCase(lead.last_name)}`} className="text-[15px] font-bold text-slate-900 leading-tight" />
+            </div>
+            <div className="relative mt-0.5">
               <span
                 role="button"
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setStatusDropdownOpen(!statusDropdownOpen); }}
-                className={`${statusBadgeClass(lead.status)} cursor-pointer hover:opacity-80 transition-opacity btn-compact`}
+                className={`${statusBadgeClass(lead.status)} cursor-pointer hover:opacity-80 transition-opacity btn-compact !h-5 !text-[10px]`}
               >
                 {lead.status}
               </span>
@@ -765,29 +766,34 @@ function LeadCard({ lead, navigate, onLeadUpdate, onDragStart, isDragging, userR
                 </div>
               )}
             </div>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap mt-1">
-            {lead.project_type && <span className="text-xs font-medium text-slate-600">{lead.project_type}</span>}
-            {lead.estimated_value > 0 && (
-              <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full leading-tight">
-                ${lead.estimated_value.toLocaleString()}
-              </span>
+            {(lead.project_type || lead.estimated_value > 0) && (
+              <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                {lead.project_type && <span className="text-[11px] text-slate-500 truncate">{lead.project_type}</span>}
+                {lead.estimated_value > 0 && (
+                  <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded leading-tight">
+                    ${lead.estimated_value.toLocaleString()}
+                  </span>
+                )}
+              </div>
             )}
           </div>
         </div>
 
-        {/* Contact / Location */}
-        <div className="min-w-0 space-y-0.5">
+        <div className="hidden lg:block w-px h-9 bg-slate-100 flex-shrink-0" />
+
+        {/* Contact / Location — always visible, never requires opening the
+            Lead to find. */}
+        <div className="lg:w-[190px] lg:flex-shrink-0 min-w-0 space-y-0.5">
           {lead.phone && <LabeledField icon={<Phone className="w-3 h-3 text-green-600" />} label="Phone" value={formatPhone(lead.phone)} />}
           {lead.email && (
-            <div className="flex items-center gap-1" onClick={e => e.preventDefault()}>
+            <div className="flex items-center gap-1 min-w-0" onClick={e => e.preventDefault()}>
               <Mail className="w-3 h-3 text-slate-400 flex-shrink-0" />
               <a
                 href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(lead.email)}`}
                 target="_blank"
                 rel="noopener"
                 onClick={e => e.stopPropagation()}
-                className="text-xs text-blue-600 hover:underline truncate block"
+                className="text-xs text-blue-600 hover:underline truncate block min-w-0"
                 title={lead.email}
               >
                 {lead.email}
@@ -799,10 +805,10 @@ function LeadCard({ lead, navigate, onLeadUpdate, onDragStart, isDragging, userR
 
         {/* Ownership / Source — reference metadata, visually quieter than
             the actionable contact info. */}
-        <div className="min-w-0 space-y-0.5 text-[11px] text-slate-400">
+        <div className="lg:w-[150px] lg:flex-shrink-0 min-w-0 space-y-0.5 text-[11px] text-slate-400">
           <span className="flex items-center gap-1">
             <User className="w-3 h-3 flex-shrink-0" />
-            {toTitleCase(lead.assigned_rep) || 'Unassigned'}
+            <span className="truncate">{toTitleCase(lead.assigned_rep) || 'Unassigned'}</span>
           </span>
           {(lead.crm_created_date || lead.created_date) && (
             <span className="flex items-center gap-1">
@@ -813,47 +819,56 @@ function LeadCard({ lead, navigate, onLeadUpdate, onDragStart, isDragging, userR
           {lead.source && <span className="block truncate">{lead.source}</span>}
         </div>
 
-        {/* Next Action — the follow-up/appointment state, given strong
-            operational visibility of its own column rather than being
-            buried after metadata. */}
-        <div className="min-w-0">
+        <div className="hidden lg:block w-px h-9 bg-slate-100 flex-shrink-0" />
+
+        {/* Next Action — the follow-up/appointment state gets its own
+            restrained-but-clear treatment (a single semantic chip) so a rep
+            can scan overdue/due-today/type at a glance without extra colors. */}
+        <div className="lg:w-[180px] lg:flex-shrink-0 min-w-0">
           {hasFollowUp ? (
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-xs text-slate-700 font-semibold">
+            <>
+              <div className="text-xs text-slate-800 font-semibold">
                 {fuStatus === 'today' ? 'Today' : formattedDate}
                 {lead.follow_up_time ? ` • ${fmt12(lead.follow_up_time)}` : ''}
-              </span>
-              <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-full flex items-center gap-1 ${badgeClass}`}>
+              </div>
+              <span className={`inline-flex items-center gap-1 mt-1 text-[10px] font-bold px-1.5 py-0.5 rounded ${badgeClass}`}>
                 {isMeeting ? '📅' : '📞'}
                 {fuStatus === 'overdue' ? 'Overdue' : fuStatus === 'today' ? 'Due Today' : (lead.follow_up_type || 'Follow-up')}
               </span>
-            </div>
-          ) : (
+            </>
+          ) : lead.appointment_date ? (
             <DateField label="Appointment" date={lead.appointment_date} />
+          ) : (
+            <span className="text-xs text-slate-300">No next action</span>
           )}
         </div>
 
-        {/* Actions — consistently grouped on the right. Call/SMS/Email
-            always available when there's contact info; Complete/Reschedule/
-            Calendar only apply when there's an actual follow-up to act on. */}
-        <div className="flex items-center gap-1 flex-wrap lg:flex-nowrap lg:justify-end flex-shrink-0" onClick={e => e.preventDefault()}>
-          <ContactActions phone={lead.phone} email={lead.email} size="sm" />
+        {/* Actions — consistently grouped and pinned to the far right on
+            desktop. Call/SMS/Email are the primary, always-visible direct-
+            action set (grouped together, divided from workflow actions);
+            Complete/Reschedule/Calendar only apply when a follow-up exists. */}
+        <div className="flex items-center gap-1 flex-wrap lg:flex-nowrap lg:ml-auto lg:flex-shrink-0" onClick={e => e.preventDefault()}>
+          {(lead.phone || lead.email) && (
+            <div className="flex items-center gap-1 lg:pr-1.5 lg:mr-0.5 lg:border-r lg:border-slate-200">
+              <ContactActions phone={lead.phone} email={lead.email} size="sm" />
+            </div>
+          )}
           {hasFollowUp && isMeeting && (
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/leads/${lead.external_ref || lead.id}`); }}
-              className="flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors btn-compact">
-              <ExternalLink className="w-3 h-3" /> Calendar
+              className="inline-flex items-center gap-1 h-7 px-2.5 text-[11px] font-semibold rounded-md bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors btn-compact">
+              <ExternalLink className="w-3.5 h-3.5" /> Calendar
             </button>
           )}
           {hasFollowUp && (
             <button onClick={handleComplete} disabled={completing}
-              className="flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors disabled:opacity-50 btn-compact">
-              <CheckCircle className="w-3 h-3" /> {isMeeting ? 'Done' : 'Complete'}
+              className="inline-flex items-center gap-1 h-7 px-2.5 text-[11px] font-semibold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors disabled:opacity-50 btn-compact">
+              <CheckCircle className="w-3.5 h-3.5" /> {isMeeting ? 'Done' : 'Complete'}
             </button>
           )}
           {hasFollowUp && (
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/leads/${lead.external_ref || lead.id}`); }}
-              className="flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 transition-colors btn-compact">
-              <RefreshCw className="w-3 h-3" /> Reschedule
+              className="inline-flex items-center gap-1 h-7 px-2.5 text-[11px] font-semibold rounded-md bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 transition-colors btn-compact">
+              <RefreshCw className="w-3.5 h-3.5" /> Reschedule
             </button>
           )}
           {canDelete && (
@@ -867,7 +882,7 @@ function LeadCard({ lead, navigate, onLeadUpdate, onDragStart, isDragging, userR
               <Trash2 className="w-4 h-4" />
             </button>
           )}
-          <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-amber-500 transition-colors flex-shrink-0" />
+          <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-amber-500 transition-colors flex-shrink-0 ml-0.5" />
         </div>
       </div>
     </Link>

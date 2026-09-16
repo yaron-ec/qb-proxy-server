@@ -37,32 +37,47 @@ test('Deals.jsx: the deals list is single-column — one Deal occupies one full 
 
 // ── Desktop: internal horizontal regions inside the row ─────────────────────
 
-test('LeadsModern.jsx LeadCard: desktop row uses an internal grid of regions (Identity/Project, Contact/Location, Ownership/Source, Next Action, Actions)', () => {
+test('LeadsModern.jsx LeadCard: desktop row uses fixed-width internal regions (Identity/Project, Contact/Location, Ownership/Source, Next Action, Actions)', () => {
   const src = read('pages/LeadsModern.jsx');
   const cardFn = src.slice(src.indexOf('function LeadCard'));
-  assert.ok(/lg:grid lg:grid-cols-\[auto_[^\]]+\]/.test(cardFn), 'the row itself must define an internal multi-region grid at the lg breakpoint');
-  assert.ok(cardFn.includes('Identity / Project') || cardFn.includes('Identity/Project'), 'must have an identity/project region');
+  // Visual refinement pass: switched from fr-based CSS grid tracks (which
+  // stretched into scattered dead gaps between short-content columns) to a
+  // flex row of fixed max-widths, with Actions pinned via ml-auto so the
+  // row always ends the same predictable way.
+  assert.ok(/lg:flex-row/.test(cardFn), 'the row itself must become a horizontal flex row at the lg breakpoint');
+  assert.ok(/lg:w-\[\d+px\]/.test(cardFn), 'regions must use fixed max-widths so columns align between rows, not fr tracks that stretch unevenly');
+  assert.ok(cardFn.includes('Identity / Project'), 'must have an identity/project region');
   assert.ok(cardFn.includes('Contact / Location'), 'must have a contact/location region');
   assert.ok(cardFn.includes('Ownership / Source'), 'must have an ownership/source region');
   assert.ok(cardFn.includes('Next Action'), 'must have a next-action region');
   assert.ok(cardFn.includes('Actions — consistently grouped'), 'must have a dedicated actions region');
+  assert.ok(cardFn.includes('lg:ml-auto'), 'Actions must be pinned to the right edge, not left stranded by leftover grid track space');
 });
 
-test('Deals.jsx DealCard: desktop row uses an internal grid of regions (Identity, Project, Financial, Action)', () => {
+test('Deals.jsx DealCard: desktop row uses fixed-width internal regions (Identity, Project, Financial, Action)', () => {
   const src = read('pages/Deals.jsx');
   const cardFn = src.slice(src.indexOf('function DealCard'), src.indexOf('export default function Deals'));
-  assert.ok(/lg:grid lg:grid-cols-\[auto_[^\]]+\]/.test(cardFn), 'the row itself must define an internal multi-region grid at the lg breakpoint');
+  assert.ok(/lg:flex-row/.test(cardFn), 'the row itself must become a horizontal flex row at the lg breakpoint');
+  assert.ok(/lg:w-\[\d+px\]/.test(cardFn), 'regions must use fixed max-widths so columns align between rows, not fr tracks that stretch unevenly');
   assert.ok(cardFn.includes('Identity —'), 'must have an identity region');
   assert.ok(cardFn.includes('Project —'), 'must have a project region');
   assert.ok(cardFn.includes('Financial —'), 'must have a financial region');
+  // Financial must sit adjacent to Project (not pushed to the far right by
+  // its own ml-auto) so it reads as part of the same record rather than
+  // floating alone — only the trailing chevron absorbs leftover row width.
+  const financialDiv = cardFn.slice(cardFn.indexOf('Financial —'), cardFn.indexOf('Financial —') + 200);
+  assert.ok(!financialDiv.includes('lg:ml-auto'), 'Financial region itself must not be pushed to the far right');
+  const actionComment = cardFn.slice(cardFn.indexOf('{/* Action */}'));
+  assert.ok(actionComment.includes('lg:ml-auto'), 'the trailing chevron must absorb any leftover space, not the Financial block');
 });
 
-test('Deals.jsx DealCard: financial values (Value/Paid/Remaining) use a consistent label+value row layout so they align vertically between deals', () => {
+test('Deals.jsx DealCard: financial values (Value/Paid/Remaining) use a consistent right-aligned label+value grid so they align vertically between deals', () => {
   const src = read('pages/Deals.jsx');
   const cardFn = src.slice(src.indexOf('function DealCard'), src.indexOf('export default function Deals'));
   const financialBlock = cardFn.slice(cardFn.indexOf('Financial —'));
-  const rowMatches = financialBlock.match(/flex items-center justify-between gap-3/g) || [];
-  assert.ok(rowMatches.length >= 3, 'Value, Paid, and Remaining/Status must each use the same label+value row shape');
+  assert.ok(financialBlock.includes('grid grid-cols-[auto_auto]'), 'Value/Paid/Remaining must render in a consistent 2-column label+value grid');
+  const tabularMatches = financialBlock.match(/tabular-nums/g) || [];
+  assert.ok(tabularMatches.length >= 3, 'monetary figures must use tabular-nums so digits align vertically between rows');
 });
 
 test('Deals.jsx DealCard: financial calculations are unchanged (still uses displayContractAmount/displayTotalPaid/displayBalanceDue from the waterfall)', () => {
@@ -77,14 +92,14 @@ test('Deals.jsx DealCard: financial calculations are unchanged (still uses displ
 test('LeadsModern.jsx LeadCard: collapses to a stacked single column below lg (no horizontal scroll)', () => {
   const src = read('pages/LeadsModern.jsx');
   const cardFn = src.slice(src.indexOf('function LeadCard'));
-  assert.ok(cardFn.includes('flex flex-col gap-2.5 lg:grid'), 'mobile/tablet must stack regions vertically via flex-col, only becoming a grid at lg+');
+  assert.ok(cardFn.includes('flex flex-col gap-2.5 lg:flex-row'), 'mobile/tablet must stack regions vertically via flex-col, only becoming a horizontal row at lg+');
   assert.ok(!/overflow-x-auto|overflow-x-scroll/.test(cardFn), 'must not rely on horizontal scrolling to preserve the desktop layout');
 });
 
 test('Deals.jsx DealCard: collapses to a stacked single column below lg (no horizontal scroll)', () => {
   const src = read('pages/Deals.jsx');
   const cardFn = src.slice(src.indexOf('function DealCard'), src.indexOf('export default function Deals'));
-  assert.ok(cardFn.includes('flex flex-col gap-2.5 lg:grid'), 'mobile/tablet must stack regions vertically via flex-col, only becoming a grid at lg+');
+  assert.ok(cardFn.includes('flex flex-col gap-2.5 lg:flex-row'), 'mobile/tablet must stack regions vertically via flex-col, only becoming a horizontal row at lg+');
   assert.ok(!/overflow-x-auto|overflow-x-scroll/.test(cardFn), 'must not rely on horizontal scrolling to preserve the desktop layout');
 });
 
