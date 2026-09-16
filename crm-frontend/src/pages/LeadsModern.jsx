@@ -415,7 +415,12 @@ export default function LeadsModern() {
             <p className="text-sm">{isGlobalSearch ? 'No leads match your search' : 'No leads match your filters'}</p>
           </div>
         ) : (
-          <div className="grid gap-3">
+          // Wide desktop space, used intelligently: a responsive multi-column
+          // grid instead of one full-1600px-wide card per row (which is what
+          // made this screen look like oversized cards with empty horizontal
+          // space). The card's own internal layout already wraps its
+          // metadata rows, so it reflows cleanly at a narrower column width.
+          <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-3 items-start">
             {filteredLeads.map(lead => (
               <LeadCard
                 key={lead.id}

@@ -14,14 +14,14 @@
  * actions, not a field-by-field edit form.
  */
 import { useState } from 'react';
-import { Phone, Mail, MapPin, MessageSquare, Pencil, RefreshCw, AlertCircle, CheckCircle2, AlertTriangle, Copy, Navigation, Eye, X } from 'lucide-react';
+import { Phone, Mail, MapPin, Pencil, RefreshCw, AlertCircle, CheckCircle2, AlertTriangle, Copy, Navigation, Eye, X } from 'lucide-react';
 import { leads as railwayLeads } from '@/api/railway';
 import { formatPhone, toTitleCase } from '@/lib/formatters';
-import { composeEmail } from '@/lib/contactActions';
 import { getFullAddress, getDirectionsUrl, getPropertyViewUrl } from '@/lib/addressActions';
 import { useToast } from '@/components/ui/use-toast';
 import TruncatedTooltip from '@/components/TruncatedTooltip';
 import Tip from '@/components/ui/Tip';
+import ContactActions from '@/components/ContactActions';
 
 // ── Phone normalization (matches CRM display logic) ──────────────────────────
 export function normalizePhone(raw) {
@@ -141,15 +141,18 @@ function AddressMapActions({ lead }) {
   if (!directionsUrl && !propertyUrl) return null;
   return (
     <div className="flex items-center gap-1.5 mt-1.5">
+      {/* Location/navigation actions are the canonical indigo family — see
+          components/ContactActions.jsx's semantic color doc — never the
+          same color as Call/SMS/Email. */}
       {directionsUrl && (
         <a href={directionsUrl} target="_blank" rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md px-2 py-1 transition-colors">
+          className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-md px-2 py-1 transition-colors">
           <Navigation className="w-3 h-3" /> Directions
         </a>
       )}
       {propertyUrl && (
         <a href={propertyUrl} target="_blank" rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md px-2 py-1 transition-colors">
+          className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-700 bg-indigo-50/50 hover:bg-indigo-100 border border-indigo-200 rounded-md px-2 py-1 transition-colors">
           <Eye className="w-3 h-3" /> View Property
         </a>
       )}
@@ -281,23 +284,7 @@ function ContactView({ lead }) {
             {lead.phone
               ? <TruncatedTooltip text={formatPhone(lead.phone)} className="crm-value" />
               : <span className="crm-empty">—</span>}
-            <div className="flex items-center gap-1 flex-shrink-0">
-              {lead.phone && (
-                <>
-                  <Tip label={`Call ${formatPhone(lead.phone)}`} side="top">
-                    <a href={`tel:${lead.phone}`} aria-label={`Call ${formatPhone(lead.phone)}`} className="crm-action-btn text-green-700 hover:bg-green-50 hover:border-green-200">
-                      <Phone className="w-3 h-3" />
-                    </a>
-                  </Tip>
-                  <Tip label={`Text ${formatPhone(lead.phone)}`} side="top">
-                    <a href={`sms:${lead.phone}`} aria-label={`Text ${formatPhone(lead.phone)}`} className="crm-action-btn text-blue-600 hover:bg-blue-50 hover:border-blue-200">
-                      <MessageSquare className="w-3 h-3" />
-                    </a>
-                  </Tip>
-                </>
-              )}
-              <CopyBtn value={lead.phone} label="Phone" />
-            </div>
+            <CopyBtn value={lead.phone} label="Phone" />
           </div>
         </div>
       </div>
@@ -310,20 +297,19 @@ function ContactView({ lead }) {
             {lead.email
               ? <TruncatedTooltip text={lead.email} className="crm-value" />
               : <span className="crm-empty">—</span>}
-            <div className="flex items-center gap-1 flex-shrink-0">
-              {lead.email && (
-                <Tip label={`Email ${lead.email}`} side="top">
-                  <a href={`mailto:${lead.email}`} aria-label={`Email ${lead.email}`} className="crm-action-btn text-amber-700 hover:bg-amber-50 hover:border-amber-200"
-                    onClick={e => { e.preventDefault(); composeEmail(lead.email, e); }}>
-                    <Mail className="w-3 h-3" />
-                  </a>
-                </Tip>
-              )}
-              <CopyBtn value={lead.email} label="Email" />
-            </div>
+            <CopyBtn value={lead.email} label="Email" />
           </div>
         </div>
       </div>
+
+      {/* Same Call/SMS/Email component used on Active Leads, Dashboard's
+          Today's Work, and My Day — 'md' size matches its own "detail
+          panels" variant. */}
+      {(lead.phone || lead.email) && (
+        <div className="pl-6">
+          <ContactActions phone={lead.phone} email={lead.email} size="md" labels />
+        </div>
+      )}
 
       <div className="flex items-start gap-3">
         <MapPin className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-[3px]" />

@@ -463,7 +463,10 @@ export default function Deals() {
                 <p className="text-base font-semibold text-slate-600">No deals match your filters</p>
               </div>
             ) : (
-              <div className="grid gap-3">
+              // Same fix as Active Leads: use the wide desktop container
+              // (max-w-[1600px]) with a responsive multi-column grid instead
+              // of one full-width card per row, for cross-product consistency.
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start">
                 {sorted.map(item => (
                   <DealCard key={item.id} deal={item} financials={financialsMap[item.id]} />
                 ))}

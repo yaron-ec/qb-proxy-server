@@ -181,7 +181,10 @@ function LayoutComponent() {
       <aside
         className="flex flex-col bg-[#1B2A4A] text-white border-r border-white/10"
         style={{ 
-          width: collapsed ? 64 : 224,
+          // Widened slightly (224 → 240) so the full company name has room
+          // to wrap onto two clean lines instead of being clipped —
+          // collapsed width (icon-only) is unchanged.
+          width: collapsed ? 64 : 240,
           flexShrink: 0,
           contain: 'layout'
         }}
@@ -200,9 +203,14 @@ function LayoutComponent() {
               </div>
             )}
             {!collapsed && (
-              <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
-                <div className="text-white font-bold text-xs leading-tight">{companyIdentity.name}</div>
-                <div className="text-white/40 text-[10px]">{companyIdentity.location}</div>
+              // Full company name must stay readable — previously this
+              // container forced whiteSpace:nowrap + ellipsis, truncating
+              // "EC Construction Group" to "EC Construction Grou...".
+              // Wrapping to two lines (e.g. "EC Construction" / "Group")
+              // keeps the name intact without widening the sidebar much.
+              <div style={{ minWidth: 0 }}>
+                <div className="text-white font-bold text-xs leading-tight break-words">{companyIdentity.name}</div>
+                <div className="text-white/40 text-[10px] leading-tight break-words mt-0.5">{companyIdentity.location}</div>
               </div>
             )}
           </div>

@@ -7,6 +7,14 @@
  * the browser hands them directly to the native dialer/messenger/mail app
  * without any JavaScript popup that Safari/Chrome would block.
  *
+ * CANONICAL SEMANTIC COLORS (used everywhere a communication/navigation
+ * action appears — Active Leads, Dashboard/FollowUpsWidget, Lead Detail,
+ * My Day — do not pick a different color for the same action elsewhere):
+ *   Call               → green/emerald
+ *   SMS / Text         → blue
+ *   Email              → amber
+ *   Navigate/Directions/View Property (location actions) → indigo
+ *
  * Props:
  *   phone  — raw phone string (optional)
  *   email  — email address (optional)

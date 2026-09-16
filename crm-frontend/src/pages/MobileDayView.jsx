@@ -119,19 +119,21 @@ function QuickActions({ appt }) {
         <a
           href={`mailto:${appt.email}`}
           onClick={e => e.stopPropagation()}
-          className="flex flex-col items-center gap-1 py-2 bg-violet-50 rounded-xl border border-violet-100 active:bg-violet-100 transition-colors"
+          className="flex flex-col items-center gap-1 py-2 bg-amber-50 rounded-xl border border-amber-100 active:bg-amber-100 transition-colors"
         >
-          <Mail className="w-4 h-4 text-violet-600" />
-          <span className="text-[10px] font-bold text-violet-700 uppercase">Email</span>
+          <Mail className="w-4 h-4 text-amber-600" />
+          <span className="text-[10px] font-bold text-amber-700 uppercase">Email</span>
         </a>
       )}
       {address && (
+        // Location/navigation action — canonical indigo family, matching
+        // Directions/View Property everywhere else (components/ContactActions.jsx).
         <button
           onClick={e => { e.stopPropagation(); openNavigation(address); }}
-          className="flex flex-col items-center gap-1 py-2 bg-amber-50 rounded-xl border border-amber-100 active:bg-amber-100 transition-colors"
+          className="flex flex-col items-center gap-1 py-2 bg-indigo-50 rounded-xl border border-indigo-100 active:bg-indigo-100 transition-colors"
         >
-          <Navigation className="w-4 h-4 text-amber-600" />
-          <span className="text-[10px] font-bold text-amber-700 uppercase">Navigate</span>
+          <Navigation className="w-4 h-4 text-indigo-600" />
+          <span className="text-[10px] font-bold text-indigo-700 uppercase">Navigate</span>
         </button>
       )}
     </div>
