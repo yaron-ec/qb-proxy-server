@@ -3,13 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import * as railwayDeals from "@/api/railway/deals";
 import * as railwayLeads from "@/api/railway/leads";
 import * as railwayInvoices from "@/api/railway/invoices";
-import { TrendingUp, LayoutDashboard, DollarSign, FileText, Briefcase, Clock, PieChart, AlertCircle } from "lucide-react";
+import { TrendingUp, LayoutDashboard, FileText, Briefcase, Clock, PieChart, AlertCircle } from "lucide-react";
 import AddNewProjectModal from "@/components/AddNewProjectModal";
 import { TabBar } from "@/components/DesignSystem";
 import { deriveStageFromPayments } from "@/components/DealPaymentPanel";
 import DealHeader from "@/components/dealdetail/DealHeader";
 import OverviewTab from "@/components/dealdetail/OverviewTab";
-import FinancialTab from "@/components/dealdetail/FinancialTab";
 import FinancialsTab from "@/components/financials/FinancialsTab";
 import DocumentsTab from "@/components/dealdetail/DocumentsTab";
 import ProjectTab from "@/components/dealdetail/ProjectTab";
@@ -26,7 +25,6 @@ const DEAL_TO_LEAD_MAP = {
 
 const TABS = [
   { id: "overview",   label: "Overview",   icon: LayoutDashboard },
-  { id: "financial",  label: "Financial",  icon: DollarSign },
   { id: "financials", label: "Financials", icon: PieChart },
   { id: "documents",  label: "Documents",  icon: FileText },
   { id: "project",    label: "Project",    icon: Briefcase },
@@ -43,7 +41,6 @@ export default function DealDetail() {
   const [saving, setSaving] = useState(null);
   const [savedMsg, setSavedMsg] = useState(null);
   const [showAddProject, setShowAddProject] = useState(false);
-  const [editingField, setEditingField] = useState(null);
   const [invoices, setInvoices] = useState([]);
   const [activeTab, setActiveTab] = useState("overview");
   const [loadError, setLoadError] = useState(null);
@@ -244,20 +241,17 @@ export default function DealDetail() {
           </div>
         )}
         <TabBar tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
+        {(savedMsg || fieldError) && (
+          <div className={`px-4 py-2 text-xs font-semibold flex-shrink-0 ${fieldError ? "bg-rose-50 text-rose-700 border-b border-rose-200" : "bg-emerald-50 text-emerald-700 border-b border-emerald-200"}`}>
+            {fieldError ? `⚠ ${fieldError}` : `✓ ${savedMsg}`}
+          </div>
+        )}
         <div className="flex-1 overflow-y-auto">
           {activeTab === "overview" && (
             <OverviewTab deal={deal} lead={lead} updateField={updateField} setDeal={setDeal} setLead={setLead} saving={saving} />
           )}
-          {activeTab === "financial" && (
-            <FinancialTab
-              deal={deal} lead={lead} invoices={invoices}
-              setDeal={setDeal} setLead={setLead} refreshLead={refreshLead}
-              editingField={editingField} setEditingField={setEditingField}
-              savedMsg={savedMsg} setSavedMsg={setSavedMsg}
-            />
-          )}
           {activeTab === "financials" && (
-            <FinancialsTab deal={deal} lead={lead} invoices={invoices} setDeal={setDeal} />
+            <FinancialsTab deal={deal} lead={lead} invoices={invoices} setDeal={setDeal} setLead={setLead} refreshLead={refreshLead} />
           )}
           {activeTab === "documents" && <DocumentsTab lead={lead} setLead={setLead} />}
           {activeTab === "project" && <ProjectTab deal={deal} lead={lead} updateField={updateField} setLead={setLead} saving={saving} />}

@@ -139,6 +139,42 @@ export function getDealPaymentSummary(deal, lead, invoices = [], saleInvoices = 
   return { hasQB, projectTotal, invoiced, paid, balance, remaining, pctPaid, waterfall: waterfallAllocation };
 }
 
+// Canonical cost-classification buckets for vendor/project expenses (deal_expenses).
+// The user chooses the classification via the expense's `category` field —
+// see ExpensesSection.jsx's CATEGORIES list. Everything other than the two
+// named categories below is grouped as "other" (permits, labor, insurance,
+// etc.) — a genuinely new project cost, just not Subcontractor or Material.
+const SUBCONTRACTOR_CATEGORY = "Subcontractor";
+const MATERIAL_CATEGORY = "Materials";
+
+/**
+ * classifyVendorExpenses — buckets active deal_expenses rows into
+ * Subcontractor / Material / Other, each tracking:
+ *   committed — the full expense amount, recognized in profit regardless of
+ *               payment_status (an approved $10k subcontractor cost reduces
+ *               projected profit today even if only $5k has been paid so
+ *               far — cash paid to date is a separate, operational number).
+ *   paid      — amount_paid, the actual cash disbursed so far (maintained by
+ *               ExpensesSection's payment-tracking flow).
+ * Refunded expenses subtract from their category (a genuine cost reversal).
+ * Cancelled or include_in_profit_calculation=false rows are excluded
+ * entirely — same filter computeFinancials always used for totalVendorExpenses.
+ */
+export function classifyVendorExpenses(expenses) {
+  const active = (expenses || []).filter(
+    (e) => e.include_in_profit_calculation !== false && e.payment_status !== "Cancelled"
+  );
+  const bucket = () => ({ committed: 0, paid: 0 });
+  const out = { subcontractor: bucket(), material: bucket(), other: bucket() };
+  for (const e of active) {
+    const sign = e.payment_status === "Refunded" ? -1 : 1;
+    const key = e.category === SUBCONTRACTOR_CATEGORY ? "subcontractor" : e.category === MATERIAL_CATEGORY ? "material" : "other";
+    out[key].committed = round2(out[key].committed + sign * safeNumber(e.amount));
+    out[key].paid = round2(out[key].paid + sign * safeNumber(e.amount_paid));
+  }
+  return out;
+}
+
 export function computeFinancials({ deal, lead, invoices, saleInvoices, expenses, commissions, loanPayments, waterfall }) {
   const hasQB = !!lead?.qb_invoice_id;
   const qbInvoiceAmount = safeNumber(lead?.qb_invoice_amount);
@@ -149,21 +185,26 @@ export function computeFinancials({ deal, lead, invoices, saleInvoices, expenses
   const manualAdj = safeNumber(deal?.financial_manual_revenue_adjustment);
   const totalRevenue = round2(contractAmount + changeOrders + manualAdj);
 
-  const paymentsReceived = getDealPaymentSummary(deal, lead, invoices, saleInvoices, waterfall).paid;
+  const paymentSummary = getDealPaymentSummary(deal, lead, invoices, saleInvoices, waterfall);
+  const paymentsReceived = paymentSummary.paid;
+  // Customer collections — canonical meanings (see CLAUDE.md): INVOICED is
+  // what's been billed so far; BALANCE = INVOICED - PAID (unpaid invoiced
+  // amount); REMAINING = current project/contract VALUE - PAID (what's left
+  // to collect on the whole job, including work not yet invoiced).
+  const invoiced = round2(paymentSummary.invoiced);
+  const balance = round2(Math.max(0, invoiced - paymentsReceived));
   const remainingCustomerBalance = round2(Math.max(0, totalRevenue - paymentsReceived));
 
   const ctx0 = { totalRevenue, paymentsReceived };
   const leadCostAmount = computeLeadCost(deal, ctx0);
   const companyShareAmount = round2(totalRevenue - leadCostAmount);
 
-  const activeExpenses = (expenses || []).filter(
-    (e) => e.include_in_profit_calculation !== false && e.payment_status !== "Cancelled"
-  );
+  const vendorBreakdown = classifyVendorExpenses(expenses);
   const totalVendorExpenses = round2(
-    activeExpenses.reduce((s, e) => {
-      const amt = safeNumber(e.amount);
-      return e.payment_status === "Refunded" ? s - amt : s + amt;
-    }, 0)
+    vendorBreakdown.subcontractor.committed + vendorBreakdown.material.committed + vendorBreakdown.other.committed
+  );
+  const totalPaidVendorExpenses = round2(
+    vendorBreakdown.subcontractor.paid + vendorBreakdown.material.paid + vendorBreakdown.other.paid
   );
 
   const totalLoanInterest = round2(
@@ -194,6 +235,15 @@ export function computeFinancials({ deal, lead, invoices, saleInvoices, expenses
   const netProfit = round2(totalRevenue - totalCosts);
   const profitMargin = totalRevenue > 0 ? round2((netProfit / totalRevenue) * 100) : 0;
 
+  // Committed vs. paid cost — loan payments and commissionPaid are cash
+  // already disbursed; leadCostAmount/otherIncludedCosts have no payment
+  // tracking of their own so they're committed-only (never fabricated as
+  // "paid"). totalCosts (= totalCommittedCost) is unchanged and remains what
+  // PROJECTED PROFIT is computed from — an approved-but-unpaid cost still
+  // reduces profit today.
+  const totalCommittedCost = totalCosts;
+  const totalPaidCost = round2(totalPaidVendorExpenses + commissionPaid + totalLoanInterest);
+
   return {
     hasQB,
     contractAmount,
@@ -201,16 +251,22 @@ export function computeFinancials({ deal, lead, invoices, saleInvoices, expenses
     manualAdj,
     totalRevenue,
     paymentsReceived,
+    invoiced,
+    balance,
     remainingCustomerBalance,
     leadCostAmount,
     companyShareAmount,
+    vendorBreakdown,
     totalVendorExpenses,
+    totalPaidVendorExpenses,
     totalLoanInterest,
     otherIncludedCosts,
     salesCommissionAmount,
     commissionPaid,
     commissionBalance,
     totalCosts,
+    totalCommittedCost,
+    totalPaidCost,
     netProfit,
     profitMargin,
     ctx,

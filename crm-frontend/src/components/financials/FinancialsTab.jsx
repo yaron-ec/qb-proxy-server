@@ -8,7 +8,9 @@ import * as railwayActivities from "@/api/railway/activities";
 import * as railwayDealFinancials from "@/api/railway/dealFinancials";
 import { useAuth } from "@/lib/AuthContext";
 import { computeFinancials } from "@/lib/financialCalc";
-import FinancialSummary from "./FinancialSummary";
+import ProfitabilitySummary from "./ProfitabilitySummary";
+import CustomerCollections from "./CustomerCollections";
+import CostBreakdown from "./CostBreakdown";
 import RevenueSection from "./RevenueSection";
 import LeadCostSection from "./LeadCostSection";
 import CommissionSection from "./CommissionSection";
@@ -16,7 +18,7 @@ import ExpensesSection from "./ExpensesSection";
 import LoanPaymentsSection from "./LoanPaymentsSection";
 import FinancialActivitySection from "./FinancialActivitySection";
 
-export default function FinancialsTab({ deal, lead, invoices, setDeal }) {
+export default function FinancialsTab({ deal, lead, invoices, setDeal, setLead, refreshLead }) {
   const { user } = useAuth();
   const role = user?.role;
   const isAdmin = role === "admin";
@@ -35,6 +37,7 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal }) {
   const [activities, setActivities] = useState([]);
   const [saleInvoices, setSaleInvoices] = useState([]);
   const [waterfall, setWaterfall] = useState(null);
+  const [waterfallError, setWaterfallError] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -58,6 +61,7 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal }) {
       setActivities((actRes.items || []).filter((a) => a.metadata?.category === "financial"));
       setSaleInvoices(finRes?.invoices || []);
       setWaterfall(finRes?.waterfall || null);
+      setWaterfallError(finRes?.waterfallError || null);
     } catch {
       // non-critical
     } finally {
@@ -111,9 +115,19 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal }) {
     );
   }
 
+  // Sales reps see customer-facing collections (what's owed, what's been
+  // paid, payment schedule, QuickBooks status) and their own commission —
+  // never job cost/profit data, which stays management-only. This preserves
+  // the visibility boundary the previous separate "Financial"/"Financials"
+  // tabs each enforced independently.
   if (isSalesRep) {
     return (
       <div className="max-w-4xl mx-auto px-4 md:px-6 py-5 space-y-5">
+        <CustomerCollections
+          deal={deal} lead={lead} fin={fin}
+          invoices={invoices} saleInvoices={saleInvoices} waterfall={waterfall} waterfallError={waterfallError}
+          setDeal={setDeal} setLead={setLead} refreshLead={refreshLead}
+        />
         <CommissionSection
           deal={deal}
           commissions={commissions}
@@ -131,7 +145,19 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal }) {
 
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-6 py-5 space-y-5">
-      <FinancialSummary fin={fin} />
+      {/* ONE deal, one financial picture: profitability first (the primary
+          question — "how profitable is this job right now?"), then customer
+          collections (a related but distinct concept — QuickBooks stays
+          authoritative for real payments), then the cost breakdown that
+          explains the profitability number. Everything below is detail. */}
+      <ProfitabilitySummary fin={fin} />
+      <CustomerCollections
+        deal={deal} lead={lead} fin={fin}
+        invoices={invoices} saleInvoices={saleInvoices} waterfall={waterfall} waterfallError={waterfallError}
+        setDeal={setDeal} setLead={setLead} refreshLead={refreshLead}
+      />
+      <CostBreakdown fin={fin} />
+      <ExpensesSection deal={deal} expenses={expenses} payments={expensePayments} canEdit={canEdit} canDelete={canDelete} onChange={load} logActivity={logActivity} user={user} />
       <RevenueSection deal={deal} fin={fin} canEdit={canEdit} updateDeal={updateDeal} logActivity={logActivity} />
       <LeadCostSection deal={deal} fin={fin} canEdit={canEditLeadCost} updateDeal={updateDeal} logActivity={logActivity} />
       <CommissionSection
@@ -145,7 +171,6 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal }) {
         logActivity={logActivity}
         user={user}
       />
-      <ExpensesSection deal={deal} expenses={expenses} payments={expensePayments} canEdit={canEdit} canDelete={canDelete} onChange={load} logActivity={logActivity} user={user} />
       <LoanPaymentsSection deal={deal} loanPayments={loanPayments} canEdit={canEdit} canDelete={canDelete} onChange={load} logActivity={logActivity} user={user} />
       <FinancialActivitySection activities={activities} />
     </div>
