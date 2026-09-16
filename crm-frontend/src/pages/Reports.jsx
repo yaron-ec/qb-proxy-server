@@ -5,7 +5,7 @@ import * as railwayDeals from "@/api/railway/deals";
 import { useNavigate } from "react-router-dom";
 import {
   Users, TrendingUp, DollarSign,
-  MapPin, Briefcase, RefreshCw
+  MapPin, Briefcase, RefreshCw, AlertCircle
 } from "lucide-react";
 import {
   BarChart, Bar, PieChart, Pie, Cell,
@@ -47,7 +47,7 @@ function StatCard({ label, value, sub, color = "slate", icon: Icon, onClick, cli
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{label}</p>
-          <p className="text-2xl font-black text-slate-900">{value}</p>
+          <p className="text-2xl font-black text-slate-900 tabular-nums">{value}</p>
           {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
         </div>
         <div className="flex flex-col items-end gap-1">
@@ -161,8 +161,18 @@ export default function Reports() {
   );
 
   if (error) return (
-    <div className="flex items-center justify-center h-full p-8">
-      <div className="text-center text-sm text-red-600">{error}</div>
+    <div className="flex flex-col items-center justify-center h-full gap-4 p-8 text-center">
+      <AlertCircle className="w-8 h-8 text-red-400" />
+      <div>
+        <p className="text-sm font-semibold text-slate-700">Could not load reports</p>
+        <p className="text-xs text-slate-400 mt-1">{error}</p>
+      </div>
+      <button
+        onClick={load}
+        className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold rounded-lg transition-colors"
+      >
+        <RefreshCw className="w-4 h-4" /> Retry
+      </button>
     </div>
   );
 
@@ -317,6 +327,7 @@ export default function Reports() {
 
           {isAdmin && Object.keys(sales.salesByRep || {}).length > 0 && (
             <div className="mt-3 bg-white border border-border rounded-xl shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100">
@@ -335,6 +346,7 @@ export default function Reports() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
         </section>
@@ -358,6 +370,7 @@ export default function Reports() {
               ) : <p className="text-xs text-slate-400 text-center py-8">No source data</p>}
             </div>
             <div className="bg-white border border-border rounded-xl shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100">
@@ -378,6 +391,7 @@ export default function Reports() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         </section>
@@ -399,6 +413,7 @@ export default function Reports() {
             </ResponsiveContainer>
           </div>
           <div className="mt-3 bg-white border border-border rounded-xl shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
@@ -421,6 +436,7 @@ export default function Reports() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </section>
 

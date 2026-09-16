@@ -78,6 +78,7 @@ export default function OwnerDirectoryTab() {
             No users found. Add users in the Users tab first.
           </div>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
@@ -134,6 +135,7 @@ export default function OwnerDirectoryTab() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

@@ -215,22 +215,30 @@ export default function Settings() {
         </button>
       </div>
 
-      {/* Mobile dropdown nav */}
+      {/* Mobile dropdown nav — grouped to match the desktop sidebar, instead
+          of one long flat list of every settings page. */}
       {mobileNavOpen && (
-        <div className="md:hidden bg-white border-b border-slate-200 px-4 py-3 space-y-1 flex-shrink-0 shadow-md">
-          {NAV_SECTIONS.flatMap(s => s.items).map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => handleNavClick(id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${
-                activeTab === id
-                  ? "bg-amber-50 text-amber-700 font-semibold"
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-800"
-              }`}
-            >
-              <Icon className="w-4 h-4 flex-shrink-0" />
-              {label}
-            </button>
+        <div className="md:hidden bg-white border-b border-slate-200 px-4 py-3 space-y-4 flex-shrink-0 shadow-md max-h-[70vh] overflow-y-auto">
+          {NAV_SECTIONS.filter(s => !isReadOnly || ['General', 'CRM Configuration', 'Account'].includes(s.group)).map(({ group, items }) => (
+            <div key={group}>
+              <p className="text-[11px] font-semibold text-slate-400 px-3 mb-1">{group}</p>
+              <div className="space-y-1">
+                {items.map(({ id, label, icon: Icon }) => (
+                  <button
+                    key={id}
+                    onClick={() => handleNavClick(id)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${
+                      activeTab === id
+                        ? "bg-amber-50 text-amber-700 font-semibold"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-800"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 flex-shrink-0" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
           ))}
           <div className="border-t border-slate-100 pt-2 mt-2">
             <button

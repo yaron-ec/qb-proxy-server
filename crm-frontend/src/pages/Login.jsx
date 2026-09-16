@@ -8,7 +8,7 @@ import { RAILWAY_API_URL } from '@/lib/apiConfig';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Lock, Mail } from 'lucide-react';
+import { Loader2, Mail } from 'lucide-react';
 
 /**
  * Native CRM login page — Railway-owned authentication.
@@ -90,9 +90,10 @@ export default function Login() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 p-4">
       <div className="max-w-sm w-full bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
         <div className="flex flex-col items-center mb-6">
-          <div className="inline-flex items-center justify-center w-14 h-14 mb-4 rounded-full bg-amber-100">
-            <Lock className="w-7 h-7 text-amber-600" />
-          </div>
+          {/* Same brand asset as the app sidebar (Layout.jsx) — the login
+              screen should carry the same identity as the product itself,
+              not a generic lock icon. */}
+          <img src="/logo-dark.jpg" alt="EC Construction Group" className="w-14 h-14 rounded-xl object-contain mb-4 shadow-sm" />
           <h1 className="text-xl font-bold text-slate-900">EC Construction Group</h1>
           <p className="text-sm text-slate-500 mt-1">Sign in to the CRM</p>
         </div>
