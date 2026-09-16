@@ -34,7 +34,6 @@
  *   sensitive customer data.
  */
 import * as railwayApi from '@/lib/railwayApi';
-import { appParams } from '@/lib/app-params';
 import { IdempotencyKeys } from '@/lib/idempotencyKeys';
 import {
   manualStaffReminderHtml,
@@ -92,11 +91,13 @@ async function sendViaRailway({ to, cc, replyTo, subject, htmlBody, attachments,
   const toList = Array.isArray(to) ? to.filter(Boolean) : [to].filter(Boolean);
   const ccList = Array.isArray(cc) ? cc.filter(Boolean) : (cc ? [cc] : []);
 
-  // Ensure Railway JWT session exists (provisions on first send via Base44
-  // token exchange — browser never holds PROXY_SECRET, only the Railway JWT).
+  // Railway JWT session must already exist — there is no migration bridge
+  // anymore (railwayApi.migrateFromBase44 is a permanently-removed stub that
+  // always throws 404; calling it here would only replace this clear error
+  // with a confusing "migration bridge removed" one). All auth is via
+  // login()/Google SSO (see src/lib/AuthContext.jsx).
   if (!railwayApi.isLoggedIn()) {
-    if (!appParams.token) throw new Error('Railway session not established — sign in to send email');
-    await railwayApi.migrateFromBase44(appParams.token);
+    throw new Error('Railway session not established — sign in to send email');
   }
 
   safeLog('railway_send_start', {

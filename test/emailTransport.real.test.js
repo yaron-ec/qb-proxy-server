@@ -70,7 +70,7 @@ const originalLoad = Module._load;
 Module._load = function (request, parent, ...args) {
   if (mockModules[request]) return mockModules[request];
   if (request.startsWith('@/')) {
-    return originalLoad.call(this, path.resolve(__dirname, '../../..', request.slice(2)), parent, ...args);
+    return originalLoad.call(this, path.resolve(__dirname, '..', 'crm-frontend', 'src', request.slice(2)), parent, ...args);
   }
   return originalLoad.call(this, request, parent, ...args);
 };
@@ -79,7 +79,7 @@ Module._load = function (request, parent, ...args) {
 async function buildTransport() {
   let esbuild;
   try { esbuild = require('esbuild'); } catch { throw new Error('esbuild not available — npm install esbuild'); }
-  const srcRoot = path.resolve(__dirname, '../../..', 'src');
+  const srcRoot = path.resolve(__dirname, '..', 'crm-frontend', 'src');
   // Plugin: mark base44 + appParams as external (mocked via Module hook),
   // resolve all other @/ imports to src/, and support .mjs extensions.
   const transportPlugin = {
@@ -97,7 +97,7 @@ async function buildTransport() {
     },
   };
   const result = await esbuild.build({
-    entryPoints: [path.resolve(__dirname, '../../lib/emailTransport.js')],
+    entryPoints: [path.resolve(__dirname, '..', 'crm-frontend', 'src', 'lib', 'emailTransport.js')],
     bundle: true,
     format: 'cjs',
     write: false,
@@ -192,12 +192,17 @@ async function testJwtMissingFailsWithoutMigrationBridge() {
     errMsg = e.message;
   }
 
-  // Migration bridge has been intentionally removed (Base44 exit).
-  // When JWT is missing, migrateFromBase44 throws instead of provisioning.
-  assert.ok(threw, 'Should throw when JWT missing (migration bridge removed)');
-  assert.ok(errMsg.includes('Migration bridge removed'), 'Error should mention migration bridge removed');
-  assert.strictEqual(calls.length, 0, 'Should NOT call any API (migration bridge removed)');
-  console.log('  ✓ JWT missing — fails with migration bridge removed (no API calls)');
+  // Migration bridge has been fully removed (Base44 exit). Older code called
+  // the now-permanently-broken migrateFromBase44() stub in this branch (which
+  // always throws a confusing "Migration bridge removed" 404) — that dead
+  // call has since been removed too, so a missing session now fails
+  // immediately with a clear, actionable message instead. Either way, no
+  // network call is ever made and no Base44 code path is reached.
+  assert.ok(threw, 'Should throw when no Railway session exists');
+  assert.ok(errMsg.includes('sign in'), `Error should tell the user to sign in, got: "${errMsg}"`);
+  assert.ok(!errMsg.includes('Migration bridge'), 'Error should NOT reference the removed migration bridge — that dead call path no longer exists');
+  assert.strictEqual(calls.length, 0, 'Should NOT call any API when there is no Railway session');
+  console.log('  ✓ no Railway session — fails immediately with a clear sign-in message (no API calls, no migration-bridge path)');
 }
 
 async function testJwtExpiredRefreshSucceeds() {
