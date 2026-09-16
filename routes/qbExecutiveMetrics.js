@@ -9,8 +9,20 @@
  *   - Railway `qb_invoice_sale_map` (sale-scoped ownership)
  *   - Railway `sync_cursors` (sync status)
  *
- * Sale-scoped: revenue is computed per-deal (crm_sale_id), not per-customer.
- * A customer with multiple sales sees each sale's financials independently.
+ * KNOWN LIMITATION (do not remove this note without fixing the underlying
+ * aggregation): despite this file's original intent, revenue/paid/balance
+ * below are actually aggregated PER QB CUSTOMER (qb_customer_id), not
+ * per-deal — see the customerMap construction and repMetrics accumulation.
+ * Each cached invoice does carry crm_sale_id (inv.crm_sale_id, surfaced on
+ * each invoice entry), so a customer with multiple deals will have all of
+ * their deals' invoices summed together in `totalInvoiced`/`totalPaid`/
+ * `openBalance` and in the rep rollups — those numbers conflate a repeat
+ * customer's separate sales rather than reporting them independently.
+ * This is an admin-only reporting view (no transactional/financial-write
+ * impact), but restructuring it to group by crm_sale_id instead needs a
+ * deliberate pass (deciding how to bucket unmapped invoices, and checking
+ * the exact response shape the executive dashboard frontend depends on)
+ * rather than a rushed change to a real financial reporting endpoint.
  *
  * Auth: Railway JWT (requireAuth). Admin only.
  */
