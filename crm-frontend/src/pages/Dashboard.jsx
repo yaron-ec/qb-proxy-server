@@ -130,9 +130,18 @@ export default function Dashboard() {
     <div className="min-h-full bg-background">
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
 
-        {/* Page Header */}
+        {/* Page Header — personalized so the dashboard reads as "your day",
+            not a generic report; role-neutral copy (region analytics below
+            are separately gated to admin/manager). */}
         <div>
-          <h1 className="typography-page-title">Dashboard</h1>
+          <h1 className="typography-page-title">
+            {(() => {
+              const h = new Date().getHours();
+              const greeting = h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+              const first = currentUser?.full_name?.split(" ")[0];
+              return first ? `${greeting}, ${first}` : "Dashboard";
+            })()}
+          </h1>
           <p className="typography-helper-text mt-1">Lead performance overview · Northern & Southern California</p>
         </div>
 
@@ -163,9 +172,14 @@ export default function Dashboard() {
         dateRangeMode={DATE_RANGE_OPTIONS.find(o => o.value === dateRange)}
       />
 
-      {/* Region Summary Cards */}
+      {/* Team & Regional Performance — secondary, analytical information.
+          Visually distinct from (and beneath) the urgent follow-ups above:
+          a section label + lighter card treatment so it reads as "further
+          context" rather than competing with today's operational items. */}
       {currentYearData && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="pt-2">
+          <p className="typography-section-header mb-3">Team &amp; Regional Performance</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Northern CA */}
           <div className="bg-card rounded-lg border border-border shadow-sm p-5 border-l-4 border-l-blue-500">
             <div className="flex items-start justify-between mb-4">
@@ -222,10 +236,13 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-      )}
 
-      {/* Year Selector + Monthly Breakdown */}
-      <div className={CARD_PADDED}>
+      {/* Year Selector + Monthly Breakdown — grouped under the same
+          "Team & Regional Performance" section as the region cards above
+          (both are admin/manager-only analytics, gated on currentYearData
+          together) rather than rendering an empty, header-only card shell
+          for any role that never receives region data. */}
+      <div className={`${CARD_PADDED} mt-5`}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wide">Monthly Breakdown</h2>
           <div className="flex gap-2">
@@ -306,6 +323,8 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+        </div>
+      )}
 
       {/* Quick Lead Search */}
       <div className={CARD_PADDED}>
