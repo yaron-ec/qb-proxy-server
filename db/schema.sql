@@ -1,15 +1,49 @@
 -- =====================================================================
--- Railway PostgreSQL schema for the EC Construction Group reminder system.
+-- IMPORTANT — READ BEFORE TREATING THIS FILE AS "the schema":
+--
+-- This file is NOT a complete, canonical snapshot of the live production
+-- schema. It only ever covered the reminder-engine + email/auth + booking-
+-- core tables added up through migration 2026-08. Every table added from
+-- migration 2026-09 onward (activities, deals, tasks, invoices, all
+-- deal_* financial tables, properties, lead_attachments, company_settings,
+-- handoff_estimates, lead_submissions, user_allowlist, access_requests,
+-- contacts, sync_cursors, signnow_documents, monitoring_*, estimates,
+-- schema_migrations, app_settings, qb_sync_jobs, qb_invoice_sale_map,
+-- qb_invoices_cache, qb_payments_cache, qb_payment_allocations, and more)
+-- is defined ONLY in db/migrations/*.sql and is NOT reflected here.
+--
+-- The authoritative source of truth for the full current schema is:
+--   db/migrations/*.sql  (applied in order by db/migrate.js)
+--   + the schema_migrations table (tracks what has actually been applied)
+--
+-- ensureSchema() (below, invoked by db/client.js) only guarantees the
+-- SUBSET of tables defined in THIS file exists — it does NOT run
+-- db/migrations/*.sql. Code paths that call ensureSchema() directly
+-- (rather than relying on `db/migrate.js` having run first) will get
+-- "relation does not exist" for any table added after 2026-08 unless the
+-- full migration set has also been applied in that environment.
+-- =====================================================================
+
+-- =====================================================================
+-- Railway PostgreSQL schema for the EC Construction Group reminder system
+-- (original scope of this file — reminder engine + email/auth + booking-core
+-- tables only; see the note above for everything added after it).
 --
 -- OWNERSHIP: Railway owns ALL operational state. Base44 is NOT used for
--- locking, claims, leases, retries, cron, health, or alerts. Base44 is used
--- only to read CRM Lead records and to write the final REMINDER_SENT
--- Activity row after a reminder has been successfully delivered.
+-- locking, claims, leases, retries, cron, health, or alerts.
+--
+-- NOTE: the line below describing a Base44 Activity write-back is
+-- historical — Base44 has since been fully retired from the production
+-- request path (see CLAUDE.md). reminder_activity_queue and the write-back
+-- it describes predate that retirement; verify current behavior in
+-- lib/reminderEngine.js rather than trusting this comment.
+-- Base44 was used only to read CRM Lead records and to write the final
+-- REMINDER_SENT Activity row after a reminder had been successfully delivered.
 --
 -- Tables:
 --   reminder_claims        atomic per-reminder claim (UNIQUE reminder_key)
 --   reminder_runs          singleton health/heartbeat row
---   reminder_activity_queue  bounded retry queue for the Base44 Activity write
+--   reminder_activity_queue  bounded retry queue (see historical note above)
 --
 -- Applied idempotently on worker boot by db/client.js ensureSchema().
 -- Safe to re-run.
