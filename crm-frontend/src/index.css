@@ -335,6 +335,32 @@
     @apply text-sm font-semibold;
   }
 
+  /* ── Financial figure typography — currency/percentage values anywhere in
+     the CRM (KPI cards, tables, profitability summaries). Roboto Mono +
+     tabular-nums keeps digits aligned in columns and gives large numbers a
+     "financial dashboard" weight instead of reading like body text. Use the
+     size variant that matches context; pair with .fin-positive/.fin-negative
+     only where the sign of the number is meaningful (profit, margin) — a
+     plain committed cost or invoiced total stays neutral (.typography-*
+     slate tones), since a cost isn't "bad" just for existing. ── */
+  .fin-figure {
+    font-family: 'Roboto Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    @apply font-bold text-slate-900;
+  }
+  .fin-figure-sm {
+    font-family: 'Roboto Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    @apply text-sm font-semibold text-slate-800;
+  }
+  .fin-figure-lg {
+    font-family: 'Roboto Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    @apply text-xl sm:text-2xl font-bold text-slate-900;
+  }
+  .fin-positive { @apply text-emerald-700; }
+  .fin-negative { @apply text-rose-700; }
+
   /* Multiline text preservation — for all free-text fields and display areas */
   textarea,
   .multiline-text,

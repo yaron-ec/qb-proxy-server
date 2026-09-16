@@ -19,21 +19,21 @@ export default function ProfitabilitySummary({ fin }) {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Project Value</p>
-          <p className="mono text-xl sm:text-2xl font-bold text-white mt-1 tabular-nums">{formatCurrency(fin.totalRevenue)}</p>
+          <p className="fin-figure-lg text-white mt-1">{formatCurrency(fin.totalRevenue)}</p>
         </div>
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Total Cost</p>
-          <p className="mono text-xl sm:text-2xl font-bold text-rose-300 mt-1 tabular-nums">{formatCurrency(fin.totalCosts)}</p>
+          <p className="fin-figure-lg text-rose-300 mt-1">{formatCurrency(fin.totalCosts)}</p>
         </div>
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Projected Profit</p>
-          <p className={`mono text-xl sm:text-2xl font-bold mt-1 tabular-nums ${isNegative ? "text-rose-300" : "text-emerald-300"}`}>
+          <p className={`fin-figure-lg mt-1 ${isNegative ? "text-rose-300" : "text-emerald-300"}`}>
             {formatCurrency(fin.netProfit)}
           </p>
         </div>
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Profit Margin</p>
-          <p className={`mono text-xl sm:text-2xl font-bold mt-1 tabular-nums ${isNegative ? "text-rose-300" : "text-emerald-300"}`}>
+          <p className={`fin-figure-lg mt-1 ${isNegative ? "text-rose-300" : "text-emerald-300"}`}>
             {formatPercent(fin.profitMargin, 1)}
           </p>
         </div>
