@@ -3,8 +3,12 @@
  * googleContactsAutoSync.test.js — tests for Google Contacts auto-sync
  *
  * Covers:
- * - CRM New Lead triggers sync (enqueueContactSync called)
- * - Capture New Lead triggers sync (enqueueContactSync called)
+ * - CRM New Lead and Capture New Lead call sites reference a valid,
+ *   locally-bound pool when enqueuing contacts sync (regression guard —
+ *   see testCaptureAndLeadsEnqueueCallSitesUseValidPool; a prior bug had
+ *   routes/publicCapture.js reference a bare, undefined `pool` identifier,
+ *   throwing ReferenceError on every capture submission and silently
+ *   dropping every public-capture lead's contacts sync)
  * - existing resource_name updates same contact
  * - matching email updates existing contact
  * - matching normalized phone updates existing contact
@@ -14,10 +18,19 @@
  * - failure status persisted
  * - retry succeeds
  * - missing Contacts scope does not break Lead creation
+ *
+ * NOTE: the outbox-processing tests below exercise a local reimplementation
+ * of lib/googleContactsOutbox.js#processContactsOutbox (see
+ * processContactsOutboxTest) rather than importing the real module — they
+ * verify the outbox-processing CONTRACT, not the two route files' enqueue
+ * call sites. testCaptureAndLeadsEnqueueCallSitesUseValidPool below is the
+ * only test in this file that actually inspects the route files themselves.
  */
 'use strict';
 
 const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
 
 // ── Mock Google Contacts Client ──
 let _createOrUpdateResult = { resourceName: 'people/c123' };
@@ -343,9 +356,54 @@ async function testRepeatedProcessingIdempotent() {
   console.log('  ✓ repeated processing remains idempotent (no duplicate contacts)');
 }
 
+// ── Regression guard: enqueueContactSync call sites use a valid, locally-
+// bound pool reference in EVERY file that calls it ──
+//
+// This is a static source check, not a live-DB/HTTP test, deliberately:
+// routes/publicCapture.js and routes/leads.js each pull in a large call
+// graph (booking transactions, address geocoding, Gmail, etc.) that would
+// require a heavy mock harness to exercise end-to-end. The actual defect
+// this guards against is narrower and purely syntactic — a call site
+// referencing an identifier (`pool`) that was never bound in that file's
+// scope, which is a ReferenceError on every invocation regardless of what
+// any mock returns. A source-level check catches exactly that class of
+// bug, deterministically, with no DB/network dependency.
+function assertEnqueueCallSiteUsesBoundPool(relPath) {
+  const filePath = path.join(__dirname, '..', relPath);
+  const src = fs.readFileSync(filePath, 'utf8');
+  const callMatch = src.match(/enqueueContactSync\(\s*([A-Za-z_$][\w$.]*)\s*,/);
+  assert.ok(callMatch, `${relPath}: expected an enqueueContactSync(...) call site`);
+  const arg = callMatch[1]; // e.g. "pool" or "db.pool"
+  const rootIdentifier = arg.split('.')[0];
+
+  // The root identifier must be bound somewhere in the file: either
+  // destructured directly (`const { pool } = require(...)` /
+  // `const { query, pool } = require(...)`), assigned as a whole-module
+  // require (`const db = require(...)` when arg is "db.pool"), or declared
+  // via a local `const { pool } = require(...)` inside a function body
+  // (several routes lazily require db/client mid-handler).
+  const destructured = new RegExp(`(?:const|let)\\s*\\{[^}]*\\b${rootIdentifier}\\b[^}]*\\}\\s*=\\s*require\\(['"].*db/client['"]\\)`);
+  const wholeModule = new RegExp(`(?:const|let)\\s+${rootIdentifier}\\s*=\\s*require\\(['"].*db/client['"]\\)`);
+  const isBound = destructured.test(src) || wholeModule.test(src);
+
+  assert.ok(
+    isBound,
+    `${relPath}: enqueueContactSync(...) references "${arg}", but "${rootIdentifier}" ` +
+    `is never bound from require('.../db/client') anywhere in this file — this is the ` +
+    `exact ReferenceError class that broke Google Contacts sync in routes/publicCapture.js`
+  );
+}
+
+function testCaptureAndLeadsEnqueueCallSitesUseValidPool() {
+  assertEnqueueCallSiteUsesBoundPool('routes/publicCapture.js');
+  assertEnqueueCallSiteUsesBoundPool('routes/leads.js');
+  console.log('  ✓ publicCapture.js and leads.js enqueueContactSync call sites reference a bound pool (regression guard)');
+}
+
 // ── Run all tests ──
 async function runAll() {
   console.log('Google Contacts Auto-Sync Tests:\n');
+  testCaptureAndLeadsEnqueueCallSitesUseValidPool();
   await testExistingResourceNameUpdatesSameContact();
   await testNoMatchCreatesOneContact();
   await testGoogleFailureDoesNotRollbackLead();

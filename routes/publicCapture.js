@@ -272,9 +272,13 @@ router.post('/', submitLimiter, async (req, res) => {
     }
 
     // Post-commit: enqueue Google Contacts sync (fire-and-forget, non-blocking)
+    // NOTE: this file imports the whole db/client module as `db` (see requires
+    // above) — it does not destructure a local `pool`. Use db.pool, not a bare
+    // `pool` reference (a bare reference here is a ReferenceError on every call,
+    // since no such identifier exists in this file's scope).
     try {
       const contactsOutbox = require('../lib/googleContactsOutbox');
-      await contactsOutbox.enqueueContactSync(pool, leadId);
+      await contactsOutbox.enqueueContactSync(db.pool, leadId);
     } catch (e) { console.warn('[public-capture] contacts outbox enqueue failed (non-fatal):', e.message); }
 
     return res.status(201).json({
