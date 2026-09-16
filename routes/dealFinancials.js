@@ -19,6 +19,7 @@ const { requireAuth } = require('../lib/rbac');
 const { query } = require('../db/client');
 const { getInvoicesForSale, computeSaleFinancials } = require('../lib/qbInvoiceSaleMap');
 const { computeWaterfallForDeal } = require('../lib/customerPaymentWaterfall');
+const { checkDealScope } = require('../lib/recordAccess');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -29,6 +30,13 @@ router.get('/:id/financials', async (req, res) => {
     const saleTotal = Number(req.query.sale_total);
     if (!Number.isFinite(saleTotal)) {
       return res.status(400).json({ error: 'sale_total query param (Deal.amount) is required' });
+    }
+    // A sales_rep must not be able to pull another rep's deal financials
+    // merely by knowing the deal id.
+    const access = await checkDealScope(req.user, saleId);
+    if (!access.allowed) {
+      const status = access.reason === 'deal_not_found' ? 404 : 403;
+      return res.status(status).json({ error: status === 404 ? 'not_found' : 'forbidden' });
     }
     const db = { query };
     const invoices = await getInvoicesForSale(db, saleId);

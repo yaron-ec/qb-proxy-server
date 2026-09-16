@@ -16,6 +16,7 @@ const express = require('express');
 const { requireAuth, requireRole } = require('../lib/rbac');
 const { query } = require('../db/client');
 const { UUID_RE } = require('../lib/leadResolver');
+const { checkDealScope } = require('../lib/recordAccess');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -50,6 +51,8 @@ router.get('/', async (req, res) => {
     // P0 DATA ISOLATION: deal_id is REQUIRED. Never return all payments across deals.
     if (!deal_id) return res.json({ items: [], total: 0 });
     if (!UUID_RE.test(String(deal_id))) return res.json({ items: [], total: 0 });
+    const access = await checkDealScope(req.user, deal_id);
+    if (!access.allowed) return res.json({ items: [], total: 0 });
     const limit = Math.min(parseInt(limitStr || '2000', 10), 5000);
     const where = [`deal_id = $1`];
     const params = [deal_id];
@@ -71,6 +74,9 @@ router.post('/', async (req, res) => {
     if (!body.deal_id) return res.status(400).json({ error: 'deal_id required' });
     if (body.amount === undefined) return res.status(400).json({ error: 'amount required' });
 
+    const access = await checkDealScope(req.user, body.deal_id);
+    if (!access.allowed) return res.status(403).json({ error: 'forbidden' });
+
     const cols = ['created_by'];
     const vals = [req.user.email || null];
     for (const f of FIELDS) {
@@ -89,6 +95,8 @@ router.get('/:id', async (req, res) => {
   try {
     const { rows } = await query('SELECT * FROM deal_expense_payments WHERE id = $1', [req.params.id]);
     if (!rows[0]) return res.status(404).json({ error: 'not_found' });
+    const access = await checkDealScope(req.user, rows[0].deal_id);
+    if (!access.allowed) return res.status(403).json({ error: 'forbidden' });
     res.json({ payment: serializePayment(rows[0]) });
   } catch (e) {
     console.error('[deal-expense-payments] get error:', e.message);
@@ -98,6 +106,11 @@ router.get('/:id', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
+    const existing = await query('SELECT id, deal_id FROM deal_expense_payments WHERE id = $1', [req.params.id]);
+    if (!existing.rows[0]) return res.status(404).json({ error: 'not_found' });
+    const access = await checkDealScope(req.user, existing.rows[0].deal_id);
+    if (!access.allowed) return res.status(403).json({ error: 'forbidden' });
+
     const updates = ['updated_by'];
     const params = [req.user.email || null];
     let p = 2;

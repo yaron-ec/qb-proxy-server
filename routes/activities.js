@@ -17,6 +17,7 @@ const { requireAuth } = require('../lib/rbac');
 const { query } = require('../db/client');
 const { UUID_RE } = require('../lib/leadResolver');
 const { notifyCrmActivity } = require('../lib/crmActivityNotifier');
+const { checkLeadScope } = require('../lib/recordAccess');
 
 const router = express.Router();
 
@@ -44,6 +45,12 @@ router.get('/', requireAuth, async (req, res) => {
     // P0 DATA ISOLATION: lead_id is REQUIRED. Never return all activities across leads.
     if (!lead_id) return res.json({ items: [], total: 0 });
     if (!UUID_RE.test(String(lead_id))) return res.json({ items: [], total: 0 });
+    // Beyond the P0 scope requirement above (a known, tracked gap per
+    // CLAUDE.md — presence of a scope was checked but not ownership of it),
+    // verify the caller actually owns the referenced lead: a sales_rep must
+    // not see another rep's activities merely by supplying a valid lead_id.
+    const access = await checkLeadScope(req.user, lead_id);
+    if (!access.allowed) return res.json({ items: [], total: 0 });
     const limit = Math.min(parseInt(limitStr || '500', 10), 2000);
 
     const where = [`lead_id = $1`];
@@ -73,6 +80,11 @@ router.post('/', requireAuth, async (req, res) => {
 
     const validTypes = ['note', 'call', 'email', 'meeting', 'task'];
     if (!validTypes.includes(type)) return res.status(400).json({ error: 'invalid activity type' });
+
+    // A sales_rep must not be able to log an activity against another rep's
+    // lead merely by knowing its id.
+    const access = await checkLeadScope(req.user, lead_id);
+    if (!access.allowed || access.readOnly) return res.status(403).json({ error: 'forbidden' });
 
     const { rows } = await query(
       `INSERT INTO activities (lead_id, type, content, author, source, metadata)
@@ -116,6 +128,8 @@ router.get('/:id', requireAuth, async (req, res) => {
   try {
     const { rows } = await query('SELECT * FROM activities WHERE id = $1', [req.params.id]);
     if (!rows[0]) return res.status(404).json({ error: 'not_found' });
+    const access = await checkLeadScope(req.user, rows[0].lead_id);
+    if (!access.allowed) return res.status(403).json({ error: 'forbidden' });
     res.json({ activity: serializeActivity(rows[0]) });
   } catch (e) {
     console.error('[activities] get error:', e.message);
@@ -128,6 +142,11 @@ const ACTIVITY_FIELDS = ['type', 'content', 'author', 'source', 'metadata'];
 
 router.put('/:id', requireAuth, async (req, res) => {
   try {
+    const existing = await query('SELECT id, lead_id FROM activities WHERE id = $1', [req.params.id]);
+    if (!existing.rows[0]) return res.status(404).json({ error: 'not_found' });
+    const access = await checkLeadScope(req.user, existing.rows[0].lead_id);
+    if (!access.allowed || access.readOnly) return res.status(403).json({ error: 'forbidden' });
+
     const updates = [];
     const params = [];
     let p = 1;
@@ -155,6 +174,11 @@ router.put('/:id', requireAuth, async (req, res) => {
 // ── DELETE /:id ──────────────────────────────────────────────────────────────
 router.delete('/:id', requireAuth, async (req, res) => {
   try {
+    const existing = await query('SELECT id, lead_id FROM activities WHERE id = $1', [req.params.id]);
+    if (!existing.rows[0]) return res.status(404).json({ error: 'not_found' });
+    const access = await checkLeadScope(req.user, existing.rows[0].lead_id);
+    if (!access.allowed || access.readOnly) return res.status(403).json({ error: 'forbidden' });
+
     await query('DELETE FROM activities WHERE id = $1', [req.params.id]);
     res.json({ success: true, id: req.params.id });
   } catch (e) {

@@ -16,8 +16,26 @@ const express = require('express');
 const { requireAuth } = require('../lib/rbac');
 const { query } = require('../db/client');
 const { UUID_RE } = require('../lib/leadResolver');
+const { checkLeadScope, checkDealScope } = require('../lib/recordAccess');
 
 const router = express.Router();
+
+// An invoice may carry both lead_id and deal_id, or just lead_id. Resolve
+// ownership via lead_id when present (the more common case), falling back
+// to deal_id — mirrors routes/tasks.js#checkTaskAccess. An invoice with
+// neither is only visible to admin/manager (no ownership signal to check a
+// sales_rep against — fail closed, not open).
+async function checkInvoiceAccess(user, invoice, { allowReadOnly = true } = {}) {
+  const role = String((user && user.role) || '').toLowerCase();
+  if (role === 'admin' || role === 'manager') return { allowed: true };
+  if (invoice.lead_id) {
+    const r = await checkLeadScope(user, invoice.lead_id);
+    if (r.allowed && r.readOnly && !allowReadOnly) return { allowed: false, reason: 'read_only_role' };
+    return r;
+  }
+  if (invoice.deal_id) return checkDealScope(user, invoice.deal_id);
+  return { allowed: false, reason: 'unscoped_invoice' };
+}
 
 function serializeInvoice(row) {
   if (!row) return null;
@@ -71,6 +89,15 @@ router.get('/', requireAuth, async (req, res) => {
       if (!UUID_RE.test(String(deal_id))) return res.json({ items: [], total: 0 });
       where.push(`deal_id = $${p}`); params.push(deal_id); p++;
     }
+    // Beyond the P0 scope requirement above (a known, tracked gap per
+    // CLAUDE.md), verify ownership of the supplied scope.
+    if (lead_id) {
+      const access = await checkLeadScope(req.user, lead_id);
+      if (!access.allowed) return res.json({ items: [], total: 0 });
+    } else if (deal_id) {
+      const access = await checkDealScope(req.user, deal_id);
+      if (!access.allowed) return res.json({ items: [], total: 0 });
+    }
     if (status && status !== 'all') { where.push(`status = $${p}`); params.push(status); p++; }
 
     const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
@@ -88,6 +115,11 @@ router.post('/', requireAuth, async (req, res) => {
     const b = req.body || {};
     if (!b.lead_id) return res.status(400).json({ error: 'lead_id required' });
     if (b.amount == null) return res.status(400).json({ error: 'amount required' });
+
+    // A sales_rep must not be able to create an invoice against another
+    // rep's lead merely by knowing its id.
+    const access = await checkLeadScope(req.user, b.lead_id);
+    if (!access.allowed || access.readOnly) return res.status(403).json({ error: 'forbidden' });
 
     const { rows } = await query(
       `INSERT INTO invoices (lead_id, deal_id, invoice_number, amount, description, payment_stage, due_date, status, notes)
@@ -107,6 +139,8 @@ router.get('/:id', requireAuth, async (req, res) => {
   try {
     const { rows } = await query('SELECT * FROM invoices WHERE id = $1', [req.params.id]);
     if (!rows[0]) return res.status(404).json({ error: 'not_found' });
+    const access = await checkInvoiceAccess(req.user, rows[0]);
+    if (!access.allowed) return res.status(403).json({ error: 'forbidden' });
     res.json({ invoice: serializeInvoice(rows[0]) });
   } catch (e) {
     console.error('[invoices] get error:', e.message);
@@ -125,6 +159,11 @@ const INVOICE_FIELDS = [
 
 router.put('/:id', requireAuth, async (req, res) => {
   try {
+    const existing = await query('SELECT id, lead_id, deal_id FROM invoices WHERE id = $1', [req.params.id]);
+    if (!existing.rows[0]) return res.status(404).json({ error: 'not_found' });
+    const access = await checkInvoiceAccess(req.user, existing.rows[0], { allowReadOnly: false });
+    if (!access.allowed) return res.status(403).json({ error: 'forbidden' });
+
     const updates = [];
     const params = [];
     let p = 1;
@@ -152,6 +191,11 @@ router.put('/:id', requireAuth, async (req, res) => {
 // ── DELETE /:id — delete an invoice ──────────────────────────────────────────
 router.delete('/:id', requireAuth, async (req, res) => {
   try {
+    const existing = await query('SELECT id, lead_id, deal_id FROM invoices WHERE id = $1', [req.params.id]);
+    if (!existing.rows[0]) return res.status(404).json({ error: 'not_found' });
+    const access = await checkInvoiceAccess(req.user, existing.rows[0], { allowReadOnly: false });
+    if (!access.allowed) return res.status(403).json({ error: 'forbidden' });
+
     await query('DELETE FROM invoices WHERE id = $1', [req.params.id]);
     res.json({ success: true, id: req.params.id });
   } catch (e) {
