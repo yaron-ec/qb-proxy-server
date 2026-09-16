@@ -71,6 +71,8 @@ export default function DailyMap() {
   const [projectTypeFilter, setProjectTypeFilter] = useState("all");
   const [selectedLead, setSelectedLead] = useState(null);
   const [contactOwners, setContactOwners] = useState([]);
+  const [availableCities, setAvailableCities] = useState([]);
+  const [availableProjectTypes, setAvailableProjectTypes] = useState([]);
   const [userRole, setUserRole] = useState(null);
   const [ownerConfig, setOwnerConfig] = useState({});
   const [routeDropdownOpen, setRouteDropdownOpen] = useState(false);
@@ -97,9 +99,11 @@ export default function DailyMap() {
       setAppointments(appts);
       setOwnerConfig(data.owner_config || {});
 
-      // Build unique owners list from the full schedule (all owners)
+      // Build unique owners/cities/project types from the full schedule
       const owners = [...new Set(appts.map(a => a.assigned_rep).filter(Boolean))].sort();
       setContactOwners(owners);
+      setAvailableCities([...new Set(appts.map(a => a.city).filter(Boolean))].sort());
+      setAvailableProjectTypes([...new Set(appts.map(a => a.project_type).filter(Boolean))].sort());
     } catch (e) {
       console.error('[DailyMap] Failed to load schedule:', e);
       setRouteError(e.message || 'Failed to load daily schedule. Please try refreshing.');
@@ -210,18 +214,24 @@ export default function DailyMap() {
           <div className="flex items-center gap-1 ml-2">
             <button
               onClick={() => setView("map")}
+              aria-label="Map view"
+              aria-pressed={view === "map"}
               className={`p-1.5 rounded-lg ${view === "map" ? "bg-slate-900 text-white" : "text-slate-400 hover:bg-slate-100"}`}
             >
               <MapIcon className="w-4 h-4" />
             </button>
             <button
               onClick={() => setView("list")}
+              aria-label="List view"
+              aria-pressed={view === "list"}
               className={`p-1.5 rounded-lg ${view === "list" ? "bg-slate-900 text-white" : "text-slate-400 hover:bg-slate-100"}`}
             >
               <List className="w-4 h-4" />
             </button>
             <button
               onClick={() => setView("split")}
+              aria-label="Split view"
+              aria-pressed={view === "split"}
               className={`p-1.5 rounded-lg ${view === "split" ? "bg-slate-900 text-white" : "text-slate-400 hover:bg-slate-100"}`}
             >
               <ChevronDown className="w-4 h-4" />
@@ -236,7 +246,8 @@ export default function DailyMap() {
         cityFilter={cityFilter} setCityFilter={setCityFilter}
         projectTypeFilter={projectTypeFilter} setProjectTypeFilter={setProjectTypeFilter}
         owners={contactOwners}
-        appointments={appointments}
+        cities={availableCities}
+        projectTypes={availableProjectTypes}
       />
 
       {/* Error banner */}
@@ -281,6 +292,9 @@ export default function DailyMap() {
               appointments={appointments}
               selectedLead={selectedLead}
               onSelectLead={setSelectedLead}
+              onReassign={handleReassign}
+              contactOwners={contactOwners}
+              userRole={userRole}
             />
           </div>
         )}
@@ -291,8 +305,8 @@ export default function DailyMap() {
               selectedLead={selectedLead}
               onSelectLead={setSelectedLead}
               onReassign={handleReassign}
+              contactOwners={contactOwners}
               userRole={userRole}
-              ownerConfig={ownerConfig}
             />
           </div>
         )}

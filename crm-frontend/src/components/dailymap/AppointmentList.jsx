@@ -8,7 +8,11 @@ import { fmt12 } from "@/pages/DailyMap";
 import { formatPhone, toTitleCase } from "@/lib/formatters";
 import { OWNER_COLORS } from "@/pages/DailyMap";
 
-export default function AppointmentList({ appointments, selectedLead, onSelectLead, onReassign, contactOwners, userRole }) {
+// Same contract as MapView: contactOwners defaults to [] and appointments
+// to [] so an omitted/undefined collection renders an empty list instead
+// of throwing — see MapView.jsx for the production crash this class of
+// bug caused.
+export default function AppointmentList({ appointments = [], selectedLead, onSelectLead, onReassign = async () => {}, contactOwners = [], userRole }) {
   const [reassigning, setReassigning] = useState(null);
 
   const handleReassign = async (leadId, newOwner) => {

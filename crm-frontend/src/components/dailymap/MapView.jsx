@@ -120,7 +120,15 @@ class MapErrorBoundary extends Component {
 }
 
 // ── Inner map — rendered only when height is confirmed > 0 ──
-function LeafletMap({ appointments, selectedLead, onSelectLead, onReassign, contactOwners, userRole, mapHeight }) {
+// contactOwners defaults to [] — a caller that omits it (no reassignment
+// options available yet) must render an empty "reassign to" list, never
+// crash. This is the exact contract gap that caused the "Cannot read
+// properties of undefined (reading 'map')" production crash: DailyMap.jsx
+// wasn't passing contactOwners at all, so this was `undefined` and
+// `.map()` threw as soon as ANY appointment rendered a Popup for an admin
+// viewer — not something specific to having exactly one appointment; zero
+// appointments simply never reaches this code path at all.
+function LeafletMap({ appointments = [], selectedLead, onSelectLead, onReassign, contactOwners = [], userRole, mapHeight }) {
   const [reassigning, setReassigning] = useState(null);
 
   const handleReassign = async (leadId, newOwner) => {
@@ -245,7 +253,7 @@ function LeafletMap({ appointments, selectedLead, onSelectLead, onReassign, cont
 }
 
 // ── Public export — handles height measurement + error boundary ──
-export default function MapView({ appointments, selectedLead, onSelectLead, onReassign, contactOwners, userRole, explicitHeight }) {
+export default function MapView({ appointments = [], selectedLead, onSelectLead, onReassign = async () => {}, contactOwners = [], userRole, explicitHeight }) {
   // Call icon fix safely here (not at module parse time)
   useEffect(() => { ensureLeafletIcons(); }, []);
 
