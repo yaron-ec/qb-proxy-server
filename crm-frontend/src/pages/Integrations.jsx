@@ -513,7 +513,7 @@ export default function Integrations() {
 
           {lastJob ? (
             <div className="p-5 space-y-4">
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                 {[
                   { label: 'Customers', value: lastJob.customers_synced || 0, color: 'blue' },
                   { label: 'Estimates', value: lastJob.estimates_synced || 0, color: 'purple' },
