@@ -423,7 +423,7 @@ export default function LeadCapture() {
         )}
 
         {/* ── Step 1: Appointment (date + time first, before contact info) ── */}
-        <FormCard icon={<Calendar className="w-4 h-4 text-amber-600" />} title="Step 1: Appointment Date & Time">
+        <FormCard step={1} totalSteps={9} icon={<Calendar className="w-4 h-4 text-amber-600" />} title="Appointment Date & Time">
           <div className="space-y-3">
             <Field label="Appointment Date *" error={errors.appointment_date}>
               <input
@@ -465,7 +465,7 @@ export default function LeadCapture() {
         </FormCard>
 
         {/* ── Contact Info ── */}
-        <FormCard icon={<Phone className="w-4 h-4 text-amber-600" />} title="Client Contact Info">
+        <FormCard step={2} totalSteps={9} icon={<Phone className="w-4 h-4 text-amber-600" />} title="Client Contact Info">
           {errors.phone && <ErrorMsg msg="Phone or email is required" />}
           <div className="grid grid-cols-2 gap-3">
             <Field label="First Name *" error={errors.first_name}>
@@ -484,7 +484,7 @@ export default function LeadCapture() {
         </FormCard>
 
         {/* ── Property Info ── */}
-        <FormCard icon={<MapPin className="w-4 h-4 text-amber-600" />} title="Property Information">
+        <FormCard step={3} totalSteps={9} icon={<MapPin className="w-4 h-4 text-amber-600" />} title="Property Information">
           <div className="space-y-3">
             <Field label="Property Address">
               <input type="text" value={form.property_address} onChange={e => set("property_address", e.target.value)} placeholder="123 Main St" className={inputCls()} />
@@ -501,7 +501,7 @@ export default function LeadCapture() {
         </FormCard>
 
         {/* ── Project Details ── */}
-        <FormCard icon={<Briefcase className="w-4 h-4 text-amber-600" />} title="Project Details">
+        <FormCard step={4} totalSteps={9} icon={<Briefcase className="w-4 h-4 text-amber-600" />} title="Project Details">
           <div className="space-y-3">
             <Field label="Project Type *" error={errors.project_type}>
               <div className="grid grid-cols-2 gap-2">
@@ -544,7 +544,7 @@ export default function LeadCapture() {
         </FormCard>
 
         {/* ── Lead Source ── */}
-        <FormCard icon={<MapPin className="w-4 h-4 text-amber-600" />} title="Lead Source">
+        <FormCard step={5} totalSteps={9} icon={<MapPin className="w-4 h-4 text-amber-600" />} title="Lead Source">
           <div className="space-y-3">
             <Field label="How did you hear about us? *" error={errors.source}>
               <select value={form.source} onChange={e => set("source", e.target.value)} className={inputCls(errors.source)}>
@@ -561,7 +561,7 @@ export default function LeadCapture() {
         </FormCard>
 
         {/* ── Contact Owner ── */}
-        <FormCard icon={<Phone className="w-4 h-4 text-amber-600" />} title="Who will handle this lead?">
+        <FormCard step={6} totalSteps={9} icon={<Phone className="w-4 h-4 text-amber-600" />} title="Who will handle this lead?">
           <Field label="Assign to *" error={errors.assigned_rep}>
             <select value={form.assigned_rep} onChange={e => set("assigned_rep", e.target.value)} className={inputCls(errors.assigned_rep)}>
               <option value="">Select contact owner</option>
@@ -571,7 +571,7 @@ export default function LeadCapture() {
         </FormCard>
 
         {/* ── Follow-up ── */}
-        <FormCard icon={<Clock className="w-4 h-4 text-amber-600" />} title="Follow-up (Optional)">
+        <FormCard step={7} totalSteps={9} icon={<Clock className="w-4 h-4 text-amber-600" />} title="Follow-up (Optional)">
           <div className="space-y-3">
             <Field label="Follow-up Type">
               <select value={form.follow_up_type} onChange={e => set("follow_up_type", e.target.value)} className={inputCls()}>
@@ -595,14 +595,14 @@ export default function LeadCapture() {
         </FormCard>
 
         {/* ── Message ── */}
-        <FormCard icon={<Briefcase className="w-4 h-4 text-amber-600" />} title="Project Description">
+        <FormCard step={8} totalSteps={9} icon={<Briefcase className="w-4 h-4 text-amber-600" />} title="Project Description">
           <Field label="Tell us about your project">
             <textarea value={form.message} onChange={e => set("message", e.target.value)} placeholder="Describe your project, goals, and any specific needs..." rows={4} className="w-full border rounded-lg px-3 py-2.5 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors border-slate-200 resize-none" />
           </Field>
         </FormCard>
 
         {/* ── Photo Upload ── */}
-        <FormCard icon={<Upload className="w-4 h-4 text-amber-600" />} title="Upload Photos / Plans (Optional)">
+        <FormCard step={9} totalSteps={9} icon={<Upload className="w-4 h-4 text-amber-600" />} title="Upload Photos / Plans (Optional)">
           <div className="space-y-3">
             <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl py-6 cursor-pointer hover:border-amber-400 transition-colors">
               <Upload className="w-5 h-5 text-slate-400 mb-1" />
@@ -681,13 +681,21 @@ function Field({ label, children, error }) {
   );
 }
 
-function FormCard({ title, icon, children }) {
+function FormCard({ title, icon, children, step, totalSteps }) {
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       {title && (
         <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 bg-slate-50">
+          {step && (
+            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-amber-600 text-white text-[10px] font-bold flex items-center justify-center">
+              {step}
+            </span>
+          )}
           {icon}
-          <h3 className="text-sm font-bold text-slate-800">{title}</h3>
+          <h3 className="text-sm font-bold text-slate-800 flex-1">{title}</h3>
+          {step && totalSteps && (
+            <span className="text-[10px] font-semibold text-slate-400">{step} / {totalSteps}</span>
+          )}
         </div>
       )}
       <div className="p-4">{children}</div>

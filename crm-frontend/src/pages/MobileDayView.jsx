@@ -134,17 +134,22 @@ function QuickActions({ appt }) {
   );
 }
 
-function AppointmentCard({ appt, idx, isSelected, onSelect, ownerColor }) {
+function AppointmentCard({ appt, idx, isSelected, onSelect, ownerColor, isNext }) {
   const color = ownerColor || OWNER_COLORS["Unassigned"];
   const address = [appt.property_address, appt.city].filter(Boolean).join(", ");
 
   return (
     <div
       className={`rounded-2xl border-2 bg-white shadow-sm transition-all ${
-        isSelected ? "border-amber-400 shadow-md" : "border-slate-200"
+        isNext ? "border-amber-500 shadow-lg ring-2 ring-amber-100" : isSelected ? "border-amber-400 shadow-md" : "border-slate-200"
       }`}
       onClick={() => onSelect(isSelected ? null : appt.id)}
     >
+      {isNext && (
+        <div className="flex items-center gap-1.5 px-4 pt-3 -mb-1">
+          <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Next Up</span>
+        </div>
+      )}
       <div className="p-4">
         {/* Header: index + name + time */}
         <div className="flex items-start gap-3 mb-2">
@@ -347,6 +352,16 @@ export default function MobileDayView() {
     setAppointments(geocoded);
   };
 
+  // Overdue follow-ups (any type, not just meetings) — computed from the
+  // same allLeads fetch already used for appointments, no extra API call.
+  // Only meaningful attention info; never a fabricated "health" metric.
+  const today = getTodayLocal();
+  const excludedForOverdue = ["Lost", "DNQ", "Cancelled", "Closed Lost", "Sold"];
+  const overdueFollowUps = allLeads.filter(l =>
+    l.follow_up_date && l.follow_up_date < today && !excludedForOverdue.includes(l.status) &&
+    (ownerFilter === "all" || l.assigned_rep === ownerFilter)
+  ).length;
+
   // Group by date for week view
   const groupedByDate = dateFilter === "week"
     ? appointments.reduce((acc, appt) => {
@@ -375,9 +390,16 @@ export default function MobileDayView() {
               <Calendar className="w-4 h-4 text-amber-600" />
               My Day
             </h1>
-            <p className="text-xs text-slate-400 mt-0.5">
-              {appointments.length} appointment{appointments.length !== 1 ? "s" : ""}
-              {geocoding && <span className="text-amber-600 ml-2">· mapping...</span>}
+            <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
+              <span>
+                {appointments.length} appointment{appointments.length !== 1 ? "s" : ""}
+                {geocoding && <span className="text-amber-600 ml-2">· mapping...</span>}
+              </span>
+              {overdueFollowUps > 0 && (
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
+                  {overdueFollowUps} overdue follow-up{overdueFollowUps !== 1 ? "s" : ""}
+                </span>
+              )}
             </p>
           </div>
           {/* List / Map toggle */}
@@ -512,6 +534,7 @@ export default function MobileDayView() {
                   key={appt.id}
                   appt={appt}
                   idx={idx}
+                  isNext={idx === 0 && dateFilter === "today"}
                   isSelected={selectedLead === appt.id}
                   onSelect={setSelectedLead}
                   ownerColor={appt.colorConfig}
