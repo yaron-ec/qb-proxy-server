@@ -94,7 +94,20 @@ function NavItem({ path, label, icon: Icon, active, collapsed }) {
 }
 
 function LayoutComponent() {
-  const [collapsed, setCollapsed] = useState(true);
+  // Default to expanded: a collapsed, icon-only sidebar as the PERMANENT
+  // desktop shell made every first-time/commercial view of the app look
+  // like a miniature admin tool with a tiny logo, not a real navigation
+  // shell. Persist whatever the user actually chooses across reloads.
+  const [collapsed, setCollapsed] = useState(() => {
+    try { return localStorage.getItem('sidebar_collapsed') === 'true'; } catch { return false; }
+  });
+  const toggleCollapsed = () => {
+    setCollapsed(prev => {
+      const next = !prev;
+      try { localStorage.setItem('sidebar_collapsed', String(next)); } catch { /* best-effort only */ }
+      return next;
+    });
+  };
   const location = useLocation();
   const { user: currentUser, logout } = useAuth();
   const isMobile = useIsMobile();
@@ -170,7 +183,7 @@ function LayoutComponent() {
           <div className="flex items-center gap-2">
             <Tip label={collapsed ? "Expand sidebar" : "Collapse sidebar"} side="right">
               <button
-                onClick={() => setCollapsed(!collapsed)}
+                onClick={toggleCollapsed}
                 aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
                 className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/8 hover:bg-amber-600/20 text-white/60 hover:text-amber-400 transition-all duration-200"
               >

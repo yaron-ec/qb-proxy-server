@@ -290,8 +290,31 @@ export default function FollowUpsWidget({ leads: propLeads, allLeads: propAllLea
         <span className="text-xs text-slate-400">{activeLeads.length} active leads in view</span>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-4 items-start">
-        {/* ── Left: Main follow-up sections ── */}
+      {/* ── Summary strip — a compact horizontal row spanning the full width,
+          not a narrow fixed-width column competing with Today's Work for
+          space. Zero-value metrics are visually de-emphasized (muted),
+          never hidden. ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+        <SummaryCard icon={<Users className="w-4 h-4 text-blue-500" />} label="Active Leads" value={allLeads.filter(isActiveSalesLead).length} color="blue" />
+        <SummaryCard icon={<Calendar className="w-4 h-4 text-indigo-500" />} label="Appointments Scheduled" value={stats.apptScheduled} color="indigo" />
+        <SummaryCard icon={<TrendingUp className="w-4 h-4 text-purple-500" />} label="Estimates Sent" value={stats.estimateSent} color="slate" />
+        <SummaryCard icon={<CheckCircle className="w-4 h-4 text-emerald-500" />} label="Sold This Month" value={stats.soldThisMonth} color="emerald" />
+        <SummaryCard
+          icon={<DollarSign className="w-4 h-4 text-emerald-600" />}
+          label="Revenue This Month"
+          value={formatDashboardCurrency(stats.revenueThisMonth)}
+          color="emerald"
+        />
+        {totalOlderOverdue > 0 && (
+          <button onClick={() => setOlderExpanded(true)} className="text-left">
+            <SummaryCard icon={<AlertTriangle className="w-4 h-4 text-red-500" />} label="Older Overdue (click to view)" value={totalOlderOverdue} color="red" />
+          </button>
+        )}
+      </div>
+
+      {/* ── Today's Work and beyond — now the full-width operational center,
+          no longer sharing the row with the summary strip. ── */}
+      <div className="w-full">
         <div className="flex-1 min-w-0 space-y-3 w-full">
 
           {/* ── PAST RANGE MODE: flat list ── */}
@@ -409,25 +432,6 @@ export default function FollowUpsWidget({ leads: propLeads, allLeads: propAllLea
                 </div>
               )}
             </>
-          )}
-        </div>
-
-        {/* ── Right: Summary Panel ── */}
-        <div className="w-full lg:w-52 lg:flex-shrink-0 grid grid-cols-2 lg:grid-cols-1 gap-2 lg:gap-2.5 lg:space-y-0">
-          <SummaryCard icon={<Users className="w-4 h-4 text-blue-500" />} label="Active Leads" value={allLeads.filter(isActiveSalesLead).length} color="blue" />
-          <SummaryCard icon={<Calendar className="w-4 h-4 text-indigo-500" />} label="Appointments Scheduled" value={stats.apptScheduled} color="indigo" />
-          <SummaryCard icon={<TrendingUp className="w-4 h-4 text-purple-500" />} label="Estimates Sent" value={stats.estimateSent} color="slate" />
-          <SummaryCard icon={<CheckCircle className="w-4 h-4 text-emerald-500" />} label="Sold This Month" value={stats.soldThisMonth} color="emerald" />
-          <SummaryCard
-            icon={<DollarSign className="w-4 h-4 text-emerald-600" />}
-            label="Revenue This Month"
-            value={formatDashboardCurrency(stats.revenueThisMonth)}
-            color="emerald"
-          />
-          {totalOlderOverdue > 0 && (
-            <button onClick={() => setOlderExpanded(true)} className="w-full">
-              <SummaryCard icon={<AlertTriangle className="w-4 h-4 text-red-500" />} label="Older Overdue (click to view)" value={totalOlderOverdue} color="red" />
-            </button>
           )}
         </div>
       </div>
@@ -573,12 +577,15 @@ function LeadCard({ lead, onComplete, completing, isOverdue }) {
 // ── Summary Card ───────────────────────────────────────────────────────────
 
 function SummaryCard({ icon, label, value, color }) {
-  const cls = colorMap[color] || colorMap.slate;
+  // A metric that's genuinely zero shouldn't compete visually with one that
+  // has real data — de-emphasized (muted, not colored), never hidden.
+  const isZero = value === 0 || value === '0' || value === '$0';
+  const cls = isZero ? 'bg-slate-50 border-slate-200 text-slate-400' : (colorMap[color] || colorMap.slate);
   return (
     <div className={`rounded-xl border px-4 py-3 flex items-center gap-3 ${cls}`}>
-      <div className="flex-shrink-0">{icon}</div>
+      <div className={`flex-shrink-0 ${isZero ? 'opacity-40' : ''}`}>{icon}</div>
       <div className="min-w-0">
-        <div className="text-lg font-black leading-tight">{value}</div>
+        <div className={`text-lg font-black leading-tight tabular-nums ${isZero ? 'text-slate-400' : ''}`}>{value}</div>
         <div className="text-[11px] font-medium opacity-80 leading-tight">{label}</div>
       </div>
     </div>

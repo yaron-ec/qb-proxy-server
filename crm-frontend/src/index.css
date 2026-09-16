@@ -356,7 +356,7 @@
   .fin-figure-lg {
     font-family: 'Roboto Mono', monospace;
     font-variant-numeric: tabular-nums;
-    @apply text-xl sm:text-2xl font-bold text-slate-900;
+    @apply text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900;
   }
   .fin-positive { @apply text-emerald-700; }
   .fin-negative { @apply text-rose-700; }

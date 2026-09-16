@@ -211,7 +211,7 @@ export default function Reports() {
 
   return (
     <div className="min-h-full bg-background" style={{ paddingTop: 'max(env(safe-area-inset-top), 1.5rem)' }}>
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-10">
+      <div className="max-w-[1600px] mx-auto px-6 py-8 space-y-10">
 
         {/* Header */}
         <div className="flex items-center justify-between">

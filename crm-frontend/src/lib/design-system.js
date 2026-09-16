@@ -57,8 +57,23 @@ export function statusBadgeClass(status) {
 
 // ── Page-level layout wrappers ───────────────────────────────────────────────
 export const PAGE_WRAPPER   = "min-h-screen bg-slate-50";
-export const PAGE_PADDING   = "px-6 py-6 max-w-7xl mx-auto";
 export const SECTION_GAP    = "space-y-6";
+
+// ── Canonical page content widths ────────────────────────────────────────────
+// Every page previously hardcoded its own "max-w-7xl mx-auto" (or, on
+// Financials, "max-w-4xl") independently — there was no shared width system,
+// which is exactly why large-desktop viewports left data-dense screens
+// floating in unused space while Financials was compressed into a narrow
+// column. Use ONE of these per page instead of a page-local literal:
+//   PAGE_WIDTH_WIDE     — operational/data-dense screens (Dashboard, Leads,
+//                          Reports, Deals, Kanban, Financials). Wide enough
+//                          to use a large desktop monitor intelligently
+//                          without stretching to true full-bleed.
+//   PAGE_WIDTH_STANDARD — reading/form surfaces where a narrower measure
+//                          improves readability (e.g. New Lead intake).
+export const PAGE_WIDTH_WIDE     = "max-w-[1600px] mx-auto";
+export const PAGE_WIDTH_STANDARD = "max-w-4xl mx-auto";
+export const PAGE_PADDING   = `px-6 py-6 ${PAGE_WIDTH_WIDE}`;
 
 // ── Card styles ──────────────────────────────────────────────────────────────
 export const CARD            = "bg-white rounded-xl border border-slate-200 shadow-sm";

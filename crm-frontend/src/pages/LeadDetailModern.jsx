@@ -469,15 +469,18 @@ function nextActionFor(lead) {
 function NextActionBanner({ lead }) {
   const action = nextActionFor(lead);
   if (!action) return null;
+  // A full-width block, not a small inline pill — this answers "what do I do
+  // next," it should read at a glance, not require squinting at a tag.
   const styles = {
-    overdue: "bg-red-50 border-red-200 text-red-700",
-    today: "bg-amber-50 border-amber-200 text-amber-800",
-    upcoming: "bg-blue-50 border-blue-200 text-blue-700",
-    action: "bg-slate-50 border-slate-200 text-slate-500",
+    overdue: "bg-red-50 border-red-200 text-red-800",
+    today: "bg-amber-50 border-amber-200 text-amber-900",
+    upcoming: "bg-blue-50 border-blue-200 text-blue-800",
+    action: "bg-slate-50 border-slate-200 text-slate-600",
   };
   return (
-    <div className={`mt-2 inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg border ${styles[action.tone]}`}>
-      {action.tone === "overdue" ? "⚠" : action.tone === "today" ? "●" : "→"} {action.text}
+    <div className={`mt-3 flex items-center gap-2 text-sm font-bold px-3 py-2.5 rounded-lg border ${styles[action.tone]}`}>
+      <span className="text-base leading-none">{action.tone === "overdue" ? "⚠" : action.tone === "today" ? "●" : "→"}</span>
+      {action.text}
     </div>
   );
 }
@@ -493,15 +496,16 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
 
   return (
     <div className="bg-white">
-      {/* ── Identity block ── */}
+      {/* ── Identity block — the first thing a rep reads, sized to match:
+          bigger avatar + name than a routine field row. ── */}
       <div className="px-5 pt-5 pb-4">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-orange to-amber-600 flex items-center justify-center flex-shrink-0 shadow-sm">
-            <span className="text-sm font-bold text-white tracking-wide">{lead.first_name?.[0]}{lead.last_name?.[0]}</span>
+        <div className="flex items-center gap-3.5 mb-4">
+          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-orange to-amber-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+            <span className="text-lg font-bold text-white tracking-wide">{lead.first_name?.[0]}{lead.last_name?.[0]}</span>
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-start gap-1 min-w-0">
-              <h2 className="text-base font-bold text-slate-900 flex-1 min-w-0 leading-tight break-words">{toTitleCase(lead.first_name)} {toTitleCase(lead.last_name)}</h2>
+              <h2 className="text-xl font-bold text-slate-900 flex-1 min-w-0 leading-tight break-words">{toTitleCase(lead.first_name)} {toTitleCase(lead.last_name)}</h2>
               <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
                 <CopyButton value={`${toTitleCase(lead.first_name)} ${toTitleCase(lead.last_name)}`} label="Name" />
               {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && (

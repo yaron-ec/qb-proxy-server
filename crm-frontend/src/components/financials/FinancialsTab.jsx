@@ -122,7 +122,7 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal, setLead, 
   // tabs each enforced independently.
   if (isSalesRep) {
     return (
-      <div className="max-w-4xl mx-auto px-4 md:px-6 py-5 space-y-5">
+      <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-5 space-y-5">
         <CustomerCollections
           deal={deal} lead={lead} fin={fin}
           invoices={invoices} saleInvoices={saleInvoices} waterfall={waterfall} waterfallError={waterfallError}
@@ -144,35 +144,45 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal, setLead, 
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 md:px-6 py-5 space-y-5">
+    <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-5 space-y-6">
       {/* ONE deal, one financial picture: profitability first (the primary
           question — "how profitable is this job right now?"), then customer
-          collections (a related but distinct concept — QuickBooks stays
-          authoritative for real payments), then the cost breakdown that
-          explains the profitability number. Everything below is detail. */}
+          collections + cost breakdown side by side on desktop (related but
+          distinct concepts that both explain the profitability number above),
+          then the expense ledger at full width (a real table — it earns the
+          extra room), then configuration/detail sections last, at a
+          comfortable reading width so they don't compete with the headline
+          numbers above them. */}
       <ProfitabilitySummary fin={fin} />
-      <CustomerCollections
-        deal={deal} lead={lead} fin={fin}
-        invoices={invoices} saleInvoices={saleInvoices} waterfall={waterfall} waterfallError={waterfallError}
-        setDeal={setDeal} setLead={setLead} refreshLead={refreshLead}
-      />
-      <CostBreakdown fin={fin} />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+        <CustomerCollections
+          deal={deal} lead={lead} fin={fin}
+          invoices={invoices} saleInvoices={saleInvoices} waterfall={waterfall} waterfallError={waterfallError}
+          setDeal={setDeal} setLead={setLead} refreshLead={refreshLead}
+        />
+        <CostBreakdown fin={fin} />
+      </div>
+
       <ExpensesSection deal={deal} expenses={expenses} payments={expensePayments} canEdit={canEdit} canDelete={canDelete} onChange={load} logActivity={logActivity} user={user} />
-      <RevenueSection deal={deal} fin={fin} canEdit={canEdit} updateDeal={updateDeal} logActivity={logActivity} />
-      <LeadCostSection deal={deal} fin={fin} canEdit={canEditLeadCost} updateDeal={updateDeal} logActivity={logActivity} />
-      <CommissionSection
-        deal={deal}
-        commissions={commissions}
-        ctx={fin.ctx}
-        canEdit={canEdit}
-        canApprove={canApproveCommission}
-        canDelete={canDelete}
-        onChange={load}
-        logActivity={logActivity}
-        user={user}
-      />
-      <LoanPaymentsSection deal={deal} loanPayments={loanPayments} canEdit={canEdit} canDelete={canDelete} onChange={load} logActivity={logActivity} user={user} />
-      <FinancialActivitySection activities={activities} />
+
+      <div className="max-w-4xl mx-auto w-full space-y-5">
+        <RevenueSection deal={deal} fin={fin} canEdit={canEdit} updateDeal={updateDeal} logActivity={logActivity} />
+        <LeadCostSection deal={deal} fin={fin} canEdit={canEditLeadCost} updateDeal={updateDeal} logActivity={logActivity} />
+        <CommissionSection
+          deal={deal}
+          commissions={commissions}
+          ctx={fin.ctx}
+          canEdit={canEdit}
+          canApprove={canApproveCommission}
+          canDelete={canDelete}
+          onChange={load}
+          logActivity={logActivity}
+          user={user}
+        />
+        <LoanPaymentsSection deal={deal} loanPayments={loanPayments} canEdit={canEdit} canDelete={canDelete} onChange={load} logActivity={logActivity} user={user} />
+        <FinancialActivitySection activities={activities} />
+      </div>
     </div>
   );
 }

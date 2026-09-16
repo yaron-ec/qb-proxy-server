@@ -374,7 +374,7 @@ export default function Deals() {
       <PullToRefreshIndicator pullDistance={pullDistance} refreshing={refreshing} />
       {/* Sticky Header */}
       <div className="sticky top-0 z-40 bg-card border-b border-border">
-        <div className="max-w-7xl mx-auto px-6 py-6">
+        <div className="max-w-[1600px] mx-auto px-6 py-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="typography-page-title">Deals</h1>
@@ -423,7 +423,7 @@ export default function Deals() {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <div className="max-w-[1600px] mx-auto px-6 py-6">
         {queryError && (
           <div className="bg-red-50 border border-red-300 rounded-lg p-4 mb-4">
             <p className="text-sm text-red-800"><strong>Query Error:</strong> {queryError}</p>

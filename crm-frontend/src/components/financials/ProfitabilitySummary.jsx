@@ -14,26 +14,26 @@ export default function ProfitabilitySummary({ fin }) {
   const profitPct = Math.max(0, 100 - costPct);
 
   return (
-    <div className="card-premium p-5 sm:p-6 bg-gradient-to-br from-slate-900 to-slate-800 border-slate-800 text-white">
-      <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-4">Job Profitability</p>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+    <div className="card-premium p-6 sm:p-8 bg-gradient-to-br from-slate-900 to-slate-800 border-slate-800 text-white">
+      <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-5">Job Profitability</p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Project Value</p>
-          <p className="fin-figure-lg text-white mt-1">{formatCurrency(fin.totalRevenue)}</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Project Value</p>
+          <p className="fin-figure-lg text-white mt-1.5">{formatCurrency(fin.totalRevenue)}</p>
         </div>
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Total Cost</p>
-          <p className="fin-figure-lg text-rose-300 mt-1">{formatCurrency(fin.totalCosts)}</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Total Cost</p>
+          <p className="fin-figure-lg text-rose-300 mt-1.5">{formatCurrency(fin.totalCosts)}</p>
         </div>
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Projected Profit</p>
-          <p className={`fin-figure-lg mt-1 ${isNegative ? "text-rose-300" : "text-emerald-300"}`}>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Projected Profit</p>
+          <p className={`fin-figure-lg mt-1.5 ${isNegative ? "text-rose-300" : "text-emerald-300"}`}>
             {formatCurrency(fin.netProfit)}
           </p>
         </div>
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Profit Margin</p>
-          <p className={`fin-figure-lg mt-1 ${isNegative ? "text-rose-300" : "text-emerald-300"}`}>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Profit Margin</p>
+          <p className={`fin-figure-lg mt-1.5 ${isNegative ? "text-rose-300" : "text-emerald-300"}`}>
             {formatPercent(fin.profitMargin, 1)}
           </p>
         </div>

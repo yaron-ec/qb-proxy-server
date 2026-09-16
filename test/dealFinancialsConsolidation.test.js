@@ -44,7 +44,8 @@ test('DealDetail.jsx passes setLead/refreshLead to the consolidated FinancialsTa
 
 test('FinancialsTab.jsx shows CustomerCollections to sales_rep but withholds ProfitabilitySummary/CostBreakdown', () => {
   const src = readFile('components/financials/FinancialsTab.jsx');
-  const salesRepBranch = src.slice(src.indexOf('if (isSalesRep)'), src.indexOf('return (\n    <div className="max-w-4xl mx-auto px-4 md:px-6 py-5 space-y-5">\n      {/*'));
+  const marker = 'ONE deal, one financial picture';
+  const salesRepBranch = src.slice(src.indexOf('if (isSalesRep)'), src.indexOf(marker));
   assert.ok(salesRepBranch.includes('<CustomerCollections'), 'sales_rep must still see customer collections (previously the "Financial" tab, visible to every role)');
   assert.ok(!salesRepBranch.includes('<ProfitabilitySummary'), 'sales_rep must not see job profitability/margin');
   assert.ok(!salesRepBranch.includes('<CostBreakdown'), 'sales_rep must not see the cost breakdown');
@@ -53,7 +54,8 @@ test('FinancialsTab.jsx shows CustomerCollections to sales_rep but withholds Pro
 
 test('FinancialsTab.jsx shows the full profitability picture to admin/manager', () => {
   const src = readFile('components/financials/FinancialsTab.jsx');
-  const fullBranch = src.slice(src.indexOf('return (\n    <div className="max-w-4xl mx-auto px-4 md:px-6 py-5 space-y-5">\n      {/*'));
+  const marker = 'ONE deal, one financial picture';
+  const fullBranch = src.slice(src.indexOf(marker));
   for (const comp of ['ProfitabilitySummary', 'CustomerCollections', 'CostBreakdown', 'ExpensesSection', 'RevenueSection', 'LeadCostSection', 'CommissionSection', 'LoanPaymentsSection']) {
     assert.ok(fullBranch.includes(`<${comp}`), `admin/manager view must render ${comp}`);
   }

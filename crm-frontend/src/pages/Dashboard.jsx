@@ -128,7 +128,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-full bg-background">
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+      <div className="max-w-[1600px] mx-auto px-6 py-8 space-y-6">
 
         {/* Page Header — personalized so the dashboard reads as "your day",
             not a generic report; role-neutral copy (region analytics below
