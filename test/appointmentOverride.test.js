@@ -337,7 +337,7 @@ test('16. Reminders remain based on real appointment start — not travel buffer
 
 test('17. Frontend does not render simultaneous red blocking error + accepted Admin Override warning', () => {
   const schedulerSrc = fs.readFileSync(
-    path.join(__dirname, '..', '..', 'components', 'FollowUpScheduler.jsx'), 'utf8'
+    path.join(__dirname, '..', 'crm-frontend', 'src', 'components', 'FollowUpScheduler.jsx'), 'utf8'
   );
 
   // When override is active and a 409 arrives, it must NOT set availabilityError (red).
@@ -356,7 +356,7 @@ test('17. Frontend does not render simultaneous red blocking error + accepted Ad
 
   // Override must auto-clear when date/time/type changes
   const dateChangeClears = schedulerSrc.includes("setDate(e.target.value); setAvailabilityError(null); setOverrideEnabled(false)");
-  assert.ok(dateClears, 'Date change must auto-clear overrideEnabled');
+  assert.ok(dateChangeClears, 'Date change must auto-clear overrideEnabled');
   const timeChangeClears = schedulerSrc.includes("setTime(v); setAvailabilityError(null); setOverrideEnabled(false)");
   assert.ok(timeChangeClears, 'Time change must auto-clear overrideEnabled');
   const typeChangeClears = schedulerSrc.includes('setType("Phone Call"); setAvailabilityError(null); setOverrideEnabled(false)');
@@ -381,7 +381,7 @@ test('17. Frontend does not render simultaneous red blocking error + accepted Ad
 
 test('6. Changing override slot recalculates state — override auto-clears on time change', () => {
   const schedulerSrc = fs.readFileSync(
-    path.join(__dirname, '..', '..', 'components', 'FollowUpScheduler.jsx'), 'utf8'
+    path.join(__dirname, '..', 'crm-frontend', 'src', 'components', 'FollowUpScheduler.jsx'), 'utf8'
   );
   // When time changes, overrideEnabled is reset to false
   assert.ok(
@@ -392,7 +392,7 @@ test('6. Changing override slot recalculates state — override auto-clears on t
 
 test('7. Changing to free slot clears override — override auto-clears on date change', () => {
   const schedulerSrc = fs.readFileSync(
-    path.join(__dirname, '..', '..', 'components', 'FollowUpScheduler.jsx'), 'utf8'
+    path.join(__dirname, '..', 'crm-frontend', 'src', 'components', 'FollowUpScheduler.jsx'), 'utf8'
   );
   // When date changes, overrideEnabled is reset to false
   assert.ok(
@@ -407,7 +407,7 @@ test('7. Changing to free slot clears override — override auto-clears on date 
 
 test('5. Editing appointment does not self-conflict — excludeAppointmentId passed to availability check', () => {
   const schedulerSrc = fs.readFileSync(
-    path.join(__dirname, '..', '..', 'components', 'FollowUpScheduler.jsx'), 'utf8'
+    path.join(__dirname, '..', 'crm-frontend', 'src', 'components', 'FollowUpScheduler.jsx'), 'utf8'
   );
   // The validateSlot call must pass excludeAppointmentId
   assert.ok(

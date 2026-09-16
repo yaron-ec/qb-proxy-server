@@ -157,8 +157,10 @@ function testConnectValidation() {
   assert(source.includes('clearTokenCache'), 'connect route clears token cache after storing');
   assert(source.includes('SIGNNOW_AUTH_FAILED') || source.includes('401'), 'connect route returns 401 for invalid credentials (not 404)');
 
-  // Verify password is never returned
-  assert(!source.match(/res\.json\([^)]*password[^)]*\)/i), 'password is never in any res.json() response');
+  // Verify password is never returned. Excludes the benign OAuth2 grant-type
+  // label 'password_grant' (e.g. `auth_method: 'password_grant'`), which is
+  // not a credential — only a standalone "password" key/token is flagged.
+  assert(!source.match(/res\.json\([^)]*\bpassword\b(?!_grant)[^)]*\)/i), 'password is never in any res.json() response');
 }
 
 // ── Test: disconnect route clears credentials ───────────────────────────────

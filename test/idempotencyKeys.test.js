@@ -27,7 +27,7 @@ async function t(name, fn) {
 }
 
 (async () => {
-  const modPath = path.resolve(__dirname, '../../lib/idempotencyKeys.mjs');
+  const modPath = path.resolve(__dirname, '..', 'crm-frontend', 'src', 'lib', 'idempotencyKeys.mjs');
   const { IdempotencyKeys } = await import(modPath);
 
   // ── Determinism: same inputs → identical key (retry / refresh-equivalent) ──

@@ -18,10 +18,10 @@ function assert(cond, msg) {
 }
 
 const capturePage = fs.readFileSync(
-  path.join(__dirname, '..', '..', 'pages', 'LeadCapture.jsx'), 'utf8'
+  path.join(__dirname, '..', 'crm-frontend', 'src', 'pages', 'LeadCapture.jsx'), 'utf8'
 );
 const captureClient = fs.readFileSync(
-  path.join(__dirname, '..', '..', 'lib', 'captureRailwayClient.js'), 'utf8'
+  path.join(__dirname, '..', 'crm-frontend', 'src', 'lib', 'captureRailwayClient.js'), 'utf8'
 );
 
 // M: no runtime calls to Base44 from the capture flow — zero Base44 dependency.
@@ -40,7 +40,7 @@ assert(!/X-Proxy-Secret/.test(captureClient), 'capture client sends no proxy sec
 
 // CaptureSlotGrid still preserved.
 const slotGrid = fs.readFileSync(
-  path.join(__dirname, '..', '..', 'components', 'CaptureSlotGrid.jsx'), 'utf8'
+  path.join(__dirname, '..', 'crm-frontend', 'src', 'components', 'CaptureSlotGrid.jsx'), 'utf8'
 );
 assert(/blockedSlots/.test(slotGrid), 'CaptureSlotGrid.jsx preserved (uses blockedSlots prop)');
 
