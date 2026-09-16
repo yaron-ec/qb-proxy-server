@@ -4,24 +4,36 @@ import { createPortal } from "react-dom";
 import React from "react";
 import {
   Users, BarChart2,
-  Settings, ChevronLeft, ChevronRight, LogOut, TrendingUp, Map, FileBarChart, Kanban, CalendarDays
+  Settings, ChevronLeft, ChevronRight, LogOut, TrendingUp, FileBarChart, Kanban, CalendarDays
 } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Tip from "@/components/ui/Tip";
+import * as railwayCompanySettings from "@/api/railway/companySettings";
 // Logo uses local static asset — no runtime API dependency
+
+// Company identity fallback for this deployment (company #1). A future
+// second deployment sets its own company_settings row via Company Setup —
+// the shell itself never hardcodes a company beyond this default.
+const DEFAULT_COMPANY_NAME = "EC Construction Group";
+const DEFAULT_COMPANY_LOCATION = "Los Angeles, CA";
 
 // A single nav list for every role — NAV_ITEMS_ALL/NAV_ITEMS_SALES_REP used to
 // be two separately-maintained arrays with identical contents (scaffolded
 // role differentiation that was never actually implemented). Kept as one
 // list until a real per-role navigation decision is made; splitting it again
 // is one line once that decision exists.
+// My Day and Appointment Map used to be two separate primary destinations
+// for the same daily scheduling/routing workflow. My Day's List/Map toggle
+// (its Map view reuses the canonical Daily Map implementation — see
+// pages/MobileDayView.jsx) is now the single canonical entry point;
+// '/daily-map' remains a route for backward-compatible deep links (see
+// App.jsx) but is no longer a competing sidebar destination.
 const NAV_ITEMS = [
   { path: "/",              label: "Dashboard",       icon: BarChart2 },
   { path: "/my-day",        label: "My Day",          icon: CalendarDays },
   { path: "/leads",         label: "Active Leads",    icon: Users },
   { path: "/kanban",        label: "Status Board",    icon: Kanban },
-  { path: "/daily-map",     label: "Appointment Map", icon: Map },
   { path: "/deals",         label: "Deals",           icon: TrendingUp },
   { path: "/reports",       label: "Reports",         icon: FileBarChart },
   { path: "/settings",      label: "Settings",        icon: Settings },
@@ -115,6 +127,31 @@ function LayoutComponent() {
   // No API override — prevents broken logo from stale company_logo_url.
   const logoUrl = '/logo-dark.jpg';
 
+  // Company identity comes from the canonical Company Settings singleton
+  // (routes/companySettings.js) rather than being hardcoded per deployment —
+  // a second company's deployment sets its own row via Company Setup and
+  // this shell renders it unchanged. Falls back to this deployment's known
+  // values until Company Setup has been used, or if the fetch fails.
+  const [companyIdentity, setCompanyIdentity] = useState({
+    name: DEFAULT_COMPANY_NAME,
+    location: DEFAULT_COMPANY_LOCATION,
+  });
+  useEffect(() => {
+    let cancelled = false;
+    railwayCompanySettings.get().then(res => {
+      if (cancelled) return;
+      const settings = res?.settings;
+      if (!settings) return;
+      setCompanyIdentity({
+        name: settings.company_name || DEFAULT_COMPANY_NAME,
+        location: (settings.company_city && settings.company_state)
+          ? `${settings.company_city}, ${settings.company_state}`
+          : DEFAULT_COMPANY_LOCATION,
+      });
+    }).catch(() => { /* keep defaults on failure */ });
+    return () => { cancelled = true; };
+  }, []);
+
   const isActive = (path) =>
     path === "/" ? location.pathname === "/" : location.pathname === path || location.pathname.startsWith(path + "/");
 
@@ -158,8 +195,8 @@ function LayoutComponent() {
             )}
             {!collapsed && (
               <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
-                <div className="text-white font-bold text-xs leading-tight">EC Construction</div>
-                <div className="text-white/40 text-[10px]">Los Angeles, CA</div>
+                <div className="text-white font-bold text-xs leading-tight">{companyIdentity.name}</div>
+                <div className="text-white/40 text-[10px]">{companyIdentity.location}</div>
               </div>
             )}
           </div>

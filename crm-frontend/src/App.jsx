@@ -35,7 +35,6 @@ import Integrations from './pages/Integrations';
 import QBCallback from './pages/QBCallback';
 import DealDetail from './pages/DealDetail';
 import Deals from './pages/Deals';
-import DailyMap from './pages/DailyMap';
 import Reports from './pages/Reports';
 import MobileDayView from './pages/MobileDayView';
 import KanbanBoard from './pages/KanbanBoard';
@@ -119,7 +118,11 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<PageContentWrapper><Dashboard /></PageContentWrapper>} />
-        <Route path="/daily-map" element={<PageContentWrapper><DailyMap /></PageContentWrapper>} />
+        {/* Backward-compatible deep link — Appointment Map is retired as a
+            separate primary nav destination; My Day's Map view (which
+            reuses this same DailyMap implementation, see
+            pages/MobileDayView.jsx) is now canonical. */}
+        <Route path="/daily-map" element={<Navigate to="/my-day?view=map" replace />} />
         <Route path="/my-day" element={<PageContentWrapper><MobileDayView /></PageContentWrapper>} />
         <Route path="/kanban" element={<PageContentWrapper><KanbanBoard /></PageContentWrapper>} />
         <Route path="/leads" element={<PageContentWrapper><Leads /></PageContentWrapper>} />

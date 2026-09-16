@@ -4,10 +4,14 @@ import * as railwayLeads from "@/api/railway/leads";
 import { Link } from "react-router-dom";
 import { MapPin, Clock, Phone, Mail, MessageSquare, Navigation, Map as MapIcon, List, ChevronDown, ChevronUp, User, RefreshCw, Calendar, AlertTriangle } from "lucide-react";
 import { formatPhone, toTitleCase } from "@/lib/formatters";
-import { geocodeAddress, fmt12, OWNER_COLORS } from "@/pages/DailyMap";
+import { fmt12, OWNER_COLORS } from "@/pages/DailyMap";
 
-// Lazy-load MapView so a Leaflet import crash is isolated and doesn't kill the whole page
-const MapView = React.lazy(() => import("@/components/dailymap/MapView"));
+// Lazy-load the canonical Daily Map page (real routing: traffic-aware travel
+// time, required departure, distance, arrive-10-minutes-early, per-owner
+// route opening) so a Leaflet import crash is isolated and doesn't kill the
+// whole My Day page. My Day's Map view reuses this wholesale rather than a
+// second, simpler geocoding-only implementation.
+const DailyMap = React.lazy(() => import("@/pages/DailyMap"));
 
 // Error boundary to catch crashes in MobileMapContainer (outside MapView's own boundary)
 class MapPageErrorBoundary extends Component {
@@ -224,46 +228,21 @@ function AppointmentCard({ appt, idx, isSelected, onSelect, ownerColor, isNext }
   );
 }
 
-// Wrapper that measures its own pixel height and passes it explicitly to Leaflet.
-// This is necessary because Leaflet cannot resolve percentage heights when the
-// flex parent collapses to 0 on mobile browsers.
-// Fixed pixel height for the map panel — tall enough to be useful on mobile
-const MAP_PANEL_HEIGHT = 320;
-
-function MobileMapContainer({ appointments, selectedLead, onSelectLead, contactOwners, userRole }) {
-  return (
-    <div style={{ height: MAP_PANEL_HEIGHT, flexShrink: 0, position: "relative", background: "#fff", borderBottom: "1px solid #e2e8f0" }}>
-      <Suspense fallback={
-        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "#f8fafc" }}>
-          <div className="w-8 h-8 border-4 border-slate-200 border-t-amber-600 rounded-full animate-spin" />
-        </div>
-      }>
-        <MapView
-          appointments={appointments}
-          selectedLead={selectedLead}
-          onSelectLead={onSelectLead}
-          onReassign={() => {}}
-          contactOwners={contactOwners}
-          userRole={userRole}
-          explicitHeight={MAP_PANEL_HEIGHT}
-        />
-      </Suspense>
-    </div>
-  );
-}
-
 export default function MobileDayView() {
   const { user } = useAuth();
   const [allLeads, setAllLeads] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [geocoding, setGeocoding] = useState(false);
   const [appointments, setAppointments] = useState([]);
   const [selectedLead, setSelectedLead] = useState(null);
   const [dateFilter, setDateFilter] = useState("today");
   const [ownerFilter, setOwnerFilter] = useState("all");
   const [userRole, setUserRole] = useState(null);
   const [contactOwners, setContactOwners] = useState([]);
-  const [view, setView] = useState("list"); // "list" | "map"
+  // Deep-linkable: /daily-map redirects to /my-day?view=map (backward
+  // compatibility for the retired standalone Appointment Map nav item).
+  const [view, setView] = useState(() =>
+    new URLSearchParams(window.location.search).get("view") === "map" ? "map" : "list"
+  ); // "list" | "map"
 
   useEffect(() => {
     const init = async () => {
@@ -326,30 +305,22 @@ export default function MobileDayView() {
     const owners = [...new Set(filtered.filter(l => l.assigned_rep).map(l => l.assigned_rep))].sort();
     setContactOwners(owners);
 
-    // Geocode for map view — same address format as desktop
-    setGeocoding(true);
-    const geocoded = await Promise.all(sorted.map(async (lead) => {
+    // No geocoding here — the List view only needs the address as text (the
+    // "Navigate" quick action opens native maps directly with the address
+    // string). Pin/coordinate geocoding is the Map view's job, and the Map
+    // view now reuses the canonical Daily Map page wholesale (see below),
+    // so a second geocode pass here would just be wasted external API calls
+    // (Nominatim) for data nothing reads.
+    const withAddress = sorted.map((lead) => {
       const addrParts = [lead.property_address, lead.city, "CA"].filter(Boolean);
-      const addr = addrParts.join(", ");
-      let coords = null;
-      let geocodeError = false;
-      try {
-        coords = await geocodeAddress(addr);
-        if (!coords) geocodeError = true;
-      } catch {
-        geocodeError = true;
-      }
       const ownerKey = lead.assigned_rep || "Unassigned";
       return {
         ...lead,
-        coords,
-        geocodeError,
         colorConfig: OWNER_COLORS[ownerKey] || OWNER_COLORS["Unassigned"],
-        fullAddress: addr,
+        fullAddress: addrParts.join(", "),
       };
-    }));
-    setGeocoding(false);
-    setAppointments(geocoded);
+    });
+    setAppointments(withAddress);
   };
 
   // Overdue follow-ups (any type, not just meetings) — computed from the
@@ -393,7 +364,6 @@ export default function MobileDayView() {
             <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
               <span>
                 {appointments.length} appointment{appointments.length !== 1 ? "s" : ""}
-                {geocoding && <span className="text-amber-600 ml-2">· mapping...</span>}
               </span>
               {overdueFollowUps > 0 && (
                 <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
@@ -485,22 +455,28 @@ export default function MobileDayView() {
             </p>
           </div>
         </div>
+      ) : view === "map" ? (
+        // ── Map view — reuses the canonical Daily Map implementation
+        // wholesale (routingApi.getDailySchedule, MapView, AppointmentList,
+        // MapFilters, Open Route) rather than a second, simpler
+        // geocoding-only map. This is the ONE place traffic-aware travel
+        // time, required-departure time, distance, the arrive-10-minutes-
+        // early rule, and per-owner route opening are calculated —
+        // duplicating that logic here would let the two views drift apart.
+        <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+          <MapPageErrorBoundary>
+            <Suspense fallback={
+              <div className="flex-1 flex items-center justify-center py-12">
+                <div className="w-7 h-7 border-4 border-slate-200 border-t-amber-600 rounded-full animate-spin" />
+              </div>
+            }>
+              <DailyMap />
+            </Suspense>
+          </MapPageErrorBoundary>
+        </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-          {/* Map panel — shown when map view is active */}
-          {view === "map" && (
-            <MapPageErrorBoundary>
-              <MobileMapContainer
-                appointments={appointments}
-                selectedLead={selectedLead}
-                onSelectLead={setSelectedLead}
-                contactOwners={contactOwners}
-                userRole={userRole}
-              />
-            </MapPageErrorBoundary>
-          )}
-
-          {/* Appointment cards — always shown below the map (or alone in list view) */}
+          {/* Appointment cards */}
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 pb-24">
             {groupedByDate ? (
               Object.entries(groupedByDate)

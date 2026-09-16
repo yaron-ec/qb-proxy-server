@@ -11,7 +11,10 @@ export default function CompanySettingsTab() {
   const companyRef = useRef(null);
 
   useEffect(() => {
-    railwayCompanySettings.get().then(data => {
+    // GET returns an envelope ({ settings: {...} | null }), not the bare
+    // record — unwrap it here rather than storing the wrapper itself.
+    railwayCompanySettings.get().then(res => {
+      const data = res?.settings || null;
       if (data) {
         setCompany(data);
         companyRef.current = data;
@@ -33,7 +36,9 @@ export default function CompanySettingsTab() {
   const doSave = useCallback(async (latestForm) => {
     setSaveState("saving");
     try {
-      const updated = await railwayCompanySettings.upsert(latestForm);
+      // PUT also returns { settings: {...} } — same envelope as GET.
+      const res = await railwayCompanySettings.upsert(latestForm);
+      const updated = res?.settings || null;
       setCompany(updated);
       companyRef.current = updated;
       setSaveState("saved");
