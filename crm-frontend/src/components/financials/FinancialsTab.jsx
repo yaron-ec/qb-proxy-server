@@ -70,9 +70,15 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal }) {
   }, [load]);
 
   const updateDeal = async (fields) => {
-    const updated = await railwayDeals.update(deal.id, fields);
-    setDeal(updated);
-    return updated;
+    const updateRes = await railwayDeals.update(deal.id, fields);
+    // Backend returns { deal: serializeDeal(...) } — unwrap before using as
+    // the deal object (matches the same pattern already used in
+    // pages/DealDetail.jsx). Without this, deal state after any update made
+    // from the Financials tab would become { deal: {...} } instead of the
+    // actual deal fields.
+    const unwrapped = updateRes?.deal || updateRes;
+    setDeal(unwrapped);
+    return unwrapped;
   };
 
   const logActivity = useCallback(

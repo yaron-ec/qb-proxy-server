@@ -1,4 +1,5 @@
 'use strict';
+const { test } = require('node:test');
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
@@ -45,7 +46,11 @@ test('FRONTEND: DealDetail.jsx unwraps { deal: ... } envelope from railwayDeals.
   // Must unwrap the deal envelope: const d = dealRes?.deal || dealRes
   assert.ok(src.includes('dealRes?.deal'), 'DealDetail must unwrap { deal: ... } from railwayDeals.get()');
   assert.ok(src.includes('leadRes?.lead'), 'DealDetail must unwrap { lead: ... } from railwayLeads.get()');
-  assert.ok(src.includes('dealUpdateRes?.deal'), 'DealDetail must unwrap { deal: ... } from railwayDeals.update()');
+  // railwayDeals.update() result is currently named `updateRes` (not
+  // `dealUpdateRes`) at its two call sites — check the unwrap pattern
+  // (?.deal ||) rather than a specific variable name, so this test doesn't
+  // pin an arbitrary local identifier.
+  assert.ok(/updateRes\?\.deal\s*\|\|/.test(src), 'DealDetail must unwrap { deal: ... } from railwayDeals.update()');
   assert.ok(src.includes('leadUpdateRes?.lead'), 'DealDetail must unwrap { lead: ... } from railwayLeads.update()');
 });
 
@@ -83,7 +88,13 @@ test('BACKEND: deal sub-entity routes return correct envelopes', () => {
 
 test('BACKEND: all list endpoints return { items: [...], total: N }', () => {
   const dealsRoute = fs.readFileSync(path.join(ROOT, 'routes/deals.js'), 'utf8');
-  assert.ok(dealsRoute.includes('res.json({ items: rows.map(serializeDeal), total:'), 'deals list must return { items, total }');
+  // deals.js assigns `let items = rows.map(serializeDeal)` and mutates it in
+  // place (waterfall enrichment) before responding with `{ items, total }` —
+  // check both parts rather than one inlined literal, so a legitimate
+  // refactor (e.g. batching a second enrichment pass) doesn't require
+  // rewriting this test again.
+  assert.ok(dealsRoute.includes('rows.map(serializeDeal)'), 'deals list must serialize rows with serializeDeal');
+  assert.ok(dealsRoute.includes('res.json({ items, total:'), 'deals list must return { items, total }');
   
   const expensesRoute = fs.readFileSync(path.join(ROOT, 'routes/dealExpenses.js'), 'utf8');
   assert.ok(expensesRoute.includes('res.json({ items: rows.map(serializeExpense), total:'), 'dealExpenses list must return { items, total }');

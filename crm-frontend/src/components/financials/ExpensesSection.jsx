@@ -218,7 +218,10 @@ export default function ExpensesSection({ deal, expenses, payments, canEdit, can
         await logActivity("expense_edited", "DealExpense", `Expense edited: ${editing.vendor_name} (${formatCurrency(payload.amount)})`, { record_id: editing.id });
       } else {
         payload.created_by = user?.email || null;
-        const created = await railwayDealExpenses.create(payload);
+        const createRes = await railwayDealExpenses.create(payload);
+        // Backend returns { expense: serializeExpense(...) } — unwrap before
+        // reading .id (created?.id was always undefined here).
+        const created = createRes?.expense || createRes;
         await logActivity("expense_added", "DealExpense", `Expense added: ${editing.vendor_name} (${formatCurrency(payload.amount)})`, { record_id: created?.id });
       }
       setEditing(null);
