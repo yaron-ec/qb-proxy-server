@@ -1,6 +1,21 @@
 /**
  * EC Construction Group — Unified Design System
  * Use these tokens and helpers everywhere for consistent styling.
+ *
+ * CANONICAL ARCHITECTURE (as of the CRM-wide visual/UX pass):
+ *   lib/design-system.js       — THIS FILE. The one canonical source for
+ *                                 shared className tokens/utilities (status
+ *                                 colors, typography scale, buttons, inputs,
+ *                                 badges, tables, cards). New tokens go here.
+ *   components/ui/              — accessible primitives (shadcn-based:
+ *                                 button, input, dialog, table, etc.).
+ *   components/DesignSystem/    — CRM-specific composed components built on
+ *                                 components/ui/ primitives (KPIChip,
+ *                                 SectionHeader, PaymentTable, TabBar, …).
+ * lib/crmDesignSystem.js and components/crm/ (a small, separately-maintained
+ * duplicate token set + wrapper-component layer with exactly one real
+ * consumer) were removed in that pass — do not recreate them. If you need a
+ * token that doesn't exist here, add it to this file.
  */
 
 // ── Status badge styles — COLOR ONLY (used by statusBadgeClass) ──────────────

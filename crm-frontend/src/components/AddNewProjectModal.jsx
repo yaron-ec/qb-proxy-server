@@ -3,7 +3,14 @@ import * as railwaySettings from "@/api/railway/settings";
 import * as railwayDeals from "@/api/railway/deals";
 import { useNavigate } from "react-router-dom";
 import { X, Loader2 } from "lucide-react";
-import { CRMButton, CRMFieldLabel } from "@/components/crm";
+
+// A field label matching the standard pattern used across the CRM (see
+// components/financials/*.jsx's inline label pattern) — this modal was the
+// last consumer of components/crm/CRMFieldLabel, which only re-exported the
+// identical className from the now-removed lib/crmDesignSystem.js.
+function FieldLabel({ children, className = "" }) {
+  return <p className={`text-[10px] font-semibold text-slate-500 uppercase tracking-wide ${className}`}>{children}</p>;
+}
 
 const OWNERS = ["Yaron Drilevich", "Ethan Magen", "Michelle"];
 
@@ -143,7 +150,7 @@ export default function AddNewProjectModal({ lead, currentDeal, onClose, onSucce
            {/* Job Types - Same UI as Lead page */}
            <div className="mb-6">
              <div className="flex items-center justify-between mb-2">
-               <CRMFieldLabel className="block">Job Type *</CRMFieldLabel>
+               <FieldLabel className="block">Job Type *</FieldLabel>
                {loadError && <span className="text-[10px] text-red-500 font-semibold">Using defaults</span>}
              </div>
 
@@ -186,7 +193,7 @@ export default function AddNewProjectModal({ lead, currentDeal, onClose, onSucce
            <div className="grid grid-cols-2 gap-4 mb-6">
              {/* Contract Amount */}
              <div>
-               <CRMFieldLabel className="block mb-1.5">Contract Amount ($)</CRMFieldLabel>
+               <FieldLabel className="block mb-1.5">Contract Amount ($)</FieldLabel>
                <input
                  type="number"
                  value={formData.amount}
@@ -199,7 +206,7 @@ export default function AddNewProjectModal({ lead, currentDeal, onClose, onSucce
 
              {/* Sold Date */}
              <div>
-               <CRMFieldLabel className="block mb-1.5">Sold Date</CRMFieldLabel>
+               <FieldLabel className="block mb-1.5">Sold Date</FieldLabel>
                <input
                  type="date"
                  value={formData.sold_date}
@@ -211,7 +218,7 @@ export default function AddNewProjectModal({ lead, currentDeal, onClose, onSucce
 
              {/* Project Address */}
              <div>
-               <CRMFieldLabel className="block mb-1.5">Project Address</CRMFieldLabel>
+               <FieldLabel className="block mb-1.5">Project Address</FieldLabel>
                <input
                  type="text"
                  value={formData.property_address}
@@ -224,7 +231,7 @@ export default function AddNewProjectModal({ lead, currentDeal, onClose, onSucce
 
              {/* Owner */}
              <div>
-               <CRMFieldLabel className="block mb-1.5">Owner</CRMFieldLabel>
+               <FieldLabel className="block mb-1.5">Owner</FieldLabel>
                <select
                  value={formData.assigned_rep}
                  onChange={(e) => setFormData({ ...formData, assigned_rep: e.target.value })}
@@ -241,7 +248,7 @@ export default function AddNewProjectModal({ lead, currentDeal, onClose, onSucce
 
            {/* Notes - Full Width */}
            <div className="mb-4">
-             <CRMFieldLabel className="block mb-1.5">Notes</CRMFieldLabel>
+             <FieldLabel className="block mb-1.5">Notes</FieldLabel>
              <textarea
                value={formData.notes}
                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
@@ -263,15 +270,15 @@ export default function AddNewProjectModal({ lead, currentDeal, onClose, onSucce
            >
              Cancel
            </button>
-           <CRMButton
+           <button
              type="submit"
              onClick={handleSubmit}
-             className="flex-1 flex items-center justify-center gap-2"
+             className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-lg transition-colors disabled:opacity-50"
              disabled={loading || formData.selected_job_types.length === 0}
            >
              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
              {loading ? "Creating..." : "Create Project"}
-           </CRMButton>
+           </button>
          </div>
        </div>
      </div>
