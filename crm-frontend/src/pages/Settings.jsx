@@ -374,7 +374,7 @@ export default function Settings() {
           {activeTab === "projectTypes" && <ProjectTypesTab projectTypes={projectTypes} newProjectType={newProjectType} setNewProjectType={setNewProjectType} addProjectType={addProjectType} removeProjectType={removeProjectType} readOnly={isReadOnly} />}
           {activeTab === "sources" && <SourcesTab sources={sources} newSource={newSource} setNewSource={setNewSource} addSource={addSource} removeSource={removeSource} setSources={(updated) => { setSources(updated); saveListSettings(statuses, projectTypes, updated); }} readOnly={isReadOnly} />}
           {activeTab === "contactOwners" && <ContactOwnersTab contactOwners={contactOwners} newContactOwner={newContactOwner} setNewContactOwner={setNewContactOwner} addContactOwner={addContactOwner} removeContactOwner={removeContactOwner} readOnly={isReadOnly} />}
-          {activeTab === "ownerDirectory" && <OwnerDirectoryTab />}
+          {activeTab === "ownerDirectory" && <OwnerDirectoryTab readOnly={isReadOnly} />}
           {activeTab === "qualification" && <LeadQualificationTab />}
           {activeTab === "email" && <EmailSettingsTab />}
           {activeTab === "reminders" && <ReminderEngineStatus />}

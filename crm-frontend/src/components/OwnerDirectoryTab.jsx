@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { apiCall } from "@/api/railway/client";
-import { CheckCircle, XCircle, Loader2, RefreshCw, Mail, User, AlertTriangle } from "lucide-react";
+import * as railwayOwners from "@/api/railway/owners";
+import { CheckCircle, XCircle, Loader2, RefreshCw, Mail, User, AlertTriangle, Pencil, X, Check } from "lucide-react";
 
 const VALID_ROLES = ["admin", "manager", "sales_rep", "office"];
 
-export default function OwnerDirectoryTab() {
+export default function OwnerDirectoryTab({ readOnly } = {}) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -149,6 +150,152 @@ export default function OwnerDirectoryTab() {
           <li>📌 If a user is missing, check their Status and Role above</li>
         </ul>
       </div>
+
+      <ReplyToContactDirectory readOnly={readOnly} />
+    </div>
+  );
+}
+
+// ── Reply-To Contact Directory ──────────────────────────────────────────────
+// A SEPARATE table (`owners`, not `users` above) — the one ActivityComposer.jsx's
+// resolveOwnerEmail() actually reads to fill "Replies will go to..." on
+// CRM-sent email. It's independent of the Users table above and was never
+// editable from the app before this — a stale value (e.g. a legacy personal
+// address preserved from an old migration) had no fix except a direct DB
+// edit. This is that fix: an admin-only inline editor over the real table.
+function ReplyToContactDirectory({ readOnly }) {
+  const [owners, setOwners] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState(null);
+  const [draftEmail, setDraftEmail] = useState("");
+  const [draftName, setDraftName] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
+  const load = () => {
+    setLoading(true);
+    railwayOwners.list().then(data => {
+      setOwners(data.items || []);
+      setLoading(false);
+    }).catch(err => {
+      console.error('[ReplyToContactDirectory] Error loading owners:', err);
+      setLoading(false);
+    });
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const startEdit = (owner) => {
+    setError(null);
+    setEditingId(owner.id);
+    setDraftEmail(owner.email || "");
+    setDraftName(owner.display_name || "");
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setError(null);
+  };
+
+  const saveEdit = async (owner) => {
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await railwayOwners.update(owner.id, { email: draftEmail.trim(), display_name: draftName.trim() });
+      setOwners(prev => prev.map(o => o.id === owner.id ? (res.owner || { ...o, email: draftEmail.trim(), display_name: draftName.trim() }) : o));
+      setEditingId(null);
+    } catch (e) {
+      setError(e?.message || 'Failed to save.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-semibold text-slate-700">Reply-To Contact Directory</h3>
+          <p className="text-xs text-slate-500 mt-1">
+            The address each owner's Reply-To resolves to when sending CRM email (Activity Composer). Independent of the Users table above.
+          </p>
+        </div>
+        <button onClick={load} className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-700" title="Refresh">
+          <RefreshCw className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-8 text-slate-400 gap-2">
+          <Loader2 className="w-5 h-5 animate-spin" /> Loading owners...
+        </div>
+      ) : owners.length === 0 ? (
+        <div className="p-8 text-center text-slate-400 text-sm">No active owners found.</div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-100">
+                <th className="text-left px-5 py-2.5 text-xs font-semibold text-slate-500">Display Name</th>
+                <th className="text-left px-5 py-2.5 text-xs font-semibold text-slate-500">Reply-To Email</th>
+                {!readOnly && <th className="text-right px-5 py-2.5 text-xs font-semibold text-slate-500">Actions</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {owners.map((owner) => (
+                <tr key={owner.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                  {editingId === owner.id ? (
+                    <>
+                      <td className="px-5 py-2.5">
+                        <input
+                          value={draftName}
+                          onChange={(e) => setDraftName(e.target.value)}
+                          className="w-full text-xs border border-slate-300 rounded px-2 py-1"
+                          placeholder="Display name"
+                        />
+                      </td>
+                      <td className="px-5 py-2.5">
+                        <input
+                          value={draftEmail}
+                          onChange={(e) => setDraftEmail(e.target.value)}
+                          className="w-full text-xs font-mono border border-slate-300 rounded px-2 py-1"
+                          placeholder="email@ecconstructiongroup.com"
+                        />
+                        {error && <p className="text-[11px] text-red-600 mt-1">{error}</p>}
+                      </td>
+                      <td className="px-5 py-2.5 text-right whitespace-nowrap">
+                        <button onClick={() => saveEdit(owner)} disabled={saving} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded disabled:opacity-50" title="Save">
+                          <Check className="w-4 h-4" />
+                        </button>
+                        <button onClick={cancelEdit} disabled={saving} className="p-1.5 text-slate-400 hover:bg-slate-100 rounded" title="Cancel">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td className="px-5 py-3 font-medium text-slate-800">{owner.display_name || "—"}</td>
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-1.5">
+                          <Mail className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                          <span className="text-xs font-mono text-slate-600">{owner.email}</span>
+                        </div>
+                      </td>
+                      {!readOnly && (
+                        <td className="px-5 py-3 text-right">
+                          <button onClick={() => startEdit(owner)} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded" title="Edit">
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      )}
+                    </>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

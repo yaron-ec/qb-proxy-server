@@ -37,10 +37,20 @@ router.use(requireAuth);
 
 const COMPANY_EMAIL = process.env.GMAIL_FROM_ADDRESS || 'yaron@ecconstructiongroup.com';
 const MAX_MESSAGES = 50;
+const MAX_PAGES = 4; // up to 200 messages/lead per request — bounded, not unbounded
+const MAX_TOTAL_MESSAGES = 200;
 
 async function gmailFetch(token, path, { query: q } = {}) {
   const url = new URL(`https://gmail.googleapis.com/gmail/v1/users/me/${path}`);
-  if (q) for (const [k, v] of Object.entries(q)) url.searchParams.set(k, v);
+  // Gmail API repeatable params (e.g. metadataHeaders) must appear as the
+  // SAME query key repeated once per value (?metadataHeaders=From&metadataHeaders=To&...),
+  // never as one comma-joined value — Gmail treats a joined string as a
+  // single (nonexistent) header name and silently returns zero headers,
+  // which then makes every message look like it has no From/To/Cc at all.
+  if (q) for (const [k, v] of Object.entries(q)) {
+    if (Array.isArray(v)) { for (const item of v) url.searchParams.append(k, item); }
+    else url.searchParams.set(k, v);
+  }
   const res = await fetch(url.toString(), { method: 'GET', headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } });
   if (!res.ok) {
     let detail = '';
@@ -98,6 +108,15 @@ router.get('/:id/emails', async (req, res) => {
     // for diagnosis without server log access).
     let gmailStatus = 'ok';
     let gmailError = null;
+    // Safe, non-secret diagnostics — the query is scoped to only this
+    // lead's own address (nothing private about another mailbox), and the
+    // counts let a real production check distinguish "Gmail read succeeded,
+    // 0 matching messages" from "messages found but discarded by matching"
+    // from "matched but never reached the frontend" — never expose tokens,
+    // headers, snippets, or any other mailbox's data here.
+    let gmailQuery = null;
+    let gmailMessagesFound = 0;
+    let gmailMessagesMatched = 0;
 
     // No email on file — nothing to search for. Return whatever gmail-
     // sourced activities already exist (e.g. from a prior sync before the
@@ -108,8 +127,21 @@ router.get('/:id/emails', async (req, res) => {
       try {
         const token = await gmail.refreshAccessToken();
         const q = buildLeadEmailQuery(lead.email);
-        const list = await gmailFetch(token, 'messages', { query: { maxResults: String(MAX_MESSAGES), q } });
-        const ids = (list.messages || []).map(m => m.id);
+        gmailQuery = q;
+
+        // Paginate: a lead with substantial history can have more than one
+        // page of matching messages. Bounded (not unbounded) to avoid an
+        // unbounded number of Gmail API calls on one request.
+        const ids = [];
+        let pageToken;
+        let pages = 0;
+        do {
+          const list = await gmailFetch(token, 'messages', { query: { maxResults: String(MAX_MESSAGES), q, ...(pageToken ? { pageToken } : {}) } });
+          ids.push(...(list.messages || []).map(m => m.id));
+          pageToken = list.nextPageToken;
+          pages++;
+        } while (pageToken && pages < MAX_PAGES && ids.length < MAX_TOTAL_MESSAGES);
+        gmailMessagesFound = ids.length;
 
         for (const id of ids) {
           try {
@@ -121,6 +153,7 @@ router.get('/:id/emails', async (req, res) => {
             if (!messageInvolvesLead({ from, to, cc }, lead.email)) continue;
             const direction = classifyDirection({ from, to, cc }, lead.email, COMPANY_EMAIL);
             if (!direction) continue;
+            gmailMessagesMatched++;
 
             const subject = headerValue(payload, 'Subject') || '(no subject)';
             const dateHeader = headerValue(payload, 'Date');
@@ -161,7 +194,14 @@ router.get('/:id/emails', async (req, res) => {
       `SELECT * FROM activities WHERE lead_id = $1 AND type = 'email' ORDER BY created_at DESC LIMIT 200`,
       [leadId]
     );
-    res.json({ items: rows.map(serializeActivity), gmail_status: gmailStatus, gmail_error: gmailError });
+    res.json({
+      items: rows.map(serializeActivity),
+      gmail_status: gmailStatus,
+      gmail_error: gmailError,
+      gmail_query: gmailQuery,
+      gmail_messages_found: gmailMessagesFound,
+      gmail_messages_matched: gmailMessagesMatched,
+    });
   } catch (e) {
     console.error('[lead-emails] get error:', e.message);
     res.status(500).json({ error: e.message });

@@ -59,7 +59,13 @@ function headerValue(payload, name) {
 
 async function gmailFetch(token, path, { query } = {}) {
   const url = new URL(`https://gmail.googleapis.com/gmail/v1/users/me/${path}`);
-  if (query) for (const [k, v] of Object.entries(query)) url.searchParams.set(k, v);
+  // Same fix as routes/leadEmails.js's gmailFetch: metadataHeaders is a
+  // REPEATED Gmail API param, not a comma-joined value — a joined string
+  // silently returns zero headers, making every message look header-less.
+  if (query) for (const [k, v] of Object.entries(query)) {
+    if (Array.isArray(v)) { for (const item of v) url.searchParams.append(k, item); }
+    else url.searchParams.set(k, v);
+  }
   const res = await fetch(url.toString(), { method: 'GET', headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } });
   if (!res.ok) {
     const detail = await res.text().catch(() => '');
