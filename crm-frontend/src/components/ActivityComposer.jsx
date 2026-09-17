@@ -9,7 +9,7 @@
  * - Meeting
  */
 import { useState, useEffect } from "react";
-import { activities as railwayActivities, leads as railwayLeads, tasks as railwayTasks, settings as railwaySettings } from "@/api/railway";
+import { activities as railwayActivities, leads as railwayLeads, tasks as railwayTasks, owners as railwayOwners, emails as railwayEmails } from "@/api/railway";
 import { useAuth } from "@/lib/AuthContext";
 import { AlertCircle, FileText, Phone, Mail, CheckSquare, Calendar } from "lucide-react";
 import AvailableTimePicker from "./AvailableTimePicker";
@@ -45,6 +45,18 @@ const CALL_OUTCOMES = [
 
 const CALL_DIRECTIONS = ["Outbound", "Incoming"];
 
+// The email body is free-typed by a rep and becomes real outbound HTML
+// email content — escape it before wrapping in <br>-joined HTML so it can
+// never be interpreted as markup by the recipient's mail client.
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export default function ActivityComposer({ lead, onActivityCreated }) {
   const [activeType, setActiveType] = useState("note");
   const [content, setContent] = useState("");
@@ -62,7 +74,6 @@ export default function ActivityComposer({ lead, onActivityCreated }) {
   // Email-specific state
   const [emailSubject, setEmailSubject] = useState("");
   const [emailTemplate, setEmailTemplate] = useState("");
-  const [emailGmailConnected, setEmailGmailConnected] = useState(true);
   const [emailSendError, setEmailSendError] = useState(null);
   const [autoSelectedTemplate, setAutoSelectedTemplate] = useState(false);
 
@@ -79,10 +90,20 @@ export default function ActivityComposer({ lead, onActivityCreated }) {
 
   useEffect(() => {
     if (authUser) setCurrentUser(authUser);
-    
-    // Load owner emails from Railway Settings
-    railwaySettings.get('owner_emails').then(res => {
-      if (res?.value) setOwnerEmails(res.value);
+
+    // Owner Directory — the CANONICAL source (routes/owners.js, the same
+    // `owners` table routes/leads.js already resolves assigned_rep against).
+    // This used to read a separate, hand-maintained Settings blob
+    // ('owner_emails') that drifted out of sync with real owners — a
+    // legitimate, active owner (e.g. Yaron Drilevich) could show as
+    // "not configured" here while resolving correctly everywhere else in
+    // the CRM. One directory, not two.
+    railwayOwners.list().then(res => {
+      const map = {};
+      for (const o of (res?.items || [])) {
+        if (o.display_name && o.email) map[String(o.display_name).trim()] = o.email;
+      }
+      setOwnerEmails(map);
     }).catch(() => {});
   }, [authUser]);
 
@@ -192,21 +213,29 @@ export default function ActivityComposer({ lead, onActivityCreated }) {
   };
 
   const handleActivitySideEffects = async () => {
-    // Handle email sending via Gmail (non-blocking — activity is already saved above)
+    // Handle email sending — via the ONE real, working outbound path
+    // (POST /api/v1/emails/send, the single connected company Gmail
+    // account — see CLAUDE.md). This used to call
+    // /gmail/send-email-via-account, a route that has always returned 501
+    // "not implemented yet — needs per-owner Gmail OAuth tokens" — a
+    // per-owner send architecture that was never built, so no CRM-composed
+    // email has ever actually sent through this composer. The owner's
+    // resolved email (when known) is used as Reply-To, not as the sender —
+    // matching the real, single-mailbox architecture instead of
+    // pretending each rep has their own connected Gmail account.
     if (activeType === "email") {
-      const fromEmail = resolveOwnerEmail(lead.assigned_rep);
-      if (fromEmail && lead.email) {
-        import('@/lib/railwayClient').then(({ railwayRequest }) => {
-          railwayRequest('/gmail/send-email-via-account', {
-            lead_id: lead.id,
-            recipient_email: lead.email,
-            subject: emailSubject,
-            body: content,
-            from_email: fromEmail,
-          }).catch(e => {
-            console.warn('[ActivityComposer] Gmail send unavailable:', e.message);
-            setEmailSendError('Email saved to CRM but not sent via Gmail (integration unavailable).');
-          });
+      if (lead.email) {
+        const replyTo = resolveOwnerEmail(lead.assigned_rep) || undefined;
+        const idempotencyKey = `activity-composer:${lead.railway_id || lead.id}:${Date.now()}`;
+        railwayEmails.send({
+          to: lead.email,
+          replyTo,
+          subject: emailSubject,
+          htmlBody: escapeHtml(content).replace(/\n/g, '<br>'),
+          idempotencyKey,
+        }).catch(e => {
+          console.warn('[ActivityComposer] Email send failed:', e.message);
+          setEmailSendError('Email saved to CRM but could not be sent (the connected Gmail account may be unavailable).');
         });
       }
     }
@@ -298,7 +327,10 @@ export default function ActivityComposer({ lead, onActivityCreated }) {
       case "task":
         return content.trim() && (activeType !== "call" || callOutcome);
       case "email":
-        return content.trim() && emailSubject.trim() && lead.assigned_rep && resolveOwnerEmail(lead.assigned_rep);
+        // Sending no longer depends on resolving the owner's email — the
+        // owner's address (when known) is only used as Reply-To; the send
+        // itself always goes through the single connected company account.
+        return content.trim() && emailSubject.trim() && !!lead.email;
       case "meeting":
         return meetingTitle.trim() && meetingDate && meetingTime;
       default:
@@ -432,15 +464,6 @@ export default function ActivityComposer({ lead, onActivityCreated }) {
         {/* Email Form */}
         {activeType === "email" && (
           <div className="space-y-3">
-            {!emailGmailConnected && (
-              <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-700">
-                  Gmail is not connected for your account. Emails will be saved in the CRM but not sent via Gmail.
-                </p>
-              </div>
-            )}
-
             {emailSendError && (
               <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
                 <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
@@ -502,24 +525,29 @@ export default function ActivityComposer({ lead, onActivityCreated }) {
               />
             </div>
 
-            {!lead.assigned_rep || lead.assigned_rep.trim() === '' ? (
+            {!lead.email ? (
               <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
                 <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-xs text-amber-700 font-semibold mb-1">No owner assigned to this lead</p>
-                  <p className="text-[10px] text-amber-600">Assign a Contact Owner in the left panel to send emails from their address.</p>
+                  <p className="text-xs text-amber-700 font-semibold mb-1">No email on file for this lead</p>
+                  <p className="text-[10px] text-amber-600">Add an email address for this lead before sending.</p>
                 </div>
               </div>
             ) : (
+              // Truthful sender architecture: this CRM has ONE connected
+              // Gmail account (see CLAUDE.md) — every email sends from it,
+              // never from an individual owner's own inbox. The owner's
+              // address (when it resolves in the Owner Directory) is used
+              // only as Reply-To, so their replies still route correctly.
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                 <p className="text-xs font-semibold text-amber-900 mb-2">Send From:</p>
-                <p className="text-sm text-amber-800 font-mono">
-                  {resolveOwnerEmail(lead.assigned_rep) || `${lead.assigned_rep} (not configured)`}
-                </p>
+                <p className="text-sm text-amber-800 font-mono">EC Construction Group (connected company Gmail account)</p>
                 <p className="text-xs text-amber-600 mt-1">
-                  {resolveOwnerEmail(lead.assigned_rep) 
-                    ? "✓ Email will be sent from this address" 
-                    : `⚠️ "${lead.assigned_rep}" not found in Owner Directory. Add it to Settings > Owner Directory.`}
+                  {lead.assigned_rep && resolveOwnerEmail(lead.assigned_rep)
+                    ? `✓ Replies will go to ${lead.assigned_rep} (${resolveOwnerEmail(lead.assigned_rep)})`
+                    : lead.assigned_rep
+                    ? `"${lead.assigned_rep}" not found in the Owner Directory — replies will go to the shared inbox instead. Add them in Settings → Owner Directory.`
+                    : "No owner assigned — replies will go to the shared inbox."}
                 </p>
               </div>
             )}

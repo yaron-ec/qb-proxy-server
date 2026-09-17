@@ -7,7 +7,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { ActivityCard } from './LeadDetailModern';
+import { ActivityCard, GmailStatusBanner } from './LeadDetailModern';
 
 function baseActivity(overrides = {}) {
   return {
@@ -73,5 +73,28 @@ describe('ActivityCard — real Gmail correspondence', () => {
     render(<ActivityCard activity={manual} currentUser={null} />);
     expect(screen.queryByText('Sent')).toBeNull();
     expect(screen.queryByText('Received')).toBeNull();
+  });
+});
+
+describe('GmailStatusBanner — a real Gmail read failure is visible on the page itself, never silent', () => {
+  it('renders nothing while still loading (null)', () => {
+    const { container } = render(<GmailStatusBanner gmailStatus={null} />);
+    expect(container.firstChild).toBeNull();
+  });
+
+  it('renders nothing on success', () => {
+    const { container } = render(<GmailStatusBanner gmailStatus={{ status: 'ok', error: null }} />);
+    expect(container.firstChild).toBeNull();
+  });
+
+  it('renders nothing for a lead with no email on file (expected, not a failure)', () => {
+    const { container } = render(<GmailStatusBanner gmailStatus={{ status: 'no_email_on_file', error: null }} />);
+    expect(container.firstChild).toBeNull();
+  });
+
+  it('shows the exact error text for an unavailable/failed Gmail read — this is how a real OAuth scope error becomes visible without DevTools', () => {
+    render(<GmailStatusBanner gmailStatus={{ status: 'unavailable', error: 'Gmail read 401: insufficient authentication scopes' }} />);
+    expect(screen.getByText('Gmail correspondence could not be loaded')).toBeInTheDocument();
+    expect(screen.getByText('Gmail read 401: insufficient authentication scopes')).toBeInTheDocument();
   });
 });

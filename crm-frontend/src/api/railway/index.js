@@ -31,3 +31,4 @@ export * as routing from './routing';
 export * as leadSubmissions from './leadSubmissions';
 export * as dealTimeline from './dealTimeline';
 export * as leadEmails from './leadEmails';
+export * as emails from './emails';

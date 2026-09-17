@@ -128,6 +128,7 @@ export default function LeadDetailModern() {
   // it upserts via activities.external_ref's existing unique index, so
   // reopening this page repeatedly can never create duplicates). Merged
   // into `activities` by id since some may already exist there too.
+  const [gmailStatus, setGmailStatus] = useState(null); // { status: 'ok'|'unavailable'|'no_email_on_file', error } | null while loading
   useEffect(() => {
     if (!lead?.railway_id) return;
     let cancelled = false;
@@ -140,8 +141,12 @@ export default function LeadDetailModern() {
           for (const a of emailActivities) byId.set(a.id, a);
           return Array.from(byId.values());
         });
+        // Surface the ACTUAL result on the page itself — never silently
+        // "no history" when the real cause is an unreachable/unauthorized
+        // Gmail read (e.g. an OAuth scope error). Visible without DevTools.
+        setGmailStatus({ status: res?.gmail_status || 'ok', error: res?.gmail_error || null });
       })
-      .catch(() => { /* non-critical — existing activities still render */ });
+      .catch(e => { if (!cancelled) setGmailStatus({ status: 'unavailable', error: e?.message || 'request failed' }); });
     return () => { cancelled = true; };
   }, [lead?.railway_id]);
 
@@ -335,6 +340,7 @@ export default function LeadDetailModern() {
         {mobileSection === "activity" && (
           <>
             <ActivityComposer lead={lead} onActivityCreated={handleActivityCreated} />
+            <GmailStatusBanner gmailStatus={gmailStatus} />
             {filteredActivities.length === 0 ? (
               <div className="py-12 text-center">
                 <Clock className="w-6 h-6 text-slate-200 mx-auto mb-2" />
@@ -416,6 +422,8 @@ export default function LeadDetailModern() {
           <div className="mb-4">
             <ActivityComposer lead={lead} onActivityCreated={handleActivityCreated} />
           </div>
+
+          <GmailStatusBanner gmailStatus={gmailStatus} />
 
           {/* Activity Filter Tabs */}
           <div className="flex gap-1 flex-wrap mb-3">
@@ -1364,6 +1372,25 @@ function formatActivityContent(content) {
 }
 
 // ── Activity Card — modern feed style with edit support ───────────────────────
+// GmailStatusBanner — surfaces the ACTUAL result of the live Gmail
+// correspondence fetch directly on the page, so a real failure (e.g. an
+// OAuth scope/authorization error) is visible without DevTools or a
+// server-log lookup. Silent (renders nothing) for 'ok', 'no_email_on_file',
+// or while still loading (gmailStatus === null) — only a genuine failure
+// needs the reader's attention.
+export function GmailStatusBanner({ gmailStatus }) {
+  if (!gmailStatus || gmailStatus.status !== 'unavailable') return null;
+  return (
+    <div className="mb-3 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+      <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+      <div>
+        <p className="text-xs font-semibold text-amber-800">Gmail correspondence could not be loaded</p>
+        <p className="text-[11px] text-amber-700 mt-0.5">{gmailStatus.error || 'Unknown error'}</p>
+      </div>
+    </div>
+  );
+}
+
 export function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(activity.content);

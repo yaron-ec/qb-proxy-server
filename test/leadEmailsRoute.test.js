@@ -210,7 +210,7 @@ test('a message that does not actually involve this lead\'s address is not store
   } finally { s.close(); }
 });
 
-test('Gmail being unavailable is non-fatal — existing activity is still returned', async () => {
+test('Gmail being unavailable is non-fatal — existing activity is still returned, AND the failure is surfaced (never silently swallowed)', async () => {
   reset();
   activities.push({ id: 'pre-existing', lead_id: LEAD_ID, type: 'email', content: 'Old subject', author: LEAD_EMAIL, source: 'gmail', metadata: { direction: 'inbound' }, external_ref: 'gmail:old', created_at: '2026-07-01T00:00:00Z', updated_at: '2026-07-01T00:00:00Z' });
   gmailFetchImpl = async () => { throw new Error('network down'); };
@@ -220,6 +220,58 @@ test('Gmail being unavailable is non-fatal — existing activity is still return
     assert.strictEqual(r.status, 200);
     assert.strictEqual(r.body.items.length, 1);
     assert.strictEqual(r.body.items[0].id, 'pre-existing');
+    assert.strictEqual(r.body.gmail_status, 'unavailable');
+    assert.strictEqual(r.body.gmail_error, 'network down');
+  } finally { s.close(); }
+});
+
+test('an insufficient-scope Gmail error (GmailCredentialsError, e.g. a 401 from Google) is surfaced with its exact message, not masked as a generic failure', async () => {
+  reset();
+  gmailFetchImpl = async () => ({ ok: false, status: 401, text: async () => 'insufficient authentication scopes' });
+  const s = await startServer();
+  try {
+    const r = await get(s, `/api/v1/leads/${LEAD_ID}/emails`, { Authorization: 'Bearer owning-rep-token' });
+    assert.strictEqual(r.status, 200);
+    assert.strictEqual(r.body.gmail_status, 'unavailable');
+    assert.ok(/insufficient authentication scopes|Gmail read 401/.test(r.body.gmail_error), `expected the real Google error text, got: ${r.body.gmail_error}`);
+  } finally { s.close(); }
+});
+
+test('a successful live Gmail read reports gmail_status "ok"', async () => {
+  reset();
+  mockGmailMessages([{ id: 'm1', from: LEAD_EMAIL, to: COMPANY_EMAIL, subject: 'Hello', date: '2026-08-01T10:00:00Z' }]);
+  const s = await startServer();
+  try {
+    const r = await get(s, `/api/v1/leads/${LEAD_ID}/emails`, { Authorization: 'Bearer owning-rep-token' });
+    assert.strictEqual(r.body.gmail_status, 'ok');
+    assert.strictEqual(r.body.gmail_error, null);
+  } finally { s.close(); }
+});
+
+test('a lead with no email on file reports gmail_status "no_email_on_file" rather than attempting a Gmail search', async () => {
+  reset();
+  leads[0].email = null;
+  const s = await startServer();
+  try {
+    const r = await get(s, `/api/v1/leads/${LEAD_ID}/emails`, { Authorization: 'Bearer owning-rep-token' });
+    assert.strictEqual(r.body.gmail_status, 'no_email_on_file');
+  } finally { s.close(); }
+});
+
+test('THREAD WITH REPLIES: a message and its reply (same thread) are both captured, chronologically ordered newest-first', async () => {
+  reset();
+  mockGmailMessages([
+    { id: 'm1', threadId: 't1', from: LEAD_EMAIL, to: COMPANY_EMAIL, subject: 'Question about my kitchen', date: '2026-08-01T10:00:00Z' },
+    { id: 'm2', threadId: 't1', from: COMPANY_EMAIL, to: LEAD_EMAIL, subject: 'Re: Question about my kitchen', date: '2026-08-01T12:00:00Z' },
+  ]);
+  const s = await startServer();
+  try {
+    const r = await get(s, `/api/v1/leads/${LEAD_ID}/emails`, { Authorization: 'Bearer owning-rep-token' });
+    assert.strictEqual(r.body.items.length, 2);
+    assert.ok(r.body.items.every(i => i.metadata.gmail_thread_id === 't1'));
+    // newest-first
+    assert.ok(new Date(r.body.items[0].timestamp) > new Date(r.body.items[1].timestamp));
+    assert.strictEqual(r.body.items[0].content, 'Re: Question about my kitchen');
   } finally { s.close(); }
 });
 

@@ -89,10 +89,22 @@ router.get('/:id/emails', async (req, res) => {
     const lead = leadRows[0];
     if (!lead) return res.status(404).json({ error: 'not_found' });
 
+    // gmailStatus is surfaced to the UI (Lead Detail's Activity feed) so a
+    // Gmail read failure is VISIBLE on the page itself — never just a
+    // silently-empty Emails filter. 'ok' = live Gmail read succeeded this
+    // request; 'no_email_on_file' = nothing to search for; 'unavailable' =
+    // Gmail could not be reached/authorized this request (gmailError holds
+    // the raw message — e.g. a Google OAuth scope/authorization error —
+    // for diagnosis without server log access).
+    let gmailStatus = 'ok';
+    let gmailError = null;
+
     // No email on file — nothing to search for. Return whatever gmail-
     // sourced activities already exist (e.g. from a prior sync before the
     // email was cleared) rather than erroring.
-    if (lead.email) {
+    if (!lead.email) {
+      gmailStatus = 'no_email_on_file';
+    } else {
       try {
         const token = await gmail.refreshAccessToken();
         const q = buildLeadEmailQuery(lead.email);
@@ -135,7 +147,12 @@ router.get('/:id/emails', async (req, res) => {
         }
       } catch (gmailErr) {
         // Gmail unavailable/misconfigured is non-fatal here — still return
-        // whatever email activity already exists for this lead.
+        // whatever email activity already exists for this lead — but the
+        // failure itself must not be silently swallowed: surface it so a
+        // real production check (open this Lead's Activity tab) shows the
+        // exact reason instead of an indistinguishable "no history".
+        gmailStatus = 'unavailable';
+        gmailError = gmailErr.message;
         console.warn('[lead-emails] Gmail fetch failed (returning existing activity only):', gmailErr.message);
       }
     }
@@ -144,7 +161,7 @@ router.get('/:id/emails', async (req, res) => {
       `SELECT * FROM activities WHERE lead_id = $1 AND type = 'email' ORDER BY created_at DESC LIMIT 200`,
       [leadId]
     );
-    res.json({ items: rows.map(serializeActivity) });
+    res.json({ items: rows.map(serializeActivity), gmail_status: gmailStatus, gmail_error: gmailError });
   } catch (e) {
     console.error('[lead-emails] get error:', e.message);
     res.status(500).json({ error: e.message });
