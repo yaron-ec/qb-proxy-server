@@ -1,8 +1,8 @@
 # ---- Build stage ----
 FROM node:20-alpine AS build
 WORKDIR /app
-COPY package.json ./
-RUN npm install --omit=dev --no-audit --no-fund
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --no-audit --no-fund
 COPY . .
 ARG VITE_RAILWAY_API_URL=https://qb-proxy-server-production.up.railway.app
 ENV VITE_RAILWAY_API_URL=$VITE_RAILWAY_API_URL

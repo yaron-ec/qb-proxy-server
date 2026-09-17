@@ -63,9 +63,9 @@ jobs:
           cache: 'npm'
           cache-dependency-path: crm-frontend/package-lock.json
 
-      - name: Install frontend dependencies
+      - name: Install frontend dependencies (full, for component tests)
         working-directory: crm-frontend
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
       - name: Run frontend component tests
         working-directory: crm-frontend
@@ -74,8 +74,20 @@ jobs:
         # them, so CI is the only place these regression tests execute.
         run: npx vitest run
 
+      - name: Reproduce production dependency install (matches crm-frontend/Dockerfile)
+        working-directory: crm-frontend
+        # Same install command as the Dockerfile's build stage, against the
+        # same committed lockfile — catches a Railway-build-breaking
+        # dependency/lockfile problem here instead of only discovering it
+        # from a failed Railway deployment (this exact gap let three
+        # dependency-related Railway build failures reach main undetected
+        # by a CI that only ever ran a full `npm install`).
+        run: |
+          rm -rf node_modules
+          npm ci --omit=dev --no-audit --no-fund
+
       - name: Build frontend (production, --mode exit)
         working-directory: crm-frontend
-        # Same command as crm-frontend/Dockerfile's build stage — if this
-        # fails, the real Railway deploy build would fail too.
+        # Runs against the production-only install above — same command
+        # and same installed tree as crm-frontend/Dockerfile's build stage.
         run: npm run build:exit
