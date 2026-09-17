@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { apiCall } from "@/api/railway/client";
 import * as railwayOwners from "@/api/railway/owners";
-import { CheckCircle, XCircle, Loader2, RefreshCw, Mail, User, AlertTriangle, Pencil, X, Check } from "lucide-react";
+import { CheckCircle, XCircle, Loader2, RefreshCw, Mail, User, AlertTriangle, Pencil, X, Check, GitMerge } from "lucide-react";
 
 const VALID_ROLES = ["admin", "manager", "sales_rep", "office"];
 
@@ -159,10 +159,12 @@ export default function OwnerDirectoryTab({ readOnly } = {}) {
 // ── Reply-To Contact Directory ──────────────────────────────────────────────
 // A SEPARATE table (`owners`, not `users` above) — the one ActivityComposer.jsx's
 // resolveOwnerEmail() actually reads to fill "Replies will go to..." on
-// CRM-sent email. It's independent of the Users table above and was never
-// editable from the app before this — a stale value (e.g. a legacy personal
-// address preserved from an old migration) had no fix except a direct DB
-// edit. This is that fix: an admin-only inline editor over the real table.
+// CRM-sent email, and the one leads/appointments/deals ownership actually
+// points to. Admins see every owner, including deactivated/merged
+// duplicates and legacy rows (a read-only audit — GET /api/v1/owners/all),
+// with live reference counts, and can edit, deactivate, or safely merge a
+// duplicate into a canonical owner. Non-admins keep the original read-only,
+// active-only view.
 function ReplyToContactDirectory({ readOnly }) {
   const [owners, setOwners] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -172,9 +174,18 @@ function ReplyToContactDirectory({ readOnly }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
+  // Merge workflow state — mergingId is the DUPLICATE being consolidated away.
+  const [mergingId, setMergingId] = useState(null);
+  const [mergeTargetId, setMergeTargetId] = useState("");
+  const [mergePreview, setMergePreview] = useState(null);
+  const [mergeLoadingPreview, setMergeLoadingPreview] = useState(false);
+  const [mergeSubmitting, setMergeSubmitting] = useState(false);
+  const [mergeError, setMergeError] = useState(null);
+
   const load = () => {
     setLoading(true);
-    railwayOwners.list().then(data => {
+    const call = readOnly ? railwayOwners.list() : railwayOwners.listAll();
+    call.then(data => {
       setOwners(data.items || []);
       setLoading(false);
     }).catch(err => {
@@ -183,7 +194,7 @@ function ReplyToContactDirectory({ readOnly }) {
     });
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startEdit = (owner) => {
     setError(null);
@@ -202,7 +213,7 @@ function ReplyToContactDirectory({ readOnly }) {
     setError(null);
     try {
       const res = await railwayOwners.update(owner.id, { email: draftEmail.trim(), display_name: draftName.trim() });
-      setOwners(prev => prev.map(o => o.id === owner.id ? (res.owner || { ...o, email: draftEmail.trim(), display_name: draftName.trim() }) : o));
+      setOwners(prev => prev.map(o => o.id === owner.id ? { ...o, ...(res.owner || { email: draftEmail.trim(), display_name: draftName.trim() }) } : o));
       setEditingId(null);
     } catch (e) {
       setError(e?.message || 'Failed to save.');
@@ -211,13 +222,60 @@ function ReplyToContactDirectory({ readOnly }) {
     }
   };
 
+  const openMerge = (owner) => {
+    setMergingId(owner.id);
+    setMergeTargetId("");
+    setMergePreview(null);
+    setMergeError(null);
+  };
+
+  const cancelMerge = () => {
+    setMergingId(null);
+    setMergeTargetId("");
+    setMergePreview(null);
+    setMergeError(null);
+  };
+
+  const chooseTarget = async (targetId) => {
+    setMergeTargetId(targetId);
+    setMergePreview(null);
+    setMergeError(null);
+    if (!targetId) return;
+    setMergeLoadingPreview(true);
+    try {
+      const preview = await railwayOwners.mergePreview(mergingId, targetId);
+      setMergePreview(preview);
+    } catch (e) {
+      setMergeError(e?.message || 'Failed to load merge preview.');
+    } finally {
+      setMergeLoadingPreview(false);
+    }
+  };
+
+  const confirmMerge = async () => {
+    setMergeSubmitting(true);
+    setMergeError(null);
+    try {
+      await railwayOwners.merge(mergeTargetId, mergingId);
+      cancelMerge();
+      load();
+    } catch (e) {
+      setMergeError(e?.message || 'Merge failed.');
+    } finally {
+      setMergeSubmitting(false);
+    }
+  };
+
+  const activeOwners = owners.filter(o => o.is_active);
+  const showAudit = !readOnly; // /all (with reference_counts + inactive rows) is admin-only
+
   return (
     <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
       <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
         <div>
           <h3 className="text-sm font-semibold text-slate-700">Reply-To Contact Directory</h3>
           <p className="text-xs text-slate-500 mt-1">
-            The address each owner's Reply-To resolves to when sending CRM email (Activity Composer). Independent of the Users table above.
+            The address each owner's Reply-To resolves to when sending CRM email, and the real ownership record behind Leads, Deals, and Appointments. Independent of the Users table above.
           </p>
         </div>
         <button onClick={load} className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-700" title="Refresh">
@@ -238,12 +296,17 @@ function ReplyToContactDirectory({ readOnly }) {
               <tr className="bg-slate-50 border-b border-slate-100">
                 <th className="text-left px-5 py-2.5 text-xs font-semibold text-slate-500">Display Name</th>
                 <th className="text-left px-5 py-2.5 text-xs font-semibold text-slate-500">Reply-To Email</th>
+                {showAudit && <th className="text-center px-5 py-2.5 text-xs font-semibold text-slate-500">Status</th>}
+                {showAudit && <th className="text-center px-5 py-2.5 text-xs font-semibold text-slate-500">References</th>}
                 {!readOnly && <th className="text-right px-5 py-2.5 text-xs font-semibold text-slate-500">Actions</th>}
               </tr>
             </thead>
             <tbody>
-              {owners.map((owner) => (
-                <tr key={owner.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+              {owners.map((owner) => {
+                const mergedIntoOwner = owner.merged_into_owner_id ? owners.find(o => o.id === owner.merged_into_owner_id) : null;
+                return (
+                <Fragment key={owner.id}>
+                <tr className={`border-b border-slate-50 hover:bg-slate-50 transition-colors ${!owner.is_active ? 'opacity-60' : ''}`}>
                   {editingId === owner.id ? (
                     <>
                       <td className="px-5 py-2.5">
@@ -263,6 +326,8 @@ function ReplyToContactDirectory({ readOnly }) {
                         />
                         {error && <p className="text-[11px] text-red-600 mt-1">{error}</p>}
                       </td>
+                      {showAudit && <td />}
+                      {showAudit && <td />}
                       <td className="px-5 py-2.5 text-right whitespace-nowrap">
                         <button onClick={() => saveEdit(owner)} disabled={saving} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded disabled:opacity-50" title="Save">
                           <Check className="w-4 h-4" />
@@ -281,17 +346,111 @@ function ReplyToContactDirectory({ readOnly }) {
                           <span className="text-xs font-mono text-slate-600">{owner.email}</span>
                         </div>
                       </td>
+                      {showAudit && (
+                        <td className="px-5 py-3 text-center">
+                          {owner.is_active ? (
+                            <span className="inline-flex items-center gap-1 text-emerald-600 text-xs font-semibold"><CheckCircle className="w-3.5 h-3.5" /> Active</span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-slate-500 text-xs font-semibold" title={owner.merged_at ? `Merged ${new Date(owner.merged_at).toLocaleDateString()}` : undefined}>
+                              <XCircle className="w-3.5 h-3.5" /> {mergedIntoOwner ? `Merged → ${mergedIntoOwner.display_name || mergedIntoOwner.email}` : 'Inactive'}
+                            </span>
+                          )}
+                        </td>
+                      )}
+                      {showAudit && (
+                        <td className="px-5 py-3 text-center text-xs text-slate-500">
+                          {owner.reference_counts ? owner.reference_counts.total : '—'}
+                        </td>
+                      )}
                       {!readOnly && (
-                        <td className="px-5 py-3 text-right">
-                          <button onClick={() => startEdit(owner)} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded" title="Edit">
-                            <Pencil className="w-3.5 h-3.5" />
-                          </button>
+                        <td className="px-5 py-3 text-right whitespace-nowrap">
+                          {owner.is_active && (
+                            <>
+                              <button onClick={() => startEdit(owner)} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded" title="Edit">
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              {activeOwners.length > 1 && (
+                                <button onClick={() => openMerge(owner)} className="p-1.5 text-slate-400 hover:text-blue-700 hover:bg-blue-50 rounded" title="Merge into another owner">
+                                  <GitMerge className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </>
+                          )}
                         </td>
                       )}
                     </>
                   )}
                 </tr>
-              ))}
+                {mergingId === owner.id && (
+                  <tr>
+                    <td colSpan={showAudit ? 5 : 3} className="px-5 py-4 bg-blue-50 border-b border-blue-100">
+                      <div className="max-w-xl">
+                        <p className="text-xs font-semibold text-slate-700 mb-2">
+                          Merge <span className="font-mono">{owner.display_name || owner.email}</span> into another owner. This deactivates the duplicate and moves every Lead, Appointment, Deal, Task, and Commission it owns to the owner you pick — nothing is deleted.
+                        </p>
+                        <select
+                          value={mergeTargetId}
+                          onChange={(e) => chooseTarget(e.target.value)}
+                          className="text-xs border border-slate-300 rounded px-2 py-1.5 w-full max-w-sm"
+                        >
+                          <option value="">Select the canonical owner to keep…</option>
+                          {activeOwners.filter(o => o.id !== owner.id).map(o => (
+                            <option key={o.id} value={o.id}>{o.display_name || o.email} ({o.email})</option>
+                          ))}
+                        </select>
+
+                        {mergeLoadingPreview && (
+                          <p className="text-xs text-slate-500 mt-2 flex items-center gap-1.5"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading preview…</p>
+                        )}
+
+                        {mergePreview && !mergeLoadingPreview && (
+                          <div className="mt-3 bg-white border border-slate-200 rounded-lg p-3">
+                            <p className="text-xs font-semibold text-slate-700 mb-1.5">This will move:</p>
+                            <ul className="text-xs text-slate-600 space-y-0.5 mb-2">
+                              <li>{mergePreview.will_repoint.leads} lead(s)</li>
+                              <li>{mergePreview.will_repoint.appointments} appointment(s)</li>
+                              <li>{mergePreview.will_repoint.deals} deal(s)</li>
+                              <li>{mergePreview.will_repoint.tasks} task(s)</li>
+                              <li>{mergePreview.will_repoint.deal_commissions} commission record(s)</li>
+                            </ul>
+                            <p className="text-[11px] text-slate-400 mb-2">
+                              {mergePreview.preserved_historical.lead_submissions + mergePreview.preserved_historical.appointment_events} historical/audit record(s) will keep their original attribution, unchanged.
+                            </p>
+                            {mergePreview.blocked && (
+                              <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded p-2 mb-2">
+                                <AlertTriangle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
+                                <p className="text-[11px] text-red-700">
+                                  Blocked: {mergePreview.appointment_overlap_conflicts.length} appointment(s) would double-book the same time slot. Reschedule or cancel the conflicting appointment first.
+                                </p>
+                              </div>
+                            )}
+                            <div className="flex items-center gap-2 mt-2">
+                              <button
+                                onClick={confirmMerge}
+                                disabled={mergeSubmitting || mergePreview.blocked}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded hover:bg-blue-700 disabled:opacity-50"
+                              >
+                                {mergeSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <GitMerge className="w-3.5 h-3.5" />}
+                                {mergeSubmitting ? 'Merging…' : 'Confirm Merge'}
+                              </button>
+                              <button onClick={cancelMerge} disabled={mergeSubmitting} className="px-3 py-1.5 text-xs font-semibold text-slate-600 border border-slate-200 rounded hover:bg-slate-50">
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {mergeError && <p className="text-[11px] text-red-600 mt-2">{mergeError}</p>}
+                        {!mergePreview && !mergeLoadingPreview && (
+                          <button onClick={cancelMerge} className="mt-2 text-xs font-semibold text-slate-500 hover:text-slate-700">Cancel</button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+                </Fragment>
+                );
+              })}
             </tbody>
           </table>
         </div>
