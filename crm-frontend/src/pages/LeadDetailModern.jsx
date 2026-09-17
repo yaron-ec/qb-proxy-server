@@ -3,7 +3,7 @@ import { friendlyFnError } from "@/lib/fnError";
 import { EC_PROJECT_TYPES } from "@/lib/projectTypes";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import TruncatedTooltip from "@/components/TruncatedTooltip";
-import { leads as railwayLeads, activities as railwayActivities } from "@/api/railway";
+import { leads as railwayLeads, activities as railwayActivities, leadEmails as railwayLeadEmails } from "@/api/railway";
 import { useAuth } from "@/lib/AuthContext";
 import { statusBadgeClass } from "@/lib/design-system";
 import { parseFollowUpDate, getTodayLocal } from "@/lib/sortActiveLeads";
@@ -119,6 +119,31 @@ export default function LeadDetailModern() {
     };
     loadData();
   }, [id]);
+
+  // Gmail correspondence — fetched separately (not part of the composite
+  // getDetailByExternal payload) via the lead-scoped GET /api/v1/leads/:id/emails
+  // (routes/leadEmails.js). This is what makes "real Gmail correspondence"
+  // appear automatically on open, without a manual "Sync Now" click:
+  // the backend itself fetches+idempotently-persists on every call (safe —
+  // it upserts via activities.external_ref's existing unique index, so
+  // reopening this page repeatedly can never create duplicates). Merged
+  // into `activities` by id since some may already exist there too.
+  useEffect(() => {
+    if (!lead?.railway_id) return;
+    let cancelled = false;
+    railwayLeadEmails.getEmails(lead.railway_id)
+      .then(res => {
+        if (cancelled) return;
+        const emailActivities = res?.items || [];
+        setActivities(prev => {
+          const byId = new Map(prev.map(a => [a.id, a]));
+          for (const a of emailActivities) byId.set(a.id, a);
+          return Array.from(byId.values());
+        });
+      })
+      .catch(() => { /* non-critical — existing activities still render */ });
+    return () => { cancelled = true; };
+  }, [lead?.railway_id]);
 
   // Refresh lead from DB — used by QB panel after actions so financial sections update
   const refreshLead = async () => {
@@ -1339,7 +1364,7 @@ function formatActivityContent(content) {
 }
 
 // ── Activity Card — modern feed style with edit support ───────────────────────
-function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
+export function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(activity.content);
   const [saving, setSaving] = useState(false);
@@ -1354,6 +1379,13 @@ function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
 
   const callOutcome = activity.metadata?.call_outcome;
   const emailSubject = activity.metadata?.email_subject;
+
+  // Real Gmail correspondence (routes/leadEmails.js) carries direction/
+  // participants/attachment/thread metadata the older manual-sync path
+  // (EmailSyncPanel) never set — render it when present, without changing
+  // how a plain manually-logged "email" activity (no metadata.direction)
+  // displays.
+  const gmailMeta = activity.type === "email" && activity.source === "gmail" && activity.metadata?.direction ? activity.metadata : null;
 
   const ts = new Date(activity.timestamp);
   const dateStr = ts.toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -1422,6 +1454,16 @@ function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
             {emailSubject && (
               <span className="text-[10px] text-slate-500 italic truncate max-w-[180px]">"{emailSubject}"</span>
             )}
+            {gmailMeta && (
+              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                gmailMeta.direction === "outbound" ? "bg-slate-100 text-slate-600" : "bg-amber-100 text-amber-700"
+              }`}>
+                {gmailMeta.direction === "outbound" ? "Sent" : "Received"}
+              </span>
+            )}
+            {gmailMeta?.has_attachment && (
+              <Paperclip className="w-3 h-3 text-slate-400" aria-label="Has attachment" />
+            )}
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <span className="text-[10px] text-slate-400 whitespace-nowrap">{dateStr} at {timeStr}</span>
@@ -1477,6 +1519,27 @@ function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
           </div>
         ) : (
           <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap mb-1.5">{formatActivityContent(activity.content)}</p>
+        )}
+
+        {gmailMeta && (
+          <div className="mb-1.5 space-y-0.5">
+            <p className="text-[10px] text-slate-400 truncate">
+              <span className="font-semibold">{gmailMeta.direction === "outbound" ? "To" : "From"}:</span>{" "}
+              {gmailMeta.direction === "outbound" ? gmailMeta.to : gmailMeta.from}
+            </p>
+            {gmailMeta.snippet && (
+              <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">{gmailMeta.snippet}</p>
+            )}
+            {gmailMeta.gmail_message_id && (
+              <a
+                href={`https://mail.google.com/mail/u/0/#all/${gmailMeta.gmail_message_id}`}
+                target="_blank" rel="noreferrer"
+                className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-600 hover:text-blue-800"
+              >
+                <ExternalLink className="w-2.5 h-2.5" /> Open in Gmail
+              </a>
+            )}
+          </div>
         )}
 
         <div className="flex items-center gap-2 flex-wrap mt-1">

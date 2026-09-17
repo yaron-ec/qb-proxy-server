@@ -1337,6 +1337,9 @@ app.use('/api/v1/gmail', require('./routes/gmail'));
 app.use('/api/v1/leads', require('./routes/mergeLeads'));
 // R1A: Railway CRM Lead + Owner API (read-only foundation; writes arrive in R1B)
 app.use('/api/v1/leads', require('./routes/leads'));
+// Lead-scoped Gmail correspondence (never a raw whole-mailbox search — see
+// routes/gmail.js's own header for the admin-only distinction)
+app.use('/api/v1/leads', require('./routes/leadEmails'));
 app.use('/api/v1/settings', require('./routes/settings'));
 app.use('/api/v1/tasks', require('./routes/tasks'));
 app.use('/api/v1/invoices', require('./routes/invoices'));

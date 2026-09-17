@@ -177,6 +177,21 @@ describe('ActivityTab — real project timeline, not the old placeholder', () =>
     await waitFor(() => expect(screen.getByText('Upload failed')).toBeInTheDocument());
     expect(uploadCompletionForm).not.toHaveBeenCalled();
   });
+
+  it('a server-side rejected file type (e.g. an unsupported MIME type) surfaces the backend\'s friendly message, not a raw error code', async () => {
+    getTimeline.mockResolvedValue({ events: [evt()] });
+    uploadFileToStorage.mockResolvedValue({ url: 'https://cdn.example.com/x.exe', key: 'uploads/x.exe', fileName: 'x.exe', contentType: 'application/x-msdownload', size: 100 });
+    uploadCompletionForm.mockRejectedValue(Object.assign(new Error('Completion Form must be a PDF, JPG, JPEG, or PNG file.'), { status: 400 }));
+
+    const { container } = render(<ActivityTab deal={deal} />);
+    await waitFor(() => expect(screen.getByText('Deal Sold')).toBeInTheDocument());
+
+    const file = new File(['dummy'], 'x.exe', { type: 'application/x-msdownload' });
+    const input = container.querySelector('input[type="file"]');
+    fireEvent.change(input, { target: { files: [file] } });
+
+    await waitFor(() => expect(screen.getByText('Completion Form must be a PDF, JPG, JPEG, or PNG file.')).toBeInTheDocument());
+  });
 });
 
 describe('ActivityTab — dateKind-aware date rendering (regression: Deal Overview vs Activity date mismatch)', () => {

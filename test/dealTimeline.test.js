@@ -246,6 +246,45 @@ test('computeCompletionFields does nothing on an unrelated field update where st
   assert.strictEqual(result, null, 'moving from Job Completed to Job Completed again should not re-stamp (already-completed guard)');
 });
 
+// ── REOPEN / RE-COMPLETE — deliberate, documented semantics ─────────────────
+// A project reopened after completion (stage moved away from Job Completed,
+// e.g. for warranty/punch-list work) and later moved back to Job Completed
+// keeps its ORIGINAL completed_at — it is never re-stamped. This is the
+// existing "stamp once, never overwrite" contract (already enforced by the
+// `if (existingCompletedAt) return null` guard) applied deliberately to the
+// reopen case, not an accidental side effect: completed_at answers "when did
+// this project first reach Job Completed," a historical fact that a later
+// reopen/redo cycle does not retroactively change. If the business ever
+// wants "most recent completion" instead, that is a new, explicit field —
+// not a change to this one.
+test('REOPEN: a deal moved away from Job Completed and back again keeps its ORIGINAL completed_at (no second stamp)', () => {
+  const originalCompletedAt = '2026-06-01T00:00:00.000Z';
+  // Step 1: reopen — stage moves away from Job Completed. completed_at must
+  // be untouched (this call only decides whether to SET fields; the caller
+  // in routes/deals.js never clears completed_at on any transition).
+  const reopenResult = computeCompletionFields(JOB_COMPLETED_STAGE, 'Final Payment Paid', originalCompletedAt, 'rep@x.com');
+  assert.strictEqual(reopenResult, null, 'reopening must not touch completed_at');
+
+  // Step 2: re-complete — stage moves back to Job Completed. Because
+  // existingCompletedAt is still the original value (never cleared), this
+  // must NOT produce a new stamp.
+  const recompleteResult = computeCompletionFields('Final Payment Paid', JOB_COMPLETED_STAGE, originalCompletedAt, 'rep@x.com');
+  assert.strictEqual(recompleteResult, null, 're-completing must not overwrite the original completed_at with a new one');
+});
+
+test('REOPEN: the timeline continues to show the ORIGINAL Project Completed date/actor through a reopen-and-recomplete cycle', () => {
+  const deal = baseDeal({
+    stage: JOB_COMPLETED_STAGE,
+    completed_at: '2026-06-01T00:00:00.000Z',
+    completed_by: 'original-rep@ecconstructiongroup.com',
+  });
+  const events = buildDealTimeline(deal);
+  const completion = events.find(e => e.category === 'completion');
+  assert.ok(completion);
+  assert.strictEqual(completion.date, new Date(deal.completed_at).toISOString());
+  assert.strictEqual(completion.by, 'original-rep@ecconstructiongroup.com');
+});
+
 // ── K: authorization wiring (source-string — confirms the canonical layer is used) ──
 function readRoot(rel) { return fs.readFileSync(path.resolve(__dirname, '..', rel), 'utf8'); }
 

@@ -19,14 +19,22 @@ const assert = require('node:assert');
 const http = require('node:http');
 const express = require('express');
 
-// Mock rbac.requireAuth to accept a synthetic token and set req.user.
+// Mock rbac.requireAuth to accept a synthetic token and set req.user. Also
+// provide the real requireRole logic (routes/gmail.js is now admin-only —
+// see Item 4G: a generic whole-mailbox search must never reach a sales_rep).
 const rbacPath = require.resolve('../lib/rbac');
 delete require.cache[rbacPath];
 require.cache[rbacPath] = { id: rbacPath, filename: rbacPath, loaded: true, exports: {
   requireAuth: (req, res, next) => {
     const auth = req.headers.authorization || '';
-    if (!auth.startsWith('Bearer valid')) return res.status(401).json({ error: 'unauthorized' });
-    req.user = { sub: 'u1', email: 'a@x.com', role: 'admin' };
+    if (!auth.startsWith('Bearer valid') && !auth.startsWith('Bearer nonadmin')) return res.status(401).json({ error: 'unauthorized' });
+    req.user = auth.startsWith('Bearer nonadmin')
+      ? { sub: 'u2', email: 'rep@x.com', role: 'sales_rep' }
+      : { sub: 'u1', email: 'a@x.com', role: 'admin' };
+    next();
+  },
+  requireRole: (...roles) => (req, res, next) => {
+    if (!roles.includes(req.user.role)) return res.status(403).json({ error: 'forbidden: insufficient role' });
     next();
   },
 } };
@@ -127,4 +135,17 @@ test('router exposes only GET (read-only, no send capability)', () => {
   assert.ok(/router\.get\('\/messages\/:id'/.test(src));
   assert.ok(!/router\.post\(/.test(src), 'no POST/send routes');
   assert.ok(!/messages\/send/.test(src), 'no Gmail send path');
+});
+
+// ── Item 4G: this whole-mailbox search must never reach a sales_rep ────────
+test('a non-admin (sales_rep) is denied on profile/messages/messages/:id — this is a whole-mailbox search, not lead-scoped', async () => {
+  const s = await startServer();
+  try {
+    const profile = await get(s, '/api/v1/gmail/profile', { Authorization: 'Bearer nonadmin' });
+    assert.strictEqual(profile.status, 403);
+    const messages = await get(s, '/api/v1/gmail/messages', { Authorization: 'Bearer nonadmin' });
+    assert.strictEqual(messages.status, 403);
+    const one = await get(s, '/api/v1/gmail/messages/m1', { Authorization: 'Bearer nonadmin' });
+    assert.strictEqual(one.status, 403);
+  } finally { s.close(); }
 });

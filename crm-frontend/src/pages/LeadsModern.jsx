@@ -5,11 +5,11 @@ import * as railwayUsers from "@/api/railway/users";
 import { useAuth } from "@/lib/AuthContext";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Plus, Search, Phone, Mail, MapPin, ArrowRight, User, CheckCircle, RefreshCw, ExternalLink, AlertCircle, Calendar, Trash2 } from "lucide-react";
-import { sortActiveLeads, parseFollowUpDate, getTodayLocal } from "@/lib/sortActiveLeads";
+import { parseFollowUpDate, getTodayLocal } from "@/lib/sortActiveLeads";
 import { STATUS_STYLES, statusBadgeClass } from "@/lib/design-system";
 import { formatPhone, toTitleCase } from "@/lib/formatters";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
-import { isActiveSalesLead } from "@/lib/activeLeadFilter";
+import { filterAndSortLeads } from "@/lib/leadsListFilter";
 import PullToRefreshIndicator from "@/components/PullToRefreshIndicator";
 import ContactActions from "@/components/ContactActions";
 import TruncatedTooltip from "@/components/TruncatedTooltip";
@@ -199,51 +199,10 @@ export default function LeadsModern() {
   const { pulling, refreshing, pullDistance } = usePullToRefresh(loadLeads);
 
   const isGlobalSearch = searchTerm.trim().length > 0;
-  const mineNameLower = userOwner ? userOwner.trim().toLowerCase().replace(/\s+/g, ' ') : null;
 
-  const baseFiltered = leads
-    .filter(lead => {
-      if (isGlobalSearch) {
-        const searchText = `${lead.first_name} ${lead.last_name} ${lead.email || ''} ${lead.phone || ''} ${lead.city || ''} ${lead.property_address || ''} ${lead.assigned_rep || ''} ${lead.project_type || ''} ${lead.notes || ''}`.toLowerCase();
-        return searchText.includes(searchTerm.toLowerCase());
-      }
-      // If a specific status filter is set, don't exclude any statuses — show exactly what's filtered
-      if (statusFilter !== 'all') return true;
-      // Default: show only active leads
-      return isActiveSalesLead(lead);
-    })
-    .filter(lead => {
-      if (isGlobalSearch) return true;
-      return statusFilter === 'all' || lead.status === statusFilter;
-    })
-    .filter(lead => {
-      if (isGlobalSearch) return true;
-      return sourceFilter === 'all' || lead.source === 'Website';
-    })
-    .filter(lead => {
-    // sales_rep: RLS already scopes to their assigned leads, skip owner filter
-    if (userRole === 'sales_rep') return true;
-      if (isGlobalSearch) return true;
-      if (ownerFilter === 'all') return true;
-      if (ownerFilter === 'unassigned') return !lead.assigned_rep || lead.assigned_rep.trim() === '';
-      if (ownerFilter === '__mine__') {
-        if (!mineNameLower) return false;
-        return (lead.assigned_rep || '').trim().toLowerCase().replace(/\s+/g, ' ') === mineNameLower;
-      }
-      return lead.assigned_rep?.trim().toLowerCase() === ownerFilter.toLowerCase();
-    });
-
-  const filteredLeads = sortField === "follow_up"
-    ? sortActiveLeads(baseFiltered)
-    : [...baseFiltered].sort((a, b) => {
-        if (sortField === "created") {
-          return new Date(b.crm_created_date || b.created_date || 0) - new Date(a.crm_created_date || a.created_date || 0);
-        }
-        if (sortField === "updated") {
-          return new Date(b.updated_date || 0) - new Date(a.updated_date || 0);
-        }
-        return 0;
-      });
+  const filteredLeads = filterAndSortLeads(leads, {
+    searchTerm, statusFilter, sourceFilter, ownerFilter, sortField, userRole, userOwner,
+  });
 
   const soldRevenue = leads
     .filter(lead => lead.status === 'Sold')

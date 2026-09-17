@@ -28,6 +28,14 @@ const { buildDealTimeline } = require('../lib/dealTimeline');
 const router = express.Router();
 router.use(requireAuth);
 
+// Completion Form supports the practical closeout-document formats only
+// (task requirement: "PDF, JPG/JPEG, PNG"). The frontend's file picker
+// already restricts this via its `accept` attribute, but that is trivially
+// bypassable (a direct API call, a renamed file) — this is the actual
+// enforcement point, matching the file MIME allowlist pattern
+// routes/emails.js already uses for email attachments.
+const ALLOWED_COMPLETION_FORM_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/jpg', 'image/png']);
+
 router.get('/:id/timeline', async (req, res) => {
   try {
     const dealId = req.params.id;
@@ -87,6 +95,10 @@ router.post('/:id/completion-form', async (req, res) => {
 
     const { file_url, file_name, file_type, file_size, storage_key } = req.body || {};
     if (!file_url) return res.status(400).json({ error: 'file_url required' });
+    const normalizedType = String(file_type || '').toLowerCase();
+    if (!ALLOWED_COMPLETION_FORM_TYPES.has(normalizedType)) {
+      return res.status(400).json({ error: 'Completion Form must be a PDF, JPG, JPEG, or PNG file.' });
+    }
 
     const uploadedBy = req.user.email || req.user.id || null;
     const { rows } = await query(

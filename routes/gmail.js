@@ -1,23 +1,34 @@
 /* eslint-disable no-undef */
 /**
- * /api/v1/gmail — Railway-owned Gmail READ endpoints (no browser Gmail tokens).
+ * /api/v1/gmail — Railway-owned, ADMIN-ONLY, whole-mailbox Gmail READ
+ * endpoints (no browser Gmail tokens).
  *
  *   GET  /api/v1/gmail/profile                 -> { emailAddress, messagesTotal, historyId }
  *   GET  /api/v1/gmail/messages?maxResults=N&q=...  -> { messages: [...] }
  *   GET  /api/v1/gmail/messages/:id            -> { id, from, to, subject, date, snippet, fromEmail }
  *
- * All routes require a Railway JWT (requireAuth). Gmail tokens are obtained
- * and refreshed SERVER-SIDE via lib/gmailSender. No Gmail access/refresh
- * token, client id, or client secret is ever returned to the browser.
- * READ-ONLY — no send capability is exposed by this router.
+ * Gmail tokens are obtained and refreshed SERVER-SIDE via lib/gmailSender.
+ * No Gmail access/refresh token, client id, or client secret is ever
+ * returned to the browser. READ-ONLY — no send capability is exposed here.
+ *
+ * Admin-only (requireRole('admin')): `messages` accepts an arbitrary
+ * caller-supplied Gmail search query (`q`) against the WHOLE company
+ * mailbox — this is the diagnostic/manual-sync tool
+ * (components/EmailSyncPanel.jsx), never a lead-scoped view. A sales_rep
+ * must never be able to search the entire company mailbox. For "this
+ * lead's correspondence," use the lead-scoped
+ * GET /api/v1/leads/:id/emails (routes/leadEmails.js) instead, which is
+ * authorized via the canonical checkLeadScope layer and only ever queries
+ * for that one lead's own email address.
  */
 'use strict';
 
 const express = require('express');
-const { requireAuth } = require('../lib/rbac');
+const { requireAuth, requireRole } = require('../lib/rbac');
 const gmail = require('../lib/gmailSender');
 
 const router = express.Router();
+router.use(requireAuth, requireRole('admin'));
 
 async function gmailFetch(token, path, { query } = {}) {
   const url = new URL(`https://gmail.googleapis.com/gmail/v1/users/me/${path}`);
@@ -48,7 +59,7 @@ function extractEmail(str) {
   return m ? m[0].toLowerCase() : null;
 }
 
-router.get('/profile', requireAuth, async (req, res) => {
+router.get('/profile', async (req, res) => {
   try {
     const token = await gmail.refreshAccessToken();
     const profile = await gmailFetch(token, 'profile');
@@ -58,7 +69,7 @@ router.get('/profile', requireAuth, async (req, res) => {
   }
 });
 
-router.get('/messages', requireAuth, async (req, res) => {
+router.get('/messages', async (req, res) => {
   try {
     const token = await gmail.refreshAccessToken();
     const maxResults = Math.min(parseInt(req.query.maxResults || '20', 10) || 20, 100);
@@ -86,7 +97,7 @@ router.get('/messages', requireAuth, async (req, res) => {
   }
 });
 
-router.get('/messages/:id', requireAuth, async (req, res) => {
+router.get('/messages/:id', async (req, res) => {
   try {
     const token = await gmail.refreshAccessToken();
     const msg = await gmailFetch(token, `messages/${req.params.id}`, { query: { format: 'full' } });

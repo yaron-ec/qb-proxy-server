@@ -141,17 +141,28 @@ test('ContactInfoEditor.jsx: confirming a suggested address reuses the canonical
 
 test('OverviewTab.jsx: Client and Project Info render side by side on desktop, not a single vertical stack', () => {
   const src = readFe('components/dealdetail/OverviewTab.jsx');
-  const gridMatches = src.match(/grid grid-cols-1 lg:grid-cols-2 gap-5/g) || [];
-  assert.ok(gridMatches.length >= 1, 'must introduce a responsive 2-column grid for the top row');
-  const firstGridIdx = src.indexOf('grid grid-cols-1 lg:grid-cols-2 gap-5');
+  // A later production review (see "Deal Overview width/layout audit") found
+  // an even 2-column split left Client (a two-field card) and Project Info
+  // stretched across ~700px each on a wide desktop — the grid was made
+  // content-proportioned (Client capped, Project Info flexible) rather than
+  // a plain 50/50 split. Still one responsive row containing both cards.
+  const gridMatches = src.match(/grid grid-cols-1 lg:grid-cols-\[minmax\(280px,380px\)_1fr\] gap-5/g) || [];
+  assert.ok(gridMatches.length >= 1, 'must introduce a responsive, content-proportioned grid for the top row');
+  const firstGridIdx = src.indexOf('grid grid-cols-1 lg:grid-cols-[minmax(280px,380px)_1fr] gap-5');
   const topRow = src.slice(firstGridIdx, src.indexOf('typography-section-header mb-2">NOTES'));
   assert.ok(topRow.includes('CLIENT') && topRow.includes('PROJECT INFO'), 'Client and Project Info must be in the same responsive row');
 });
 
-test('OverviewTab.jsx: stays within the existing PAGE_WIDTH_STANDARD measure, not stretched to the 1600px data-table width', () => {
+test('OverviewTab.jsx: uses PAGE_WIDTH_WIDE (max-w-[1600px]), matching Dashboard/Leads/Financials — supersedes an earlier PAGE_WIDTH_STANDARD decision', () => {
+  // A production visual review of a real Deal found Overview's two-column
+  // workspace compressed into a narrow centered column on a wide desktop
+  // monitor, leaving most of the Deal Detail content area empty — this is
+  // NEW evidence against the PAGE_WIDTH_STANDARD choice this test used to
+  // assert, and Financials had already solved the identical problem by
+  // moving to PAGE_WIDTH_WIDE (lib/design-system.js). See CLAUDE.md.
   const src = readFe('components/dealdetail/OverviewTab.jsx');
-  assert.ok(src.includes('max-w-4xl mx-auto'), 'must keep the existing standard reading-width container');
-  assert.ok(!src.includes('max-w-[1600px]'), 'must not solve this by stretching to the wide data-table container');
+  assert.ok(src.includes('max-w-[1600px] mx-auto'), 'must use the canonical wide-page container, matching Dashboard/Leads/Financials');
+  assert.ok(!src.includes('max-w-4xl mx-auto'), 'must not still be on the old cramped standard-reading-width container');
 });
 
 test('OverviewTab.jsx: existing data bindings and save handlers are preserved exactly (no business-logic change)', () => {

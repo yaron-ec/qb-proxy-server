@@ -5,8 +5,10 @@ import { useState, useEffect } from "react";
 import { Calendar, MapPin, User, FileText } from "lucide-react";
 import * as railwayDeals from "@/api/railway/deals";
 import * as railwayLeads from "@/api/railway/leads";
-import { EditableInfoRow, EditableClientField } from "./EditableFields";
+import * as railwayDealTimeline from "@/api/railway/dealTimeline";
+import { EditableInfoRow, EditableClientField, ReadOnlyInfoRow } from "./EditableFields";
 import ProjectTypeSelector from "@/components/ProjectTypeSelector";
+import { fmtDate } from "@/lib/formatters";
 
 const PIPELINE_STAGES = [
   "Sold / Estimate Approved",
@@ -40,17 +42,46 @@ export default function OverviewTab({ deal, lead, updateField, setDeal, setLead,
   const [notesDraft, setNotesDraft] = useState(deal.notes || "");
   useEffect(() => { setNotesDraft(deal.notes || ""); }, [deal.notes]);
 
+  // Contract Signed is an AUTHORITATIVE fact — the same "earliest SignNow
+  // document that reached signed/completed" derivation the Deal Activity
+  // timeline already computes (lib/dealTimeline.js), fetched from the exact
+  // same endpoint so Overview and Activity can never disagree. This field
+  // used to display deal.deposit_paid_date under this label, which is a
+  // different business fact (a payment, not a signature) — see CLAUDE.md.
+  // undefined = still loading, null = confirmed no authoritative record.
+  const [contractSigned, setContractSigned] = useState(undefined);
+  useEffect(() => {
+    let cancelled = false;
+    if (!deal?.id) return;
+    railwayDealTimeline.getTimeline(deal.id)
+      .then(res => {
+        if (cancelled) return;
+        const contractEvent = (res?.events || []).find(e => e.category === "contract");
+        setContractSigned(contractEvent || null);
+      })
+      .catch(() => { if (!cancelled) setContractSigned(null); });
+    return () => { cancelled = true; };
+  }, [deal?.id]);
+
   return (
-    // A large desktop viewport gets a real two-column workspace (client +
-    // project side by side) instead of one narrow vertical stack; laptop
-    // widths reduce naturally to one column via the grid breakpoint, and
-    // mobile is already single-column. Kept at PAGE_WIDTH_STANDARD (not
-    // stretched to the data-table-oriented 1600px width) — these are simple
-    // field cards, not a dense table.
-    <div className="max-w-4xl mx-auto px-4 md:px-6 py-5 space-y-5">
+    // Widened from PAGE_WIDTH_STANDARD (max-w-4xl / 896px) to PAGE_WIDTH_WIDE
+    // (max-w-[1600px], lib/design-system.js — the same token Dashboard,
+    // Leads, and Financials already use). A production visual review found
+    // Overview's two-column workspace compressed into a narrow centered
+    // block on a wide desktop monitor, leaving most of the Deal Detail
+    // content area empty — Financials solved the identical problem the same
+    // way. Columns below are intentionally NOT an even 50/50 split at this
+    // width: Client (name + phone only) is capped near its natural content
+    // width instead of stretching a two-field card across ~700px of empty
+    // space; Project Info gets the remaining width and arranges its own
+    // fields two-per-row on wider viewports since it genuinely carries more
+    // information. Same idea for Notes (wide, useful writing space) vs
+    // Pipeline (capped — a list of stage buttons doesn't benefit from being
+    // very wide either).
+    <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-5 space-y-5">
       {/* WHO is the customer + WHAT/WHERE/WHO OWNS/WHEN is the project —
           the two answers this page should lead with, side by side. */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(280px,380px)_1fr] gap-5">
         {/* Client Card */}
         <div className="card-premium p-4">
           <p className="typography-section-header mb-3">CLIENT</p>
@@ -89,30 +120,35 @@ export default function OverviewTab({ deal, lead, updateField, setDeal, setLead,
           )}
         </div>
 
-        {/* Project Info */}
+        {/* Project Info — two-per-row on wider viewports; more content lives
+            here than in Client, so it gets both the extra width AND a denser
+            internal arrangement rather than one tall, sparse single column. */}
         <div className="card-premium p-4 space-y-3">
           <p className="typography-section-header">PROJECT INFO</p>
-          <EditableInfoRow icon={MapPin} label="Address" value={getFieldValue(deal.property_address, lead?.property_address)}
-            onSave={v => updateField("property_address", v)} saving={saving === "property_address"} />
-          <div className="group cursor-pointer hover:bg-slate-50 p-1.5 rounded -mx-1.5 transition-colors">
-            <ProjectTypeSelector
-              value={getFieldValue(deal.project_type, lead?.project_type || lead?.job_type || lead?.job_types)}
-              onSave={types => updateField("project_type", Array.isArray(types) ? types.join(", ") : types)}
-              label="Project Type"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+            <EditableInfoRow icon={MapPin} label="Address" value={getFieldValue(deal.property_address, lead?.property_address)}
+              onSave={v => updateField("property_address", v)} saving={saving === "property_address"} />
+            <div className="group cursor-pointer hover:bg-slate-50 p-1.5 rounded -mx-1.5 transition-colors">
+              <ProjectTypeSelector
+                value={getFieldValue(deal.project_type, lead?.project_type || lead?.job_type || lead?.job_types)}
+                onSave={types => updateField("project_type", Array.isArray(types) ? types.join(", ") : types)}
+                label="Project Type"
+              />
+            </div>
+            <EditableInfoRow icon={User} label="Owner / Sales Rep" value={getFieldValue(deal.assigned_rep, lead?.assigned_rep)}
+              onSave={v => updateField("assigned_rep", v)} saving={saving === "assigned_rep"} />
+            <EditableInfoRow icon={Calendar} label="Sold Date" value={getFieldValue(deal.sold_date, lead?.sold_date)}
+              type="date" onSave={v => updateField("sold_date", v)} saving={saving === "sold_date"} />
+            <ReadOnlyInfoRow icon={FileText} label="Contract Signed"
+              displayValue={contractSigned === undefined ? "Loading…" : (contractSigned ? fmtDate(contractSigned.date) : "Not recorded")} />
           </div>
-          <EditableInfoRow icon={User} label="Owner / Sales Rep" value={getFieldValue(deal.assigned_rep, lead?.assigned_rep)}
-            onSave={v => updateField("assigned_rep", v)} saving={saving === "assigned_rep"} />
-          <EditableInfoRow icon={Calendar} label="Sold Date" value={getFieldValue(deal.sold_date, lead?.sold_date)}
-            type="date" onSave={v => updateField("sold_date", v)} saving={saving === "sold_date"} />
-          <EditableInfoRow icon={FileText} label="Contract Signed" value={getFieldValue(deal.deposit_paid_date, lead?.signed_contract_date)}
-            type="date" onSave={v => updateField("deposit_paid_date", v)} saving={saving === "deposit_paid_date"} />
         </div>
       </div>
 
       {/* WHAT'S NEXT (notes) + CURRENT STATUS (pipeline) — secondary detail,
-          still side by side on desktop so the page uses the width it has. */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          still side by side on desktop; Notes gets useful writing width,
+          Pipeline stays a capped, compact list of stage buttons. */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-5">
         {/* Notes */}
         <div className="card-premium p-4">
           <p className="typography-section-header mb-2">NOTES</p>

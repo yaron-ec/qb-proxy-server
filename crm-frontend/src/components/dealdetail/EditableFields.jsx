@@ -4,6 +4,23 @@
 import { useState } from "react";
 import { Pencil } from "lucide-react";
 
+// A non-editable info row for an AUTHORITATIVE, computed fact (e.g. Contract
+// Signed, derived from signnow_documents — never a value a user can silently
+// overwrite through this UI). `displayValue` is caller-formatted (the caller
+// picks the correct date formatter for what the value actually is — a real
+// instant vs a business date — rather than this component guessing).
+export function ReadOnlyInfoRow({ icon: Icon, label, displayValue, emptyText = "—" }) {
+  return (
+    <div className="flex items-start gap-2.5 p-1.5 rounded -mx-1.5">
+      <Icon className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">{label}</p>
+        <p className="text-sm text-slate-900 mt-0.5">{displayValue || emptyText}</p>
+      </div>
+    </div>
+  );
+}
+
 export function EditableInfoRow({ icon: Icon, label, value, onSave, saving, type = "text", isReadOnly = false }) {
   const [isEditing, setIsEditing] = useState(false);
 
