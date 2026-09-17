@@ -60,6 +60,13 @@ jobs:
         working-directory: crm-frontend
         run: npm install --no-audit --no-fund
 
+      - name: Run frontend component tests
+        working-directory: crm-frontend
+        # vitest/jsdom/testing-library are devDependencies only — the
+        # production Dockerfile installs with --omit=dev and never runs
+        # them, so CI is the only place these regression tests execute.
+        run: npx vitest run
+
       - name: Build frontend (production, --mode exit)
         working-directory: crm-frontend
         # Same command as crm-frontend/Dockerfile's build stage — if this
