@@ -8,7 +8,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import DailyMap from './DailyMap';
 
 const getDailySchedule = vi.fn();
@@ -183,5 +183,79 @@ describe('DailyMap — production P0: My Day Map with the real one-appointment c
     expect(cityOptions).toHaveLength(2);
     const projectTypeOptions = screen.getAllByRole('option').filter(o => ['Kitchen Remodel', 'Bathroom Remodel'].includes(o.textContent));
     expect(projectTypeOptions).toHaveLength(2);
+  });
+});
+
+describe('DailyMap — click-to-open-Lead-Detail regression (reported: clicking a Lead from My Day showed "Map failed to load" instead of navigating)', () => {
+  function renderWithLeadRoute() {
+    return render(
+      <MemoryRouter initialEntries={['/my-day']}>
+        <Routes>
+          <Route path="/my-day" element={<DailyMap />} />
+          <Route path="/leads/:id" element={<div>LEAD DETAIL LOADED</div>} />
+        </Routes>
+      </MemoryRouter>
+    );
+  }
+
+  it('clicking a map marker then "Open Lead" navigates to /leads/:id with no crash (split default view)', async () => {
+    getDailySchedule.mockResolvedValue({ appointments: [apptFixture()], owner_config: {} });
+    renderWithLeadRoute();
+    await waitFor(() => expect(screen.queryByText(/Loading daily schedule/i)).not.toBeInTheDocument());
+    expect(await screen.findAllByText('Mia Arias')).not.toHaveLength(0);
+
+    const marker = document.querySelector('.leaflet-marker-icon');
+    expect(marker).toBeTruthy();
+    fireEvent.click(marker);
+
+    await waitFor(() => expect(screen.queryAllByText(/Open Lead/i).length).toBeGreaterThan(0));
+    fireEvent.click(screen.getAllByText(/Open Lead/i)[0]);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Map failed to load/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Cannot read properties of undefined/i)).not.toBeInTheDocument();
+    });
+    expect(await screen.findByText('LEAD DETAIL LOADED')).toBeInTheDocument();
+  });
+
+  it('clicking an AppointmentList row then "Open Lead" navigates to /leads/:id with no crash', async () => {
+    getDailySchedule.mockResolvedValue({ appointments: [apptFixture()], owner_config: {} });
+    renderWithLeadRoute();
+    await waitFor(() => expect(screen.queryByText(/Loading daily schedule/i)).not.toBeInTheDocument());
+    const [nameEl] = await screen.findAllByText('Mia Arias');
+    fireEvent.click(nameEl);
+
+    await waitFor(() => expect(screen.queryAllByText(/Open Lead/i).length).toBeGreaterThan(0));
+    const openLeadLinks = screen.getAllByText(/Open Lead/i);
+    fireEvent.click(openLeadLinks[openLeadLinks.length - 1]);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Map failed to load/i)).not.toBeInTheDocument();
+    });
+    expect(await screen.findByText('LEAD DETAIL LOADED')).toBeInTheDocument();
+  });
+
+  it('the same click-to-open flow also works for a sparse/migrated-style Lead (missing phone, project_type, routing fields)', async () => {
+    getDailySchedule.mockResolvedValue({
+      appointments: [apptFixture({
+        phone: undefined, email: undefined, project_type: undefined,
+        requiredDeparture: undefined, targetArrival: undefined, driveDuration: undefined, driveDistance: undefined,
+        external_ref: 'base44-legacy-4821',
+      })],
+      owner_config: {},
+    });
+    renderWithLeadRoute();
+    await waitFor(() => expect(screen.queryByText(/Loading daily schedule/i)).not.toBeInTheDocument());
+    const [nameEl] = await screen.findAllByText('Mia Arias');
+    fireEvent.click(nameEl);
+
+    await waitFor(() => expect(screen.queryAllByText(/Open Lead/i).length).toBeGreaterThan(0));
+    const openLeadLinks = screen.getAllByText(/Open Lead/i);
+    fireEvent.click(openLeadLinks[openLeadLinks.length - 1]);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Map failed to load/i)).not.toBeInTheDocument();
+    });
+    expect(await screen.findByText('LEAD DETAIL LOADED')).toBeInTheDocument();
   });
 });
