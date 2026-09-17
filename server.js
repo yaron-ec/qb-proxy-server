@@ -1385,6 +1385,8 @@ app.use('/routing', requireProxySecret, require('./routes/routingDiagnostic'));
 app.use('/api/v1/deals', require('./routes/deals')); // CRUD (mounted first: /:id matches one segment only)
 // Sale-scoped QuickBooks invoice ownership (read-only financials + mapping contract)
 app.use('/api/v1/deals', require('./routes/dealFinancials'));
+// Deal Activity — chronological project-history timeline (derived, read-only)
+app.use('/api/v1/deals', require('./routes/dealTimeline'));
 app.use('/api/v1/sale-invoices', require('./routes/saleInvoices'));
 // Internal single-send primitive (X-Proxy-Secret guarded) — the one server-side
 // entry point to EmailService. The reminder/notification paths will be migrated

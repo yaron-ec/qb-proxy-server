@@ -18,6 +18,7 @@ const { query } = require('../db/client');
 const { UUID_RE } = require('../lib/leadResolver');
 const { notifyCrmActivity } = require('../lib/crmActivityNotifier');
 const { deleteObject } = require('../lib/r2Client');
+const { checkLeadScope } = require('../lib/recordAccess');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -28,6 +29,8 @@ function serializeAttachment(row) {
     id: row.id,
     external_ref: row.external_ref,
     lead_id: row.lead_id,
+    deal_id: row.deal_id || null,
+    attachment_kind: row.attachment_kind || null,
     file_name: row.file_name,
     file_url: row.file_url,
     file_type: row.file_type,
@@ -46,18 +49,24 @@ function serializeAttachment(row) {
   };
 }
 
-const FIELDS = ['lead_id', 'file_name', 'file_url', 'file_type', 'file_size', 'storage_key', 'uploaded_by', 'qb_invoice_id', 'qb_invoice_number', 'invoice_amount', 'invoice_date', 'due_date', 'balance_due'];
+const FIELDS = ['lead_id', 'deal_id', 'attachment_kind', 'file_name', 'file_url', 'file_type', 'file_size', 'storage_key', 'uploaded_by', 'qb_invoice_id', 'qb_invoice_number', 'invoice_amount', 'invoice_date', 'due_date', 'balance_due'];
 
 router.get('/', async (req, res) => {
   try {
-    const { lead_id, limit: limitStr } = req.query;
+    const { lead_id, deal_id, limit: limitStr } = req.query;
     // P0 DATA ISOLATION: lead_id is REQUIRED. Never return all attachments across leads.
     if (!lead_id) return res.json({ items: [], total: 0 });
     if (!UUID_RE.test(String(lead_id))) return res.json({ items: [], total: 0 });
+    // A sales_rep must not be able to list another rep's attachments merely
+    // by knowing/guessing a lead_id — same authorization layer activities.js
+    // and dealFinancials.js already use.
+    const access = await checkLeadScope(req.user, lead_id);
+    if (!access.allowed) return res.json({ items: [], total: 0 });
     const limit = Math.min(parseInt(limitStr || '500', 10), 2000);
     const where = [`lead_id = $1`];
     const params = [lead_id];
     let p = 2;
+    if (deal_id) { where.push(`deal_id = $${p}`); params.push(deal_id); p++; }
     const whereClause = `WHERE ${where.join(' AND ')}`;
     const { rows } = await query(`SELECT * FROM lead_attachments ${whereClause} ORDER BY created_at DESC LIMIT $${p}`, [...params, limit]);
     res.json({ items: rows.map(serializeAttachment), total: rows.length });
@@ -72,6 +81,9 @@ router.post('/', async (req, res) => {
     const body = req.body || {};
     if (!body.lead_id) return res.status(400).json({ error: 'lead_id required' });
     if (!body.file_url) return res.status(400).json({ error: 'file_url required' });
+
+    const access = await checkLeadScope(req.user, body.lead_id);
+    if (!access.allowed || access.readOnly) return res.status(403).json({ error: 'forbidden' });
 
     const cols = ['uploaded_by', 'uploaded_at'];
     const vals = [req.user.email || null, new Date().toISOString()];
@@ -115,6 +127,8 @@ router.get('/:id', async (req, res) => {
   try {
     const { rows } = await query('SELECT * FROM lead_attachments WHERE id = $1', [req.params.id]);
     if (!rows[0]) return res.status(404).json({ error: 'not_found' });
+    const access = await checkLeadScope(req.user, rows[0].lead_id);
+    if (!access.allowed) return res.status(403).json({ error: 'forbidden' });
     res.json({ attachment: serializeAttachment(rows[0]) });
   } catch (e) {
     console.error('[lead-attachments] get error:', e.message);
@@ -124,6 +138,11 @@ router.get('/:id', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
+    const existing = await query('SELECT lead_id FROM lead_attachments WHERE id = $1', [req.params.id]);
+    if (!existing.rows[0]) return res.status(404).json({ error: 'not_found' });
+    const access = await checkLeadScope(req.user, existing.rows[0].lead_id);
+    if (!access.allowed || access.readOnly) return res.status(403).json({ error: 'forbidden' });
+
     const updates = [];
     const params = [];
     let p = 1;
@@ -145,9 +164,11 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     // 1. Fetch the attachment to get storage_key for R2 deletion.
-    const { rows } = await query('SELECT storage_key FROM lead_attachments WHERE id = $1', [req.params.id]);
+    const { rows } = await query('SELECT storage_key, lead_id FROM lead_attachments WHERE id = $1', [req.params.id]);
     const attachment = rows[0];
     if (!attachment) return res.status(404).json({ error: 'not_found' });
+    const access = await checkLeadScope(req.user, attachment.lead_id);
+    if (!access.allowed || access.readOnly) return res.status(403).json({ error: 'forbidden' });
 
     // 2. Best-effort R2 object deletion (non-fatal — DB delete still proceeds).
     //    Preserves storage_key for retry if R2 fails.

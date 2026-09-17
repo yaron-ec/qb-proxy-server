@@ -30,7 +30,7 @@ const { query } = require('../db/client');
 const {
   serializeDeal, resolveDealScope, repMatchCandidates,
   canAccessDeal, canWriteDeal, validateDealPayload, computePaymentStatus,
-  UUID_RE,
+  UUID_RE, computeCompletionFields,
 } = require('../lib/dealModel');
 const { notifyCrmActivity } = require('../lib/crmActivityNotifier');
 
@@ -237,6 +237,10 @@ router.post('/', async (req, res) => {
     if (!cleaned.payment_status && cleaned.contract_amount != null) {
       cleaned.payment_status = computePaymentStatus(cleaned.total_paid || 0, cleaned.contract_amount);
     }
+    // Rare (a deal created directly at Job Completed), but keep completed_at
+    // consistent with the PUT path below rather than leaving it unset.
+    const completion = computeCompletionFields(undefined, cleaned.stage, null, cleaned.created_by);
+    if (completion) Object.assign(cleaned, completion);
 
     const cols = Object.keys(cleaned);
     const vals = cols.map((_, i) => `$${i + 1}`);
@@ -280,6 +284,16 @@ router.put('/:id', async (req, res) => {
     if (Object.keys(cleaned).length === 0) return res.json({ deal: serializeDeal(deal) });
 
     cleaned.updated_by = req.user.email || req.user.id || null;
+
+    // Stamp completed_at/completed_by exactly once, the first time stage
+    // becomes Job Completed — see lib/dealModel.js#computeCompletionFields.
+    // completed_at/completed_by are not in DEAL_WRITABLE_FIELDS, so cleaned
+    // can only carry them via this explicit server-side assignment, never
+    // directly from the request body.
+    if (cleaned.stage !== undefined) {
+      const completion = computeCompletionFields(deal.stage, cleaned.stage, deal.completed_at, cleaned.updated_by);
+      if (completion) Object.assign(cleaned, completion);
+    }
 
     // recompute payment_status when financial fields change
     if (cleaned.total_paid !== undefined || cleaned.contract_amount !== undefined) {

@@ -255,7 +255,7 @@ export default function DealDetail() {
           )}
           {activeTab === "documents" && <DocumentsTab lead={lead} setLead={setLead} />}
           {activeTab === "project" && <ProjectTab deal={deal} lead={lead} updateField={updateField} setLead={setLead} saving={saving} />}
-          {activeTab === "activity" && <ActivityTab />}
+          {activeTab === "activity" && <ActivityTab deal={deal} />}
         </div>
       </div>
     </>
