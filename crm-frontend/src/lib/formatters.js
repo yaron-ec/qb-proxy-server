@@ -18,10 +18,30 @@ export const fmtMoney = (v) => {
   return `$${Number(v).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 };
 
-// Format date safely
+// Format a REAL TIMESTAMP (an actual instant — created_at, an upload time,
+// a signature time) safely, converted to the CRM's business timezone.
 export const fmtDate = (isoStr) => {
   if (!isoStr) return '—';
   return new Date(isoStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/Los_Angeles' });
+};
+
+// Format a DATE-ONLY BUSINESS DATE (e.g. sold_date, a payment milestone
+// date, an invoice date) with NO timezone conversion. These fields have no
+// meaningful time-of-day — Postgres/node-pg represent a DATE column (and
+// deals.sold_date, which is stored the same way despite its TIMESTAMPTZ
+// type) as literal midnight UTC of the intended calendar day. Running that
+// through fmtDate's explicit America/Los_Angeles conversion rolls the
+// displayed date back by one day (UTC midnight is always the previous day
+// in any timezone west of Greenwich) — this reads the Y-M-D digits directly
+// out of the string instead, so the same business fact renders the same
+// calendar date everywhere, independent of viewer or server timezone.
+export const fmtBusinessDate = (dateLike) => {
+  if (!dateLike) return '—';
+  const str = dateLike instanceof Date ? dateLike.toISOString() : String(dateLike);
+  const m = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return '—';
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${months[Number(m[2]) - 1]} ${Number(m[3])}, ${m[1]}`;
 };
 
 // Format US or international phone numbers for display only (does not change stored value)

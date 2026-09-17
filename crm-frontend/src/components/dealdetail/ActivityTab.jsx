@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import * as railwayDealTimeline from "@/api/railway/dealTimeline";
 import { uploadFileToStorage } from "@/lib/fileUpload";
-import { fmtMoney, fmtDate } from "@/lib/formatters";
+import { fmtMoney, fmtDate, fmtBusinessDate } from "@/lib/formatters";
 import { EmptyState } from "@/components/DesignSystem";
 
 const CATEGORY_META = {
@@ -44,6 +44,16 @@ function isImage(fileType) {
 function isPdf(fileType, fileName) {
   if (fileType === "application/pdf") return true;
   return typeof fileName === "string" && fileName.toLowerCase().endsWith(".pdf");
+}
+
+// event.dateKind ('date' | 'instant') tells us whether event.date is a
+// literal calendar date (sold_date, work_start_date, a payment milestone —
+// no timezone conversion, ever) or a real instant (a signature, an upload,
+// an activity log entry — correctly converted to the CRM's Pacific business
+// timezone). Mixing these up is exactly the bug that made "Deal Sold"
+// disagree with Deal Overview by one day — see lib/dealTimeline.js.
+function formatEventDate(event) {
+  return event.dateKind === 'date' ? fmtBusinessDate(event.date) : fmtDate(event.date);
 }
 
 function TimelineEvent({ event, previewOpen, onTogglePreview }) {
@@ -74,7 +84,7 @@ function TimelineEvent({ event, previewOpen, onTogglePreview }) {
           {event.amount != null && event.amount !== 0 && (
             <span className="text-sm font-bold text-emerald-700">{fmtMoney(event.amount)}</span>
           )}
-          <span className="text-[11px] text-slate-400 whitespace-nowrap">{fmtDate(event.date)}</span>
+          <span className="text-[11px] text-slate-400 whitespace-nowrap">{formatEventDate(event)}</span>
         </div>
       </div>
 

@@ -18,7 +18,7 @@ const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
-const { buildDealTimeline } = require('../lib/dealTimeline');
+const { buildDealTimeline, dateOnlyLiteral } = require('../lib/dealTimeline');
 const { computeCompletionFields, JOB_COMPLETED_STAGE } = require('../lib/dealModel');
 
 function baseDeal(overrides = {}) {
@@ -267,4 +267,110 @@ test('migration 2026-40 is additive only (ADD COLUMN IF NOT EXISTS / CREATE INDE
   assert.ok(!/RENAME/i.test(src), 'migration must not rename anything');
   assert.ok(/ADD COLUMN IF NOT EXISTS completed_at/.test(src));
   assert.ok(/ADD COLUMN IF NOT EXISTS deal_id/.test(src));
+});
+
+// ═════════════════════════════════════════════════════════════════════════
+// DATE-ONLY vs INSTANT semantics — regression coverage for the production
+// defect: Deal Overview showed "Sold Date: Aug 23, 2026" while this
+// timeline showed "Deal Sold: Aug 22, 2026" for the exact same underlying
+// deals.sold_date value. Root cause: sold_date (and every other business
+// date — work_start_date, the three *_paid_date fields, close_date) is
+// stored as literal midnight UTC of the intended calendar day, but the
+// timeline was running it through a real-instant formatter that explicitly
+// converts to America/Los_Angeles — which always rolls UTC midnight back
+// to the PREVIOUS Pacific calendar day. Fixed by tagging every event with
+// dateKind ('date' | 'instant') and using dateOnlyLiteral() (no timezone
+// math at all) for business dates. See lib/dealTimeline.js's header note.
+// ═════════════════════════════════════════════════════════════════════════
+
+test('dateOnlyLiteral extracts the literal calendar date with NO timezone conversion, from a Date object, an ISO string, or a bare date string', () => {
+  assert.strictEqual(dateOnlyLiteral('2026-08-23'), '2026-08-23');
+  assert.strictEqual(dateOnlyLiteral('2026-08-23T00:00:00.000Z'), '2026-08-23');
+  assert.strictEqual(dateOnlyLiteral(new Date('2026-08-23T00:00:00.000Z')), '2026-08-23');
+  assert.strictEqual(dateOnlyLiteral(null), null);
+});
+
+test('dateOnlyLiteral is stable across DST transition dates (no seasonal one-day drift)', () => {
+  // 2026 US DST: spring-forward Mar 8, fall-back Nov 1. A literal-string
+  // extraction has no seasonal dependence at all — verifying that is the
+  // whole point of this helper existing instead of a Date-object timezone
+  // conversion, which WOULD behave differently depending on whether PST
+  // (-8) or PDT (-7) is in effect on either side of those dates.
+  for (const d of ['2026-03-07', '2026-03-08', '2026-03-09', '2026-10-31', '2026-11-01', '2026-11-02']) {
+    assert.strictEqual(dateOnlyLiteral(`${d}T00:00:00.000Z`), d, `expected ${d} to survive with no shift`);
+  }
+});
+
+test('REGRESSION: Deal Sold for sold_date=2026-08-23 (August, PDT/UTC-7) is tagged dateKind "date" and keeps the literal 2026-08-23 — the exact production case that previously rendered as Aug 22', () => {
+  const deal = baseDeal({ sold_date: '2026-08-23T00:00:00.000Z' });
+  const events = buildDealTimeline(deal);
+  const sold = events.find(e => e.id === 'deal_sold');
+  assert.strictEqual(sold.dateKind, 'date');
+  assert.strictEqual(sold.date, '2026-08-23');
+});
+
+test('REGRESSION: the same sold_date also holds in winter (PST/UTC-8) — the fix is timezone-season-independent, not a lucky August coincidence', () => {
+  const deal = baseDeal({ sold_date: '2026-01-15T00:00:00.000Z' });
+  const events = buildDealTimeline(deal);
+  const sold = events.find(e => e.id === 'deal_sold');
+  assert.strictEqual(sold.date, '2026-01-15');
+});
+
+test('Deal Sold falls back to created_at (a real instant) only when sold_date is absent, and is tagged dateKind "instant" in that case', () => {
+  const deal = baseDeal({ sold_date: null, created_at: '2026-08-23T05:00:00.000Z' });
+  const events = buildDealTimeline(deal);
+  const sold = events.find(e => e.id === 'deal_sold');
+  assert.strictEqual(sold.dateKind, 'instant');
+  assert.strictEqual(sold.date, new Date(deal.created_at).toISOString());
+});
+
+test('Work Started and every paid payment milestone are tagged dateKind "date" and keep their literal calendar date', () => {
+  const deal = baseDeal({
+    work_start_date: '2026-08-28',
+    deposit_paid: '5000', deposit_paid_date: '2026-08-25',
+    progress_payment_paid: '20000', progress_payment_paid_date: '2026-09-05',
+    final_payment_paid: '25000', final_payment_paid_date: '2026-09-20',
+  });
+  const events = buildDealTimeline(deal);
+  const workStarted = events.find(e => e.id === 'work_started');
+  const deposit = events.find(e => e.id === 'deposit_paid');
+  const progress = events.find(e => e.id === 'progress_payment_paid');
+  const final = events.find(e => e.id === 'final_payment_paid');
+  assert.strictEqual(workStarted.dateKind, 'date');
+  assert.strictEqual(workStarted.date, '2026-08-28');
+  assert.strictEqual(deposit.dateKind, 'date');
+  assert.strictEqual(deposit.date, '2026-08-25');
+  assert.strictEqual(progress.dateKind, 'date');
+  assert.strictEqual(progress.date, '2026-09-05');
+  assert.strictEqual(final.dateKind, 'date');
+  assert.strictEqual(final.date, '2026-09-20');
+});
+
+test('Contract Signed is tagged dateKind "instant" (a real SignNow e-signature timestamp, not a business date)', () => {
+  const deal = baseDeal();
+  const docs = [{ id: 'doc-1', status: 'signed', created_at: '2026-08-24T00:00:00Z', updated_at: '2026-08-24T12:00:00Z' }];
+  const events = buildDealTimeline(deal, docs);
+  const contract = events.find(e => e.category === 'contract');
+  assert.strictEqual(contract.dateKind, 'instant');
+  assert.strictEqual(contract.date, new Date(docs[0].updated_at).toISOString());
+});
+
+test('financial/change-order activity events and completion-form upload events are tagged dateKind "instant" (real created_at/uploaded_at timestamps)', () => {
+  const deal = baseDeal();
+  const activities = [{ id: 'act-1', content: 'x', author: 'y@x.com', created_at: '2026-09-05T00:00:00Z', metadata: { action: 'expense_added', category: 'financial' } }];
+  const attachments = [{ id: 'att-1', file_name: 'completion.pdf', file_url: 'https://r2/completion.pdf', file_type: 'application/pdf', uploaded_by: 'y@x.com', uploaded_at: '2026-09-12T10:00:00Z' }];
+  const events = buildDealTimeline(deal, [], attachments, activities);
+  assert.strictEqual(events.find(e => e.category === 'financial').dateKind, 'instant');
+  assert.strictEqual(events.find(e => e.category === 'document').dateKind, 'instant');
+});
+
+test('Project Completed is dateKind "instant" when completed_at (a real auto-stamped timestamp) is set, and dateKind "date" when it falls back to close_date (a business date) for a historical deal', () => {
+  const withCompletedAt = buildDealTimeline(baseDeal({ stage: JOB_COMPLETED_STAGE, completed_at: '2026-09-12T00:00:00Z' }));
+  const completionInstant = withCompletedAt.find(e => e.category === 'completion');
+  assert.strictEqual(completionInstant.dateKind, 'instant');
+
+  const withCloseDateOnly = buildDealTimeline(baseDeal({ stage: JOB_COMPLETED_STAGE, completed_at: null, close_date: '2026-07-01' }));
+  const completionDate = withCloseDateOnly.find(e => e.category === 'completion');
+  assert.strictEqual(completionDate.dateKind, 'date');
+  assert.strictEqual(completionDate.date, '2026-07-01');
 });

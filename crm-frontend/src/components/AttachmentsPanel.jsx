@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FileText, ExternalLink, Upload, Loader2, Trash2, Plus, Receipt, DollarSign } from 'lucide-react';
 import { leadAttachments as railwayLeadAttachments } from '@/api/railway';
-import { fmtMoney, fmtDate } from '@/lib/formatters';
+import { fmtMoney, fmtBusinessDate } from '@/lib/formatters';
 import { uploadFileToStorage } from '@/lib/fileUpload';
 
 export default function AttachmentsPanel({ lead }) {
@@ -101,7 +101,7 @@ export default function AttachmentsPanel({ lead }) {
                   <p className="text-xs font-semibold text-slate-700 truncate" title={inv.file_name}>{inv.file_name}</p>
                   <div className="flex items-center gap-2 text-[9px] text-slate-400 mt-0.5 flex-wrap">
                      {inv.invoice_amount && <span className="text-emerald-700 font-bold">{fmtMoney(inv.invoice_amount)}</span>}
-                     {inv.invoice_date && <span>{fmtDate(inv.invoice_date)}</span>}
+                     {inv.invoice_date && <span>{fmtBusinessDate(inv.invoice_date)}</span>}
                      {inv.balance_due != null && inv.balance_due > 0 && (
                        <span className="text-amber-600 font-semibold">Balance: {fmtMoney(inv.balance_due)}</span>
                      )}

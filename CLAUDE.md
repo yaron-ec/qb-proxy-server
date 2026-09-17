@@ -114,6 +114,49 @@ about topology, this file wins; go correct `railway.json` and
   (the genuinely new `INVOICED − PAID` value, useful for a true
   AR/collections view). Never silently change what `balance`/`Deals.jsx`
   currently display without an explicit product decision to do so.
+- **DATE-only business fields vs real timestamps**: `deals.sold_date` is
+  anomalously typed `TIMESTAMPTZ` (every sibling business date —
+  `work_start_date`, `close_date`, `deposit_paid_date`,
+  `progress_payment_paid_date`, `final_payment_paid_date` — is a plain
+  `DATE`), but it is written and read the same way: literal midnight UTC of
+  the intended calendar day, with no meaningful time-of-day. A production
+  check caught this rendering inconsistently — Deal Overview showed "Sold
+  Date: Aug 23, 2026" while the new Deal Activity timeline showed "Deal
+  Sold: Aug 22, 2026" for the identical value, because the timeline ran it
+  through `lib/formatters.js#fmtDate`, which explicitly converts to
+  `America/Los_Angeles` — correct for a real instant, but UTC midnight
+  always rolls back to the previous Pacific calendar day for any date-only
+  value. Fixed by having `lib/dealTimeline.js#buildDealTimeline` tag every
+  event with `dateKind` (`'date'` — a literal `YYYY-MM-DD`, no timezone
+  math at all, via `dateOnlyLiteral()` — or `'instant'` — a full ISO
+  timestamp, correctly Pacific-converted at display time via the new
+  `fmtBusinessDate()`/existing `fmtDate()` split in
+  `crm-frontend/src/lib/formatters.js`). When adding a new date-bearing
+  field anywhere in the CRM: if it is a calendar date a person picked (no
+  real time-of-day), use `fmtBusinessDate`/`dateOnlyLiteral`, never
+  `fmtDate`, regardless of the column's actual Postgres type.
+  `AttachmentsPanel.jsx`'s QB `invoice_date` (a `DATE` column) had the same
+  latent bug and was fixed the same way. Do NOT migrate `sold_date`'s
+  column type to fix this — the value's semantics (a business date) are
+  independent of its storage type, and a type migration is unnecessary
+  schema risk for a presentation-layer bug.
+- **`OverviewTab.jsx`'s "Contract Signed" field is mislabeled, not
+  authoritative**: it displays `deal.deposit_paid_date` (falling back to a
+  `lead.signed_contract_date` column that does not exist anywhere in the
+  schema — a dead fallback) under the label "Contract Signed." This is NOT
+  a genuine record of contract execution; it is the Deposit Paid Date
+  wearing the wrong label, most likely a pre-SignNow-era proxy. The Deal
+  Activity timeline's "Contract Signed" event is deliberately NOT wired to
+  this field — doing so would duplicate the same date under two different
+  labels (it already appears correctly as "Deposit Paid"), and would
+  contradict a deal that has a genuine, different SignNow-verified signing
+  date. The timeline only shows "Contract Signed" when a real
+  `signnow_documents` row reached `signed`/`completed` for that lead;
+  historical deals that predate SignNow (or were never sent through it)
+  correctly show no Contract Signed event rather than a fabricated one.
+  Fixing `OverviewTab.jsx`'s label/mapping is a separate, deliberate UI
+  correctness decision that needs explicit product sign-off, not a
+  silent side-effect of a date-timezone fix.
 - **`routes/qbExecutiveMetrics.js`** aggregates revenue/paid/balance **per
   QB customer**, not per-deal, despite its header comment's original intent
   — a documented, known limitation (see the file's own header). A repeat

@@ -7,8 +7,10 @@
  * ProfitabilitySummary.test.jsx).
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
+import { Calendar } from 'lucide-react';
 import ActivityTab from './ActivityTab';
+import { EditableInfoRow } from './EditableFields';
 
 const getTimeline = vi.fn();
 const uploadCompletionForm = vi.fn();
@@ -174,5 +176,54 @@ describe('ActivityTab — real project timeline, not the old placeholder', () =>
 
     await waitFor(() => expect(screen.getByText('Upload failed')).toBeInTheDocument());
     expect(uploadCompletionForm).not.toHaveBeenCalled();
+  });
+});
+
+describe('ActivityTab — dateKind-aware date rendering (regression: Deal Overview vs Activity date mismatch)', () => {
+  it('a dateKind "date" event (a business date, e.g. Deal Sold) renders with NO timezone conversion', async () => {
+    getTimeline.mockResolvedValue({
+      events: [evt({ date: '2026-08-23T00:00:00.000Z', dateKind: 'date' })],
+    });
+    render(<ActivityTab deal={deal} />);
+    await waitFor(() => expect(screen.getByText('Deal Sold')).toBeInTheDocument());
+    expect(screen.getByText('Aug 23, 2026')).toBeInTheDocument();
+  });
+
+  it('a dateKind "instant" event (e.g. Contract Signed) is converted to the Pacific business timezone', async () => {
+    getTimeline.mockResolvedValue({
+      events: [evt({
+        id: 'e-contract', category: 'contract', title: 'Contract Signed', amount: null,
+        date: '2026-08-23T02:00:00.000Z', dateKind: 'instant',
+      })],
+    });
+    render(<ActivityTab deal={deal} />);
+    await waitFor(() => expect(screen.getByText('Contract Signed')).toBeInTheDocument());
+    // 2026-08-23T02:00:00Z is 2026-08-22 19:00 PDT — correctly shown as Aug 22.
+    expect(screen.getByText('Aug 22, 2026')).toBeInTheDocument();
+  });
+
+  it('REGRESSION: Deal Overview\'s Sold Date and Activity\'s Deal Sold date render IDENTICAL text for the same underlying deals.sold_date value', async () => {
+    const soldDateIso = '2026-08-23T00:00:00.000Z';
+
+    // Deal Overview's own rendering path (components/dealdetail/OverviewTab.jsx
+    // via EditableInfoRow, type="date") — unchanged by this fix.
+    const overview = render(
+      <EditableInfoRow icon={Calendar} label="Sold Date" value={soldDateIso} type="date" onSave={() => {}} />
+    );
+    const overviewText = within(overview.container).getByText(/\w+ \d{1,2}, \d{4}/).textContent;
+
+    // Activity's rendering path, in its own separate container — the backend
+    // tags this event dateKind: 'date' for a real sold_date value (see
+    // lib/dealTimeline.js).
+    getTimeline.mockResolvedValue({
+      events: [evt({ date: soldDateIso, dateKind: 'date' })],
+    });
+    const activity = render(<ActivityTab deal={deal} />);
+    await waitFor(() => expect(within(activity.container).getByText('Deal Sold')).toBeInTheDocument());
+    const activityText = within(activity.container).getByText(/\w+ \d{1,2}, \d{4}/).textContent;
+
+    expect(overviewText).toBe('Aug 23, 2026');
+    expect(activityText).toBe('Aug 23, 2026');
+    expect(activityText).toBe(overviewText);
   });
 });
