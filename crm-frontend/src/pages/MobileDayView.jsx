@@ -14,23 +14,56 @@ import { fmt12, OWNER_COLORS } from "@/pages/DailyMap";
 const DailyMap = React.lazy(() => import("@/pages/DailyMap"));
 
 // Error boundary to catch crashes in MobileMapContainer (outside MapView's own boundary)
+// Captures full diagnostics (message, stack, component stack, URL, time) so
+// a real recurrence can be copy-pasted from the screen in one click — no
+// DevTools/Console access required to report it.
 class MapPageErrorBoundary extends Component {
-  constructor(props) { super(props); this.state = { hasError: false, error: null }; }
+  constructor(props) { super(props); this.state = { hasError: false, error: null, componentStack: null, copied: false }; }
   static getDerivedStateFromError(error) { return { hasError: true, error }; }
-  componentDidCatch(error, info) { console.error("[MobileDayView] Map section crashed:", error, info?.componentStack); }
+  componentDidCatch(error, info) {
+    console.error("[MobileDayView] Map section crashed:", error, info?.componentStack);
+    this.setState({ componentStack: info?.componentStack || null });
+  }
+  copyDiagnostics = () => {
+    const details = JSON.stringify({
+      boundary: "MobileDayView.MapPageErrorBoundary",
+      message: this.state.error?.message,
+      stack: this.state.error?.stack,
+      componentStack: this.state.componentStack,
+      url: window.location.href,
+      time: new Date().toISOString(),
+    }, null, 2);
+    navigator.clipboard?.writeText(details).then(
+      () => this.setState({ copied: true }),
+      () => {}
+    );
+  };
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: 24, background: "#f8fafc" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: 24, background: "#f8fafc", overflowY: "auto" }}>
           <AlertTriangle style={{ width: 40, height: 40, color: "#f59e0b" }} />
           <p style={{ fontWeight: 600, color: "#374151", textAlign: "center" }}>Map failed to load</p>
           <p style={{ fontSize: 12, color: "#6b7280", textAlign: "center" }}>{this.state.error?.message || "Unknown error"}</p>
-          <button
-            onClick={() => this.setState({ hasError: false, error: null })}
-            style={{ padding: "8px 20px", background: "#d97706", color: "white", borderRadius: 8, fontWeight: 600, fontSize: 13, border: "none" }}
-          >
-            Retry
-          </button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              onClick={() => this.setState({ hasError: false, error: null, componentStack: null, copied: false })}
+              style={{ padding: "8px 20px", background: "#d97706", color: "white", borderRadius: 8, fontWeight: 600, fontSize: 13, border: "none" }}
+            >
+              Retry
+            </button>
+            <button
+              onClick={this.copyDiagnostics}
+              style={{ padding: "8px 20px", background: "#e2e8f0", color: "#374151", borderRadius: 8, fontWeight: 600, fontSize: 13, border: "none" }}
+            >
+              {this.state.copied ? "Copied!" : "Copy diagnostic info"}
+            </button>
+          </div>
+          {this.state.componentStack && (
+            <pre style={{ fontSize: 10, color: "#94a3b8", textAlign: "left", maxWidth: "100%", overflowX: "auto", background: "white", border: "1px solid #e2e8f0", borderRadius: 4, padding: 8, maxHeight: 128 }}>
+              {this.state.componentStack}
+            </pre>
+          )}
         </div>
       );
     }

@@ -86,32 +86,63 @@ function InvalidateOnMount() {
 }
 
 // ── Error boundary — catches any Leaflet crash and shows a message ──
+// Captures full diagnostics (message, stack, component stack, URL, time) so
+// a real recurrence can be copy-pasted from the screen in one click — no
+// DevTools/Console access required to report it.
 class MapErrorBoundary extends Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, componentStack: null, copied: false };
   }
   static getDerivedStateFromError(error) {
     return { hasError: true, error };
   }
   componentDidCatch(error, info) {
     console.error("[MapView] Caught render error:", error, info);
+    this.setState({ componentStack: info?.componentStack || null });
   }
+  copyDiagnostics = () => {
+    const details = JSON.stringify({
+      boundary: "MapView.MapErrorBoundary",
+      message: this.state.error?.message,
+      stack: this.state.error?.stack,
+      componentStack: this.state.componentStack,
+      url: window.location.href,
+      time: new Date().toISOString(),
+    }, null, 2);
+    navigator.clipboard?.writeText(details).then(
+      () => this.setState({ copied: true }),
+      () => {}
+    );
+  };
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex flex-col items-center justify-center h-full bg-slate-50 p-6 text-center gap-4">
+        <div className="flex flex-col items-center justify-center h-full bg-slate-50 p-6 text-center gap-4 overflow-y-auto">
           <AlertTriangle className="w-10 h-10 text-amber-500" />
           <div>
             <p className="font-semibold text-slate-700">Map failed to load</p>
             <p className="text-xs text-slate-500 mt-1">{this.state.error?.message || "Unknown error"}</p>
           </div>
-          <button
-            onClick={() => this.setState({ hasError: false, error: null })}
-            className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white text-sm font-semibold rounded-lg"
-          >
-            <RefreshCw className="w-4 h-4" /> Retry
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => this.setState({ hasError: false, error: null, componentStack: null, copied: false })}
+              className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white text-sm font-semibold rounded-lg"
+            >
+              <RefreshCw className="w-4 h-4" /> Retry
+            </button>
+            <button
+              onClick={this.copyDiagnostics}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg"
+            >
+              {this.state.copied ? "Copied!" : "Copy diagnostic info"}
+            </button>
+          </div>
+          {this.state.componentStack && (
+            <pre className="text-[10px] text-slate-400 text-left max-w-full overflow-x-auto bg-white border border-slate-200 rounded p-2 max-h-32">
+              {this.state.componentStack}
+            </pre>
+          )}
         </div>
       );
     }

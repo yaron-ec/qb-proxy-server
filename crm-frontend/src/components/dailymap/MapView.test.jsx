@@ -25,7 +25,7 @@
  *      crashing.
  */
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within, fireEvent, waitFor } from '@testing-library/react';
 import MapView from './MapView';
 
 const oneAppt = {
@@ -96,6 +96,32 @@ describe('MapView — the exact undefined .map() crash (root cause regression)',
     // one-appointment production case from ever reaching it.
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     render(<MapView appointments={[oneAppt]} selectedLead={null} onSelectLead={() => {}} userRole="admin" />);
+    spy.mockRestore();
+  });
+});
+
+describe('MapView — error boundary diagnostics (self-service reporting, no DevTools required)', () => {
+  it('a genuine crash shows the component stack and a working "Copy diagnostic info" button', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+
+    // A malformed appointment entry (null) crashes validAppts' filter callback
+    // (`a.coords?.lat` still throws when `a` itself is null) — a genuine,
+    // unrelated defect for the boundary to catch, not the fixed contactOwners case.
+    render(<MapView appointments={[null]} selectedLead={null} onSelectLead={() => {}} userRole="admin" />);
+
+    expect(screen.getByText(/Map failed to load/i)).toBeInTheDocument();
+    const copyBtn = screen.getByText(/Copy diagnostic info/i);
+    fireEvent.click(copyBtn);
+
+    await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
+    const payload = JSON.parse(writeText.mock.calls[0][0]);
+    expect(payload.boundary).toBe('MapView.MapErrorBoundary');
+    expect(payload.message).toBeTruthy();
+    expect(payload.url).toBeTruthy();
+    expect(await screen.findByText(/Copied!/i)).toBeInTheDocument();
+
     spy.mockRestore();
   });
 });
