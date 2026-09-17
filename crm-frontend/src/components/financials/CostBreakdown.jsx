@@ -6,11 +6,11 @@ function Row({ label, committed, paid, showPaid }) {
       <span className="text-sm text-slate-600">{label}</span>
       <span className="flex items-baseline gap-3">
         {showPaid && (
-          <span className="fin-figure-sm font-normal text-slate-400">
+          <span className="text-xs text-slate-400 tabular-nums">
             {formatCurrency(paid)} paid
           </span>
         )}
-        <span className="fin-figure-sm">{formatCurrency(committed)}</span>
+        <span className="text-sm font-bold text-slate-800 tabular-nums">{formatCurrency(committed)}</span>
       </span>
     </div>
   );
@@ -46,7 +46,7 @@ export default function CostBreakdown({ fin }) {
 
         <div className="flex items-center justify-between pt-3 mt-1 border-t-2 border-slate-200">
           <span className="text-sm font-bold text-slate-800">Total Costs</span>
-          <span className="fin-figure text-base">{formatCurrency(fin.totalCommittedCost)}</span>
+          <span className="text-base font-bold text-slate-900 tabular-nums">{formatCurrency(fin.totalCommittedCost)}</span>
         </div>
         {hasCommittedVsPaidGap && (
           <p className="text-[11px] text-slate-400 mt-1">

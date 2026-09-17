@@ -9,13 +9,15 @@ import { AlertTriangle } from "lucide-react";
 /**
  * CustomerCollections — "what does the customer still owe, and what have we
  * actually collected." Deliberately separate from job PROFITABILITY (see
- * ProfitabilitySummary/CostBreakdown above): QuickBooks stays authoritative
- * for real customer payments, and a rep needs this even when they can't see
- * cost/margin data. Consolidates what was previously a separate "Financial"
- * tab (Project Total edit, KPI chips, Payment Schedule, QuickBooks panel) —
- * now one section of the single Financials tab.
+ * ProfitabilitySummary/CostBreakdown): QuickBooks stays authoritative for
+ * real customer payments, and a rep needs this even when they can't see
+ * cost/margin data. Just the compact KPI summary — sits alongside
+ * CostBreakdown in FinancialsTab's two-column grid. Payment Schedule and
+ * QuickBooks detail live in PaymentScheduleSection below, at full width,
+ * since they carry their own operational complexity that a half-width
+ * column would cramp.
  */
-export default function CustomerCollections({ deal, lead, fin, invoices, saleInvoices, waterfall, waterfallError, setDeal, setLead, refreshLead }) {
+export default function CustomerCollections({ deal, lead, fin, setDeal, setLead, waterfallError }) {
   const [saving, setSaving] = useState(false);
 
   const saveProjectTotal = async (v) => {
@@ -55,27 +57,42 @@ export default function CustomerCollections({ deal, lead, fin, invoices, saleInv
         </div>
       )}
 
-      <div className="card-premium p-4 space-y-4">
-        <div className="grid grid-cols-2 md:flex md:flex-wrap gap-2">
+      <div className="card-premium p-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
           <EditableKPIChip label="Project Value" value={fin.totalRevenue} onSave={saveProjectTotal} className={saving ? "opacity-60" : ""} />
           <KPIChip label="Invoiced" value={fin.invoiced} variant="invoiced" />
           <KPIChip label="Paid" value={fin.paymentsReceived} variant="collected" />
           <KPIChip label="Balance (Invoiced − Paid)" value={fin.balance} variant="balance" />
           <KPIChip label="Remaining (Project − Paid)" value={fin.remainingCustomerBalance} variant="remaining" />
         </div>
+      </div>
+    </div>
+  );
+}
 
-        <div className="pt-3 border-t border-slate-100">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2">Payment Schedule</p>
-          <DealPaymentPanel deal={deal} lead={lead} onDealUpdate={setDeal} invoices={invoices} saleInvoices={saleInvoices} waterfall={waterfall} />
-        </div>
+/**
+ * PaymentScheduleSection — Payment Schedule (DealPaymentPanel) + QuickBooks
+ * status, full width below the Collections/Cost Breakdown grid. Related to
+ * Customer Collections above but distinct operational detail — separate
+ * cards, same section-label convention as the rest of the CRM (OverviewTab's
+ * CLIENT/PROJECT INFO/NOTES cards), instead of nesting a card inside a card.
+ */
+export function PaymentScheduleSection({ deal, lead, invoices, saleInvoices, waterfall, setDeal, refreshLead }) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="typography-section-header mb-2">PAYMENT SCHEDULE</p>
+        <DealPaymentPanel deal={deal} lead={lead} onDealUpdate={setDeal} invoices={invoices} saleInvoices={saleInvoices} waterfall={waterfall} />
+      </div>
 
-        {lead?.id && (
-          <div className="pt-3 border-t border-slate-100">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2">QuickBooks</p>
+      {lead?.id && (
+        <div>
+          <p className="typography-section-header mb-2">QUICKBOOKS</p>
+          <div className="card-premium p-4">
             <QBStatusPanel lead={{ ...lead, status: "Sold" }} onLeadUpdated={refreshLead} />
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

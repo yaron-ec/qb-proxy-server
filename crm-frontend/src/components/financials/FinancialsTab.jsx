@@ -9,7 +9,7 @@ import * as railwayDealFinancials from "@/api/railway/dealFinancials";
 import { useAuth } from "@/lib/AuthContext";
 import { computeFinancials } from "@/lib/financialCalc";
 import ProfitabilitySummary from "./ProfitabilitySummary";
-import CustomerCollections from "./CustomerCollections";
+import CustomerCollections, { PaymentScheduleSection } from "./CustomerCollections";
 import CostBreakdown from "./CostBreakdown";
 import RevenueSection from "./RevenueSection";
 import LeadCostSection from "./LeadCostSection";
@@ -125,8 +125,13 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal, setLead, 
       <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-5 space-y-5">
         <CustomerCollections
           deal={deal} lead={lead} fin={fin}
-          invoices={invoices} saleInvoices={saleInvoices} waterfall={waterfall} waterfallError={waterfallError}
-          setDeal={setDeal} setLead={setLead} refreshLead={refreshLead}
+          waterfallError={waterfallError}
+          setDeal={setDeal} setLead={setLead}
+        />
+        <PaymentScheduleSection
+          deal={deal} lead={lead}
+          invoices={invoices} saleInvoices={saleInvoices} waterfall={waterfall}
+          setDeal={setDeal} refreshLead={refreshLead}
         />
         <CommissionSection
           deal={deal}
@@ -149,20 +154,28 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal, setLead, 
           question — "how profitable is this job right now?"), then customer
           collections + cost breakdown side by side on desktop (related but
           distinct concepts that both explain the profitability number above),
-          then the expense ledger at full width (a real table — it earns the
-          extra room), then configuration/detail sections last, at a
-          comfortable reading width so they don't compete with the headline
-          numbers above them. */}
+          then Payment Schedule/QuickBooks detail at full width (its own
+          operational complexity earns the room a half-width column would
+          cramp), then the expense ledger at full width (a real table — it
+          earns the extra room too), then configuration/detail sections last,
+          at a comfortable reading width so they don't compete with the
+          headline numbers above them. */}
       <ProfitabilitySummary fin={fin} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
         <CustomerCollections
           deal={deal} lead={lead} fin={fin}
-          invoices={invoices} saleInvoices={saleInvoices} waterfall={waterfall} waterfallError={waterfallError}
-          setDeal={setDeal} setLead={setLead} refreshLead={refreshLead}
+          waterfallError={waterfallError}
+          setDeal={setDeal} setLead={setLead}
         />
         <CostBreakdown fin={fin} />
       </div>
+
+      <PaymentScheduleSection
+        deal={deal} lead={lead}
+        invoices={invoices} saleInvoices={saleInvoices} waterfall={waterfall}
+        setDeal={setDeal} refreshLead={refreshLead}
+      />
 
       <ExpensesSection deal={deal} expenses={expenses} payments={expensePayments} canEdit={canEdit} canDelete={canDelete} onChange={load} logActivity={logActivity} user={user} />
 

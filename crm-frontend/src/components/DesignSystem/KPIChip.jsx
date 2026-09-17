@@ -10,25 +10,37 @@ const fmtMoney = (v) => {
   return `$${num.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 };
 
-const VARIANT_STYLES = {
-  default:   "bg-white border-slate-200 text-slate-900",
-  balance:   "bg-amber-50 border-amber-200 text-amber-700",
-  collected: "bg-emerald-50 border-emerald-200 text-emerald-700",
-  remaining: "bg-blue-50 border-blue-200 text-blue-700",
-  invoiced:  "bg-purple-50 border-purple-200 text-purple-700",
+// Restrained variant: the CARD stays neutral white/bordered (matching
+// card-premium everywhere else in the CRM) — only the VALUE text carries the
+// semantic color, the same convention used for money in Deals.jsx's row
+// (font-bold tabular-nums, colored text, no colored box). Keeps a group of
+// these reading as one cohesive strip instead of several unrelated colored
+// boxes competing for attention.
+const VARIANT_TEXT = {
+  default:   "text-slate-900",
+  balance:   "text-amber-700",
+  collected: "text-emerald-700",
+  remaining: "text-slate-900",
+  invoiced:  "text-slate-900",
 };
 
 export function KPIChip({ label, value, variant = "default", editable = false, onEdit = null, className = "" }) {
+  // A zero value isn't "collected"/"outstanding" in any meaningful sense —
+  // de-emphasize it rather than applying a semantic color that would imply
+  // something happened (same convention as FollowUpsWidget's zero-value
+  // metrics elsewhere in the CRM).
+  const isZero = !(parseFloat(value) > 0);
+  const textColor = isZero ? "text-slate-300" : (VARIANT_TEXT[variant] || VARIANT_TEXT.default);
   return (
     <div
-      className={`rounded-lg border px-3 py-2 flex flex-col gap-0.5 min-w-[100px] ${VARIANT_STYLES[variant] || VARIANT_STYLES.default} ${editable ? "cursor-pointer hover:shadow-sm group transition-all" : ""} ${className}`}
+      className={`rounded-lg border border-slate-200 bg-white px-3 py-2 flex flex-col gap-0.5 min-w-[100px] ${editable ? "cursor-pointer hover:border-slate-300 hover:shadow-sm group transition-all" : ""} ${className}`}
       onClick={() => editable && onEdit?.()}
     >
       <div className="flex items-center gap-1">
         <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wide leading-none">{label}</p>
         {editable && <Pencil className="w-2 h-2 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />}
       </div>
-      <p className="text-sm font-bold leading-tight">{fmtMoney(value)}</p>
+      <p className={`text-sm font-bold leading-tight tabular-nums ${textColor}`}>{fmtMoney(value)}</p>
     </div>
   );
 }
