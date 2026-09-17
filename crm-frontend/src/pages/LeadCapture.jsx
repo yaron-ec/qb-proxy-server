@@ -4,7 +4,7 @@ import { EC_PROJECT_TYPES } from "@/lib/projectTypes";
 import { uploadFileToStorage } from "@/lib/fileUpload";
 import { fetchCaptureAvailability, submitCapture, fetchAppLists } from "@/lib/captureRailwayClient";
 import { useAuth } from "@/lib/AuthContext";
-import { CheckCircle, Upload, X, Phone, MapPin, Briefcase, Clock, AlertCircle, Loader2, ArrowLeft, Calendar, ShieldAlert } from "lucide-react";
+import { CheckCircle, Upload, X, Phone, MapPin, Briefcase, AlertCircle, Loader2, ArrowLeft, Calendar, ShieldAlert } from "lucide-react";
 import CaptureSlotGrid from "@/components/CaptureSlotGrid";
 
 // Server-side allowlist is authoritative; this mirror only gates the UI.
@@ -20,13 +20,6 @@ const DEFAULT_SOURCES = [
 ];
 const DEFAULT_OWNERS = ["Ethan Magen", "Micky Gad", "Yaron Drilevich"];
 
-const TIMES = [];
-for (let h = 7; h <= 19; h++) {
-  for (let m = 0; m < 60; m += 30) {
-    TIMES.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
-  }
-}
-
 function fmt12(t) {
   if (!t) return t;
   const [h, m] = t.split(":").map(Number);
@@ -40,7 +33,6 @@ const emptyForm = () => ({
   message: "", source: "", referral_name: "",
   owner_occupied: false,
   appointment_date: "", appointment_time: "",
-  follow_up_date: "", follow_up_time: "", follow_up_type: "",
   assigned_rep: "Yaron Drilevich", estimated_value: "", notes: "",
   photo_urls: [],
 });
@@ -129,7 +121,7 @@ export default function LeadCapture() {
 
   const set = (k, v) => {
     setForm(p => ({ ...p, [k]: v }));
-    if (['appointment_date', 'appointment_time', 'follow_up_date', 'follow_up_time', 'follow_up_type', 'assigned_rep'].includes(k)) {
+    if (['appointment_date', 'appointment_time', 'assigned_rep'].includes(k)) {
       setAvailabilityError(null);
       setConflictOverride(false);
     }
@@ -219,9 +211,10 @@ export default function LeadCapture() {
       referral_name: form.referral_name,
       assigned_rep: form.assigned_rep,
       owner_occupied: form.owner_occupied,
-      follow_up_date: form.follow_up_date || null,
-      follow_up_time: form.follow_up_time || null,
-      follow_up_type: form.follow_up_type || null,
+      // No separate follow_up_date/time/type — the backend derives Follow-Up
+      // (and meeting_stage="First Meeting") from the appointment itself
+      // (routes/publicCapture.js -> bookingService.createBooking), so a
+      // second, always-overridden manual entry here would be pure dead UI.
       appointment_date: form.appointment_date || null,
       appointment_time: form.appointment_time || null,
       budget_range: form.budget_range,
@@ -423,7 +416,7 @@ export default function LeadCapture() {
         )}
 
         {/* ── Step 1: Appointment (date + time first, before contact info) ── */}
-        <FormCard step={1} totalSteps={9} icon={<Calendar className="w-4 h-4 text-amber-600" />} title="Appointment Date & Time">
+        <FormCard step={1} totalSteps={8} icon={<Calendar className="w-4 h-4 text-amber-600" />} title="Appointment Date & Time">
           <div className="space-y-3">
             <Field label="Appointment Date *" error={errors.appointment_date}>
               <input
@@ -465,7 +458,7 @@ export default function LeadCapture() {
         </FormCard>
 
         {/* ── Contact Info ── */}
-        <FormCard step={2} totalSteps={9} icon={<Phone className="w-4 h-4 text-amber-600" />} title="Client Contact Info">
+        <FormCard step={2} totalSteps={8} icon={<Phone className="w-4 h-4 text-amber-600" />} title="Client Contact Info">
           {errors.phone && <ErrorMsg msg="Phone or email is required" />}
           <div className="grid grid-cols-2 gap-3">
             <Field label="First Name *" error={errors.first_name}>
@@ -484,7 +477,7 @@ export default function LeadCapture() {
         </FormCard>
 
         {/* ── Property Info ── */}
-        <FormCard step={3} totalSteps={9} icon={<MapPin className="w-4 h-4 text-amber-600" />} title="Property Information">
+        <FormCard step={3} totalSteps={8} icon={<MapPin className="w-4 h-4 text-amber-600" />} title="Property Information">
           <div className="space-y-3">
             <Field label="Property Address">
               <input type="text" value={form.property_address} onChange={e => set("property_address", e.target.value)} placeholder="123 Main St" className={inputCls()} />
@@ -501,7 +494,7 @@ export default function LeadCapture() {
         </FormCard>
 
         {/* ── Project Details ── */}
-        <FormCard step={4} totalSteps={9} icon={<Briefcase className="w-4 h-4 text-amber-600" />} title="Project Details">
+        <FormCard step={4} totalSteps={8} icon={<Briefcase className="w-4 h-4 text-amber-600" />} title="Project Details">
           <div className="space-y-3">
             <Field label="Project Type *" error={errors.project_type}>
               <div className="grid grid-cols-2 gap-2">
@@ -544,7 +537,7 @@ export default function LeadCapture() {
         </FormCard>
 
         {/* ── Lead Source ── */}
-        <FormCard step={5} totalSteps={9} icon={<MapPin className="w-4 h-4 text-amber-600" />} title="Lead Source">
+        <FormCard step={5} totalSteps={8} icon={<MapPin className="w-4 h-4 text-amber-600" />} title="Lead Source">
           <div className="space-y-3">
             <Field label="How did you hear about us? *" error={errors.source}>
               <select value={form.source} onChange={e => set("source", e.target.value)} className={inputCls(errors.source)}>
@@ -561,7 +554,7 @@ export default function LeadCapture() {
         </FormCard>
 
         {/* ── Contact Owner ── */}
-        <FormCard step={6} totalSteps={9} icon={<Phone className="w-4 h-4 text-amber-600" />} title="Who will handle this lead?">
+        <FormCard step={6} totalSteps={8} icon={<Phone className="w-4 h-4 text-amber-600" />} title="Who will handle this lead?">
           <Field label="Assign to *" error={errors.assigned_rep}>
             <select value={form.assigned_rep} onChange={e => set("assigned_rep", e.target.value)} className={inputCls(errors.assigned_rep)}>
               <option value="">Select contact owner</option>
@@ -570,39 +563,15 @@ export default function LeadCapture() {
           </Field>
         </FormCard>
 
-        {/* ── Follow-up ── */}
-        <FormCard step={7} totalSteps={9} icon={<Clock className="w-4 h-4 text-amber-600" />} title="Follow-up (Optional)">
-          <div className="space-y-3">
-            <Field label="Follow-up Type">
-              <select value={form.follow_up_type} onChange={e => set("follow_up_type", e.target.value)} className={inputCls()}>
-                <option value="">Select type</option>
-                <option value="Phone Call">Phone Call</option>
-                <option value="Meeting">Meeting</option>
-              </select>
-            </Field>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Follow-up Date">
-                <input type="date" value={form.follow_up_date} onChange={e => set("follow_up_date", e.target.value)} className={inputCls()} />
-              </Field>
-              <Field label="Follow-up Time">
-                <select value={form.follow_up_time} onChange={e => set("follow_up_time", e.target.value)} className={inputCls()}>
-                  <option value="">Select time</option>
-                  {TIMES.map(t => <option key={t} value={t}>{fmt12(t)}</option>)}
-                </select>
-              </Field>
-            </div>
-          </div>
-        </FormCard>
-
         {/* ── Message ── */}
-        <FormCard step={8} totalSteps={9} icon={<Briefcase className="w-4 h-4 text-amber-600" />} title="Project Description">
+        <FormCard step={7} totalSteps={8} icon={<Briefcase className="w-4 h-4 text-amber-600" />} title="Project Description">
           <Field label="Tell us about your project">
             <textarea value={form.message} onChange={e => set("message", e.target.value)} placeholder="Describe your project, goals, and any specific needs..." rows={4} className="w-full border rounded-lg px-3 py-2.5 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors border-slate-200 resize-none" />
           </Field>
         </FormCard>
 
         {/* ── Photo Upload ── */}
-        <FormCard step={9} totalSteps={9} icon={<Upload className="w-4 h-4 text-amber-600" />} title="Upload Photos / Plans (Optional)">
+        <FormCard step={8} totalSteps={8} icon={<Upload className="w-4 h-4 text-amber-600" />} title="Upload Photos / Plans (Optional)">
           <div className="space-y-3">
             <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl py-6 cursor-pointer hover:border-amber-400 transition-colors">
               <Upload className="w-5 h-5 text-slate-400 mb-1" />

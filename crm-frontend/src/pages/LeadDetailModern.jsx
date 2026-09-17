@@ -1555,7 +1555,7 @@ export function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
               {gmailMeta.direction === "outbound" ? gmailMeta.to : gmailMeta.from}
             </p>
             {gmailMeta.snippet && (
-              <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">{gmailMeta.snippet}</p>
+              <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 whitespace-pre-wrap">{gmailMeta.snippet}</p>
             )}
             {gmailMeta.gmail_message_id && (
               <a

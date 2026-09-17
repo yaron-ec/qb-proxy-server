@@ -31,7 +31,7 @@ export default function FinancialActivitySection({ activities }) {
               <div key={a.id} className="flex items-start gap-3 text-xs border-b border-slate-50 pb-2 last:border-0 last:pb-0">
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-slate-800">{ACTION_LABELS[a.metadata?.action] || a.metadata?.action || "Activity"}</p>
-                  <p className="text-slate-600">{a.content}</p>
+                  <p className="text-slate-600 whitespace-pre-wrap">{a.content}</p>
                   {a.metadata?.record_type && <p className="text-[10px] text-slate-400 mt-0.5">{a.metadata.record_type}</p>}
                 </div>
                 <div className="text-right flex-shrink-0">

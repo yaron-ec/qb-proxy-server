@@ -188,6 +188,11 @@ router.post('/', submitLimiter, async (req, res) => {
       actor,
       override_conflict,
       override_actor,
+      // Pre-conversion Pacific-local strings — bookingService uses these
+      // verbatim to initialize a brand-new lead's follow_up_date/time
+      // (never re-derived from start_at, so no second UTC-conversion path).
+      local_appointment_date: c.appointment_date,
+      local_appointment_time: c.appointment_time,
     });
 
     const leadId = booking.lead && booking.lead.id;

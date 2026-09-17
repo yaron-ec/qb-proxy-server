@@ -5,11 +5,19 @@
  * newLeadAndMyDayDesignPass.test.js — regression coverage for the New Lead
  * (LeadCapture.jsx) and My Day (MobileDayView.jsx) design-pass changes.
  *
- * LeadCapture.jsx: the 9-card intake form had no progress indication beyond
- * a single stray "Step 1:" prefix on the first card's title. Added a
- * step/totalSteps prop to FormCard (a numbered badge + "N / 9" indicator)
- * and applied it consistently across all 9 cards. No scheduling/business
- * rule touched — purely a numbering/progress affordance.
+ * LeadCapture.jsx: the intake form had no progress indication beyond a
+ * single stray "Step 1:" prefix on the first card's title. Added a
+ * step/totalSteps prop to FormCard (a numbered badge + "N / totalSteps"
+ * indicator) and applied it consistently across every card. No scheduling/
+ * business rule touched — purely a numbering/progress affordance.
+ *
+ * The form was 9 cards when this indicator was added; a later pass (master
+ * CRM closeout, New Lead initialization) removed the redundant "Follow-up
+ * (Optional)" card — its follow_up_date/time/type were always silently
+ * overwritten by the backend's own derivation from the appointment itself
+ * (routes/publicCapture.js -> lib/booking/bookingService.js), so entering
+ * them manually here had zero effect. The form is 8 cards now; this file's
+ * step-numbering assertion below was updated to match, not disabled.
  *
  * MobileDayView.jsx ("My Day"): added (a) an overdue-follow-ups count in
  * the header, computed from the already-fetched allLeads list (no new API
@@ -38,10 +46,10 @@ test('LeadCapture.jsx: FormCard supports numbered steps', () => {
   assert.ok(src.includes('{step} / {totalSteps}'), 'must render the progress indicator');
 });
 
-test('LeadCapture.jsx: all 9 form cards are numbered 1 through 9', () => {
+test('LeadCapture.jsx: all 8 form cards are numbered 1 through 8', () => {
   const src = readPage('LeadCapture.jsx');
-  for (let i = 1; i <= 9; i++) {
-    assert.ok(src.includes(`step={${i}} totalSteps={9}`), `expected step={${i}} totalSteps={9} on some FormCard`);
+  for (let i = 1; i <= 8; i++) {
+    assert.ok(src.includes(`step={${i}} totalSteps={8}`), `expected step={${i}} totalSteps={8} on some FormCard`);
   }
 });
 

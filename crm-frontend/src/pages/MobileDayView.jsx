@@ -328,7 +328,10 @@ export default function MobileDayView() {
       ? filtered
       : filtered.filter(l =>
           ownerFilter === "Unassigned"
-            ? !l.assigned_rep
+            // leads.owner_id is NOT NULL — "Unassigned" is a real canonical
+            // owner row (see leadsListFilter.js), so assigned_rep for these
+            // leads is the literal string "Unassigned", never falsy.
+            ? (!l.assigned_rep || l.assigned_rep === "Unassigned")
             : l.assigned_rep === ownerFilter
         );
 

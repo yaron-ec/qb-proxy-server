@@ -28,6 +28,7 @@ import Login from './pages/Login';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Leads from './pages/LeadsModern';
+import DNQLeads from './pages/DNQLeads';
 import LeadDetailModern from './pages/LeadDetailModern';
 import LeadCapture from './pages/LeadCapture';
 import Settings from './pages/Settings';
@@ -126,6 +127,7 @@ const AuthenticatedApp = () => {
         <Route path="/my-day" element={<PageContentWrapper><MobileDayView /></PageContentWrapper>} />
         <Route path="/kanban" element={<PageContentWrapper><KanbanBoard /></PageContentWrapper>} />
         <Route path="/leads" element={<PageContentWrapper><Leads /></PageContentWrapper>} />
+        <Route path="/leads/dnq" element={<PageContentWrapper><DNQLeads /></PageContentWrapper>} />
         <Route path="/leads/:id" element={<PageContentWrapper><LeadDetailModern /></PageContentWrapper>} />
         <Route path="/deals" element={<PageContentWrapper><Deals /></PageContentWrapper>} />
         <Route path="/deals/:id" element={<PageContentWrapper><DealDetail /></PageContentWrapper>} />

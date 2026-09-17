@@ -55,7 +55,18 @@ export function filterAndSortLeads(leads, opts = {}) {
       if (userRole === 'sales_rep') return true;
       if (isGlobalSearch) return true;
       if (ownerFilter === 'all') return true;
-      if (ownerFilter === 'unassigned') return !lead.assigned_rep || lead.assigned_rep.trim() === '';
+      if (ownerFilter === 'unassigned') {
+        // leads.owner_id is NOT NULL — a genuinely ownerless lead does not
+        // exist in this schema. "Unassigned" is instead a real, canonical
+        // `owners` row (display_name='Unassigned', seeded during the
+        // Base44->Railway migration to satisfy that constraint), so
+        // assigned_rep for these leads is the literal string "Unassigned",
+        // never empty. Matching only an empty string meant this filter
+        // option could never match any real lead. Still also match a
+        // genuinely empty value defensively, in case one ever occurs.
+        const rep = (lead.assigned_rep || '').trim().toLowerCase();
+        return rep === '' || rep === 'unassigned';
+      }
       if (ownerFilter === '__mine__') {
         if (!mineNameLower) return false;
         return (lead.assigned_rep || '').trim().toLowerCase().replace(/\s+/g, ' ') === mineNameLower;

@@ -175,7 +175,7 @@ function DNQLeadCard({ lead }) {
 
           {/* Notes preview */}
           {lead.notes && (
-            <p className="text-xs text-slate-600 line-clamp-2 mt-2">{lead.notes}</p>
+            <p className="text-xs text-slate-600 line-clamp-2 mt-2 whitespace-pre-wrap">{lead.notes}</p>
           )}
         </div>
 

@@ -29,12 +29,17 @@ const leads = [
   lead({ id: 'l2', first_name: 'Brian', last_name: 'Krantz', assigned_rep: 'Ethan Magen', status: 'Appointment Scheduled', source: 'Website' }),
   lead({ id: 'l3', first_name: 'Mia', last_name: 'Arias', assigned_rep: 'Yaron Drilevich', status: 'New Lead', source: 'Website' }),
   lead({ id: 'l4', first_name: 'Sam', last_name: 'Lee', assigned_rep: '', status: 'New Lead', source: 'Referral' }),
+  // The REAL production shape: leads.owner_id is NOT NULL, so "unassigned"
+  // is a genuine, canonical `owners` row (display_name='Unassigned') — this
+  // lead's assigned_rep is the literal, non-empty string "Unassigned", not
+  // an empty value like l4 above.
+  lead({ id: 'l5', first_name: 'Nora', last_name: 'Feld', assigned_rep: 'Unassigned', status: 'New Lead', source: 'Website' }),
 ];
 
 describe('filterAndSortLeads — Sales Rep (owner) filter', () => {
   it('"All Leads" (ownerFilter=all) returns every active lead regardless of rep', () => {
     const result = filterAndSortLeads(leads, { ownerFilter: 'all', userRole: 'admin' });
-    expect(result.map(l => l.id).sort()).toEqual(['l1', 'l2', 'l3', 'l4']);
+    expect(result.map(l => l.id).sort()).toEqual(['l1', 'l2', 'l3', 'l4', 'l5']);
   });
 
   it('one rep selected returns only that rep\'s leads', () => {
@@ -47,9 +52,9 @@ describe('filterAndSortLeads — Sales Rep (owner) filter', () => {
     expect(result.map(l => l.id).sort()).toEqual(['l1', 'l3']);
   });
 
-  it('"Unassigned" returns only leads with no assigned_rep', () => {
+  it('"Unassigned" returns leads with the canonical Unassigned owner AND leads with a genuinely empty assigned_rep — REGRESSION: the prior check only matched an empty string, so it could never match a real production lead (leads.owner_id is NOT NULL — every lead\'s assigned_rep is a real string, including the literal "Unassigned" placeholder owner)', () => {
     const result = filterAndSortLeads(leads, { ownerFilter: 'unassigned', userRole: 'admin' });
-    expect(result.map(l => l.id)).toEqual(['l4']);
+    expect(result.map(l => l.id).sort()).toEqual(['l4', 'l5']);
   });
 
   it('rep with zero matching leads returns an empty array, not a crash', () => {

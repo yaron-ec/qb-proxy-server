@@ -123,7 +123,7 @@ export default function EmailPanel({ lead }) {
                   {email.date ? new Date(email.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
                 </div>
                 {email.snippet && (
-                  <div className="text-slate-500 mt-1.5 line-clamp-2 leading-relaxed">{email.snippet}</div>
+                  <div className="text-slate-500 mt-1.5 line-clamp-2 leading-relaxed whitespace-pre-wrap">{email.snippet}</div>
                 )}
               </div>
             ))}

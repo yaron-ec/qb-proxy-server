@@ -260,13 +260,21 @@ export default function LeadsModern() {
                 )}
               </p>
             </div>
-            <Link
-              to="/capture?returnToCRM=true"
-              className="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors active:scale-95 shadow-sm"
-            >
-              <Plus className="w-4 h-4" />
-              New Lead
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link
+                to="/leads/dnq"
+                className="text-sm font-semibold text-slate-500 hover:text-slate-700 transition-colors"
+              >
+                DNQ Archive
+              </Link>
+              <Link
+                to="/capture?returnToCRM=true"
+                className="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors active:scale-95 shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                New Lead
+              </Link>
+            </div>
           </div>
 
           {/* Tabs: All vs Website */}

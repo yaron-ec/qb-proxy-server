@@ -333,7 +333,7 @@ export default function ExpensesSection({ deal, expenses, payments, canEdit, can
                 <div key={e.id} className="border border-slate-200 rounded-lg p-3">
                   <div className="flex justify-between"><span className="font-semibold text-slate-800 text-sm">{e.vendor_name}</span><span className="font-bold text-sm">{formatCurrency(e.amount)}</span></div>
                   <div className="text-[11px] text-slate-500 mt-0.5">{formatDate(e.expense_date)} · {e.category} · <StatusPill status={e.payment_status} /></div>
-                  {e.description && <p className="text-xs text-slate-600 mt-1">{e.description}</p>}
+                  {e.description && <p className="text-xs text-slate-600 mt-1 whitespace-pre-wrap">{e.description}</p>}
                   <div className="flex flex-wrap gap-2 mt-2">
                     {canEdit && <button onClick={() => openEdit(e)} className="text-[11px] font-semibold text-amber-600">Edit</button>}
                     {canEdit && <button onClick={() => setShowPaymentsFor(e)} className="text-[11px] font-semibold text-blue-600">Payments</button>}

@@ -2100,9 +2100,15 @@ app.post('/handoff/import-estimate', requireProxySecret, async (req, res) => {
 // QB fetch uses internal qbQuery (static IP, managed tokens). CRM reads/writes use
 // the Base44 REST API via ./lib/base44.js (service-role key, no Base44 credits).
 // Matching engine is the verbatim port in ./lib/qbMatch.js.
-// Run manually: POST /sync/qb-estimates | POST /sync/qb-estimate-pdfs (X-Proxy-Secret).
-// Auto-run: set QB_SYNC_CRON_ENABLED=true (every 15 min) — off by default so the
-// Base44 scheduler stays the source of truth until parity is verified.
+// Run manually: POST /sync/qb-estimates | POST /sync/qb-estimate-pdfs (X-Proxy-Secret)
+// — an Admin recovery tool, not required for normal operation.
+// Auto-run: every 15 min, unconditional — the sole scheduled Estimate sync in
+// production, exactly like the QB Inbound Reconciliation cron just below it.
+// QB_SYNC_CRON_ENABLED previously gated this off by default, deferring to
+// "the Base44 scheduler" as the real source of truth — Base44 is now fully
+// retired, so that fallback no longer exists; leaving this off meant NO
+// automatic Estimate sync ran at all except the webhook (also fixed — see
+// lib/qbSyncTrigger.js) and the manual Re-sync button.
 
 const SANDBOX = process.env.QB_SANDBOX === 'true';
 
@@ -2416,16 +2422,18 @@ app.listen(PORT, async () => {
   }
 
   // ── QB Estimate Sync Cron ─────────────────────────────────────────────────
-  // Off by default. Set QB_SYNC_CRON_ENABLED=true on Railway to start the 15-min
-  // loop (estimates sync + PDF fetch). Keeps the Base44 scheduler as fallback until
-  // parity is verified, then disable the Base44 automation and leave this running.
+  // On by default (every 15 min: estimates sync + PDF fetch) — the sole
+  // scheduled Estimate sync in production, same as the unconditional QB
+  // Inbound Reconciliation cron just below it. Set QB_SYNC_CRON_ENABLED=false
+  // to explicitly opt out (e.g. a sandbox/staging environment that shouldn't
+  // write estimates); any other value (including unset) leaves it running.
   let cronLib = null;
   try { cronLib = require('node-cron'); } catch (e) {
     console.warn('[proxy] node-cron not installed — QB sync cron disabled (npm install will add it)');
   }
   if (cronLib) {
-    if (process.env.QB_SYNC_CRON_ENABLED !== 'true') {
-      console.log('[proxy] QB sync cron disabled (set QB_SYNC_CRON_ENABLED=true to enable every-15-min sync)');
+    if (process.env.QB_SYNC_CRON_ENABLED === 'false') {
+      console.log('[proxy] QB sync cron explicitly disabled (QB_SYNC_CRON_ENABLED=false)');
     } else {
       cronLib.schedule('*/15 * * * *', async () => {
         const t = new Date().toISOString();
@@ -2442,7 +2450,7 @@ app.listen(PORT, async () => {
           console.error('[qb-cron] pdf sync failed:', e.message);
         }
       });
-      console.log('[proxy] QB sync cron scheduled every 15 minutes (QB_SYNC_CRON_ENABLED=true)');
+      console.log('[proxy] QB sync cron scheduled every 15 minutes');
     }
   }
 
