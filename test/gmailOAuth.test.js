@@ -81,7 +81,7 @@ function createMockCredStore() {
     },
     loadGmailCredential: async () => {
       if (savedCredential) {
-        return { refresh_token: savedCredential.tokens.refresh_token, account_identifier: EXPECTED_EMAIL };
+        return { refresh_token: savedCredential.tokens.refresh_token, account_identifier: EXPECTED_EMAIL, scope: savedCredential.tokens.scope || null };
       }
       return null;
     },
@@ -113,6 +113,7 @@ function createMockFetch(opts) {
           refresh_token: opts.refreshToken === undefined ? 'test-refresh-token' : opts.refreshToken,
           expires_in: 3600,
           id_token: opts.idToken || createMockIdToken(opts.idEmail || EXPECTED_EMAIL, opts.idVerified !== false),
+          scope: opts.grantedScope !== undefined ? opts.grantedScope : 'https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.readonly openid email',
         }),
       };
     }
@@ -188,7 +189,9 @@ describe('Gmail OAuth Router', () => {
       assert.strictEqual(params.get('access_type'), 'offline');
       assert.strictEqual(params.get('prompt'), 'consent');
       assert.strictEqual(params.get('login_hint'), EXPECTED_EMAIL);
-      assert.ok(params.get('scope').includes('gmail.send'));
+      assert.ok(params.get('scope').includes('gmail.send'), 'gmail.send preserved');
+      assert.ok(params.get('scope').includes('gmail.readonly'), 'gmail.readonly requested — required for the lead correspondence read path');
+      assert.ok(!params.get('scope').includes('gmail.modify'), 'must not request broader gmail.modify than necessary');
       assert.ok(params.get('state'), 'state is present');
       // State should be stored as a hash in the DB
       assert.strictEqual(db._states.size, 1, 'one state record created');
@@ -480,6 +483,66 @@ describe('Gmail OAuth Router', () => {
     await withServer(app, async (base) => {
       const res = await fetch(`${base}/internal/gmail/oauth/status`);
       assert.strictEqual(res.status, 401);
+    });
+  });
+
+  // ── Scope persistence + status reporting (production 403 fix) ──────────────
+
+  test('A successful callback with a read+send grant reports has_read_access AND has_send_access true — never exposes the token itself', async () => {
+    const db = createMockDb();
+    const credStore = createMockCredStore();
+    const rawState = crypto.randomBytes(32).toString('hex');
+    const hash = crypto.createHash('sha256').update(rawState).digest('hex');
+    db._states.set(hash, { expected_email: EXPECTED_EMAIL, expires_at: new Date(Date.now() + 60000), used_at: null });
+    const { app } = buildApp({ db, credStore, fetch: createMockFetch({}) }); // default mock grants both scopes
+    await withServer(app, async (base) => {
+      const cb = await fetch(`${base}/internal/gmail/oauth/callback?code=test-code&state=${rawState}`);
+      assert.strictEqual(cb.status, 200);
+      const saved = credStore._getSaved();
+      assert.ok(saved.tokens.scope.includes('gmail.readonly'), 'scope from the token response is persisted');
+
+      const statusRes = await fetch(`${base}/internal/gmail/oauth/status`, { headers: { 'X-Proxy-Secret': process.env.PROXY_SECRET } });
+      const data = await statusRes.json();
+      assert.strictEqual(data.connected, true);
+      assert.strictEqual(data.has_send_access, true);
+      assert.strictEqual(data.has_read_access, true);
+      const body = JSON.stringify(data);
+      assert.ok(!body.includes('test-refresh-token'), 'no token in status response');
+      assert.ok(!body.includes('test-client-secret'), 'no client secret in status response');
+    });
+  });
+
+  test('EXISTING SEND-ONLY GRANT: a credential granted only gmail.send (the exact pre-fix production state) reports has_read_access: false — the known insufficient-scope state', async () => {
+    const db = createMockDb();
+    const credStore = createMockCredStore();
+    const rawState = crypto.randomBytes(32).toString('hex');
+    const hash = crypto.createHash('sha256').update(rawState).digest('hex');
+    db._states.set(hash, { expected_email: EXPECTED_EMAIL, expires_at: new Date(Date.now() + 60000), used_at: null });
+    const { app } = buildApp({ db, credStore, fetch: createMockFetch({ grantedScope: 'https://www.googleapis.com/auth/gmail.send openid email' }) });
+    await withServer(app, async (base) => {
+      await fetch(`${base}/internal/gmail/oauth/callback?code=test-code&state=${rawState}`);
+      const statusRes = await fetch(`${base}/internal/gmail/oauth/status`, { headers: { 'X-Proxy-Secret': process.env.PROXY_SECRET } });
+      const data = await statusRes.json();
+      assert.strictEqual(data.has_send_access, true);
+      assert.strictEqual(data.has_read_access, false);
+      assert.strictEqual(data.scope_recorded, true);
+    });
+  });
+
+  test('a credential saved before the scope field existed (scope: null) reports scope_recorded: false rather than misreporting definitive send-only', async () => {
+    const db = createMockDb();
+    const credStore = createMockCredStore();
+    const rawState = crypto.randomBytes(32).toString('hex');
+    const hash = crypto.createHash('sha256').update(rawState).digest('hex');
+    db._states.set(hash, { expected_email: EXPECTED_EMAIL, expires_at: new Date(Date.now() + 60000), used_at: null });
+    const { app } = buildApp({ db, credStore, fetch: createMockFetch({ grantedScope: null }) });
+    await withServer(app, async (base) => {
+      await fetch(`${base}/internal/gmail/oauth/callback?code=test-code&state=${rawState}`);
+      const statusRes = await fetch(`${base}/internal/gmail/oauth/status`, { headers: { 'X-Proxy-Secret': process.env.PROXY_SECRET } });
+      const data = await statusRes.json();
+      assert.strictEqual(data.has_read_access, false);
+      assert.strictEqual(data.has_send_access, false);
+      assert.strictEqual(data.scope_recorded, false);
     });
   });
 

@@ -1332,6 +1332,8 @@ app.use('/api/v1/auth', require('./routes/auth'));
 app.use('/api/v1', require('./routes/emails'));
 app.use('/api/v1', require('./routes/bookings'));
 app.use('/api/v1/gmail', require('./routes/gmail'));
+// Admin-authenticated bridge to reconnect Gmail from Settings (no PROXY_SECRET/Railway access needed)
+app.use('/api/v1/admin/gmail-oauth', require('./routes/adminGmailOAuth'));
 // Railway-native lead merge (must mount BEFORE leads router so /merge doesn't
 // get caught by leads /:id route)
 app.use('/api/v1/leads', require('./routes/mergeLeads'));

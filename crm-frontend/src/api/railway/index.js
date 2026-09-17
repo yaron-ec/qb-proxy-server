@@ -32,3 +32,4 @@ export * as leadSubmissions from './leadSubmissions';
 export * as dealTimeline from './dealTimeline';
 export * as leadEmails from './leadEmails';
 export * as emails from './emails';
+export * as gmailOAuth from './gmailOAuth';

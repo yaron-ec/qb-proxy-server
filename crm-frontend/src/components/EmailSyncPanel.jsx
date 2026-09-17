@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import * as railwayApi from '@/lib/railwayApi';
 import * as railwayLeads from '@/api/railway/leads';
 import * as railwayActivities from '@/api/railway/activities';
+import * as gmailOAuth from '@/api/railway/gmailOAuth';
+import { useAuth } from '@/lib/AuthContext';
 import { Mail, Loader2, CheckCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 import { SyncSection, SyncSectionHeader } from './SyncCard';
 
@@ -11,11 +13,22 @@ import { SyncSection, SyncSectionHeader } from './SyncCard';
  * All Gmail API calls are made SERVER-SIDE via /api/v1/gmail/* (Railway holds
  * the Gmail OAuth token; it is never returned to the browser). This component
  * no longer constructs `Authorization: Bearer <gmail token>` headers.
+ *
+ * Connection status comes from /api/v1/admin/gmail-oauth/status (admin-only),
+ * which distinguishes "connected, send-only" from "connected, read access
+ * available" via has_send_access/has_read_access — never raw tokens. The
+ * "Reconnect Gmail" button (admin-only) mints a short-lived setup_token
+ * server-side and navigates the browser straight into Google's consent
+ * screen — no Railway dashboard, no env vars, no copy/pasted tokens.
  */
 export default function EmailSyncPanel() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [status, setStatus] = useState(null);
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState(null);
+  const [reconnecting, setReconnecting] = useState(false);
+  const [reconnectError, setReconnectError] = useState(null);
 
   useEffect(() => {
     checkConnection();
@@ -28,11 +41,33 @@ export default function EmailSyncPanel() {
         setStatus({ connected: false, reason: 'Railway session not active. Sign in to sync Gmail.' });
         return;
       }
-      const profile = await railwayApi.gmailProfile();
-      setStatus({ connected: true, email: profile.emailAddress });
+      if (!isAdmin) {
+        // Scope/status is an admin-only endpoint. Non-admins keep the prior
+        // mailbox-read check as their connectivity signal.
+        const profile = await railwayApi.gmailProfile();
+        setStatus({ connected: true, email: profile.emailAddress, hasReadAccess: true });
+        return;
+      }
+      const s = await gmailOAuth.getStatus();
+      if (!s.connected) {
+        setStatus({ connected: false, reason: 'Gmail is not connected on the server.' });
+        return;
+      }
+      setStatus({ connected: true, email: s.account, hasSendAccess: s.has_send_access, hasReadAccess: s.has_read_access, scopeRecorded: s.scope_recorded });
     } catch (e) {
       const msg = e?.message || 'Could not check Gmail connection.';
       setStatus({ connected: false, reason: /401|credentials|token/i.test(msg) ? 'Gmail token expired on the server. Reconnect the Gmail integration.' : msg });
+    }
+  };
+
+  const handleReconnect = async () => {
+    setReconnecting(true);
+    setReconnectError(null);
+    try {
+      await gmailOAuth.reconnect(); // navigates the browser away — no further state update expected
+    } catch (e) {
+      setReconnectError(e?.message || 'Could not start Gmail reconnection.');
+      setReconnecting(false);
     }
   };
 
@@ -100,7 +135,7 @@ export default function EmailSyncPanel() {
         <div className="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-500">
           <Loader2 className="w-3.5 h-3.5 animate-spin" /> Checking Gmail connection…
         </div>
-      ) : status.connected ? (
+      ) : status.connected && status.hasReadAccess !== false ? (
         <div className="flex items-center gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
           <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
           <div className="flex-1">
@@ -117,6 +152,29 @@ export default function EmailSyncPanel() {
             {syncing ? 'Syncing…' : 'Sync Now'}
           </button>
         </div>
+      ) : status.connected && status.hasReadAccess === false ? (
+        <div className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-xs font-semibold text-slate-800">Gmail Connected — Read Access Not Granted</p>
+            <p className="text-[11px] text-slate-600 mt-1">
+              {status.email} is connected and can send email, but the current authorization does not include permission
+              to read Gmail. Lead correspondence (Activity → Emails) will not appear until Gmail is reconnected with read access.
+            </p>
+            {reconnectError && <p className="text-[11px] text-red-600 mt-1">{reconnectError}</p>}
+          </div>
+          {isAdmin && (
+            <button
+              onClick={handleReconnect}
+              disabled={reconnecting}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 transition-colors whitespace-nowrap flex-shrink-0"
+              style={{ minHeight: 'unset', minWidth: 'unset' }}
+            >
+              {reconnecting ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+              {reconnecting ? 'Redirecting…' : 'Reconnect Gmail'}
+            </button>
+          )}
+        </div>
       ) : (
         <div className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
           <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
@@ -128,15 +186,22 @@ export default function EmailSyncPanel() {
             {status.reason && (
               <p className="text-[11px] text-amber-700 mt-1">{status.reason}</p>
             )}
+            {reconnectError && <p className="text-[11px] text-red-600 mt-1">{reconnectError}</p>}
           </div>
           <div className="flex flex-col gap-1.5 flex-shrink-0">
-            <a
-              href="/integrations"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors whitespace-nowrap"
-              style={{ minHeight: 'unset', minWidth: 'unset' }}
-            >
-              Connect Gmail
-            </a>
+            {isAdmin ? (
+              <button
+                onClick={handleReconnect}
+                disabled={reconnecting}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 transition-colors whitespace-nowrap"
+                style={{ minHeight: 'unset', minWidth: 'unset' }}
+              >
+                {reconnecting ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                {reconnecting ? 'Redirecting…' : 'Reconnect Gmail'}
+              </button>
+            ) : (
+              <p className="text-[11px] text-slate-500 whitespace-nowrap">Ask an admin to reconnect Gmail.</p>
+            )}
             <button
               onClick={checkConnection}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 border border-slate-200 rounded hover:bg-slate-50 transition-colors"
