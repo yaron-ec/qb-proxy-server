@@ -52,7 +52,14 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          # jsdom@30 (devDependency, used only by vitest here) requires
+          # Node ^22.22.2 || ^24.15.0 || >=26.0.0 — its bundled undici
+          # requires >=22.19.0 — Node 20 is unsupported and fails with
+          # "webidl.util.markAsUncloneable is not a function". This does
+          # not affect Railway's production image, which pins node:20-alpine
+          # independently in crm-frontend/Dockerfile and never installs
+          # jsdom in production (npm install --omit=dev).
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: crm-frontend/package-lock.json
 
