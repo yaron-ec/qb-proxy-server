@@ -120,7 +120,7 @@ router.put('/:id', async (req, res) => {
     const access = await checkDealScope(req.user, existing.rows[0].deal_id);
     if (!access.allowed) return res.status(403).json({ error: 'forbidden' });
 
-    const updates = ['updated_by'];
+    const updates = ['updated_by = $1'];
     const params = [req.user.email || null];
     let p = 2;
     for (const f of FIELDS) {
