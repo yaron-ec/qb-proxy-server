@@ -1,436 +1,181 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { leads as railwayLeads } from "@/api/railway";
-import { useAuth } from "@/lib/AuthContext";
-import { resolveOwnerEmail } from "@/lib/ownerEmailMap";
-import { validateSlot } from "@/lib/calendarAvailability";
-import { Calendar, Phone, AlertTriangle, Pencil, X, ShieldAlert, Loader2 } from "lucide-react";
-import AvailableTimePicker from "@/components/AvailableTimePicker";
+import { Phone, MessageSquare, Mail, Calendar, ListTodo, AlertTriangle, Pencil, X, CheckCircle2 } from "lucide-react";
 
-// Emails of users who are allowed to override booking conflicts
-const ADMIN_OVERRIDE_EMAILS = ['michelle@ecconstructiongroup.com', 'yaron@ecconstructiongroup.com'];
+// Mirrors lib/followUp.js FOLLOW_UP_TYPES (server is authoritative). 'Meeting'
+// is kept only so existing follow-ups still display/edit; a customer visit is
+// booked as the Appointment, not as a follow-up.
+const FOLLOW_UP_TYPES = ["Phone Call", "Text", "Email", "Other"];
+const TYPE_ICON = { "Phone Call": Phone, Text: MessageSquare, Email: Mail, Meeting: Calendar, Other: ListTodo };
 
 function fmt12(t) {
   if (!t) return "";
   const [h, m] = t.split(":").map(Number);
-  const ampm = h >= 12 ? "PM" : "AM";
-  return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${ampm}`;
+  return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
 }
 
 /**
- * FollowUpScheduler — frontend saves ONLY the appointment fields (follow_up_date,
- * follow_up_time, follow_up_type) to the Lead. Google Calendar event creation /
- * update / deletion is owned entirely by the `onLeadAppointmentChanged` backend
- * entity automation. This component reflects the backend's resulting sync status
- * (google_event_id / google_calendar_sync_status) via a realtime subscription so
- * the user sees the calendar event appear within a couple seconds, with no
- * blocking "Syncing…" spinner.
+ * FollowUpScheduler — Lead Detail → Schedule → Follow-up / Next Update.
+ *
+ * Reads and writes ONLY the follow-up (leads.follow_up_date / _time / _type /
+ * _notes / _status) through PUT /api/v1/leads/:id/follow-up. A follow-up never
+ * creates, moves or cancels the appointment and never touches Google Calendar
+ * (the appointment has its own editor: AppointmentEditor).
  */
 export default function FollowUpScheduler({ lead, onLeadUpdate }) {
   const [editing, setEditing] = useState(false);
   const [date, setDate] = useState(lead.follow_up_date || "");
   const [time, setTime] = useState(lead.follow_up_time || "");
   const [type, setType] = useState(lead.follow_up_type || "");
+  const [notes, setNotes] = useState(lead.follow_up_notes || "");
   const [saving, setSaving] = useState(false);
-  const [availabilityError, setAvailabilityError] = useState(null);
   const [saveError, setSaveError] = useState(null);
-  const [isAdminUser, setIsAdminUser] = useState(false);
-  const [overrideEnabled, setOverrideEnabled] = useState(false);
-  const [justSaved, setJustSaved] = useState(false);
-  const { user: authUser } = useAuth();
 
-  // Check admin override from auth context
-  useEffect(() => {
-    if (authUser) {
-      const email = (authUser.email || '').toLowerCase();
-      const role = authUser.role || '';
-      const byRole = role === 'admin';
-      const byEmail = ADMIN_OVERRIDE_EMAILS.includes(email);
-      setIsAdminUser(byRole || byEmail);
-    }
-  }, [authUser]);
+  const typeOptions = lead.follow_up_type && !FOLLOW_UP_TYPES.includes(lead.follow_up_type)
+    ? [...FOLLOW_UP_TYPES, lead.follow_up_type] : FOLLOW_UP_TYPES;
+  const status = lead.follow_up_status || (lead.follow_up_date ? "pending" : null);
 
-  // Auto-clear "justSaved" after 12s (realtime subscription removed — Railway
-  // has no client-side subscribe; the parent LeadDetailModern polls on save).
-  useEffect(() => {
-    if (!justSaved) return;
-    const timeout = setTimeout(() => setJustSaved(false), 12000);
-    return () => clearTimeout(timeout);
-  }, [justSaved]);
-
-  const clientName = `${lead.first_name || ""} ${lead.last_name || ""}`.trim();
-  const hasEmail = !!lead.email;
-
-  const handleSave = async () => {
-    if (!date) return;
-    setSaving(true);
-    setAvailabilityError(null);
-    setSaveError(null);
-
-    // Enforce 8:30 AM minimum for Meetings
-    if (type === "Meeting" && time) {
-      const [h, m] = time.split(":").map(Number);
-      if (h < 8 || (h === 8 && m < 30)) {
-        setAvailabilityError("Meetings can only be scheduled at 8:30 AM or later.");
-        setSaving(false);
-        return;
-      }
-    }
-
-    // Client-side availability check for Meeting type (admin may override)
-    if (type === "Meeting" && time && lead.assigned_rep) {
-      try {
-        const avData = await validateSlot(date, time, lead.assigned_rep, { excludeAppointmentId: lead.appointment_id });
-        if (avData?.blocked === true && !(isAdminUser && overrideEnabled)) {
-          setAvailabilityError(`This owner is not available at ${fmt12(time)}. Please select a different time.`);
-          setSaving(false);
-          return;
-        }
-      } catch {
-        // Availability check failed — proceed with saving (backend is source of truth)
-      }
-    }
-
-    // AbortController timeout — prevents the fetch from hanging indefinitely
-    // if the backend is unreachable or the connection stalls. Without this,
-    // the "Saving..." state can persist forever.
+  const send = async (body) => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000);
-
+    setSaving(true);
+    setSaveError(null);
     try {
-      // Use the canonical lead.id — for Railway-native leads this IS the Railway
-      // UUID (e.g. e6a54c3a-...). This hits PUT /:id/appointment, the UUID-only
-      // route that validates via UUID_RE and uses direct WHERE id = $1.
-      const res = await railwayLeads.updateAppointment(lead.id, {
-        follow_up_date: date,
-        follow_up_time: time || null,
-        follow_up_type: type || null,
-        admin_override: isAdminUser && overrideEnabled,
-      }, { signal: controller.signal });
-      if (res?.lead) {
-        onLeadUpdate(res.lead);
-      }
-      setJustSaved(true);
-      setEditing(false);
+      const res = await railwayLeads.updateFollowUp(lead.id, body, { signal: controller.signal });
+      if (!res?.lead) throw new Error("The server did not return the updated lead.");
+      onLeadUpdate(res.lead);
+      return true;
     } catch (e) {
-      if (e?.name === 'AbortError') {
-        setSaveError("The server took too long to respond. Please try again.");
-      } else {
-        const msg = e?.data?.message || e?.message || "Failed to save appointment.";
-        if (e?.status === 409) {
-          // Only show the red blocking error if override is NOT active.
-          // When override is active, the backend should not return 409 (the
-          // EXCLUDE constraint exempts override_conflict=true rows). If a 409
-          // somehow arrives despite override, show it as saveError — never
-          // show both the red blocking error and the amber override warning.
-          if (isAdminUser && overrideEnabled) {
-            setSaveError(msg);
-          } else {
-            setAvailabilityError(msg);
-          }
-        } else if (e?.status === 403 && e?.data?.error === 'override_forbidden') {
-          setSaveError(msg);
-          setOverrideEnabled(false);
-        } else {
-          setSaveError(msg);
-        }
-      }
+      setSaveError(e?.name === "AbortError"
+        ? "The server took too long to respond. Nothing was changed — please try again."
+        : (e?.data?.message || e?.message || "Failed to save the follow-up."));
+      return false;
     } finally {
       clearTimeout(timeoutId);
       setSaving(false);
     }
+  };
+
+  const startEdit = () => {
+    setDate(lead.follow_up_date || "");
+    setTime(lead.follow_up_time || "");
+    setType(lead.follow_up_type || "");
+    setNotes(lead.follow_up_notes || "");
+    setSaveError(null);
+    setEditing(true);
+  };
+
+  const handleSave = async () => {
+    if (!date || !type) { setSaveError("A follow-up needs a date and a type."); return; }
+    const ok = await send({
+      follow_up_date: date,
+      follow_up_time: time || null,
+      follow_up_type: type,
+      follow_up_notes: notes.trim() || null,
+      follow_up_status: "pending",
+    });
+    if (ok) setEditing(false);
   };
 
   const handleClear = async () => {
-    setSaving(true);
-    setSaveError(null);
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-    try {
-      const res = await railwayLeads.updateAppointment(lead.id, {
-        follow_up_date: null,
-        follow_up_time: null,
-        follow_up_type: null,
-      }, { signal: controller.signal });
-      if (res?.lead) {
-        onLeadUpdate(res.lead);
-      }
-      setDate("");
-      setTime("");
-      setType("");
-      setJustSaved(true);
-    } catch (e) {
-      if (e?.name === 'AbortError') {
-        setSaveError("The server took too long to respond. Please try again.");
-      } else {
-        const msg = e?.data?.message || e?.message || "Failed to clear appointment.";
-        setSaveError(msg);
-      }
-    } finally {
-      clearTimeout(timeoutId);
-      setSaving(false);
-    }
+    const ok = await send({ follow_up_date: null, follow_up_time: null, follow_up_type: null, follow_up_notes: null, follow_up_status: null });
+    if (ok) setEditing(false);
   };
 
-  const syncStatus = lead.google_calendar_sync_status;
-  // Show syncing pill for both Meetings AND Phone Calls — both create calendar events now.
-  const showSyncingPill = justSaved && (type === "Meeting" || type === "Phone Call") && !lead.google_event_id && syncStatus !== 'error';
+  const toggleDone = () => send({ follow_up_status: status === "completed" ? "pending" : "completed" });
 
-  // Display (not editing)
+  const errorBox = saveError && (
+    <div className="mt-2 flex items-start gap-1.5 bg-red-50 border border-red-200 rounded-lg px-2.5 py-2">
+      <AlertTriangle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
+      <p className="text-xs text-red-700">{saveError}</p>
+    </div>
+  );
+
   if (!editing) {
-    const hasFollowUp = lead.follow_up_date;
+    const Icon = TYPE_ICON[lead.follow_up_type] || ListTodo;
     return (
-      <div>
+      <div data-testid="follow-up-editor">
         <div className="flex items-center justify-between mb-2">
-          <p className="sidebar-section-header">Follow-up</p>
-          <button
-            onClick={() => {
-              setDate(lead.follow_up_date || "");
-              setTime(lead.follow_up_time || "");
-              setType(lead.follow_up_type || "");
-              setJustSaved(false);
-              setAvailabilityError(null);
-              setSaveError(null);
-              setOverrideEnabled(false);
-              setEditing(true);
-            }}
-            className="text-[10px] text-amber-600 hover:text-amber-700 font-semibold flex items-center gap-1"
-          >
-            <Pencil className="w-3 h-3" /> Edit
+          <p className="sidebar-section-header">Follow-up / Next Update</p>
+          <button onClick={startEdit} className="text-[10px] text-amber-600 hover:text-amber-700 font-semibold flex items-center gap-1">
+            <Pencil className="w-3 h-3" /> {lead.follow_up_date ? "Edit" : "Add"}
           </button>
         </div>
-
-        {hasFollowUp ? (
-          <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 space-y-1">
+        {lead.follow_up_date ? (
+          <div className={`rounded-lg border px-3 py-2 space-y-1 ${status === "completed" ? "bg-emerald-50 border-emerald-200" : "bg-slate-50 border-slate-200"}`}>
             <div className="flex items-center gap-2">
-              {lead.follow_up_type === "Meeting" ? (
-                <Calendar className="w-3.5 h-3.5 text-blue-500" />
-              ) : (
-                <Phone className="w-3.5 h-3.5 text-green-500" />
-              )}
-              <span className="text-xs font-semibold text-slate-800">
+              <Icon className="w-3.5 h-3.5 text-slate-500" />
+              <span className={`text-xs font-semibold ${status === "completed" ? "text-emerald-700 line-through" : "text-slate-800"}`}>
                 {lead.follow_up_type || "Follow-up"}
               </span>
+              <button onClick={toggleDone} disabled={saving}
+                className={`ml-auto text-[10px] font-semibold flex items-center gap-0.5 ${status === "completed" ? "text-emerald-700" : "text-slate-500 hover:text-emerald-700"}`}>
+                <CheckCircle2 className="w-3 h-3" /> {status === "completed" ? "Done" : "Mark done"}
+              </button>
             </div>
-            <p className="text-xs text-slate-600">
-              {lead.follow_up_date
-                ? new Date(lead.follow_up_date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-                : ""}
+            <p className="text-xs text-slate-600" data-testid="follow-up-when">
+              {new Date(lead.follow_up_date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
               {lead.follow_up_time ? ` • ${fmt12(lead.follow_up_time)}` : ""}
             </p>
-            {(lead.follow_up_type === "Meeting" || lead.follow_up_type === "Phone Call") && lead.google_event_id && lead.google_calendar_sync_status === 'synced' && (
-              <p className="text-[10px] text-emerald-600 font-semibold">✓ Synced to Google Calendar</p>
-            )}
-            {/*
-              JSX SYNTAX FIX (was a build-breaking error — see git blame on
-              this block, commit 164a914): a new "event exists but
-              sync_status isn't 'synced' yet" condition was added directly
-              above the pre-existing `showSyncingPill` pill without a
-              closing `)}`, and with `lead.google_event_id` duplicated. That
-              malformed a `<p>...</p>` for a `{...}` block as its JSX
-              expression body, which does not parse, and swallowed the
-              `syncStatus === 'error'` pill and the section's closing
-              `</div>` inside the unclosed conditional — `npm run
-              build:exit` failed on this file. Restored to valid JSX by
-              OR-ing the new condition into the existing `showSyncingPill`
-              check (both describe "still syncing, not there yet" — one
-              covers the moment right after save with no event created yet,
-              the other covers an event that exists but hasn't reached
-              sync_status='synced'), so the same pill now covers both
-              cases. If a visually distinct state was intended for the
-              second case, that's a product/design decision to make
-              explicitly — this fix only restores a working build.
-            */}
-            {(showSyncingPill || ((lead.follow_up_type === "Meeting" || lead.follow_up_type === "Phone Call") && lead.google_event_id && lead.google_calendar_sync_status && lead.google_calendar_sync_status !== 'synced')) && (
-              <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
-                <Loader2 className="w-3 h-3 animate-spin" /> Syncing to Google Calendar…
-              </p>
-            )}
-            {(lead.follow_up_type === "Meeting" || lead.follow_up_type === "Phone Call") && syncStatus === 'error' && (
-              <p className="text-[10px] text-red-600 font-semibold">⚠ Calendar sync failed — retry from Integrations</p>
-            )}
+            {lead.follow_up_notes && <p className="text-[11px] text-slate-500 whitespace-pre-wrap">{lead.follow_up_notes}</p>}
           </div>
         ) : (
           <p className="text-sm text-slate-400">—</p>
         )}
-
-        {availabilityError && (
-          <div className="mt-2 flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-            <AlertTriangle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
-            <p className="text-[10px] text-red-700">{availabilityError}</p>
-          </div>
-        )}
-        {saveError && (
-          <div className="mt-2 flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-            <AlertTriangle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
-            <p className="text-[10px] text-red-700">{saveError}</p>
-          </div>
-        )}
+        {errorBox}
       </div>
     );
   }
 
-  // Editing mode
-  const ownerEmail = resolveOwnerEmail(lead.assigned_rep);
-  const isUpdate = !!(lead.follow_up_date || lead.google_event_id);
-
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" data-testid="follow-up-editor">
       <div className="flex items-center justify-between">
-        <p className="sidebar-section-header">
-          {isUpdate ? "Update Follow-up" : "Schedule Follow-up"}
-        </p>
+        <p className="sidebar-section-header">{lead.follow_up_date ? "Update Follow-up" : "Add Follow-up"}</p>
         <button onClick={() => setEditing(false)} aria-label="Cancel edit" className="text-slate-400 hover:text-slate-600">
           <X className="w-3.5 h-3.5" />
         </button>
       </div>
-
-      {/* Date */}
-      <div>
-        <label className="text-[10px] font-semibold text-slate-500 uppercase block mb-1">Date</label>
-        <input
-          type="date"
-          value={date}
-          onChange={e => { setDate(e.target.value); setAvailabilityError(null); setOverrideEnabled(false); }}
-          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
-        />
-      </div>
-
-      {/* Time */}
-      <div>
-        <div className="flex items-center gap-1.5 mb-1">
-          <label className="text-[10px] font-semibold text-slate-500 uppercase">Time</label>
-          {isAdminUser && (
-            <button
-              onClick={() => { setOverrideEnabled(!overrideEnabled); setAvailabilityError(null); }}
-              className={`flex items-center gap-0.5 text-[9px] font-semibold px-1.5 py-0.5 rounded-full transition-colors ${
-                overrideEnabled
-                  ? 'text-white bg-amber-500 border border-amber-500'
-                  : 'text-amber-600 bg-amber-50 border border-amber-200 hover:bg-amber-100'
-              }`}
-            >
-              <ShieldAlert className="w-2.5 h-2.5" /> Override {overrideEnabled ? 'ON' : 'OFF'}
-            </button>
-          )}
-        </div>
-        <AvailableTimePicker
-          value={time}
-          onChange={v => { setTime(v); setAvailabilityError(null); setOverrideEnabled(false); }}
-          date={date}
-          ownerName={lead.assigned_rep}
-          adminOverride={isAdminUser && overrideEnabled}
-          excludeAppointmentId={lead.appointment_id}
-        />
-      </div>
-
-      {availabilityError && (
-        <div className="flex items-start gap-1.5 bg-red-50 border border-red-200 rounded-lg px-2.5 py-2">
-          <AlertTriangle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-red-700">{availabilityError}</p>
-        </div>
-      )}
-
-      {saveError && (
-        <div className="flex items-start gap-1.5 bg-red-50 border border-red-200 rounded-lg px-2.5 py-2">
-          <AlertTriangle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-red-700">{saveError}</p>
-        </div>
-      )}
-
-      {/* Type */}
-      {date && (
+      <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="text-[10px] font-semibold text-slate-500 uppercase block mb-2">Type</label>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => { setType("Phone Call"); setAvailabilityError(null); setOverrideEnabled(false); }}
-              className={`flex flex-col items-center gap-1.5 px-3 py-3 rounded-lg border-2 text-xs font-semibold transition-colors ${
-                type === "Phone Call"
-                  ? "border-green-500 bg-green-50 text-green-700"
-                  : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
-              }`}
-            >
-              <Phone className="w-4 h-4" />
-              Phone Call
-            </button>
-            <button
-              onClick={() => { setType("Meeting"); setAvailabilityError(null); setOverrideEnabled(false); }}
-              className={`flex flex-col items-center gap-1.5 px-3 py-3 rounded-lg border-2 text-xs font-semibold transition-colors ${
-                type === "Meeting"
-                  ? "border-blue-500 bg-blue-50 text-blue-700"
-                  : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
-              }`}
-            >
-              <Calendar className="w-4 h-4" />
-              Meeting
-            </button>
-          </div>
+          <label className="text-[10px] font-semibold text-slate-500 uppercase block mb-1">Date</label>
+          <input type="date" value={date} onChange={e => setDate(e.target.value)} aria-label="Follow-up date"
+            className="w-full border border-slate-200 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" />
         </div>
-      )}
-
-      {/* Meeting info box */}
-      {type === "Meeting" && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2.5 space-y-1">
-          <p className="text-[10px] font-semibold text-blue-800">
-            {isUpdate ? "Google Calendar event will be updated automatically:" : "Google Calendar event will be created automatically:"}
-          </p>
-          <p className="text-[10px] text-blue-600 font-medium">⏰ Available times: 8:30 AM – 6:30 PM</p>
-          <ul className="text-[10px] text-blue-700 list-disc list-inside space-y-0.5">
-            <li>{time ? fmt12(time) : "Selected time"} — 1hr meeting with {clientName}</li>
-            <li>+1hr: Driving / Travel Time (busy, no client invite)</li>
-            <li>Reminders: 12h, 2h, 30min (email)</li>
-          </ul>
-          {ownerEmail && (
-            <p className="text-[10px] text-blue-600">📋 Owner invite: {ownerEmail}</p>
-          )}
-          {!hasEmail && (
-            <div className="flex items-center gap-1.5 mt-1 bg-amber-50 border border-amber-200 rounded px-2 py-1.5">
-              <AlertTriangle className="w-3 h-3 text-amber-500 flex-shrink-0" />
-              <p className="text-[10px] text-amber-700">No client email — client invite will NOT be sent</p>
-            </div>
-          )}
+        <div>
+          <label className="text-[10px] font-semibold text-slate-500 uppercase block mb-1">Time</label>
+          <input type="time" value={time} onChange={e => setTime(e.target.value)} aria-label="Follow-up time"
+            className="w-full border border-slate-200 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" />
         </div>
-      )}
-
-      {/* Phone Call info */}
-      {type === "Phone Call" && (
-        <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 space-y-1">
-          <p className="text-[10px] font-semibold text-green-800">
-            {isUpdate ? "Google Calendar event will be updated automatically:" : "Google Calendar event will be created automatically:"}
-          </p>
-          <ul className="text-[10px] text-green-700 list-disc list-inside space-y-0.5">
-            <li>{time ? fmt12(time) : "Selected time"} — Phone call with {clientName}</li>
-            <li>No travel buffer (no driving needed)</li>
-            <li>Reminders: 12h, 2h, 30min (email)</li>
-          </ul>
-          {ownerEmail && (
-            <p className="text-[10px] text-green-600">📋 Owner invite: {ownerEmail}</p>
-          )}
-        </div>
-      )}
-
-      {/* Actions */}
+      </div>
+      <div>
+        <label className="text-[10px] font-semibold text-slate-500 uppercase block mb-1">Type</label>
+        <select value={type} onChange={e => setType(e.target.value)} aria-label="Follow-up type"
+          className="w-full border border-slate-200 rounded-lg px-2 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500">
+          <option value="">Select type…</option>
+          {typeOptions.map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
+      </div>
+      <div>
+        <label className="text-[10px] font-semibold text-slate-500 uppercase block mb-1">Notes</label>
+        <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} maxLength={2000} aria-label="Follow-up notes"
+          placeholder="What should happen next?"
+          className="w-full border border-slate-200 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" />
+      </div>
+      <p className="text-[10px] text-slate-400">Follow-ups are internal reminders — they don't book a visit or add a Google Calendar event.</p>
+      {errorBox}
       <div className="flex gap-2">
-        <button
-          onClick={handleSave}
-          disabled={saving || !date}
-          className="flex-1 px-3 py-1.5 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50 rounded transition-colors"
-        >
-          {saving ? "Saving..." : isUpdate ? "Update" : "Save"}
+        <button onClick={handleSave} disabled={saving || !date || !type}
+          className="flex-1 px-3 py-1.5 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50 rounded transition-colors">
+          {saving ? "Saving..." : lead.follow_up_date ? "Update" : "Save"}
         </button>
         {lead.follow_up_date && (
-          <button
-            onClick={handleClear}
-            className="px-3 py-1.5 text-xs font-semibold text-red-600 border border-red-200 rounded hover:bg-red-50 transition-colors"
-          >
+          <button onClick={handleClear} disabled={saving}
+            className="px-3 py-1.5 text-xs font-semibold text-red-600 border border-red-200 rounded hover:bg-red-50 transition-colors">
             Clear
           </button>
         )}
-        <button
-          onClick={() => setEditing(false)}
-          className="px-3 py-1.5 text-xs font-semibold text-slate-600 border border-slate-200 rounded hover:bg-slate-50 transition-colors"
-        >
+        <button onClick={() => setEditing(false)}
+          className="px-3 py-1.5 text-xs font-semibold text-slate-600 border border-slate-200 rounded hover:bg-slate-50 transition-colors">
           Cancel
         </button>
       </div>

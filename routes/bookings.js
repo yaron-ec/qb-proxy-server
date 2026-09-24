@@ -145,7 +145,10 @@ router.post('/bookings', requireAuth, async (req, res) => {
     const peek = await peekOwner(body.owner_id || null, body.owner_email || null);
     const ownerEmail = peek ? peek.email : (body.owner_email ? String(body.owner_email).trim().toLowerCase() : null);
     if (!canAccessOwner(req.user, ownerEmail, true)) return deny(res, true);
-    const result = await createBooking({ ...body, actor });
+    // This endpoint books an appointment; lead-only creation goes through
+    // POST /api/v1/leads or the capture form.
+    if (!body.start_at) return res.status(400).json({ error: 'start_at_required', message: 'start_at is required' });
+    const result = await createBooking({ ...body, actor, onWrite: undefined });
     res.status(result.idempotent ? 200 : 201).json(result);
   } catch (e) {
     handleBookingErr(res, e);

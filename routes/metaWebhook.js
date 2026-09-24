@@ -169,10 +169,8 @@ router.post('/', express.raw({ type: '*/*', verify: (req, res, buf) => { req.raw
               timezone: 'America/Los_Angeles',
               actor: 'meta-webhook',
               external_ref: idempotency_key,
-              // Pre-conversion Pacific-local strings — see routes/publicCapture.js's
-              // identical pass-through for why (bookingService new-lead init).
-              local_appointment_date: mapped.appointment_date,
-              local_appointment_time: mapped.appointment_time,
+              // The appointment lives only in the appointments row — it is not
+              // mirrored into the lead's follow_up_* fields.
             });
 
             const leadId = booking.lead?.id;

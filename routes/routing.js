@@ -272,14 +272,17 @@ router.get('/daily-schedule', async (req, res) => {
     // Query the CANONICAL appointments table (source of truth for appointments).
     // Join to leads for address info. Filter by appointment status (not lead
     // status) — Lost/Sold leads with active appointments MUST appear.
-    // follow_up_type = 'Meeting' filter excludes phone calls (no driving needed).
-    // Also UNION legacy leads with follow_up_date but no appointments row.
+    // Phone Calls are excluded (no driving): an appointment is a Meeting when
+    // its reserved busy_range includes the travel buffer (lower(busy_range) <
+    // start_at) — kind comes from the appointment itself, never from the
+    // lead's follow-up. Also UNION legacy leads with a dated 'Meeting'
+    // follow-up but no appointments row.
     const offsetMs = getLaOffsetMs(date);
     const dayStartUtc = new Date(new Date(`${date}T00:00:00`).getTime() - offsetMs);
     const dayEndUtc = new Date(dayStartUtc.getTime() + 24 * 60 * 60 * 1000);
 
     const params = [dayStartUtc.toISOString(), dayEndUtc.toISOString(), date];
-    let apptWhere = `a.start_at >= $1::timestamptz AND a.start_at < $2::timestamptz AND a.status IN ('scheduled', 'confirmed') AND l.follow_up_type = 'Meeting' AND (l.status IS NULL OR l.status NOT IN ('Lost', 'DNQ'))`;
+    let apptWhere = `a.start_at >= $1::timestamptz AND a.start_at < $2::timestamptz AND a.status IN ('scheduled', 'confirmed') AND lower(a.busy_range) < a.start_at AND (l.status IS NULL OR l.status NOT IN ('Lost', 'DNQ'))`;
     let legacyWhere = `l.follow_up_date = $3 AND l.follow_up_type = 'Meeting' AND (l.status IS NULL OR l.status NOT IN ('Lost', 'DNQ')) AND NOT EXISTS (SELECT 1 FROM appointments a2 WHERE a2.lead_id = l.id AND a2.status IN ('scheduled', 'confirmed') AND a2.start_at >= $1::timestamptz AND a2.start_at < $2::timestamptz)`;
 
     if (owner && owner !== 'all') {

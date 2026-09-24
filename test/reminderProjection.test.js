@@ -27,6 +27,7 @@ function createMockDb() {
   const tables = {
     reminder_leads: new Map(), // id → row
     leads: new Map(),
+    appointments: [], // canonical appointment rows (lead_id, start_at, busy_range, status)
   };
   let inTransaction = false;
 
@@ -64,6 +65,12 @@ function createMockDb() {
       const id = params[0];
       tables.reminder_leads.delete(id);
       return { rows: [] };
+    }
+
+    // SELECT the lead's active canonical appointment
+    if (/SELECT \* FROM appointments WHERE lead_id = \$1/.test(normalizedSql)) {
+      const rows = tables.appointments.filter(a => a.lead_id === params[0] && ['scheduled', 'confirmed'].includes(a.status));
+      return { rows: rows.slice(-1) };
     }
 
     // SELECT from reminder_leads
@@ -129,15 +136,22 @@ async function runTests() {
       id: 'native-uuid-2', external_ref: null,
       first_name: 'Jane', last_name: 'Smith', email: 'jane@test.com', phone: '+15557654321',
       follow_up_date: null, follow_up_time: null, follow_up_type: null,
-      appointment_date: '2026-10-01', appointment_time: '09:00',
       budget_range: null, notes: null, customer_reminders_disabled: false,
       crm_created_date: '2026-09-01T00:00:00Z', owner_display_name: 'Yaron Drilevich',
     };
+    // The appointment lives in the appointments table (canonical), not on the
+    // lead row: 2026-10-01 09:00 Pacific (PDT) = 16:00Z, Meeting (1h buffers).
+    db.tables.appointments.push({
+      id: 'appt-2', lead_id: 'native-uuid-2', status: 'scheduled', timezone: 'America/Los_Angeles',
+      start_at: '2026-10-01T16:00:00Z', end_at: '2026-10-01T17:00:00Z',
+      busy_range: '["2026-10-01 15:00:00+00","2026-10-01 18:00:00+00")',
+    });
     const result = await syncLeadToReminders(db, lead);
     assert.strictEqual(result.action, 'synced');
     assert.strictEqual(result.id, 'native-uuid-2');
     assert(db.tables.reminder_leads.has('native-uuid-2'));
     assert.strictEqual(db.tables.reminder_leads.get('native-uuid-2').appointment_date, '2026-10-01');
+    assert.strictEqual(db.tables.reminder_leads.get('native-uuid-2').appointment_time, '09:00');
   });
 
   // 3. No dates → clears appointment fields (not delete)

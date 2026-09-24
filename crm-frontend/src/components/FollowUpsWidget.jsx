@@ -145,47 +145,29 @@ export default function FollowUpsWidget({ leads: propLeads, allLeads: propAllLea
   // Uses local-date integers (YYYYMMDD) to avoid UTC/timezone bucketing errors.
   const sections = useMemo(() => {
     const todayMeetings = [], todayCalls = [], tomorrowMeetings = [], tomorrowCalls = [], thisWeekMeetings = [], thisWeekCalls = [];
-    const seen = new Set();
     const today = todayInt();
     const tomorrow = tomorrowInt();
     const in7days = futureDateInt(7);
 
+    // Two independent sources, bucketed separately:
+    //   • the APPOINTMENT (canonical appointments row → lead.appointment_*)
+    //   • the FOLLOW-UP (lead.follow_up_*), skipped once marked completed.
+    // A lead can legitimately appear once for each.
+    const bucket = (l, dateStr, isMeeting, kind) => {
+      const d = parseDateInt(dateStr);
+      if (d === null) return;
+      const entry = { lead: l, sectionDate: dateStr, kind };
+      if (d === today) (isMeeting ? todayMeetings : todayCalls).push(entry);
+      else if (d === tomorrow) (isMeeting ? tomorrowMeetings : tomorrowCalls).push(entry);
+      else if (d > tomorrow && d <= in7days) (isMeeting ? thisWeekMeetings : thisWeekCalls).push(entry);
+    };
     for (const l of activeLeads) {
-      // follow_up_date is primary — bucket by its real local date
-      if (l.follow_up_date) {
-        const d = parseDateInt(l.follow_up_date);
-        if (d === null) continue;
-        const isMeeting = l.follow_up_type === 'Meeting';
-        if (d === today) {
-          (isMeeting ? todayMeetings : todayCalls).push({ lead: l, sectionDate: l.follow_up_date });
-          seen.add(l.id);
-        } else if (d === tomorrow) {
-          (isMeeting ? tomorrowMeetings : tomorrowCalls).push({ lead: l, sectionDate: l.follow_up_date });
-          seen.add(l.id);
-        } else if (d > tomorrow && d <= in7days) {
-          (isMeeting ? thisWeekMeetings : thisWeekCalls).push({ lead: l, sectionDate: l.follow_up_date });
-          seen.add(l.id);
-        }
-      }
-
-      // appointment_date also feeds sections if not already bucketed via follow_up_date
-      if (l.appointment_date && !seen.has(l.id)) {
-        const d = parseDateInt(l.appointment_date);
-        if (d === null) continue;
-        if (d === today) {
-          todayMeetings.push({ lead: l, sectionDate: l.appointment_date });
-          seen.add(l.id);
-        } else if (d === tomorrow) {
-          tomorrowMeetings.push({ lead: l, sectionDate: l.appointment_date });
-          seen.add(l.id);
-        } else if (d > tomorrow && d <= in7days) {
-          thisWeekMeetings.push({ lead: l, sectionDate: l.appointment_date });
-          seen.add(l.id);
-        }
-      }
+      if (l.appointment_date) bucket(l, l.appointment_date, l.appointment_type !== 'Phone Call', 'appointment');
+      if (l.follow_up_date && l.follow_up_status !== 'completed') bucket(l, l.follow_up_date, l.follow_up_type === 'Meeting', 'follow_up');
     }
 
-    const sortByTime = (a, b) => (a.lead.follow_up_time || a.lead.appointment_time || '').localeCompare(b.lead.follow_up_time || b.lead.appointment_time || '');
+    const timeOf = (e) => (e.kind === 'appointment' ? e.lead.appointment_time : e.lead.follow_up_time) || '';
+    const sortByTime = (a, b) => timeOf(a).localeCompare(timeOf(b));
     return {
       todayMeetings: todayMeetings.sort(sortByTime),
       todayCalls: todayCalls.sort(sortByTime),
@@ -202,7 +184,7 @@ export default function FollowUpsWidget({ leads: propLeads, allLeads: propAllLea
     const today = todayInt();
     for (const l of leads) {
       if (!isActiveSalesLead(l)) continue;
-      if (!l.follow_up_date) continue;
+      if (!l.follow_up_date || l.follow_up_status === 'completed') continue;
       const d = parseDateInt(l.follow_up_date);
       if (!d || d >= today) continue;
       const daysOld = daysBetweenInts(d, today);
@@ -255,24 +237,17 @@ export default function FollowUpsWidget({ leads: propLeads, allLeads: propAllLea
 
   // Helper to convert { lead, sectionDate }[] → plain lead arrays for legacy Group/LeadCard
   // We pass sectionDate as a prop override so cards display the correct date
-  const unwrap = (entries) => entries.map(e => ({ ...e.lead, _sectionDate: e.sectionDate }));
+  const unwrap = (entries) => entries.map(e => ({ ...e.lead, _sectionDate: e.sectionDate, _sectionKind: e.kind }));
 
   const handleComplete = async (e, lead) => {
     e.preventDefault();
     e.stopPropagation();
     setCompleting(prev => ({ ...prev, [lead.id]: true }));
     try {
-      // Use updateAppointment (PUT /:id/appointment) — NOT the generic update
-      // (PUT /:id). Only the appointment route cancels the appointment row and
-      // enqueues the calendar outbox cancellation so the Google Calendar event
-      // is removed. The generic update route only changes lead fields with no
-      // calendar side effects, which would orphan the calendar event.
-      const res = await railwayLeads.updateAppointment(lead.id, {
-        follow_up_date: null, follow_up_time: null, follow_up_type: null,
-      });
-      const updated = res?.lead || {
-        ...lead, follow_up_date: null, follow_up_time: null, follow_up_type: null,
-      };
+      // "Complete" marks the FOLLOW-UP done (PUT /:id/follow-up). It never
+      // touches the appointment or its Google Calendar event.
+      const res = await railwayLeads.updateFollowUp(lead.id, { follow_up_status: 'completed' });
+      const updated = res?.lead || { ...lead, follow_up_status: 'completed' };
       setLeads(prev => prev.map(l => l.id === updated.id ? updated : l));
     } catch (err) {
       console.error('[FollowUpsWidget] Failed to clear follow-up:', err?.message);
@@ -451,7 +426,7 @@ function Group({ label, labelClass, leads, onComplete, completing, isOverdue, no
       )}
       <div className="divide-y divide-slate-50">
         {leads.map(lead => (
-          <LeadCard key={lead.id} lead={lead} onComplete={onComplete} completing={completing} isOverdue={isOverdue} />
+          <LeadCard key={`${lead.id}-${lead._sectionKind || 'fu'}`} lead={lead} onComplete={onComplete} completing={completing} isOverdue={isOverdue} />
         ))}
       </div>
     </div>
@@ -462,8 +437,10 @@ function Group({ label, labelClass, leads, onComplete, completing, isOverdue, no
 
 function LeadCard({ lead, onComplete, completing, isOverdue }) {
   const navigate = useNavigate();
-  const isMeeting = lead.follow_up_type === 'Meeting';
-  const isPhone = lead.follow_up_type === 'Phone Call';
+  // An appointment entry shows the appointment; everything else shows the follow-up.
+  const isAppt = lead._sectionKind === 'appointment';
+  const entryType = isAppt ? lead.appointment_type : lead.follow_up_type;
+  const isMeeting = entryType === 'Meeting';
 
   const accentColor = isOverdue ? 'border-l-red-400' : isMeeting ? 'border-l-purple-400' : 'border-l-green-400';
   const typeColor = isMeeting ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700';
@@ -474,10 +451,10 @@ function LeadCard({ lead, onComplete, completing, isOverdue }) {
   const createdDays = daysAgoFromUTC(Date.UTC(
     ...createdDateStr.split('-').map((v, i) => i === 1 ? parseInt(v) - 1 : parseInt(v))
   ));
-  // Display the real follow_up_date; if bucketed via appointment_date, show that
-  const displayDate = lead.follow_up_date || lead._sectionDate;
+  const displayDate = isAppt ? lead.appointment_date : (lead.follow_up_date || lead._sectionDate);
   const followUpLabel = formatFollowUpDate(displayDate);
-  const timeLabel = lead.follow_up_time ? fmt12(lead.follow_up_time) : (lead._sectionDate === lead.appointment_date && lead.appointment_time ? fmt12(lead.appointment_time) : '');
+  const entryTime = isAppt ? lead.appointment_time : lead.follow_up_time;
+  const timeLabel = entryTime ? fmt12(entryTime) : '';
 
   const handleRowClick = () => {
     navigate(`/leads/${lead.id}`);
@@ -493,9 +470,9 @@ function LeadCard({ lead, onComplete, completing, isOverdue }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-sm font-bold text-slate-900 group-hover:text-amber-600 transition-colors">{clientName}</span>
-            {lead.follow_up_type && (
+            {entryType && (
               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${typeColor}`}>
-                {typeIcon} {lead.follow_up_type}
+                {typeIcon} {isAppt ? `Appointment · ${entryType}` : `Follow-up · ${entryType}`}
               </span>
             )}
           </div>
@@ -514,10 +491,12 @@ function LeadCard({ lead, onComplete, completing, isOverdue }) {
           <div onClick={e => e.stopPropagation()}>
             <ContactActions phone={lead.phone} email={lead.email} size="sm" />
           </div>
-          <button onClick={(e) => onComplete(e, lead)} disabled={completing[lead.id]}
-            className="p-1.5 rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors disabled:opacity-40" title="Mark Complete">
-            <CheckCircle className="w-3 h-3" />
-          </button>
+          {!isAppt && (
+            <button onClick={(e) => onComplete(e, lead)} disabled={completing[lead.id]}
+              className="p-1.5 rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors disabled:opacity-40" title="Mark follow-up done">
+              <CheckCircle className="w-3 h-3" />
+            </button>
+          )}
           <div className="w-px h-4 bg-slate-200 mx-0.5" />
           <button onClick={handleRowClick}
             className="p-1.5 rounded-md bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" title="Open Lead Details">
@@ -551,7 +530,7 @@ function LeadCard({ lead, onComplete, completing, isOverdue }) {
             <span>{followUpLabel}{timeLabel ? ` · ${timeLabel}` : ''}</span>
           </span>
         )}
-        {lead.appointment_date && !lead._sectionDate && (
+        {lead.appointment_date && !isAppt && (
           <span className="flex items-center gap-1 text-slate-500">
             <span className="text-slate-400">📆</span>
             <span>Appt: {lead.appointment_date}{lead.appointment_time ? ` ${fmt12(lead.appointment_time)}` : ''}</span>

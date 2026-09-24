@@ -253,10 +253,22 @@ about topology, this file wins; go correct `railway.json` and
 
 ## Important business invariants
 
-- **Appointments**: DB-enforced no-double-booking via a genuine Postgres
-  `EXCLUDE USING gist` constraint on `(owner_id, busy_range)` — not just an
-  app-level check. Never insert into `appointments` outside
-  `lib/booking/bookingService.js`.
+- **Appointments**: no-double-booking is enforced by
+  `lib/booking/appointmentWriter.js#acquireOwnerLockAndCheckConflict`
+  (per-owner `pg_advisory_xact_lock` + `busy_range` overlap check, in the
+  same transaction as the write). Migration 2026-33 DROPPED the old
+  `EXCLUDE USING gist` constraint, so there is no DB-level guard — every
+  appointment write must go through `lib/booking/bookingService.js`, which
+  calls it. Never insert into `appointments` anywhere else.
+- **Appointment vs Follow-Up** (`lib/booking/appointmentView.js`,
+  `lib/followUp.js`): the APPOINTMENT is the lead's active `appointments`
+  row — the only source for Lead Detail → Appointment, Google Calendar,
+  availability blocking and customer reminders. The FOLLOW-UP is
+  `leads.follow_up_*` (+ notes/status), an internal next action that never
+  creates/moves/cancels an appointment. Never mirror one into the other.
+  Writes: `PUT /api/v1/leads/:id/appointment` vs `PUT /api/v1/leads/:id/follow-up`.
+  Real-Postgres coverage: `npm run test:integration` (needs a disposable,
+  migrated `TEST_DATABASE_URL`).
 - **`qb_invoice_sale_map`**: `crm_sale_id` is the ONLY ownership boundary
   for a QuickBooks invoice, and a mapping is NEVER reassigned once created
   (`ON CONFLICT DO NOTHING`). Never resolve invoice ownership by amount,

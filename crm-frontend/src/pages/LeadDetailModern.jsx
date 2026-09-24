@@ -23,7 +23,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import { StatusBadge, Card, CardHeader, CardContent, SectionTitle, Label, Button } from "@/components/DesignSystem";
 import DealsPanel from "../components/DealsPanel";
-import AvailableTimePicker from "../components/AvailableTimePicker";
+import AppointmentEditor from "@/components/AppointmentEditor";
 import FollowUpScheduler from "../components/FollowUpScheduler";
 import ActivityComposer from "../components/ActivityComposer";
 import HandoffEstimatesPanel from "../components/HandoffEstimatesPanel";
@@ -479,7 +479,7 @@ function nextActionFor(lead) {
   const apt = lead.appointment_date ? parseFollowUpDate(lead.appointment_date) : null;
 
   if (fu !== null && fu < todayNum) {
-    return { tone: "overdue", text: `Overdue ${lead.follow_up_type === "Meeting" ? "meeting" : "call"} follow-up` };
+    return { tone: "overdue", text: `Overdue follow-up${lead.follow_up_type ? ` — ${lead.follow_up_type}` : ""}` };
   }
   if (apt !== null && apt === todayNum) {
     return { tone: "today", text: "Appointment today" };
@@ -643,35 +643,21 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
 
       {/* ── Schedule section ── */}
       <SidebarSection title="Schedule">
-        {/* Appointment */}
+        {/* Appointment — the canonical appointments row (lead.appointment).
+            Independent of the Follow-up below; each has its own editor/API. */}
         <InfoRow icon={Calendar}>
           <div className="flex-1 min-w-0">
-            <p className="sidebar-label">Appointment</p>
-            <EditableField key={`apt-${lead.appointment_date}`} value={lead.appointment_date} onSave={v => updateField("appointment_date", v)} type="date" editable>
-              <span className="sidebar-value">
-                {lead.appointment_date
-                  ? new Date(lead.appointment_date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-                  : <span className="sidebar-empty">Not set</span>}
-                {lead.appointment_time && <span className="text-slate-500 ml-1.5 font-normal">at {fmt12(lead.appointment_time)}</span>}
-              </span>
-            </EditableField>
-            {/* Time picker inline below */}
-            <div className="mt-1.5">
-              <AppointmentTimePicker key={`apt-t-${lead.appointment_time}`} lead={lead} onSave={v => updateField("appointment_time", v)} />
-            </div>
-            {/* Clarify when no site visit is scheduled but a follow-up meeting exists —
-                prevents the contradictory "Appointment scheduled" status + "Appointment Not set" UI */}
-            {!lead.appointment_date && lead.follow_up_date && lead.follow_up_type === "Meeting" && (
-              <p className="text-[10px] text-slate-400 mt-1.5 italic">
-                No site visit on file — next meeting is in Follow-up below.
-              </p>
-            )}
+            <AppointmentEditor
+              key={`apt-${lead.appointment?.id || 'none'}-${lead.appointment?.calendar_sync_status || ''}`}
+              lead={lead}
+              onLeadUpdate={onLeadUpdate}
+            />
           </div>
         </InfoRow>
 
         {/* Follow-up */}
         <div className="mt-3">
-          <FollowUpScheduler key={`fup-${lead.follow_up_date}-${lead.follow_up_time}-${lead.follow_up_type}`} lead={lead} onLeadUpdate={onLeadUpdate} />
+          <FollowUpScheduler key={`fup-${lead.follow_up_date}-${lead.follow_up_time}-${lead.follow_up_type}-${lead.follow_up_status}`} lead={lead} onLeadUpdate={onLeadUpdate} />
         </div>
       </SidebarSection>
 
@@ -736,49 +722,6 @@ function InfoRow({ icon: Icon, children, iconClass = "text-slate-400" }) {
 // ContactRow kept for any external callers
 function ContactRow({ icon: Icon, children, iconClass = "text-slate-400" }) {
   return <InfoRow icon={Icon} iconClass={iconClass}>{children}</InfoRow>;
-}
-
-// ── Appointment Time Picker ─────────────────────────────────────────────────
-function AppointmentTimePicker({ lead, onSave }) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [val, setVal] = useState(lead.appointment_time || '');
-  const [availError, setAvailError] = useState(null);
-
-  const fmt12 = (t) => {
-    if (!t) return '—';
-    const [h, m] = t.split(':').map(Number);
-    return `${h % 12 || 12}:${String(m).padStart(2,'0')} ${h >= 12 ? 'PM' : 'AM'}`;
-  };
-
-  const handleSave = async () => {
-    onSave(val);
-    setIsEditing(false);
-    setAvailError(null);
-  };
-
-  if (!isEditing) {
-    return (
-      <button onClick={() => setIsEditing(true)} className="btn-compact text-[11px] text-slate-400 hover:text-amber-600 flex items-center gap-1 transition-colors">
-        <Pencil className="w-3 h-3" />
-        {lead.appointment_time ? `Edit time` : `Set time`}
-      </button>
-    );
-  }
-
-  return (
-    <div className="space-y-1.5 mt-1">
-      <AvailableTimePicker value={val} onChange={v => { setVal(v); setAvailError(null); }} date={lead.appointment_date} ownerName={lead.assigned_rep} />
-      {availError && <p className="text-[11px] text-red-600 flex items-center gap-1"><AlertTriangle className="w-3 h-3" />{availError}</p>}
-      <div className="flex gap-1.5">
-        <button onClick={handleSave} className="flex-1 px-2 py-1 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded transition-colors">
-          Save
-        </button>
-        <button onClick={() => { setIsEditing(false); setVal(lead.appointment_time || ''); setAvailError(null); }} className="flex-1 px-2 py-1 text-xs text-slate-600 border border-slate-200 rounded hover:bg-slate-50">
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
 }
 
 // ── Copy Button — copies a value to clipboard with a "Copied" toast ──────────
@@ -1116,7 +1059,8 @@ function MobileIntegrationActions({ lead, onLeadUpdate }) {
     remindersDisabled: !!lead.customer_reminders_disabled,
   });
 
-  const apptDate = lead.follow_up_date || lead.appointment_date;
+  // Customer reminders + calendar are keyed to the canonical appointment.
+  const apptDate = lead.appointment_date;
   const today = new Date().toISOString().slice(0, 10);
 
   const runAction = async (key, fn) => {
@@ -1140,8 +1084,7 @@ function MobileIntegrationActions({ lead, onLeadUpdate }) {
       run: () => runAction('calendar', async () => {
         // Railway-owned calendar sync — service account creates the event server-side.
         // No browser-side Google Calendar OAuth connector, no Base44.
-        const apptDate = lead.follow_up_date || lead.appointment_date;
-        if (!apptDate) throw new Error('No appointment date set for this lead.');
+        if (!lead.appointment_date) throw new Error('No appointment set for this lead — schedule it in Schedule → Appointment.');
         const res = await railwayLeads.syncCalendar(lead.id);
         if (res?.success === false) throw new Error(res?.error || 'Calendar sync failed');
         // Refresh lead to pick up updated google_event_id / sync_status
@@ -1149,7 +1092,7 @@ function MobileIntegrationActions({ lead, onLeadUpdate }) {
           const updated = await railwayLeads.getByExternal(lead.id);
           if (updated?.lead) onLeadUpdate(updated.lead);
         } catch { /* non-critical */ }
-        return res?.already_existed ? 'Calendar event already exists' : 'Calendar event created';
+        return 'Calendar sync queued for the current appointment';
       }),
     },
     {

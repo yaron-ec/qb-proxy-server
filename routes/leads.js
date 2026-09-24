@@ -29,6 +29,9 @@ const { toUtcIso } = require('../lib/booking/slotBlocking');
 const { syncLeadToReminders, removeFromReminders } = require('../lib/reminderProjection');
 const { notifyCrmActivity } = require('../lib/crmActivityNotifier');
 const { processAddress, buildAddressFieldMap, ensureAddressColumns } = require('../lib/addressPipeline');
+const bookingService = require('../lib/booking/bookingService');
+const { serializeAppointment, fetchActiveAppointmentsForLeads } = require('../lib/booking/appointmentView');
+const { normalizeFollowUp, FOLLOW_UP_FIELDS } = require('../lib/followUp');
 const router = express.Router();
 
 // ── Lead field diff helper ──────────────────────────────────────────────────
@@ -49,6 +52,8 @@ const LEAD_DIFF_FIELDS = [
   { col: 'follow_up_date', label: 'Follow-Up Date' },
   { col: 'follow_up_time', label: 'Follow-Up Time' },
   { col: 'follow_up_type', label: 'Follow-Up Type' },
+  { col: 'follow_up_notes', label: 'Follow-Up Notes' },
+  { col: 'follow_up_status', label: 'Follow-Up Status' },
   { col: 'meeting_stage', label: 'Meeting Stage' },
   { col: 'assigned_rep', label: 'Owner' },
 ];
@@ -160,6 +165,10 @@ async function fetchActiveAppointment(leadId) {
 
 function serializeLead(row, appointment = null) {
   if (!row) return null;
+  // APPOINTMENT (canonical: the active appointments row — lib/booking/appointmentView).
+  // FOLLOW-UP (canonical: leads.follow_up_*). The two are independent; the
+  // appointment is never read from, or mirrored into, the follow-up fields.
+  const appt = serializeAppointment(appointment);
   return {
     id: row.id,
     external_ref: row.external_ref,
@@ -204,7 +213,15 @@ function serializeLead(row, appointment = null) {
     follow_up_date: row.follow_up_date || null,
     follow_up_time: row.follow_up_time || null,
     follow_up_type: row.follow_up_type || null,
+    follow_up_notes: row.follow_up_notes || null,
+    follow_up_status: row.follow_up_status || (row.follow_up_date ? 'pending' : null),
     meeting_stage: row.meeting_stage || null,
+    appointment: appt,
+    appointment_id: appt ? appt.id : null,
+    appointment_date: appt ? appt.date : null,
+    appointment_time: appt ? appt.time : null,
+    appointment_type: appt ? appt.kind : null,
+    appointment_status: appt ? appt.status : null,
     crm_created_date: row.crm_created_date || row.created_at,
     reviewed_at: row.reviewed_at || null,
     created_date: row.created_at,
@@ -216,7 +233,7 @@ function serializeLead(row, appointment = null) {
     //   calendar_last_error, calendar_synced_at
     // We expose them on the lead object under the legacy field names so the
     // frontend CalendarSyncPanel works without interface changes.
-    google_calendar_sync_status: appointment?.calendar_sync_status || null,
+    google_calendar_sync_status: appt ? appt.calendar_sync_status : null,
     google_event_id: appointment?.google_event_id || null,
     google_travel_event_id: appointment?.google_travel_event_id || null,
     google_calendar_sync_error: appointment?.calendar_last_error || null,
@@ -629,243 +646,243 @@ router.get('/by-external/:externalRef/detail', requireAuth, async (req, res) => 
   }
 });
 
-// ── PUT /by-external/:externalRef/appointment — appointment edit/reschedule ──
-// Updates ONLY appointment fields. Separate from contact update endpoint.
-// No side effects (no calendar sync here — that's handled by the booking outbox).
-// appointment_date/appointment_time are NOT on the leads table — they live in the
-// appointments table. Including them here caused a 500 error. The appointment
-// creation below derives date/time from follow_up_date/follow_up_time.
-const APPOINTMENT_FIELDS = ['meeting_stage', 'follow_up_date', 'follow_up_time', 'follow_up_type'];
-
-// ── Shared appointment update logic ──────────────────────────────────────────
-// Used by both PUT /:id/appointment (canonical Railway UUID) and
-// PUT /by-external/:externalRef/appointment (legacy external_ref).
-// Both routes resolve the canonical Railway UUID BEFORE calling this helper,
-// so it always updates by WHERE id = $1 — no unsafe identifier comparisons,
-// no external_ref required. The caller has already verified owner scope.
-async function executeAppointmentUpdate(req, res, resolvedLeadId) {
-  try {
-    const body = req.body || {};
-    // ── Admin Override authorization (CANONICAL CONTRACT) ─────────────────
-    // Frontend sends admin_override=true when an admin has explicitly toggled
-    // the override switch for a conflicting slot. The backend is the
-    // AUTHORITATIVE gate: role must be 'admin' AND email must be in the
-    // server-side allowlist (same pattern as captureOverrideAuth.js).
-    // A non-admin who spoofs admin_override=true gets 403, never a bypass.
-    // override_conflict is the ONE canonical field — no competing names.
-    const adminOverrideRequested = body.admin_override === true;
-    if (adminOverrideRequested) {
-      const overrideRole = String((req.user && req.user.role) || '').toLowerCase();
-      const overrideEmail = canonicalEmail(req.user && req.user.email);
-      if (overrideRole !== 'admin' || !isOverrideAdminEmail(overrideEmail)) {
-        return res.status(403).json({
-          error: 'override_forbidden',
-          message: 'Only authorized admins may override appointment conflicts.',
-        });
-      }
-    }
-    const overrideActor = adminOverrideRequested ? (req.user && req.user.email) || null : null;
-    const updates = [];
-    const params = [];
-    let p = 1;
-
-    for (const col of APPOINTMENT_FIELDS) {
-      if (body[col] !== undefined) {
-        params.push(body[col]);
-        updates.push(`${col} = $${p}`);
-        p++;
-      }
-    }
-
-    if (updates.length === 0) return res.status(400).json({ error: 'no appointment fields to update' });
-    updates.push('updated_at = NOW()');
-
-    // ── Atomic: lead update + appointment mutation in ONE transaction ────────
-    const client = await pool.connect();
-    let updatedLead;
-    let appointmentAction = null;
-    let appointmentChanges = [];
-    try {
-      await client.query('BEGIN');
-
-      // 1. Update lead appointment fields by the canonical Railway UUID.
-      const { rows } = await client.query(
-        `UPDATE leads SET ${updates.join(', ')} WHERE id = $${p} RETURNING *`,
-        [...params, resolvedLeadId]
-      );
-      if (!rows[0]) {
-        await client.query('ROLLBACK');
-        return res.status(404).json({ error: 'not_found' });
-      }
-      updatedLead = rows[0];
-
-      // 2. Create / update / cancel appointment (same transaction — atomic)
-      // Both Meeting AND Phone Call follow-ups create calendar events.
-      // Phone Calls create a main event only (no travel buffer — no driving).
-      // Meetings create main + travel events (1hr buffer before/after).
-      const shouldHaveAppointment = updatedLead.follow_up_date &&
-        (updatedLead.follow_up_type === 'Meeting' || updatedLead.follow_up_type === 'Phone Call');
-      const isPhoneCall = updatedLead.follow_up_type === 'Phone Call';
-
-      const apptRes = await client.query(
-        `SELECT * FROM appointments WHERE lead_id = $1 AND status IN ('scheduled', 'confirmed') ORDER BY created_at DESC LIMIT 1`,
-        [updatedLead.id]
-      );
-      const existingAppt = apptRes.rows[0];
-
-      if (shouldHaveAppointment) {
-        const apptDate = updatedLead.follow_up_date;
-        const apptTime = updatedLead.follow_up_time || '09:00';
-        const startAt = new Date(toUtcIso(apptDate, apptTime, 'America/Los_Angeles'));
-        const durationMin = 60;
-        const endAt = new Date(startAt.getTime() + durationMin * 60 * 1000);
-        // Phone Calls: no travel buffer (no driving). Meetings: 1hr before/after.
-        const busyStart = isPhoneCall ? startAt : new Date(startAt.getTime() - 60 * 60 * 1000);
-        const busyEnd = isPhoneCall ? endAt : new Date(endAt.getTime() + 60 * 60 * 1000);
-
-        if (existingAppt) {
-          const newVersion = (existingAppt.version || 1) + 1;
-          await client.query(
-            `UPDATE appointments SET start_at = $1, end_at = $2, busy_range = tstzrange($3, $4, '[)'),
-             version = $5, calendar_sync_status = 'pending', override_conflict = $6, updated_at = NOW() WHERE id = $7`,
-            [startAt.toISOString(), endAt.toISOString(), busyStart.toISOString(), busyEnd.toISOString(), newVersion, adminOverrideRequested, existingAppt.id]
-          );
-          const updatedAppt = (await client.query('SELECT * FROM appointments WHERE id = $1', [existingAppt.id])).rows[0];
-          // For Phone Calls, skip travel event (no driving). Pass skipTravel=true.
-          await calendarOutbox.enqueueUpdate(client, updatedAppt, updatedLead, updatedLead.owner_email, updatedAppt.version, !isPhoneCall);
-          await client.query(
-            `INSERT INTO appointment_events (appointment_id, actor, action, previous_values, new_values)
-             VALUES ($1, $2, 'rescheduled', $3, $4)`,
-            [existingAppt.id, req.user?.email || null,
-             JSON.stringify({ start_at: existingAppt.start_at, end_at: existingAppt.end_at }),
-             JSON.stringify({ start_at: updatedAppt.start_at, end_at: updatedAppt.end_at, override_conflict: adminOverrideRequested, override_actor: overrideActor })]
-          );
-          appointmentAction = 'appointment_rescheduled';
-          appointmentChanges = [
-            { label: 'Date', prev: existingAppt.start_at ? new Date(existingAppt.start_at).toLocaleDateString('en-US') : '\u2014', next: updatedAppt.start_at ? new Date(updatedAppt.start_at).toLocaleDateString('en-US') : '\u2014' },
-            { label: 'Time', prev: existingAppt.start_at ? new Date(existingAppt.start_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '\u2014', next: updatedAppt.start_at ? new Date(updatedAppt.start_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '\u2014' },
-            { label: 'Type', prev: '\u2014', next: updatedLead.follow_up_type || '\u2014' },
-          ];
-        } else {
-          const typeRes = await client.query('SELECT id FROM appointment_types ORDER BY id LIMIT 1');
-          if (typeRes.rows[0]) {
-            const typeId = typeRes.rows[0].id;
-            const idempotencyKey = `appt:${updatedLead.id}:${apptDate}:${apptTime}`;
-            const insRes = await client.query(
-              `INSERT INTO appointments (lead_id, owner_id, appointment_type_id, start_at, end_at, timezone, busy_range, status, calendar_sync_status, idempotency_key, override_conflict)
-               VALUES ($1, $2, $3, $4, $5, $6, tstzrange($7, $8, '[)'), 'scheduled', 'pending', $9, $10)
-               ON CONFLICT (idempotency_key) DO NOTHING
-               RETURNING *`,
-              [updatedLead.id, updatedLead.owner_id, typeId, startAt.toISOString(), endAt.toISOString(),
-               'America/Los_Angeles', busyStart.toISOString(), busyEnd.toISOString(), idempotencyKey, adminOverrideRequested]
-            );
-            const newAppt = insRes.rows[0];
-            if (!newAppt) {
-              // Appointment already exists (idempotency conflict) — fetch it
-              const existing = await client.query(
-                `SELECT * FROM appointments WHERE idempotency_key = $1 AND status IN ('scheduled', 'confirmed') ORDER BY created_at DESC LIMIT 1`,
-                [idempotencyKey]
-              );
-              if (existing.rows[0]) {
-                await client.query('COMMIT');
-                return res.json({ success: true, appointment_id: existing.rows[0].id, message: 'Appointment already exists (idempotent).' });
-              }
-            }
-            // For Phone Calls, skip travel event (no driving). Pass skipTravel=true.
-            await calendarOutbox.enqueueCreate(client, newAppt, updatedLead, updatedLead.owner_email, isPhoneCall);
-            await client.query(
-              `INSERT INTO appointment_events (appointment_id, actor, action, new_values)
-               VALUES ($1, $2, 'created', $3)`,
-              [newAppt.id, req.user?.email || null,
-               JSON.stringify({ start_at: newAppt.start_at, end_at: newAppt.end_at, owner_id: newAppt.owner_id, override_conflict: adminOverrideRequested, override_actor: overrideActor })]
-            );
-            appointmentAction = 'appointment_created';
-            appointmentChanges = [
-              { label: 'Date', prev: '\u2014', next: newAppt.start_at ? new Date(newAppt.start_at).toLocaleDateString('en-US') : '\u2014' },
-              { label: 'Time', prev: '\u2014', next: newAppt.start_at ? new Date(newAppt.start_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '\u2014' },
-              { label: 'Type', prev: '\u2014', next: updatedLead.follow_up_type || '\u2014' },
-            ];
-          }
-        }
-      } else {
-        // No follow-up date or no recognized follow-up type: cancel any existing appointment.
-        // No new Google Calendar event, no calendar_outbox create/update.
-        if (existingAppt) {
-          const newVersion = (existingAppt.version || 1) + 1;
-          await client.query(
-            'UPDATE appointments SET status = $1, version = $2, updated_at = NOW() WHERE id = $3',
-            ['cancelled', newVersion, existingAppt.id]
-          );
-          const cancelledAppt = (await client.query('SELECT * FROM appointments WHERE id = $1', [existingAppt.id])).rows[0];
-          await calendarOutbox.enqueueCancel(client, cancelledAppt, cancelledAppt.version);
-          await client.query(
-            `INSERT INTO appointment_events (appointment_id, actor, action, previous_values)
-             VALUES ($1, $2, 'cancelled', $3)`,
-            [existingAppt.id, req.user?.email || null,
-             JSON.stringify({ start_at: existingAppt.start_at, end_at: existingAppt.end_at, status: existingAppt.status })]
-          );
-          appointmentAction = 'appointment_cancelled';
-          appointmentChanges = [
-            { label: 'Date', prev: existingAppt.start_at ? new Date(existingAppt.start_at).toLocaleDateString('en-US') : '\u2014', next: 'Cancelled' },
-            { label: 'Time', prev: existingAppt.start_at ? new Date(existingAppt.start_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '\u2014', next: 'Cancelled' },
-            { label: 'Type', prev: updatedLead.follow_up_type || '\u2014', next: 'Cancelled' },
-          ];
-        }
-      }
-
-      // ── Reminder projection (same transaction — atomic) ──────────────────
-      const leadForProjection = (await client.query(
-        `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
-         FROM leads l LEFT JOIN owners o ON o.id = l.owner_id
-         WHERE l.id = $1`,
-        [updatedLead.id]
-      )).rows[0];
-      await syncLeadToReminders(client, leadForProjection);
-
-      await client.query('COMMIT');
-    } catch (calErr) {
-      try { await client.query('ROLLBACK'); } catch (_) {}
-
-      if (calErr.code === '23P01') {
-        return res.status(409).json({
-          error: 'slot_conflict',
-          message: 'This time conflicts with another appointment. Please choose a different time.',
-        });
-      }
-
-      console.error('[leads] appointment update error:', calErr.message);
-      return res.status(500).json({ error: calErr.message });
-    } finally {
-      client.release();
-    }
-
-    // Return with owner join
-    const fullRow = await query(
-      `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
+// ── Appointment vs Follow-Up — two independent write paths ────────────────────
+//
+//   APPOINTMENT  PUT /:id/appointment  (and /by-external/:ref/appointment)
+//     body { appointment_date:'YYYY-MM-DD', appointment_time:'HH:MM',
+//            appointment_type:'Meeting'|'Phone Call', duration_minutes?,
+//            admin_override?, expected_appointment_id? }   → create / reschedule
+//     body { cancel: true }                                   → cancel
+//     Always goes through lib/booking/bookingService (owner-schedule lock +
+//     overlap check, travel buffers, audit events, calendar outbox, reminder
+//     projection — all in ONE transaction).
+//
+//   FOLLOW-UP    PUT /:id/follow-up
+//     body { follow_up_date, follow_up_time, follow_up_type, follow_up_notes,
+//            follow_up_status, meeting_stage? } — partial updates merge onto the
+//     stored follow-up. Never touches appointments or Google Calendar.
+//
+// Backward compatibility: an older client that PUTs a follow-up-shaped body
+// (follow_up_* only) to /appointment is handled as a follow-up update — it can
+// no longer silently create, move or cancel the appointment.
+const APPOINTMENT_KINDS = ['Meeting', 'Phone Call'];
+const MEETING_STAGES = ['First Meeting', 'Second Meeting', 'Third Meeting'];
+const LEAD_WITH_OWNER_SQL = `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
        FROM leads l LEFT JOIN owners o ON o.id = l.owner_id
-       WHERE l.id = $1`,
-      [updatedLead.id]
-    );
-    const leadWithOwner = fullRow.rows[0];
+       WHERE l.id = $1`;
 
-    // ── Post-commit: notify admins of the appointment change (best-effort) ─
-    if (appointmentAction) {
-      sendLeadNotification(appointmentAction, leadWithOwner, appointmentChanges, req.user?.email);
+async function projectReminders(client, leadId) {
+  const lr = await client.query(LEAD_WITH_OWNER_SQL, [leadId]);
+  if (lr.rows[0]) await syncLeadToReminders(client, lr.rows[0]);
+}
+
+function validDateStr(s) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const [y, m, d] = s.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
+}
+
+function parseAppointmentBody(body) {
+  if (body.cancel === true) return { ok: true, cancel: true };
+  const errors = [];
+  const date = body.appointment_date == null ? '' : String(body.appointment_date).trim();
+  const rawTime = body.appointment_time == null ? '' : String(body.appointment_time).trim();
+  const tm = rawTime.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  const time = tm ? `${tm[1].padStart(2, '0')}:${tm[2]}` : null;
+  const kind = body.appointment_type == null || body.appointment_type === '' ? 'Meeting' : String(body.appointment_type);
+  if (!validDateStr(date)) errors.push('appointment_date must be a valid YYYY-MM-DD date');
+  if (!time || !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) errors.push('appointment_time must be HH:MM (24h)');
+  if (!APPOINTMENT_KINDS.includes(kind)) errors.push(`appointment_type must be one of: ${APPOINTMENT_KINDS.join(', ')}`);
+  let duration;
+  if (body.duration_minutes !== undefined && body.duration_minutes !== null && body.duration_minutes !== '') {
+    duration = Number(body.duration_minutes);
+    if (!Number.isInteger(duration) || duration <= 0 || duration > 480) errors.push('duration_minutes must be an integer between 1 and 480');
+  }
+  if (errors.length) return { ok: false, errors };
+  return { ok: true, cancel: false, date, time, kind, duration };
+}
+
+function fmtApptChange(appt) {
+  if (!appt) return { date: '—', time: '—', kind: '—' };
+  const a = serializeAppointment(appt);
+  return { date: a.date, time: a.time, kind: a.kind };
+}
+
+// Resolve + authorize a lead for a write (UUID or external_ref). Sends the
+// error response itself and returns null when the caller may not write.
+async function authorizeLeadWrite(req, res) {
+  const scope = await resolveOwnerScope(req.user);
+  if (scope.denied) { res.status(403).json({ error: 'forbidden' }); return null; }
+  if (scope.readOnly) { res.status(403).json({ error: 'forbidden', message: 'office role is read-only' }); return null; }
+  const id = req.params.id || req.params.externalRef;
+  const leadRow = UUID_RE.test(String(id))
+    ? (await query('SELECT id, owner_id FROM leads WHERE id = $1', [id])).rows[0]
+    : await resolveLeadByIdentifier(id);
+  if (!leadRow) { res.status(404).json({ error: 'not_found' }); return null; }
+  if (scope.ownerFilter && String(leadRow.owner_id) !== String(scope.ownerFilter)) {
+    res.status(403).json({ error: 'forbidden' });
+    return null;
+  }
+  return leadRow;
+}
+
+async function respondWithLead(res, leadId, extra) {
+  const full = (await query(LEAD_WITH_OWNER_SQL, [leadId])).rows[0];
+  const appt = await fetchActiveAppointment(leadId);
+  return { full, appt, body: { lead: serializeLead(full, appt), appointment: serializeAppointment(appt), ...(extra || {}) } };
+}
+
+// ── Follow-Up update ─────────────────────────────────────────────────────────
+async function executeFollowUpUpdate(req, res, leadId, opts) {
+  opts = opts || {};
+  const body = req.body || {};
+  const touched = FOLLOW_UP_FIELDS.filter(f => body[f] !== undefined);
+  const stageTouched = body.meeting_stage !== undefined;
+  if (!touched.length && !stageTouched) {
+    return res.status(400).json({ error: 'no_follow_up_fields', message: 'No follow-up fields to update.' });
+  }
+  if (stageTouched && body.meeting_stage !== null && body.meeting_stage !== '' && !MEETING_STAGES.includes(body.meeting_stage)) {
+    return res.status(400).json({ error: 'validation_failed', details: [`meeting_stage must be one of: ${MEETING_STAGES.join(', ')}`] });
+  }
+
+  const client = await pool.connect();
+  let before;
+  try {
+    await client.query('BEGIN');
+    const cur = await client.query('SELECT * FROM leads WHERE id = $1 FOR UPDATE', [leadId]);
+    before = cur.rows[0];
+    if (!before) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'not_found' }); }
+
+    // Merge the partial update onto the stored follow-up, then validate the
+    // RESULT as a whole (so a status-only or notes-only edit keeps the date).
+    const merged = {};
+    for (const f of FOLLOW_UP_FIELDS) merged[f] = body[f] !== undefined ? body[f] : before[f];
+    const isBlank = v => v == null || String(v).trim() === '';
+    // Clearing the date and type clears the whole follow-up (notes/status too).
+    const clearing = touched.length > 0 && isBlank(merged.follow_up_date) && isBlank(merged.follow_up_type);
+    const fu = clearing ? normalizeFollowUp({}) : (touched.length ? normalizeFollowUp(merged) : null);
+    if (fu && !fu.ok) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'validation_failed', message: fu.errors.join('; '), details: fu.errors });
     }
 
-    const updatedAppt = await fetchActiveAppointment(leadWithOwner.id);
-    res.json({ lead: serializeLead(leadWithOwner, updatedAppt) });
+    const sets = [];
+    const vals = [];
+    if (fu) {
+      for (const f of FOLLOW_UP_FIELDS) { vals.push(fu.value[f]); sets.push(`${f} = $${vals.length}`); }
+    }
+    if (stageTouched) { vals.push(body.meeting_stage || null); sets.push(`meeting_stage = $${vals.length}`); }
+    sets.push('updated_at = NOW()');
+    vals.push(leadId);
+    await client.query(`UPDATE leads SET ${sets.join(', ')} WHERE id = $${vals.length}`, vals);
+    await projectReminders(client, leadId);
+    await client.query('COMMIT');
   } catch (e) {
-    console.error('[leads] appointment update error:', e.message);
-    res.status(500).json({ error: e.message });
+    try { await client.query('ROLLBACK'); } catch (_) { /* noop */ }
+    console.error('[leads] follow-up update error:', e.message);
+    return res.status(500).json({ error: 'follow_up_update_failed', message: e.message });
+  } finally {
+    client.release();
   }
+
+  const out = await respondWithLead(res, leadId, opts.legacy ? { deprecated: 'follow-up fields sent to /appointment are saved as a follow-up only; use PUT /:id/follow-up' } : null);
+  const changes = computeLeadDiff(before, out.full);
+  if (changes.length) sendLeadNotification('lead_updated', out.full, changes, req.user && req.user.email);
+  return res.json(out.body);
+}
+
+// ── Appointment create / reschedule / cancel ─────────────────────────────────
+async function executeAppointmentRequest(req, res, leadId) {
+  const body = req.body || {};
+  const apptKeys = ['appointment_date', 'appointment_time', 'appointment_type', 'cancel'];
+  if (!apptKeys.some(k => body[k] !== undefined)) {
+    if (FOLLOW_UP_FIELDS.some(f => body[f] !== undefined) || body.meeting_stage !== undefined) {
+      return executeFollowUpUpdate(req, res, leadId, { legacy: true });
+    }
+    return res.status(400).json({ error: 'no_appointment_fields', message: 'Provide appointment_date + appointment_time (or cancel: true).' });
+  }
+
+  // Admin conflict override: role 'admin' AND server-side allowlist. The
+  // frontend toggle is never trusted (same contract as capture).
+  const adminOverrideRequested = body.admin_override === true;
+  if (adminOverrideRequested) {
+    const overrideRole = String((req.user && req.user.role) || '').toLowerCase();
+    const overrideEmail = canonicalEmail(req.user && req.user.email);
+    if (overrideRole !== 'admin' || !isOverrideAdminEmail(overrideEmail)) {
+      return res.status(403).json({ error: 'override_forbidden', message: 'Only authorized admins may override appointment conflicts.' });
+    }
+  }
+  const actor = (req.user && req.user.email) || null;
+  const parsed = parseAppointmentBody(body);
+  if (!parsed.ok) return res.status(400).json({ error: 'validation_failed', message: parsed.errors.join('; '), details: parsed.errors });
+
+  const active = await fetchActiveAppointment(leadId);
+  if (body.expected_appointment_id !== undefined && String(body.expected_appointment_id || '') !== String(active ? active.id : '')) {
+    return res.status(409).json({ error: 'stale_appointment', message: 'This appointment was changed elsewhere. Reload the lead and try again.' });
+  }
+  const onWrite = async (client) => projectReminders(client, leadId);
+  let action = null;
+  let result = null;
+  try {
+    if (parsed.cancel) {
+      if (!active) return res.status(404).json({ error: 'no_active_appointment', message: 'This lead has no active appointment to cancel.' });
+      await bookingService.cancelAppointment(active.id, actor, { onWrite });
+      action = 'appointment_cancelled';
+    } else {
+      const startAt = toUtcIso(parsed.date, parsed.time, 'America/Los_Angeles');
+      const skipTravel = parsed.kind === 'Phone Call';
+      if (!active) {
+        result = await bookingService.createAppointmentForLead({
+          lead_id: leadId, start_at: startAt, skip_travel: skipTravel,
+          duration_override_minutes: parsed.duration, actor,
+          override_conflict: adminOverrideRequested, override_actor: adminOverrideRequested ? actor : null,
+          onWrite,
+        });
+        action = 'appointment_created';
+      } else {
+        const cur = serializeAppointment(active);
+        const sameStart = new Date(active.start_at).getTime() === new Date(startAt).getTime();
+        const sameDuration = parsed.duration === undefined || parsed.duration === cur.duration_minutes;
+        if (sameStart && cur.kind === parsed.kind && sameDuration) {
+          const out = await respondWithLead(res, leadId, { action: 'unchanged' });
+          return res.json(out.body);
+        }
+        result = await bookingService.rescheduleAppointment(active.id, {
+          new_start_at: startAt, skip_travel: skipTravel,
+          duration_override_minutes: parsed.duration, actor,
+          override_conflict: adminOverrideRequested, override_actor: adminOverrideRequested ? actor : null,
+          onWrite,
+        });
+        action = 'appointment_rescheduled';
+      }
+    }
+  } catch (e) {
+    const status = e && e.status ? e.status : 500;
+    if (status >= 500) console.error('[leads] appointment change error:', e && e.message);
+    const code = e && e.code === 'slot_conflict' ? 'slot_conflict' : ((e && e.code) || 'appointment_update_failed');
+    const message = code === 'slot_conflict'
+      ? 'This time conflicts with another appointment (including the 1-hour travel buffer). Please choose a different time.'
+      : ((e && e.message) || 'Appointment update failed.');
+    return res.status(status).json({ error: code, message, details: e && e.details });
+  }
+
+  const out = await respondWithLead(res, leadId, { action });
+  const prev = fmtApptChange(active);
+  const next = action === 'appointment_cancelled' ? { date: 'Cancelled', time: 'Cancelled', kind: 'Cancelled' } : fmtApptChange(result && result.appointment);
+  sendLeadNotification(action, out.full, [
+    { label: 'Date', prev: prev.date, next: next.date },
+    { label: 'Time', prev: prev.time, next: next.time },
+    { label: 'Type', prev: prev.kind, next: next.kind },
+  ], actor);
+  return res.json(out.body);
 }
 
 // ── PUT /:id/appointment — CANONICAL appointment update by Railway UUID ──────
 // This is the primary appointment update route for Railway-native leads.
 // Accepts ONLY valid Railway UUIDs — no external_ref, no leadIdWhere, no
-// unsafe identifier comparisons. The frontend FollowUpScheduler calls this
-// with lead.railway_id (the canonical Railway UUID).
+// unsafe identifier comparisons. The Lead Detail appointment editor calls this
+// (see executeAppointmentRequest for the body contract).
 router.put('/:id/appointment', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
@@ -884,7 +901,7 @@ router.put('/:id/appointment', requireAuth, async (req, res) => {
       return res.status(403).json({ error: 'forbidden' });
     }
 
-    return executeAppointmentUpdate(req, res, leadR.rows[0].id);
+    return executeAppointmentRequest(req, res, leadR.rows[0].id);
   } catch (e) {
     console.error('[leads] appointment update error:', e.message);
     res.status(500).json({ error: e.message });
@@ -893,7 +910,7 @@ router.put('/:id/appointment', requireAuth, async (req, res) => {
 
 // ── PUT /by-external/:externalRef/appointment — legacy appointment update ─────
 // Resolves the lead by external_ref OR Railway UUID via the shared safe
-// resolver, then delegates to executeAppointmentUpdate with the canonical
+// resolver, then delegates to executeAppointmentRequest with the canonical
 // Railway UUID. Kept for backward compatibility with legacy Base44 leads.
 router.put('/by-external/:externalRef/appointment', requireAuth, async (req, res) => {
   try {
@@ -910,10 +927,22 @@ router.put('/by-external/:externalRef/appointment', requireAuth, async (req, res
       return res.status(403).json({ error: 'forbidden' });
     }
 
-    return executeAppointmentUpdate(req, res, leadRow.id);
+    return executeAppointmentRequest(req, res, leadRow.id);
   } catch (e) {
     console.error('[leads] appointment update error:', e.message);
     res.status(500).json({ error: e.message });
+  }
+});
+
+// ── PUT /:id/follow-up — Follow-Up / Next Update (independent of appointment) ──
+router.put('/:id/follow-up', requireAuth, async (req, res) => {
+  try {
+    const leadRow = await authorizeLeadWrite(req, res);
+    if (!leadRow) return;
+    return executeFollowUpUpdate(req, res, leadRow.id);
+  } catch (e) {
+    console.error('[leads] follow-up update error:', e.message);
+    res.status(500).json({ error: 'follow_up_update_failed', message: e.message });
   }
 });
 
@@ -1140,7 +1169,8 @@ router.get('/', requireAuth, async (req, res) => {
     params.push(limit);
 
     const { rows } = await query(sql, params);
-    res.json({ items: rows.map(serializeLead), total: rows.length });
+    const appts = await fetchActiveAppointmentsForLeads({ query }, rows.map(r => r.id));
+    res.json({ items: rows.map(r => serializeLead(r, appts.get(String(r.id)) || null)), total: rows.length });
   } catch (e) {
     console.error('[leads] list error:', e.message);
     res.status(500).json({ error: e.message });
@@ -1533,128 +1563,55 @@ router.post('/:id/activities', requireAuth, async (req, res) => {
 // The calendar outbox worker processes the enqueued actions asynchronously.
 //
 // No Base44. No direct googleCalendarClient calls. Uses the durable outbox pattern.
+// Re-sync the lead's CANONICAL appointment to Google Calendar. This never
+// moves or creates an appointment (the old version rescheduled the appointment
+// to the follow-up date). It bumps the appointment version and re-enqueues
+// create_main (+ create_travel for Meetings). Event ids are deterministic per
+// appointment+slot, so a re-sync adopts/updates the existing Google event —
+// never a duplicate.
 router.post('/by-external/:externalRef/sync-calendar', requireAuth, async (req, res) => {
   try {
-    const { externalRef } = req.params;
-    const lead = await resolveLeadByIdentifier(externalRef);
-    if (!lead) return res.status(404).json({ error: 'not_found' });
-    const apptDate = lead.follow_up_date || lead.appointment_date;
-    const apptTime = lead.follow_up_time || lead.appointment_time || '09:00';
-    if (!apptDate) return res.status(400).json({ error: 'No appointment date set for this lead.' });
-
-    // Use the existing native calendar outbox system — enqueues main + travel events
-    // with 1hr buffer before/after. The worker processes them with retry + dead-letter.
-    const { pool } = require('../db/client');
-    const calendarOutbox = require('../lib/booking/calendarOutbox');
-
-    // Build start/end times (LA timezone)
-    // Phone Calls: no travel buffer. Meetings: 1hr before/after.
-    const isPhoneCallSyncCal = lead.follow_up_type === 'Phone Call';
-    const startAt = new Date(toUtcIso(apptDate, apptTime, 'America/Los_Angeles'));
-    const durationMin = 60; // default 1 hour
-    const endAt = new Date(startAt.getTime() + durationMin * 60 * 1000);
-    const busyStart = isPhoneCallSyncCal ? startAt : new Date(startAt.getTime() - 60 * 60 * 1000);
-    const busyEnd = isPhoneCallSyncCal ? endAt : new Date(endAt.getTime() + 60 * 60 * 1000);
-
+    const leadRow = await authorizeLeadWrite(req, res);
+    if (!leadRow) return;
     const client = await pool.connect();
+    let appointment;
     try {
       await client.query('BEGIN');
-
-      // Find existing active appointment for this lead
       const apptRes = await client.query(
-        `SELECT * FROM appointments WHERE lead_id = $1 AND status IN ('scheduled', 'confirmed') ORDER BY created_at DESC LIMIT 1`,
-        [lead.id]
+        `SELECT * FROM appointments WHERE lead_id = $1 AND status IN ('scheduled', 'confirmed')
+          ORDER BY created_at DESC LIMIT 1 FOR UPDATE`,
+        [leadRow.id]
       );
-
-      let appointment;
-
-      if (apptRes.rows[0]) {
-        // Reschedule: update existing appointment's time
-        appointment = apptRes.rows[0];
-        const newVersion = (appointment.version || 1) + 1;
-        await client.query(
-          `UPDATE appointments SET start_at = $1, end_at = $2, busy_range = tstzrange($3, $4, '[)'),
-           version = $5, calendar_sync_status = 'pending', updated_at = NOW() WHERE id = $6`,
-          [startAt.toISOString(), endAt.toISOString(), busyStart.toISOString(), busyEnd.toISOString(), newVersion, appointment.id]
-        );
-        appointment = (await client.query('SELECT * FROM appointments WHERE id = $1', [appointment.id])).rows[0];
-
-        // Enqueue calendar outbox update (main + travel if duration changed and not a phone call)
-        await calendarOutbox.enqueueUpdate(client, appointment, lead, lead.owner_email, appointment.version, !isPhoneCallSyncCal);
-      } else {
-        // Create new appointment
-        const typeRes = await client.query('SELECT id FROM appointment_types ORDER BY id LIMIT 1');
-        if (!typeRes.rows[0]) {
-          await client.query('ROLLBACK');
-          return res.status(400).json({ error: 'No appointment types configured. Please create an appointment type first.' });
-        }
-        const typeId = typeRes.rows[0].id;
-
-        const idempotencyKey = `sync-cal:${lead.id}:${apptDate}:${apptTime}`;
-        const insRes = await client.query(
-          `INSERT INTO appointments (lead_id, owner_id, appointment_type_id, start_at, end_at, timezone, busy_range, status, calendar_sync_status, idempotency_key)
-           VALUES ($1, $2, $3, $4, $5, $6, tstzrange($7, $8, '[)'), 'scheduled', 'pending', $9)
-           ON CONFLICT (idempotency_key) DO NOTHING
-           RETURNING *`,
-          [lead.id, lead.owner_id, typeId, startAt.toISOString(), endAt.toISOString(), 'America/Los_Angeles', busyStart.toISOString(), busyEnd.toISOString(), idempotencyKey]
-        );
-        appointment = insRes.rows[0];
-        if (!appointment) {
-          // Appointment already exists (idempotency conflict) — fetch it
-          appointment = (await client.query(
-            `SELECT * FROM appointments WHERE idempotency_key = $1 AND status IN ('scheduled', 'confirmed') ORDER BY created_at DESC LIMIT 1`,
-            [idempotencyKey]
-          )).rows[0];
-        }
-
-        // Enqueue calendar outbox create (main + travel events)
-        // Phone Calls skip the travel event (no driving needed)
-        const isPhoneCallSync = lead.follow_up_type === 'Phone Call';
-        await calendarOutbox.enqueueCreate(client, appointment, lead, lead.owner_email, isPhoneCallSync);
+      if (!apptRes.rows[0]) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'no_active_appointment', message: 'This lead has no appointment to sync. Set the appointment first.' });
       }
-
+      const upd = await client.query(
+        `UPDATE appointments SET version = version + 1, calendar_sync_status = 'pending',
+                calendar_last_error = NULL, updated_at = NOW()
+          WHERE id = $1 RETURNING *`,
+        [apptRes.rows[0].id]
+      );
+      appointment = upd.rows[0];
+      const lead = (await client.query(LEAD_WITH_OWNER_SQL, [leadRow.id])).rows[0];
+      const { isPhoneCallAppointment } = require('../lib/booking/appointmentKind');
+      await calendarOutbox.enqueueCreate(client, appointment, lead, lead && lead.owner_email, isPhoneCallAppointment(appointment));
       await client.query('COMMIT');
-
-      // ── Reminder projection (post-commit, best-effort) ────────────────
-      // sync-calendar can change appointment times. Project the new times into
-      // reminder_leads so the engine uses the correct schedule. Best-effort
-      // (non-blocking) because the calendar outbox is already enqueued — a
-      // reminder projection failure here is logged and retried by the backfill.
-      try {
-        const leadForProjection = (await query(
-          `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
-           FROM leads l LEFT JOIN owners o ON o.id = l.owner_id
-           WHERE l.id = $1`,
-          [lead.id]
-        )).rows[0];
-        if (leadForProjection) {
-          await syncLeadToReminders({ query }, leadForProjection);
-        }
-      } catch (projErr) {
-        console.error('[leads] sync-calendar reminder projection error (non-blocking):', projErr.message);
-      }
-
-      // NOTE: The appointment's calendar_sync_status is already set to 'pending'
-      // inside the transaction above (INSERT/UPDATE appointments). The outbox
-      // worker updates it to 'synced'/'failed' after calling Google. We do NOT
-      // update leads.google_calendar_sync_status — that column does NOT exist
-      // in the Railway schema (it's a Base44-era field). The canonical state
-      // lives in appointments.calendar_sync_status.
-
-      res.json({
-        success: true,
-        appointment_id: appointment.id,
-        message: 'Calendar sync enqueued via native outbox. Main + travel events (1hr buffer) will be created by the worker.'
-      });
     } catch (e) {
-      try { await client.query('ROLLBACK'); } catch (_) {}
+      try { await client.query('ROLLBACK'); } catch (_) { /* noop */ }
       throw e;
     } finally {
       client.release();
     }
+    res.json({
+      success: true,
+      appointment_id: appointment.id,
+      appointment: serializeAppointment(appointment),
+      message: 'Calendar sync re-queued for the current appointment.',
+    });
   } catch (e) {
     console.error('[leads] sync-calendar error:', e.message);
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: 'sync_failed', message: e.message });
   }
 });
 

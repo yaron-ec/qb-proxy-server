@@ -16,7 +16,8 @@
     "validate:email-migration": "node validateEmailMigration.js",
     "email:test:phase1": "node testEmailOnce.js",
     "reminders:test:single": "node testSingleReminderLive.js",
-    "gmail:oauth:test": "node --test test/gmailOAuth.test.js"
+    "gmail:oauth:test": "node --test test/gmailOAuth.test.js",
+    "test:integration": "node --test test/integration/*.int.test.js"
   },
   "dependencies": {
     "express": "^4.18.2",

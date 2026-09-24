@@ -3,7 +3,8 @@
  * routes/publicCapture.js — PUBLIC Railway endpoints for the Lead Capture form.
  *
  *   GET  /api/public/capture/availability   — blocked slots for an owner/date
- *   POST /api/public/capture                — atomic lead + appointment create
+ *   POST /api/public/capture                — atomic lead (+ optional appointment,
+ *                                             + optional independent follow-up)
  *
  * NO CRM JWT. NO PROXY_SECRET. These are intentionally narrow, public, rate-
  * limited endpoints for the unauthenticated Philippines-team intake form.
@@ -34,7 +35,7 @@ const {
   validateCapturePayload, computeIdempotencyKey, laToUtcStart,
   resolveOwnerEmail, isValidOwnerEmail,
 } = require('../lib/captureValidation');
-const { validateAndNormalizeLead, upsertLead } = require('../lib/leadIngest');
+const { syncLeadToReminders } = require('../lib/reminderProjection');
 const { rateLimit } = require('../lib/rateLimit');
 const { sendNewLeadAlert } = require('../lib/captureAlerts');
 const { authorizeOverride } = require('../lib/captureOverrideAuth');
@@ -133,15 +134,20 @@ router.get('/availability', availLimiter, async (req, res) => {
 router.post('/', submitLimiter, async (req, res) => {
   try {
     const v = validateCapturePayload(req.body || {});
-    if (!v.ok) return res.status(400).json({ error: 'validation_failed', details: v.errors });
+    if (!v.ok) return res.status(400).json({ error: 'validation_failed', message: v.errors.join('; '), details: v.errors });
     const c = v.cleaned;
 
-    // Resolve the appointment type (Consultation = 60 min default for capture).
-    const atRes = await query("SELECT id FROM appointment_types WHERE name='Consultation' AND is_active=true LIMIT 1");
-    if (!atRes.rows[0]) return res.status(500).json({ error: 'appointment_type_missing', message: 'Server misconfiguration.' });
-    const appointment_type_id = atRes.rows[0].id;
+    // A. Appointment is optional. When present, resolve the appointment type
+    // (Consultation = 60 min default for capture).
+    const hasAppointment = !!(c.appointment_date && c.appointment_time);
+    let appointment_type_id = null;
+    if (hasAppointment) {
+      const atRes = await query("SELECT id FROM appointment_types WHERE name='Consultation' AND is_active=true LIMIT 1");
+      if (!atRes.rows[0]) return res.status(500).json({ error: 'appointment_type_missing', message: 'Server misconfiguration.' });
+      appointment_type_id = atRes.rows[0].id;
+    }
 
-    const start_at = laToUtcStart(c.appointment_date, c.appointment_time);
+    const start_at = hasAppointment ? laToUtcStart(c.appointment_date, c.appointment_time) : null;
     const idempotency_key = computeIdempotencyKey({
       owner_email: c.owner_email, first_name: c.first_name, last_name: c.last_name,
       email: c.email, phone: c.phone, property_address: c.property_address,
@@ -156,7 +162,7 @@ router.post('/', submitLimiter, async (req, res) => {
     let override_conflict = false;
     let override_actor = null;
     let actor = 'capture-form';
-    if (c.appointment_override) {
+    if (c.appointment_override && hasAppointment) {
       const auth = authorizeOverride(req.headers.authorization);
       if (!auth.ok) {
         return res.status(403).json({ error: auth.code, message: auth.message });
@@ -188,11 +194,27 @@ router.post('/', submitLimiter, async (req, res) => {
       actor,
       override_conflict,
       override_actor,
-      // Pre-conversion Pacific-local strings — bookingService uses these
-      // verbatim to initialize a brand-new lead's follow_up_date/time
-      // (never re-derived from start_at, so no second UTC-conversion path).
-      local_appointment_date: c.appointment_date,
-      local_appointment_time: c.appointment_time,
+      skip_travel: hasAppointment && c.appointment_type === 'Phone Call',
+      // B. Independent follow-up (or null). Never derived from the appointment.
+      follow_up: c.follow_up,
+      // Reminder projection inside the booking transaction (customer
+      // reminders are keyed to the canonical appointment row). Wrapped in a
+      // SAVEPOINT: a projection failure is logged (POST
+      // /api/v1/cron/backfill-reminder-leads re-projects) but can never lose
+      // a public New Lead submission.
+      onWrite: async (client, _appt, newLeadId) => {
+        await client.query('SAVEPOINT capture_reminder_projection');
+        try {
+          const lr = await client.query(
+            `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
+               FROM leads l LEFT JOIN owners o ON o.id = l.owner_id WHERE l.id = $1`, [newLeadId]);
+          if (lr.rows[0]) await syncLeadToReminders(client, lr.rows[0]);
+          await client.query('RELEASE SAVEPOINT capture_reminder_projection');
+        } catch (e) {
+          await client.query('ROLLBACK TO SAVEPOINT capture_reminder_projection');
+          console.warn('[public-capture] reminder projection failed (non-fatal, lead kept):', e.message);
+        }
+      },
     });
 
     const leadId = booking.lead && booking.lead.id;
@@ -210,15 +232,15 @@ router.post('/', submitLimiter, async (req, res) => {
     // These run AFTER the booking tx committed. A 409 above never reaches here.
     if (leadId) {
       // 1. Capture-specific lead fields not inserted by bookingService.
+      //    (Appointment and follow-up are already written by bookingService —
+      //    the appointment is NOT mirrored into follow_up_*.)
       try {
         await query(
           `UPDATE leads SET
              message = $1, photo_urls = $2, is_new_intake_lead = true,
-             follow_up_date = $3, follow_up_time = $4, follow_up_type = 'Meeting',
-             meeting_stage = 'First Meeting', crm_created_date = NOW(),
-             record_type = 'Lead', updated_at = NOW()
-           WHERE id = $5`,
-          [c.message, c.photo_urls, c.appointment_date, c.appointment_time, leadId]
+             crm_created_date = NOW(), record_type = 'Lead', updated_at = NOW()
+           WHERE id = $3`,
+          [c.message, c.photo_urls, leadId]
         );
       } catch (e) { console.warn('[public-capture] lead extra-field update failed:', e.message); }
 
@@ -248,25 +270,8 @@ router.post('/', submitLimiter, async (req, res) => {
         } catch (e) { console.warn('[public-capture] activity insert failed:', e.message); }
       }
 
-      // 3. Reminder ingestion — upsert into reminder_leads so the reminder engine
-      //    can schedule appointment reminders from the REAL appointment time.
-      try {
-        const rl = validateAndNormalizeLead({
-          id: leadId,
-          first_name: c.first_name,
-          last_name: c.last_name,
-          email: c.email,
-          phone: c.phone,
-          property_address: c.property_address,
-          city: c.city,
-          project_type: c.project_type,
-          appointment_date: c.appointment_date,
-          appointment_time: c.appointment_time,
-          assigned_rep: c.assigned_rep,
-          notes: [c.message, c.notes].filter(Boolean).join('\n\n') || null,
-        });
-        if (rl.ok) await upsertLead(db, rl.lead);
-      } catch (e) { console.warn('[public-capture] reminder_leads upsert failed:', e.message); }
+      // 3. Reminder projection already ran inside the booking transaction
+      //    (onWrite above) from the canonical appointment + follow-up.
 
       // 4. New-lead alert email (Railway emailService — best-effort, non-fatal).
       //    Mirrors notifyYaronNewWebsiteLead: Yaron + Michelle. Never rolls back.
@@ -289,7 +294,8 @@ router.post('/', submitLimiter, async (req, res) => {
     return res.status(201).json({
       success: true,
       lead: { id: leadId, first_name: c.first_name, last_name: c.last_name },
-      appointment: booking.appointment && { id: booking.appointment.id, start_at: booking.appointment.start_at },
+      appointment: booking.appointment ? { id: booking.appointment.id, start_at: booking.appointment.start_at } : null,
+      follow_up: c.follow_up,
     });
   } catch (e) {
     if (e instanceof BookingError) {

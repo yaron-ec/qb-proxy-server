@@ -103,10 +103,15 @@ router.post('/merge', requireAdmin, async (req, res) => {
       notes: mergedNotes,
       // Most recently updated status wins
       status: new Date(survivor.updated_at) >= new Date(merged.updated_at) ? survivor.status : merged.status,
-      // Most recently updated follow-up wins
-      follow_up_date: new Date(survivor.updated_at) >= new Date(merged.updated_at) ? survivor.follow_up_date : merged.follow_up_date,
-      follow_up_time: new Date(survivor.updated_at) >= new Date(merged.updated_at) ? survivor.follow_up_time : merged.follow_up_time,
-      follow_up_type: new Date(survivor.updated_at) >= new Date(merged.updated_at) ? survivor.follow_up_type : merged.follow_up_type,
+      // Most recently updated follow-up wins — as ONE unit (date, time, type,
+      // notes, status all from the same lead), never mixed field-by-field.
+      ...(() => {
+        const src = new Date(survivor.updated_at) >= new Date(merged.updated_at) ? survivor : merged;
+        return {
+          follow_up_date: src.follow_up_date, follow_up_time: src.follow_up_time, follow_up_type: src.follow_up_type,
+          follow_up_notes: src.follow_up_notes || null, follow_up_status: src.follow_up_status || null,
+        };
+      })(),
     };
 
     await client.query(`
@@ -114,12 +119,14 @@ router.post('/merge', requireAdmin, async (req, res) => {
         first_name = $1, last_name = $2, email = $3, phone = $4,
         property_address = $5, city = $6, notes = $7, status = $8,
         follow_up_date = $9, follow_up_time = $10, follow_up_type = $11,
+        follow_up_notes = $12, follow_up_status = $13,
         updated_at = NOW()
-      WHERE id = $12
+      WHERE id = $14
     `, [
       updatedData.first_name, updatedData.last_name, updatedData.email, updatedData.phone,
       updatedData.property_address, updatedData.city, updatedData.notes, updatedData.status,
       updatedData.follow_up_date, updatedData.follow_up_time, updatedData.follow_up_type,
+      updatedData.follow_up_notes, updatedData.follow_up_status,
       survivorId,
     ]);
 

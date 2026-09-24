@@ -46,10 +46,10 @@ test('LeadCapture.jsx: FormCard supports numbered steps', () => {
   assert.ok(src.includes('{step} / {totalSteps}'), 'must render the progress indicator');
 });
 
-test('LeadCapture.jsx: all 8 form cards are numbered 1 through 8', () => {
+test('LeadCapture.jsx: all 9 form cards are numbered 1 through 9 (Appointment + independent Follow-Up)', () => {
   const src = readPage('LeadCapture.jsx');
-  for (let i = 1; i <= 8; i++) {
-    assert.ok(src.includes(`step={${i}} totalSteps={8}`), `expected step={${i}} totalSteps={8} on some FormCard`);
+  for (let i = 1; i <= 9; i++) {
+    assert.ok(src.includes(`step={${i}} totalSteps={9}`), `expected step={${i}} totalSteps={9} on some FormCard`);
   }
 });
 

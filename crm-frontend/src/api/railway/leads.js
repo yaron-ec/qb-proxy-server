@@ -105,16 +105,26 @@ export function updateAppointmentByExternal(externalRef, data, opts = {}) {
 }
 
 /**
- * Update appointment fields by Railway UUID (canonical path).
- * This is the PRIMARY appointment update route for Railway-native leads.
- * Accepts ONLY valid Railway UUIDs — no external_ref needed.
- * Updates ONLY appointment fields (appointment_date, appointment_time, meeting_stage,
- * follow_up_date, follow_up_time, follow_up_type). Handles the full appointment
- * lifecycle atomically: lead update + appointment create/update/cancel + reminder
- * projection. Returns { lead }.
+ * APPOINTMENT (canonical appointments row) — create / reschedule / cancel.
+ *   { appointment_date:'YYYY-MM-DD', appointment_time:'HH:MM',
+ *     appointment_type:'Meeting'|'Phone Call', admin_override?, expected_appointment_id? }
+ *   { cancel: true }
+ * Goes through the booking service on the server (conflict + travel-buffer
+ * rules, Google Calendar outbox, reminder projection — one transaction).
+ * Returns { lead, appointment, action }. Throws with .status/.data on 4xx/5xx.
  */
 export function updateAppointment(id, data, opts = {}) {
   return apiCall(`/api/v1/leads/${encodeURIComponent(id)}/appointment`, { method: 'PUT', body: data, signal: opts.signal });
+}
+
+/**
+ * FOLLOW-UP / next update (leads.follow_up_*) — independent of the appointment.
+ *   { follow_up_date, follow_up_time, follow_up_type, follow_up_notes, follow_up_status }
+ * Partial bodies merge onto the stored follow-up; all-null clears it.
+ * Never creates, moves or cancels an appointment. Returns { lead, appointment }.
+ */
+export function updateFollowUp(id, data, opts = {}) {
+  return apiCall(`/api/v1/leads/${encodeURIComponent(id)}/follow-up`, { method: 'PUT', body: data, signal: opts.signal });
 }
 
 /**

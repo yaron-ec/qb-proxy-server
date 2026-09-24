@@ -205,7 +205,7 @@ function AppointmentCard({ appt, idx, isSelected, onSelect, ownerColor, isNext }
               </p>
               <span className="text-xs font-bold text-slate-700 flex items-center gap-1 flex-shrink-0">
                 <Clock className="w-3 h-3 text-amber-600" />
-                {appt.follow_up_time ? fmt12(appt.follow_up_time) : (appt.appointment_time ? fmt12(appt.appointment_time) : "—")}
+                {appt._mtgTime ? fmt12(appt._mtgTime) : "—"}
               </span>
             </div>
 
@@ -312,15 +312,26 @@ export default function MobileDayView() {
     // Match desktop exactly: same excluded statuses
     const excluded = ["Lost", "DNQ", "Cancelled", "Closed Lost"];
 
-    // Match desktop: only follow_up_type === "Meeting" on follow_up_date, with an address
-    const filtered = allLeads.filter(l => {
-      if (l.follow_up_type !== "Meeting") return false;
-      if (!l.follow_up_date) return false;
+    // A lead's meeting = its canonical appointment when that is a Meeting
+    // (site visit). Legacy fallback: a dated 'Meeting' follow-up on a lead
+    // with NO appointment (pre-separation data). Phone Calls need no driving.
+    const meetingOf = (l) => {
+      if (l.appointment_date) {
+        return l.appointment_type === "Phone Call" ? null : { date: l.appointment_date, time: l.appointment_time };
+      }
+      if (l.follow_up_type === "Meeting" && l.follow_up_date) return { date: l.follow_up_date, time: l.follow_up_time };
+      return null;
+    };
+    const filtered = allLeads.map(l => {
+      const m = meetingOf(l);
+      return m ? { ...l, _mtgDate: m.date, _mtgTime: m.time || null } : null;
+    }).filter(l => {
+      if (!l) return false;
       if (!(l.property_address || l.city)) return false;
       if (excluded.includes(l.status)) return false;
-      if (dateFilter === "today") return l.follow_up_date === today;
-      if (dateFilter === "tomorrow") return l.follow_up_date === tomorrow;
-      if (dateFilter === "week") return next7.includes(l.follow_up_date);
+      if (dateFilter === "today") return l._mtgDate === today;
+      if (dateFilter === "tomorrow") return l._mtgDate === tomorrow;
+      if (dateFilter === "week") return next7.includes(l._mtgDate);
       return false;
     });
 
@@ -337,10 +348,10 @@ export default function MobileDayView() {
 
     // Sort by time, same as desktop
     const sorted = [...ownerFiltered].sort((a, b) => {
-      const ta = a.follow_up_time || "23:59";
-      const tb = b.follow_up_time || "23:59";
-      const da = a.follow_up_date || "";
-      const db = b.follow_up_date || "";
+      const ta = a._mtgTime || "23:59";
+      const tb = b._mtgTime || "23:59";
+      const da = a._mtgDate || "";
+      const db = b._mtgDate || "";
       return da !== db ? da.localeCompare(db) : ta.localeCompare(tb);
     });
 
@@ -379,7 +390,7 @@ export default function MobileDayView() {
   // Group by date for week view
   const groupedByDate = dateFilter === "week"
     ? appointments.reduce((acc, appt) => {
-        const d = appt.follow_up_date || appt.appointment_date || "unknown";
+        const d = appt._mtgDate || "unknown";
         if (!acc[d]) acc[d] = [];
         acc[d].push(appt);
         return acc;

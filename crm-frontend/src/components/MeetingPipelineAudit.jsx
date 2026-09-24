@@ -71,7 +71,10 @@ function LeadRow({ lead, sentKeys, onFix, fixing }) {
 
   const apptDate = lead.appointment_date || lead.follow_up_date;
   const apptTime = lead.appointment_time || lead.follow_up_time || "09:00";
-  const isMeeting = lead.follow_up_type === "Meeting";
+  // Kind comes from the canonical appointment; legacy leads without one fall
+  // back to a 'Meeting' follow-up.
+  const meetingKind = lead.appointment_date ? lead.appointment_type : lead.follow_up_type;
+  const isMeeting = meetingKind === "Meeting";
   const hasCalEvent = !!lead.google_event_id;
   const hasBuffer = !!lead.google_travel_event_id;
   const syncStatus = lead.google_calendar_sync_status;
@@ -112,7 +115,7 @@ function LeadRow({ lead, sentKeys, onFix, fixing }) {
 
   // Overall status
   const hasCriticalIssue = !hasCalEvent || !hasBuffer || missedReminders.length > 0;
-  const hasSyncError = syncStatus === "error";
+  const hasSyncError = (syncStatus === "error" || syncStatus === "failed");
   const overallOk = !hasCriticalIssue && !hasSyncError;
 
   const statusColor = hasSyncError || (!hasCalEvent && !isPast) ? "border-red-200 bg-red-50/40" :
@@ -168,11 +171,11 @@ function LeadRow({ lead, sentKeys, onFix, fixing }) {
               <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Pipeline</div>
               <Step ok={true} label="Lead Created" detail={fmt(lead.created_date)} />
               <Step ok={!!apptDate} label="Appointment Set" detail={apptDate ? `${fmtDate(apptDate)} ${apptTime}` : "missing"} />
-              <Step ok={isMeeting} label="Meeting Type" detail={lead.follow_up_type || "not set"} />
+              <Step ok={isMeeting} label="Meeting Type" detail={meetingKind || "not set"} />
               <Step
-                ok={hasCalEvent ? true : (syncStatus === "error" ? false : null)}
+                ok={hasCalEvent ? true : ((syncStatus === "error" || syncStatus === "failed") ? false : null)}
                 label="Google Calendar Event"
-                detail={hasCalEvent ? lead.google_event_id?.slice(0, 12) + "…" : (syncStatus === "error" ? "error" : "not created")}
+                detail={hasCalEvent ? lead.google_event_id?.slice(0, 12) + "…" : ((syncStatus === "error" || syncStatus === "failed") ? "error" : "not created")}
               />
               <Step
                 ok={hasBuffer ? true : (hasCalEvent ? "warn" : null)}
@@ -246,7 +249,8 @@ export default function MeetingPipelineAudit() {
       const today = new Date().toISOString().slice(0, 10);
       const relevant = allLeads.filter(l => {
         const date = l.appointment_date || l.follow_up_date;
-        return l.follow_up_type === "Meeting" && date >= today;
+        const kind = l.appointment_date ? l.appointment_type : l.follow_up_type;
+        return kind === "Meeting" && date >= today;
       });
       relevant.sort((a, b) => {
         const da = a.appointment_date || a.follow_up_date;
@@ -316,7 +320,7 @@ export default function MeetingPipelineAudit() {
   const withIssues = leads.filter(l => {
     if (!l.google_event_id) return true;
     if (!l.google_travel_event_id) return true;
-    if (l.google_calendar_sync_status === "error") return true;
+    if ((l.google_calendar_sync_status === "error" || l.google_calendar_sync_status === "failed")) return true;
     const apptDate = l.appointment_date || l.follow_up_date;
     const apptMs = pacificToUtcMs(apptDate, l.appointment_time || l.follow_up_time || "09:00");
     const missedAny = REMINDER_WINDOWS.some(win => {

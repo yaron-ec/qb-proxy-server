@@ -109,10 +109,13 @@ export default function ActivityComposer({ lead, onActivityCreated }) {
 
   // Auto-select email template when email tab opens
   useEffect(() => {
-    if (activeType === "email" && !autoSelectedTemplate && lead.follow_up_type) {
-      const templateKey = lead.follow_up_type === "Phone Call" ? "phone_call_reminder" : "appointment_reminder";
-      const hasFollowUp = lead.follow_up_date && lead.follow_up_time;
-      if (hasFollowUp && EMAIL_TEMPLATES[templateKey]) {
+    // Reminder templates describe the canonical appointment when one exists;
+    // otherwise a scheduled Phone Call / Meeting follow-up (legacy leads).
+    const kind = lead.appointment_date ? lead.appointment_type : lead.follow_up_type;
+    if (activeType === "email" && !autoSelectedTemplate && kind) {
+      const templateKey = kind === "Phone Call" ? "phone_call_reminder" : "appointment_reminder";
+      const hasWhen = lead.appointment_date ? !!lead.appointment_time : (lead.follow_up_date && lead.follow_up_time);
+      if (hasWhen && (kind === "Phone Call" || kind === "Meeting") && EMAIL_TEMPLATES[templateKey]) {
         setEmailTemplate(templateKey);
         const tmpl = EMAIL_TEMPLATES[templateKey];
         const rendered = renderTemplate(tmpl, buildEmailFields());
@@ -121,7 +124,7 @@ export default function ActivityComposer({ lead, onActivityCreated }) {
         setAutoSelectedTemplate(true);
       }
     }
-  }, [activeType, lead.follow_up_type, lead.follow_up_date, lead.follow_up_time, autoSelectedTemplate]);
+  }, [activeType, lead.appointment_date, lead.appointment_time, lead.appointment_type, lead.follow_up_type, lead.follow_up_date, lead.follow_up_time, autoSelectedTemplate]);
 
 
 
@@ -240,35 +243,33 @@ export default function ActivityComposer({ lead, onActivityCreated }) {
       }
     }
 
-    // Handle call follow-up
+    // Handle call follow-up → the lead's FOLLOW-UP (independent of the appointment)
     if (activeType === "call" && showCallFollowUp && callFollowUpDate && callFollowUpTime) {
-      await railwayLeads.updateByExternal(lead.id, {
+      await railwayLeads.updateFollowUp(lead.id, {
         follow_up_date: callFollowUpDate,
         follow_up_time: callFollowUpTime,
         follow_up_type: "Phone Call",
+        follow_up_status: "pending",
       });
     }
 
-    // Handle appointment scheduling
+    // Handle appointment scheduling → the canonical APPOINTMENT (booking
+    // service: conflict + travel-buffer rules, Google Calendar, reminders).
     if (activeType === "call" && callOutcome === "Appointment Scheduled" && callFollowUpDate && callFollowUpTime) {
-      await railwayLeads.updateByExternal(lead.id, {
+      await railwayLeads.updateAppointmentByExternal(lead.id, {
         appointment_date: callFollowUpDate,
         appointment_time: callFollowUpTime,
-        follow_up_date: callFollowUpDate,
-        follow_up_time: callFollowUpTime,
-        follow_up_type: "Meeting",
-        status: "Appointment scheduled",
+        appointment_type: "Meeting",
       });
+      await railwayLeads.updateByExternal(lead.id, { status: "Appointment scheduled" });
     }
 
-    // Handle meeting scheduling
+    // Handle meeting scheduling → the canonical APPOINTMENT
     if (activeType === "meeting" && meetingDate && meetingTime) {
-      await railwayLeads.updateByExternal(lead.id, {
+      await railwayLeads.updateAppointmentByExternal(lead.id, {
         appointment_date: meetingDate,
         appointment_time: meetingTime,
-        follow_up_date: meetingDate,
-        follow_up_time: meetingTime,
-        follow_up_type: "Meeting",
+        appointment_type: "Meeting",
       });
     }
 
@@ -285,9 +286,10 @@ export default function ActivityComposer({ lead, onActivityCreated }) {
   };
 
   const buildEmailFields = () => {
-    const hasFollowUp = lead.follow_up_date && lead.follow_up_time;
-    const date = hasFollowUp ? lead.follow_up_date : (lead.appointment_date || "TBD");
-    const time = hasFollowUp ? lead.follow_up_time : (lead.appointment_time || "TBD");
+    // The appointment is canonical; fall back to a dated follow-up only when
+    // the lead has no appointment.
+    const date = lead.appointment_date || lead.follow_up_date || "TBD";
+    const time = lead.appointment_date ? (lead.appointment_time || "TBD") : (lead.follow_up_time || "TBD");
 
     return {
       lead_name: `${lead.first_name} ${lead.last_name}`,

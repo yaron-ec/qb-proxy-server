@@ -253,41 +253,40 @@ test('20. override_actor recorded in audit event', () => {
 });
 
 test('13. override_conflict flag set on INSERT for new appointments', () => {
-  const leadsSrc = fs.readFileSync(
-    path.join(__dirname, '..', 'routes', 'leads.js'), 'utf8'
+  // Appointments are only ever inserted by lib/booking/bookingService.js (the
+  // lead routes delegate to it). Every INSERT there carries override_conflict.
+  const svcSrc = fs.readFileSync(
+    path.join(__dirname, '..', 'lib', 'booking', 'bookingService.js'), 'utf8'
   );
-  // The INSERT must include override_conflict column
-  const insertMatch = leadsSrc.match(/INSERT INTO appointments[\s\S]*?override_conflict/);
-  assert.ok(insertMatch, 'INSERT INTO appointments must include override_conflict column');
+  const inserts = svcSrc.match(/INSERT INTO appointments[\s\S]*?RETURNING \*/g) || [];
+  assert.ok(inserts.length >= 3, 'createBooking, rescheduleAppointment and createAppointmentForLead insert appointments');
+  for (const ins of inserts) assert.ok(/override_conflict/.test(ins), 'every appointment INSERT must include override_conflict');
+  const leadsSrc = fs.readFileSync(path.join(__dirname, '..', 'routes', 'leads.js'), 'utf8');
+  assert.ok(!/INSERT INTO appointments/.test(leadsSrc), 'routes/leads.js must not insert appointments directly');
 });
 
-test('13b. override_conflict flag set on UPDATE for existing appointments', () => {
-  const leadsSrc = fs.readFileSync(
-    path.join(__dirname, '..', 'routes', 'leads.js'), 'utf8'
+test('13b. override audit recorded when an authorized override books over a conflict', () => {
+  const svcSrc = fs.readFileSync(
+    path.join(__dirname, '..', 'lib', 'booking', 'bookingService.js'), 'utf8'
   );
-  // The UPDATE must include override_conflict column
-  const updateMatch = leadsSrc.match(/UPDATE appointments SET[\s\S]*?override_conflict/);
-  assert.ok(updateMatch, 'UPDATE appointments must include override_conflict column');
+  assert.ok(/UPDATE appointments SET override_authorized = true, override_authorized_by/.test(svcSrc),
+    'override_authorized / override_authorized_by must be recorded on the overriding appointment');
 });
 
 // ═══════════════════════════════════════════════════════════════════════
 // SECTION 4: No Duplicate Appointments / Calendar Events
 // ═══════════════════════════════════════════════════════════════════════
 
-test('14. No duplicate CRM appointment — idempotency key prevents duplicates', () => {
-  const leadsSrc = fs.readFileSync(
-    path.join(__dirname, '..', 'routes', 'leads.js'), 'utf8'
+test('14. No duplicate CRM appointment — one active appointment per lead', () => {
+  const svcSrc = fs.readFileSync(
+    path.join(__dirname, '..', 'lib', 'booking', 'bookingService.js'), 'utf8'
   );
-  // The INSERT uses ON CONFLICT (idempotency_key) DO NOTHING
-  assert.ok(
-    leadsSrc.includes('ON CONFLICT (idempotency_key) DO NOTHING'),
-    'INSERT must use ON CONFLICT (idempotency_key) DO NOTHING to prevent duplicates'
-  );
-  // Idempotency key is deterministic: appt:{leadId}:{date}:{time}
-  assert.ok(
-    leadsSrc.includes('appt:${updatedLead.id}:${apptDate}:${apptTime}'),
-    'Idempotency key must be deterministic per lead+date+time'
-  );
+  // Creating a first appointment refuses when one is already active; changes
+  // go through reschedule (old row flipped to 'rescheduled' in the same tx).
+  assert.ok(svcSrc.includes("'appointment_exists'"), 'createAppointmentForLead must refuse a second active appointment');
+  const leadsSrc = fs.readFileSync(path.join(__dirname, '..', 'routes', 'leads.js'), 'utf8');
+  assert.ok(/bookingService\.rescheduleAppointment\(active\.id/.test(leadsSrc),
+    'an existing active appointment is rescheduled, never duplicated');
 });
 
 test('15. No duplicate Google Calendar event — deterministic event ID + outbox idempotency', () => {
@@ -337,7 +336,7 @@ test('16. Reminders remain based on real appointment start — not travel buffer
 
 test('17. Frontend does not render simultaneous red blocking error + accepted Admin Override warning', () => {
   const schedulerSrc = fs.readFileSync(
-    path.join(__dirname, '..', 'crm-frontend', 'src', 'components', 'FollowUpScheduler.jsx'), 'utf8'
+    path.join(__dirname, '..', 'crm-frontend', 'src', 'components', 'AppointmentEditor.jsx'), 'utf8'
   );
 
   // When override is active and a 409 arrives, it must NOT set availabilityError (red).
@@ -359,7 +358,7 @@ test('17. Frontend does not render simultaneous red blocking error + accepted Ad
   assert.ok(dateChangeClears, 'Date change must auto-clear overrideEnabled');
   const timeChangeClears = schedulerSrc.includes("setTime(v); setAvailabilityError(null); setOverrideEnabled(false)");
   assert.ok(timeChangeClears, 'Time change must auto-clear overrideEnabled');
-  const typeChangeClears = schedulerSrc.includes('setType("Phone Call"); setAvailabilityError(null); setOverrideEnabled(false)');
+  const typeChangeClears = schedulerSrc.includes('setKind(k); setAvailabilityError(null); setOverrideEnabled(false)');
   assert.ok(typeChangeClears, 'Type change must auto-clear overrideEnabled');
 
   // Frontend admin check must be role === "admin" only (not manager/owner)
@@ -381,7 +380,7 @@ test('17. Frontend does not render simultaneous red blocking error + accepted Ad
 
 test('6. Changing override slot recalculates state — override auto-clears on time change', () => {
   const schedulerSrc = fs.readFileSync(
-    path.join(__dirname, '..', 'crm-frontend', 'src', 'components', 'FollowUpScheduler.jsx'), 'utf8'
+    path.join(__dirname, '..', 'crm-frontend', 'src', 'components', 'AppointmentEditor.jsx'), 'utf8'
   );
   // When time changes, overrideEnabled is reset to false
   assert.ok(
@@ -392,7 +391,7 @@ test('6. Changing override slot recalculates state — override auto-clears on t
 
 test('7. Changing to free slot clears override — override auto-clears on date change', () => {
   const schedulerSrc = fs.readFileSync(
-    path.join(__dirname, '..', 'crm-frontend', 'src', 'components', 'FollowUpScheduler.jsx'), 'utf8'
+    path.join(__dirname, '..', 'crm-frontend', 'src', 'components', 'AppointmentEditor.jsx'), 'utf8'
   );
   // When date changes, overrideEnabled is reset to false
   assert.ok(
@@ -407,18 +406,18 @@ test('7. Changing to free slot clears override — override auto-clears on date 
 
 test('5. Editing appointment does not self-conflict — excludeAppointmentId passed to availability check', () => {
   const schedulerSrc = fs.readFileSync(
-    path.join(__dirname, '..', 'crm-frontend', 'src', 'components', 'FollowUpScheduler.jsx'), 'utf8'
+    path.join(__dirname, '..', 'crm-frontend', 'src', 'components', 'AppointmentEditor.jsx'), 'utf8'
   );
   // The validateSlot call must pass excludeAppointmentId
   assert.ok(
-    schedulerSrc.includes('excludeAppointmentId: lead.appointment_id'),
-    'FollowUpScheduler must pass excludeAppointmentId to validateSlot to prevent self-conflict'
+    schedulerSrc.includes('excludeAppointmentId: appt?.id'),
+    'AppointmentEditor must pass excludeAppointmentId to validateSlot to prevent self-conflict'
   );
 
   // AvailableTimePicker must also receive excludeAppointmentId
   assert.ok(
-    schedulerSrc.includes('excludeAppointmentId={lead.appointment_id}'),
-    'FollowUpScheduler must pass excludeAppointmentId to AvailableTimePicker'
+    schedulerSrc.includes('excludeAppointmentId={appt?.id}'),
+    'AppointmentEditor must pass excludeAppointmentId to AvailableTimePicker'
   );
 });
 

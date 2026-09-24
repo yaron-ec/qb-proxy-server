@@ -4,7 +4,7 @@ import { EC_PROJECT_TYPES } from "@/lib/projectTypes";
 import { uploadFileToStorage } from "@/lib/fileUpload";
 import { fetchCaptureAvailability, submitCapture, fetchAppLists } from "@/lib/captureRailwayClient";
 import { useAuth } from "@/lib/AuthContext";
-import { CheckCircle, Upload, X, Phone, MapPin, Briefcase, AlertCircle, Loader2, ArrowLeft, Calendar, ShieldAlert } from "lucide-react";
+import { CheckCircle, Upload, X, Phone, MapPin, Briefcase, AlertCircle, Loader2, ArrowLeft, Calendar, ShieldAlert, ListTodo } from "lucide-react";
 import CaptureSlotGrid from "@/components/CaptureSlotGrid";
 
 // Server-side allowlist is authoritative; this mirror only gates the UI.
@@ -26,6 +26,11 @@ function fmt12(t) {
   return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
 }
 
+// Follow-Up / Next Update types — mirrors lib/followUp.js FOLLOW_UP_TYPES on the
+// server (which is authoritative). A customer site visit is the Appointment
+// (step 1), not a follow-up.
+const FOLLOW_UP_TYPES = ["Phone Call", "Text", "Email", "Other"];
+
 const emptyForm = () => ({
   first_name: "", last_name: "", email: "", phone: "",
   property_address: "", city: "", zip_code: "",
@@ -33,6 +38,7 @@ const emptyForm = () => ({
   message: "", source: "", referral_name: "",
   owner_occupied: false,
   appointment_date: "", appointment_time: "",
+  follow_up_date: "", follow_up_time: "", follow_up_type: "", follow_up_notes: "",
   assigned_rep: "Yaron Drilevich", estimated_value: "", notes: "",
   photo_urls: [],
 });
@@ -190,8 +196,12 @@ export default function LeadCapture() {
     if (form.project_type.length === 0) e.project_type = "Select at least one project type";
     if (!form.source.trim()) e.source = "Required";
     if (!form.assigned_rep.trim()) e.assigned_rep = "Required";
-    if (!form.appointment_date) e.appointment_date = "Required";
-    if (!form.appointment_time) e.appointment_time = "Required";
+    // A. Appointment is optional — but a picked date needs a time.
+    if (form.appointment_date && !form.appointment_time) e.appointment_time = "Pick a time, or clear the date";
+    // B. Follow-up is optional — once started it needs a date and a type.
+    const fuStarted = form.follow_up_date || form.follow_up_time || form.follow_up_type || form.follow_up_notes.trim();
+    if (fuStarted && !form.follow_up_date) e.follow_up_date = "Required for a follow-up";
+    if (fuStarted && !form.follow_up_type) e.follow_up_type = "Required for a follow-up";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -211,12 +221,15 @@ export default function LeadCapture() {
       referral_name: form.referral_name,
       assigned_rep: form.assigned_rep,
       owner_occupied: form.owner_occupied,
-      // No separate follow_up_date/time/type — the backend derives Follow-Up
-      // (and meeting_stage="First Meeting") from the appointment itself
-      // (routes/publicCapture.js -> bookingService.createBooking), so a
-      // second, always-overridden manual entry here would be pure dead UI.
+      // A. Appointment / site visit (optional) → the canonical appointments row.
       appointment_date: form.appointment_date || null,
-      appointment_time: form.appointment_time || null,
+      appointment_time: form.appointment_date ? (form.appointment_time || null) : null,
+      appointment_type: form.appointment_date ? "Meeting" : null,
+      // B. Follow-up / next update (optional, independent of the appointment).
+      follow_up_date: form.follow_up_date || null,
+      follow_up_time: form.follow_up_date ? (form.follow_up_time || null) : null,
+      follow_up_type: form.follow_up_date ? (form.follow_up_type || null) : null,
+      follow_up_notes: form.follow_up_notes.trim() || null,
       budget_range: form.budget_range,
       start_timeframe: form.start_timeframe,
       photo_urls: form.photo_urls,
@@ -237,7 +250,13 @@ export default function LeadCapture() {
         ? { adminToken: localStorage.getItem("railway_access_token") || "" }
         : {};
       const data = await submitCapture(payload, opts);
-      setSubmittedLead(data?.lead || { first_name: form.first_name, last_name: form.last_name });
+      // Summary shows what the SERVER saved (appointment + follow-up echo).
+      setSubmittedLead({
+        ...(data?.lead || { first_name: form.first_name, last_name: form.last_name }),
+        phone: form.phone, email: form.email, assigned_rep: form.assigned_rep,
+        appointment: data?.appointment ? { date: form.appointment_date, time: form.appointment_time } : null,
+        follow_up: data?.follow_up || null,
+      });
       setSubmitted(true);
       if (returnToCRM) setTimeout(() => navigate("/leads"), 2000);
     } catch (error) {
@@ -359,10 +378,16 @@ export default function LeadCapture() {
               {submittedLead.email && <div className="text-xs text-slate-500">✉️ {submittedLead.email}</div>}
               {submittedLead.project_type && <div className="text-xs text-slate-500">🔨 {submittedLead.project_type}</div>}
               {submittedLead.assigned_rep && <div className="text-xs text-slate-500">👤 Owner: {submittedLead.assigned_rep}</div>}
-              {submittedLead.follow_up_date && (
+              {submittedLead.appointment && (
                 <div className="text-xs text-amber-700 font-semibold">
-                  📅 Follow-up: {submittedLead.follow_up_date}
-                  {submittedLead.follow_up_time ? ` at ${fmt12(submittedLead.follow_up_time)}` : ""}
+                  📅 Appointment: {submittedLead.appointment.date}
+                  {submittedLead.appointment.time ? ` at ${fmt12(submittedLead.appointment.time)}` : ""}
+                </div>
+              )}
+              {submittedLead.follow_up && (
+                <div className="text-xs text-slate-600 font-semibold">
+                  ⏭ Follow-up: {submittedLead.follow_up.follow_up_type} · {submittedLead.follow_up.follow_up_date}
+                  {submittedLead.follow_up.follow_up_time ? ` at ${fmt12(submittedLead.follow_up.follow_up_time)}` : ""}
                 </div>
               )}
             </div>
@@ -416,9 +441,10 @@ export default function LeadCapture() {
         )}
 
         {/* ── Step 1: Appointment (date + time first, before contact info) ── */}
-        <FormCard step={1} totalSteps={8} icon={<Calendar className="w-4 h-4 text-amber-600" />} title="Appointment Date & Time">
+        <FormCard step={1} totalSteps={9} icon={<Calendar className="w-4 h-4 text-amber-600" />} title="Appointment / Site Visit (optional)">
           <div className="space-y-3">
-            <Field label="Appointment Date *" error={errors.appointment_date}>
+            <p className="text-[11px] text-slate-500">Book the visit now if the client agreed to one. Leave empty if no visit is scheduled yet.</p>
+            <Field label="Appointment Date" error={errors.appointment_date}>
               <input
                 type="date"
                 value={form.appointment_date}
@@ -429,7 +455,11 @@ export default function LeadCapture() {
             </Field>
             {form.appointment_date && (
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Appointment Time *</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-600">Appointment Time *</label>
+                  <button type="button" onClick={() => { set("appointment_date", ""); set("appointment_time", ""); }}
+                    className="text-[11px] font-semibold text-slate-500 hover:text-red-600">Clear appointment</button>
+                </div>
                 <CaptureSlotGrid
                   date={form.appointment_date}
                   selectedTime={form.appointment_time}
@@ -457,8 +487,35 @@ export default function LeadCapture() {
           </div>
         </FormCard>
 
+        {/* ── Step 2: Follow-Up / Next Update (independent of the appointment) ── */}
+        <FormCard step={2} totalSteps={9} icon={<ListTodo className="w-4 h-4 text-amber-600" />} title="Follow-Up / Next Update (optional)">
+          <div className="space-y-3">
+            <p className="text-[11px] text-slate-500">The next action for this lead (call back, send info…). It does not book a visit or block the calendar.</p>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Follow-up Date" error={errors.follow_up_date}>
+                <input type="date" value={form.follow_up_date} onChange={e => set("follow_up_date", e.target.value)}
+                  min={new Date().toISOString().split('T')[0]} className={inputCls(errors.follow_up_date)} />
+              </Field>
+              <Field label="Time">
+                <input type="time" value={form.follow_up_time} onChange={e => set("follow_up_time", e.target.value)}
+                  className={inputCls(false)} />
+              </Field>
+            </div>
+            <Field label="Type" error={errors.follow_up_type}>
+              <select value={form.follow_up_type} onChange={e => set("follow_up_type", e.target.value)} className={inputCls(errors.follow_up_type)}>
+                <option value="">Select type…</option>
+                {FOLLOW_UP_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </Field>
+            <Field label="Notes">
+              <textarea value={form.follow_up_notes} onChange={e => set("follow_up_notes", e.target.value)} rows={2}
+                maxLength={2000} placeholder="What should happen next?" className={inputCls(false)} />
+            </Field>
+          </div>
+        </FormCard>
+
         {/* ── Contact Info ── */}
-        <FormCard step={2} totalSteps={8} icon={<Phone className="w-4 h-4 text-amber-600" />} title="Client Contact Info">
+        <FormCard step={3} totalSteps={9} icon={<Phone className="w-4 h-4 text-amber-600" />} title="Client Contact Info">
           {errors.phone && <ErrorMsg msg="Phone or email is required" />}
           <div className="grid grid-cols-2 gap-3">
             <Field label="First Name *" error={errors.first_name}>
@@ -477,7 +534,7 @@ export default function LeadCapture() {
         </FormCard>
 
         {/* ── Property Info ── */}
-        <FormCard step={3} totalSteps={8} icon={<MapPin className="w-4 h-4 text-amber-600" />} title="Property Information">
+        <FormCard step={4} totalSteps={9} icon={<MapPin className="w-4 h-4 text-amber-600" />} title="Property Information">
           <div className="space-y-3">
             <Field label="Property Address">
               <input type="text" value={form.property_address} onChange={e => set("property_address", e.target.value)} placeholder="123 Main St" className={inputCls()} />
@@ -494,7 +551,7 @@ export default function LeadCapture() {
         </FormCard>
 
         {/* ── Project Details ── */}
-        <FormCard step={4} totalSteps={8} icon={<Briefcase className="w-4 h-4 text-amber-600" />} title="Project Details">
+        <FormCard step={5} totalSteps={9} icon={<Briefcase className="w-4 h-4 text-amber-600" />} title="Project Details">
           <div className="space-y-3">
             <Field label="Project Type *" error={errors.project_type}>
               <div className="grid grid-cols-2 gap-2">
@@ -537,7 +594,7 @@ export default function LeadCapture() {
         </FormCard>
 
         {/* ── Lead Source ── */}
-        <FormCard step={5} totalSteps={8} icon={<MapPin className="w-4 h-4 text-amber-600" />} title="Lead Source">
+        <FormCard step={6} totalSteps={9} icon={<MapPin className="w-4 h-4 text-amber-600" />} title="Lead Source">
           <div className="space-y-3">
             <Field label="How did you hear about us? *" error={errors.source}>
               <select value={form.source} onChange={e => set("source", e.target.value)} className={inputCls(errors.source)}>
@@ -554,7 +611,7 @@ export default function LeadCapture() {
         </FormCard>
 
         {/* ── Contact Owner ── */}
-        <FormCard step={6} totalSteps={8} icon={<Phone className="w-4 h-4 text-amber-600" />} title="Who will handle this lead?">
+        <FormCard step={7} totalSteps={9} icon={<Phone className="w-4 h-4 text-amber-600" />} title="Who will handle this lead?">
           <Field label="Assign to *" error={errors.assigned_rep}>
             <select value={form.assigned_rep} onChange={e => set("assigned_rep", e.target.value)} className={inputCls(errors.assigned_rep)}>
               <option value="">Select contact owner</option>
@@ -564,14 +621,14 @@ export default function LeadCapture() {
         </FormCard>
 
         {/* ── Message ── */}
-        <FormCard step={7} totalSteps={8} icon={<Briefcase className="w-4 h-4 text-amber-600" />} title="Project Description">
+        <FormCard step={8} totalSteps={9} icon={<Briefcase className="w-4 h-4 text-amber-600" />} title="Project Description">
           <Field label="Tell us about your project">
             <textarea value={form.message} onChange={e => set("message", e.target.value)} placeholder="Describe your project, goals, and any specific needs..." rows={4} className="w-full border rounded-lg px-3 py-2.5 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors border-slate-200 resize-none" />
           </Field>
         </FormCard>
 
         {/* ── Photo Upload ── */}
-        <FormCard step={8} totalSteps={8} icon={<Upload className="w-4 h-4 text-amber-600" />} title="Upload Photos / Plans (Optional)">
+        <FormCard step={9} totalSteps={9} icon={<Upload className="w-4 h-4 text-amber-600" />} title="Upload Photos / Plans (Optional)">
           <div className="space-y-3">
             <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl py-6 cursor-pointer hover:border-amber-400 transition-colors">
               <Upload className="w-5 h-5 text-slate-400 mb-1" />

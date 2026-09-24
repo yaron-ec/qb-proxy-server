@@ -23,16 +23,16 @@ export default function CalendarSyncPanel({ lead, onLeadUpdate }) {
   const [retrying, setRetrying] = useState(false);
   const [retryMsg, setRetryMsg] = useState(null);
 
-  const isMeeting = lead.follow_up_type === 'Meeting';
-  const hasDate = !!(lead.appointment_date || lead.follow_up_date);
-  if (!isMeeting || !hasDate) return null;
+  // Calendar sync belongs to the canonical appointment (Meeting or Phone
+  // Call) — never to the follow-up.
+  if (!lead.appointment) return null;
 
   const syncStatus = lead.google_calendar_sync_status;
   const syncError = lead.google_calendar_sync_error;
   const hasEvent = !!lead.google_event_id;
   const hasBuffer = !!lead.google_travel_event_id;
   const isFailed = syncStatus === 'error' || syncStatus === 'failed';
-  const isPending = syncStatus === 'pending' || queueRecord?.status === 'pending';
+  const isPending = syncStatus === 'pending' || syncStatus === 'retrying' || queueRecord?.status === 'pending';
   const isSynced = syncStatus === 'synced' && hasEvent;
 
   // Rep name for display

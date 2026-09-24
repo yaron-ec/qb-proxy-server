@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { create as createActivity } from "@/api/railway/activities";
-import { update as updateLead, updateAppointmentByExternal } from "@/api/railway/leads";
+import { update as updateLead, updateAppointmentByExternal, updateFollowUp } from "@/api/railway/leads";
 import { X, Loader2 } from "lucide-react";
 import AvailableTimePicker from "./AvailableTimePicker";
 
@@ -55,25 +55,25 @@ export default function CallLogModal({ lead, isOpen, onClose, onSave }) {
         source: "manual",
       });
 
-      // If follow-up needed, create/update follow-up on lead via Railway API
+      // If follow-up needed, set the lead's FOLLOW-UP (independent of any appointment).
       if (showFollowUp && followUpDate && followUpTime) {
-        await updateLead(lead.id, {
+        await updateFollowUp(lead.id, {
           follow_up_date: followUpDate,
           follow_up_time: followUpTime,
           follow_up_type: "Phone Call",
+          follow_up_status: "pending",
         });
       }
 
       // If appointment scheduled, update appointment on lead via Railway API
       if (outcome === "Appointment Scheduled" && followUpDate && followUpTime) {
-        // Use appointment endpoint for calendar side effects (creates/updates Google Calendar event)
-        // lead.id is external_ref (legacy) or Railway UUID (native) — backend matches both.
+        // Books/reschedules the canonical APPOINTMENT (site visit) — conflict
+        // rules + Google Calendar via the booking service. Not mirrored into
+        // the follow-up. lead.id is external_ref (legacy) or Railway UUID.
         await updateAppointmentByExternal(lead.id, {
           appointment_date: followUpDate,
           appointment_time: followUpTime,
-          follow_up_date: followUpDate,
-          follow_up_time: followUpTime,
-          follow_up_type: "Meeting",
+          appointment_type: "Meeting",
         });
         // Update status separately (not handled by appointment endpoint)
         await updateLead(lead.id, {
