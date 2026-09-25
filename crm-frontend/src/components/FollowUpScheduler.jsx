@@ -2,10 +2,11 @@ import { useState } from "react";
 import { leads as railwayLeads } from "@/api/railway";
 import { Phone, MessageSquare, Mail, Calendar, ListTodo, AlertTriangle, Pencil, X, CheckCircle2 } from "lucide-react";
 
-// Mirrors lib/followUp.js FOLLOW_UP_TYPES (server is authoritative). 'Meeting'
-// is kept only so existing follow-ups still display/edit; a customer visit is
-// booked as the Appointment, not as a follow-up.
-const FOLLOW_UP_TYPES = ["Phone Call", "Text", "Email", "Other"];
+// Mirrors lib/followUp.js FOLLOW_UP_TYPES (server is authoritative). A
+// 'Meeting' follow-up is still only a follow-up: it never creates an
+// appointment, blocks availability, or touches Google Calendar/reminders. A
+// customer visit is booked as the Appointment.
+const FOLLOW_UP_TYPES = ["Phone Call", "Text", "Email", "Meeting", "Other"];
 const TYPE_ICON = { "Phone Call": Phone, Text: MessageSquare, Email: Mail, Meeting: Calendar, Other: ListTodo };
 
 function fmt12(t) {
