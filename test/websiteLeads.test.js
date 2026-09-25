@@ -128,13 +128,13 @@ const websiteLead = (over = {}) => ({
 test('fails closed without the secret configured; rejects a wrong secret; status leaks nothing', async () => {
   await withServer(fakeWorld({ secret: '' }).app, async (base) => {
     assert.strictEqual((await post(base, websiteLead())).status, 503);
-    assert.deepStrictEqual(await (await fetch(base)).json(), { service: 'website-leads', configured: false });
+    assert.deepStrictEqual(await (await fetch(base)).json(), { service: 'website-leads', configured: false, capabilities: ['test-evidence'] });
   });
   const w = fakeWorld();
   await withServer(w.app, async (base) => {
     assert.strictEqual((await post(base, websiteLead(), { secret: 'wrong' })).status, 401);
     assert.strictEqual((await post(base, websiteLead(), { secret: null })).status, 401);
-    assert.deepStrictEqual(await (await fetch(base)).json(), { service: 'website-leads', configured: true });
+    assert.deepStrictEqual(await (await fetch(base)).json(), { service: 'website-leads', configured: true, capabilities: ['test-evidence'] });
   });
   assert.strictEqual(w.calls.booking.length, 0, 'nothing written without a valid secret');
 });

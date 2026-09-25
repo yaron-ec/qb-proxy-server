@@ -62,7 +62,7 @@ function createWebsiteLeadsRouter(deps) {
   }
 
   router.get('/', (req, res) => {
-    res.json({ service: 'website-leads', configured: !!getSecret() });
+    res.json({ service: 'website-leads', configured: !!getSecret(), capabilities: ['test-evidence'] });
   });
 
   // Claim the idempotency reference. Returns { claimed: true } or the stored
