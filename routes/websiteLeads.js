@@ -216,6 +216,26 @@ function createWebsiteLeadsRouter(deps) {
       const lead = receipt.lead_id ? (await query('SELECT * FROM leads WHERE id = $1', [receipt.lead_id])).rows[0] : null;
       if (lead && !isTestLead(lead)) return res.status(403).json({ error: 'not_a_test_lead' });
       const notes = lead ? (await query('SELECT type, content, author FROM activities WHERE lead_id = $1 ORDER BY created_at', [lead.id])).rows : [];
+      // Read-only evidence for the end-to-end check, gathered before deletion:
+      // no duplicate record, no appointment/follow-up/reminder, nothing queued
+      // for Google Contacts, no email of any kind. null = could not be read.
+      const count = async (sql, params) => {
+        try { return Number((await query(sql, params)).rows[0].n); } catch (_) { return null; }
+      };
+      const evidence = lead ? {
+        leads_with_this_external_ref: await count('SELECT count(*) AS n FROM leads WHERE external_ref = $1', [ref]),
+        leads_with_this_email: await count('SELECT count(*) AS n FROM leads WHERE lower(email) = lower($1)', [lead.email || '']),
+        receipts_for_this_delivery: await count('SELECT count(*) AS n FROM website_lead_receipts WHERE external_ref = $1', [ref]),
+        appointments: await count('SELECT count(*) AS n FROM appointments WHERE lead_id = $1', [lead.id]),
+        follow_up: { type: lead.follow_up_type || null, date: lead.follow_up_date || null, status: lead.follow_up_status || null },
+        reminder_rows: await count('SELECT count(*) AS n FROM reminder_leads WHERE id = $1 OR id = $2', [lead.external_ref || '', String(lead.id)]),
+        reminder_claims: await count('SELECT count(*) AS n FROM reminder_claims WHERE lead_id = $1 OR lead_id = $2', [lead.external_ref || '', String(lead.id)]),
+        google_contacts_queued: await count('SELECT count(*) AS n FROM google_contacts_outbox WHERE lead_id = $1', [lead.id]),
+        google_contact_synced: !!lead.google_contact_resource_name,
+        emails_claimed: await count(`SELECT count(*) AS n FROM email_send_claims WHERE idempotency_key LIKE '%' || $1 || '%' OR lower(recipient) = lower($2)`, [String(lead.id), lead.email || '']),
+        emails_logged: await count(`SELECT count(*) AS n FROM email_send_logs WHERE idempotency_key LIKE '%' || $1 || '%' OR lower(recipient) = lower($2)`, [String(lead.id), lead.email || '']),
+        total_leads_before_cleanup: await count('SELECT count(*) AS n FROM leads', []),
+      } : null;
 
       const client = await pool.connect();
       try {
@@ -224,7 +244,8 @@ function createWebsiteLeadsRouter(deps) {
           await removeFromReminders(client, lead);
           await cancelAppointmentsForLeadDelete(client, lead.id);
           await cleanupLeadTextRefs(client, lead.id);
-          await client.query('DELETE FROM leads WHERE id = $1', [lead.id]);
+          const del = await client.query('DELETE FROM leads WHERE id = $1', [lead.id]);
+          if (evidence) evidence.leads_deleted = del.rowCount;
         }
         await client.query('DELETE FROM website_lead_receipts WHERE external_ref = $1', [ref]);
         await client.query('COMMIT');
@@ -241,9 +262,10 @@ function createWebsiteLeadsRouter(deps) {
         start_timeframe: r.start_timeframe, source: r.source, status: r.status, message: r.message,
         is_new_intake_lead: r.is_new_intake_lead, sms_consent: r.sms_consent, sms_consent_at: r.sms_consent_at,
         sms_consent_disclosure_version: r.sms_consent_disclosure_version, sms_consent_source: r.sms_consent_source,
-        owner_id: r.owner_id,
+        owner_id: r.owner_id, notes: r.notes, crm_created_date: r.crm_created_date,
       });
-      return res.json({ deleted: true, action: receipt.action, lead: pick(lead), activities: notes });
+      if (evidence) evidence.total_leads_after_cleanup = await count('SELECT count(*) AS n FROM leads', []);
+      return res.json({ deleted: true, action: receipt.action, lead: pick(lead), activities: notes, evidence });
     } catch (e) {
       log.error('[website-leads] test cleanup failed:', e.message);
       return res.status(500).json({ error: 'cleanup_failed' });
