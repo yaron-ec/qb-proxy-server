@@ -26,7 +26,7 @@ vi.mock('@/api/railway', () => ({
 const AUTH = { user: { email: 'rep@ecconstructiongroup.com', role: 'sales_rep' } };
 vi.mock('@/lib/AuthContext', () => ({ useAuth: () => AUTH }));
 vi.mock('@/lib/ownerEmailMap', () => ({ resolveOwnerEmail: () => 'yaron@ecconstructiongroup.com' }));
-vi.mock('@/lib/calendarAvailability', () => ({ validateSlot: () => Promise.resolve({ blocked: false }) }));
+vi.mock('@/api/railway/availability', () => ({ validateSlot: () => Promise.resolve({ blocked: false }), getBlockedSlots: () => Promise.resolve({ blocked_slots: [] }) }));
 vi.mock('@/components/AvailableTimePicker', () => ({
   default: ({ value, onChange }) => <input aria-label="Appointment time" value={value} onChange={e => onChange(e.target.value)} />,
 }));

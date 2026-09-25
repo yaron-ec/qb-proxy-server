@@ -1,19 +1,28 @@
 /**
  * AvailableTimePicker
  *
- * Loads the owner's Google Calendar availability for the selected date
- * and removes blocked slots from the dropdown entirely.
+ * Loads the owner's availability (real CRM appointments + real Google
+ * Calendar, 1hr-before + duration + 1hr-after buffer) for the selected date
+ * and removes blocked slots from the dropdown entirely. Uses the SAME
+ * canonical backend engine (lib/booking/availabilityService.js, via
+ * GET /api/v1/availability/:owner/:date) that the booking write path checks
+ * against — never a separate client-side calculation — so a slot shown here
+ * as available is never rejected by the backend on submit.
  *
  * Props:
- *   value      - currently selected time ("HH:MM")
- *   onChange   - called with "HH:MM" when user selects an available slot
- *   date       - "YYYY-MM-DD" — required to load availability
- *   ownerName  - assigned rep name
- *   disabled   - disables the whole picker
- *   className  - extra wrapper classes
+ *   value                - currently selected time ("HH:MM")
+ *   onChange             - called with "HH:MM" when user selects an available slot
+ *   date                 - "YYYY-MM-DD" — required to load availability
+ *   ownerName            - assigned rep name (resolved to canonical email)
+ *   disabled             - disables the whole picker
+ *   className            - extra wrapper classes
+ *   excludeAppointmentId - when editing/rescheduling an existing appointment,
+ *                          excludes it from its own conflict set (self-conflict)
+ *   durationMinutes      - candidate appointment duration (default 60)
  */
 import { useState, useEffect, useRef } from "react";
-import { getBlockedSlots } from "@/lib/calendarAvailability";
+import { getBlockedSlots } from "@/api/railway/availability";
+import { resolveOwnerEmail } from "@/lib/ownerEmailMap";
 import { Loader2, AlertTriangle } from "lucide-react";
 
 // Times from 8:30 AM to 6:30 PM
@@ -33,19 +42,21 @@ function fmt12(t) {
   return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ampm}`;
 }
 
-export default function AvailableTimePicker({ value, onChange, date, ownerName, disabled, className = "", adminOverride = false }) {
+export default function AvailableTimePicker({ value, onChange, date, ownerName, disabled, className = "", adminOverride = false, excludeAppointmentId, durationMinutes }) {
   const [blockedSlots, setBlockedSlots] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState(null);
   const [quotaError, setQuotaError] = useState(false);
   const abortRef = useRef(null);
 
+  const ownerEmail = resolveOwnerEmail(ownerName);
+
   useEffect(() => {
     // Cancel any in-flight request
     if (abortRef.current) abortRef.current = false;
 
     // Only load if BOTH date AND owner are selected
-    if (!date || !ownerName) {
+    if (!date || !ownerEmail) {
       setBlockedSlots([]);
       setLoading(false);
       setQuotaError(false);
@@ -59,7 +70,7 @@ export default function AvailableTimePicker({ value, onChange, date, ownerName, 
     setLoadError(null);
     setQuotaError(false);
 
-    getBlockedSlots(date, ownerName).then(data => {
+    getBlockedSlots({ ownerEmail, date, durationMinutes, excludeAppointmentId }).then(data => {
       if (!active) return;
       const blocked = data?.blocked_slots || [];
       setBlockedSlots(blocked);
@@ -68,7 +79,11 @@ export default function AvailableTimePicker({ value, onChange, date, ownerName, 
       }
     }).catch(e => {
       if (!active) return;
-      console.warn('[AvailableTimePicker] Could not check availability:', e.message);
+      if (e?.data?.error === 'calendar_unavailable' || e?.status === 503) {
+        setLoadError('Calendar availability cannot be confirmed right now — please try again shortly.');
+      } else {
+        console.warn('[AvailableTimePicker] Could not check availability:', e.message);
+      }
       setBlockedSlots([]);
     }).finally(() => {
       if (!active) return;
@@ -76,7 +91,7 @@ export default function AvailableTimePicker({ value, onChange, date, ownerName, 
     });
 
     return () => { active = false; };
-  }, [date, ownerName]); // Only fetch when date or owner changes
+  }, [date, ownerEmail, excludeAppointmentId, durationMinutes]); // Only fetch when these change
 
   // In admin override mode, show all slots; otherwise filter out blocked ones
   const visibleSlots = adminOverride ? ALL_SLOTS : ALL_SLOTS.filter(s => !blockedSlots.includes(s));

@@ -104,7 +104,7 @@ router.get('/appointment-types', requireAuth, async (req, res) => {
 router.get('/availability/:owner/:date', requireAuth, async (req, res) => {
   try {
     const { owner, date } = req.params;
-    const { timezone, appointment_type_id, duration_minutes } = req.query;
+    const { timezone, appointment_type_id, duration_minutes, exclude_appointment_id } = req.query;
     const peek = UUID_RE.test(owner)
       ? await peekOwner(owner, null)
       : await peekOwner(null, owner);
@@ -124,6 +124,7 @@ router.get('/availability/:owner/:date', requireAuth, async (req, res) => {
       owner_id: peek.id, date, timezone,
       appointment_type_id,
       duration_minutes: duration_minutes != null ? Number(duration_minutes) : null,
+      exclude_appointment_id: exclude_appointment_id && UUID_RE.test(exclude_appointment_id) ? exclude_appointment_id : null,
     });
     res.json(result);
   } catch (e) {

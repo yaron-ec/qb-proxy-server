@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { leads as railwayLeads } from "@/api/railway";
 import { useAuth } from "@/lib/AuthContext";
 import { resolveOwnerEmail } from "@/lib/ownerEmailMap";
-import { validateSlot } from "@/lib/calendarAvailability";
+import { validateSlot } from "@/api/railway/availability";
 import { Calendar, Phone, AlertTriangle, Pencil, X, ShieldAlert, Loader2, RefreshCw } from "lucide-react";
 import AvailableTimePicker from "@/components/AvailableTimePicker";
 
@@ -112,9 +112,10 @@ export default function AppointmentEditor({ lead, onLeadUpdate }) {
       }
     }
     // Client-side pre-check; the server re-checks under the owner-schedule lock.
-    if (lead.assigned_rep && !(isAdminUser && overrideEnabled)) {
+    const ownerEmailForCheck = resolveOwnerEmail(lead.assigned_rep);
+    if (ownerEmailForCheck && !(isAdminUser && overrideEnabled)) {
       try {
-        const av = await validateSlot(date, time, lead.assigned_rep, { excludeAppointmentId: appt?.id });
+        const av = await validateSlot({ ownerEmail: ownerEmailForCheck, date, time, excludeAppointmentId: appt?.id });
         if (av?.blocked === true && kind === "Meeting") {
           setAvailabilityError(`This owner is not available at ${fmt12(time)} (including the 1-hour travel buffer). Please choose another time.`);
           setSaving(false);

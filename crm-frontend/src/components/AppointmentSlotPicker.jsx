@@ -5,25 +5,25 @@
  * Busy slots are labeled "Busy" (no private event details exposed).
  * Available slots are selectable. The selected slot is highlighted.
  *
- * Uses the existing calendarAvailability.getBlockedSlots() — the same source of
- * truth used by the rest of the CRM (Google Calendar freeBusy + CRM meetings).
- * Does NOT invent a second availability algorithm.
+ * Uses the canonical backend availability engine (lib/booking/availabilityService.js,
+ * via GET /api/v1/availability/:owner/:date) — the SAME engine the booking
+ * write path checks against. Does NOT invent a second availability algorithm.
  *
- * Timezone: America/Los_Angeles (handled by calendarAvailability.js).
- * Appointment duration + travel buffers: 120 min total window (1hr meeting + 1hr buffer)
- * — same rules as the existing CRM availability check.
+ * Timezone: America/Los_Angeles (handled server-side). Appointment duration +
+ * travel buffer: 1hr meeting + 1hr before/after — same rule the backend
+ * write-path conflict check enforces.
  *
  * Yaron's calendar is always shown regardless of the selected rep, per requirement:
  * "Yaron's calendar is the availability calendar that must be shown."
  */
 import { useState, useEffect, useCallback } from 'react';
 import { Clock, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { getBlockedSlots } from '@/lib/calendarAvailability';
+import { getBlockedSlots } from '@/api/railway/availability';
 
 // Always use Yaron's calendar for availability, regardless of selected rep
-const AVAILABILITY_OWNER = 'Yaron Drilevich';
+const AVAILABILITY_OWNER_EMAIL = 'yaron@ecconstructiongroup.com';
 
-// Generate 30-minute slots from 8:30 AM to 6:30 PM (matches calendarAvailability.js)
+// Generate 30-minute slots from 8:30 AM to 6:30 PM (matches the backend's SLOTS)
 const SLOTS = [];
 for (let h = 8; h <= 18; h++) {
   for (let m = 0; m < 60; m += 30) {
@@ -43,7 +43,7 @@ export default function AppointmentSlotPicker({ date, selectedTime, onSelectTime
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const loadAvailability = useCallback(async (d, forceRefresh = false) => {
+  const loadAvailability = useCallback(async (d) => {
     if (!d) {
       setBlockedSlots([]);
       return;
@@ -51,7 +51,7 @@ export default function AppointmentSlotPicker({ date, selectedTime, onSelectTime
     setLoading(true);
     setError(null);
     try {
-      const data = await getBlockedSlots(d, AVAILABILITY_OWNER, { forceRefresh });
+      const data = await getBlockedSlots({ ownerEmail: AVAILABILITY_OWNER_EMAIL, date: d });
       setBlockedSlots(data.blocked_slots || []);
     } catch (e) {
       setError(e.message || 'Failed to load availability');
@@ -135,7 +135,7 @@ export default function AppointmentSlotPicker({ date, selectedTime, onSelectTime
         <AlertCircle className="w-5 h-5 text-red-400 mx-auto mb-2" />
         <p className="text-xs text-red-600 mb-2">{error}</p>
         <button
-          onClick={() => loadAvailability(date, true)}
+          onClick={() => loadAvailability(date)}
           className="text-xs font-semibold text-amber-600 hover:text-amber-700 underline"
         >
           Retry

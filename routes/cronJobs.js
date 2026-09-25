@@ -756,85 +756,22 @@ router.post('/diagnose-deal', async (req, res) => {
 });
 
 // ── POST /reconcile-calendar-appointments ─────────────────────────────────────
-// Reconciles leads that have follow_up_date + follow_up_type (Phone Call or
-// Meeting) but NO active appointment. Creates appointments + calendar outbox
-// entries for them so the outbox worker creates the Google Calendar events.
-// Also resets 'dead' calendar_outbox rows to 'pending' so the worker retries.
-// Idempotent: leads with existing active appointments are skipped.
+// FORMERLY: manifested a lead's independent Follow-Up (follow_up_date/type)
+// into a real `appointments` row + Google Calendar event whenever a lead had
+// a Follow-Up but no active Appointment. Disabled — this directly violates
+// two invariants: (1) CLAUDE.md's "never insert into appointments outside
+// lib/booking/bookingService.js" (this endpoint inserted directly, with NO
+// owner-lock/conflict check at all — it could double-book a slot); (2) the
+// deliberate Appointment/Follow-Up separation (a Follow-Up must never create
+// or overwrite an Appointment — see lib/booking/appointmentView.js /
+// lib/followUp.js). A lead's Follow-Up is an internal next-action note; it
+// is surfaced correctly today via `lead.follow_up_*` and never needs (or
+// should get) a fabricated Appointment or an unrequested Google Calendar
+// invite. The one thing this endpoint did that IS still legitimate — retrying
+// permanently-'dead' calendar_outbox rows — is preserved below, unchanged.
 router.post('/reconcile-calendar-appointments', async (req, res) => {
-  const { pool } = require('../db/client');
-  const calendarOutbox = require('../lib/booking/calendarOutbox');
-  const { toUtcIso } = require('../lib/booking/slotBlocking');
-
   try {
-    // 1. Find leads with follow_up_date + follow_up_type but no active appointment
-    const { rows: orphanLeads } = await query(`
-      SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
-      FROM leads l
-      LEFT JOIN owners o ON o.id = l.owner_id
-      WHERE l.follow_up_date IS NOT NULL
-        AND l.follow_up_type IN ('Phone Call', 'Meeting')
-        AND NOT EXISTS (
-          SELECT 1 FROM appointments a
-          WHERE a.lead_id = l.id AND a.status IN ('scheduled', 'confirmed')
-        )
-      LIMIT 200
-    `);
-
-    let created = 0, skipped = 0, errors = 0;
-    const errorDetails = [];
-
-    for (const lead of orphanLeads) {
-      try {
-        const apptDate = lead.follow_up_date;
-        const apptTime = lead.follow_up_time || '09:00';
-        const isPhoneCall = lead.follow_up_type === 'Phone Call';
-        const startAt = new Date(toUtcIso(apptDate, apptTime, 'America/Los_Angeles'));
-        const durationMin = 60;
-        const endAt = new Date(startAt.getTime() + durationMin * 60 * 1000);
-        const busyStart = isPhoneCall ? startAt : new Date(startAt.getTime() - 60 * 60 * 1000);
-        const busyEnd = isPhoneCall ? endAt : new Date(endAt.getTime() + 60 * 60 * 1000);
-
-        const client = await pool.connect();
-        try {
-          await client.query('BEGIN');
-          const typeRes = await client.query('SELECT id FROM appointment_types ORDER BY id LIMIT 1');
-          if (!typeRes.rows[0]) {
-            await client.query('ROLLBACK');
-            errors++;
-            errorDetails.push({ lead_id: lead.id, error: 'No appointment types configured' });
-            continue;
-          }
-          const typeId = typeRes.rows[0].id;
-          const idempotencyKey = `reconcile:${lead.id}:${apptDate}:${apptTime}`;
-          const insRes = await client.query(
-            `INSERT INTO appointments (lead_id, owner_id, appointment_type_id, start_at, end_at, timezone, busy_range, status, calendar_sync_status, idempotency_key)
-             VALUES ($1, $2, $3, $4, $5, $6, tstzrange($7, $8, '[)'), 'scheduled', 'pending', $9)
-             ON CONFLICT (idempotency_key) DO NOTHING
-             RETURNING *`,
-            [lead.id, lead.owner_id, typeId, startAt.toISOString(), endAt.toISOString(),
-             'America/Los_Angeles', busyStart.toISOString(), busyEnd.toISOString(), idempotencyKey]
-          );
-          const newAppt = insRes.rows[0];
-          if (newAppt) {
-            await calendarOutbox.enqueueCreate(client, newAppt, lead, lead.owner_email, isPhoneCall);
-          }
-          await client.query('COMMIT');
-          created++;
-        } catch (e) {
-          try { await client.query('ROLLBACK'); } catch (_) {}
-          errors++;
-          errorDetails.push({ lead_id: lead.id, error: e.message.substring(0, 150) });
-        } finally {
-          client.release();
-        }
-      } catch (e) {
-        errors++;
-        errorDetails.push({ lead_id: lead.id, error: e.message.substring(0, 150) });
-      }
-    }
-
-    // 2. Reset 'dead' calendar_outbox rows to 'pending' (retry)
+    // Reset 'dead' calendar_outbox rows to 'pending' so the worker retries.
     let resetDead = 0;
     try {
       const { rowCount } = await query(`
@@ -850,10 +787,8 @@ router.post('/reconcile-calendar-appointments', async (req, res) => {
     res.json({
       ok: true,
       job: 'reconcile-calendar-appointments',
-      orphan_leads_found: orphanLeads.length,
-      appointments_created: created,
-      errors,
-      error_details: errorDetails.slice(0, 10),
+      appointment_mirroring_disabled: true,
+      reason: 'Follow-Up must never create or overwrite an Appointment (see lib/followUp.js) — this endpoint no longer mirrors follow_up_* into appointments.',
       dead_outbox_reset: resetDead,
     });
   } catch (e) {
