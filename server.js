@@ -1378,6 +1378,8 @@ app.use('/api/public/capture', require('./routes/publicCapture'));
 // Each receiver verifies its own signature/secret and is idempotent.
 app.use('/api/v1/qb-webhook', require('./routes/qbWebhook'));
 app.use('/api/v1/meta-webhook', require('./routes/metaWebhook'));
+// Public website (Netlify) lead delivery — shared-secret auth, fails closed.
+app.use('/api/v1/website-leads', require('./routes/websiteLeads').defaultRouter());
 app.use('/api/v1/signnow-webhook', require('./routes/signnowWebhook'));
 app.use('/api/v1/owners', require('./routes/owners'));
 // Railway-native user management (admin-only: list, update role/status, delete)

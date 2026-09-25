@@ -249,6 +249,7 @@ about topology, this file wins; go correct `railway.json` and
 | Google Calendar/Contacts | Service account, domain-wide delegation | N/A (no per-user token) | Env-var gated |
 | SignNow | API key (primary) or OAuth2 password grant (fallback) | `integration_credentials` | Env-var gated |
 | Handoff | Static API key | `app_settings.handoff_api_key` or env var | Env-var gated |
+| Website leads (ecconstructiongroup.com, Netlify) | Shared secret `x-webhook-secret` = `WEBSITE_LEAD_WEBHOOK_SECRET` (**fails closed** — 503 if unset) → `routes/websiteLeads.js` | `leads` (+ `sms_consent*` columns), `website_lead_receipts` (idempotency) | Env-var gated; website side needs `CRM_WEBHOOK_URL` + the same value as `WEBHOOK_SECRET` |
 | Meta/Facebook Lead Ads | Webhook + `META_APP_SECRET` HMAC (**fails open** if unset — verify this env var is actually set in production before relying on it) | N/A | Env-var gated |
 
 ## Important business invariants
