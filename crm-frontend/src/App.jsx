@@ -39,6 +39,7 @@ import Deals from './pages/Deals';
 import Reports from './pages/Reports';
 import MobileDayView from './pages/MobileDayView';
 import KanbanBoard from './pages/KanbanBoard';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Page content wrapper — renders children directly.
 // The previous AnimatePresence mode="wait" wrapper caused detail pages to
@@ -48,8 +49,23 @@ import KanbanBoard from './pages/KanbanBoard';
 // animation completed. If anything interrupted the enter animation, the new
 // page stayed at opacity:0 — invisible. This affected BOTH leads and deals
 // detail pages identically. Removing the wrapper ensures immediate render.
+//
+// ErrorBoundary here is NOT that same mistake — it adds no animation/timing
+// behavior, only a catch for uncaught render errors. Production defect: Lead
+// Detail's Owner field crashed the ENTIRE app to a blank white screen because
+// no boundary existed anywhere above any page. Every route gets one here
+// (Lead Detail also keeps its own, more specific one — defense in depth);
+// resetKey=pathname means navigating to a different page/record always
+// clears a stale error instead of getting stuck.
 const PageContentWrapper = ({ children }) => {
-  return <div className="h-full">{children}</div>;
+  const location = useLocation();
+  return (
+    <div className="h-full">
+      <ErrorBoundary name="PageContentWrapper" resetKey={location.pathname}>
+        {children}
+      </ErrorBoundary>
+    </div>
+  );
 };
 
 const AuthenticatedApp = () => {
