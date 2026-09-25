@@ -33,7 +33,7 @@ const { query, ensureSchema } = require('../db/client');
 const db = require('../db/client');
 const {
   validateCapturePayload, computeIdempotencyKey, laToUtcStart,
-  resolveOwnerEmail, isValidOwnerEmail,
+  resolveOwnerEmail, isValidOwnerEmail, DEFAULT_INTAKE_REP,
 } = require('../lib/captureValidation');
 const { syncLeadToReminders } = require('../lib/reminderProjection');
 const { rateLimit } = require('../lib/rateLimit');
@@ -93,7 +93,7 @@ router.get('/availability', availLimiter, async (req, res) => {
     // and runs once per process. Without this, a fresh database where no booking
     // has been created yet (bookingService.ensureSchema is lazy) returns 500.
     await ensureSchema();
-    const owner = (req.query.owner || 'Yaron Drilevich').trim();
+    const owner = (req.query.owner || DEFAULT_INTAKE_REP).trim();
     const date = req.query.date ? String(req.query.date) : '';
     const duration = req.query.duration ? parseInt(req.query.duration, 10) : 60;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {

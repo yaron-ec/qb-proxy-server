@@ -1719,3 +1719,7 @@ router.post('/by-external/:externalRef/sync-contact', requireAuth, async (req, r
 // "pending native migration" state.
 
 module.exports = router;
+// Shared with routes/websiteLeads.js (test-lead cleanup uses the same atomic
+// delete sequence as DELETE /:id).
+module.exports.cleanupLeadTextRefs = cleanupLeadTextRefs;
+module.exports.cancelAppointmentsForLeadDelete = cancelAppointmentsForLeadDelete;
