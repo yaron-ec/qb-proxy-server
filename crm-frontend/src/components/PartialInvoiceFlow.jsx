@@ -20,7 +20,9 @@ export default function PartialInvoiceFlow({ lead, onLeadUpdate, dealId }) {
   const loadInvoices = async () => {
     try {
       // Sale-scoped: when dealId is provided, show only this Sale's invoices.
-      const params = { lead_id: lead.railway_id };
+      // lead.id is ALWAYS the canonical Railway UUID (routes/leads.js#serializeLead);
+      // railway_id is a legacy alias that can go stale — prefer .id.
+      const params = { lead_id: lead.id || lead.railway_id };
       if (dealId) params.deal_id = dealId;
       const res = await railwayInvoices.list(params);
       const data = res.items || [];

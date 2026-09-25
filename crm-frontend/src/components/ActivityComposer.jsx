@@ -138,8 +138,13 @@ export default function ActivityComposer({ lead, onActivityCreated }) {
     setSaving(true);
 
     try {
-      // Railway activities API requires the Railway lead UUID (not external_ref).
-      let railwayLeadId = lead.railway_id;
+      // Railway activities API requires the Railway lead UUID. lead.id is
+      // ALWAYS the canonical Railway UUID (routes/leads.js#serializeLead
+      // sets it on every response) — prefer it directly rather than the
+      // legacy railway_id alias, which can go stale if a sibling panel
+      // updates lead state without it (see LeadDetailModern.jsx's
+      // setLeadSafe for the centralized fix; this is defense in depth).
+      let railwayLeadId = lead.id || lead.railway_id;
       if (!railwayLeadId) {
         try {
           const res = await railwayLeads.getByExternal(lead.id);
@@ -229,7 +234,7 @@ export default function ActivityComposer({ lead, onActivityCreated }) {
     if (activeType === "email") {
       if (lead.email) {
         const replyTo = resolveOwnerEmail(lead.assigned_rep) || undefined;
-        const idempotencyKey = `activity-composer:${lead.railway_id || lead.id}:${Date.now()}`;
+        const idempotencyKey = `activity-composer:${lead.id || lead.railway_id}:${Date.now()}`;
         railwayEmails.send({
           to: lead.email,
           replyTo,
@@ -276,7 +281,7 @@ export default function ActivityComposer({ lead, onActivityCreated }) {
     // Handle task due date
     if (activeType === "task" && taskDueDate) {
       await railwayTasks.create({
-        lead_id: lead.railway_id || lead.id,
+        lead_id: lead.id || lead.railway_id,
         title: taskTitle || "Task",
         due_date: taskDueDate,
         status: "pending",

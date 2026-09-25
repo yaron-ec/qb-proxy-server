@@ -67,6 +67,27 @@ function LeadDetailModernInner() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [lead, setLead] = useState(null);
+  // PRODUCTION DEFECT ROOT CAUSE: every lead-returning backend response
+  // already includes `id` (the canonical Railway UUID — routes/leads.js's
+  // serializeLead). `railway_id` is a legacy convenience alias several child
+  // panels read, but it was only ever stamped once, right after the initial
+  // load — any of the ~10 sibling panels below (AppointmentEditor,
+  // DealsPanel, HandoffEstimatesPanel, SignNowPanel, CalendarSyncPanel, ...)
+  // calling onLeadUpdate(res.lead) with a raw backend response silently
+  // wiped it from state. The NEXT Status/Owner/etc. save then fell back to
+  // the raw URL param (which can be a non-UUID external_ref, e.g. for a
+  // lead opened via its legacy id) instead of the real UUID, producing
+  // "invalid_id" against a perfectly valid, existing lead. Every consumer
+  // of `onLeadUpdate` now goes through this ONE wrapper so railway_id can
+  // never go stale again, instead of trusting each of 10+ call sites to
+  // remember to re-stamp it themselves.
+  const setLeadSafe = (updater) => {
+    setLead(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      if (next && next.id) next.railway_id = next.id;
+      return next;
+    });
+  };
   const [loading, setLoading] = useState(true);
   const [activities, setActivities] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -115,7 +136,7 @@ function LeadDetailModernInner() {
         // Clear new intake marker via Railway — update by Railway UUID (not external_ref)
         if (leadData?.is_new_intake_lead) {
           try {
-            await railwayLeads.update(leadData.railway_id || id, { is_new_intake_lead: false, reviewed_at: new Date().toISOString() });
+            await railwayLeads.update(leadData.id || leadData.railway_id || id, { is_new_intake_lead: false, reviewed_at: new Date().toISOString() });
           } catch { /* non-critical */ }
         }
       } catch (error) {
@@ -193,7 +214,9 @@ function LeadDetailModernInner() {
     // which creates DUPLICATE leads for Railway-native records (no external_ref).
     // The backend PUT /:id now handles both contact and CRM fields with duplicate
     // checking, so this single path covers all field types safely.
-    const railwayId = lead?.railway_id || id;
+    // lead.id (always present — see setLeadSafe above) is the reliable source;
+    // lead.railway_id is a legacy alias kept only as a defensive fallback.
+    const railwayId = lead?.id || lead?.railway_id || id;
     const prevLead = lead;
     setLead(prev => ({ ...prev, [field]: value }));
     setSaving(true);
@@ -223,7 +246,7 @@ function LeadDetailModernInner() {
   const handleDeleteLead = async () => {
     if (confirm("Delete this lead permanently?")) {
       try {
-        await railwayLeads.remove(lead.railway_id || id);
+        await railwayLeads.remove(lead.id || lead.railway_id || id);
         navigate("/leads");
       } catch (e) {
         alert("Failed to delete lead: " + (e.message || "You may not have permission."));
@@ -275,14 +298,14 @@ function LeadDetailModernInner() {
       id: "estimates",
       title: "Estimates",
       icon: FileText,
-      content: <HandoffEstimatesPanel lead={lead} onLeadUpdate={setLead} />,
+      content: <HandoffEstimatesPanel lead={lead} onLeadUpdate={setLeadSafe} />,
     },
     {
       id: "deals",
       title: "Deals",
       icon: TrendingUp,
       badge: deals.length || undefined,
-      content: <DealsPanel lead={lead} onLeadUpdate={setLead} />,
+      content: <DealsPanel lead={lead} onLeadUpdate={setLeadSafe} />,
     },
     {
       id: "quickbooks",
@@ -291,7 +314,7 @@ function LeadDetailModernInner() {
       content: (
         <>
           <QBStatusPanel lead={lead} onLeadUpdated={refreshLead} />
-          <PartialInvoiceFlow lead={lead} onLeadUpdate={setLead} />
+          <PartialInvoiceFlow lead={lead} onLeadUpdate={setLeadSafe} />
         </>
       ),
     },
@@ -299,7 +322,7 @@ function LeadDetailModernInner() {
       id: "contracts",
       title: "Contracts & Signatures",
       icon: FileSignature,
-      content: <SignNowPanel lead={lead} onLeadUpdate={setLead} />,
+      content: <SignNowPanel lead={lead} onLeadUpdate={setLeadSafe} />,
     },
     {
       id: "attachments",
@@ -372,7 +395,7 @@ function LeadDetailModernInner() {
         )}
         {mobileSection === "info" && (
           <>
-            <LeftSidebarContent lead={lead} updateField={updateField} onLeadUpdate={setLead} contactOwners={contactOwners}
+            <LeftSidebarContent lead={lead} updateField={updateField} onLeadUpdate={setLeadSafe} contactOwners={contactOwners}
               projectTypes={projectTypes} leadSources={leadSources} deals={deals}
               handleDeleteLead={handleDeleteLead} currentUser={currentUser} />
           </>
@@ -380,10 +403,10 @@ function LeadDetailModernInner() {
         {mobileSection === "integrations" && (
           <>
             <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-4">
-              <ProposalPanel lead={lead} onLeadUpdate={setLead} />
+              <ProposalPanel lead={lead} onLeadUpdate={setLeadSafe} />
             </div>
             {/* Compact integration actions row */}
-            <MobileIntegrationActions lead={lead} onLeadUpdate={setLead} />
+            <MobileIntegrationActions lead={lead} onLeadUpdate={setLeadSafe} />
             {/* Admin: calendar sync error alert + repair */}
             {lead.google_calendar_sync_status === 'error' && (
               <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
@@ -405,7 +428,7 @@ function LeadDetailModernInner() {
 
         {/* LEFT COLUMN */}
         <div className="overflow-y-auto border-r border-slate-100 bg-slate-50">
-          <LeftSidebarContent lead={lead} updateField={updateField} onLeadUpdate={setLead} contactOwners={contactOwners}
+          <LeftSidebarContent lead={lead} updateField={updateField} onLeadUpdate={setLeadSafe} contactOwners={contactOwners}
             projectTypes={projectTypes} leadSources={leadSources} deals={deals}
             handleDeleteLead={handleDeleteLead} currentUser={currentUser} />
           {/* Desktop-only integration panels */}
@@ -416,9 +439,9 @@ function LeadDetailModernInner() {
             </div>
           )}
           <div className="px-0">
-            <CalendarSyncPanel lead={lead} onLeadUpdate={setLead} />
+            <CalendarSyncPanel lead={lead} onLeadUpdate={setLeadSafe} />
           </div>
-          <GoogleContactSyncPanel lead={lead} onLeadUpdate={setLead} />
+          <GoogleContactSyncPanel lead={lead} onLeadUpdate={setLeadSafe} />
           <div className="border-t border-slate-100">
             <EstimateSyncButton lead={lead} />
           </div>
@@ -436,7 +459,7 @@ function LeadDetailModernInner() {
         <div className="overflow-y-auto bg-white px-5 py-4">
           {/* Proposal launcher */}
           <div className="mb-4">
-            <ProposalPanel lead={lead} onLeadUpdate={setLead} />
+            <ProposalPanel lead={lead} onLeadUpdate={setLeadSafe} />
           </div>
 
           {/* Activity Composer */}
@@ -564,7 +587,7 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
                 <CopyButton value={`${toTitleCase(lead.first_name)} ${toTitleCase(lead.last_name)}`} label="Name" />
               {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
                 <EditNameButton lead={lead} onSave={async (first, last) => {
-                  const res = await railwayLeads.update(lead.railway_id || lead.id, { first_name: first, last_name: last });
+                  const res = await railwayLeads.update(lead.id || lead.railway_id, { first_name: first, last_name: last });
                   if (res?.lead) onLeadUpdate({ ...lead, first_name: res.lead.first_name, last_name: res.lead.last_name });
                 }} />
               )}

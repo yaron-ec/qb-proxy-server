@@ -12,9 +12,14 @@ export default function AttachmentsPanel({ lead }) {
   const [uploadError, setUploadError] = useState(null);
   const fileInputRef = useRef(null);
 
+  // lead.id is ALWAYS the canonical Railway UUID (routes/leads.js#serializeLead
+  // sets it on every response); railway_id is a legacy alias that can go
+  // stale if a sibling panel updates lead state without it. Prefer .id.
+  const leadId = lead?.id || lead?.railway_id;
+
   const load = async () => {
-    if (!lead?.railway_id) return;
-    const res = await railwayLeadAttachments.list({ lead_id: lead.railway_id });
+    if (!leadId) return;
+    const res = await railwayLeadAttachments.list({ lead_id: leadId });
     const all = res.items || [];
     setInvoiceAttachments(all.filter(a => a.file_type === 'invoice'));
     setUploadedFiles(all.filter(a => a.file_type !== 'invoice'));
@@ -23,7 +28,7 @@ export default function AttachmentsPanel({ lead }) {
   useEffect(() => {
     load();
     // Real-time subscription removed — Railway has no client-side subscribe.
-  }, [lead?.railway_id]);
+  }, [leadId]);
 
   const handleFileChange = async (e) => {
     const files = Array.from(e.target.files);
@@ -40,7 +45,7 @@ export default function AttachmentsPanel({ lead }) {
         // Upload directly to Railway → R2/S3 — zero Base44 integration credits used
         const { url, key, fileName, contentType, size } = await uploadFileToStorage(file);
         const res = await railwayLeadAttachments.create({
-          lead_id: lead.railway_id,
+          lead_id: leadId,
           file_name: fileName || file.name,
           file_url: url,
           file_type: contentType || file.type || 'file',

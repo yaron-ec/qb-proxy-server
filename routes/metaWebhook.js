@@ -176,11 +176,19 @@ router.post('/', express.raw({ type: '*/*', verify: (req, res, buf) => { req.raw
             const leadId = booking.lead?.id;
 
             if (leadId && !booking.idempotent) {
-              // Post-commit side effects
+              // Post-commit side effects.
+              // FOLLOW-UP/APPOINTMENT AUDIT FIX: this UPDATE previously also set
+              // follow_up_type='Meeting' — directly contradicting the comment two
+              // lines above createBooking() ("not mirrored into follow_up_*") and
+              // reintroducing the exact Appointment/Follow-Up conflation 2516ff8
+              // eliminated everywhere else. meeting_stage is also redundant here:
+              // createBooking() already sets it to 'First Meeting' on INSERT
+              // whenever an appointment is booked (withAppointment=true). Neither
+              // belongs in this UPDATE — the appointment lives only in the
+              // appointments row.
               try {
                 await query(
                   `UPDATE leads SET message = $1, is_new_intake_lead = true,
-                   follow_up_type = 'Meeting', meeting_stage = 'First Meeting',
                    crm_created_date = NOW(), record_type = 'Lead', updated_at = NOW()
                    WHERE id = $2`,
                   [mapped.message, leadId]
