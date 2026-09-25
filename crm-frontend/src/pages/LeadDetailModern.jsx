@@ -38,11 +38,32 @@ import EstimateSyncButton from "../components/EstimateSyncButton";
 import ProposalPanel from "../components/ProposalPanel";
 import RightSidebarAccordion from "../components/RightSidebarAccordion";
 import SubmissionHistory from "../components/SubmissionHistory";
+import ErrorBoundary from "../components/ErrorBoundary";
 
 const STATUSES = ["New", "Appointment scheduled", "Answered, no appointment set", "No answer", "Proposal Sent", "No show", "DNQ", "Sold", "Lost"];
 const DEFAULT_PROJECT_TYPES = EC_PROJECT_TYPES;
 
+// Production defect: a single uncaught render exception anywhere in this
+// large, many-widget page (e.g. a mutation handler setting state a child
+// couldn't render) unmounted the ENTIRE Lead Detail page — a blank white
+// screen, URL unchanged, no way back without a manual reload. There was no
+// error boundary anywhere above it. ErrorBoundary catches it and shows a
+// recoverable fallback instead; resetKey (the lead id) clears the boundary
+// when navigating to a different lead so it never gets permanently stuck.
 export default function LeadDetailModern() {
+  const { id } = useParams();
+  return (
+    <ErrorBoundary
+      name="LeadDetailModern"
+      resetKey={id}
+      userMessage="This lead's page hit an unexpected error. Your data was not lost — try again, or go back to Leads and reopen it."
+    >
+      <LeadDetailModernInner />
+    </ErrorBoundary>
+  );
+}
+
+function LeadDetailModernInner() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [lead, setLead] = useState(null);
@@ -579,9 +600,15 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
 
       {/* ── Lead / Project section ── */}
       <SidebarSection title="Lead / Project">
-        {/* Owner — editable (click row) + copy (no pencil) */}
+        {/* Owner — editable (click row) + copy (no pencil).
+            contactOwners is [{id, display_name, email}] (routes/leads.js's
+            /detail composite) — EditableField's "select" type renders each
+            option as {o}, so passing the raw objects here crashed the whole
+            Lead Detail page (React "Objects are not valid as a React child")
+            the moment the Owner field was opened for editing. Map to plain
+            display_name strings — the same value assigned_rep already stores. */}
         <CRMField label="Owner" icon={User}>
-          <EditableField value={toTitleCase(lead.assigned_rep) || "—"} onSave={v => updateField("assigned_rep", v)} type="select" options={contactOwners} editable
+          <EditableField value={toTitleCase(lead.assigned_rep) || "—"} onSave={v => updateField("assigned_rep", v)} type="select" options={contactOwners.map(o => o.display_name).filter(Boolean)} editable
             copyValue={lead.assigned_rep ? toTitleCase(lead.assigned_rep) : null} copyLabel="Owner">
             <span className="crm-value">{toTitleCase(lead.assigned_rep) || <span className="crm-empty">Unassigned</span>}</span>
           </EditableField>
@@ -841,7 +868,19 @@ function EmailEditField({ lead, updateField, composeEmail }) {
 }
 
 // ── EditableField ────────────────────────────────────────────────────────────
-function EditableField({ label, value, onSave, type = "text", options = [], editable = false, showPencil = true, copyValue = null, copyLabel = null, children }) {
+// Defensive normalization: `options` must render as plain strings (used
+// directly as React children/keys below). A caller accidentally passing
+// objects (e.g. {id, display_name}) used to crash the entire page with
+// "Objects are not valid as a React child" the moment the field was opened
+// for editing — normalize instead of trusting every call site.
+export function normalizeOptionLabel(o) {
+  if (o == null) return '';
+  if (typeof o === 'string' || typeof o === 'number') return String(o);
+  if (typeof o === 'object') return String(o.display_name ?? o.label ?? o.name ?? o.value ?? '');
+  return String(o);
+}
+
+export function EditableField({ label, value, onSave, type = "text", options = [], editable = false, showPencil = true, copyValue = null, copyLabel = null, children }) {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
@@ -903,7 +942,7 @@ function EditableField({ label, value, onSave, type = "text", options = [], edit
       {label && <p className="text-[10px] text-slate-400">{label}</p>}
       {type === "multiselect" ? (
         <div className="border border-slate-200 rounded-lg p-2 space-y-1.5 max-h-36 overflow-y-auto bg-white text-xs">
-          {options.map(o => (
+          {options.map(normalizeOptionLabel).filter(Boolean).map(o => (
             <label key={o} className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={selectedMulti.includes(o)} onChange={() => setSelectedMulti(p => p.includes(o) ? p.filter(x => x !== o) : [...p, o])} className="w-3.5 h-3.5 rounded" />
               {o}
@@ -913,7 +952,7 @@ function EditableField({ label, value, onSave, type = "text", options = [], edit
       ) : type === "select" ? (
         <select value={editVal} onChange={e => setEditVal(e.target.value)} className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-amber-500">
           <option value="">— Select</option>
-          {options.map(o => <option key={o} value={o}>{o}</option>)}
+          {options.map(normalizeOptionLabel).filter(Boolean).map(o => <option key={o} value={o}>{o}</option>)}
         </select>
       ) : type === "date" ? (
         <input type="date" value={editVal} onChange={e => setEditVal(e.target.value)} className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-amber-500" />
