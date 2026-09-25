@@ -69,11 +69,11 @@ function Step({ ok, label, detail, warn }) {
 function LeadRow({ lead, sentKeys, onFix, fixing }) {
   const [open, setOpen] = useState(false);
 
-  const apptDate = lead.appointment_date || lead.follow_up_date;
-  const apptTime = lead.appointment_time || lead.follow_up_time || "09:00";
-  // Kind comes from the canonical appointment; legacy leads without one fall
-  // back to a 'Meeting' follow-up.
-  const meetingKind = lead.appointment_date ? lead.appointment_type : lead.follow_up_type;
+  // Only the canonical appointment is audited — a 'Meeting' follow-up is an
+  // internal next action with no calendar event, buffer or reminders.
+  const apptDate = lead.appointment_date;
+  const apptTime = lead.appointment_time || "09:00";
+  const meetingKind = lead.appointment_type || "Meeting";
   const isMeeting = meetingKind === "Meeting";
   const hasCalEvent = !!lead.google_event_id;
   const hasBuffer = !!lead.google_travel_event_id;
@@ -247,14 +247,12 @@ export default function MeetingPipelineAudit() {
 
       // Only keep leads with a future or same-day Meeting appointment
       const today = new Date().toISOString().slice(0, 10);
-      const relevant = allLeads.filter(l => {
-        const date = l.appointment_date || l.follow_up_date;
-        const kind = l.appointment_date ? l.appointment_type : l.follow_up_type;
-        return kind === "Meeting" && date >= today;
-      });
+      // (canonical appointments only; follow-ups never count, whatever their type)
+      const relevant = allLeads.filter(l =>
+        l.appointment_date && (l.appointment_type || "Meeting") === "Meeting" && l.appointment_date >= today);
       relevant.sort((a, b) => {
-        const da = a.appointment_date || a.follow_up_date;
-        const db = b.appointment_date || b.follow_up_date;
+        const da = a.appointment_date;
+        const db = b.appointment_date;
         return da < db ? -1 : da > db ? 1 : 0;
       });
       setLeads(relevant);
@@ -321,8 +319,8 @@ export default function MeetingPipelineAudit() {
     if (!l.google_event_id) return true;
     if (!l.google_travel_event_id) return true;
     if ((l.google_calendar_sync_status === "error" || l.google_calendar_sync_status === "failed")) return true;
-    const apptDate = l.appointment_date || l.follow_up_date;
-    const apptMs = pacificToUtcMs(apptDate, l.appointment_time || l.follow_up_time || "09:00");
+    const apptDate = l.appointment_date;
+    const apptMs = pacificToUtcMs(apptDate, l.appointment_time || "09:00");
     const missedAny = REMINDER_WINDOWS.some(win => {
       const targetMs = apptMs - WINDOW_MINS[win] * 60 * 1000;
       return targetMs <= now && !sentKeys.has(`reminder:${l.id}:${win}:${apptDate}`);

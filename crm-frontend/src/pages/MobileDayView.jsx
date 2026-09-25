@@ -313,14 +313,12 @@ export default function MobileDayView() {
     const excluded = ["Lost", "DNQ", "Cancelled", "Closed Lost"];
 
     // A lead's meeting = its canonical appointment when that is a Meeting
-    // (site visit). Legacy fallback: a dated 'Meeting' follow-up on a lead
-    // with NO appointment (pre-separation data). Phone Calls need no driving.
+    // (site visit). Follow-ups — including a 'Meeting' follow-up — are
+    // internal next actions and never become a driving stop. Phone Calls
+    // need no driving.
     const meetingOf = (l) => {
-      if (l.appointment_date) {
-        return l.appointment_type === "Phone Call" ? null : { date: l.appointment_date, time: l.appointment_time };
-      }
-      if (l.follow_up_type === "Meeting" && l.follow_up_date) return { date: l.follow_up_date, time: l.follow_up_time };
-      return null;
+      if (!l.appointment_date || l.appointment_type === "Phone Call") return null;
+      return { date: l.appointment_date, time: l.appointment_time };
     };
     const filtered = allLeads.map(l => {
       const m = meetingOf(l);

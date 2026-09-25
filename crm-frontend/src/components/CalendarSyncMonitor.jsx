@@ -12,15 +12,11 @@ export default function CalendarSyncMonitor() {
   const loadStats = async () => {
     try {
       setLoading(true);
-      // Fetch leads with meeting type and upcoming dates only
+      // Upcoming canonical appointments only — Google Calendar events come
+      // from the appointments row, never from a follow-up (even a 'Meeting' one).
       const today = new Date().toISOString().slice(0, 10);
       const res = await railwayLeads.list({ limit: 2000 });
-      const leads = (res.items || []).filter(l => l.follow_up_type === 'Meeting');
-
-      const futureLeads = leads.filter(l => {
-        const d = l.follow_up_date || l.appointment_date;
-        return d && d >= today;
-      });
+      const futureLeads = (res.items || []).filter(l => l.appointment_date && l.appointment_date >= today);
 
       const pending = futureLeads.filter(l => l.google_calendar_sync_status === 'pending');
       const synced = futureLeads.filter(l => l.google_calendar_sync_status === 'synced');
@@ -36,7 +32,7 @@ export default function CalendarSyncMonitor() {
         pendingLeads: pending.slice(0, 5).map(l => ({
           id: l.id,
           name: `${l.first_name} ${l.last_name}`,
-          date: l.follow_up_date || l.appointment_date,
+          date: l.appointment_date,
           error: l.google_calendar_sync_error,
         })),
       });

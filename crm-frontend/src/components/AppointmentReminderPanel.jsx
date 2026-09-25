@@ -18,10 +18,11 @@ export default function AppointmentReminderPanel({ lead }) {
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState(null);
 
-  const hasFollowUp = lead.follow_up_date && lead.follow_up_type;
-  const apptDate = hasFollowUp ? lead.follow_up_date : lead.appointment_date;
-  const apptTime = hasFollowUp ? (lead.follow_up_time || '') : (lead.appointment_time || '');
-  const apptType = hasFollowUp ? lead.follow_up_type : 'Meeting';
+  // Customer appointment reminders come from the canonical appointment only.
+  // A follow-up (any type, including 'Meeting') is an internal next action.
+  const apptDate = lead.appointment_date;
+  const apptTime = lead.appointment_time || '';
+  const apptType = lead.appointment_type || 'Meeting';
 
   if (!apptDate) return null;
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });

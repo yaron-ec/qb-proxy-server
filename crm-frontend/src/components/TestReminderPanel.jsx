@@ -42,7 +42,8 @@ export default function TestReminderPanel({ lead, onClose }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const canSend = lead.follow_up_type === 'Meeting' && lead.follow_up_date && lead.follow_up_time;
+  // Appointment reminders are driven by the canonical appointment, never a follow-up.
+  const canSend = !!(lead.appointment_date && lead.appointment_time);
 
   return (
     <div className="bg-white rounded-lg border border-slate-200 p-6 space-y-6">
@@ -59,12 +60,11 @@ export default function TestReminderPanel({ lead, onClose }) {
           <div>
             <p className="text-sm font-semibold text-amber-900 mb-1">Cannot Send Test</p>
             <p className="text-xs text-amber-800">
-              This lead must have a Meeting follow-up with a date and time set.
+              This lead must have a scheduled appointment with a date and time.
             </p>
             <div className="mt-2 text-xs text-amber-800 space-y-1">
-              {lead.follow_up_type !== 'Meeting' && <div>• Follow-up Type: {lead.follow_up_type || 'Not set'}</div>}
-              {!lead.follow_up_date && <div>• Follow-up Date: Not set</div>}
-              {!lead.follow_up_time && <div>• Follow-up Time: Not set</div>}
+              {!lead.appointment_date && <div>• Appointment Date: Not set</div>}
+              {!lead.appointment_time && <div>• Appointment Time: Not set</div>}
             </div>
           </div>
         </div>
@@ -78,9 +78,9 @@ export default function TestReminderPanel({ lead, onClose }) {
               <div className="text-xs text-blue-800 space-y-1">
                 <div><strong>Recipient:</strong> yaron@ecconstructiongroup.com</div>
                 <div><strong>Client Name:</strong> {lead.first_name} {lead.last_name}</div>
-                <div><strong>Appointment:</strong> {lead.follow_up_date} at {lead.follow_up_time}</div>
+                <div><strong>Appointment:</strong> {lead.appointment_date} at {lead.appointment_time}</div>
                 <div><strong>Owner:</strong> {lead.assigned_rep || 'Not assigned'}</div>
-                <div><strong>Type:</strong> {lead.follow_up_type}</div>
+                <div><strong>Type:</strong> {lead.appointment_type || 'Meeting'}</div>
               </div>
             </div>
           </div>

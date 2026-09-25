@@ -95,11 +95,13 @@ export default function ReminderHealthPanel() {
         ? Math.max(...reminderActivities.map(a => new Date(a.timestamp || a.created_date).getTime()))
         : null;
 
-      // Upcoming appointments in next 7 days with email
+      // Upcoming appointments in next 7 days with email. Customer reminders
+      // follow the canonical appointment only (never a follow-up, even a
+      // 'Meeting' one) and skip Phone Call appointments — same as the worker.
       const upcoming = leads.filter(l => {
-        const d = l.appointment_date || l.follow_up_date;
-        if (!d) return false;
-        const t = l.appointment_time || l.follow_up_time || '09:00';
+        const d = l.appointment_date;
+        if (!d || l.appointment_type === 'Phone Call') return false;
+        const t = l.appointment_time || '09:00';
         const apptMs = pacificToUtcMs(d, t);
         return apptMs > now && apptMs <= now + h7dMs;
       });
@@ -108,8 +110,8 @@ export default function ReminderHealthPanel() {
       let dueIn24h = 0;
       let dueIn24hList = [];
       for (const lead of upcoming) {
-        const d = lead.appointment_date || lead.follow_up_date;
-        const t = lead.appointment_time || lead.follow_up_time || '09:00';
+        const d = lead.appointment_date;
+        const t = lead.appointment_time || '09:00';
         const apptMs = pacificToUtcMs(d, t);
         for (const win of WINDOWS) {
           const targetMs = apptMs - win.minutesBefore * 60 * 1000;
@@ -134,7 +136,7 @@ export default function ReminderHealthPanel() {
         const key = a.content.replace('REMINDER_SENT:', '').trim();
         return key.split(':')[1]; // lead_id portion
       }));
-      const totalWithAppt = leads.filter(l => l.appointment_date || l.follow_up_date).length;
+      const totalWithAppt = leads.filter(l => l.appointment_date).length;
       const gmailSuccessRate = sentToday > 0 ? '100%' : (lastSuccessTs ? '100%' : 'No data');
 
       // Next scheduler run: every 30 min, so next :00 or :30
@@ -158,8 +160,8 @@ export default function ReminderHealthPanel() {
         upcomingCount: upcoming.length,
         upcoming: upcoming.slice(0, 10).map(l => ({
           name: `${l.first_name} ${l.last_name}`.trim(),
-          date: l.appointment_date || l.follow_up_date,
-          time: l.appointment_time || l.follow_up_time || '09:00',
+          date: l.appointment_date,
+          time: l.appointment_time || '09:00',
           hasEmail: !!l.email,
           assigned_rep: l.assigned_rep || 'Unassigned',
         })),

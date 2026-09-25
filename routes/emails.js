@@ -130,9 +130,10 @@ router.post('/leads/:id/remind', requireAuth, async (req, res) => {
     if (!lead) return res.status(404).json({ error: 'lead not found' });
     if (!canAccessLead(req.user, lead)) return res.status(403).json({ error: 'forbidden: not assigned to this lead' });
 
-    const hasFollowUp = lead.follow_up_date && lead.follow_up_type;
-    const apptDate = hasFollowUp ? lead.follow_up_date : lead.appointment_date;
-    const apptTime = hasFollowUp ? (lead.follow_up_time || '09:00') : (lead.appointment_time || '09:00');
+    // The canonical appointment only — a follow-up (any type, including
+    // 'Meeting') is an internal next action and never gets an appointment reminder.
+    const apptDate = lead.appointment_date;
+    const apptTime = lead.appointment_time || '09:00';
     if (!apptDate) return res.status(400).json({ error: 'no appointment date on this lead' });
 
     const ownerName = lead.assigned_rep || 'EC Construction Group';

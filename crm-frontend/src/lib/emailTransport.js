@@ -327,9 +327,9 @@ export async function sendManualReminder(leadId, { scheduledStart } = {}) {
     const lead = leadRes?.lead || leadRes;
     if (!lead) throw new Error('Lead not found');
 
-    const hasFollowUp = lead.follow_up_date && lead.follow_up_type;
-    const apptDate = hasFollowUp ? lead.follow_up_date : lead.appointment_date;
-    const apptTime = hasFollowUp ? (lead.follow_up_time || '09:00') : (lead.appointment_time || '09:00');
+    // The canonical appointment only — never a follow-up (even a 'Meeting' one).
+    const apptDate = lead.appointment_date;
+    const apptTime = lead.appointment_time || '09:00';
     if (!apptDate) throw new Error('No appointment date on this lead');
 
     const clientName = `${lead.first_name || ''} ${lead.last_name || ''}`.trim();
