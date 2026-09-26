@@ -3,7 +3,6 @@ import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import * as railwayApi from '@/lib/railwayApi';
 import { setTokens } from '@/api/railway/client';
-import { isExitBuild } from '@/lib/app-params';
 import { RAILWAY_API_URL } from '@/lib/apiConfig';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

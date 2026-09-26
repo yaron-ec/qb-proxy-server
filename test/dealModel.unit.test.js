@@ -4,7 +4,7 @@
 /**
  * dealModel.unit.test.js — pure-logic unit tests for lib/dealModel.js.
  *
- * No database, no external requires. Run from src/proxy-server/:
+ * No database, no external requires. Run from the repo root:
  *   node test/dealModel.unit.test.js
  *
  * Covers the Railway-native model: UUID lead_id, Base44 IDs as metadata,

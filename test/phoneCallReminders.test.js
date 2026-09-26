@@ -8,7 +8,7 @@
  *   - getCallMs ignores Meetings and missing fields
  *   - transport gate base44 => skipped, sends nothing
  *
- * Run: cd src/proxy-server && node --test test/phoneCallReminders.test.js
+ * Run: node --test test/phoneCallReminders.test.js
  */
 'use strict';
 

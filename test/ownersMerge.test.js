@@ -383,7 +383,7 @@ test('POST /merge: THE FULL CONSOLIDATION — repoints every live reference, pre
   } finally { s.close(); }
 });
 
-test('POST /merge: when the duplicate\'s display_name genuinely differs from canonical, TEXT columns (deals.assigned_rep, tasks.assigned_to, deal_commissions.recipient_name) are actually rewritten — the generalized equivalent of scripts/mergeShlomiIntoSimon.js', async () => {
+test('POST /merge: when the duplicate\'s display_name genuinely differs from canonical, TEXT columns (deals.assigned_rep, tasks.assigned_to, deal_commissions.recipient_name) are actually rewritten — the generalized equivalent of the retired one-off Shlomi→Simon merge script', async () => {
   reset();
   db.owners.push({ id: 'renamed-owner', email: 'renamed@ecconstructiongroup.com', display_name: 'Old Name Rep', is_active: true, merged_into_owner_id: null, merged_at: null, created_at: '2020-01-01T00:00:00Z' });
   db.deals.push({ id: 'deal-2', assigned_rep: 'Old Name Rep' });

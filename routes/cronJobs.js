@@ -347,45 +347,6 @@ router.post('/apply-migrations', async (req, res) => {
   }
 });
 
-// ── POST /system-wide-reconciliation ──────────────────────────────────────────
-// READ-ONLY system-wide reconciliation: fetches current Base44 source counts AND
-// current Railway destination counts, compares, checks FK integrity, admin roles,
-// owner mappings, Simon identity, duplicates, external_ref coverage, and recent
-// Base44 deltas since cutover. Zero writes. Safe to run any time.
-router.post('/system-wide-reconciliation', async (req, res) => {
-  const { execFile } = require('child_process');
-  const path = require('path');
-  const fs = require('fs');
-
-  const scriptPath = path.resolve(__dirname, '..', 'scripts', 'systemWideReconciliation.js');
-  if (!fs.existsSync(scriptPath)) {
-    return res.status(404).json({ error: 'systemWideReconciliation.js not found', path: scriptPath });
-  }
-
-  try {
-    execFile('node', [scriptPath], {
-      timeout: 300000,
-      maxBuffer: 30 * 1024 * 1024,
-      env: { ...process.env },
-      cwd: path.resolve(__dirname, '..'),
-    }, (err, stdout, stderr) => {
-      if (err && err.code !== 0) {
-        console.error('[cron] system-wide-reconciliation process error:', err.message);
-      }
-      res.json({
-        ok: !err || err.code === 0,
-        exitCode: err ? err.code : 0,
-        stdout,
-        stderr: stderr || '',
-        job: 'system-wide-reconciliation',
-      });
-    });
-  } catch (e) {
-    console.error('[cron] system-wide-reconciliation error:', e.message);
-    res.status(500).json({ error: e.message });
-  }
-});
-
 // ── POST /diagnose-reminder-lead ─────────────────────────────────────────────
 // READ-ONLY diagnostic: searches canonical Railway `leads` by phone, name, or
 // external_ref, then checks whether the matched lead is present in

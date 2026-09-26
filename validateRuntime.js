@@ -19,9 +19,8 @@
  *   - All temp DB rows are namespaced (runtime-validate-* / temp user) and
  *     deleted in a finally block. Safe to rerun.
  *
- * Invocation (two possible Railway root-directory layouts):
- *   service root = src/proxy-server :  node validateRuntime.js
- *   service root = repo root          :  node src/proxy-server/validateRuntime.js
+ * Invocation (from the repo root, which is the Railway service root):
+ *   isolated mode                    :  node validateRuntime.js
  *   existing-server mode             :  VALIDATION_BASE_URL=https://<service>.up.railway.app node validateRuntime.js
  *                                       (or just set RAILWAY_PUBLIC_DOMAIN=<host>)
  *
@@ -265,8 +264,7 @@ async function cleanup() {
   if (MODE === 'isolated') {
     console.log('  (no VALIDATION_BASE_URL/RAILWAY_PUBLIC_DOMAIN \u2014 spawning server.js on a free port)');
     console.log('  commands:');
-    console.log('    service root = src/proxy-server :  node validateRuntime.js');
-    console.log('    service root = repo root          :  node src/proxy-server/validateRuntime.js');
+    console.log('    isolated mode (repo root)          :  node validateRuntime.js');
     console.log('  existing-server mode               :  VALIDATION_BASE_URL=https://<service>.up.railway.app node validateRuntime.js');
   }
   console.log(`stamp=${STAMP}`);

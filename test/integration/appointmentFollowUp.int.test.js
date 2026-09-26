@@ -417,6 +417,14 @@ test('12. No duplicate events: retries, re-syncs and reschedule leave exactly on
 });
 
 // ── 13: availability / buffer rules ──────────────────────────────────────────
+// CANONICAL RULE (unchanged): an appointment blocks 1h before + its duration +
+// 1h after, and a new appointment is checked as its own actual window against
+// that block (lib/booking/bookingService.js#assertSlotFree — the same single
+// buffer the availability display applies in lib/booking/slotBlocking.js).
+// Touching the block's boundary is allowed; overlapping it is not.
+// (This case previously expected a 14:00 start to be rejected after a 12:00–
+// 13:00 appointment. That contradicted the canonical rule — 12:00–13:00 blocks
+// 11:00–14:00, so 14:00 is exactly the boundary and is allowed.)
 test('13. Conflict rules: Meeting reserves 1h before + duration + 1h after; overlaps are rejected server-side', { skip }, async () => {
   const day = uniqueDay();
   const a = await api('POST', '/api/public/capture', capturePayload({ appointment_date: day, appointment_time: '12:00' }), null);
@@ -426,7 +434,7 @@ test('13. Conflict rules: Meeting reserves 1h before + duration + 1h after; over
     [a.body.lead.id])).rows[0];
   assert.strictEqual(new Date(row.start_at) - new Date(row.bs), 3600000);
   assert.strictEqual(new Date(row.be) - new Date(row.end_at), 3600000);
-  // 13:30 overlaps the travel-after buffer (13:00–14:00) → 409 at capture.
+  // 13:30 overlaps the block (11:00–14:00) → 409 at capture.
   const bPayload = capturePayload({ appointment_date: day, appointment_time: '13:30' });
   const b = await api('POST', '/api/public/capture', bPayload, null);
   assert.strictEqual(b.status, 409, JSON.stringify(b.body));
@@ -434,11 +442,17 @@ test('13. Conflict rules: Meeting reserves 1h before + duration + 1h after; over
   // Nothing was created by the rejected submit (lead + appointment roll back together).
   const leads = (await db.query('SELECT count(*)::int n FROM leads WHERE last_name = $1', [bPayload.last_name])).rows[0].n;
   assert.strictEqual(leads, 0);
-  // 14:00 starts exactly when the buffer ends → but its own 1h-before buffer overlaps → 409.
+  // 13:59 — one minute inside the block → 409.
+  const b2 = await api('POST', '/api/public/capture', capturePayload({ appointment_date: day, appointment_time: '13:59' }), null);
+  assert.strictEqual(b2.status, 409, JSON.stringify(b2.body));
+  // 14:00 — exactly at the block's end boundary → allowed.
   const c = await api('POST', '/api/public/capture', capturePayload({ appointment_date: day, appointment_time: '14:00' }), null);
-  assert.strictEqual(c.status, 409);
-  // 15:00 (its buffer starts 14:00 = previous buffer end) → allowed.
-  const d = await api('POST', '/api/public/capture', capturePayload({ appointment_date: day, appointment_time: '15:00' }), null);
+  assert.strictEqual(c.status, 201, JSON.stringify(c.body));
+  // The 14:00–15:00 appointment now blocks 13:00–16:00: 15:00 overlaps it,
+  // 16:00 touches its end → allowed.
+  const c2 = await api('POST', '/api/public/capture', capturePayload({ appointment_date: day, appointment_time: '15:00' }), null);
+  assert.strictEqual(c2.status, 409);
+  const d = await api('POST', '/api/public/capture', capturePayload({ appointment_date: day, appointment_time: '16:00' }), null);
   assert.strictEqual(d.status, 201, JSON.stringify(d.body));
   // Lead Detail reschedule into a conflict → 409 slot_conflict, appointment unchanged.
   const lead = await getLead(d.body.lead.id);
@@ -447,7 +461,7 @@ test('13. Conflict rules: Meeting reserves 1h before + duration + 1h after; over
   assert.strictEqual(e.body.error, 'slot_conflict');
   const after = await getLead(lead.id);
   assert.strictEqual(after.appointment_id, lead.appointment_id);
-  assert.strictEqual(after.appointment_time, '15:00');
+  assert.strictEqual(after.appointment_time, '16:00');
   // Authorized admin override books anyway and is audited.
   const f = await api('PUT', `/api/v1/leads/${lead.id}/appointment`, { appointment_date: day, appointment_time: '12:30', admin_override: true });
   assert.strictEqual(f.status, 200, JSON.stringify(f.body));

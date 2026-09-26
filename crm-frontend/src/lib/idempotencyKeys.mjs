@@ -9,7 +9,7 @@
  *
  * ESM (.mjs) so it is importable by both the Vite frontend
  * (src/lib/emailTransport.js) and Node test harnesses
- * (src/proxy-server/test/idempotencyKeys.test.js via dynamic import).
+ * (test/idempotencyKeys.test.js via dynamic import).
  *
  * Key shapes (stable):
  *   generic:           crm-email:{leadId}:{recipient}:{clientRequestId}

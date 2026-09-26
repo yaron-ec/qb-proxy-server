@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Copy, Check, Code, ChevronDown, ChevronUp, AlertTriangle, Bookmark } from "lucide-react";
-import { appParams } from "@/lib/app-params";
 import { RAILWAY_API_URL } from "@/lib/apiConfig";
 
 function getImportUrl() {

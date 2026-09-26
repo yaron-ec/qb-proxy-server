@@ -2,7 +2,7 @@
 /**
  * captureValidation.unit.test.js — pure-logic tests for the public capture
  * validation/normalization/idempotency (no DB, no network). Run with:
- *   node src/proxy-server/test/captureValidation.unit.test.js
+ *   node test/captureValidation.unit.test.js
  */
 'use strict';
 

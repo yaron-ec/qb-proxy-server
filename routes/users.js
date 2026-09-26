@@ -16,7 +16,7 @@
 
 const express = require('express');
 const { requireAuth, requireRole } = require('../lib/rbac');
-const { query } = require('../db/client');
+const { query, ensureColumns } = require('../db/client');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -29,7 +29,7 @@ const requireAdmin = requireRole('admin');
 let _ownerNameReady = null;
 function ensureOwnerNameColumn() {
   if (!_ownerNameReady) {
-    _ownerNameReady = query('ALTER TABLE users ADD COLUMN IF NOT EXISTS owner_name TEXT')
+    _ownerNameReady = ensureColumns('users', [['owner_name', 'TEXT']])
       .then(() => true)
       .catch(() => false);
   }
