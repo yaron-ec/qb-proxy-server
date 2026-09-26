@@ -77,6 +77,23 @@ describe('New Lead — Appointment and Follow-Up are independent', () => {
     });
   });
 
+  it('follow-up type Meeting: offered, sent as a follow-up only, never as an appointment', async () => {
+    const { container } = render(<LeadCapture />);
+    fillRequired(container);
+    const options = [...followUpTypeSelect(container).options].map(o => o.value).filter(Boolean);
+    expect(options).toEqual(['Phone Call', 'Text', 'Email', 'Meeting', 'Other']);
+    fireEvent.change(dateInputs(container)[1], { target: { value: '2031-03-03' } });
+    fireEvent.change(container.querySelector('input[type="time"]'), { target: { value: '11:00' } });
+    fireEvent.change(followUpTypeSelect(container), { target: { value: 'Meeting' } });
+    submit();
+    await waitFor(() => expect(submitCapture).toHaveBeenCalledTimes(1));
+    const p = submitCapture.mock.calls[0][0];
+    expect(p).toMatchObject({
+      appointment_date: null, appointment_time: null, appointment_type: null,
+      follow_up_date: '2031-03-03', follow_up_time: '11:00', follow_up_type: 'Meeting',
+    });
+  });
+
   it('both: appointment and follow-up are sent separately, never copied into each other', async () => {
     const { container } = render(<LeadCapture />);
     fillRequired(container);

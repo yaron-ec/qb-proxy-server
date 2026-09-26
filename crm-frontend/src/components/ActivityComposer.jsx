@@ -110,8 +110,11 @@ export default function ActivityComposer({ lead, onActivityCreated }) {
   // Auto-select email template when email tab opens
   useEffect(() => {
     // Reminder templates describe the canonical appointment when one exists;
-    // otherwise a scheduled Phone Call / Meeting follow-up (legacy leads).
-    const kind = lead.appointment_date ? lead.appointment_type : lead.follow_up_type;
+    // otherwise only a scheduled Phone Call follow-up (call reminder). A
+    // 'Meeting' follow-up is not an appointment and never pre-fills the
+    // appointment reminder.
+    const kind = lead.appointment_date ? lead.appointment_type
+      : (lead.follow_up_type === "Phone Call" ? "Phone Call" : null);
     if (activeType === "email" && !autoSelectedTemplate && kind) {
       const templateKey = kind === "Phone Call" ? "phone_call_reminder" : "appointment_reminder";
       const hasWhen = lead.appointment_date ? !!lead.appointment_time : (lead.follow_up_date && lead.follow_up_time);
@@ -291,10 +294,12 @@ export default function ActivityComposer({ lead, onActivityCreated }) {
   };
 
   const buildEmailFields = () => {
-    // The appointment is canonical; fall back to a dated follow-up only when
-    // the lead has no appointment.
-    const date = lead.appointment_date || lead.follow_up_date || "TBD";
-    const time = lead.appointment_date ? (lead.appointment_time || "TBD") : (lead.follow_up_time || "TBD");
+    // The appointment is canonical; fall back to a dated Phone Call follow-up
+    // (call reminder) only when the lead has no appointment. Other follow-up
+    // types — including 'Meeting' — never fill appointment fields.
+    const callFu = !lead.appointment_date && lead.follow_up_type === "Phone Call";
+    const date = lead.appointment_date || (callFu ? lead.follow_up_date : null) || "TBD";
+    const time = lead.appointment_date ? (lead.appointment_time || "TBD") : ((callFu && lead.follow_up_time) || "TBD");
 
     return {
       lead_name: `${lead.first_name} ${lead.last_name}`,

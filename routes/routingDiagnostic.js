@@ -66,18 +66,18 @@ router.get('/daily-diagnostic', async (req, res) => {
 
     // Query the CANONICAL appointments table (source of truth).
     // Filter by appointment status (not lead status) — Lost/Sold leads with
-    // active appointments MUST appear. follow_up_type = 'Meeting' excludes
-    // phone calls. Also UNION legacy leads with follow_up_date but no appts row.
+    // active appointments MUST appear. Phone Calls are excluded (no driving):
+    // an appointment is a Meeting when its reserved busy_range includes the
+    // travel buffer (lower(busy_range) < start_at). Follow-ups — including a
+    // 'Meeting' follow-up — are never route stops.
     const offsetMs = getLaOffsetMs(date);
     const dayStartUtc = new Date(new Date(`${date}T00:00:00`).getTime() - offsetMs);
     const dayEndUtc = new Date(dayStartUtc.getTime() + 24 * 60 * 60 * 1000);
 
-    const params = [dayStartUtc.toISOString(), dayEndUtc.toISOString(), date];
-    let apptWhere = `a.start_at >= $1::timestamptz AND a.start_at < $2::timestamptz AND a.status IN ('scheduled', 'confirmed') AND l.follow_up_type = 'Meeting'`;
-    let legacyWhere = `l.follow_up_date = $3 AND l.follow_up_type = 'Meeting' AND NOT EXISTS (SELECT 1 FROM appointments a2 WHERE a2.lead_id = l.id AND a2.status IN ('scheduled', 'confirmed') AND a2.start_at >= $1::timestamptz AND a2.start_at < $2::timestamptz)`;
+    const params = [dayStartUtc.toISOString(), dayEndUtc.toISOString()];
+    let apptWhere = `a.start_at >= $1::timestamptz AND a.start_at < $2::timestamptz AND a.status IN ('scheduled', 'confirmed') AND lower(a.busy_range) < a.start_at`;
     if (owner && owner !== 'all') {
       apptWhere += ` AND (o.display_name = $${params.length + 1} OR o.email = $${params.length + 1})`;
-      legacyWhere += ` AND (o.display_name = $${params.length + 1} OR o.email = $${params.length + 1})`;
       params.push(owner);
     }
 
@@ -91,16 +91,7 @@ router.get('/daily-diagnostic', async (req, res) => {
        JOIN leads l ON l.id = a.lead_id
        LEFT JOIN owners o ON o.id = a.owner_id
        WHERE ${apptWhere}
-       UNION
-       SELECT l.id, l.first_name, l.last_name, l.property_address, l.city, l.state, l.zip, l.phone, l.email,
-              l.project_type, COALESCE(o.display_name, o.email) AS assigned_rep,
-              l.follow_up_time, l.status,
-              l.verified_property_address, l.property_lat, l.property_lng, l.property_geocode_status,
-              NULL AS start_at, NULL AS appointment_id
-       FROM leads l
-       LEFT JOIN owners o ON o.id = l.owner_id
-       WHERE ${legacyWhere}
-       ORDER BY start_at ASC NULLS LAST, follow_up_time ASC`,
+       ORDER BY a.start_at ASC`,
       params
     );
 

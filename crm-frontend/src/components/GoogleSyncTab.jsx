@@ -47,10 +47,11 @@ export default function GoogleSyncTab() {
     setSyncStatus(prev => ({ ...prev, calendar: { status: 'syncing' } }));
     try {
       const today = new Date().toISOString().slice(0, 10);
-      // Railway API doesn't filter by follow_up_type, so filter client-side
-      const resp = await railwayLeads.list({ sort: '-follow_up_date', limit: 200 }).catch(() => ({ items: [] }));
+      // Only leads with an upcoming canonical appointment have a calendar
+      // event; follow-ups (any type, including 'Meeting') never do.
+      const resp = await railwayLeads.list({ sort: '-created_date', limit: 200 }).catch(() => ({ items: [] }));
       const leads = resp.items || [];
-      const future = leads.filter(l => l.follow_up_type === 'Meeting' && l.follow_up_date && l.follow_up_date >= today && !l.google_event_id);
+      const future = leads.filter(l => l.appointment_date && l.appointment_date >= today && !l.google_event_id);
 
       let synced = 0, skipped = 0, errors = 0;
 

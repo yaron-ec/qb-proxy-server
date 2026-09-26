@@ -267,6 +267,13 @@ about topology, this file wins; go correct `railway.json` and
   availability blocking and customer reminders. The FOLLOW-UP is
   `leads.follow_up_*` (+ notes/status), an internal next action that never
   creates/moves/cancels an appointment. Never mirror one into the other.
+  This holds for EVERY follow-up type, including `'Meeting'`: a Meeting
+  follow-up never books, blocks availability, gets a 1h buffer, creates a
+  Google Calendar/travel event, becomes a routing stop or triggers a customer
+  appointment reminder — never read `follow_up_*` as a fallback for
+  `appointment_*` (guarded by `test/meetingFollowUpNotAppointment.test.js`,
+  `crm-frontend/src/components/MeetingFollowUp.test.jsx` and
+  `test/integration/meetingFollowUp.int.test.js`).
   Writes: `PUT /api/v1/leads/:id/appointment` vs `PUT /api/v1/leads/:id/follow-up`.
   Real-Postgres coverage: `npm run test:integration` (needs a disposable,
   migrated `TEST_DATABASE_URL`).

@@ -28,8 +28,9 @@ function fmt12(t) {
 
 // Follow-Up / Next Update types — mirrors lib/followUp.js FOLLOW_UP_TYPES on the
 // server (which is authoritative). A customer site visit is the Appointment
-// (step 1), not a follow-up.
-const FOLLOW_UP_TYPES = ["Phone Call", "Text", "Email", "Other"];
+// (step 1); a 'Meeting' follow-up is only an internal next action and never
+// creates or blocks an appointment.
+const FOLLOW_UP_TYPES = ["Phone Call", "Text", "Email", "Meeting", "Other"];
 
 const emptyForm = () => ({
   first_name: "", last_name: "", email: "", phone: "",
