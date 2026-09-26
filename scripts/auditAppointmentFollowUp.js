@@ -11,6 +11,23 @@
  * showed "Appointment: Not set" next to "Follow-up: Meeting <appointment time>".
  *
  * READ-ONLY BY DEFAULT. Classes (per lead):
+ *   ORPHANED_TYPE     follow_up_type is set but follow_up_date is NULL. Every
+ *                     validated write path (lib/followUp.js#normalizeFollowUp,
+ *                     required by PUT /:id/follow-up and bookingService's
+ *                     createBooking) REQUIRES a date whenever a type is set —
+ *                     "follow_up_date is required for a follow-up" — so this
+ *                     combination can never be produced by any app-driven,
+ *                     validated write. It is residue from a write path that
+ *                     bypassed validation: routes/metaWebhook.js's with-
+ *                     appointment branch (fixed 2026-09-25, commit
+ *                     "Fix invalid_id on Lead status save...") ran a raw
+ *                     `UPDATE leads SET follow_up_type = 'Meeting',
+ *                     meeting_stage = 'First Meeting'` on every booked lead —
+ *                     never touching follow_up_date/time/notes/status — so a
+ *                     lead created through that path before the fix carries
+ *                     exactly this signature. Deterministic, appointment-
+ *                     independent → reconcilable (clears follow_up_type only;
+ *                     meeting_stage is left alone — see MIRROR below).
  *   MIRROR            active appointment + follow-up Meeting/Phone Call whose
  *                     Pacific date+time AND kind equal the appointment's, no
  *                     follow-up notes. Deterministic: the follow-up carries no
@@ -25,11 +42,18 @@
  *                     overlap without an authorized override (booked while the
  *                     server-side conflict check was not wired) → REPORT ONLY.
  *
- * --apply clears follow_up_* on MIRROR leads only, one transaction per lead,
- * re-checking the classification under FOR UPDATE, and writes an immutable
- * appointment_events 'updated' row with the cleared values as evidence. It
- * requires --confirm-host=<database host> to match DATABASE_URL (CLAUDE.md:
- * confirm DATABASE_URL before any destructive script).
+ * meeting_stage is NEVER cleared by --apply, in either class: it documents a
+ * true fact (this lead's Nth meeting happened/was booked), set independently
+ * by bookingService at appointment-creation time — it is not itself a
+ * Follow-Up field and clearing it would delete real information, not residue.
+ *
+ * --apply clears follow_up_* on MIRROR and ORPHANED_TYPE leads only, one
+ * transaction per lead, re-checking the classification under FOR UPDATE, and
+ * writes an immutable evidence row (appointment_events for MIRROR, since it
+ * has an appointment to attach to; an activities note for ORPHANED_TYPE,
+ * since it may have none). It requires --confirm-host=<database host> to
+ * match DATABASE_URL (CLAUDE.md: confirm DATABASE_URL before any destructive
+ * script).
  *
  *   node scripts/auditAppointmentFollowUp.js [--since=YYYY-MM-DD] [--json]
  *   node scripts/auditAppointmentFollowUp.js --apply --confirm-host=<host>
@@ -50,6 +74,10 @@ function normTime(t) {
 }
 
 function classify(lead, appts) {
+  // Checked before anything appointment-related: a type with no date can
+  // never come from a validated write (normalizeFollowUp requires a date
+  // whenever a type is set), regardless of whether an appointment exists.
+  if (lead.follow_up_type && !lead.follow_up_date) return { cls: 'ORPHANED_TYPE' };
   const fuDated = !!lead.follow_up_date;
   const fuSched = fuDated && (lead.follow_up_type === 'Meeting' || lead.follow_up_type === 'Phone Call');
   if (appts.length > 1) return { cls: 'MULTI_ACTIVE' };
@@ -79,6 +107,7 @@ async function main() {
        FROM leads l
       WHERE ($1::date IS NULL OR l.created_at >= $1::date)
         AND (l.follow_up_date IS NOT NULL
+             OR l.follow_up_type IS NOT NULL
              OR EXISTS (SELECT 1 FROM appointments a WHERE a.lead_id = l.id AND a.status IN ('scheduled','confirmed')))
       ORDER BY l.created_at DESC`, [since]
   )).rows;
@@ -161,6 +190,40 @@ async function main() {
         client.release();
       }
     }
+    // ORPHANED_TYPE: no appointment necessarily exists, so the evidence trail
+    // is a lead-scoped activities note (visible in Lead Detail's own
+    // timeline) rather than an appointment_events row. meeting_stage is
+    // deliberately left untouched (see header comment).
+    for (const r of report.records.filter(x => x.class === 'ORPHANED_TYPE')) {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        const l = (await client.query(
+          `SELECT id, follow_up_type, follow_up_date FROM leads WHERE id = $1 FOR UPDATE`, [r.lead_id])).rows[0];
+        if (!l || !l.follow_up_type || l.follow_up_date) { await client.query('ROLLBACK'); r.apply = 'skipped_changed'; continue; }
+        const priorType = l.follow_up_type;
+        await client.query(
+          `UPDATE leads SET follow_up_type = NULL, follow_up_status = NULL, updated_at = NOW() WHERE id = $1`, [r.lead_id]);
+        await client.query(
+          `INSERT INTO activities (lead_id, type, content, author, source)
+           VALUES ($1, 'note', $2, 'audit:appointment-followup-mirror', 'manual')`,
+          [r.lead_id, `Automated data cleanup: cleared orphaned follow_up_type='${priorType}' (no follow_up_date was ever set — this value could not have come from a validated follow-up save; residue from the pre-fix metaWebhook appointment/follow-up conflation). meeting_stage was left untouched.`]
+        );
+        const { syncLeadToReminders } = require('../lib/reminderProjection');
+        const full = (await client.query(
+          `SELECT l.*, o.display_name AS owner_display_name, o.email AS owner_email
+             FROM leads l LEFT JOIN owners o ON o.id = l.owner_id WHERE l.id = $1`, [r.lead_id])).rows[0];
+        await syncLeadToReminders(client, full);
+        await client.query('COMMIT');
+        r.apply = 'cleared';
+        cleared++;
+      } catch (e) {
+        try { await client.query('ROLLBACK'); } catch (_) { /* noop */ }
+        r.apply = 'error: ' + e.message;
+      } finally {
+        client.release();
+      }
+    }
     report.applied = cleared;
   }
 
@@ -178,7 +241,7 @@ async function main() {
           + (r.apply ? ` → ${r.apply}` : ''));
       }
     }
-    if (!apply) console.log('[audit] report only — nothing changed. MIRROR records are the only ones --apply would touch.');
+    if (!apply) console.log('[audit] report only — nothing changed. MIRROR and ORPHANED_TYPE records are the only ones --apply would touch.');
   }
   await pool.end();
 }

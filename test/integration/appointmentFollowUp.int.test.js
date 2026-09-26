@@ -536,3 +536,19 @@ test('Audit classifier: exact mirror vs divergent vs follow-up only', { skip }, 
   assert.strictEqual(classify({ follow_up_date: '2031-01-12', follow_up_type: 'Text' }, [appt]), null);
   assert.strictEqual(classify({ follow_up_date: '2031-01-12', follow_up_type: 'Text' }, [appt, appt]).cls, 'MULTI_ACTIVE');
 });
+
+test('Audit classifier: ORPHANED_TYPE — a type with no date can never come from a validated save (metaWebhook conflation residue)', { skip }, () => {
+  const { classify } = require('../../scripts/auditAppointmentFollowUp');
+  const appt = { id: 'a', start_at: '2031-01-10T00:00:00Z', end_at: '2031-01-10T01:00:00Z', status: 'scheduled',
+    busy_range: '["2031-01-09 23:00:00+00","2031-01-10 02:00:00+00")', timezone: 'America/Los_Angeles' };
+  // The exact residue the pre-fix metaWebhook.js bug left behind: type set, date never touched.
+  assert.strictEqual(classify({ follow_up_type: 'Meeting', follow_up_date: null }, []).cls, 'ORPHANED_TYPE');
+  // Same signature even when the lead separately has a real active appointment —
+  // ORPHANED_TYPE is checked before any appointment-comparison logic.
+  assert.strictEqual(classify({ follow_up_type: 'Meeting', follow_up_date: null }, [appt]).cls, 'ORPHANED_TYPE');
+  // Not specific to 'Meeting' — any type with no date is equally impossible via normalizeFollowUp.
+  assert.strictEqual(classify({ follow_up_type: 'Phone Call', follow_up_date: null }, []).cls, 'ORPHANED_TYPE');
+  // A real, dated follow-up (even mid-edit with only date cleared) is NOT this class.
+  assert.strictEqual(classify({ follow_up_type: null, follow_up_date: null }, []), null);
+  assert.strictEqual(classify({ follow_up_type: 'Meeting', follow_up_date: '2031-01-12' }, []).cls, 'FOLLOWUP_ONLY');
+});
