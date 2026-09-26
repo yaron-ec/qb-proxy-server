@@ -35,8 +35,8 @@
  *     would violate it), deals.assigned_rep, tasks.assigned_to,
  *     deal_commissions.recipient_name (the latter three are TEXT columns
  *     matched by the duplicate's exact current display_name — the same
- *     pattern this codebase already used for the one-off
- *     scripts/mergeShlomiIntoSimon.js identity merge, generalized here into
+ *     pattern the retired one-off Shlomi→Simon identity-merge script used,
+ *     generalized here into
  *     a permanent, reusable, parameterized endpoint).
  *   - Historical/audit-only text is deliberately NEVER repointed —
  *     rewriting it would falsify history: lead_submissions.assigned_rep_at_time,

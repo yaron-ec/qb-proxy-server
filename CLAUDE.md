@@ -28,11 +28,18 @@ Base44 dependency — see "Base44 prohibition" below.
 - `db/` — `client.js` (shared pool), `migrate.js` (migration runner),
   `schema.sql` (**partial legacy snapshot only — see below**),
   `migrations/*.sql` (the real schema history), `rollback/*.sql`.
-- `scripts/` — mostly one-off Base44→Railway migration/audit/rollback
-  tooling from the historical migration, not production runtime. One
-  script, `scripts/reconcileLeads.js`, still imports `@base44/sdk` directly
-  — it is a manual dev tool, never wired into any route/cron/worker, and is
-  the one known remaining exception to "zero Base44" (see below).
+- `scripts/` — Railway-native operational tools: `calendarOutboxWorker.js`
+  (the `noble-illumination` worker), reconciliations/backfills, and local
+  dry-runs. The one-off Base44→Railway migration/rollback/audit tooling (46
+  scripts incl. `reconcileLeads.js`/`migrationHelpers.js`) and the
+  `POST /api/v1/cron/system-wide-reconciliation` endpoint that shelled out to
+  one of them were removed once proven unreferenced — the migration is
+  complete and git history keeps them.
+- There is **no top-level `src/`**: it held stale, divergent copies of
+  `server.js`, `routes/routing.js`, `routes/signnow.js`,
+  `lib/googleMapsClient.js` and four frontend files (never in any image or
+  service) and was deleted; `test/intakeLockingAndCanonicalTree.test.js`
+  keeps it (and any image/service/require pointing at it) from returning.
 - Root `Dockerfile`, root `package.json` — the `qb-proxy-server` API image.
 
 **Frontend:**
@@ -190,8 +197,7 @@ about topology, this file wins; go correct `railway.json` and
 
 - Never run a destructive script (`DELETE`, `TRUNCATE`, bulk `UPDATE`)
   against production without confirming `DATABASE_URL` first — several
-  scripts (`db/importLeads.js`, `scripts/reconcileLeads.js --apply`) have
-  no built-in environment guard.
+  scripts (e.g. `db/importLeads.js`) have no built-in environment guard.
 - `company_settings` is an unscoped singleton — `DELETE FROM
   company_settings` deletes ALL rows (every route reads it via
   `ORDER BY created_at ASC LIMIT 1`, not by any tenant key).
@@ -216,6 +222,26 @@ about topology, this file wins; go correct `railway.json` and
   `2026-34-*` ×2) — apply order is alphabetical tie-break within the same
   prefix, not guaranteed intent. Check `schema_migrations` before assuming
   a specific migration has or hasn't run.
+- **No DDL at runtime.** `db/schema.sql` is executed ONLY by `db/migrate.js`
+  (deploy time, under its advisory lock), which records its checksum as
+  `schema_migrations.__base_schema__`; runtime `ensureSchema()` is then a
+  single SELECT. Never add `ALTER TABLE … ADD COLUMN IF NOT EXISTS` (or other
+  DDL) to a request/worker path — it takes an AccessExclusiveLock even as a
+  no-op. Use `db/client.js#ensureColumns` (catalog check first). Re-running
+  schema.sql on every process start (the reminder worker is a fresh process
+  every 15 min) caused a real intake deadlock: DDL held `reminder_leads` and
+  wanted `owners` while a capture transaction held `owners` and wanted
+  `reminder_leads` → "Submission failed".
+- **Lead intake lock order**: every lead-creating transaction
+  (`bookingService.createBooking`, admin `POST /api/v1/leads`) FIRST takes
+  `leadResolution.lockLeadIdentity` (sorted, transaction-scoped advisory locks
+  on normalized phone / email / external_ref / idempotency key), THEN lead
+  rows, THEN the owner-schedule lock, THEN writes. This is what makes
+  simultaneous same-person / same-delivery / same-key submissions resolve to
+  one lead (duplicate detection alone cannot lock a row that doesn't exist
+  yet). `createBooking` also retries a transaction a bounded 3 times on
+  40P01/40001 as defense in depth — never a substitute for lock order.
+  Real-Postgres proof: `test/integration/leadIntakeConcurrency.int.test.js`.
 - Do not hold a DB transaction open across an external network/API call
   (Google, QuickBooks, SignNow, Gmail, Handoff). The existing booking/
   calendar-outbox code follows this correctly (network calls happen outside
@@ -276,7 +302,20 @@ about topology, this file wins; go correct `railway.json` and
   `test/integration/meetingFollowUp.int.test.js`).
   Writes: `PUT /api/v1/leads/:id/appointment` vs `PUT /api/v1/leads/:id/follow-up`.
   Real-Postgres coverage: `npm run test:integration` (needs a disposable,
-  migrated `TEST_DATABASE_URL`).
+  migrated `TEST_DATABASE_URL`). It runs the files one at a time because
+  they share one database and one global calendar-outbox queue, which each
+  file drains with its own fake Google client (a parallel file could process
+  another file's job); the intake concurrency suite fires its submissions
+  genuinely in parallel inside the file.
+- **Appointment blocking rule** (canonical, do not change): an appointment
+  blocks 1h before + its duration + 1h after (12:00–13:00 blocks 11:00–14:00);
+  a new appointment is checked as its own actual window against that block,
+  so touching a boundary is allowed (14:00 books, 13:59 does not). The
+  availability grid and the write-path conflict check apply the same rule —
+  `test/integration/appointmentBufferBoundary.int.test.js` compares them slot
+  by slot. A Phone Call FOLLOW-UP keeps its reminder emails (owner, Michelle
+  and the customer — decided, keep) but never blocks, buffers or travels
+  (`test/integration/phoneCallFollowUp.int.test.js`).
 - **`qb_invoice_sale_map`**: `crm_sale_id` is the ONLY ownership boundary
   for a QuickBooks invoice, and a mapping is NEVER reassigned once created
   (`ON CONFLICT DO NOTHING`). Never resolve invoice ownership by amount,
@@ -297,10 +336,12 @@ about topology, this file wins; go correct `railway.json` and
   pages (fixed to serve from `${CRM_PUBLIC_URL}/email-logo.png`, matching
   `lib/emailTemplates.js`'s existing pattern); `lib/actionRouter.js`'s CSP
   `img-src` was updated to match. `test/noBase44MediaDependency.test.js` is
-  a permanent regression guard against this class of issue recurring. The
-  one remaining known exception is `scripts/reconcileLeads.js`, a manual
-  dev tool that still imports `@base44/sdk` — not wired into any production
-  path; do not build new production logic depending on it.
+  a permanent regression guard against this class of issue recurring. No
+  known exception remains: the last Base44-calling code (the migration
+  scripts, the `system-wide-reconciliation` endpoint, the stale `src/`
+  tree and the frontend's `lib/app-params.js`, which parsed a Base44
+  `access_token`/`app_id` from the URL into `base44_*` localStorage keys on
+  every page load) was removed.
 
 ## Working subsystems — do not redesign without new evidence
 
@@ -445,6 +486,6 @@ against an actual run of it, before trusting either.
 Do not use, restore, recommend, or design any Base44 dependency in new
 work — as runtime, backend, frontend, API, SDK, auth, storage, database,
 worker, cron, integration, deployment mechanism, or fallback/migration
-bridge. Base44-referencing comments in the codebase document what was
-replaced, not a live integration point, with the narrow, explicitly-tracked
-exception of `scripts/reconcileLeads.js` noted above.
+bridge. Base44-referencing comments and legacy column names (e.g.
+`legacy_base44_id`, `base44_entity_map`) document what was replaced or keep
+historical data readable; they are not live integration points.

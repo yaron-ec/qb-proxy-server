@@ -2,7 +2,7 @@
 /**
  * captureOverrideAuth.test.js — server-side admin override authorization.
  *
- * Run: cd src/proxy-server && node --test test/captureOverrideAuth.test.js
+ * Run: node --test test/captureOverrideAuth.test.js
  *
  * Covers: no-token -> 403, non-admin -> 403, non-allowlisted admin -> 403,
  * invalid token -> 403, Yaron/Michelle admin -> ok, case-insensitive email.

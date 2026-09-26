@@ -30,6 +30,7 @@ const { syncLeadToReminders, removeFromReminders } = require('../lib/reminderPro
 const { notifyCrmActivity } = require('../lib/crmActivityNotifier');
 const { processAddress, buildAddressFieldMap, ensureAddressColumns } = require('../lib/addressPipeline');
 const bookingService = require('../lib/booking/bookingService');
+const { lockLeadIdentity } = require('../lib/booking/leadResolution');
 const { serializeAppointment, fetchActiveAppointmentsForLeads } = require('../lib/booking/appointmentView');
 const { normalizeFollowUp, FOLLOW_UP_FIELDS } = require('../lib/followUp');
 const router = express.Router();
@@ -996,18 +997,11 @@ router.post('/', requireAuth, async (req, res) => {
     }
 
     // ── Duplicate check (email/phone against existing leads) ──────────
-    if (email) {
-      const dup = await query('SELECT id, first_name, last_name FROM leads WHERE lower(email) = lower($1) LIMIT 1', [email]);
-      if (dup.rows[0]) {
-        return res.status(409).json({ error: 'duplicate_email', message: `Email already belongs to another lead: ${dup.rows[0].first_name} ${dup.rows[0].last_name}`, conflict: { id: dup.rows[0].id, name: `${dup.rows[0].first_name} ${dup.rows[0].last_name}` } });
-      }
-    }
-    if (phone) {
-      const dup = await query('SELECT id, first_name, last_name FROM leads WHERE phone = $1 LIMIT 1', [phone]);
-      if (dup.rows[0]) {
-        return res.status(409).json({ error: 'duplicate_phone', message: `Phone already belongs to another lead: ${dup.rows[0].first_name} ${dup.rows[0].last_name}`, conflict: { id: dup.rows[0].id, name: `${dup.rows[0].first_name} ${dup.rows[0].last_name}` } });
-      }
-    }
+    // Fast pre-check here; re-checked authoritatively inside the INSERT
+    // transaction under the per-identity intake lock (below), so two
+    // simultaneous creates of the same email/phone cannot both pass.
+    const dupPre = await findCreateDuplicate({ query }, email, phone);
+    if (dupPre) return res.status(409).json(dupPre);
 
     // ── Canonical address pipeline (BEFORE the INSERT) ────────────────
     // Run the address through the canonical pipeline so the lead is created
@@ -1033,6 +1027,12 @@ router.post('/', requireAuth, async (req, res) => {
     let fullRow;
     try {
       await client.query('BEGIN');
+      await lockLeadIdentity(client, { email, phone });
+      const dupTx = await findCreateDuplicate(client, email, phone);
+      if (dupTx) {
+        await client.query('ROLLBACK');
+        return res.status(409).json(dupTx);
+      }
       const insertRes = await client.query(
         `INSERT INTO leads (
           owner_id, first_name, last_name, email, phone,
@@ -1116,6 +1116,26 @@ router.post('/', requireAuth, async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
+
+// Admin create path duplicate rule (unchanged): exact email (case-insensitive)
+// or exact normalized phone already on a lead → 409 with the conflicting lead.
+async function findCreateDuplicate(db, email, phone) {
+  if (email) {
+    const dup = await db.query('SELECT id, first_name, last_name FROM leads WHERE lower(email) = lower($1) LIMIT 1', [email]);
+    if (dup.rows[0]) {
+      const d = dup.rows[0];
+      return { error: 'duplicate_email', message: `Email already belongs to another lead: ${d.first_name} ${d.last_name}`, conflict: { id: d.id, name: `${d.first_name} ${d.last_name}` } };
+    }
+  }
+  if (phone) {
+    const dup = await db.query('SELECT id, first_name, last_name FROM leads WHERE phone = $1 LIMIT 1', [phone]);
+    if (dup.rows[0]) {
+      const d = dup.rows[0];
+      return { error: 'duplicate_phone', message: `Phone already belongs to another lead: ${d.first_name} ${d.last_name}`, conflict: { id: d.id, name: `${d.first_name} ${d.last_name}` } };
+    }
+  }
+  return null;
+}
 
 // ── GET / — list leads (owner-scoped, filtered) ──────────────────────────────
 router.get('/', requireAuth, async (req, res) => {

@@ -1303,8 +1303,8 @@ app.post('/contacts/sync-lead', requireProxySecret, (req, res) => {
 });
 
 // ── /reminders/* routes ───────────────────────────────────────────────────────
-// Requires: GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN_YARON,
-//           BASE44_APP_ID, BASE44_API_KEY (to read leads), COMPANY_PHONE, COMPANY_NAME
+// Legacy stub (501). Reminders run in the reminder worker (lib/reminderEngine.js,
+// lib/phoneCallReminders.js) from Railway Postgres — no Base44.
 
 app.post('/reminders/send-lead', requireProxySecret, (req, res) => {
   res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — needs Gmail OAuth tokens and lead data access' });
@@ -2013,7 +2013,7 @@ app.post('/signnow/download-pdf', requireProxySecret, (req, res) => {
 });
 
 // ── /leads/* routes ───────────────────────────────────────────────────────────
-// Requires: BASE44_APP_ID, BASE44_API_KEY (to read/write Lead entity for duplicate check)
+// Legacy stub (501). Lead capture is /api/public/capture (Railway Postgres) — no Base44.
 
 app.post('/leads/submit-capture', requireProxySecret, (req, res) => {
   res.status(501).json({ success: false, error: 'Railway endpoint not implemented yet — lead capture is handled by /api/public/capture' });

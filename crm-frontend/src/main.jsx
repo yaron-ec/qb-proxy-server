@@ -2,10 +2,12 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from '@/App.jsx'
 import '@/index.css'
-import { isExitBuild } from '@/lib/app-params'
+// True only in the production standalone build (`vite build --mode exit`,
+// which loads .env.exit → VITE_EXIT_BUILD=true); false in `vite dev`.
+const isExitBuild = import.meta.env.VITE_EXIT_BUILD === 'true'
 
 // Service worker: register ONLY in the true production standalone (exit) build.
-// In development and Base44 Preview, unregister any stale workers so they
+// In development (vite dev), unregister any stale workers so they
 // cannot interrupt React startup or serve stale assets.
 //
 // AUTO-UPDATE LIFECYCLE (no manual action required):

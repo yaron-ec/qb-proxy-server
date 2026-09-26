@@ -3,7 +3,7 @@
  * emailServiceMetadata.test.js — proves EmailService issues NO SQL referencing
  * a `metadata` column (the column was removed from the schema).
  *
- * Run: cd src/proxy-server && node --test test/emailServiceMetadata.test.js
+ * Run: node --test test/emailServiceMetadata.test.js
  */
 'use strict';
 

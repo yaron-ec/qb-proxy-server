@@ -3,7 +3,7 @@
 
 /**
  * In-process wiring + persistence tests for the sale-scoped financial model.
- * Run: node test/saleFinancialsWiring.test.js  (from src/proxy-server/)
+ * Run: node test/saleFinancialsWiring.test.js  (from the repo root)
  *
  * No database required — uses a mock db that records SQL + params and returns
  * canned rows. Validates call shapes, idempotency, voided handling, and the

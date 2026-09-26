@@ -2,7 +2,7 @@
 /**
  * appointmentOverride.test.js — Admin Override conflict bypass system-wide tests.
  *
- * Run: cd src/proxy-server && node --test test/appointmentOverride.test.js
+ * Run: node --test test/appointmentOverride.test.js
  *
  * Covers:
  *   1. Non-admin conflicting slot rejected

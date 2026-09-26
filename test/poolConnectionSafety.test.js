@@ -12,7 +12,7 @@
  *   7. leads.js has finally blocks on ALL pool.connect() transaction blocks
  *   8. bookingService.js does NOT call processAddress inside a transaction
  *
- * Run: cd src/proxy-server && node --test test/poolConnectionSafety.test.js
+ * Run: node --test test/poolConnectionSafety.test.js
  */
 'use strict';
 

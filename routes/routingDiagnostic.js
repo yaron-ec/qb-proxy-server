@@ -8,7 +8,7 @@
 
 const express = require('express');
 const gmaps = require('../lib/googleMapsClient');
-const { query } = require('../db/client');
+const { query, ensureColumns } = require('../db/client');
 
 const router = express.Router();
 
@@ -58,11 +58,13 @@ router.get('/daily-diagnostic', async (req, res) => {
     const owner = req.query.owner;
 
     // Ensure geocode columns exist on leads table
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS verified_property_address TEXT');
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_lat DOUBLE PRECISION');
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_lng DOUBLE PRECISION');
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_geocode_status TEXT DEFAULT \'pending\'');
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS state TEXT');
+    await ensureColumns('leads', [
+      ['verified_property_address', "TEXT"],
+      ['property_lat', "DOUBLE PRECISION"],
+      ['property_lng', "DOUBLE PRECISION"],
+      ['property_geocode_status', "TEXT DEFAULT 'pending'"],
+      ['state', "TEXT"],
+    ]);
 
     // Query the CANONICAL appointments table (source of truth).
     // Filter by appointment status (not lead status) — Lost/Sold leads with
@@ -173,13 +175,15 @@ router.post('/reconcile-addresses', async (req, res) => {
     }
 
     // Ensure all columns exist (including state + original_* audit columns)
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS verified_property_address TEXT');
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_lat DOUBLE PRECISION');
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_lng DOUBLE PRECISION');
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_geocode_status TEXT DEFAULT \'pending\'');
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS state TEXT');
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS original_property_address TEXT');
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS original_city TEXT');
+    await ensureColumns('leads', [
+      ['verified_property_address', "TEXT"],
+      ['property_lat', "DOUBLE PRECISION"],
+      ['property_lng', "DOUBLE PRECISION"],
+      ['property_geocode_status', "TEXT DEFAULT 'pending'"],
+      ['state', "TEXT"],
+      ['original_property_address', "TEXT"],
+      ['original_city', "TEXT"],
+    ]);
 
     // If lead_id is provided, process ONLY that lead (targeted reconciliation).
     // Otherwise, fetch all leads that haven't been reconciled yet.
@@ -293,9 +297,11 @@ router.post('/reconcile-addresses', async (req, res) => {
 // GET /reconcile-status — check which leads have been reconciled and which need review
 router.get('/reconcile-status', async (req, res) => {
   try {
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS state TEXT');
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_geocode_status TEXT DEFAULT \'pending\'');
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS verified_property_address TEXT');
+    await ensureColumns('leads', [
+      ['state', "TEXT"],
+      ['property_geocode_status', "TEXT DEFAULT 'pending'"],
+      ['verified_property_address', "TEXT"],
+    ]);
 
     const { rows } = await query(`
       SELECT property_geocode_status, COUNT(*) as count
@@ -352,12 +358,14 @@ router.post('/backfill-geocodes', async (req, res) => {
     }
 
     // Ensure columns exist
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS verified_property_address TEXT');
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_lat DOUBLE PRECISION');
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_lng DOUBLE PRECISION');
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_geocode_status TEXT DEFAULT \'pending\'');
+    await ensureColumns('leads', [
+      ['verified_property_address', "TEXT"],
+      ['property_lat', "DOUBLE PRECISION"],
+      ['property_lng', "DOUBLE PRECISION"],
+      ['property_geocode_status', "TEXT DEFAULT 'pending'"],
+    ]);
     await query('CREATE TABLE IF NOT EXISTS lead_geocodes (lead_id TEXT PRIMARY KEY, address_hash TEXT NOT NULL, normalized_address TEXT, verified_address TEXT, latitude DOUBLE PRECISION, longitude DOUBLE PRECISION, google_place_id TEXT, geocode_status TEXT DEFAULT \'pending\', geocoded_at TIMESTAMPTZ, updated_at TIMESTAMPTZ DEFAULT NOW())');
-    await query('ALTER TABLE lead_geocodes ADD COLUMN IF NOT EXISTS verified_address TEXT');
+    await ensureColumns('lead_geocodes', [['verified_address', "TEXT"]]);
 
     // Clear ALL stale geocode errors so they get re-geocoded with the fixed normalization
     await query(`DELETE FROM lead_geocodes WHERE geocode_status != 'ok'`);

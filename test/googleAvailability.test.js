@@ -8,7 +8,7 @@
  * Pure (no network): uses the real eventToBusyWindow/mergeWindows/computeBlocked
  * functions against a realistic Google event JSON shape.
  *
- * Run: node src/proxy-server/test/googleAvailability.test.js
+ * Run: node test/googleAvailability.test.js
  */
 'use strict';
 

@@ -238,12 +238,17 @@ router.post('/', express.raw({ type: '*/*', verify: (req, res, buf) => { req.raw
                    project_type, source, notes, is_new_intake_lead, external_ref, status,
                    crm_created_date, record_type, created_at, updated_at)
                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true, $10, 'New', NOW(), 'Lead', NOW(), NOW())
+                 ON CONFLICT (external_ref) DO NOTHING
                  RETURNING id`,
                 [mapped.first_name, mapped.last_name, mapped.email, mapped.phone,
                  mapped.property_address, mapped.city, mapped.project_type, mapped.source,
                  mapped.message, idempotency_key]
               );
               const leadId = insRes.rows[0]?.id;
+              // No row → this leadgen was already ingested (Meta redelivers
+              // webhooks, possibly concurrently): external_ref is UNIQUE, so the
+              // existing lead is kept as-is and no side effect runs twice.
+              if (!leadId) console.log(`[meta-webhook] Lead ${leadgenId} already ingested — duplicate delivery skipped`);
               if (leadId) {
                 // Reminder ingestion
                 try {
