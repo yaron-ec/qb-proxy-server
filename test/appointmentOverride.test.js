@@ -358,8 +358,10 @@ test('17. Frontend does not render simultaneous red blocking error + accepted Ad
   assert.ok(dateChangeClears, 'Date change must auto-clear overrideEnabled');
   const timeChangeClears = schedulerSrc.includes("setTime(v); setAvailabilityError(null); setOverrideEnabled(false)");
   assert.ok(timeChangeClears, 'Time change must auto-clear overrideEnabled');
-  const typeChangeClears = schedulerSrc.includes('setKind(k); setAvailabilityError(null); setOverrideEnabled(false)');
-  assert.ok(typeChangeClears, 'Type change must auto-clear overrideEnabled');
+  // The appointment kind is no longer user-selectable (an appointment is always
+  // a Site Visit; a Phone Call is a follow-up), so there is no type change that
+  // could carry a stale override across kinds.
+  assert.ok(!schedulerSrc.includes('["Meeting", "Phone Call"].map'), 'no Meeting/Phone Call kind toggle in the appointment editor');
 
   // Frontend admin check must be role === "admin" only (not manager/owner)
   assert.ok(

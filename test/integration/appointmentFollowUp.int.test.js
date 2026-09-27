@@ -248,23 +248,24 @@ test('5. Reopen: list + detail + by-external/detail all return the same appointm
 });
 
 // ── 6–9: edits + consistency ─────────────────────────────────────────────────
-test('6. Edit appointment (reschedule + change kind) updates every representation atomically', { skip }, async () => {
+test('6. Edit appointment (reschedule) updates every representation atomically', { skip }, async () => {
   const before = await getLead(bothLeadId);
   const r = await api('PUT', `/api/v1/leads/${bothLeadId}/appointment`, {
-    appointment_date: bothDay, appointment_time: '13:00', appointment_type: 'Phone Call',
+    appointment_date: bothDay, appointment_time: '13:00', appointment_type: 'Meeting',
   });
   assert.strictEqual(r.status, 200, JSON.stringify(r.body));
   assert.strictEqual(r.body.action, 'appointment_rescheduled');
   const lead = r.body.lead;
   assert.strictEqual(lead.appointment_time, '13:00');
-  assert.strictEqual(lead.appointment_type, 'Phone Call');
+  assert.strictEqual(lead.appointment_type, 'Meeting');
   assert.notStrictEqual(lead.appointment_id, before.appointment_id, 'reschedule creates the new active row');
   // Exactly one active appointment; the old one is 'rescheduled'.
   const rows = (await db.query('SELECT status FROM appointments WHERE lead_id = $1 ORDER BY created_at', [bothLeadId])).rows;
   assert.deepStrictEqual(rows.map(r => r.status), ['rescheduled', 'scheduled']);
-  // Phone Call: no travel buffer.
-  const a = (await db.query('SELECT lower(busy_range) = start_at AS no_buffer FROM appointments WHERE id = $1', [lead.appointment_id])).rows[0];
-  assert.strictEqual(a.no_buffer, true);
+  // A Site Visit: the 1h buffer before and after is reserved.
+  const a = (await db.query(`SELECT lower(busy_range) = start_at - interval '1 hour' AND upper(busy_range) = end_at + interval '1 hour' AS buffered
+                               FROM appointments WHERE id = $1`, [lead.appointment_id])).rows[0];
+  assert.strictEqual(a.buffered, true);
   // The follow-up was NOT touched by the appointment edit.
   assert.strictEqual(lead.follow_up_date, '2031-04-10');
   assert.strictEqual(lead.follow_up_type, 'Text');
@@ -325,7 +326,7 @@ test('9. Appointment and Meeting cannot contradict: every surface derives from t
   const ob = (await db.query(
     "SELECT payload FROM calendar_outbox WHERE appointment_id = $1 AND action = 'create_main'", [row.id])).rows[0];
   assert.ok(ob.payload.start.dateTime.startsWith(`${s.date}T${s.time}`));
-  assert.ok(ob.payload.summary.startsWith('Phone Call with'));
+  assert.ok(ob.payload.summary.startsWith('Meeting with'));
   // The reminder projection carries the same appointment.
   const rid = lead.external_ref || lead.id;
   const rl = (await db.query('SELECT appointment_date, appointment_time, appointment_type FROM reminder_leads WHERE id = $1', [rid])).rows[0];
@@ -356,9 +357,12 @@ test('11. Calendar sync failure is surfaced (retrying → failed) and a manual r
   await parkForeignOutbox();
   google.reset();
   const day = uniqueDay();
-  const r = await api('POST', '/api/public/capture', capturePayload({ appointment_date: day, appointment_time: '11:00', appointment_type: 'Phone Call' }), null);
+  const r = await api('POST', '/api/public/capture', capturePayload({ appointment_date: day, appointment_time: '11:00' }), null);
   const id = r.body.lead.id;
-  google.failCreates = 1;
+  // A Site Visit queues main + travel in ONE transaction (same created_at, so
+  // their claim order is arbitrary): fail both so the main event's failure is
+  // deterministic. The travel event never decides the sync status either way.
+  google.failCreates = 2;
   await outbox.claimAndProcess(db.pool, 'int-test-worker', { batchSize: 50 });
   let lead = await getLead(id);
   assert.strictEqual(lead.google_calendar_sync_status, 'retrying', 'transient failure is visible, not an endless "Syncing"');
@@ -485,11 +489,11 @@ test('13. Conflict rules: Meeting reserves 1h before + duration + 1h after; over
 
 // ── 14: reminder timing ──────────────────────────────────────────────────────
 test('14. Reminder timing uses the real appointment start (not the buffer, not the follow-up)', { skip }, async () => {
-  const lead = await getLead(bothLeadId); // Phone Call appointment 13:00 + follow-up Phone Call 2031-06-01 14:00
+  const lead = await getLead(bothLeadId); // Site Visit 13:00 + follow-up Phone Call 2031-06-01 14:00
   const { getAppointmentMs, computeWindowsForLead } = require('../../lib/reminderEngine');
   const { pacificToUtcMs } = require('../../lib/reminderTime');
   const rid = lead.external_ref || lead.id;
-  // Switch the appointment back to a Meeting so the engine will remind.
+  // Move the Site Visit so the reminder source changes.
   const r = await api('PUT', `/api/v1/leads/${bothLeadId}/appointment`, { appointment_date: bothDay, appointment_time: '16:00', appointment_type: 'Meeting' });
   assert.strictEqual(r.status, 200, JSON.stringify(r.body));
   const rl = (await db.query('SELECT * FROM reminder_leads WHERE id = $1', [rid])).rows[0];

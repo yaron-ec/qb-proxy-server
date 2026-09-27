@@ -252,7 +252,9 @@ export default function ActivityComposer({ lead, onActivityCreated }) {
     }
 
     // Handle call follow-up → the lead's FOLLOW-UP (independent of the appointment)
-    if (activeType === "call" && showCallFollowUp && callFollowUpDate && callFollowUpTime) {
+    // Not when this call booked a Site Visit at that same date/time (below): the
+    // visit is the appointment; a Phone Call follow-up at the identical time is a duplicate.
+    if (activeType === "call" && showCallFollowUp && callFollowUpDate && callFollowUpTime && callOutcome !== "Appointment Scheduled") {
       await railwayLeads.updateFollowUp(lead.id, {
         follow_up_date: callFollowUpDate,
         follow_up_time: callFollowUpTime,

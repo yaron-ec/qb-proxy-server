@@ -247,21 +247,17 @@ export default function AppointmentEditor({ lead, onLeadUpdate }) {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        {["Meeting", "Phone Call"].map(k => (
-          <button
-            key={k}
-            onClick={() => { setKind(k); setAvailabilityError(null); setOverrideEnabled(false); }}
-            className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border-2 text-xs font-semibold transition-colors ${
-              kind === k
-                ? (k === "Meeting" ? "border-blue-500 bg-blue-50 text-blue-700" : "border-green-500 bg-green-50 text-green-700")
-                : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"}`}
-          >
-            {k === "Meeting" ? <Calendar className="w-4 h-4" /> : <Phone className="w-4 h-4" />}
-            {k === "Meeting" ? "Site Visit" : "Phone Call"}
-          </button>
-        ))}
-      </div>
+      {kind === "Phone Call" ? (
+        <p className="text-[10px] text-green-800 bg-green-50 border border-green-200 rounded-lg px-2.5 py-2" data-testid="legacy-phone-call-note">
+          This is a legacy Phone Call booking. A Phone Call is a follow-up, not an appointment — saving moves it to the
+          lead's Phone Call follow-up (no calendar block, no travel) and removes the old calendar entry.
+        </p>
+      ) : (
+        <p className="text-[10px] text-slate-500" data-testid="site-visit-only-note">
+          <Calendar className="w-3 h-3 inline mr-1 text-blue-500" />Site Visit. Phone calls are scheduled as a Follow-Up
+          (no calendar block, no travel).
+        </p>
+      )}
 
       <div>
         <label className="text-[10px] font-semibold text-slate-500 uppercase block mb-1">Date</label>
@@ -299,7 +295,8 @@ export default function AppointmentEditor({ lead, onLeadUpdate }) {
       {errorBox(availabilityError)}
       {errorBox(saveError)}
 
-      <div className={`${kind === "Meeting" ? "bg-blue-50 border-blue-200" : "bg-green-50 border-green-200"} border rounded-lg px-3 py-2.5 space-y-1`}>
+      {kind === "Meeting" && (
+      <div className="bg-blue-50 border-blue-200 border rounded-lg px-3 py-2.5 space-y-1">
         <p className={`text-[10px] font-semibold ${kind === "Meeting" ? "text-blue-800" : "text-green-800"}`}>
           Google Calendar event will be {appt ? "updated" : "created"} automatically:
         </p>
@@ -315,6 +312,7 @@ export default function AppointmentEditor({ lead, onLeadUpdate }) {
           <p className="text-[10px] text-amber-700">⚠ No client email — client invite will NOT be sent</p>
         )}
       </div>
+      )}
 
       <div className="flex gap-2">
         <button
