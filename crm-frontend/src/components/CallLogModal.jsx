@@ -56,7 +56,9 @@ export default function CallLogModal({ lead, isOpen, onClose, onSave }) {
       });
 
       // If follow-up needed, set the lead's FOLLOW-UP (independent of any appointment).
-      if (showFollowUp && followUpDate && followUpTime) {
+      // Not when this call booked a Site Visit at that same date/time: the visit is
+      // the appointment; a Phone Call follow-up at the identical time is a duplicate.
+      if (showFollowUp && followUpDate && followUpTime && outcome !== "Appointment Scheduled") {
         await updateFollowUp(lead.id, {
           follow_up_date: followUpDate,
           follow_up_time: followUpTime,

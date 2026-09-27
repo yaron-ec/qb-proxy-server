@@ -32,6 +32,7 @@ const { processAddress, buildAddressFieldMap, ensureAddressColumns } = require('
 const bookingService = require('../lib/booking/bookingService');
 const { lockLeadIdentity } = require('../lib/booking/leadResolution');
 const { serializeAppointment, fetchActiveAppointmentsForLeads } = require('../lib/booking/appointmentView');
+const { isPhoneCallAppointment } = require('../lib/booking/appointmentKind');
 const { normalizeFollowUp, FOLLOW_UP_FIELDS } = require('../lib/followUp');
 const router = express.Router();
 
@@ -691,7 +692,8 @@ function parseAppointmentBody(body) {
   const rawTime = body.appointment_time == null ? '' : String(body.appointment_time).trim();
   const tm = rawTime.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
   const time = tm ? `${tm[1].padStart(2, '0')}:${tm[2]}` : null;
-  const kind = body.appointment_type == null || body.appointment_type === '' ? 'Meeting' : String(body.appointment_type);
+  const kindExplicit = !(body.appointment_type == null || body.appointment_type === '');
+  const kind = kindExplicit ? String(body.appointment_type) : 'Meeting';
   if (!validDateStr(date)) errors.push('appointment_date must be a valid YYYY-MM-DD date');
   if (!time || !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) errors.push('appointment_time must be HH:MM (24h)');
   if (!APPOINTMENT_KINDS.includes(kind)) errors.push(`appointment_type must be one of: ${APPOINTMENT_KINDS.join(', ')}`);
@@ -701,7 +703,7 @@ function parseAppointmentBody(body) {
     if (!Number.isInteger(duration) || duration <= 0 || duration > 480) errors.push('duration_minutes must be an integer between 1 and 480');
   }
   if (errors.length) return { ok: false, errors };
-  return { ok: true, cancel: false, date, time, kind, duration };
+  return { ok: true, cancel: false, date, time, kind, kindExplicit, duration };
 }
 
 function fmtApptChange(appt) {
@@ -787,7 +789,8 @@ async function executeFollowUpUpdate(req, res, leadId, opts) {
     client.release();
   }
 
-  const out = await respondWithLead(res, leadId, opts.legacy ? { deprecated: 'follow-up fields sent to /appointment are saved as a follow-up only; use PUT /:id/follow-up' } : null);
+  const out = await respondWithLead(res, leadId, opts.extra
+    || (opts.legacy ? { deprecated: 'follow-up fields sent to /appointment are saved as a follow-up only; use PUT /:id/follow-up' } : null));
   const changes = computeLeadDiff(before, out.full);
   if (changes.length) sendLeadNotification('lead_updated', out.full, changes, req.user && req.user.email);
   return res.json(out.body);
@@ -821,6 +824,36 @@ async function executeAppointmentRequest(req, res, leadId) {
   const active = await fetchActiveAppointment(leadId);
   if (body.expected_appointment_id !== undefined && String(body.expected_appointment_id || '') !== String(active ? active.id : '')) {
     return res.status(409).json({ error: 'stale_appointment', message: 'This appointment was changed elsewhere. Reload the lead and try again.' });
+  }
+  const activeIsLegacyPhoneCall = !!active && isPhoneCallAppointment(active);
+  if (!parsed.cancel && !parsed.kindExplicit && activeIsLegacyPhoneCall) {
+    // Never silently turn a legacy Phone Call into a Site Visit (buffer + travel).
+    return res.status(400).json({ error: 'appointment_type_required',
+      message: 'This lead has a legacy Phone Call booking. Send appointment_type "Phone Call" (saved as a follow-up) or "Meeting" (a Site Visit).' });
+  }
+  if (!parsed.cancel && parsed.kind === 'Phone Call') {
+    // A Phone Call is a follow-up, never an appointment: no calendar block, no
+    // buffer, no Driving / Travel Time. A legacy Phone Call booking on this lead
+    // is cancelled (its Google event removed) so the call is not duplicated; a
+    // real Site Visit on the lead is left untouched.
+    try {
+      if (activeIsLegacyPhoneCall) {
+        await bookingService.cancelAppointment(active.id, actor, { onWrite: async (client) => projectReminders(client, leadId) });
+      }
+    } catch (e) {
+      const status = e && e.status ? e.status : 500;
+      return res.status(status).json({ error: (e && e.code) || 'appointment_update_failed', message: e && e.message });
+    }
+    return executeFollowUpUpdate({ ...req, body: {
+      follow_up_date: parsed.date, follow_up_time: parsed.time, follow_up_type: 'Phone Call', follow_up_status: 'pending',
+    } }, res, leadId, { extra: { action: 'phone_call_saved_as_follow_up', legacy_phone_call_appointment_cancelled: activeIsLegacyPhoneCall } });
+  }
+  if (!parsed.cancel && activeIsLegacyPhoneCall) {
+    // Site Visit requested while a legacy Phone Call row is active: move the call
+    // first (appointment_type "Phone Call" → follow-up), then book the visit —
+    // never re-book the call row itself as a Site Visit.
+    return res.status(409).json({ error: 'legacy_phone_call_booking',
+      message: 'This lead has a legacy Phone Call booking. Save it as a Phone Call follow-up first, then schedule the Site Visit.' });
   }
   const onWrite = async (client) => projectReminders(client, leadId);
   let action = null;

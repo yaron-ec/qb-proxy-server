@@ -323,6 +323,26 @@ about topology, this file wins; go correct `railway.json` and
   by slot. A Phone Call FOLLOW-UP keeps its reminder emails (owner, Michelle
   and the customer — decided, keep) but never blocks, buffers or travels
   (`test/integration/phoneCallFollowUp.int.test.js`).
+- **A Phone Call is never an appointment.** Only a real Appointment / Site
+  Visit is an `appointments` row. `bookingService` refuses a Phone Call
+  (`422 phone_call_is_follow_up`, incl. rescheduling a legacy unbuffered Phone
+  Call row); `PUT /leads/:id/appointment` with `appointment_type: 'Phone Call'`
+  and public capture's Phone Call appointment are saved as the lead's Phone Call
+  FOLLOW-UP instead (a legacy Phone Call booking on the lead is cancelled; a
+  Site Visit is untouched), and a missing `appointment_type` on a lead with a
+  legacy Phone Call row is a 400, never a silent Site Visit. The Appointment
+  editor offers no Phone Call kind.
+- **Driving / Travel Time** exists only for an ACTIVE Site Visit —
+  `lib/booking/appointmentKind.js#travelAllowed`, checked in
+  `calendarOutbox.enqueueCreate/enqueueUpdate` AND again by the worker before
+  it creates/updates a queued travel event (`skipped: travel_not_allowed` /
+  `stale_slot`). A successful `cancel_travel` clears
+  `google_travel_event_id`; the travel event never sets the appointment's sync
+  status. Historical invalid travel events: `scripts/auditTravelArtifacts.js`
+  (report-only by default; `--apply --confirm-host` only queues `cancel_travel`
+  for provably invalid UPCOMING artifacts). Real-Postgres coverage:
+  `test/integration/phoneCallNeverAppointment.int.test.js`,
+  `test/integration/auditTravelArtifacts.int.test.js`.
 - **`qb_invoice_sale_map`**: `crm_sale_id` is the ONLY ownership boundary
   for a QuickBooks invoice, and a mapping is NEVER reassigned once created
   (`ON CONFLICT DO NOTHING`). Never resolve invoice ownership by amount,

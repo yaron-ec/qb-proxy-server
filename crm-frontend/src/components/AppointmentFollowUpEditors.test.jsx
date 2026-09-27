@@ -77,17 +77,30 @@ describe('AppointmentEditor', () => {
     await waitFor(() => expect(onLeadUpdate).toHaveBeenCalled());
   });
 
-  it('reschedules with the current appointment id and can switch to Phone Call', async () => {
+  it('reschedules a Site Visit with the current appointment id; a Phone Call cannot be chosen as an appointment', async () => {
     updateAppointment.mockResolvedValue({ lead: lead() });
     const { container } = render(<AppointmentEditor lead={lead({ appointment: APPT })} onLeadUpdate={vi.fn()} />);
     fireEvent.click(screen.getByText('Edit'));
-    fireEvent.click(screen.getByText('Phone Call'));
+    // A Phone Call is a follow-up: the appointment editor offers no Phone Call kind.
+    expect(screen.queryByRole('button', { name: /Phone Call/ })).toBeNull();
+    expect(screen.getByTestId('site-visit-only-note')).toBeInTheDocument();
     fireEvent.change(container.querySelector('input[type="date"]'), { target: { value: '2026-09-25' } });
     fireEvent.click(screen.getByText('Update'));
     await waitFor(() => expect(updateAppointment).toHaveBeenCalled());
     expect(updateAppointment.mock.calls[0][1]).toMatchObject({
-      appointment_date: '2026-09-25', appointment_time: '16:00', appointment_type: 'Phone Call', expected_appointment_id: 'appt-1',
+      appointment_date: '2026-09-25', appointment_time: '16:00', appointment_type: 'Meeting', expected_appointment_id: 'appt-1',
     });
+  });
+
+  it('a legacy Phone Call booking is moved to the Phone Call follow-up (explicit type, never re-booked as a Site Visit)', async () => {
+    updateAppointment.mockResolvedValue({ lead: lead() });
+    render(<AppointmentEditor lead={lead({ appointment: { ...APPT, kind: 'Phone Call' } })} onLeadUpdate={vi.fn()} />);
+    fireEvent.click(screen.getByText('Edit'));
+    expect(screen.getByTestId('legacy-phone-call-note')).toBeInTheDocument();
+    expect(screen.queryByText(/Calendar blocked 1hr before and 1hr after/)).toBeNull();
+    fireEvent.click(screen.getByText('Update'));
+    await waitFor(() => expect(updateAppointment).toHaveBeenCalled());
+    expect(updateAppointment.mock.calls[0][1]).toMatchObject({ appointment_type: 'Phone Call', expected_appointment_id: 'appt-1' });
   });
 
   it('surfaces a server conflict (409) instead of failing silently', async () => {

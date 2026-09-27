@@ -194,7 +194,6 @@ router.post('/', submitLimiter, async (req, res) => {
       actor,
       override_conflict,
       override_actor,
-      skip_travel: hasAppointment && c.appointment_type === 'Phone Call',
       // B. Independent follow-up (or null). Never derived from the appointment.
       follow_up: c.follow_up,
       // Reminder projection inside the booking transaction (customer
