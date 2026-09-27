@@ -253,7 +253,7 @@ test('C2. the same website delivery arriving simultaneously produces exactly one
 
 test('C3. the same public-capture booking submitted simultaneously → one lead, one appointment, idempotent replays', { skip }, async () => {
   const before = await deadlockCount();
-  const day = new Date(Date.UTC(2034, 0, 3 + Math.floor(Math.random() * 3000) * 3)).toISOString().slice(0, 10);
+  const day = (await require('./freeDays').loadFreeDayPicker(db))();
   const body = {
     first_name: 'Booker', last_name: `Same${RUN}`, phone: uniquePhone(), email: `booker.${RUN}@example.com`,
     project_type: 'Kitchen', source: 'Referral', assigned_rep: 'Yaron Drilevich',

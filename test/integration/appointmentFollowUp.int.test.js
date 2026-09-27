@@ -98,25 +98,33 @@ async function api(method, path, body, tok) {
 }
 
 let seq = 0;
+// Random 10-digit phone per lead: the test DB persists between runs, and a phone
+// reused from an earlier run is (correctly) rejected by duplicate-lead prevention
+// (exact phone-suffix match) with a 409 potential_duplicate.
+const rnd = (lo, n) => lo + Math.floor(Math.random() * n);
+const randomPhone = () => `${rnd(200, 800)}${rnd(200, 800)}${String(rnd(0, 10000)).padStart(4, '0')}`;
 let lastPayload = null;
 function capturePayload(extra) {
   seq++;
   return lastPayload = {
     first_name: 'Int', last_name: `Test${seq}${Date.now() % 100000}`,
-    phone: `555${String(1000000 + seq * 7919 + (Date.now() % 1000)).slice(-7)}`,
+    phone: randomPhone(),
     project_type: 'Kitchen', source: 'Referral', assigned_rep: 'Yaron Drilevich',
     ...extra,
   };
 }
 
-// A far-future business day per test so slots never collide across cases.
-// Random per-run base so re-running against the same database never
-// collides with appointments left by an earlier run.
-let dayOffset = Math.floor(Math.random() * 20000) * 3;
-function uniqueDay() {
-  dayOffset += 3;
-  const d = new Date(Date.UTC(2032, 0, 5 + dayOffset));
-  return d.toISOString().slice(0, 10);
+// A far-future day with no appointment per test so slots never collide across
+// cases, files or earlier runs against the same database.
+let pickDay; // set in test.before from ./freeDays (days with no appointment)
+function uniqueDay() { return pickDay(); }
+
+// The test DB persists between runs and other files leave undrained outbox rows;
+// the worker claims oldest-first, so park rows that predate this test so it only
+// processes its own (a fresh CI database has none).
+async function parkForeignOutbox() {
+  await db.query(`UPDATE calendar_outbox SET next_attempt_at = '2999-01-01'
+                   WHERE status IN ('pending','failed') AND next_attempt_at <= NOW()`);
 }
 
 async function drainOutbox() {
@@ -137,6 +145,7 @@ test.before(async () => {
   if (skip) return;
   const express = require('express');
   db = require('../../db/client');
+  pickDay = await require('./freeDays').loadFreeDayPicker(db);
   outbox = require('../../lib/booking/calendarOutbox');
   const { issueAccessToken } = require('../../lib/authService');
   await db.query(
@@ -325,6 +334,7 @@ test('9. Appointment and Meeting cannot contradict: every surface derives from t
 
 // ── 10–12: Google Calendar via the real outbox ───────────────────────────────
 test('10. Calendar sync success → google_event_id persisted, status synced, travel event for Meetings', { skip }, async () => {
+  await parkForeignOutbox();
   google.reset();
   const day = uniqueDay();
   const r = await api('POST', '/api/public/capture', capturePayload({ appointment_date: day, appointment_time: '10:00' }), null);
@@ -343,6 +353,7 @@ test('10. Calendar sync success → google_event_id persisted, status synced, tr
 });
 
 test('11. Calendar sync failure is surfaced (retrying → failed) and a manual re-sync recovers', { skip }, async () => {
+  await parkForeignOutbox();
   google.reset();
   const day = uniqueDay();
   const r = await api('POST', '/api/public/capture', capturePayload({ appointment_date: day, appointment_time: '11:00', appointment_type: 'Phone Call' }), null);
