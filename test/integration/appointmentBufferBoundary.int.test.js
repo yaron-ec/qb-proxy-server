@@ -59,19 +59,21 @@ async function api(method, url, body) {
   return { status: res.status, body: json };
 }
 let seq = 0;
+// Random 10-digit phone per lead: the test DB persists between runs, and a phone
+// reused from an earlier run is (correctly) rejected by duplicate-lead prevention
+// (exact phone-suffix match) with a 409 potential_duplicate.
+const rnd = (lo, n) => lo + Math.floor(Math.random() * n);
+const randomPhone = () => `${rnd(200, 800)}${rnd(200, 800)}${String(rnd(0, 10000)).padStart(4, '0')}`;
 function lead(extra) {
   seq++;
   return {
     first_name: 'Bound', last_name: `Ary${seq}${Date.now() % 1e6}`,
-    phone: `626${String(3000000 + seq * 7919 + (Date.now() % 1000)).slice(-7)}`,
+    phone: randomPhone(),
     project_type: 'Kitchen', source: 'Referral', assigned_rep: 'Yaron Drilevich', ...extra,
   };
 }
-let dayOffset = Math.floor(Math.random() * 20000) * 3 + 2;
-function freshDay() {
-  dayOffset += 3;
-  return new Date(Date.UTC(2035, 0, 4 + dayOffset)).toISOString().slice(0, 10);
-}
+let pickDay; // set in test.before from ./freeDays (days with no appointment)
+function freshDay() { return pickDay(); }
 async function book(day, time) {
   return api('POST', '/api/public/capture', lead({ appointment_date: day, appointment_time: time }));
 }
@@ -118,6 +120,7 @@ test.before(async () => {
   if (skip) return;
   const express = require('express');
   db = require(path.join(ROOT, 'db/client'));
+  pickDay = await require('./freeDays').loadFreeDayPicker(db);
   const { issueAccessToken } = require(path.join(ROOT, 'lib/authService'));
   await db.query(`INSERT INTO owners (email, display_name) VALUES ('yaron@ecconstructiongroup.com', 'Yaron Drilevich') ON CONFLICT DO NOTHING`);
   ownerId = (await db.query(`SELECT id FROM owners WHERE email = 'yaron@ecconstructiongroup.com'`)).rows[0].id;
