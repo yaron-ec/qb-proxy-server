@@ -4,7 +4,7 @@ import {
   Database, Users, CheckCircle, Activity, ChevronDown, ChevronRight,
   UserCog, Loader2, X
 } from "lucide-react";
-import { SyncSection, SyncSectionHeader, SyncInfoNotice, SyncStatRow, SyncBtn, SyncResult, StatusPill } from "./SyncCard";
+import { SyncSection, SyncSectionHeader, SyncStatRow, SyncBtn, SyncResult, StatusPill } from "./SyncCard";
 import OwnerMappingPanel from "./OwnerMappingPanel";
 
 const SYNC_DISABLED_NOTE = "HubSpot sync was disabled after one-time migration. ContractorFlow is now the primary CRM.";
@@ -28,7 +28,6 @@ export default function HubSpotSyncTab() {
   const [showHistory, setShowHistory] = useState(false);
   const [migrationResult, setMigrationResult] = useState(null);
   const [migrationRunning, setMigrationRunning] = useState(false);
-  const [showReEnable, setShowReEnable] = useState(false);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -149,26 +148,10 @@ export default function HubSpotSyncTab() {
       {/* ── Re-enable ── */}
       <SyncSection>
         <SyncSectionHeader icon={UserCog} title="Re-enable HubSpot Sync" iconColor="text-slate-400" />
-        <p className="text-xs text-slate-500 mb-3">
-          To re-enable automatic sync, create a new scheduled automation pointed at{" "}
-          <code className="bg-slate-100 px-1 rounded text-[10px]">syncHubSpotContacts</code> in the Base44 dashboard.
-          Credentials and API key are preserved.
+        <p className="text-xs text-slate-500">
+          Automatic HubSpot sync is not available in this CRM. Re-enabling it requires a native Railway sync job,
+          which has not been implemented. Credentials and API key are preserved.
         </p>
-        {!showReEnable ? (
-          <SyncBtn variant="secondary" onClick={() => setShowReEnable(true)}>How to re-enable →</SyncBtn>
-        ) : (
-          <SyncInfoNotice variant="neutral">
-            <p className="font-semibold text-slate-700 mb-2">Steps to re-enable:</p>
-            <ol className="space-y-1 list-decimal list-inside text-slate-600">
-              <li>Go to Base44 Dashboard → Automations</li>
-              <li>Create a new Scheduled automation</li>
-              <li>Function: <code className="bg-slate-200 px-1 rounded">syncHubSpotContacts</code></li>
-              <li>Interval: every 15 minutes</li>
-              <li>The HUBSPOT_API_KEY secret is already set.</li>
-            </ol>
-            <button onClick={() => setShowReEnable(false)} className="mt-2 text-xs text-slate-400 hover:text-slate-600 font-semibold">Dismiss</button>
-          </SyncInfoNotice>
-        )}
       </SyncSection>
 
       {/* ── Owner Mapping ── */}

@@ -102,14 +102,21 @@ about topology, this file wins; go correct `railway.json` and
   currently have **no ownership check at all** beyond `requireAuth` despite
   header comments claiming scoping — this is known, tracked technical debt,
   not a pattern to copy into new code.
-- **QuickBooks token refresh**: `server.js`'s mutexed, PostgreSQL-backed
-  refresh implementation is canonical. `lib/qbInboundSync.js` has its own
-  unmutexed refresh, and `lib/qbSyncTrigger.js` has a filesystem-based
-  refresh that writes back to disk — both are known, tracked duplication
-  that can race against `server.js`'s refresh (Intuit rotates the refresh
-  token on each use). Do not extend `qbSyncTrigger.js`'s filesystem path;
-  it likely no-ops in production today since the one-time migration deletes
-  the token file it depends on.
+- **QuickBooks token refresh**: `lib/qbTokenManager.js` is the ONE refresh
+  implementation (server.js routes/crons, `lib/qbInboundSync.js`, and
+  `lib/qbSyncTrigger.js` through it). The persisted credential is the source
+  of truth (re-read each call); a refresh is single-flight per process and
+  across processes (Postgres advisory lock, credential re-read under the
+  lock so a token another holder just rotated is reused, never rotated
+  twice), and always persists the rotated refresh token AND its expiry.
+  Previously server.js (in-memory) and qbInboundSync (DB, unlocked) both
+  refreshed on the same 15-minute cron minute; Intuit rotates refresh tokens,
+  so server.js was left with a stale pair (`/health` showed tokenExpired=true
+  from that stale copy; its next refresh risked invalid_grant → "revoked").
+  `/health` now reads the persisted credential; `tokenExpired` refers only to
+  the 1-hour access token, refreshed on the next QuickBooks call, and
+  `accessToken` spells the state out (`valid` / `expired_refreshes_on_next_use`
+  / `refresh_expired` / `none`). Never add a second refresh path.
 - **Financial fields** (`lib/qbInvoiceSaleMap.js#computeSaleFinancials`):
   `balance` has always meant `PROJECT_TOTAL − PAID` ("how much is left to
   collect on the whole project"), not `INVOICED − PAID`, despite the name
@@ -270,7 +277,7 @@ about topology, this file wins; go correct `railway.json` and
 
 | Integration | Auth | Storage | Optional? |
 |---|---|---|---|
-| QuickBooks | OAuth2, refreshed via `server.js` (canonical — see token-refresh note above) | `integration_credentials` (Postgres, AES-256-CBC) | Env-var gated |
+| QuickBooks | OAuth2, refreshed only via `lib/qbTokenManager.js` (see token-refresh note above) | `integration_credentials` (Postgres, AES-256-CBC) | Env-var gated |
 | Gmail | OAuth2, single hardcoded mailbox (`yaron@ecconstructiongroup.com`) | `integration_credentials` | Env-var gated, not genuinely multi-account today |
 | Google Calendar/Contacts | Service account, domain-wide delegation | N/A (no per-user token) | Env-var gated |
 | SignNow | API key (primary) or OAuth2 password grant (fallback) | `integration_credentials` | Env-var gated |

@@ -163,14 +163,12 @@ const QB_API_BASE = QB_ENVIRONMENT === 'production'
 // migrated to PostgreSQL and the filesystem file is deleted. After migration,
 // the filesystem is never used again.
 //
-// Refresh mutex (_refreshPromise) prevents concurrent refresh races: if two
-// requests arrive with an expired token, only ONE refresh runs; the second
-// waits for the first and reuses its result.
+// Refresh: lib/qbTokenManager.js (single-flight per process + Postgres
+// advisory lock across processes; re-reads the credential under the lock).
 
 let storedTokens = null;
 let tokenStorageMethod = 'postgres';
 let _tokensLoaded = false;
-let _refreshPromise = null;
 
 // Load tokens from PostgreSQL on startup. Called once; subsequent calls are no-ops.
 async function loadTokensFromStore() {
@@ -282,116 +280,18 @@ function requireProxySecret(req, res, next) {
 
 // ── Token helpers ────────────────────────────────────────────────────────────
 
-// Custom error class to signal reconnect required to Base44
-class ReconnectRequiredError extends Error {
-  constructor(reason) {
-    super(`QUICKBOOKS_RECONNECT_REQUIRED: ${reason}`);
-    this.code = 'QUICKBOOKS_RECONNECT_REQUIRED';
-    this.reconnectRequired = true;
-  }
-}
-
-function isTokenExpiredOrClose(tokens) {
-  if (!tokens || !tokens.expires_at) return true;
-  // Refresh 5 minutes before expiry
-  return Date.now() >= new Date(tokens.expires_at).getTime() - 5 * 60 * 1000;
-}
-
-function isRefreshTokenExpired(tokens) {
-  if (!tokens || !tokens.refresh_expires_at) return false;
-  return Date.now() >= new Date(tokens.refresh_expires_at).getTime();
-}
-
-async function doRefreshToken() {
-  // Mutex: if a refresh is already in progress, wait for it and return its
-  // result. This prevents concurrent refresh races where two requests with
-  // expired tokens both try to refresh simultaneously, which can cause the
-  // second refresh to fail (Intuit rotates the refresh token on each use).
-  if (_refreshPromise) {
-    console.log('[proxy] Refresh already in progress — waiting for existing refresh');
-    return _refreshPromise;
-  }
-
-  _refreshPromise = (async () => {
-    try {
-      if (!storedTokens || !storedTokens.refresh_token) {
-        throw new ReconnectRequiredError('No refresh token stored');
-      }
-      if (isRefreshTokenExpired(storedTokens)) {
-        console.error('[proxy] Refresh token is expired — reconnect required');
-        throw new ReconnectRequiredError('Refresh token expired');
-      }
-
-      console.log('[proxy] Access token expired or close to expiry — refreshing...');
-      const creds = Buffer.from(`${QB_CLIENT_ID}:${QB_CLIENT_SECRET}`).toString('base64');
-      const res = await fetch(QB_TOKEN_URL, {
-        method: 'POST',
-        headers: {
-          Authorization: `Basic ${creds}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-          Accept: 'application/json',
-        },
-        body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: storedTokens.refresh_token }).toString(),
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        const errCode = data.error || '';
-        const errDesc = data.error_description || errCode;
-        // Intuit returns these codes when the refresh token is invalid/revoked
-        if (['invalid_grant', 'token_revoked', 'AuthenticationFailed'].includes(errCode)) {
-          console.error(`[proxy] Refresh token invalid/revoked (${errCode}) — reconnect required`);
-          try { await tokenStore.markRevoked(QB_ENVIRONMENT); } catch (e) { /* best-effort */ }
-          throw new ReconnectRequiredError(`Refresh failed: ${errDesc}`);
-        }
-        console.error(`[proxy] Token refresh failed: ${errDesc}`);
-        try { await tokenStore.markError(QB_ENVIRONMENT, storedTokens.realm_id, `Refresh failed: ${errCode}`); } catch (e) { /* best-effort */ }
-        throw new Error(`Token refresh failed: ${errDesc}`);
-      }
-
-      storedTokens = {
-        ...storedTokens,
-        access_token: data.access_token,
-        refresh_token: data.refresh_token || storedTokens.refresh_token,
-        expires_at: new Date(Date.now() + (data.expires_in || 3600) * 1000).toISOString(),
-        // Intuit rotates refresh token expiry on each use
-        refresh_expires_at: data.x_refresh_token_expires_in
-          ? new Date(Date.now() + data.x_refresh_token_expires_in * 1000).toISOString()
-          : storedTokens.refresh_expires_at,
-        last_refresh_at: new Date().toISOString(),
-      };
-
-      // Persist refreshed tokens to PostgreSQL (durable). If this fails, the
-      // in-memory token is still valid for this request, but the NEXT process
-      // restart will lose it — log the error but don't fail the API call.
-      try {
-        await saveTokensToStore(storedTokens);
-      } catch (e) {
-        console.error('[proxy] CRITICAL: Token refresh succeeded but PostgreSQL persist failed:', e.message);
-      }
-
-      console.log(`[proxy] Token refreshed successfully — expires ${storedTokens.expires_at}`);
-      return storedTokens;
-    } finally {
-      _refreshPromise = null;
-    }
-  })();
-
-  return _refreshPromise;
-}
+// One refresh implementation for the whole backend (server.js routes/crons,
+// lib/qbInboundSync.js, lib/qbSyncTrigger.js): lib/qbTokenManager.js. The
+// persisted credential is the source of truth; storedTokens below is only the
+// last value this process saw (auth callback / disconnect bookkeeping).
+const qbTokens = require('./lib/qbTokenManager');
+const { ReconnectRequiredError } = qbTokens;
 
 async function getValidTokens() {
-  // Load from PostgreSQL if not yet loaded (startup or first request after disconnect)
-  if (!storedTokens && !_tokensLoaded) {
-    await loadTokensFromStore();
-  }
-  if (!storedTokens) {
-    throw new ReconnectRequiredError('No tokens stored — QB has never been connected');
-  }
-  if (isTokenExpiredOrClose(storedTokens)) {
-    return await doRefreshToken();
-  }
-  return storedTokens;
+  const tokens = await qbTokens.getValidTokens(QB_ENVIRONMENT);
+  storedTokens = tokens;
+  _tokensLoaded = true;
+  return tokens;
 }
 
 async function qbFetch(path, options = {}, retried = false) {
@@ -413,7 +313,7 @@ async function qbFetch(path, options = {}, retried = false) {
   // If QB returns 401 and we haven't retried yet, force-refresh and retry once
   if (res.status === 401 && !retried) {
     console.warn('[proxy] QB returned 401 — forcing token refresh and retrying once');
-    storedTokens = { ...storedTokens, expires_at: new Date(0).toISOString() }; // force expiry
+    await qbTokens.getValidTokens(QB_ENVIRONMENT, { force: true, staleAccessToken: tokens.access_token });
     return qbFetch(path, options, true);
   }
 
@@ -449,35 +349,46 @@ function handleQBError(e, res) {
 // ── Health & Diagnostics ───────────────────────────────────────────────────
 
 async function buildHealthPayload() {
-  const now = Date.now();
-  const tokenExpired = isTokenExpiredOrClose(storedTokens);
-  const refreshExpired = isRefreshTokenExpired(storedTokens);
-  const reconnectRequired = !storedTokens || refreshExpired;
-  const connected = !!(storedTokens && !refreshExpired);
-
-  // Best-effort credential lifecycle metadata from the integration credential
-  // store (last_used_at / last_error_at). Never exposes last_error_message or
-  // any secret. Returns nulls if the store is unavailable or unwired.
+  // Read the PERSISTED credential — the source of truth every refresh path
+  // writes — never this process's in-memory copy (which another path could
+  // have rotated underneath it, making tokenExpired report a stale value).
+  let tokens = null;
   let credentialLastUsedAt = null;
   let credentialLastErrorAt = null;
   try {
-    const cred = await tokenStore.loadPersistedTokens(QB_ENVIRONMENT);
-    credentialLastUsedAt = cred?.last_used_at || null;
-    credentialLastErrorAt = cred?.last_error_at || null;
+    tokens = await tokenStore.loadPersistedTokens(QB_ENVIRONMENT);
+    credentialLastUsedAt = tokens?.last_used_at || null;
+    credentialLastErrorAt = tokens?.last_error_at || null;
   } catch (e) { /* best-effort — health must never fail on metadata read */ }
+
+  const tokenExpired = qbTokens.accessTokenExpired(tokens);
+  const refreshExpired = qbTokens.refreshTokenExpired(tokens);
+  const reconnectRequired = !tokens || refreshExpired;
+  const connected = !!(tokens && !refreshExpired);
+  const lastRefreshedAt = tokens?.last_refresh_at || null;
+  const lastErrorAfterRefresh = !!(credentialLastErrorAt
+    && (!lastRefreshedAt || new Date(credentialLastErrorAt) > new Date(lastRefreshedAt)));
 
   return {
     status: 'ok',
     service_name: PROXY_SERVICE_NAME,
     environment: QB_ENVIRONMENT,
     connected,
-    realmId: storedTokens?.realm_id || null,
-    tokenExpiresAt: storedTokens?.expires_at || null,
+    realmId: tokens?.realm_id || null,
+    tokenExpiresAt: tokens?.expires_at || null,
+    // tokenExpired describes ONLY the short-lived (1h) access token. It is
+    // refreshed automatically on the next QuickBooks call, so true here is
+    // normal between calls and is NOT a disconnect. The connection is healthy
+    // while connected=true and reconnectRequired=false; accessToken spells it out.
     tokenExpired,
-    refreshExpiresAt: storedTokens?.refresh_expires_at || null,
+    accessToken: !tokens ? 'none'
+      : refreshExpired ? 'refresh_expired'
+      : tokenExpired ? 'expired_refreshes_on_next_use' : 'valid',
+    refreshExpiresAt: tokens?.refresh_expires_at || null,
     reconnectRequired,
-    lastRefreshedAt: storedTokens?.last_refresh_at || null,
-    connectedAt: storedTokens?.connected_at || null,
+    lastRefreshedAt,
+    lastErrorAfterLastRefresh: lastErrorAfterRefresh,
+    connectedAt: tokens?.connected_at || null,
     storageMethod: 'postgres',
     credential_last_used_at: credentialLastUsedAt,
     credential_last_error_at: credentialLastErrorAt,
@@ -572,7 +483,6 @@ async function handleAuthCallback(req, res) {
 async function handleAuthDisconnect(req, res) {
   storedTokens = null;
   _tokensLoaded = true; // prevent auto-reload after disconnect
-  _refreshPromise = null;
   try {
     await deleteTokensFromStore();
   } catch (e) {

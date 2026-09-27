@@ -88,3 +88,29 @@ test('repo-wide: no executable file references a live base44.com/base44.app URL'
   }
   assert.strictEqual(offenders.length, 0, `Found live base44.com/base44.app URL reference(s):\n${offenders.join('\n')}`);
 });
+
+test('no service reads a BASE44_* environment variable; UI never directs operators to Base44', () => {
+  // BASE44_ADMIN_EMAIL was removed from the Railway environment during the
+  // production closure (0 code references in all history). Guard against any
+  // BASE44_* variable becoming load-bearing again, and against UI text that
+  // tells operators to act in a Base44 dashboard / send a Base44 invite.
+  const offenders = [];
+  const walk = (rel) => {
+    const full = path.join(ROOT, rel);
+    if (!fs.existsSync(full)) return;
+    for (const ent of fs.readdirSync(full, { withFileTypes: true })) {
+      const r = path.join(rel, ent.name);
+      if (ent.isDirectory()) { if (!['node_modules', 'dist'].includes(ent.name)) walk(r); continue; }
+      if (!/\.(c?js|jsx|ts|tsx)$/.test(ent.name)) continue;
+      const src = fs.readFileSync(path.join(ROOT, r), 'utf8');
+      if (/process\.env\.BASE44_|import\.meta\.env\.VITE_BASE44_|\benv\s*\[\s*['"]BASE44_/.test(src)) offenders.push(`${r}: reads a BASE44_* env var`);
+      if (/Base44 Dashboard|Base44 dashboard|Base44 invite/.test(src)) offenders.push(`${r}: directs operators to Base44`);
+    }
+  };
+  ['server.js', 'reminderWorker.js'].forEach(f => {
+    const src = readFile(f);
+    if (/process\.env\.BASE44_/.test(src)) offenders.push(`${f}: reads a BASE44_* env var`);
+  });
+  ['lib', 'routes', 'db', 'scripts', 'crm-frontend/src'].forEach(walk);
+  assert.deepStrictEqual(offenders, []);
+});

@@ -58,7 +58,8 @@ curl -H "Authorization: Bearer <JWT>" \
 
 ### Obsolete/Unused
 
-- `BASE44_ADMIN_EMAIL` — 0 code references. Obsolete unused variable. Do NOT delete without explicit authorization.
+- `BASE44_ADMIN_EMAIL` — REMOVED (2026-09 production closure, owner-authorized). It had 0 code references in the
+  entire git history. It must never be re-added; no Base44 variable is used by any service.
 
 ### Active
 

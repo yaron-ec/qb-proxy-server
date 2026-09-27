@@ -80,3 +80,63 @@ test('MULTI_ACTIVE: more than one active appointment is always reported, never a
 test('a plain, non-Meeting/Phone-Call follow-up alongside an appointment is not flagged at all (nothing to reconcile)', () => {
   assert.strictEqual(classify({ follow_up_date: '2031-01-12', follow_up_type: 'Text' }, [ACTIVE_APPT]), null);
 });
+
+// ── Provenance rules for --apply (historical cleanup) ───────────────────────
+const { assess, assessMigratedKind, migrationStartMs, SEPARATION_CUTOVER } = require('../scripts/auditAppointmentFollowUp');
+
+const migAppt = (over = {}) => ({
+  id: 'm1', idempotency_key: 'migration:appt:b44-1', type_name: 'General Meeting',
+  start_at: '2025-06-03T07:00:00Z', end_at: '2025-06-03T08:00:00Z', status: 'scheduled',
+  busy_range: '["2025-06-03 07:00:00+00","2025-06-03 08:00:00+00")', timezone: 'America/Los_Angeles',
+  busy_start: '2025-06-03T07:00:00Z', ...over,
+});
+
+test('provenance: the migration formula reproduces the fixed -07:00 offset (winter dates land 1h off Pacific)', () => {
+  assert.strictEqual(new Date(migrationStartMs('2025-06-03', '00:00')).toISOString(), '2025-06-03T07:00:00.000Z');
+  assert.strictEqual(new Date(migrationStartMs('2025-01-15', '10:00 AM')).toISOString(), '2025-01-15T17:00:00.000Z');
+  assert.strictEqual(new Date(migrationStartMs('2025-01-15', null)).toISOString(), '2025-01-15T07:00:00.000Z');
+  assert.strictEqual(SEPARATION_CUTOVER.toISOString(), '2026-09-24T22:07:24.000Z');
+});
+
+test('DIV_MIGRATION_SOURCE (Charles Carlson shape): migration row built from this Meeting follow-up → provably safe', () => {
+  const a = assess({ external_ref: 'b44-1', follow_up_date: '2025-06-03', follow_up_time: '00:00', follow_up_type: 'Meeting', follow_up_status: 'pending' }, [migAppt()]);
+  assert.deepStrictEqual([a.cls, a.sub, a.apply], ['DIVERGENT', 'DIV_MIGRATION_SOURCE', true]);
+  assert.strictEqual(a.appt.kind, 'Phone Call', 'kind reads Phone Call only because the migration stored no buffer');
+});
+
+test('never applied: notes, completed status, a different lead\'s migration row, or a type that does not match', () => {
+  const base = { external_ref: 'b44-1', follow_up_date: '2025-06-03', follow_up_time: '00:00', follow_up_type: 'Meeting' };
+  assert.strictEqual(assess({ ...base, follow_up_notes: 'x' }, [migAppt()]).apply, false);
+  assert.strictEqual(assess({ ...base, follow_up_status: 'completed' }, [migAppt()]).apply, false);
+  assert.strictEqual(assess({ ...base, external_ref: 'b44-2' }, [migAppt()]).sub, 'DIV_OTHER');
+  assert.strictEqual(assess(base, [migAppt({ type_name: 'Consultation' })]).sub, 'DIV_OTHER');
+  assert.strictEqual(assess({ ...base, follow_up_time: '09:00' }, [migAppt()]).sub, 'DIV_OTHER', 'start must equal the formula exactly');
+});
+
+test('MIRROR is applied only with proven legacy provenance; a post-separation identical pair is left alone', () => {
+  const lead = { follow_up_date: '2031-01-09', follow_up_time: '16:00', follow_up_type: 'Meeting' };
+  const appt = { ...ACTIVE_APPT, idempotency_key: 'k', created_event_at: '2026-09-01T00:00:00Z' };
+  assert.deepStrictEqual([assess(lead, [appt]).sub, assess(lead, [appt]).apply], ['MIRROR', true]);
+  const after = { ...appt, created_event_at: '2026-09-25T00:00:00Z' };
+  assert.deepStrictEqual([assess(lead, [after]).sub, assess(lead, [after]).apply], ['MIRROR_UNPROVEN', false]);
+  const unknown = { ...appt, created_event_at: null };
+  assert.strictEqual(assess(lead, [unknown]).apply, false, 'no creation evidence → not provable');
+});
+
+test('DIV_PRE_SEPARATION_MIRROR: Phone Call booked before the fix + hard-coded Meeting follow-up at the same time', () => {
+  const pc = { id: 'p', idempotency_key: 'k', start_at: '2031-01-10T00:00:00Z', end_at: '2031-01-10T01:00:00Z', status: 'scheduled',
+    busy_range: '["2031-01-10 00:00:00+00","2031-01-10 01:00:00+00")', timezone: 'America/Los_Angeles', created_event_at: '2026-08-01T00:00:00Z' };
+  const lead = { follow_up_date: '2031-01-09', follow_up_time: '16:00', follow_up_type: 'Meeting' };
+  assert.deepStrictEqual([assess(lead, [pc]).sub, assess(lead, [pc]).apply], ['DIV_PRE_SEPARATION_MIRROR', true]);
+  assert.strictEqual(assess({ ...lead, follow_up_time: '17:00' }, [pc]).sub, 'DIV_OTHER');
+});
+
+test('MIGRATED_KIND: only past, never-synced migration Meetings are re-kinded; future / Google-synced / Consultation are not', () => {
+  const now = Date.parse('2026-09-27T00:00:00Z');
+  assert.deepStrictEqual(assessMigratedKind(migAppt(), now), { sub: 'MIGRATED_KIND', apply: true, reason: "past migration Meeting stored without buffer (reads as 'Phone Call')" });
+  assert.strictEqual(assessMigratedKind(migAppt({ end_at: '2031-01-01T00:00:00Z' }), now).apply, false);
+  assert.strictEqual(assessMigratedKind(migAppt({ google_event_id: 'e' }), now).apply, false);
+  assert.strictEqual(assessMigratedKind(migAppt({ type_name: 'Consultation' }), now), null);
+  assert.strictEqual(assessMigratedKind(migAppt({ busy_start: '2025-06-03T06:00:00Z' }), now), null, 'already buffered');
+  assert.strictEqual(assessMigratedKind(migAppt({ idempotency_key: 'booking-x' }), now), null);
+});

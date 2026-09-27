@@ -310,7 +310,7 @@ export default function UsersTab() {
     setModalError("");
     try {
       if (!editingUser) {
-        // Base44 platform only accepts "user" or "admin" as invite role.
+        // The invite endpoint only accepts "user" or "admin" as invite role.
         // We invite as "user" then immediately update to the real custom role.
         const platformRole = (form.role === 'admin') ? 'admin' : 'user';
         await apiCall('/api/v1/auth/invite', { method: 'POST', body: { email: form.email.trim(), role: platformRole } });
@@ -755,7 +755,7 @@ function OnboardingGuide() {
           <div className="mt-4 bg-slate-50 rounded-lg px-4 py-3 border border-slate-200">
             <p className="text-xs font-bold text-slate-700 mb-1">⚠️ Common Reason Users Can't Log In</p>
             <p className="text-xs text-slate-600">
-              The user was added to the <strong>Access Control allowlist</strong> but was <strong>never sent a Base44 invite</strong>.
+              The user was added to the <strong>Access Control allowlist</strong> but was <strong>never sent an invite</strong>.
               The allowlist is informational only — it does not grant login access.
               Always use <strong>"Invite User"</strong> above as the single source of truth for granting access.
             </p>
