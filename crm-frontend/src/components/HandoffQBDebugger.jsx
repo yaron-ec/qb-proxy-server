@@ -199,7 +199,7 @@ export default function HandoffQBDebugger() {
           {/* Handoff Estimates Status */}
           {d.sections?.handoff_estimates && (
             <Section 
-              title="Handoff Estimates in Base44" 
+              title="Handoff Estimates in CRM" 
               icon={<CheckCircle className="w-3.5 h-3.5" />}
               expanded={expandedSections.estimates}
               onToggle={() => toggleSection('estimates')}

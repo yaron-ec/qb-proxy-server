@@ -187,39 +187,49 @@ test('no console.log includes access_token value', () => {
 });
 
 // ── 6. Token refresh updates durable record ───────────────────────────────
+// The refresh now lives in ONE place, lib/qbTokenManager.js, shared by
+// server.js, lib/qbInboundSync.js and lib/qbSyncTrigger.js (two independent
+// refresh paths previously raced on the same cron minute).
 
 console.log('\n── Refresh Updates Durable Record ──');
 
-test('doRefreshToken calls saveTokensToStore (not saveTokensToFile)', () => {
-  const refreshMatch = serverSource.match(/async function doRefreshToken[\s\S]*?^}/m);
-  assert(refreshMatch, 'doRefreshToken must exist');
-  assert(refreshMatch[0].includes('saveTokensToStore'), 'doRefreshToken must call saveTokensToStore');
-  assert(!refreshMatch[0].includes('saveTokensToFile'), 'doRefreshToken must NOT call saveTokensToFile');
+const MANAGER_PATH = path.join(__dirname, '../lib/qbTokenManager.js');
+const managerSource = fs.readFileSync(MANAGER_PATH, 'utf8');
+const refreshFn = () => managerSource.match(/async function refreshUnderLock[\s\S]*?^}/m);
+const intuitFn = () => managerSource.match(/async function callIntuit[\s\S]*?^}/m);
+
+test('the single refresh implementation persists via tokenStore.savePersistedTokens (not a file)', () => {
+  assert(refreshFn(), 'refreshUnderLock must exist');
+  assert(refreshFn()[0].includes('tokenStore.savePersistedTokens'), 'refresh must persist to the credential store');
+  assert(!managerSource.includes('saveTokensToFile') && !managerSource.includes('writeFileSync'), 'no filesystem persistence');
 });
 
-test('doRefreshToken persists after token rotation', () => {
-  const refreshMatch = serverSource.match(/async function doRefreshToken[\s\S]*?^}/m);
-  assert(refreshMatch[0].includes('await saveTokensToStore'), 'doRefreshToken must await saveTokensToStore');
+test('refresh persists after token rotation (awaited, including the new refresh-token expiry)', () => {
+  assert(refreshFn()[0].includes('await tokenStore.savePersistedTokens'), 'refresh must await the durable save');
+  assert(intuitFn()[0].includes('x_refresh_token_expires_in'), 'rotated refresh-token expiry must be kept');
 });
 
 // ── 7. Concurrent refresh race prevention ─────────────────────────────────
 
 console.log('\n── Refresh Mutex ──');
 
-test('server.js defines _refreshPromise mutex variable', () => {
-  assert(serverSource.includes('let _refreshPromise'), 'server.js must define _refreshPromise');
+test('refresh is single-flight per process (in-flight promise map)', () => {
+  assert(managerSource.includes('const inFlight = new Map()'), 'in-flight map must exist');
+  assert(/if \(!inFlight\.has\(key\)\)/.test(managerSource), 'a second caller must reuse the in-flight refresh');
+  assert(/\.finally\(\(\) => inFlight\.delete\(key\)\)/.test(managerSource), 'in-flight entry cleared when done');
 });
 
-test('doRefreshToken checks _refreshPromise before refreshing', () => {
-  const refreshMatch = serverSource.match(/async function doRefreshToken[\s\S]*?^}/m);
-  assert(refreshMatch[0].includes('if (_refreshPromise)'), 'doRefreshToken must check _refreshPromise mutex');
-  assert(refreshMatch[0].includes('return _refreshPromise'), 'doRefreshToken must return existing promise');
+test('refresh is serialized across processes (advisory lock) and re-reads the credential under the lock', () => {
+  const fn = refreshFn()[0];
+  assert(fn.includes('pg_advisory_lock') && fn.includes('pg_advisory_unlock'), 'advisory lock taken and released');
+  assert(fn.indexOf('loadPersistedTokens') > fn.indexOf('pg_advisory_lock'), 'credential re-read after taking the lock');
+  assert(fn.includes('finally'), 'unlock in finally');
 });
 
-test('doRefreshToken resets _refreshPromise in finally block', () => {
-  const refreshMatch = serverSource.match(/async function doRefreshToken[\s\S]*?^}/m);
-  assert(refreshMatch[0].includes('finally'), 'doRefreshToken must have a finally block');
-  assert(refreshMatch[0].includes('_refreshPromise = null'), 'doRefreshToken must reset _refreshPromise in finally');
+test('server.js no longer has its own refresh or mutex (delegates to qbTokenManager)', () => {
+  assert(!serverSource.includes('async function doRefreshToken'), 'no second refresh implementation in server.js');
+  assert(!serverSource.includes('let _refreshPromise'), 'no second mutex in server.js');
+  assert(serverSource.includes("require('./lib/qbTokenManager')"), 'server.js uses the shared manager');
 });
 
 // ── 8. No production dependency on .qb-tokens.encrypted ────────────────────
@@ -307,25 +317,29 @@ test('qbFetch calls tokenStore.markError on failure', () => {
   assert(fetchMatch[0].includes('tokenStore.markError'), 'qbFetch must call tokenStore.markError on failure');
 });
 
-test('doRefreshToken calls tokenStore.markRevoked on invalid_grant', () => {
-  const refreshMatch = serverSource.match(/async function doRefreshToken[\s\S]*?^}/m);
-  assert(refreshMatch[0].includes('tokenStore.markRevoked'), 'doRefreshToken must call markRevoked on invalid_grant');
+test('refresh calls tokenStore.markRevoked on invalid_grant', () => {
+  assert(intuitFn()[0].includes('tokenStore.markRevoked'), 'refresh must mark the credential revoked on invalid_grant');
 });
 
-test('doRefreshToken calls tokenStore.markError on refresh failure', () => {
-  const refreshMatch = serverSource.match(/async function doRefreshToken[\s\S]*?^}/m);
-  assert(refreshMatch[0].includes('tokenStore.markError'), 'doRefreshToken must call markError on failure');
+test('refresh calls tokenStore.markError on refresh failure', () => {
+  assert(intuitFn()[0].includes('tokenStore.markError'), 'refresh must record the failure');
+});
+
+test('refresh never logs a token value', () => {
+  const logs = managerSource.match(/console\.(log|error|warn)\([^)]*\)/g) || [];
+  for (const l of logs) assert(!/access_token|refresh_token/.test(l), `must not log token fields: ${l}`);
 });
 
 // ── 12. getValidTokens loads from store ────────────────────────────────────
 
-console.log('\n── getValidTokens Lazy Load ──');
+console.log('\n── getValidTokens Loads The Durable Credential ──');
 
-test('getValidTokens calls loadTokensFromStore if not loaded', () => {
+test('server.js getValidTokens delegates to the manager, which reads the persisted credential every call', () => {
   const getValidMatch = serverSource.match(/async function getValidTokens[\s\S]*?^}/m);
   assert(getValidMatch, 'getValidTokens must exist');
-  assert(getValidMatch[0].includes('loadTokensFromStore'), 'getValidTokens must call loadTokensFromStore');
-  assert(getValidMatch[0].includes('_tokensLoaded'), 'getValidTokens must check _tokensLoaded flag');
+  assert(getValidMatch[0].includes('qbTokens.getValidTokens(QB_ENVIRONMENT)'), 'server.js must delegate to qbTokenManager');
+  const mgrGet = managerSource.match(/async function getValidTokens[\s\S]*?^}/m);
+  assert(mgrGet && mgrGet[0].includes('tokenStore.loadPersistedTokens'), 'manager must load from the credential store');
 });
 
 // ── Summary ────────────────────────────────────────────────────────────────

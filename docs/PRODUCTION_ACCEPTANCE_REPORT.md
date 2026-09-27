@@ -18,7 +18,7 @@
 | **Zero-Base44 Runtime** | PASS | 0 Base44 references in all 12 production backend files; 0 Base44 workflows; 0 Base44 functions used by CRM production |
 | **Railway Five-Service Topology** | PASS WITH LIMITATION | qb-proxy-server (health 200) + Postgres (queries work) verified. 3 worker services not directly verifiable from sandbox. |
 | **Reminder Worker** | PASS WITH LIMITATION | Worker is a known Railway service. REMINDER_DRY_RUN not directly verifiable from sandbox. No restart performed. |
-| **BASE44_ADMIN_EMAIL** | PASS (obsolete) | 0 code references. Obsolete unused environment variable. Not deleted (no explicit authorization). |
+| **BASE44_ADMIN_EMAIL** | PASS (removed) | 0 code references in all git history. Removed from the Railway service environment during the 2026-09 production closure (owner-authorized). |
 | **Restore Drill** | NOT VERIFIED | No isolated non-production restore environment exists. Procedure documented for future execution. |
 | **Production Documentation** | PASS | 6 docs files created/updated reflecting actual final state. |
 
