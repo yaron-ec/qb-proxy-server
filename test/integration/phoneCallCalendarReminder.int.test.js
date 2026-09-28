@@ -372,6 +372,7 @@ test('Integrity report: aggregate only, no PII, and it proves zero blocking / tr
   assert.ok(rep.phone_call_slot_probes.length >= 1);
   for (const p of rep.phone_call_slot_probes) assert.strictEqual(p.phone_call_attributable_blockers, 0);
   assert.ok(rep.external_busy_probes.some((p) => p.expected_blocked_slots > 0 && p.actually_blocked === p.expected_blocked_slots));
+  assert.deepStrictEqual(rep.classifier_probe, { external_opaque_blocked_slots: 7, same_event_as_crm_reminder_blocked_slots: 0 });
   const text = JSON.stringify(rep);
   const lead = (await rows('SELECT first_name, last_name, phone FROM leads WHERE id = $1', [id]))[0];
   for (const v of [lead.last_name, lead.phone, id, 'Dentist', day]) assert.ok(!text.includes(v), `report must not contain ${v}`);
