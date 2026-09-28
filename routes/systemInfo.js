@@ -22,6 +22,7 @@ const { requireAuth, requireRole } = require('../lib/rbac');
 const { query } = require('../db/client');
 const { identify } = require('../lib/installationIdentity');
 const { integrationEnvStatus } = require('../scripts/install/bootstrap');
+const companyConfig = require('../lib/companyConfig');
 
 const router = express.Router();
 router.use(requireAuth, requireRole('admin'));
@@ -31,6 +32,24 @@ function productVersion() {
   if (_pkgVersion) return _pkgVersion;
   _pkgVersion = require('../package.json').version;
   return _pkgVersion;
+}
+
+// Deployed-commit identity (PRODUCTIZATION PHASE 2, Section 9). Railway sets
+// RAILWAY_GIT_COMMIT_SHA automatically on every deploy — no Railway
+// project/service UUID is ever hardcoded here, only a well-known,
+// platform-generic env var name any Railway deployment gets for free.
+// Falls back to `git rev-parse HEAD` for local/non-Railway environments
+// (e.g. this sandbox, or a non-Railway host running the same image).
+let _buildCommit = null;
+function buildCommit() {
+  if (_buildCommit) return _buildCommit;
+  if (process.env.RAILWAY_GIT_COMMIT_SHA) { _buildCommit = process.env.RAILWAY_GIT_COMMIT_SHA; return _buildCommit; }
+  try {
+    _buildCommit = require('child_process').execSync('git rev-parse HEAD', { cwd: __dirname + '/..', stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+  } catch (e) {
+    _buildCommit = null;
+  }
+  return _buildCommit;
 }
 
 // Which (provider, credential_type) row(s) in integration_credentials, if
@@ -72,19 +91,27 @@ router.get('/info', async (req, res) => {
     }
 
     const envStatus = integrationEnvStatus();
+    const cfg = await companyConfig.getCompanyConfig();
+    const enabledModules = cfg.enabled_modules || {};
     const integrations = {};
     for (const [mod, env] of Object.entries(envStatus)) {
       const source = CREDENTIAL_SOURCE[mod];
       const cred = source ? byProviderAndType[`${source.provider}::${source.credential_type}`] : null;
+      const moduleEnabled = enabledModules[mod] === true;
       integrations[mod] = {
+        module_enabled: moduleEnabled,
         env_configured: env.configured,
         missing_env: env.missing,
-        connection: cred || (env.configured ? { state: 'CONFIGURED' } : { state: 'NOT_CONFIGURED' }),
+        // A disabled module always reports DISABLED, regardless of env/
+        // connection state — never ERROR, never a fake unhealthy status
+        // (PRODUCTIZATION PHASE 2, Section 8).
+        connection: !moduleEnabled ? { state: 'DISABLED' } : (cred || (env.configured ? { state: 'CONFIGURED' } : { state: 'NOT_CONFIGURED' })),
       };
     }
 
     res.json({
       product_version: productVersion(),
+      build_commit: buildCommit(),
       installation: { company_name: installation.companyName, installation_id: installation.installationId, configured: installation.configured },
       schema: { migrations_applied: migRows[0].n, last_migration_applied_at: migRows[0].last_applied_at },
       integrations,

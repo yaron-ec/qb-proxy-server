@@ -32,6 +32,7 @@ import DNQLeads from './pages/DNQLeads';
 import LeadDetailModern from './pages/LeadDetailModern';
 import LeadCapture from './pages/LeadCapture';
 import Settings from './pages/Settings';
+import SystemHealth from './pages/SystemHealth';
 import Integrations from './pages/Integrations';
 import QBCallback from './pages/QBCallback';
 import DealDetail from './pages/DealDetail';
@@ -149,6 +150,7 @@ const AuthenticatedApp = () => {
         <Route path="/deals/:id" element={<PageContentWrapper><DealDetail /></PageContentWrapper>} />
         <Route path="/reports" element={<PageContentWrapper><Reports /></PageContentWrapper>} />
         <Route path="/settings" element={<PageContentWrapper><Settings /></PageContentWrapper>} />
+        <Route path="/system-health" element={<PageContentWrapper><SystemHealth /></PageContentWrapper>} />
         <Route path="/integrations" element={<PageContentWrapper><Integrations /></PageContentWrapper>} />
       </Route>
       <Route path="/qb-callback" element={<QBCallback />} />

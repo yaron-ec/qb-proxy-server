@@ -45,12 +45,32 @@ const credRows = [
   },
 ];
 
+// Mutable so a later test can flip a module off without needing to swap
+// the query function reference itself — lib/companyConfig.js destructures
+// `query` from db/client at require time (a one-time copy, not a live
+// binding), so reassigning require('../db/client').query afterwards would
+// silently not affect it. Reading a shared outer variable inside the SAME
+// mockQuery function (already captured by companyConfig.js) works instead.
+let enabledModulesOverride = null;
+const ALL_MODULES_ENABLED = {
+  quickbooks: true, gmail: true, google_calendar: true, google_contacts: true,
+  signnow: true, handoff: true, meta: true, sms: true, website_intake: true,
+};
+
 function mockQuery(sql) {
   if (/FROM schema_migrations/i.test(sql)) {
     return Promise.resolve({ rows: [{ n: 44, last_applied_at: new Date().toISOString() }] });
   }
   if (/FROM integration_credentials/i.test(sql)) {
     return Promise.resolve({ rows: credRows });
+  }
+  if (/FROM company_settings/i.test(sql)) {
+    return Promise.resolve({
+      rows: [{
+        timezone: 'America/Los_Angeles',
+        enabled_modules: enabledModulesOverride || ALL_MODULES_ENABLED,
+      }],
+    });
   }
   return Promise.resolve({ rows: [] });
 }
@@ -180,5 +200,41 @@ describe('GET /api/v1/system/info', () => {
       assert.ok(!/encrypted_payload/i.test(raw));
       assert.ok(!raw.includes('test-jwt-secret'));
     });
+  });
+
+  test('includes a build_commit field (PRODUCTIZATION PHASE 2, Section 9)', async () => {
+    await withServer(async (base) => {
+      const res = await fetch(`${base}/api/v1/system/info`, { headers: { Authorization: `Bearer ${adminToken}` } });
+      const body = await res.json();
+      assert.ok('build_commit' in body, 'response must include build_commit, even if null when git is unavailable');
+    });
+  });
+
+  test('every integration reports module_enabled', async () => {
+    await withServer(async (base) => {
+      const res = await fetch(`${base}/api/v1/system/info`, { headers: { Authorization: `Bearer ${adminToken}` } });
+      const body = await res.json();
+      for (const mod of Object.keys(body.integrations)) {
+        assert.strictEqual(body.integrations[mod].module_enabled, true, `${mod} should report module_enabled true in this fixture (all modules on)`);
+      }
+    });
+  });
+});
+
+describe('GET /api/v1/system/info — a disabled module reports DISABLED, not an env/connection state', () => {
+  test('quickbooks disabled: connection.state is DISABLED even with a CONNECTED credential row', async () => {
+    enabledModulesOverride = { ...ALL_MODULES_ENABLED, quickbooks: false };
+    require('../lib/companyConfig').invalidate();
+    try {
+      await withServer(async (base) => {
+        const res = await fetch(`${base}/api/v1/system/info`, { headers: { Authorization: `Bearer ${adminToken}` } });
+        const body = await res.json();
+        assert.strictEqual(body.integrations.quickbooks.module_enabled, false);
+        assert.strictEqual(body.integrations.quickbooks.connection.state, 'DISABLED');
+      });
+    } finally {
+      enabledModulesOverride = null;
+      require('../lib/companyConfig').invalidate();
+    }
   });
 });

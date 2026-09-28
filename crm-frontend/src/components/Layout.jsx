@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import React from "react";
 import {
   Users, BarChart2,
-  Settings, ChevronLeft, ChevronRight, LogOut, TrendingUp, FileBarChart, Kanban, CalendarDays
+  Settings, ChevronLeft, ChevronRight, LogOut, TrendingUp, FileBarChart, Kanban, CalendarDays, Activity
 } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -37,6 +37,12 @@ const NAV_ITEMS = [
   { path: "/deals",         label: "Deals",           icon: TrendingUp },
   { path: "/reports",       label: "Reports",         icon: FileBarChart },
   { path: "/settings",      label: "Settings",        icon: Settings },
+  // Admin-only in practice (the page itself and the backend both enforce
+  // this — see pages/SystemHealth.jsx and routes/systemInfo.js) but listed
+  // for everyone here, matching this array's existing no-role-filtering
+  // convention (see the comment above NAV_ITEMS) rather than introducing a
+  // new, first-of-its-kind role-gated nav mechanism in this pass.
+  { path: "/system-health", label: "System Health",   icon: Activity },
 ];
 
 function NavItem({ path, label, icon: Icon, active, collapsed }) {
