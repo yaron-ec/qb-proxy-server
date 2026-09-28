@@ -19,7 +19,7 @@
 'use strict';
 
 const express = require('express');
-const { requireAuth } = require('../lib/rbac');
+const { requireAuth, requireRole } = require('../lib/rbac');
 const { canonicalEmail } = require('../lib/authorization');
 const { isOverrideAdminEmail } = require('../lib/captureOverrideAuth');
 const { query, pool } = require('../db/client');
@@ -939,6 +939,46 @@ router.put('/:id/appointment', requireAuth, async (req, res) => {
   } catch (e) {
     console.error('[leads] appointment update error:', e.message);
     res.status(500).json({ error: e.message });
+  }
+});
+
+// ── POST /:id/promote-follow-up-to-appointment ────────────────────────────────
+// A human (admin/manager) has confirmed this lead's dated Meeting Follow-Up
+// genuinely represents the real, current appointment (e.g. it was mistakenly
+// entered via Follow-Up instead of Appointment) — never invoked automatically/
+// inferred. Supersedes any existing active appointment (kept as history,
+// never deleted — see bookingService.supersedeAppointment), creates the real
+// canonical Appointment from the Follow-Up's date/time (through the same
+// booking service every other appointment goes through — conflict checks,
+// travel buffer, Google Calendar outbox, reminders all apply identically),
+// then clears the Follow-Up fields that mirrored it. A Phone Call follow-up
+// can never be promoted (a Phone Call is never an appointment — 422).
+router.post('/:id/promote-follow-up-to-appointment', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!UUID_RE.test(String(id))) {
+      return res.status(400).json({ error: 'invalid_id', message: 'promote-follow-up-to-appointment requires a valid Railway UUID.' });
+    }
+    const leadR = await query('SELECT id FROM leads WHERE id = $1', [id]);
+    if (!leadR.rows[0]) return res.status(404).json({ error: 'not_found' });
+
+    const actor = (req.user && req.user.email) || null;
+    const result = await bookingService.promoteFollowUpToAppointment(id, actor, {
+      onWrite: async (client, _appt, leadId) => projectReminders(client, leadId),
+    });
+
+    const out = await respondWithLead(res, id, {
+      action: 'follow_up_promoted_to_appointment',
+      superseded_appointment_id: result.superseded ? result.superseded.id : null,
+    });
+    sendLeadNotification('appointment_created', out.full, [
+      { label: 'Promoted from', prev: 'Follow-Up', next: 'Appointment' },
+    ], actor);
+    return res.json(out.body);
+  } catch (e) {
+    const status = e && e.status ? e.status : 500;
+    if (status >= 500) console.error('[leads] promote-follow-up-to-appointment error:', e && e.message);
+    return res.status(status).json({ error: (e && e.code) || 'promote_failed', message: (e && e.message) || 'Failed to promote follow-up to appointment.', details: e && e.details });
   }
 });
 

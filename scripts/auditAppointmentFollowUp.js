@@ -66,6 +66,34 @@
  * require --confirm-host=<DATABASE_URL host> (CLAUDE.md: confirm before any
  * destructive script). The JSON report carries a before-image backup and
  * equivalent revert SQL.
+ *
+ * ── DIV_OTHER: the live-misentry pattern (the Barry Jacobson case) ────────────
+ * A DIV_OTHER "different_date" record — an active appointment at one date plus
+ * a dated Meeting follow-up at a DIFFERENT date — is report-only here: it
+ * could be a genuinely independent future follow-up (e.g. "call to confirm"
+ * on top of a real appointment) or it could be the SAME real appointment,
+ * recorded via Follow-Up instead of the Appointment editor by mistake, with
+ * the old appointment simply never closed out. Data alone cannot tell these
+ * apart — this tool never guesses. Once a human has looked at the record
+ * above and confirmed it's the latter:
+ *
+ *   node scripts/auditAppointmentFollowUp.js --promote=<lead_id> --confirm-host=<host>
+ *
+ * invokes lib/booking/bookingService.js#promoteFollowUpToAppointment for
+ * that ONE lead: the old active appointment is superseded (marked
+ * 'completed', kept as history, never deleted), a real Appointment is
+ * created from the Follow-Up's date/time through the exact same booking
+ * service every other appointment uses (conflict checks, travel buffer,
+ * Google Calendar outbox, reminders all apply identically), and the
+ * Follow-Up fields are cleared. A Phone Call follow-up can never be
+ * promoted (a Phone Call is never an appointment).
+ *
+ *   node scripts/auditAppointmentFollowUp.js --lead-name="Barry Jacobson" --json
+ *
+ * is a targeted, always-read-only lookup by name (ILIKE, partial match,
+ * case-insensitive) for investigating one specific person before deciding
+ * whether to --promote them — reuses the exact same classify()/assess() the
+ * full sweep uses, so its verdict is authoritative, not a guess.
  */
 'use strict';
 
@@ -333,9 +361,10 @@ async function main() {
   const host = (() => { try { return new URL(process.env.DATABASE_URL).hostname; } catch (_) { return '?'; } })();
   const apply = !!flag('apply');
   const revert = flagVal('revert');
+  const promote = flagVal('promote');
   const since = flagVal('since');
-  if ((apply || revert) && flagVal('confirm-host') !== host) {
-    console.error(`--apply/--revert require --confirm-host=${host} (the DATABASE_URL host). Nothing changed.`);
+  if ((apply || revert || promote) && flagVal('confirm-host') !== host) {
+    console.error(`--apply/--revert/--promote require --confirm-host=${host} (the DATABASE_URL host). Nothing changed.`);
     process.exit(2);
   }
   if (revert) {
@@ -344,15 +373,61 @@ async function main() {
     await pool.end();
     return;
   }
+  if (promote) {
+    // --promote=<lead_id>: a HUMAN has looked at this specific lead's
+    // DIV_OTHER (different_date) record above and confirmed the Follow-Up
+    // genuinely represents the real, current appointment — e.g. it was
+    // entered via Follow-Up / Next Update -> Meeting instead of through the
+    // Appointment editor (the Barry Jacobson pattern). This is NEVER
+    // inferred/auto-applied by the classifier above — --apply only ever
+    // touches MIRROR/ORPHANED_TYPE/DIV_MIGRATION_SOURCE/DIV_PRE_SEPARATION_MIRROR,
+    // all deterministically proven by provenance. DIV_OTHER always requires
+    // this explicit, per-lead, human-confirmed step.
+    const { promoteFollowUpToAppointment } = require('../lib/booking/bookingService');
+    const actor = `audit:appointment-followup:promote:${new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 14)}`;
+    try {
+      const result = await promoteFollowUpToAppointment(promote, actor, {});
+      console.log(JSON.stringify({
+        mode: 'promote', lead_id: promote, ok: true,
+        appointment: { id: result.appointment.id, start_at: result.appointment.start_at, end_at: result.appointment.end_at, status: result.appointment.status },
+        superseded_appointment: result.superseded ? { id: result.superseded.id, start_at: result.superseded.start_at, status: result.superseded.status } : null,
+      }, null, 2));
+    } catch (e) {
+      console.log(JSON.stringify({ mode: 'promote', lead_id: promote, ok: false, error: (e && e.code) || 'error', message: (e && e.message) || String(e) }, null, 2));
+      await pool.end();
+      process.exitCode = 1;
+      return;
+    }
+    await pool.end();
+    return;
+  }
   const runId = apply ? `${new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 14)}-${crypto.randomBytes(3).toString('hex')}` : null;
   const actor = runId ? ACTOR_PREFIX + runId : null;
+  const leadName = flagVal('lead-name');
+  if (apply && leadName) {
+    console.error('--lead-name is a read-only targeted lookup; it cannot be combined with --apply. Use --promote for a targeted per-lead action.');
+    process.exit(2);
+  }
 
-  const leads = (await pool.query(
-    `SELECT ${LEAD_COLS} FROM leads l
-      WHERE ($1::date IS NULL OR l.created_at >= $1::date)
-        AND (l.follow_up_date IS NOT NULL OR l.follow_up_type IS NOT NULL
-             OR EXISTS (SELECT 1 FROM appointments a WHERE a.lead_id = l.id AND a.status IN ('scheduled','confirmed')))
-      ORDER BY l.created_at DESC`, [since])).rows;
+  // --lead-name: every matching lead's current state, regardless of whether
+  // it has follow-up/appointment activity — a targeted investigation, not
+  // the production-wide sweep, so it skips that filter.
+  const leads = leadName
+    ? (await pool.query(
+        `SELECT ${LEAD_COLS} FROM leads l WHERE (l.first_name || ' ' || l.last_name) ILIKE $1 ORDER BY l.created_at DESC`,
+        [`%${leadName}%`]
+      )).rows
+    : (await pool.query(
+        `SELECT ${LEAD_COLS} FROM leads l
+          WHERE ($1::date IS NULL OR l.created_at >= $1::date)
+            AND (l.follow_up_date IS NOT NULL OR l.follow_up_type IS NOT NULL
+                 OR EXISTS (SELECT 1 FROM appointments a WHERE a.lead_id = l.id AND a.status IN ('scheduled','confirmed')))
+          ORDER BY l.created_at DESC`, [since])).rows;
+  if (leadName && !leads.length) {
+    console.log(JSON.stringify({ lead_name_query: leadName, found: false, message: 'No lead matched this name.' }, null, 2));
+    await pool.end();
+    return;
+  }
   const appts = (await pool.query(
     `${APPT_SQL} WHERE a.status IN ('scheduled','confirmed') AND a.lead_id = ANY($1::uuid[]) ORDER BY a.created_at`,
     [leads.map(l => l.id)])).rows;
@@ -367,7 +442,22 @@ async function main() {
   for (const lead of leads) {
     const raw = byLead.get(String(lead.id)) || [];
     const as = assess(lead, raw);
-    if (!as) continue;
+    if (!as) {
+      // --lead-name mode: report this lead's raw state even when assess()
+      // finds nothing actionable — the caller is investigating a specific
+      // person, not sweeping for a known bug class.
+      if (leadName) {
+        report.records.push({
+          class: 'NONE', sub: 'NONE', apply: false, reason: 'no active appointment and no dated Meeting/Phone Call follow-up',
+          lead_id: lead.id, external_ref: lead.external_ref, name: `${lead.first_name || ''} ${lead.last_name || ''}`.trim(),
+          lead_status: lead.status, lead_created_at: lead.created_at,
+          follow_up: { date: lead.follow_up_date, time: lead.follow_up_time, type: lead.follow_up_type,
+            status: lead.follow_up_status || null, notes: lead.follow_up_notes || null },
+          appointment: null, provenance: null,
+        });
+      }
+      continue;
+    }
     bump(report.counts, as.cls);
     bump(report.subclass_counts, as.sub);
     if (as.apply) bump(report.apply_candidates, as.sub);
