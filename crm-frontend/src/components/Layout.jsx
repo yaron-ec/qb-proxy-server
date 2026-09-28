@@ -123,9 +123,17 @@ function LayoutComponent() {
   const location = useLocation();
   const { user: currentUser, logout } = useAuth();
   const isMobile = useIsMobile();
-  // Local static asset — always use /logo-dark.jpg from crm-frontend/public/.
-  // No API override — prevents broken logo from stale company_logo_url.
-  const logoUrl = '/logo-dark.jpg';
+  // Static fallback asset — used until (or unless) company_logo_url loads
+  // successfully. PRODUCTIZATION PHASE 2: a prior DB-driven logo attempt
+  // (see CLAUDE.md) broke production because a bad/missing URL rendered a
+  // broken image with no fallback. This time: default to the static asset
+  // immediately (no flash of a broken image), only swap to
+  // company_logo_url once the browser has actually loaded it, and revert
+  // to the static asset via onError if it fails at any point (deleted
+  // file, bad URL, network blip) — never a silently broken <img>.
+  const DEFAULT_LOGO_URL = '/logo-dark.jpg';
+  const [logoUrl, setLogoUrl] = useState(DEFAULT_LOGO_URL);
+  const [logoErrored, setLogoErrored] = useState(false);
 
   // Company identity comes from the canonical Company Settings singleton
   // (routes/companySettings.js) rather than being hardcoded per deployment —
@@ -135,6 +143,7 @@ function LayoutComponent() {
   const [companyIdentity, setCompanyIdentity] = useState({
     name: DEFAULT_COMPANY_NAME,
     location: DEFAULT_COMPANY_LOCATION,
+    faviconUrl: null,
   });
   useEffect(() => {
     let cancelled = false;
@@ -153,10 +162,38 @@ function LayoutComponent() {
           || ((settings.company_city && settings.company_state)
             ? `${settings.company_city}, ${settings.company_state}`
             : DEFAULT_COMPANY_LOCATION),
+        faviconUrl: settings.favicon_url || null,
       });
+      // Only swap the visible logo once a configured URL has actually
+      // finished loading in the browser — a failed preload (404, CORS,
+      // deleted file) leaves the static default in place, it never shows
+      // a broken image.
+      if (settings.company_logo_url) {
+        const preload = new Image();
+        preload.onload = () => { if (!cancelled) setLogoUrl(settings.company_logo_url); };
+        preload.onerror = () => { /* keep the static default */ };
+        preload.src = settings.company_logo_url;
+      }
     }).catch(() => { /* keep defaults on failure */ });
     return () => { cancelled = true; };
   }, []);
+
+  // Browser tab title + favicon — same "static default, upgrade only on
+  // proven success" model as the sidebar logo above.
+  useEffect(() => {
+    document.title = companyIdentity.name ? `${companyIdentity.name} CRM` : 'CRM';
+  }, [companyIdentity.name]);
+  useEffect(() => {
+    if (!companyIdentity.faviconUrl) return;
+    const preload = new Image();
+    preload.onload = () => {
+      let link = document.querySelector("link[rel~='icon']");
+      if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+      link.href = companyIdentity.faviconUrl;
+    };
+    preload.onerror = () => { /* keep the static default favicon from index.html */ };
+    preload.src = companyIdentity.faviconUrl;
+  }, [companyIdentity.faviconUrl]);
 
   const isActive = (path) =>
     path === "/" ? location.pathname === "/" : location.pathname === path || location.pathname.startsWith(path + "/");
@@ -192,14 +229,28 @@ function LayoutComponent() {
         {/* Logo / Brand */}
         <div className="flex items-center border-b border-white/10 h-24 flex-shrink-0" style={{ padding: collapsed ? '0.75rem' : '0.75rem 1rem' }}>
           <div className="flex items-center" style={{ width: '100%', justifyContent: collapsed ? 'center' : 'flex-start', gap: collapsed ? 0 : '0.75rem' }}>
-            {logoUrl ? (
-              <img src={logoUrl} alt="EC Construction Group" style={{ height: 56, width: 56, flexShrink: 0, objectFit: 'contain' }} className="rounded-lg" />
+            {logoUrl && !logoErrored ? (
+              <img
+                src={logoUrl}
+                alt={companyIdentity.name}
+                style={{ height: 56, width: 56, flexShrink: 0, objectFit: 'contain' }}
+                className="rounded-lg"
+                onError={() => {
+                  // A custom logo that fails at render time (not just at
+                  // preload — e.g. evicted from cache) falls back to the
+                  // static default and gets one fresh chance to render; if
+                  // the static default itself ever fails, that's terminal —
+                  // show the initials avatar instead of a broken image.
+                  if (logoUrl !== DEFAULT_LOGO_URL) setLogoUrl(DEFAULT_LOGO_URL);
+                  else setLogoErrored(true);
+                }}
+              />
             ) : (
               <div
                 style={{ height: 56, width: 56, flexShrink: 0 }}
                 className="flex items-center justify-center bg-amber-500 rounded-lg text-white font-bold text-lg"
               >
-                EC
+                {(companyIdentity.name || 'CRM').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
               </div>
             )}
             {!collapsed && (
