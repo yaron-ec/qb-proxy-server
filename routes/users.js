@@ -17,6 +17,7 @@
 const express = require('express');
 const { requireAuth, requireRole } = require('../lib/rbac');
 const { query } = require('../db/client');
+const notificationRecipients = require('../lib/notificationRecipients');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -155,9 +156,24 @@ router.delete('/:id', requireAdmin, async (req, res) => {
       return res.status(404).json({ error: 'user not found' });
     }
 
-    // Protect the app owner account
-    if (rows[0].email === 'yaron@ecconstructiongroup.com') {
-      return res.status(403).json({ error: 'Cannot delete the owner of the app' });
+    // Protect this installation's explicitly-configured admin accounts
+    // (PRODUCTIZATION PHASE 2 — company_settings.protected_admin_emails;
+    // EC's row is backfilled to yaron@/michelle@ecconstructiongroup.com,
+    // preserving "Cannot delete the owner of the app" exactly; a fresh
+    // installation protects none by name).
+    const protectedEmails = await notificationRecipients.getProtectedAdminEmails();
+    if (protectedEmails.has(String(rows[0].email || '').toLowerCase())) {
+      return res.status(403).json({ error: 'Cannot delete a protected admin account for this installation' });
+    }
+
+    // Universal, installation-independent safety net: never delete the last
+    // remaining admin, protected-list or not — a CRM with zero admins locks
+    // everyone out.
+    if (rows[0].role === 'admin') {
+      const { rows: adminCount } = await query(`SELECT count(*)::int AS n FROM users WHERE role = 'admin'`);
+      if (adminCount[0].n <= 1) {
+        return res.status(403).json({ error: 'Cannot delete the last remaining admin' });
+      }
     }
 
     await query('DELETE FROM users WHERE id = $1', [id]);

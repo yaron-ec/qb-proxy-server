@@ -1634,8 +1634,9 @@ router.post('/by-external/:externalRef/sync-contact', requireAuth, async (req, r
     }
 
     // Determine which Google account to impersonate (the rep's account).
-    // Falls back to the admin account if no owner email.
-    const subEmail = lead.owner_email || process.env.ADMIN_EMAIL || 'yaron@ecconstructiongroup.com';
+    // Falls back to the admin account if no owner email, then to this
+    // installation's configured default owner (PRODUCTIZATION PHASE 2).
+    const subEmail = lead.owner_email || process.env.ADMIN_EMAIL || (await require('../lib/notificationRecipients').getDefaultOwner()).email;
 
     try {
       const result = await googleContactsClient.createOrUpdateContact(

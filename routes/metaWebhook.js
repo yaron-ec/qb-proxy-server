@@ -102,11 +102,14 @@ router.post('/', express.raw({ type: '*/*', verify: (req, res, buf) => { req.raw
             continue;
           }
 
-          // Map to CRM capture format
+          // Map to CRM capture format. Default owner: this installation's
+          // configured default_owner_email/name (PRODUCTIZATION PHASE 2) —
+          // was hardcoded to Yaron/yaron@ecconstructiongroup.com.
+          const defaultOwner = await require('../lib/notificationRecipients').getDefaultOwner();
           const mapped = mapMetaLead(leadgenData, {
             source: 'Instagram / Facebook',
-            owner_email: 'yaron@ecconstructiongroup.com',
-            assigned_rep: 'Yaron Drilevich',
+            owner_email: defaultOwner.email,
+            assigned_rep: defaultOwner.name,
           });
 
           if (!mapped.first_name && !mapped.last_name) {
