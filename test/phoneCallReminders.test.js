@@ -39,6 +39,38 @@ const crmPath = require.resolve('../lib/crmRepository');
 delete require.cache[crmPath];
 require.cache[crmPath] = { id: crmPath, filename: crmPath, loaded: true, exports: crmStub };
 
+// lib/notificationRecipients.js (PRODUCTIZATION PHASE 2) resolves staff
+// recipients/sender from company_settings via lib/companyConfig.js's own
+// require('../db/client') — a different require path than phoneCallReminders.js's
+// own db stub above, so it needs its own explicit stub for the same reason
+// crmRepository does (see comment above).
+const notifRecipientsPath = require.resolve('../lib/notificationRecipients');
+delete require.cache[notifRecipientsPath];
+require.cache[notifRecipientsPath] = {
+  id: notifRecipientsPath, filename: notifRecipientsPath, loaded: true,
+  exports: {
+    getRecipients: async () => ({ to: ['michelle@ecconstructiongroup.com'], cc: ['yaron@ecconstructiongroup.com'] }),
+    getAllStaffRecipients: async () => ['michelle@ecconstructiongroup.com', 'yaron@ecconstructiongroup.com'],
+    getPrimaryRecipient: async () => 'michelle@ecconstructiongroup.com',
+    getDefaultOwner: async () => ({ email: 'yaron@ecconstructiongroup.com', name: 'Yaron Drilevich' }),
+    getSenderName: async () => 'EC Construction Group',
+    getSenderAddress: async () => 'yaron@ecconstructiongroup.com',
+    getProtectedAdminEmails: async () => new Set(),
+  },
+};
+const companyConfigPath = require.resolve('../lib/companyConfig');
+delete require.cache[companyConfigPath];
+require.cache[companyConfigPath] = {
+  id: companyConfigPath, filename: companyConfigPath, loaded: true,
+  exports: {
+    getCompanyConfig: async () => ({ timezone: 'America/Los_Angeles', company_name: 'EC Construction Group' }),
+    getTimezone: async () => 'America/Los_Angeles',
+    getCompanyEmailDomain: async () => 'ecconstructiongroup.com',
+    isModuleEnabled: async () => true,
+    invalidate: () => {},
+  },
+};
+
 process.env.EMAIL_PHONE_CALL_REMINDER_TRANSPORT = 'base44'; // default gate
 const phone = require('../lib/phoneCallReminders');
 
