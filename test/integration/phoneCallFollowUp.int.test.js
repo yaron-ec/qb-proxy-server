@@ -49,7 +49,7 @@ if (DB_URL) {
   stub('lib/captureAlerts', { sendNewLeadAlert: async () => {}, ALERT_RECIPIENTS: [] });
 }
 
-let base, server, db, token, ownerId;
+let base, server, db, token, ownerId, seededCompanySettingsId;
 async function api(method, url, body) {
   const res = await fetch(base + url, {
     method,
@@ -75,6 +75,17 @@ test.before(async () => {
   const express = require('express');
   db = require(path.join(ROOT, 'db/client'));
   const { issueAccessToken } = require(path.join(ROOT, 'lib/authService'));
+  // Since PRODUCTIZATION (migration 2026-47), staff notification recipients
+  // (e.g. "Michelle copied") come from company_settings.notification_recipients,
+  // not a hardcoded literal — a disposable DB with zero company_settings rows
+  // has none configured (lib/companyConfig.js's PRODUCT_DEFAULTS is neutral,
+  // by design, for a not-yet-bootstrapped installation). Seed EC's real,
+  // migration-2026-47-backfilled values so this test reflects EC's actual
+  // production configuration rather than an unbootstrapped database.
+  const seeded = await db.query(
+    `INSERT INTO company_settings (company_name) VALUES ('EC Construction Group') ON CONFLICT DO NOTHING RETURNING id`
+  );
+  seededCompanySettingsId = seeded.rows[0] ? seeded.rows[0].id : null;
   await db.query(`INSERT INTO owners (email, display_name) VALUES ('yaron@ecconstructiongroup.com', 'Yaron Drilevich') ON CONFLICT DO NOTHING`);
   ownerId = (await db.query(`SELECT id FROM owners WHERE email = 'yaron@ecconstructiongroup.com'`)).rows[0].id;
   // This test books a real appointment at "now + 55 min" TODAY; an earlier run
@@ -99,6 +110,11 @@ async function cancelOwnAppointments() {
 test.after(async () => {
   if (skip) return;
   await cancelOwnAppointments();
+  // Only remove the company_settings row this file itself created — never a
+  // pre-existing one (e.g. bootstrap.js's) — so a shared aggregate test run
+  // against one disposable DB leaves other files' own fixtures (like
+  // productization.int.test.js's "fresh, zero-row" expectation) intact.
+  if (seededCompanySettingsId) await db.query('DELETE FROM company_settings WHERE id = $1', [seededCompanySettingsId]);
   server.close();
   await db.pool.end();
 });
