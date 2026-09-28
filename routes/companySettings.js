@@ -57,6 +57,15 @@ function serializeSettings(row) {
     appointment_travel_buffer_minutes: row.appointment_travel_buffer_minutes,
     enabled_modules: row.enabled_modules || null,
     installation_id: row.installation_id || null,
+    // PRODUCTIZATION PHASE 2 fields (migration 2026-45) — see
+    // lib/notificationRecipients.js. NULL/default falls back to admin_email
+    // (recipients/default owner) or "<company_name> CRM" (sender name) —
+    // never a hardcoded EC value for a database that configures these.
+    notification_recipients: row.notification_recipients || { to: [], cc: [] },
+    email_from_name: row.email_from_name || null,
+    default_owner_email: row.default_owner_email || null,
+    default_owner_name: row.default_owner_name || null,
+    protected_admin_emails: row.protected_admin_emails || [],
     created_date: row.created_at,
     updated_date: row.updated_at,
   };
@@ -69,7 +78,13 @@ const FIELDS = [
   'company_region',
   'legal_name', 'dba', 'favicon_url', 'brand_primary_color',
   'timezone', 'locale', 'business_hours', 'appointment_travel_buffer_minutes', 'enabled_modules',
+  'notification_recipients', 'email_from_name', 'default_owner_email', 'default_owner_name',
+  'protected_admin_emails',
 ];
+
+// Columns stored as JSONB — bound with an explicit ::jsonb cast and
+// JSON.stringify'd before binding.
+const JSONB_FIELDS = new Set(['business_hours', 'enabled_modules', 'notification_recipients', 'protected_admin_emails']);
 
 // Fields whose value must be serialized (JSON columns) or validated before
 // being bound as a query parameter.
@@ -81,6 +96,16 @@ function coerceFieldValue(field, value) {
     const out = {};
     for (const k of MODULE_KEYS) out[k] = value[k] === true;
     return JSON.stringify(out);
+  }
+  if (field === 'notification_recipients') {
+    if (value === null) return JSON.stringify({ to: [], cc: [] });
+    const to = Array.isArray(value.to) ? value.to.filter((e) => typeof e === 'string' && e) : [];
+    const cc = Array.isArray(value.cc) ? value.cc.filter((e) => typeof e === 'string' && e) : [];
+    return JSON.stringify({ to, cc });
+  }
+  if (field === 'protected_admin_emails') {
+    if (value === null) return JSON.stringify([]);
+    return JSON.stringify(Array.isArray(value) ? value.filter((e) => typeof e === 'string' && e) : []);
   }
   if (field === 'appointment_travel_buffer_minutes') {
     const n = Number(value);
@@ -115,7 +140,7 @@ router.put('/', requireRole('admin'), async (req, res) => {
       for (const f of FIELDS) {
         if (body[f] !== undefined) {
           params.push(coerceFieldValue(f, body[f]));
-          updates.push(f === 'business_hours' || f === 'enabled_modules' ? `${f} = $${p}::jsonb` : `${f} = $${p}`);
+          updates.push(JSONB_FIELDS.has(f) ? `${f} = $${p}::jsonb` : `${f} = $${p}`);
           p++;
         }
       }
@@ -139,7 +164,7 @@ router.put('/', requireRole('admin'), async (req, res) => {
         placeholderFor.push(f);
       }
     }
-    const placeholders = placeholderFor.map((f, i) => (f === 'business_hours' || f === 'enabled_modules') ? `$${i + 1}::jsonb` : `$${i + 1}`).join(', ');
+    const placeholders = placeholderFor.map((f, i) => JSONB_FIELDS.has(f) ? `$${i + 1}::jsonb` : `$${i + 1}`).join(', ');
     const { rows } = await query(`INSERT INTO company_settings (${cols.join(', ')}) VALUES (${placeholders}) RETURNING *`, vals);
     companyConfig.invalidate();
     res.status(201).json({ settings: serializeSettings(rows[0]) });

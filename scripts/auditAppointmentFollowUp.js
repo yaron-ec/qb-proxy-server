@@ -57,6 +57,13 @@
  *
  *   node scripts/auditAppointmentFollowUp.js [--since=YYYY-MM-DD] [--json]
  *   node scripts/auditAppointmentFollowUp.js --apply --confirm-host=<host>
+ *   node scripts/auditAppointmentFollowUp.js --lead-name="Jann Ziegenhohn" --json
+ *     — targeted, read-only lookup for one specific lead by name (ILIKE,
+ *       partial match). Always report-only regardless of --apply, so it is
+ *       safe to run against production first when investigating a specific
+ *       "duplicate-looking card" report — reuses the exact same classify()
+ *       used by the full audit, so its verdict (MIRROR / DIVERGENT /
+ *       FOLLOWUP_ONLY / null) is authoritative, not a guess from a screenshot.
  */
 'use strict';
 
@@ -96,21 +103,42 @@ async function main() {
   const host = (() => { try { return new URL(process.env.DATABASE_URL).hostname; } catch (_) { return '?'; } })();
   const apply = !!flag('apply');
   const since = flagVal('since');
+  const leadName = flagVal('lead-name');
   if (apply && flagVal('confirm-host') !== host) {
     console.error(`--apply requires --confirm-host=${host} (the DATABASE_URL host). Nothing changed.`);
     process.exit(2);
   }
+  if (apply && leadName) {
+    console.error('--lead-name is a read-only targeted lookup; it cannot be combined with --apply. Run the two separately.');
+    process.exit(2);
+  }
 
-  const leads = (await pool.query(
-    `SELECT l.id, l.first_name, l.last_name, l.status, l.created_at, l.follow_up_date, l.follow_up_time,
-            l.follow_up_type, to_jsonb(l) ->> 'follow_up_notes' AS follow_up_notes
-       FROM leads l
-      WHERE ($1::date IS NULL OR l.created_at >= $1::date)
-        AND (l.follow_up_date IS NOT NULL
-             OR l.follow_up_type IS NOT NULL
-             OR EXISTS (SELECT 1 FROM appointments a WHERE a.lead_id = l.id AND a.status IN ('scheduled','confirmed')))
-      ORDER BY l.created_at DESC`, [since]
-  )).rows;
+  // --lead-name: ALL of this lead's activity (even if follow_up/appointment
+  // are both currently empty) — used for a targeted investigation, not the
+  // production-wide sweep, so it deliberately skips the "has follow-up or
+  // appointment activity" filter the full audit uses below.
+  const leads = leadName
+    ? (await pool.query(
+        `SELECT l.id, l.first_name, l.last_name, l.status, l.created_at, l.follow_up_date, l.follow_up_time,
+                l.follow_up_type, to_jsonb(l) ->> 'follow_up_notes' AS follow_up_notes
+           FROM leads l
+          WHERE (l.first_name || ' ' || l.last_name) ILIKE $1
+          ORDER BY l.created_at DESC`, [`%${leadName}%`]
+      )).rows
+    : (await pool.query(
+        `SELECT l.id, l.first_name, l.last_name, l.status, l.created_at, l.follow_up_date, l.follow_up_time,
+                l.follow_up_type, to_jsonb(l) ->> 'follow_up_notes' AS follow_up_notes
+           FROM leads l
+          WHERE ($1::date IS NULL OR l.created_at >= $1::date)
+            AND (l.follow_up_date IS NOT NULL
+                 OR l.follow_up_type IS NOT NULL
+                 OR EXISTS (SELECT 1 FROM appointments a WHERE a.lead_id = l.id AND a.status IN ('scheduled','confirmed')))
+          ORDER BY l.created_at DESC`, [since]
+      )).rows;
+  if (leadName && !leads.length) {
+    console.log(JSON.stringify({ lead_name_query: leadName, found: false, message: 'No lead matched this name.' }, null, 2));
+    return;
+  }
   const appts = (await pool.query(
     `SELECT * FROM appointments WHERE status IN ('scheduled','confirmed') AND lead_id = ANY($1::uuid[])
       ORDER BY created_at`, [leads.map(l => l.id)]
@@ -124,10 +152,25 @@ async function main() {
   )).rows;
   const createdBy = new Map(created.map(r => [String(r.appointment_id), r]));
 
-  const report = { database_host: host, generated_at: new Date().toISOString(), since, mode: apply ? 'apply' : 'report-only', counts: {}, records: [] };
+  const report = { database_host: host, generated_at: new Date().toISOString(), since, lead_name_query: leadName || undefined, mode: apply ? 'apply' : 'report-only', counts: {}, records: [] };
   for (const lead of leads) {
     const c = classify(lead, byLead.get(String(lead.id)) || []);
-    if (!c) continue;
+    if (!c) {
+      // --lead-name mode: report every matching lead's raw state even when
+      // classify() finds nothing actionable (e.g. no follow-up and no
+      // active appointment at all right now) — the caller is investigating
+      // a specific person, not sweeping for a known bug class.
+      if (leadName) {
+        report.records.push({
+          class: 'NONE', lead_id: lead.id, name: `${lead.first_name || ''} ${lead.last_name || ''}`.trim(),
+          lead_status: lead.status, lead_created_at: lead.created_at,
+          follow_up: { date: lead.follow_up_date, time: lead.follow_up_time, type: lead.follow_up_type, notes: lead.follow_up_notes || null },
+          appointment: null,
+          active_appointments_count: (byLead.get(String(lead.id)) || []).length,
+        });
+      }
+      continue;
+    }
     report.counts[c.cls] = (report.counts[c.cls] || 0) + 1;
     const ev = c.appt ? createdBy.get(String(c.appt.id)) : null;
     report.records.push({

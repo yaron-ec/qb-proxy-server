@@ -24,6 +24,8 @@ const express = require('express');
 const { query } = require('../db/client');
 const emailService = require('../lib/emailService');
 const templates = require('../lib/emailTemplates');
+const notificationRecipients = require('../lib/notificationRecipients');
+const companyConfig = require('../lib/companyConfig');
 
 const router = express.Router();
 
@@ -201,13 +203,16 @@ router.post('/notify-crm-activity', async (req, res) => {
       activityType: activity_type,
       changes: changes || [],
       content: content || '',
-      timestamp: new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }),
+      timestamp: new Date().toLocaleString('en-US', { timeZone: await companyConfig.getTimezone() }),
       crmUrl,
     });
 
+    const { to: staffTo, cc: staffCc } = await notificationRecipients.getRecipients();
+    if (!staffTo[0]) return res.json({ ok: false, skipped: 'no_recipient_configured', leadId: lead.id, job: 'notify-crm-activity' });
+
     const result = await emailService.send({
-      to: 'michelle@ecconstructiongroup.com',
-      cc: ['yaron@ecconstructiongroup.com'],
+      to: staffTo[0],
+      cc: [...staffTo.slice(1), ...staffCc],
       subject: `CRM Activity: ${leadName} — ${activity_type || 'Update'}`,
       htmlBody: html,
       idempotencyKey: `crm-activity:${lead.id}:${Date.now()}`,
@@ -252,7 +257,7 @@ router.post('/notify-status-change', async (req, res) => {
 
     const result = await emailService.send({
       to: lead.email,
-      cc: ['michelle@ecconstructiongroup.com'],
+      cc: await notificationRecipients.getAllStaffRecipients(),
       subject: `Project Status Update — EC Construction Group`,
       htmlBody: html,
       idempotencyKey: `status-change:${lead.id}:${new_status}`,
@@ -296,7 +301,7 @@ router.post('/send-project-status-email', async (req, res) => {
 
     const result = await emailService.send({
       to: lead.email,
-      cc: ['michelle@ecconstructiongroup.com', 'yaron@ecconstructiongroup.com'],
+      cc: await notificationRecipients.getAllStaffRecipients(),
       subject: `Project Status: ${project_status || 'Update'} — EC Construction Group`,
       htmlBody: html,
       idempotencyKey: `project-status:${lead.id}:${project_status || 'update'}`,

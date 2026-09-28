@@ -20,20 +20,23 @@ const emailService = require('../lib/emailService');
 const templates = require('../lib/emailTemplates');
 const data = require('../lib/dataAccessRailway');
 const { canAccessLead } = require('../lib/authorization');
+const notificationRecipients = require('../lib/notificationRecipients');
 
 const router = express.Router();
 
-const INTERNAL_TEST_RECIPIENTS = new Set([
-  'michelle@ecconstructiongroup.com',
-  'yaron@ecconstructiongroup.com',
-]);
-
-function isInternal(email) {
-  return !!email && INTERNAL_TEST_RECIPIENTS.has(String(email).toLowerCase().trim());
+// Internal-only recipients for /emails/test — this installation's configured
+// staff notification recipients (PRODUCTIZATION PHASE 2: was a hardcoded
+// michelle@/yaron@ allowlist).
+async function isInternal(email) {
+  if (!email) return false;
+  const staff = await notificationRecipients.getAllStaffRecipients();
+  return staff.map((e) => e.toLowerCase()).includes(String(email).toLowerCase().trim());
 }
 
 // ── /api/v1/emails/send hardening (Phase 3) ─────────────────────────────────
-const APPROVED_SENDER = 'yaron@ecconstructiongroup.com';
+// The generic authenticated send endpoint is restricted to this
+// installation's own approved sender — never an arbitrary caller-supplied
+// address (PRODUCTIZATION PHASE 2: was a hardcoded yaron@ literal).
 const APPROVED_FROM_NAME = process.env.GMAIL_FROM_NAME || 'EC Construction Group';
 const ALLOWED_MIME = new Set([
   'application/pdf', 'image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp',
@@ -61,7 +64,8 @@ router.post('/emails/send', requireAuth, async (req, res) => {
     if (!htmlBody) return res.status(400).json({ error: 'htmlBody is required' });
     if (!idempotencyKey || typeof idempotencyKey !== 'string') return res.status(400).json({ error: 'idempotencyKey (string) is required' });
     // Reject any caller-supplied sender that differs from the approved sender
-    if (fromAddress && String(fromAddress).toLowerCase() !== APPROVED_SENDER) return res.status(400).json({ error: 'sender is fixed; fromAddress must not be supplied' });
+    const approvedSender = await notificationRecipients.getSenderAddress();
+    if (fromAddress && (!approvedSender || String(fromAddress).toLowerCase() !== approvedSender.toLowerCase())) return res.status(400).json({ error: 'sender is fixed; fromAddress must not be supplied' });
     // Normalize + validate recipients
     const toList = normalizeAddrs(to);
     if (!toList.length) return res.status(400).json({ error: 'no valid recipients' });
@@ -90,7 +94,7 @@ router.post('/emails/send', requireAuth, async (req, res) => {
       to: toList.length === 1 ? toList[0] : toList,
       cc: ccList, replyTo: replyTo || undefined, subject, htmlBody,
       attachments: Array.isArray(attachments) ? attachments : undefined,
-      idempotencyKey, fromName: APPROVED_FROM_NAME, fromAddress: APPROVED_SENDER,
+      idempotencyKey, fromName: APPROVED_FROM_NAME, fromAddress: approvedSender,
       role: (metadata && metadata.template_key) || 'api', metadata,
     });
     res.json({
@@ -109,11 +113,11 @@ router.post('/emails/send', requireAuth, async (req, res) => {
 router.post('/emails/test', requireAuth, async (req, res) => {
   try {
     const { to } = req.body || {};
-    if (!isInternal(to)) return res.status(400).json({ error: 'test recipients must be internal (michelle@/yaron@)' });
+    if (!(await isInternal(to))) return res.status(400).json({ error: 'test recipients must be one of this installation\'s configured staff notification recipients' });
     const idempotencyKey = `test:${req.user.sub}:${Date.now()}`;
     const htmlBody = `<div style="font-family:Arial,sans-serif;font-size:15px;color:#1A1A2E;"><p>This is an internal test of the Railway Email Service. No customer email was sent.</p><p>Sent by ${req.user.email || ''}.</p></div>`;
     const result = await emailService.send({
-      to, cc: ['yaron@ecconstructiongroup.com'], subject: 'Railway Email Service — Internal Test', htmlBody, idempotencyKey, role: 'test',
+      to, cc: (await notificationRecipients.getAllStaffRecipients()).filter((e) => e.toLowerCase() !== String(to).toLowerCase()), subject: 'Railway Email Service — Internal Test', htmlBody, idempotencyKey, role: 'test',
     });
     res.json({ ...result, recipient: to });
   } catch (e) {
@@ -137,14 +141,14 @@ router.post('/leads/:id/remind', requireAuth, async (req, res) => {
     if (!apptDate) return res.status(400).json({ error: 'no appointment date on this lead' });
 
     const ownerName = lead.assigned_rep || 'EC Construction Group';
-    const ownerEmail = data.resolveOwnerEmail(lead.assigned_rep) || 'michelle@ecconstructiongroup.com';
+    const ownerEmail = data.resolveOwnerEmail(lead.assigned_rep) || (await notificationRecipients.getPrimaryRecipient());
     const clientName = `${lead.first_name || ''} ${lead.last_name || ''}`.trim();
     const address = [lead.property_address, lead.city].filter(Boolean).join(', ');
     const baseKey = `manual:${lead.id}:${apptDate}:${apptTime}`;
     const results = { staff: [], customer: null };
 
-    // Staff reminder → rep + michelle + yaron
-    const staffRecipients = Array.from(new Set([ownerEmail, 'michelle@ecconstructiongroup.com', 'yaron@ecconstructiongroup.com']));
+    // Staff reminder → rep + this installation's configured staff recipients
+    const staffRecipients = Array.from(new Set([ownerEmail, ...(await notificationRecipients.getAllStaffRecipients())].filter(Boolean)));
     const staffHtml = templates.manualStaffReminderEmail({
       ownerName, clientName, clientPhone: lead.phone || 'N/A', clientEmail: lead.email || 'N/A',
       date: apptDate, time: apptTime, address, projectType: lead.project_type || '', notes: lead.notes || '',
@@ -163,7 +167,7 @@ router.post('/leads/:id/remind', requireAuth, async (req, res) => {
     } else if (lead.email) {
       const custHtml = templates.manualCustomerReminderEmail({ firstName: lead.first_name || 'there', date: apptDate, time: apptTime, address, projectType: lead.project_type || '', ownerName });
       try {
-        const r = await emailService.send({ to: lead.email, cc: ['michelle@ecconstructiongroup.com', 'yaron@ecconstructiongroup.com'], replyTo: ownerEmail, subject: 'Appointment Reminder — EC Construction Group', htmlBody: custHtml, idempotencyKey: `${baseKey}:customer`, role: 'customer' });
+        const r = await emailService.send({ to: lead.email, cc: await notificationRecipients.getAllStaffRecipients(), replyTo: ownerEmail, subject: 'Appointment Reminder — EC Construction Group', htmlBody: custHtml, idempotencyKey: `${baseKey}:customer`, role: 'customer' });
         results.customer = { email: lead.email, ...r };
       } catch (e) { results.customer = { email: lead.email, ok: false, error: e.message }; }
     } else {

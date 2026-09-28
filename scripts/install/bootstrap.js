@@ -79,6 +79,10 @@ function loadConfig() {
     locale: fromFile.locale ?? env.COMPANY_LOCALE ?? null,
     appointment_travel_buffer_minutes: fromFile.appointment_travel_buffer_minutes ?? (env.APPOINTMENT_TRAVEL_BUFFER_MINUTES ? Number(env.APPOINTMENT_TRAVEL_BUFFER_MINUTES) : null),
     enabled_modules: fromFile.enabled_modules ?? null,
+    notification_recipients: fromFile.notification_recipients ?? null,
+    email_from_name: fromFile.email_from_name ?? env.COMPANY_EMAIL_FROM_NAME ?? null,
+    default_owner_email: fromFile.default_owner_email ?? env.COMPANY_DEFAULT_OWNER_EMAIL ?? null,
+    default_owner_name: fromFile.default_owner_name ?? env.COMPANY_DEFAULT_OWNER_NAME ?? null,
     admin_name: fromFile.admin_name ?? env.BOOTSTRAP_ADMIN_NAME ?? null,
     admin_email: fromFile.admin_email ?? env.BOOTSTRAP_ADMIN_EMAIL ?? null,
     admin_password: fromFile.admin_password ?? env.BOOTSTRAP_ADMIN_PASSWORD ?? null,
@@ -151,7 +155,37 @@ async function ensureCompanySettings(db, cfg) {
     cols.push('enabled_modules');
     vals.push(modulesJson);
   }
-  const placeholders = cols.map((c, i) => (c === 'enabled_modules' ? `$${i + 1}::jsonb` : `$${i + 1}`));
+  const jsonbCols = new Set(['enabled_modules', 'notification_recipients']);
+
+  // Notification routing (PRODUCTIZATION PHASE 2): a fresh installation NEVER
+  // inherits the column default's EC addresses (see
+  // db/migrations/2026-45-notification-config.sql) — it explicitly writes
+  // its own admin as the sole recipient unless company.json overrides this.
+  const notifTo = Array.isArray(cfg.notification_recipients?.to) ? cfg.notification_recipients.to
+    : (cfg.admin_email ? [cfg.admin_email] : []);
+  const notifCc = Array.isArray(cfg.notification_recipients?.cc) ? cfg.notification_recipients.cc : [];
+  cols.push('notification_recipients');
+  vals.push(JSON.stringify({ to: notifTo, cc: notifCc }));
+
+  cols.push('email_from_name');
+  vals.push(cfg.email_from_name || (cfg.company_name ? `${cfg.company_name} CRM` : 'CRM'));
+
+  // Default owner routing fallback: a fresh installation's own admin, never
+  // 'Yaron Drilevich' / yaron@ecconstructiongroup.com.
+  cols.push('default_owner_email');
+  vals.push(cfg.default_owner_email || cfg.admin_email || null);
+  cols.push('default_owner_name');
+  vals.push(cfg.default_owner_name || cfg.admin_name || null);
+
+  // A fresh installation protects no admin beyond the generic "cannot
+  // delete the last remaining admin" rule (routes/users.js) — never
+  // EC's Yaron/Michelle emails (see migration 2026-45's column default,
+  // which this explicit empty array intentionally overrides).
+  cols.push('protected_admin_emails');
+  vals.push(JSON.stringify([]));
+  jsonbCols.add('protected_admin_emails');
+
+  const placeholders = cols.map((c, i) => (jsonbCols.has(c) ? `$${i + 1}::jsonb` : `$${i + 1}`));
   const { rows } = await db.query(
     `INSERT INTO company_settings (${cols.join(', ')}) VALUES (${placeholders.join(', ')}) RETURNING *`,
     vals

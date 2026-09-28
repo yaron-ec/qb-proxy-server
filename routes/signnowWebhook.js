@@ -25,12 +25,25 @@
 
 const express = require('express');
 const router = express.Router();
+const notificationRecipients = require('../lib/notificationRecipients');
+const companyConfig = require('../lib/companyConfig');
 
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || '';
 const SIGNNOW_BASE = process.env.SIGNNOW_API_BASE || 'https://api.signnow.com';
 
-const ALWAYS_NOTIFY = ['yaron@ecconstructiongroup.com', 'michelle@ecconstructiongroup.com'];
-
+// PRODUCTIZATION PHASE 2: was a hardcoded ['yaron@...', 'michelle@...'] —
+// now this installation's configured staff notification recipients (see
+// lib/notificationRecipients.js). Resolved per-request below, not at
+// module scope, since it depends on company_settings.
+//
+// OWNER_EMAIL_MAP below is a known, deliberately-scoped Category C/D
+// remainder: a static rep-name→email map specific to EC's current roster.
+// The Owner Directory (owners table) is now the authoritative source for
+// this same mapping elsewhere in the app (routes/leads.js's
+// resolveOwnerScope, lib/dataAccessRailway.js#resolveOwnerEmail) — wiring
+// this webhook to query it instead of this static map is tracked as a
+// follow-up, not attempted here to avoid widening this fix's blast radius
+// beyond notification routing.
 const OWNER_EMAIL_MAP = {
   'Yaron': 'yaron@ecconstructiongroup.com',
   'Yaron Drilevich': 'yaron@ecconstructiongroup.com',
@@ -223,15 +236,15 @@ router.post('/', express.json(), async (req, res) => {
           `Address: ${leadAddress}`,
           `Project Value: ${projectValue}`,
           `Contract: ${docRecord.document_name}`,
-          `Signed At: ${new Date(signedAt).toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })}`,
+          `Signed At: ${new Date(signedAt).toLocaleString('en-US', { timeZone: await companyConfig.getTimezone() })}`,
           ``,
           `The lead is now visible in the Deals section of the CRM.`,
         ].join('\n');
 
         const htmlEmailBody = `<pre style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:15px;line-height:1.6;color:#1A1A2E;white-space:pre-wrap;word-wrap:break-word;">${emailBody.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
 
-        // Build recipient list (Yaron + Michelle + lead owner, deduped)
-        const recipients = new Set(ALWAYS_NOTIFY);
+        // Build recipient list (this installation's staff recipients + lead owner, deduped)
+        const recipients = new Set(await notificationRecipients.getAllStaffRecipients());
         if (lead.assigned_rep) {
           const ownerEmail = OWNER_EMAIL_MAP[lead.assigned_rep] || (lead.assigned_rep.includes('@') ? lead.assigned_rep : null);
           if (ownerEmail) recipients.add(ownerEmail);
