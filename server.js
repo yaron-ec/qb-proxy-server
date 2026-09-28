@@ -187,14 +187,6 @@ async function loadTokensFromStore() {
   return storedTokens;
 }
 
-// Save tokens to PostgreSQL (durable). Throws on persistence failure — the
-// caller MUST know if the durable write failed (unlike the old filesystem save
-// which silently logged and continued).
-async function saveTokensToStore(tokens) {
-  await tokenStore.savePersistedTokens(QB_ENVIRONMENT, tokens);
-  console.log('[proxy] Tokens saved to PostgreSQL (durable storage)');
-}
-
 // Delete tokens from PostgreSQL (disconnect).
 async function deleteTokensFromStore() {
   const realmId = storedTokens?.realm_id;
@@ -294,38 +286,19 @@ async function getValidTokens() {
   return tokens;
 }
 
-async function qbFetch(path, options = {}, retried = false) {
-  const tokens = await getValidTokens();
-  const url = `${QB_API_BASE}/${tokens.realm_id}${path}`;
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${tokens.access_token}`,
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
-  });
-  const text = await res.text();
-  let json;
-  try { json = JSON.parse(text); } catch { json = { raw: text }; }
-
-  // If QB returns 401 and we haven't retried yet, force-refresh and retry once
-  if (res.status === 401 && !retried) {
-    console.warn('[proxy] QB returned 401 — forcing token refresh and retrying once');
-    await qbTokens.getValidTokens(QB_ENVIRONMENT, { force: true, staleAccessToken: tokens.access_token });
-    return qbFetch(path, options, true);
-  }
-
+// Every authenticated QuickBooks call goes through lib/qbTokenManager's
+// qbApiRequest: valid token (auto-refreshed), one canonical refresh + a single
+// retry on 401, last_used_at recorded on success.
+async function qbFetch(path, options = {}) {
+  const { res, text, json, realmId } = await qbTokens.qbApiRequest(QB_ENVIRONMENT,
+    (t) => `${QB_API_BASE}/${t.realm_id}${path}`,
+    { ...options, headers: { 'Content-Type': 'application/json', ...(options.headers || {}) } });
   if (!res.ok) {
     const detail = json?.Fault?.Error?.[0]?.Detail || json?.Fault?.Error?.[0]?.Message || text.slice(0, 300);
     // Record the error in the credential lifecycle (sanitized, no secrets)
-    try { await tokenStore.markError(QB_ENVIRONMENT, tokens.realm_id, `QB ${res.status}`); } catch (e) { /* best-effort */ }
+    try { await tokenStore.markError(QB_ENVIRONMENT, realmId, `QB ${res.status}`); } catch (e) { /* best-effort */ }
     throw Object.assign(new Error(`QB ${res.status}: ${detail}`), { status: res.status, qbError: json });
   }
-
-  // Record successful authenticated QB request (updates last_used_at)
-  try { await tokenStore.markUsed(QB_ENVIRONMENT, tokens.realm_id); } catch (e) { /* best-effort */ }
   return json;
 }
 
@@ -348,7 +321,7 @@ function handleQBError(e, res) {
 
 // ── Health & Diagnostics ───────────────────────────────────────────────────
 
-async function buildHealthPayload() {
+async function buildHealthPayload({ verify = false } = {}) {
   // Read the PERSISTED credential — the source of truth every refresh path
   // writes — never this process's in-memory copy (which another path could
   // have rotated underneath it, making tokenExpired report a stale value).
@@ -360,11 +333,21 @@ async function buildHealthPayload() {
     credentialLastUsedAt = tokens?.last_used_at || null;
     credentialLastErrorAt = tokens?.last_error_at || null;
   } catch (e) { /* best-effort — health must never fail on metadata read */ }
+  let credentialStatus = null;
+  try { credentialStatus = await tokenStore.credentialStatus(QB_ENVIRONMENT); } catch (e) { /* best-effort */ }
+  // Optional proof of real authenticated API access (read-only companyinfo via
+  // the canonical path). Only on an authenticated ?verify=1 request.
+  const apiVerification = verify && tokens ? await qbTokens.verifyConnection(QB_ENVIRONMENT, QB_API_BASE) : null;
+  if (apiVerification) {
+    // A verification may have refreshed (ok) or found the grant revoked — re-read.
+    try { tokens = await tokenStore.loadPersistedTokens(QB_ENVIRONMENT); } catch (e) { /* keep prior */ }
+    try { credentialStatus = await tokenStore.credentialStatus(QB_ENVIRONMENT); } catch (e) { /* keep prior */ }
+  }
 
   const tokenExpired = qbTokens.accessTokenExpired(tokens);
   const refreshExpired = qbTokens.refreshTokenExpired(tokens);
-  const reconnectRequired = !tokens || refreshExpired;
-  const connected = !!(tokens && !refreshExpired);
+  const reconnectRequired = !tokens || refreshExpired || !!apiVerification?.reconnectRequired;
+  const connected = !!(tokens && !refreshExpired) && !apiVerification?.reconnectRequired;
   const lastRefreshedAt = tokens?.last_refresh_at || null;
   const lastErrorAfterRefresh = !!(credentialLastErrorAt
     && (!lastRefreshedAt || new Date(credentialLastErrorAt) > new Date(lastRefreshedAt)));
@@ -392,7 +375,22 @@ async function buildHealthPayload() {
     storageMethod: 'postgres',
     credential_last_used_at: credentialLastUsedAt,
     credential_last_error_at: credentialLastErrorAt,
+    // 'connected' | 'revoked' (admin must reconnect via OAuth) | 'not_connected'
+    credentialStatus,
+    // Last SUCCESSFUL authenticated QuickBooks API call (real access, not just a
+    // stored token): the estimate/inbound sync crons refresh it every 15 min.
+    lastSuccessfulApiCallAt: credentialLastUsedAt,
+    ...(apiVerification ? { apiVerification } : {}),
   };
+}
+
+// ?verify=1 performs a live read-only companyinfo call — only for an
+// authenticated caller (proxy secret or a valid CRM JWT), never anonymously.
+function isAuthenticatedRequest(req) {
+  if (PROXY_SECRET && req.headers['x-proxy-secret'] === PROXY_SECRET) return true;
+  const m = /^Bearer\s+(.+)$/i.exec(req.headers['authorization'] || '');
+  if (!m) return false;
+  try { require('./lib/authService').verifyAccessToken(m[1].trim()); return true; } catch (e) { return false; }
 }
 
 // General health (no auth required)
@@ -402,7 +400,7 @@ app.get('/health', async (req, res) => {
 
 // QB-specific health endpoint (matches requirement: GET /qb/health)
 app.get('/qb/health', async (req, res) => {
-  res.json(await buildHealthPayload());
+  res.json(await buildHealthPayload({ verify: req.query.verify === '1' && isAuthenticatedRequest(req) }));
 });
 
 // ── Email delivery diagnostic (admin-only, JWT-protected) ────────────────────
@@ -469,8 +467,9 @@ async function handleAuthCallback(req, res) {
       refresh_expires_at: new Date(Date.now() + (tokenData.x_refresh_token_expires_in || 8726400) * 1000).toISOString(),
       connected_at: new Date().toISOString(),
     };
-    // Persist to PostgreSQL (durable — survives redeployments)
-    await saveTokensToStore(storedTokens);
+    // Persist to PostgreSQL (durable — survives redeployments), under the
+    // refresh lock so an in-flight refresh can never overwrite this new grant.
+    await qbTokens.saveAuthorizedTokens(QB_ENVIRONMENT, storedTokens);
     _tokensLoaded = true; // mark as loaded so getValidTokens doesn't re-load
     tokenStorageMethod = 'postgres';
     console.log('[proxy] OAuth complete — realm_id:', realmId, 'env:', QB_ENVIRONMENT, 'storage: postgres');
@@ -706,11 +705,9 @@ app.post('/estimates', requireProxySecret, async (req, res) => {
 // GET /estimates/:id/pdf
 app.get('/estimates/:id/pdf', requireProxySecret, async (req, res) => {
   try {
-    const tokens = await getValidTokens();
-    const url = `${QB_API_BASE}/${tokens.realm_id}/estimate/${req.params.id}/pdf?minorversion=65`;
-    const pdfRes = await fetch(url, {
-      headers: { Authorization: `Bearer ${tokens.access_token}`, Accept: 'application/pdf' },
-    });
+    const { res: pdfRes } = await qbTokens.qbApiRequest(QB_ENVIRONMENT,
+      (t) => `${QB_API_BASE}/${t.realm_id}/estimate/${req.params.id}/pdf?minorversion=65`,
+      { headers: { Accept: 'application/pdf' }, raw: true });
     if (!pdfRes.ok) return res.status(pdfRes.status).json({ error: `PDF fetch failed: ${pdfRes.status}` });
     const buffer = await pdfRes.arrayBuffer();
     res.setHeader('Content-Type', 'application/pdf');
@@ -843,11 +840,9 @@ app.post('/invoices/:id/void', requireProxySecret, async (req, res) => {
 
 app.get('/invoices/:id/pdf', requireProxySecret, async (req, res) => {
   try {
-    const tokens = await getValidTokens();
-    const url = `${QB_API_BASE}/${tokens.realm_id}/invoice/${req.params.id}/pdf?minorversion=65`;
-    const pdfRes = await fetch(url, {
-      headers: { Authorization: `Bearer ${tokens.access_token}`, Accept: 'application/pdf' },
-    });
+    const { res: pdfRes } = await qbTokens.qbApiRequest(QB_ENVIRONMENT,
+      (t) => `${QB_API_BASE}/${t.realm_id}/invoice/${req.params.id}/pdf?minorversion=65`,
+      { headers: { Accept: 'application/pdf' }, raw: true });
     if (!pdfRes.ok) return res.status(pdfRes.status).json({ error: `PDF fetch failed: ${pdfRes.status}` });
     const buffer = await pdfRes.arrayBuffer();
     res.setHeader('Content-Type', 'application/pdf');
@@ -1192,9 +1187,9 @@ app.post('/qb/fetch-estimate-pdf', requireProxySecret, async (req, res) => {
   const { estimate_id } = req.body;
   if (!estimate_id) return res.status(400).json({ error: 'estimate_id required' });
   try {
-    const tokens = await getValidTokens();
-    const url = `${QB_API_BASE}/${tokens.realm_id}/estimate/${estimate_id}/pdf?minorversion=65`;
-    const pdfRes = await fetch(url, { headers: { Authorization: `Bearer ${tokens.access_token}`, Accept: 'application/pdf' } });
+    const { res: pdfRes } = await qbTokens.qbApiRequest(QB_ENVIRONMENT,
+      (t) => `${QB_API_BASE}/${t.realm_id}/estimate/${estimate_id}/pdf?minorversion=65`,
+      { headers: { Accept: 'application/pdf' }, raw: true });
     if (!pdfRes.ok) return res.status(pdfRes.status).json({ error: `PDF fetch failed: ${pdfRes.status}` });
     const buffer = await pdfRes.arrayBuffer();
     const base64 = Buffer.from(buffer).toString('base64');
@@ -2228,10 +2223,9 @@ async function runQbEstimatePdfSync() {
     const qbNumber = estimate.qb_estimate_number;
     try {
       await rda.update('HandoffEstimate', id, { pdf_status: 'syncing' }).catch(() => {});
-      const tokens = await getValidTokens();
-      const pdfRes = await fetch(`${QB_API_BASE}/${tokens.realm_id}/estimate/${qbId}/pdf?minorversion=65`, {
-        headers: { Authorization: `Bearer ${tokens.access_token}`, Accept: 'application/pdf' },
-      });
+      const { res: pdfRes } = await qbTokens.qbApiRequest(QB_ENVIRONMENT,
+        (t) => `${QB_API_BASE}/${t.realm_id}/estimate/${qbId}/pdf?minorversion=65`,
+        { headers: { Accept: 'application/pdf' }, raw: true });
       if (!pdfRes.ok) {
         const errText = await pdfRes.text().catch(() => '');
         console.warn(`[qb-pdf] PDF fetch failed (${pdfRes.status}) for ${qbNumber}: ${errText.slice(0, 150)}`);

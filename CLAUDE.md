@@ -117,6 +117,26 @@ about topology, this file wins; go correct `railway.json` and
   the 1-hour access token, refreshed on the next QuickBooks call, and
   `accessToken` spells the state out (`valid` / `expired_refreshes_on_next_use`
   / `refresh_expired` / `none`). Never add a second refresh path.
+- **QuickBooks API calls**: every authenticated QuickBooks request goes
+  through `qbTokenManager.qbApiRequest` (server.js `qbFetch`, the PDF routes,
+  `qbInboundSync.qbQuery`, `qbSyncTrigger`). It uses a valid (auto-refreshed)
+  token and, on a 401, forces ONE canonical refresh and retries the request
+  once — never a loop. Refresh: Intuit 429/5xx get a bounded retry (3
+  attempts, backoff) and are recorded as transient, never as revoked; only
+  `invalid_grant`/`token_revoked` (a non-5xx refusal) marks the credential
+  revoked, emails `ALERT_RECIPIENTS` once a day, and makes `reconnectRequired`
+  true (admins also see a CRM banner linking to `/integrations`). The refresh
+  result is compare-and-swapped against the stored refresh token so it never
+  overwrites a newer grant; the OAuth callback saves under the same advisory
+  lock (`saveAuthorizedTokens`). `/qb/health?verify=1` (proxy secret or JWT
+  only) proves real access with a read-only companyinfo call;
+  `credentialStatus` and `lastSuccessfulApiCallAt` are always reported.
+  Reconnect is OAuth re-consent only — never stored Intuit usernames or
+  passwords, never browser automation. `test/qbTokenManager.test.js` fails on
+  any raw `Bearer ${…access_token}` QuickBooks fetch outside the manager.
+- **Completed follow-ups are never Overdue**: every overdue indicator (Leads
+  list, Kanban, My Day, Follow-Ups widget) skips `follow_up_status =
+  'completed'`.
 - **Financial fields** (`lib/qbInvoiceSaleMap.js#computeSaleFinancials`):
   `balance` has always meant `PROJECT_TOTAL − PAID` ("how much is left to
   collect on the whole project"), not `INVOICED − PAID`, despite the name

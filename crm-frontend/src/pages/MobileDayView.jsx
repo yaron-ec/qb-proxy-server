@@ -381,7 +381,7 @@ export default function MobileDayView() {
   const today = getTodayLocal();
   const excludedForOverdue = ["Lost", "DNQ", "Cancelled", "Closed Lost", "Sold"];
   const overdueFollowUps = allLeads.filter(l =>
-    l.follow_up_date && l.follow_up_date < today && !excludedForOverdue.includes(l.status) &&
+    l.follow_up_date && l.follow_up_date < today && l.follow_up_status !== 'completed' && !excludedForOverdue.includes(l.status) &&
     (ownerFilter === "all" || l.assigned_rep === ownerFilter)
   ).length;
 

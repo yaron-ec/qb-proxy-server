@@ -38,8 +38,10 @@ test('KanbanBoard.jsx: cards show deal value when present', () => {
 });
 
 test('KanbanBoard.jsx: follow-up badge color reflects overdue/today/upcoming, not a flat blue', () => {
-  assert.ok(src.includes('const isOverdue = fuNum !== null && fuNum < todayNum'));
-  assert.ok(src.includes('const isToday = fuNum !== null && fuNum === todayNum'));
+  // A completed follow-up is history — neither overdue nor due today.
+  assert.ok(src.includes("const done = lead.follow_up_status === 'completed'"));
+  assert.ok(src.includes('const isOverdue = !done && fuNum !== null && fuNum < todayNum'));
+  assert.ok(src.includes('const isToday = !done && fuNum !== null && fuNum === todayNum'));
   assert.ok(src.includes('text-red-700 bg-red-50'), 'overdue must render in red');
   assert.ok(src.includes('text-amber-700 bg-amber-50'), 'today must render in amber');
 });

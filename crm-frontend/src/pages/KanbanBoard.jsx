@@ -421,8 +421,9 @@ function KanbanCard({ lead, index, isUpdating, navigate, onStatusChange, current
             {lead.follow_up_date && (() => {
               const fuNum = parseFollowUpDate(lead.follow_up_date);
               const todayNum = getTodayLocal();
-              const isOverdue = fuNum !== null && fuNum < todayNum;
-              const isToday = fuNum !== null && fuNum === todayNum;
+              const done = lead.follow_up_status === 'completed';
+              const isOverdue = !done && fuNum !== null && fuNum < todayNum;
+              const isToday = !done && fuNum !== null && fuNum === todayNum;
               const cls = isOverdue ? "text-red-700 bg-red-50" : isToday ? "text-amber-700 bg-amber-50" : "text-blue-600 bg-blue-50";
               return (
                 <div className={`mt-2 text-[10px] font-semibold rounded px-1.5 py-0.5 inline-block ${cls}`}>

@@ -31,7 +31,32 @@ const qbInboundSyncPath = require.resolve('../lib/qbInboundSync');
 delete require.cache[qbInboundSyncPath];
 require.cache[qbInboundSyncPath] = {
   id: qbInboundSyncPath, filename: qbInboundSyncPath, loaded: true,
-  exports: { getValidTokens: (...a) => getValidTokensImpl(...a) },
+  exports: {
+    getValidTokens: (...a) => getValidTokensImpl(...a),
+    // Mirrors the real qbQuery: through the canonical request, throws on !ok.
+    qbQuery: async (q) => {
+      const r = await mockQbApiRequest('sandbox', (t) => `https://sandbox/${t.realm_id}/query?query=${encodeURIComponent(q)}`);
+      if (!r.res.ok) throw new Error(`QB query failed ${r.res.status}`);
+      return r.json;
+    },
+  },
+};
+
+// The canonical authenticated request (lib/qbTokenManager#qbApiRequest) —
+// stubbed over global.fetch so these tests stay about the sync logic.
+async function mockQbApiRequest(environment, buildUrl) {
+  const t = await getValidTokensImpl();
+  const res = await global.fetch(buildUrl(t), { headers: { Authorization: 'Bearer <redacted>' } });
+  let json;
+  if (res.text) { const text = await res.text(); try { json = JSON.parse(text); } catch (_) { json = { raw: text }; } return { res, text, json }; }
+  json = await res.json();
+  return { res, text: JSON.stringify(json), json };
+}
+const qbTokenManagerPath = require.resolve('../lib/qbTokenManager');
+delete require.cache[qbTokenManagerPath];
+require.cache[qbTokenManagerPath] = {
+  id: qbTokenManagerPath, filename: qbTokenManagerPath, loaded: true,
+  exports: { qbApiRequest: (...a) => mockQbApiRequest(...a) },
 };
 
 let store; // { leads: [], estimates: [] }
