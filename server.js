@@ -1279,9 +1279,6 @@ app.use('/api/v1/signnow/webhook', require('./routes/signnowWebhook'));
 // PUBLIC Railway endpoints for the Lead Capture form (no JWT, rate-limited).
 // Narrow surface: availability + atomic lead/appointment create only.
 app.use('/api/public/capture', require('./routes/publicCapture'));
-// Read-only aggregate Phone Call integrity check (no PII) — see routes/phoneCallIntegrity.js
-// DEPRECATED: superseded by the admin-only /api/v1/system/phone-calls; removed once that is verified.
-app.use('/api/public/phone-call-integrity', require('./routes/phoneCallIntegrity'));
 
 // ── External webhook receivers (public, verified by signature/secret) ──────
 // These replace the Base44 webhook functions. No JWT, no PROXY_SECRET.

@@ -81,7 +81,9 @@ test('the system_health identity is honoured nowhere else: rbac requireAuth reje
   assert.strictEqual(status, 401);
 });
 
-test('the admin System Health router is mounted', () => {
+test('the public unauthenticated integrity route is gone; the admin System Health router is mounted', () => {
   const src = require('fs').readFileSync(require.resolve('../server.js'), 'utf8');
+  assert.doesNotMatch(src, /\/api\/public\/phone-call-integrity/);
+  assert.ok(!require('fs').existsSync(require('path').join(__dirname, '../routes/phoneCallIntegrity.js')));
   assert.match(src, /app\.use\('\/api\/v1\/system', require\('\.\/routes\/systemHealth'\)\)/);
 });
