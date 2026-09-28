@@ -147,7 +147,7 @@ router.post('/', submitLimiter, async (req, res) => {
       appointment_type_id = atRes.rows[0].id;
     }
 
-    const start_at = hasAppointment ? laToUtcStart(c.appointment_date, c.appointment_time) : null;
+    const start_at = hasAppointment ? laToUtcStart(c.appointment_date, c.appointment_time, await require('../lib/companyConfig').getTimezone()) : null;
     const idempotency_key = computeIdempotencyKey({
       owner_email: c.owner_email, first_name: c.first_name, last_name: c.last_name,
       email: c.email, phone: c.phone, property_address: c.property_address,
@@ -190,7 +190,7 @@ router.post('/', submitLimiter, async (req, res) => {
       notes: [c.message, c.notes].filter(Boolean).join('\n\n') || null,
       appointment_type_id,
       start_at,
-      timezone: 'America/Los_Angeles',
+      timezone: await require('../lib/companyConfig').getTimezone(),
       actor,
       override_conflict,
       override_actor,

@@ -130,7 +130,7 @@ router.post('/', express.raw({ type: '*/*', verify: (req, res, buf) => { req.raw
           let startAt;
           if (mapped.appointment_date) {
             const { laToUtcStart } = require('../lib/captureValidation');
-            startAt = laToUtcStart(mapped.appointment_date, mapped.appointment_time || '09:00');
+            startAt = laToUtcStart(mapped.appointment_date, mapped.appointment_time || '09:00', await require('../lib/companyConfig').getTimezone());
           } else {
             // No appointment — create lead without booking an appointment
             // Use a placeholder far-future date that won't conflict
@@ -169,7 +169,7 @@ router.post('/', express.raw({ type: '*/*', verify: (req, res, buf) => { req.raw
               notes: mapped.message || null,
               appointment_type_id,
               start_at: startAt,
-              timezone: 'America/Los_Angeles',
+              timezone: await require('../lib/companyConfig').getTimezone(),
               actor: 'meta-webhook',
               external_ref: idempotency_key,
               // The appointment lives only in the appointments row — it is not

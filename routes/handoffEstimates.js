@@ -16,9 +16,13 @@ const express = require('express');
 const { requireAuth, requireRole } = require('../lib/rbac');
 const { query } = require('../db/client');
 const { UUID_RE } = require('../lib/leadResolver');
+const { requireModuleEnabled } = require('../lib/moduleGate');
 
 const router = express.Router();
 router.use(requireAuth);
+// PRODUCTIZATION PHASE 2: gated on enabled_modules.handoff — a company not
+// using Handoff gets a clean 404, never a missing-HANDOFF_API_KEY error.
+router.use(requireModuleEnabled('handoff'));
 
 function serializeEstimate(row) {
   if (!row) return null;

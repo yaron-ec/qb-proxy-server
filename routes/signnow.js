@@ -22,11 +22,18 @@ const { requireAuth, requireRole } = require('../lib/rbac');
 const { query } = require('../db/client');
 const { resolveLeadByIdentifier } = require('../lib/leadResolver');
 const signnowClient = require('../lib/signnowClient');
+const { requireModuleEnabled } = require('../lib/moduleGate');
 
 const router = express.Router();
 router.use(requireAuth);
 
 const requireAdminManager = requireRole('admin', 'manager');
+
+// PRODUCTIZATION PHASE 2: every route except /status is gated on
+// enabled_modules.signnow — /status stays reachable so the admin settings
+// panel can always show this installation's actual state (including
+// "disabled"), rather than a 404 that looks like a broken page.
+router.use((req, res, next) => (req.path === '/status' ? next() : requireModuleEnabled('signnow')(req, res, next)));
 
 // ── GET /status — SignNow connection status ──────────────────────────────────
 router.get('/status', async (req, res) => {

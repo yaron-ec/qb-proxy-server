@@ -830,7 +830,7 @@ async function executeAppointmentRequest(req, res, leadId) {
       await bookingService.cancelAppointment(active.id, actor, { onWrite });
       action = 'appointment_cancelled';
     } else {
-      const startAt = toUtcIso(parsed.date, parsed.time, 'America/Los_Angeles');
+      const startAt = toUtcIso(parsed.date, parsed.time, await require('../lib/companyConfig').getTimezone());
       const skipTravel = parsed.kind === 'Phone Call';
       if (!active) {
         result = await bookingService.createAppointmentForLead({
