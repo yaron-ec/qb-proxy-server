@@ -115,9 +115,10 @@ export default function CompanySettingsTab() {
               <span className={`block w-4 h-4 bg-white rounded-full shadow-sm absolute top-1 transition-all duration-200 ${form.crm_activity_notifications_enabled ? 'left-5' : 'left-1'}`} />
             </button>
             <div>
-              <p className="text-sm font-semibold text-slate-800">Send CRM Activity Notifications to Yaron</p>
+              <p className="text-sm font-semibold text-slate-800">Send CRM Activity Notifications</p>
               <p className="text-xs text-slate-500 mt-0.5">
-                When enabled, an email is sent to <span className="font-mono">yaron@ecconstructiongroup.com</span> whenever a sales rep logs a note, call, meeting, task, or when lead/deal activity changes.
+                When enabled, an email is sent to this CRM's configured admin recipients
+                {form.admin_email ? <> (including <span className="font-mono">{form.admin_email}</span>)</> : null} whenever a sales rep logs a note, call, meeting, task, or when lead/deal activity changes.
               </p>
             </div>
           </div>

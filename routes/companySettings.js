@@ -13,9 +13,16 @@
 const express = require('express');
 const { requireAuth, requireRole } = require('../lib/rbac');
 const { query } = require('../db/client');
+const companyConfig = require('../lib/companyConfig');
 
 const router = express.Router();
 router.use(requireAuth);
+
+// Modules a company can independently enable/disable — mirrors
+// company_settings.enabled_modules (migration 2026-44) and
+// docs/CONFIGURATION_REFERENCE.md. Kept as an explicit allowlist so a PUT
+// body can never inject an arbitrary key into stored JSON.
+const MODULE_KEYS = ['quickbooks', 'gmail', 'google_calendar', 'google_contacts', 'signnow', 'handoff', 'meta', 'sms', 'website_intake'];
 
 function serializeSettings(row) {
   if (!row) return null;
@@ -37,6 +44,19 @@ function serializeSettings(row) {
     admin_email: row.admin_email,
     company_website: row.company_website,
     crm_activity_notifications_enabled: row.crm_activity_notifications_enabled || false,
+    // PRODUCTIZATION FOUNDATION fields (migration 2026-44) — see
+    // lib/companyConfig.js and docs/CONFIGURATION_REFERENCE.md. All optional;
+    // NULL/default means "use the product default", never a broken installation.
+    legal_name: row.legal_name || null,
+    dba: row.dba || null,
+    favicon_url: row.favicon_url || null,
+    brand_primary_color: row.brand_primary_color || null,
+    timezone: row.timezone,
+    locale: row.locale,
+    business_hours: row.business_hours || null,
+    appointment_travel_buffer_minutes: row.appointment_travel_buffer_minutes,
+    enabled_modules: row.enabled_modules || null,
+    installation_id: row.installation_id || null,
     created_date: row.created_at,
     updated_date: row.updated_at,
   };
@@ -47,7 +67,27 @@ const FIELDS = [
   'company_address', 'company_city', 'company_state', 'company_zip',
   'admin_name', 'admin_email', 'company_website', 'crm_activity_notifications_enabled',
   'company_region',
+  'legal_name', 'dba', 'favicon_url', 'brand_primary_color',
+  'timezone', 'locale', 'business_hours', 'appointment_travel_buffer_minutes', 'enabled_modules',
 ];
+
+// Fields whose value must be serialized (JSON columns) or validated before
+// being bound as a query parameter.
+function coerceFieldValue(field, value) {
+  if (field === 'crm_activity_notifications_enabled') return value === true || value === 'true';
+  if (field === 'business_hours') return value === null ? null : JSON.stringify(value);
+  if (field === 'enabled_modules') {
+    if (value === null) return null;
+    const out = {};
+    for (const k of MODULE_KEYS) out[k] = value[k] === true;
+    return JSON.stringify(out);
+  }
+  if (field === 'appointment_travel_buffer_minutes') {
+    const n = Number(value);
+    return Number.isFinite(n) && n >= 0 ? Math.round(n) : 60;
+  }
+  return value;
+}
 
 // ── GET / — get singleton ─────────────────────────────────────────────────────
 router.get('/', async (req, res) => {
@@ -74,8 +114,8 @@ router.put('/', requireRole('admin'), async (req, res) => {
       let p = 1;
       for (const f of FIELDS) {
         if (body[f] !== undefined) {
-          params.push(f === 'crm_activity_notifications_enabled' ? (body[f] === true || body[f] === 'true') : body[f]);
-          updates.push(`${f} = $${p}`);
+          params.push(coerceFieldValue(f, body[f]));
+          updates.push(f === 'business_hours' || f === 'enabled_modules' ? `${f} = $${p}::jsonb` : `${f} = $${p}`);
           p++;
         }
       }
@@ -83,6 +123,7 @@ router.put('/', requireRole('admin'), async (req, res) => {
       updates.push('updated_at = NOW()');
       params.push(existing.rows[0].id);
       const { rows } = await query(`UPDATE company_settings SET ${updates.join(', ')} WHERE id = $${p} RETURNING *`, params);
+      companyConfig.invalidate();
       return res.json({ settings: serializeSettings(rows[0]) });
     }
 
@@ -90,14 +131,17 @@ router.put('/', requireRole('admin'), async (req, res) => {
     if (!body.company_name) return res.status(400).json({ error: 'company_name required for initial setup' });
     const cols = [];
     const vals = [];
+    const placeholderFor = [];
     for (const f of FIELDS) {
       if (body[f] !== undefined) {
         cols.push(f);
-        vals.push(f === 'crm_activity_notifications_enabled' ? (body[f] === true || body[f] === 'true') : body[f]);
+        vals.push(coerceFieldValue(f, body[f]));
+        placeholderFor.push(f);
       }
     }
-    const placeholders = cols.map((_, i) => `$${i + 1}`).join(', ');
+    const placeholders = placeholderFor.map((f, i) => (f === 'business_hours' || f === 'enabled_modules') ? `$${i + 1}::jsonb` : `$${i + 1}`).join(', ');
     const { rows } = await query(`INSERT INTO company_settings (${cols.join(', ')}) VALUES (${placeholders}) RETURNING *`, vals);
+    companyConfig.invalidate();
     res.status(201).json({ settings: serializeSettings(rows[0]) });
   } catch (e) {
     console.error('[company-settings] put error:', e.message);
@@ -109,6 +153,7 @@ router.put('/', requireRole('admin'), async (req, res) => {
 router.delete('/', requireRole('admin'), async (req, res) => {
   try {
     await query('DELETE FROM company_settings');
+    companyConfig.invalidate();
     res.json({ success: true });
   } catch (e) {
     console.error('[company-settings] delete error:', e.message);

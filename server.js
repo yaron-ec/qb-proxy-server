@@ -118,9 +118,21 @@ const handoffClient = require('./lib/handoffClient'); // Official Handoff API Gr
 
 const app = express();
 
-// ── CORS — allow requests from any Base44 app domain ────────────────────────
+// ── CORS ──────────────────────────────────────────────────────────────────
+// PRODUCTIZATION FOUNDATION: CORS_ALLOWED_ORIGINS (comma-separated) lets each
+// installation lock this API to its own frontend domain(s) instead of
+// reflecting any origin. Unset (EC's current state — no such env var exists
+// today) preserves the exact historical behavior (`origin: true`, a leftover
+// from the retired Base44 app, which could be requested from any origin) so
+// this change cannot alter EC's live behavior by itself; it only takes
+// effect once an installation's Railway environment explicitly sets it. See
+// docs/SECURITY_MODEL.md.
+const CORS_ALLOWED_ORIGINS = (process.env.CORS_ALLOWED_ORIGINS || '')
+  .split(',').map((s) => s.trim()).filter(Boolean);
 app.use(cors({
-  origin: true, // reflect request origin (all Base44 app origins are valid)
+  origin: CORS_ALLOWED_ORIGINS.length
+    ? (origin, cb) => cb(null, !origin || CORS_ALLOWED_ORIGINS.includes(origin))
+    : true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'X-Proxy-Secret', 'Authorization'],
   credentials: false,
@@ -1355,6 +1367,7 @@ app.use('/api/v1/lead-attachments', require('./routes/leadAttachments'));
 app.use('/api/v1/handoff-estimates', require('./routes/handoffEstimates'));
 app.use('/api/v1/sync-cursors', require('./routes/syncCursors'));
 app.use('/api/v1/company-settings', require('./routes/companySettings'));
+app.use('/api/v1/system', require('./routes/systemInfo'));
 app.use('/api/v1/qb-executive-metrics', require('./routes/qbExecutiveMetrics'));
 app.use('/api/v1/financial-backfill', require('./routes/financialBackfill'));
 app.use('/api/v1/cron', require('./routes/cronJobs'));
