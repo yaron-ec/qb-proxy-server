@@ -153,7 +153,7 @@ test.before(async () => {
   app.use(express.json());
   app.use('/api/v1/leads', require('../../routes/leads'));
   app.use('/api/public/capture', require('../../routes/publicCapture'));
-  app.use('/api/public/phone-call-integrity', require('../../routes/phoneCallIntegrity'));
+  app.use('/api/v1/system', require('../../routes/systemHealth'));
   await new Promise((r) => { server = app.listen(0, '127.0.0.1', r); });
   base = `http://127.0.0.1:${server.address().port}`;
 });
@@ -348,6 +348,20 @@ test('K2. Ambiguous legacy rows (lead with a different active follow-up) are rec
   const again = await conversion.convertLegacyPhoneCallAppointments(db.pool, { limit: 100000 });
   assert.strictEqual(again.errors, 0);
   assert.strictEqual((await rows('SELECT count(*)::int AS n FROM legacy_phone_call_conversions WHERE appointment_id = $1', [legacy.id]))[0].n, 1);
+  // Admin-only read-only investigation: provenance without PII, changes nothing.
+  const before = JSON.stringify(await rows('SELECT * FROM appointments WHERE id = $1', [legacy.id]));
+  const inv = await api('GET', '/api/v1/system/phone-calls/ambiguous');
+  assert.strictEqual(inv.status, 200, JSON.stringify(inv.body));
+  const row = inv.body.rows.find((r) => r.ref === legacy.id.slice(0, 8));
+  assert.ok(row, 'the ambiguous row is investigated');
+  assert.strictEqual(row.legacy_appointment.start, `${day} 14:00`);
+  assert.deepStrictEqual([row.lead.follow_up.type, row.lead.follow_up.date, row.lead.follow_up.time], ['Email', day, '08:30']);
+  assert.strictEqual(row.google_event.exists, true);
+  const pii = (await rows('SELECT last_name, phone FROM leads WHERE id = $1', [id]))[0];
+  const text = JSON.stringify(inv.body);
+  for (const v of [pii.last_name, pii.phone, id]) assert.ok(!text.includes(v), `no PII / full ids (${v})`);
+  assert.strictEqual(JSON.stringify(await rows('SELECT * FROM appointments WHERE id = $1', [legacy.id])), before, 'read-only');
+  assert.strictEqual((await api('GET', '/api/v1/system/phone-calls/ambiguous', undefined, null)).status, 401);
 });
 
 test('L. Multiple Phone Calls at the same time are allowed, each with its own reminder, and a real appointment still books then', { skip }, async () => {
@@ -376,7 +390,11 @@ test('Integrity report: aggregate only, no PII, and it proves zero blocking / tr
   const text = JSON.stringify(rep);
   const lead = (await rows('SELECT first_name, last_name, phone FROM leads WHERE id = $1', [id]))[0];
   for (const v of [lead.last_name, lead.phone, id, 'Dentist', day]) assert.ok(!text.includes(v), `report must not contain ${v}`);
-  const http = await api('GET', '/api/public/phone-call-integrity', undefined, null);
+  assert.strictEqual((await api('GET', '/api/v1/system/phone-calls', undefined, null)).status, 401, 'no token → 401');
+  const repTok = require('../../lib/authService').issueAccessToken({ id: '00000000-0000-0000-0000-0000000000a3', email: 'rep@example.com', role: 'sales_rep' });
+  assert.strictEqual((await api('GET', '/api/v1/system/phone-calls', undefined, repTok)).status, 403, 'non-admin → 403');
+  const http = await api('GET', '/api/v1/system/phone-calls');
   assert.strictEqual(http.status, 200);
+  assert.ok(!JSON.stringify(http.body).match(/[0-9a-f]{8}-[0-9a-f]{4}-/), 'no record ids');
   assert.strictEqual(typeof http.body.legacy_phone_call_rows.active_future, 'number');
 });

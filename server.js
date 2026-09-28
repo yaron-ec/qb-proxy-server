@@ -1263,6 +1263,8 @@ app.use('/api/v1/company-settings', require('./routes/companySettings'));
 app.use('/api/v1/qb-executive-metrics', require('./routes/qbExecutiveMetrics'));
 app.use('/api/v1/financial-backfill', require('./routes/financialBackfill'));
 app.use('/api/v1/cron', require('./routes/cronJobs'));
+// Admin-only System Health (admin JWT or the verification workflow's GitHub OIDC identity)
+app.use('/api/v1/system', require('./routes/systemHealth'));
 
   // Native Railway adapters for Lead Detail page (no Base44):
   //   lead-qb         — QuickBooks lead status (reads Postgres + calls QB proxy)
@@ -1278,6 +1280,7 @@ app.use('/api/v1/signnow/webhook', require('./routes/signnowWebhook'));
 // Narrow surface: availability + atomic lead/appointment create only.
 app.use('/api/public/capture', require('./routes/publicCapture'));
 // Read-only aggregate Phone Call integrity check (no PII) — see routes/phoneCallIntegrity.js
+// DEPRECATED: superseded by the admin-only /api/v1/system/phone-calls; removed once that is verified.
 app.use('/api/public/phone-call-integrity', require('./routes/phoneCallIntegrity'));
 
 // ── External webhook receivers (public, verified by signature/secret) ──────

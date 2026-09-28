@@ -372,7 +372,10 @@ about topology, this file wins; go correct `railway.json` and
   `legacy_phone_call_conversions`; different active follow-up / closed lead →
   `ambiguous`, untouched; undo: `scripts/revertLegacyPhoneCallConversion.js`,
   report-only unless `APPLY=1`). Meeting follow-ups stay CRM-only. Live
-  aggregate proof (no PII): `GET /api/public/phone-call-integrity`.
+  aggregate proof (no PII): admin-only `GET /api/v1/system/phone-calls`
+  (+ `/phone-calls/ambiguous`, read-only provenance of ambiguous rows) —
+  `routes/systemHealth.js`; auth = CRM admin JWT or the website repo's
+  private `final-verify.yml` GitHub OIDC identity (`lib/systemHealthAuth.js`).
   Real-Postgres coverage: `test/integration/phoneCallCalendarReminder.int.test.js`.
 - **Driving / Travel Time** exists only for an ACTIVE Site Visit —
   `lib/booking/appointmentKind.js#travelAllowed`, checked in
