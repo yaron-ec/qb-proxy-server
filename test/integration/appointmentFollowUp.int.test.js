@@ -98,25 +98,33 @@ async function api(method, path, body, tok) {
 }
 
 let seq = 0;
+// Random 10-digit phone per lead: the test DB persists between runs, and a phone
+// reused from an earlier run is (correctly) rejected by duplicate-lead prevention
+// (exact phone-suffix match) with a 409 potential_duplicate.
+const rnd = (lo, n) => lo + Math.floor(Math.random() * n);
+const randomPhone = () => `${rnd(200, 800)}${rnd(200, 800)}${String(rnd(0, 10000)).padStart(4, '0')}`;
 let lastPayload = null;
 function capturePayload(extra) {
   seq++;
   return lastPayload = {
     first_name: 'Int', last_name: `Test${seq}${Date.now() % 100000}`,
-    phone: `555${String(1000000 + seq * 7919 + (Date.now() % 1000)).slice(-7)}`,
+    phone: randomPhone(),
     project_type: 'Kitchen', source: 'Referral', assigned_rep: 'Yaron Drilevich',
     ...extra,
   };
 }
 
-// A far-future business day per test so slots never collide across cases.
-// Random per-run base so re-running against the same database never
-// collides with appointments left by an earlier run.
-let dayOffset = Math.floor(Math.random() * 20000) * 3;
-function uniqueDay() {
-  dayOffset += 3;
-  const d = new Date(Date.UTC(2032, 0, 5 + dayOffset));
-  return d.toISOString().slice(0, 10);
+// A far-future day with no appointment per test so slots never collide across
+// cases, files or earlier runs against the same database.
+let pickDay; // set in test.before from ./freeDays (days with no appointment)
+function uniqueDay() { return pickDay(); }
+
+// The test DB persists between runs and other files leave undrained outbox rows;
+// the worker claims oldest-first, so park rows that predate this test so it only
+// processes its own (a fresh CI database has none).
+async function parkForeignOutbox() {
+  await db.query(`UPDATE calendar_outbox SET next_attempt_at = '2999-01-01'
+                   WHERE status IN ('pending','failed') AND next_attempt_at <= NOW()`);
 }
 
 async function drainOutbox() {
@@ -137,6 +145,7 @@ test.before(async () => {
   if (skip) return;
   const express = require('express');
   db = require('../../db/client');
+  pickDay = await require('./freeDays').loadFreeDayPicker(db);
   outbox = require('../../lib/booking/calendarOutbox');
   const { issueAccessToken } = require('../../lib/authService');
   await db.query(
@@ -239,23 +248,24 @@ test('5. Reopen: list + detail + by-external/detail all return the same appointm
 });
 
 // ── 6–9: edits + consistency ─────────────────────────────────────────────────
-test('6. Edit appointment (reschedule + change kind) updates every representation atomically', { skip }, async () => {
+test('6. Edit appointment (reschedule) updates every representation atomically', { skip }, async () => {
   const before = await getLead(bothLeadId);
   const r = await api('PUT', `/api/v1/leads/${bothLeadId}/appointment`, {
-    appointment_date: bothDay, appointment_time: '13:00', appointment_type: 'Phone Call',
+    appointment_date: bothDay, appointment_time: '13:00', appointment_type: 'Meeting',
   });
   assert.strictEqual(r.status, 200, JSON.stringify(r.body));
   assert.strictEqual(r.body.action, 'appointment_rescheduled');
   const lead = r.body.lead;
   assert.strictEqual(lead.appointment_time, '13:00');
-  assert.strictEqual(lead.appointment_type, 'Phone Call');
+  assert.strictEqual(lead.appointment_type, 'Meeting');
   assert.notStrictEqual(lead.appointment_id, before.appointment_id, 'reschedule creates the new active row');
   // Exactly one active appointment; the old one is 'rescheduled'.
   const rows = (await db.query('SELECT status FROM appointments WHERE lead_id = $1 ORDER BY created_at', [bothLeadId])).rows;
   assert.deepStrictEqual(rows.map(r => r.status), ['rescheduled', 'scheduled']);
-  // Phone Call: no travel buffer.
-  const a = (await db.query('SELECT lower(busy_range) = start_at AS no_buffer FROM appointments WHERE id = $1', [lead.appointment_id])).rows[0];
-  assert.strictEqual(a.no_buffer, true);
+  // A Site Visit: the 1h buffer before and after is reserved.
+  const a = (await db.query(`SELECT lower(busy_range) = start_at - interval '1 hour' AND upper(busy_range) = end_at + interval '1 hour' AS buffered
+                               FROM appointments WHERE id = $1`, [lead.appointment_id])).rows[0];
+  assert.strictEqual(a.buffered, true);
   // The follow-up was NOT touched by the appointment edit.
   assert.strictEqual(lead.follow_up_date, '2031-04-10');
   assert.strictEqual(lead.follow_up_type, 'Text');
@@ -316,7 +326,7 @@ test('9. Appointment and Meeting cannot contradict: every surface derives from t
   const ob = (await db.query(
     "SELECT payload FROM calendar_outbox WHERE appointment_id = $1 AND action = 'create_main'", [row.id])).rows[0];
   assert.ok(ob.payload.start.dateTime.startsWith(`${s.date}T${s.time}`));
-  assert.ok(ob.payload.summary.startsWith('Phone Call with'));
+  assert.ok(ob.payload.summary.startsWith('Meeting with'));
   // The reminder projection carries the same appointment.
   const rid = lead.external_ref || lead.id;
   const rl = (await db.query('SELECT appointment_date, appointment_time, appointment_type FROM reminder_leads WHERE id = $1', [rid])).rows[0];
@@ -325,6 +335,7 @@ test('9. Appointment and Meeting cannot contradict: every surface derives from t
 
 // ── 10–12: Google Calendar via the real outbox ───────────────────────────────
 test('10. Calendar sync success → google_event_id persisted, status synced, travel event for Meetings', { skip }, async () => {
+  await parkForeignOutbox();
   google.reset();
   const day = uniqueDay();
   const r = await api('POST', '/api/public/capture', capturePayload({ appointment_date: day, appointment_time: '10:00' }), null);
@@ -343,11 +354,15 @@ test('10. Calendar sync success → google_event_id persisted, status synced, tr
 });
 
 test('11. Calendar sync failure is surfaced (retrying → failed) and a manual re-sync recovers', { skip }, async () => {
+  await parkForeignOutbox();
   google.reset();
   const day = uniqueDay();
-  const r = await api('POST', '/api/public/capture', capturePayload({ appointment_date: day, appointment_time: '11:00', appointment_type: 'Phone Call' }), null);
+  const r = await api('POST', '/api/public/capture', capturePayload({ appointment_date: day, appointment_time: '11:00' }), null);
   const id = r.body.lead.id;
-  google.failCreates = 1;
+  // A Site Visit queues main + travel in ONE transaction (same created_at, so
+  // their claim order is arbitrary): fail both so the main event's failure is
+  // deterministic. The travel event never decides the sync status either way.
+  google.failCreates = 2;
   await outbox.claimAndProcess(db.pool, 'int-test-worker', { batchSize: 50 });
   let lead = await getLead(id);
   assert.strictEqual(lead.google_calendar_sync_status, 'retrying', 'transient failure is visible, not an endless "Syncing"');
@@ -417,6 +432,14 @@ test('12. No duplicate events: retries, re-syncs and reschedule leave exactly on
 });
 
 // ── 13: availability / buffer rules ──────────────────────────────────────────
+// CANONICAL RULE (unchanged): an appointment blocks 1h before + its duration +
+// 1h after, and a new appointment is checked as its own actual window against
+// that block (lib/booking/bookingService.js#assertSlotFree — the same single
+// buffer the availability display applies in lib/booking/slotBlocking.js).
+// Touching the block's boundary is allowed; overlapping it is not.
+// (This case previously expected a 14:00 start to be rejected after a 12:00–
+// 13:00 appointment. That contradicted the canonical rule — 12:00–13:00 blocks
+// 11:00–14:00, so 14:00 is exactly the boundary and is allowed.)
 test('13. Conflict rules: Meeting reserves 1h before + duration + 1h after; overlaps are rejected server-side', { skip }, async () => {
   const day = uniqueDay();
   const a = await api('POST', '/api/public/capture', capturePayload({ appointment_date: day, appointment_time: '12:00' }), null);
@@ -426,7 +449,7 @@ test('13. Conflict rules: Meeting reserves 1h before + duration + 1h after; over
     [a.body.lead.id])).rows[0];
   assert.strictEqual(new Date(row.start_at) - new Date(row.bs), 3600000);
   assert.strictEqual(new Date(row.be) - new Date(row.end_at), 3600000);
-  // 13:30 overlaps the travel-after buffer (13:00–14:00) → 409 at capture.
+  // 13:30 overlaps the block (11:00–14:00) → 409 at capture.
   const bPayload = capturePayload({ appointment_date: day, appointment_time: '13:30' });
   const b = await api('POST', '/api/public/capture', bPayload, null);
   assert.strictEqual(b.status, 409, JSON.stringify(b.body));
@@ -434,11 +457,17 @@ test('13. Conflict rules: Meeting reserves 1h before + duration + 1h after; over
   // Nothing was created by the rejected submit (lead + appointment roll back together).
   const leads = (await db.query('SELECT count(*)::int n FROM leads WHERE last_name = $1', [bPayload.last_name])).rows[0].n;
   assert.strictEqual(leads, 0);
-  // 14:00 starts exactly when the buffer ends → but its own 1h-before buffer overlaps → 409.
+  // 13:59 — one minute inside the block → 409.
+  const b2 = await api('POST', '/api/public/capture', capturePayload({ appointment_date: day, appointment_time: '13:59' }), null);
+  assert.strictEqual(b2.status, 409, JSON.stringify(b2.body));
+  // 14:00 — exactly at the block's end boundary → allowed.
   const c = await api('POST', '/api/public/capture', capturePayload({ appointment_date: day, appointment_time: '14:00' }), null);
-  assert.strictEqual(c.status, 409);
-  // 15:00 (its buffer starts 14:00 = previous buffer end) → allowed.
-  const d = await api('POST', '/api/public/capture', capturePayload({ appointment_date: day, appointment_time: '15:00' }), null);
+  assert.strictEqual(c.status, 201, JSON.stringify(c.body));
+  // The 14:00–15:00 appointment now blocks 13:00–16:00: 15:00 overlaps it,
+  // 16:00 touches its end → allowed.
+  const c2 = await api('POST', '/api/public/capture', capturePayload({ appointment_date: day, appointment_time: '15:00' }), null);
+  assert.strictEqual(c2.status, 409);
+  const d = await api('POST', '/api/public/capture', capturePayload({ appointment_date: day, appointment_time: '16:00' }), null);
   assert.strictEqual(d.status, 201, JSON.stringify(d.body));
   // Lead Detail reschedule into a conflict → 409 slot_conflict, appointment unchanged.
   const lead = await getLead(d.body.lead.id);
@@ -447,7 +476,7 @@ test('13. Conflict rules: Meeting reserves 1h before + duration + 1h after; over
   assert.strictEqual(e.body.error, 'slot_conflict');
   const after = await getLead(lead.id);
   assert.strictEqual(after.appointment_id, lead.appointment_id);
-  assert.strictEqual(after.appointment_time, '15:00');
+  assert.strictEqual(after.appointment_time, '16:00');
   // Authorized admin override books anyway and is audited.
   const f = await api('PUT', `/api/v1/leads/${lead.id}/appointment`, { appointment_date: day, appointment_time: '12:30', admin_override: true });
   assert.strictEqual(f.status, 200, JSON.stringify(f.body));
@@ -460,11 +489,11 @@ test('13. Conflict rules: Meeting reserves 1h before + duration + 1h after; over
 
 // ── 14: reminder timing ──────────────────────────────────────────────────────
 test('14. Reminder timing uses the real appointment start (not the buffer, not the follow-up)', { skip }, async () => {
-  const lead = await getLead(bothLeadId); // Phone Call appointment 13:00 + follow-up Phone Call 2031-06-01 14:00
+  const lead = await getLead(bothLeadId); // Site Visit 13:00 + follow-up Phone Call 2031-06-01 14:00
   const { getAppointmentMs, computeWindowsForLead } = require('../../lib/reminderEngine');
   const { pacificToUtcMs } = require('../../lib/reminderTime');
   const rid = lead.external_ref || lead.id;
-  // Switch the appointment back to a Meeting so the engine will remind.
+  // Move the Site Visit so the reminder source changes.
   const r = await api('PUT', `/api/v1/leads/${bothLeadId}/appointment`, { appointment_date: bothDay, appointment_time: '16:00', appointment_type: 'Meeting' });
   assert.strictEqual(r.status, 200, JSON.stringify(r.body));
   const rl = (await db.query('SELECT * FROM reminder_leads WHERE id = $1', [rid])).rows[0];

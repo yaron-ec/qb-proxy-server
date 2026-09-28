@@ -85,22 +85,24 @@ async function api(method, path, body, tok) {
 }
 
 let seq = 0;
+// Random 10-digit phone per lead: the test DB persists between runs, and a phone
+// reused from an earlier run is (correctly) rejected by duplicate-lead prevention
+// (exact phone-suffix match) with a 409 potential_duplicate.
+const rnd = (lo, n) => lo + Math.floor(Math.random() * n);
+const randomPhone = () => `${rnd(200, 800)}${rnd(200, 800)}${String(rnd(0, 10000)).padStart(4, '0')}`;
 function capturePayload(extra) {
   seq++;
   return {
     first_name: 'Mtg', last_name: `FollowUp${seq}${Date.now() % 100000}`,
-    phone: `555${String(2000000 + seq * 7919 + (Date.now() % 1000)).slice(-7)}`,
+    phone: randomPhone(),
     project_type: 'Kitchen', source: 'Referral', assigned_rep: 'Yaron Drilevich',
     property_address: '123 Main St', city: 'Los Angeles',
     ...extra,
   };
 }
 
-let dayOffset = Math.floor(Math.random() * 20000) * 3 + 1;
-function uniqueDay() {
-  dayOffset += 3;
-  return new Date(Date.UTC(2033, 0, 5 + dayOffset)).toISOString().slice(0, 10);
-}
+let pickDay; // set in test.before from ./freeDays (days with no appointment)
+function uniqueDay() { return pickDay(); }
 
 async function drainOutbox() {
   for (let i = 0; i < 20; i++) {
@@ -133,6 +135,7 @@ test.before(async () => {
   if (skip) return;
   const express = require('express');
   db = require('../../db/client');
+  pickDay = await require('./freeDays').loadFreeDayPicker(db);
   outbox = require('../../lib/booking/calendarOutbox');
   const { issueAccessToken } = require('../../lib/authService');
   await db.query(

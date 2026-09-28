@@ -8,7 +8,7 @@
  *   - listDueSoonTasks filters to the 15-min window (mocked rda)
  *   - dry-run => no sends, returns stats
  *
- * Run: cd src/proxy-server && node --test test/taskReminders.test.js
+ * Run: node --test test/taskReminders.test.js
  */
 'use strict';
 

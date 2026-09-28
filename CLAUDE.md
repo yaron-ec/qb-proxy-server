@@ -28,11 +28,18 @@ Base44 dependency — see "Base44 prohibition" below.
 - `db/` — `client.js` (shared pool), `migrate.js` (migration runner),
   `schema.sql` (**partial legacy snapshot only — see below**),
   `migrations/*.sql` (the real schema history), `rollback/*.sql`.
-- `scripts/` — mostly one-off Base44→Railway migration/audit/rollback
-  tooling from the historical migration, not production runtime. One
-  script, `scripts/reconcileLeads.js`, still imports `@base44/sdk` directly
-  — it is a manual dev tool, never wired into any route/cron/worker, and is
-  the one known remaining exception to "zero Base44" (see below).
+- `scripts/` — Railway-native operational tools: `calendarOutboxWorker.js`
+  (the `noble-illumination` worker), reconciliations/backfills, and local
+  dry-runs. The one-off Base44→Railway migration/rollback/audit tooling (46
+  scripts incl. `reconcileLeads.js`/`migrationHelpers.js`) and the
+  `POST /api/v1/cron/system-wide-reconciliation` endpoint that shelled out to
+  one of them were removed once proven unreferenced — the migration is
+  complete and git history keeps them.
+- There is **no top-level `src/`**: it held stale, divergent copies of
+  `server.js`, `routes/routing.js`, `routes/signnow.js`,
+  `lib/googleMapsClient.js` and four frontend files (never in any image or
+  service) and was deleted; `test/intakeLockingAndCanonicalTree.test.js`
+  keeps it (and any image/service/require pointing at it) from returning.
 - Root `Dockerfile`, root `package.json` — the `qb-proxy-server` API image.
 
 **Frontend:**
@@ -95,14 +102,41 @@ about topology, this file wins; go correct `railway.json` and
   currently have **no ownership check at all** beyond `requireAuth` despite
   header comments claiming scoping — this is known, tracked technical debt,
   not a pattern to copy into new code.
-- **QuickBooks token refresh**: `server.js`'s mutexed, PostgreSQL-backed
-  refresh implementation is canonical. `lib/qbInboundSync.js` has its own
-  unmutexed refresh, and `lib/qbSyncTrigger.js` has a filesystem-based
-  refresh that writes back to disk — both are known, tracked duplication
-  that can race against `server.js`'s refresh (Intuit rotates the refresh
-  token on each use). Do not extend `qbSyncTrigger.js`'s filesystem path;
-  it likely no-ops in production today since the one-time migration deletes
-  the token file it depends on.
+- **QuickBooks token refresh**: `lib/qbTokenManager.js` is the ONE refresh
+  implementation (server.js routes/crons, `lib/qbInboundSync.js`, and
+  `lib/qbSyncTrigger.js` through it). The persisted credential is the source
+  of truth (re-read each call); a refresh is single-flight per process and
+  across processes (Postgres advisory lock, credential re-read under the
+  lock so a token another holder just rotated is reused, never rotated
+  twice), and always persists the rotated refresh token AND its expiry.
+  Previously server.js (in-memory) and qbInboundSync (DB, unlocked) both
+  refreshed on the same 15-minute cron minute; Intuit rotates refresh tokens,
+  so server.js was left with a stale pair (`/health` showed tokenExpired=true
+  from that stale copy; its next refresh risked invalid_grant → "revoked").
+  `/health` now reads the persisted credential; `tokenExpired` refers only to
+  the 1-hour access token, refreshed on the next QuickBooks call, and
+  `accessToken` spells the state out (`valid` / `expired_refreshes_on_next_use`
+  / `refresh_expired` / `none`). Never add a second refresh path.
+- **QuickBooks API calls**: every authenticated QuickBooks request goes
+  through `qbTokenManager.qbApiRequest` (server.js `qbFetch`, the PDF routes,
+  `qbInboundSync.qbQuery`, `qbSyncTrigger`). It uses a valid (auto-refreshed)
+  token and, on a 401, forces ONE canonical refresh and retries the request
+  once — never a loop. Refresh: Intuit 429/5xx get a bounded retry (3
+  attempts, backoff) and are recorded as transient, never as revoked; only
+  `invalid_grant`/`token_revoked` (a non-5xx refusal) marks the credential
+  revoked, emails `ALERT_RECIPIENTS` once a day, and makes `reconnectRequired`
+  true (admins also see a CRM banner linking to `/integrations`). The refresh
+  result is compare-and-swapped against the stored refresh token so it never
+  overwrites a newer grant; the OAuth callback saves under the same advisory
+  lock (`saveAuthorizedTokens`). `/qb/health?verify=1` (proxy secret or JWT
+  only) proves real access with a read-only companyinfo call;
+  `credentialStatus` and `lastSuccessfulApiCallAt` are always reported.
+  Reconnect is OAuth re-consent only — never stored Intuit usernames or
+  passwords, never browser automation. `test/qbTokenManager.test.js` fails on
+  any raw `Bearer ${…access_token}` QuickBooks fetch outside the manager.
+- **Completed follow-ups are never Overdue**: every overdue indicator (Leads
+  list, Kanban, My Day, Follow-Ups widget) skips `follow_up_status =
+  'completed'`.
 - **Financial fields** (`lib/qbInvoiceSaleMap.js#computeSaleFinancials`):
   `balance` has always meant `PROJECT_TOTAL − PAID` ("how much is left to
   collect on the whole project"), not `INVOICED − PAID`, despite the name
@@ -190,8 +224,7 @@ about topology, this file wins; go correct `railway.json` and
 
 - Never run a destructive script (`DELETE`, `TRUNCATE`, bulk `UPDATE`)
   against production without confirming `DATABASE_URL` first — several
-  scripts (`db/importLeads.js`, `scripts/reconcileLeads.js --apply`) have
-  no built-in environment guard.
+  scripts (e.g. `db/importLeads.js`) have no built-in environment guard.
 - `company_settings` is an unscoped singleton — `DELETE FROM
   company_settings` deletes ALL rows (every route reads it via
   `ORDER BY created_at ASC LIMIT 1`, not by any tenant key).
@@ -216,6 +249,26 @@ about topology, this file wins; go correct `railway.json` and
   `2026-34-*` ×2) — apply order is alphabetical tie-break within the same
   prefix, not guaranteed intent. Check `schema_migrations` before assuming
   a specific migration has or hasn't run.
+- **No DDL at runtime.** `db/schema.sql` is executed ONLY by `db/migrate.js`
+  (deploy time, under its advisory lock), which records its checksum as
+  `schema_migrations.__base_schema__`; runtime `ensureSchema()` is then a
+  single SELECT. Never add `ALTER TABLE … ADD COLUMN IF NOT EXISTS` (or other
+  DDL) to a request/worker path — it takes an AccessExclusiveLock even as a
+  no-op. Use `db/client.js#ensureColumns` (catalog check first). Re-running
+  schema.sql on every process start (the reminder worker is a fresh process
+  every 15 min) caused a real intake deadlock: DDL held `reminder_leads` and
+  wanted `owners` while a capture transaction held `owners` and wanted
+  `reminder_leads` → "Submission failed".
+- **Lead intake lock order**: every lead-creating transaction
+  (`bookingService.createBooking`, admin `POST /api/v1/leads`) FIRST takes
+  `leadResolution.lockLeadIdentity` (sorted, transaction-scoped advisory locks
+  on normalized phone / email / external_ref / idempotency key), THEN lead
+  rows, THEN the owner-schedule lock, THEN writes. This is what makes
+  simultaneous same-person / same-delivery / same-key submissions resolve to
+  one lead (duplicate detection alone cannot lock a row that doesn't exist
+  yet). `createBooking` also retries a transaction a bounded 3 times on
+  40P01/40001 as defense in depth — never a substitute for lock order.
+  Real-Postgres proof: `test/integration/leadIntakeConcurrency.int.test.js`.
 - Do not hold a DB transaction open across an external network/API call
   (Google, QuickBooks, SignNow, Gmail, Handoff). The existing booking/
   calendar-outbox code follows this correctly (network calls happen outside
@@ -244,7 +297,7 @@ about topology, this file wins; go correct `railway.json` and
 
 | Integration | Auth | Storage | Optional? |
 |---|---|---|---|
-| QuickBooks | OAuth2, refreshed via `server.js` (canonical — see token-refresh note above) | `integration_credentials` (Postgres, AES-256-CBC) | Env-var gated |
+| QuickBooks | OAuth2, refreshed only via `lib/qbTokenManager.js` (see token-refresh note above) | `integration_credentials` (Postgres, AES-256-CBC) | Env-var gated |
 | Gmail | OAuth2, single hardcoded mailbox (`yaron@ecconstructiongroup.com`) | `integration_credentials` | Env-var gated, not genuinely multi-account today |
 | Google Calendar/Contacts | Service account, domain-wide delegation | N/A (no per-user token) | Env-var gated |
 | SignNow | API key (primary) or OAuth2 password grant (fallback) | `integration_credentials` | Env-var gated |
@@ -276,7 +329,65 @@ about topology, this file wins; go correct `railway.json` and
   `test/integration/meetingFollowUp.int.test.js`).
   Writes: `PUT /api/v1/leads/:id/appointment` vs `PUT /api/v1/leads/:id/follow-up`.
   Real-Postgres coverage: `npm run test:integration` (needs a disposable,
-  migrated `TEST_DATABASE_URL`).
+  migrated `TEST_DATABASE_URL`). It runs the files one at a time because
+  they share one database and one global calendar-outbox queue, which each
+  file drains with its own fake Google client (a parallel file could process
+  another file's job); the intake concurrency suite fires its submissions
+  genuinely in parallel inside the file.
+- **Appointment blocking rule** (canonical, do not change): an appointment
+  blocks 1h before + its duration + 1h after (12:00–13:00 blocks 11:00–14:00);
+  a new appointment is checked as its own actual window against that block,
+  so touching a boundary is allowed (14:00 books, 13:59 does not). The
+  availability grid and the write-path conflict check apply the same rule —
+  `test/integration/appointmentBufferBoundary.int.test.js` compares them slot
+  by slot. A Phone Call FOLLOW-UP keeps its reminder emails (owner, Michelle
+  and the customer — decided, keep) but never blocks, buffers or travels
+  (`test/integration/phoneCallFollowUp.int.test.js`).
+- **A Phone Call is never an appointment.** Only a real Appointment / Site
+  Visit is an `appointments` row. `bookingService` refuses a Phone Call
+  (`422 phone_call_is_follow_up`, incl. rescheduling a legacy unbuffered Phone
+  Call row); `PUT /leads/:id/appointment` with `appointment_type: 'Phone Call'`
+  and public capture's Phone Call appointment are saved as the lead's Phone Call
+  FOLLOW-UP instead (a legacy Phone Call booking on the lead is cancelled; a
+  Site Visit is untouched), and a missing `appointment_type` on a lead with a
+  legacy Phone Call row is a 400, never a silent Site Visit. The Appointment
+  editor offers no Phone Call kind.
+- **Phone Call calendar visibility = one non-blocking reminder** (one
+  canonical classification: `lib/booking/phoneCallModel.js`). The lead's
+  active, timed Phone Call follow-up is the ONLY source; the calendar worker
+  reconciles it (`lib/booking/followUpReminders.js`, state in
+  `followup_calendar_reminders`) to exactly one Google event per lead —
+  deterministic id (per lead + generation), `transparency: transparent`,
+  private `ec_kind=followup_reminder`, `ec_blocking=false`, owner as the only
+  attendee, no travel. Reschedule / reassignment / note edits update the same
+  event; completed / cleared / retyped / deleted removes it (a past one is
+  kept as history). Availability ignores it by the private marker
+  (`isNonBlockingCrmGoogleEvent`), never by title or Google free/busy alone;
+  external Google events keep blocking. Legacy Phone Call appointment rows
+  never get a main/travel event (`enqueueCreate/enqueueUpdate`, worker
+  backstop, `reconcileSyncedAppointments`), their old Google events are
+  dropped from availability by `ec_appointment_id`
+  (`dropLegacyPhoneCallWindows`), and active future ones are moved onto the
+  lead's follow-up by `lib/booking/legacyPhoneCallConversion.js` (backed up in
+  `legacy_phone_call_conversions`; different active follow-up / closed lead →
+  `ambiguous`, untouched; undo: `scripts/revertLegacyPhoneCallConversion.js`,
+  report-only unless `APPLY=1`). Meeting follow-ups stay CRM-only. Live
+  aggregate proof (no PII): admin-only `GET /api/v1/system/phone-calls`
+  (+ `/phone-calls/ambiguous`, read-only provenance of ambiguous rows) —
+  `routes/systemHealth.js`; auth = CRM admin JWT or the website repo's
+  private `final-verify.yml` GitHub OIDC identity (`lib/systemHealthAuth.js`).
+  Real-Postgres coverage: `test/integration/phoneCallCalendarReminder.int.test.js`.
+- **Driving / Travel Time** exists only for an ACTIVE Site Visit —
+  `lib/booking/appointmentKind.js#travelAllowed`, checked in
+  `calendarOutbox.enqueueCreate/enqueueUpdate` AND again by the worker before
+  it creates/updates a queued travel event (`skipped: travel_not_allowed` /
+  `stale_slot`). A successful `cancel_travel` clears
+  `google_travel_event_id`; the travel event never sets the appointment's sync
+  status. Historical invalid travel events: `scripts/auditTravelArtifacts.js`
+  (report-only by default; `--apply --confirm-host` only queues `cancel_travel`
+  for provably invalid UPCOMING artifacts). Real-Postgres coverage:
+  `test/integration/phoneCallNeverAppointment.int.test.js`,
+  `test/integration/auditTravelArtifacts.int.test.js`.
 - **`qb_invoice_sale_map`**: `crm_sale_id` is the ONLY ownership boundary
   for a QuickBooks invoice, and a mapping is NEVER reassigned once created
   (`ON CONFLICT DO NOTHING`). Never resolve invoice ownership by amount,
@@ -297,10 +408,12 @@ about topology, this file wins; go correct `railway.json` and
   pages (fixed to serve from `${CRM_PUBLIC_URL}/email-logo.png`, matching
   `lib/emailTemplates.js`'s existing pattern); `lib/actionRouter.js`'s CSP
   `img-src` was updated to match. `test/noBase44MediaDependency.test.js` is
-  a permanent regression guard against this class of issue recurring. The
-  one remaining known exception is `scripts/reconcileLeads.js`, a manual
-  dev tool that still imports `@base44/sdk` — not wired into any production
-  path; do not build new production logic depending on it.
+  a permanent regression guard against this class of issue recurring. No
+  known exception remains: the last Base44-calling code (the migration
+  scripts, the `system-wide-reconciliation` endpoint, the stale `src/`
+  tree and the frontend's `lib/app-params.js`, which parsed a Base44
+  `access_token`/`app_id` from the URL into `base44_*` localStorage keys on
+  every page load) was removed.
 
 ## Working subsystems — do not redesign without new evidence
 
@@ -445,6 +558,6 @@ against an actual run of it, before trusting either.
 Do not use, restore, recommend, or design any Base44 dependency in new
 work — as runtime, backend, frontend, API, SDK, auth, storage, database,
 worker, cron, integration, deployment mechanism, or fallback/migration
-bridge. Base44-referencing comments in the codebase document what was
-replaced, not a live integration point, with the narrow, explicitly-tracked
-exception of `scripts/reconcileLeads.js` noted above.
+bridge. Base44-referencing comments and legacy column names (e.g.
+`legacy_base44_id`, `base44_entity_map`) document what was replaced or keep
+historical data readable; they are not live integration points.

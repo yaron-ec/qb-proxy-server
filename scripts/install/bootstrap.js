@@ -159,7 +159,7 @@ async function ensureCompanySettings(db, cfg) {
 
   // Notification routing (PRODUCTIZATION PHASE 2): a fresh installation NEVER
   // inherits the column default's EC addresses (see
-  // db/migrations/2026-45-notification-config.sql) — it explicitly writes
+  // db/migrations/2026-47-notification-config.sql) — it explicitly writes
   // its own admin as the sole recipient unless company.json overrides this.
   const notifTo = Array.isArray(cfg.notification_recipients?.to) ? cfg.notification_recipients.to
     : (cfg.admin_email ? [cfg.admin_email] : []);

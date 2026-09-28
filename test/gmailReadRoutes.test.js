@@ -10,7 +10,7 @@
  *   - no send capability is exposed (only GET routes)
  *   - Gmail token is obtained server-side (gmailSender.refreshAccessToken)
  *
- * Run: cd src/proxy-server && node --test test/gmailReadRoutes.test.js
+ * Run: node --test test/gmailReadRoutes.test.js
  */
 'use strict';
 

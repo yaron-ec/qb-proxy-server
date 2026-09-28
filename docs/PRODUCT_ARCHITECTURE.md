@@ -102,7 +102,7 @@ rather than replacing it.
 ## Installation identity
 
 Every `company_settings` row carries a stable `installation_id` (UUID,
-generated once, immutable) — see migration `2026-44-product-config.sql` and
+generated once, immutable) — see migration `2026-46-product-config.sql` and
 `lib/installationIdentity.js`. This is the mechanism a maintenance/migration
 script uses to confirm which company's database it is connected to before
 doing anything destructive (`--confirm-installation=<id-or-name>`). See

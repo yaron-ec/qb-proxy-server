@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import * as railwayLeads from "@/api/railway/leads";
 import * as railwayHandoffEstimates from "@/api/railway/handoffEstimates";
 import { apiCall } from "@/api/railway/client";
-import { appParams } from "@/lib/app-params";
 import { RAILWAY_API_URL } from "@/lib/apiConfig";
 import {
   Zap, CheckCircle, Loader2, AlertTriangle, Upload, FileJson,

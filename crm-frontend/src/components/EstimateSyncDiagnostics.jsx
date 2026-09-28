@@ -1,6 +1,6 @@
 /**
  * EstimateSyncDiagnostics — Show sync status for each estimate
- * Displays: Handoff → QB → Base44 flow for every estimate
+ * Displays: Handoff → QB → CRM flow for every estimate
  */
 
 import { useState, useEffect } from "react";
@@ -147,7 +147,7 @@ export default function EstimateSyncDiagnostics() {
                 <span className="text-slate-400">→</span>
                 <div className="flex items-center gap-1">
                   <StatusIcon exists={diag.base44_imported} />
-                  <span className="text-[10px]">Base44</span>
+                  <span className="text-[10px]">CRM</span>
                 </div>
               </div>
             </button>

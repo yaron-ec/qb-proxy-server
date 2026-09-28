@@ -67,7 +67,7 @@ delete require.cache[leadResolutionPath];
 let resolveLeadImpl = async () => ({ action: 'create' });
 require.cache[leadResolutionPath] = {
   id: leadResolutionPath, filename: leadResolutionPath, loaded: true,
-  exports: { resolveLead: (...a) => resolveLeadImpl(...a) },
+  exports: { resolveLead: (...a) => resolveLeadImpl(...a), lockLeadIdentity: async () => [] },
 };
 
 const appointmentTypesPath = require.resolve('../lib/booking/appointmentTypes');

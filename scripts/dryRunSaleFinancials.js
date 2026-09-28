@@ -35,7 +35,7 @@
  *   - Runs the ENTIRE dry run inside a single transaction and ROLLBACKs.
  *     Zero persistent changes. Test DB left pristine and reusable.
  *
- * USAGE (from src/proxy-server/):
+ * USAGE (from the repo root):
  *   TEST_DATABASE_URL=postgres://user:pass@host:5432/testdb \
  *     node scripts/dryRunSaleFinancials.js
  */
@@ -69,7 +69,7 @@ if (/prod|production/i.test(TEST_DB) && !/test|staging|dev|dry|sandbox|nurturing
 
 let pg;
 try { pg = require('pg'); } catch (e) {
-  console.error('FATAL: `pg` not installed. Run from src/proxy-server/ directory.');
+  console.error('FATAL: `pg` not installed. Run from the repo root.');
   process.exit(2);
 }
 

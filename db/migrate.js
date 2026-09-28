@@ -32,7 +32,7 @@ const db = require('./client');
 // Stable advisory lock key for schema migrations. Must be the same across all
 // replicas so concurrent deploys serialize. This is a signed 32-bit int derived
 // from a fixed string.
-const ADVISORY_LOCK_KEY = 0x4d494752; // 'MIGR' as int32
+const ADVISORY_LOCK_KEY = db.MIGRATION_LOCK_KEY; // 'MIGR' as int32 (shared with db/client.js ensureSchema)
 
 async function runMigrations() {
   const client = await db.pool.connect();
@@ -41,9 +41,11 @@ async function runMigrations() {
     await client.query(`SELECT pg_advisory_lock($1)`, [ADVISORY_LOCK_KEY]);
     console.log('[migrate] advisory lock acquired');
 
-    // 2. Ensure base schema (email_send_claims, email_send_logs, users, refresh_tokens)
-    await db.ensureSchema();
-    console.log('[migrate] base schema ensured');
+    // 2. Ensure base schema (db/schema.sql) — on THIS client, which holds the
+    //    migration lock. Skipped when its recorded checksum already matches, so
+    //    an unchanged schema.sql takes no table locks against live traffic.
+    const base = await db.applyBaseSchema(client);
+    console.log(`[migrate] base schema ${base.applied ? 'applied' : 'unchanged (skipped)'}`);
 
     // 3. Ensure schema_migrations table exists (bootstrap — this CREATE is
     //    itself idempotent and runs before any file is checked)

@@ -16,7 +16,7 @@
  *
  * Zero dependency on base44AppointmentTemplates or any Base44 module.
  *
- * Run: cd src/proxy-server && node --test test/reminderParity.test.js
+ * Run: node --test test/reminderParity.test.js
  */
 'use strict';
 

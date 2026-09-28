@@ -88,7 +88,7 @@ const leadResolutionPath = require.resolve('../lib/booking/leadResolution');
 delete require.cache[leadResolutionPath];
 require.cache[leadResolutionPath] = {
   id: leadResolutionPath, filename: leadResolutionPath, loaded: true,
-  exports: { resolveLead: async () => ({ action: 'create' }) },
+  exports: { resolveLead: async () => ({ action: 'create' }), lockLeadIdentity: async () => [] },
 };
 
 const calendarOutboxPath = require.resolve('../lib/booking/calendarOutbox');

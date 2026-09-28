@@ -27,7 +27,7 @@ config change too.
   installation. It tracks applied migrations in `schema_migrations` and
   skips already-applied files — running it against an up-to-date database
   is always a safe no-op.
-- Every migration in this repo, including `2026-44-product-config.sql`, is
+- Every migration in this repo, including `2026-46-product-config.sql`, is
   additive: new tables/columns only, with defaults chosen to preserve
   existing behavior (verified for `2026-44` — see
   `test/integration/productization.int.test.js`'s upgrade test). This
@@ -65,7 +65,7 @@ config change too.
   provide one (check before assuming one exists for a specific migration —
   not every migration in this repo has a paired rollback file today; this
   is a pre-existing gap, not introduced by productization).
-  `2026-44-product-config.sql` is purely additive (new nullable/defaulted
+  `2026-46-product-config.sql` is purely additive (new nullable/defaulted
   columns) — rolling back the CODE is sufficient; the new columns being
   present but unread by older code is harmless, so no rollback SQL is
   required for this specific migration.

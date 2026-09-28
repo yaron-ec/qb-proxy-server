@@ -220,7 +220,7 @@ const leadResolutionPath = require.resolve('../lib/booking/leadResolution');
 delete require.cache[leadResolutionPath];
 require.cache[leadResolutionPath] = {
   id: leadResolutionPath, filename: leadResolutionPath, loaded: true,
-  exports: { resolveLead: async () => ({ action: 'create' }) },
+  exports: { resolveLead: async () => ({ action: 'create' }), lockLeadIdentity: async () => [] },
 };
 const calendarOutboxRealPath = require.resolve('../lib/booking/calendarOutbox');
 const realCalendarOutbox = require(calendarOutboxRealPath);
@@ -290,16 +290,16 @@ test('4b. TEST 3 FROM SPEC: a real Meeting still correctly blocks/buffers — no
   );
 });
 
-test('5. TEST 5 FROM SPEC: booking a Phone Call itself never enqueues a travel/buffer calendar event', async () => {
+test('5. TEST 5 FROM SPEC: a Phone Call can never be booked as an appointment (no row, no travel/buffer event)', async () => {
   resetFixture();
   lastEnqueueCreateArgs = null;
-  const { createBooking } = require('../lib/booking/bookingService');
-  await createBooking({
+  const { createBooking, BookingError } = require('../lib/booking/bookingService');
+  await assert.rejects(createBooking({
     idempotency_key: `k-${Math.random()}`, owner_id: 'owner-1',
     first_name: 'New', last_name: 'Client', appointment_type_id: 'type-1',
     start_at: toUtcIso(DATE, '14:00', TZ), skip_travel: true,
-  });
-  assert.strictEqual(lastEnqueueCreateArgs.skipTravel, true, 'a Phone Call booking must enqueue with skipTravel=true (no travel/buffer event)');
+  }), (e) => e instanceof BookingError && e.status === 422 && e.code === 'phone_call_is_follow_up');
+  assert.strictEqual(lastEnqueueCreateArgs, null, 'nothing is enqueued for Google Calendar');
 });
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -330,4 +330,35 @@ test('7. horizontal audit: the canonical kind distinction (lower(busy_range) < s
   assert.ok(/lower\(busy_range\) < start_at/.test(writerSrc), 'appointmentWriter.js must filter Phone Calls out of conflict detection');
   assert.ok(/ec_appointment_kind === 'phone_call'/.test(googleSrc), 'googleAvailability.js must exclude Phone Call Google events by the canonical marker, not by title');
   assert.ok(!/summary\.includes\(.Phone Call.\)/.test(googleSrc), 'must never gate on the event summary/title string');
+});
+
+test('7. ONE travel rule, enforced at every calendar write path (no second classification anywhere)', () => {
+  const root = path.join(__dirname, '..');
+  const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
+  const kind = read('lib/booking/appointmentKind.js');
+  assert.match(kind, /function travelAllowed\(appt\)/);
+  const ob = read('lib/booking/calendarOutbox.js');
+  assert.match(ob, /if \(!skipTravel && travelAllowed\(appointment\)\)/, 'enqueueCreate: travel only for an active Site Visit');
+  assert.match(ob, /skipTravel = !!skipTravel \|\| !travelAllowed\(appointment\)/, 'enqueueUpdate: same rule');
+  assert.match(ob, /staleTravelReason/, 'the worker re-validates queued travel');
+  // Only calendarOutbox builds a travel event, and only lib/booking + routes enqueue calendar work.
+  const offenders = [];
+  const walk = (dir) => {
+    for (const e of fs.readdirSync(path.join(root, dir), { withFileTypes: true })) {
+      const rel = path.join(dir, e.name);
+      if (e.isDirectory()) { if (!['node_modules', 'dist'].includes(e.name)) walk(rel); continue; }
+      if (!/\.(c?js|jsx)$/.test(e.name) || /\.test\./.test(e.name)) continue;
+      const src = read(rel);
+      if (/['"`]Driving \/ Travel Time['"`]/.test(src) && rel !== path.join('lib', 'booking', 'calendarOutbox.js') && !/^scripts[\\/]auditTravelArtifacts\.js$/.test(rel)) offenders.push(rel);
+      if (/calendar\/create-event/.test(src)) offenders.push(rel + ' (direct calendar write)');
+    }
+  };
+  ['lib', 'routes', 'scripts', 'crm-frontend/src'].forEach(walk);
+  assert.deepStrictEqual(offenders, []);
+  // A Phone Call can never reach the booking service as an appointment.
+  const bs = read('lib/booking/bookingService.js');
+  assert.ok((bs.match(/assertNotPhoneCall\(skip_travel\)/g) || []).length >= 3, 'createBooking, createAppointmentForLead, rescheduleAppointment');
+  assert.match(read('routes/leads.js'), /phone_call_saved_as_follow_up/);
+  assert.match(read('lib/captureValidation.js'), /phone_call_as_follow_up = true/);
+  assert.doesNotMatch(read('crm-frontend/src/components/AppointmentEditor.jsx'), /\["Meeting", "Phone Call"\]\.map/);
 });

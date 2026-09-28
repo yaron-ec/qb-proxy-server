@@ -29,12 +29,12 @@
  *   - No BASELINE: the booking-core migration is self-contained (creates
  *     owners + leads + appointments + outboxes from scratch).
  *
- * USAGE (from src/proxy-server/):
+ * USAGE (from the repo root):
  *   TEST_DATABASE_URL=postgres://user:pass@host:5432/testdb \
  *     node scripts/dryRunBookingCore.js
  *
  *   The `pg` package is already a dependency of proxy-server, so run from
- *   the src/proxy-server/ directory.
+ *   the repo root.
  */
 'use strict';
 
@@ -69,7 +69,7 @@ try {
   pg = require('pg');
 } catch (e) {
   console.error('FATAL: `pg` package not installed in this environment: ' + e.message);
-  console.error('       Run this script from the src/proxy-server/ directory where `pg` is installed.');
+  console.error('       Run this script from the repo root, where `pg` is installed.');
   process.exit(2);
 }
 

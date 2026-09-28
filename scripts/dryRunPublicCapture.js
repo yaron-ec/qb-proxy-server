@@ -17,7 +17,7 @@
  *   - Uses a dedicated test schema prefix to avoid colliding with real tables,
  *     and cleans up all test data at the end.
  *
- * USAGE (from src/proxy-server/):
+ * USAGE (from the repo root):
  *   TEST_DATABASE_URL=postgres://user:pass@host:5432/testdb \
  *     DATABASE_SSL=false node scripts/dryRunPublicCapture.js
  */

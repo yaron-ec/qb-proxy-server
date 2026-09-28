@@ -7,7 +7,7 @@
  * return a real 401 (not 404), that password is never returned, and that
  * authorization is enforced.
  *
- * Run with: node src/proxy-server/test/signnowRoutes.test.js
+ * Run with: node test/signnowRoutes.test.js
  */
 'use strict';
 

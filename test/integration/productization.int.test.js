@@ -135,8 +135,8 @@ test('4. EC-SHAPED DATABASE UPGRADE: a pre-productization company_settings row (
 
   const fs = require('fs');
   const migDir = path.join(ROOT, 'db', 'migrations');
-  const productMig = path.join(migDir, '2026-44-product-config.sql');
-  const holdout = path.join(require('os').tmpdir(), '2026-44-product-config.sql.holdout');
+  const productMig = path.join(migDir, '2026-46-product-config.sql');
+  const holdout = path.join(require('os').tmpdir(), '2026-46-product-config.sql.holdout');
   fs.renameSync(productMig, holdout);
   try {
     execFileSync('node', [path.join(ROOT, 'db', 'migrate.js')], { env: { ...process.env, DATABASE_URL: ecUrl }, stdio: 'ignore' });

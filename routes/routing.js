@@ -31,7 +31,7 @@
 
 const express = require('express');
 const { requireAuth, requireRole } = require('../lib/rbac');
-const { query } = require('../db/client');
+const { query, ensureColumns } = require('../db/client');
 const gmaps = require('../lib/googleMapsClient');
 
 const router = express.Router();
@@ -78,7 +78,7 @@ async function ensureGeocodeTable() {
     `);
     await query('CREATE INDEX IF NOT EXISTS idx_lead_geocodes_hash ON lead_geocodes (address_hash)');
     // Add verified_address column to existing tables
-    await query('ALTER TABLE lead_geocodes ADD COLUMN IF NOT EXISTS verified_address TEXT');
+    await ensureColumns('lead_geocodes', [['verified_address', "TEXT"]]);
   } catch (e) {
     console.warn('[routing] lead_geocodes table creation deferred:', e.message);
   }
@@ -89,17 +89,21 @@ async function ensureGeocodeTable() {
 // property_address (which is preserved unchanged for audit).
 async function ensureLeadsGeocodeColumns() {
   try {
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS verified_property_address TEXT');
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_lat DOUBLE PRECISION');
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_lng DOUBLE PRECISION');
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_geocode_status TEXT DEFAULT \'pending\'');
+    await ensureColumns('leads', [
+      ['verified_property_address', "TEXT"],
+      ['property_lat', "DOUBLE PRECISION"],
+      ['property_lng', "DOUBLE PRECISION"],
+      ['property_geocode_status', "TEXT DEFAULT 'pending'"],
+    ]);
     // Add state column — the leads table was created without it, but the CRM
     // ContactInfoEditor displays it. Address reconciliation populates it from
     // Google's verified address_components.
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS state TEXT');
+    await ensureColumns('leads', [['state', "TEXT"]]);
     // Preserve the original raw address for audit/history before reconciliation overwrites it
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS original_property_address TEXT');
-    await query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS original_city TEXT');
+    await ensureColumns('leads', [
+      ['original_property_address', "TEXT"],
+      ['original_city', "TEXT"],
+    ]);
   } catch (e) {
     console.warn('[routing] leads geocode columns creation deferred:', e.message);
   }

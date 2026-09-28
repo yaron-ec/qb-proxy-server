@@ -19,7 +19,7 @@
 'use strict';
 
 const express = require('express');
-const { requireAuth } = require('../lib/rbac');
+const { requireAuth, requireRole } = require('../lib/rbac');
 const { canonicalEmail } = require('../lib/authorization');
 const { isOverrideAdminEmail } = require('../lib/captureOverrideAuth');
 const { query, pool } = require('../db/client');
@@ -30,7 +30,9 @@ const { syncLeadToReminders, removeFromReminders } = require('../lib/reminderPro
 const { notifyCrmActivity } = require('../lib/crmActivityNotifier');
 const { processAddress, buildAddressFieldMap, ensureAddressColumns } = require('../lib/addressPipeline');
 const bookingService = require('../lib/booking/bookingService');
+const { lockLeadIdentity } = require('../lib/booking/leadResolution');
 const { serializeAppointment, fetchActiveAppointmentsForLeads } = require('../lib/booking/appointmentView');
+const { isPhoneCallAppointment } = require('../lib/booking/appointmentKind');
 const { normalizeFollowUp, FOLLOW_UP_FIELDS } = require('../lib/followUp');
 const router = express.Router();
 
@@ -690,7 +692,8 @@ function parseAppointmentBody(body) {
   const rawTime = body.appointment_time == null ? '' : String(body.appointment_time).trim();
   const tm = rawTime.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
   const time = tm ? `${tm[1].padStart(2, '0')}:${tm[2]}` : null;
-  const kind = body.appointment_type == null || body.appointment_type === '' ? 'Meeting' : String(body.appointment_type);
+  const kindExplicit = !(body.appointment_type == null || body.appointment_type === '');
+  const kind = kindExplicit ? String(body.appointment_type) : 'Meeting';
   if (!validDateStr(date)) errors.push('appointment_date must be a valid YYYY-MM-DD date');
   if (!time || !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) errors.push('appointment_time must be HH:MM (24h)');
   if (!APPOINTMENT_KINDS.includes(kind)) errors.push(`appointment_type must be one of: ${APPOINTMENT_KINDS.join(', ')}`);
@@ -700,7 +703,7 @@ function parseAppointmentBody(body) {
     if (!Number.isInteger(duration) || duration <= 0 || duration > 480) errors.push('duration_minutes must be an integer between 1 and 480');
   }
   if (errors.length) return { ok: false, errors };
-  return { ok: true, cancel: false, date, time, kind, duration };
+  return { ok: true, cancel: false, date, time, kind, kindExplicit, duration };
 }
 
 function fmtApptChange(appt) {
@@ -786,7 +789,8 @@ async function executeFollowUpUpdate(req, res, leadId, opts) {
     client.release();
   }
 
-  const out = await respondWithLead(res, leadId, opts.legacy ? { deprecated: 'follow-up fields sent to /appointment are saved as a follow-up only; use PUT /:id/follow-up' } : null);
+  const out = await respondWithLead(res, leadId, opts.extra
+    || (opts.legacy ? { deprecated: 'follow-up fields sent to /appointment are saved as a follow-up only; use PUT /:id/follow-up' } : null));
   const changes = computeLeadDiff(before, out.full);
   if (changes.length) sendLeadNotification('lead_updated', out.full, changes, req.user && req.user.email);
   return res.json(out.body);
@@ -820,6 +824,36 @@ async function executeAppointmentRequest(req, res, leadId) {
   const active = await fetchActiveAppointment(leadId);
   if (body.expected_appointment_id !== undefined && String(body.expected_appointment_id || '') !== String(active ? active.id : '')) {
     return res.status(409).json({ error: 'stale_appointment', message: 'This appointment was changed elsewhere. Reload the lead and try again.' });
+  }
+  const activeIsLegacyPhoneCall = !!active && isPhoneCallAppointment(active);
+  if (!parsed.cancel && !parsed.kindExplicit && activeIsLegacyPhoneCall) {
+    // Never silently turn a legacy Phone Call into a Site Visit (buffer + travel).
+    return res.status(400).json({ error: 'appointment_type_required',
+      message: 'This lead has a legacy Phone Call booking. Send appointment_type "Phone Call" (saved as a follow-up) or "Meeting" (a Site Visit).' });
+  }
+  if (!parsed.cancel && parsed.kind === 'Phone Call') {
+    // A Phone Call is a follow-up, never an appointment: no calendar block, no
+    // buffer, no Driving / Travel Time. A legacy Phone Call booking on this lead
+    // is cancelled (its Google event removed) so the call is not duplicated; a
+    // real Site Visit on the lead is left untouched.
+    try {
+      if (activeIsLegacyPhoneCall) {
+        await bookingService.cancelAppointment(active.id, actor, { onWrite: async (client) => projectReminders(client, leadId) });
+      }
+    } catch (e) {
+      const status = e && e.status ? e.status : 500;
+      return res.status(status).json({ error: (e && e.code) || 'appointment_update_failed', message: e && e.message });
+    }
+    return executeFollowUpUpdate({ ...req, body: {
+      follow_up_date: parsed.date, follow_up_time: parsed.time, follow_up_type: 'Phone Call', follow_up_status: 'pending',
+    } }, res, leadId, { extra: { action: 'phone_call_saved_as_follow_up', legacy_phone_call_appointment_cancelled: activeIsLegacyPhoneCall } });
+  }
+  if (!parsed.cancel && activeIsLegacyPhoneCall) {
+    // Site Visit requested while a legacy Phone Call row is active: move the call
+    // first (appointment_type "Phone Call" → follow-up), then book the visit —
+    // never re-book the call row itself as a Site Visit.
+    return res.status(409).json({ error: 'legacy_phone_call_booking',
+      message: 'This lead has a legacy Phone Call booking. Save it as a Phone Call follow-up first, then schedule the Site Visit.' });
   }
   const onWrite = async (client) => projectReminders(client, leadId);
   let action = null;
@@ -905,6 +939,46 @@ router.put('/:id/appointment', requireAuth, async (req, res) => {
   } catch (e) {
     console.error('[leads] appointment update error:', e.message);
     res.status(500).json({ error: e.message });
+  }
+});
+
+// ── POST /:id/promote-follow-up-to-appointment ────────────────────────────────
+// A human (admin/manager) has confirmed this lead's dated Meeting Follow-Up
+// genuinely represents the real, current appointment (e.g. it was mistakenly
+// entered via Follow-Up instead of Appointment) — never invoked automatically/
+// inferred. Supersedes any existing active appointment (kept as history,
+// never deleted — see bookingService.supersedeAppointment), creates the real
+// canonical Appointment from the Follow-Up's date/time (through the same
+// booking service every other appointment goes through — conflict checks,
+// travel buffer, Google Calendar outbox, reminders all apply identically),
+// then clears the Follow-Up fields that mirrored it. A Phone Call follow-up
+// can never be promoted (a Phone Call is never an appointment — 422).
+router.post('/:id/promote-follow-up-to-appointment', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!UUID_RE.test(String(id))) {
+      return res.status(400).json({ error: 'invalid_id', message: 'promote-follow-up-to-appointment requires a valid Railway UUID.' });
+    }
+    const leadR = await query('SELECT id FROM leads WHERE id = $1', [id]);
+    if (!leadR.rows[0]) return res.status(404).json({ error: 'not_found' });
+
+    const actor = (req.user && req.user.email) || null;
+    const result = await bookingService.promoteFollowUpToAppointment(id, actor, {
+      onWrite: async (client, _appt, leadId) => projectReminders(client, leadId),
+    });
+
+    const out = await respondWithLead(res, id, {
+      action: 'follow_up_promoted_to_appointment',
+      superseded_appointment_id: result.superseded ? result.superseded.id : null,
+    });
+    sendLeadNotification('appointment_created', out.full, [
+      { label: 'Promoted from', prev: 'Follow-Up', next: 'Appointment' },
+    ], actor);
+    return res.json(out.body);
+  } catch (e) {
+    const status = e && e.status ? e.status : 500;
+    if (status >= 500) console.error('[leads] promote-follow-up-to-appointment error:', e && e.message);
+    return res.status(status).json({ error: (e && e.code) || 'promote_failed', message: (e && e.message) || 'Failed to promote follow-up to appointment.', details: e && e.details });
   }
 });
 
@@ -996,18 +1070,11 @@ router.post('/', requireAuth, async (req, res) => {
     }
 
     // ── Duplicate check (email/phone against existing leads) ──────────
-    if (email) {
-      const dup = await query('SELECT id, first_name, last_name FROM leads WHERE lower(email) = lower($1) LIMIT 1', [email]);
-      if (dup.rows[0]) {
-        return res.status(409).json({ error: 'duplicate_email', message: `Email already belongs to another lead: ${dup.rows[0].first_name} ${dup.rows[0].last_name}`, conflict: { id: dup.rows[0].id, name: `${dup.rows[0].first_name} ${dup.rows[0].last_name}` } });
-      }
-    }
-    if (phone) {
-      const dup = await query('SELECT id, first_name, last_name FROM leads WHERE phone = $1 LIMIT 1', [phone]);
-      if (dup.rows[0]) {
-        return res.status(409).json({ error: 'duplicate_phone', message: `Phone already belongs to another lead: ${dup.rows[0].first_name} ${dup.rows[0].last_name}`, conflict: { id: dup.rows[0].id, name: `${dup.rows[0].first_name} ${dup.rows[0].last_name}` } });
-      }
-    }
+    // Fast pre-check here; re-checked authoritatively inside the INSERT
+    // transaction under the per-identity intake lock (below), so two
+    // simultaneous creates of the same email/phone cannot both pass.
+    const dupPre = await findCreateDuplicate({ query }, email, phone);
+    if (dupPre) return res.status(409).json(dupPre);
 
     // ── Canonical address pipeline (BEFORE the INSERT) ────────────────
     // Run the address through the canonical pipeline so the lead is created
@@ -1033,6 +1100,12 @@ router.post('/', requireAuth, async (req, res) => {
     let fullRow;
     try {
       await client.query('BEGIN');
+      await lockLeadIdentity(client, { email, phone });
+      const dupTx = await findCreateDuplicate(client, email, phone);
+      if (dupTx) {
+        await client.query('ROLLBACK');
+        return res.status(409).json(dupTx);
+      }
       const insertRes = await client.query(
         `INSERT INTO leads (
           owner_id, first_name, last_name, email, phone,
@@ -1116,6 +1189,26 @@ router.post('/', requireAuth, async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
+
+// Admin create path duplicate rule (unchanged): exact email (case-insensitive)
+// or exact normalized phone already on a lead → 409 with the conflicting lead.
+async function findCreateDuplicate(db, email, phone) {
+  if (email) {
+    const dup = await db.query('SELECT id, first_name, last_name FROM leads WHERE lower(email) = lower($1) LIMIT 1', [email]);
+    if (dup.rows[0]) {
+      const d = dup.rows[0];
+      return { error: 'duplicate_email', message: `Email already belongs to another lead: ${d.first_name} ${d.last_name}`, conflict: { id: d.id, name: `${d.first_name} ${d.last_name}` } };
+    }
+  }
+  if (phone) {
+    const dup = await db.query('SELECT id, first_name, last_name FROM leads WHERE phone = $1 LIMIT 1', [phone]);
+    if (dup.rows[0]) {
+      const d = dup.rows[0];
+      return { error: 'duplicate_phone', message: `Phone already belongs to another lead: ${d.first_name} ${d.last_name}`, conflict: { id: d.id, name: `${d.first_name} ${d.last_name}` } };
+    }
+  }
+  return null;
+}
 
 // ── GET / — list leads (owner-scoped, filtered) ──────────────────────────────
 router.get('/', requireAuth, async (req, res) => {

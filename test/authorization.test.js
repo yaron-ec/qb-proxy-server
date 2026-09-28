@@ -2,7 +2,7 @@
 /**
  * authorization.test.js — stable-ID lead authorization for Railway routes.
  *
- * Run: cd src/proxy-server && node --test test/authorization.test.js
+ * Run: node --test test/authorization.test.js
  */
 'use strict';
 

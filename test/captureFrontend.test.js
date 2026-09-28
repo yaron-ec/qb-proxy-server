@@ -4,7 +4,7 @@
  * calls to Base44 checkCalendarConflicts or submitLeadCapture. Greps the
  * LeadCapture page + capture client source for forbidden tokens.
  *
- * Run: node src/proxy-server/test/captureFrontend.test.js
+ * Run: node test/captureFrontend.test.js
  */
 'use strict';
 

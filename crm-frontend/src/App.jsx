@@ -16,7 +16,6 @@ import { BrowserRouter as Router, Route, Routes, useLocation, Navigate } from 'r
 import React from 'react';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
-import { isExitBuild } from '@/lib/app-params';
 import { SyncProvider } from '@/lib/syncContext';
 import SyncStatusPremium from '@/components/SyncStatusPremium';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
