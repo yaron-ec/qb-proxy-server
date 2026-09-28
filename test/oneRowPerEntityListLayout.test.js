@@ -148,7 +148,7 @@ test('Deals.jsx: search/owner/job-type/stage filters and KPI summary cards are a
 
 test('Layout.jsx: full company name is still never truncated (regression guard against re-breaking the prior fix)', () => {
   const src = read('components/Layout.jsx');
-  const nameIdx = src.indexOf('companyIdentity.name');
+  const nameIdx = src.indexOf('break-words">{companyIdentity.name}');
   const brandBlock = src.slice(Math.max(0, nameIdx - 500), nameIdx + 200);
   assert.ok(!/textOverflow:\s*['"]ellipsis['"]/.test(brandBlock), 'must not have regressed to forced ellipsis truncation');
   assert.ok(brandBlock.includes('break-words'), 'must still allow the name to wrap');

@@ -113,7 +113,7 @@ test('LeadsModern.jsx: preserves search/filters/sort/New Lead/Website Leads/over
 
 test('Layout.jsx: full company name is never truncated with an ellipsis in expanded mode', () => {
   const src = read('components/Layout.jsx');
-  const nameIdx = src.indexOf('companyIdentity.name');
+  const nameIdx = src.indexOf('break-words">{companyIdentity.name}');
   const brandBlock = src.slice(Math.max(0, nameIdx - 500), nameIdx + 200);
   assert.ok(!/textOverflow:\s*['"]ellipsis['"]/.test(brandBlock), 'the brand name container must not force ellipsis truncation');
   assert.ok(!/whiteSpace:\s*['"]nowrap['"]/.test(brandBlock), 'the brand name container must not force a single line that clips the name');
