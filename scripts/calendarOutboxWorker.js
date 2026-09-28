@@ -24,10 +24,15 @@
 const { pool } = require('../db/client');
 const outbox = require('../lib/booking/calendarOutbox');
 const contactsOutbox = require('../lib/googleContactsOutbox');
+const { reconcileFollowUpReminders } = require('../lib/booking/followUpReminders');
+const { convertLegacyPhoneCallAppointments } = require('../lib/booking/legacyPhoneCallConversion');
 
 // Reconciliation runs every N ticks to avoid hammering Google on every loop
 const RECONCILE_EVERY_N_TICKS = parseInt(process.env.CALENDAR_RECONCILE_INTERVAL || '30', 10);
+// Phone Call follow-up reminders (non-blocking Google visibility) every N ticks
+const FOLLOWUP_REMINDERS_EVERY_N_TICKS = parseInt(process.env.FOLLOWUP_REMINDER_INTERVAL || '6', 10);
 let _tickCount = 0;
+let _reminderTick = 0;
 let _contactsOutboxEnsured = false;
 
 async function tick(workerId, opts) {
@@ -63,7 +68,34 @@ async function tick(workerId, opts) {
     console.error('[outbox-worker] contacts tick failed:', e.message);
   }
 
-  // 3. Calendar reconciliation: verify synced events every N ticks (ISOLATED)
+  // 3. Phone Call = follow-up (ISOLATED): move active future legacy Phone Call
+  //    appointment rows onto the lead's follow-up (backed up, reversible), then
+  //    reconcile the non-blocking follow-up reminder events to the follow-ups.
+  if (_reminderTick++ % FOLLOWUP_REMINDERS_EVERY_N_TICKS === 0) {
+    var conv = null;
+    try {
+      conv = await convertLegacyPhoneCallAppointments(pool);
+      if (conv.candidates) {
+        console.log("[outbox-worker] legacy phone calls candidates=" + conv.candidates + " converted=" + conv.converted + " deduplicated=" + conv.deduplicated + " ambiguous=" + conv.ambiguous + " errors=" + conv.errors);
+      }
+    } catch (e) {
+      console.error('[outbox-worker] legacy phone call conversion failed:', e.message);
+    }
+    try {
+      var rem = await reconcileFollowUpReminders(pool);
+      if (rem.upserted || rem.removed || rem.expired || rem.errors) {
+        console.log("[outbox-worker] followup reminders desired=" + rem.desired + " upserted=" + rem.upserted + " removed=" + rem.removed + " expired=" + rem.expired + " unchanged=" + rem.unchanged + " errors=" + rem.errors);
+      }
+      await pool.query(
+        `INSERT INTO followup_reminder_runs (id, last_run_at, last_stats, commit_sha) VALUES (1, NOW(), $1, $2)
+         ON CONFLICT (id) DO UPDATE SET last_run_at = NOW(), last_stats = EXCLUDED.last_stats, commit_sha = EXCLUDED.commit_sha`,
+        [JSON.stringify({ conversion: conv || null, reminders: rem }), process.env.RAILWAY_GIT_COMMIT_SHA || null]);
+    } catch (e) {
+      console.error('[outbox-worker] followup reminders failed:', e.message);
+    }
+  }
+
+  // 4. Calendar reconciliation: verify synced events every N ticks (ISOLATED)
   _tickCount++;
   if (_tickCount >= RECONCILE_EVERY_N_TICKS) {
     _tickCount = 0;

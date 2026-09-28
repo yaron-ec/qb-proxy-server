@@ -112,7 +112,9 @@ router.get('/availability', availLimiter, async (req, res) => {
     });
     res.json({
       date, timezone: result.timezone, duration_minutes: result.duration_minutes,
-      blocked_slots: result.blocked_slots, busy_windows: result.busy_windows,
+      blocked_slots: result.blocked_slots,
+      // Public endpoint: times only — never event titles (they contain client names).
+      busy_windows: (result.busy_windows || []).map((w) => ({ start: w.start, end: w.end, source: w.source })),
     });
   } catch (e) {
     if (e && (e.code === 'calendar_unavailable' || e instanceof CalendarUnavailableError)) {

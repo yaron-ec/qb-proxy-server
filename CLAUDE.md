@@ -352,6 +352,28 @@ about topology, this file wins; go correct `railway.json` and
   Site Visit is untouched), and a missing `appointment_type` on a lead with a
   legacy Phone Call row is a 400, never a silent Site Visit. The Appointment
   editor offers no Phone Call kind.
+- **Phone Call calendar visibility = one non-blocking reminder** (one
+  canonical classification: `lib/booking/phoneCallModel.js`). The lead's
+  active, timed Phone Call follow-up is the ONLY source; the calendar worker
+  reconciles it (`lib/booking/followUpReminders.js`, state in
+  `followup_calendar_reminders`) to exactly one Google event per lead —
+  deterministic id (per lead + generation), `transparency: transparent`,
+  private `ec_kind=followup_reminder`, `ec_blocking=false`, owner as the only
+  attendee, no travel. Reschedule / reassignment / note edits update the same
+  event; completed / cleared / retyped / deleted removes it (a past one is
+  kept as history). Availability ignores it by the private marker
+  (`isNonBlockingCrmGoogleEvent`), never by title or Google free/busy alone;
+  external Google events keep blocking. Legacy Phone Call appointment rows
+  never get a main/travel event (`enqueueCreate/enqueueUpdate`, worker
+  backstop, `reconcileSyncedAppointments`), their old Google events are
+  dropped from availability by `ec_appointment_id`
+  (`dropLegacyPhoneCallWindows`), and active future ones are moved onto the
+  lead's follow-up by `lib/booking/legacyPhoneCallConversion.js` (backed up in
+  `legacy_phone_call_conversions`; different active follow-up / closed lead →
+  `ambiguous`, untouched; undo: `scripts/revertLegacyPhoneCallConversion.js`,
+  report-only unless `APPLY=1`). Meeting follow-ups stay CRM-only. Live
+  aggregate proof (no PII): `GET /api/public/phone-call-integrity`.
+  Real-Postgres coverage: `test/integration/phoneCallCalendarReminder.int.test.js`.
 - **Driving / Travel Time** exists only for an ACTIVE Site Visit —
   `lib/booking/appointmentKind.js#travelAllowed`, checked in
   `calendarOutbox.enqueueCreate/enqueueUpdate` AND again by the worker before
