@@ -130,11 +130,23 @@ Every integration above is read through `lib/companyConfig.js#isModuleEnabled()`
 and/or an env-var presence check — never a required dependency for server
 startup or for using the rest of the CRM. `scripts/install/bootstrap.js`
 never fails because an optional integration's variables are absent; it
-reports them as `NOT_CONFIGURED` and continues. **Phase A audit finding:**
-several routes/workers still assume their integration's env vars are
-present when they run at all (e.g., they will error mid-request rather than
-gracefully no-op) rather than checking `isModuleEnabled()` first — see the
-Phase A audit table (productization final report) for the specific files.
-Wiring that check in is the concrete next step for Phase E ("disabled
-modules must not generate errors"), deliberately not done blind/untested in
-this pass for every one of ~8 integrations at once.
+reports them as `NOT_CONFIGURED` and continues.
+
+**Enforcement (Phase 2):** `lib/moduleGate.js#requireModuleEnabled(key)` is
+an Express middleware that returns `404 module_disabled` — never a
+missing-secret error or a fake unhealthy status — for a disabled module's
+routes. Wired into `routes/signnow.js` (every route except `/status`, so
+the admin settings panel can still show "disabled" rather than a broken
+404) and `routes/handoffEstimates.js`. `GET /api/v1/system/info` also
+reports `module_enabled` and a `DISABLED` connection state per integration
+regardless of any stale `integration_credentials` row — see
+`docs/CONFIGURATION_REFERENCE.md`'s "Module keys" section.
+
+**Still deferred:** QuickBooks routes, Google Calendar/Contacts sync, the
+Meta/SignNow webhook receivers, and both background workers (reminder
+worker, calendar-outbox worker) don't check `isModuleEnabled()` yet — a
+company with e.g. `quickbooks: false` today still has QuickBooks routes
+reachable (they'll fail on missing env vars rather than 404 cleanly). Real,
+tracked gap — wiring the same `moduleGate.js` middleware into the
+remaining ~6 integration surfaces is the concrete next step, deliberately
+not done blind/untested for all of them in one pass.
