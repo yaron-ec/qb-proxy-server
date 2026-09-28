@@ -165,8 +165,39 @@ test('4. EC-SHAPED DATABASE UPGRADE: a pre-productization company_settings row (
     assert.strictEqual(rows[0].appointment_travel_buffer_minutes, 60, 'new column defaults to the historical hardcoded 1h travel buffer');
     assert.deepStrictEqual(rows[0].enabled_modules, { quickbooks: true, gmail: true, google_calendar: true, google_contacts: true, signnow: true, handoff: true, meta: true, sms: true, website_intake: true }, 'an upgraded EC-shaped row defaults every module to enabled — matching EC\'s actual current state');
     assert.ok(rows[0].installation_id, 'installation_id is backfilled for the pre-existing row');
+
+    // Migration 2026-45 (notification routing) — same upgrade run, since it
+    // isn't held out above. Verifies EC's historical hardcoded notification
+    // behavior (Michelle to, Yaron cc, Yaron as default owner/sender) is
+    // preserved exactly for a pre-existing row, with no code change required.
+    assert.deepStrictEqual(rows[0].notification_recipients, { to: ['michelle@ecconstructiongroup.com'], cc: ['yaron@ecconstructiongroup.com'] }, '2026-45: notification_recipients defaults to EC\'s historical Michelle-to/Yaron-cc pair');
+    assert.strictEqual(rows[0].email_from_name, 'EC Construction CRM', '2026-45: email_from_name defaults to EC\'s historical sender name');
+    assert.strictEqual(rows[0].default_owner_email, 'yaron@ecconstructiongroup.com', '2026-45: default_owner_email defaults to EC\'s historical fallback owner');
+    assert.strictEqual(rows[0].default_owner_name, 'Yaron Drilevich', '2026-45: default_owner_name defaults to EC\'s historical fallback owner name');
+    assert.deepStrictEqual(rows[0].protected_admin_emails, ['yaron@ecconstructiongroup.com', 'michelle@ecconstructiongroup.com'], '2026-45: protected_admin_emails defaults to EC\'s historical protected pair');
   } finally {
     await ecPool.end();
     execSync(`psql "${adminDbUrl}" -c "DROP DATABASE ${dbName};"`, { stdio: 'ignore' });
   }
+});
+
+test('5. COMPANY #2 ISOLATION: a fresh bootstrap never defaults notification/owner/protected-admin fields to an EC identity', { skip }, async () => {
+  // Company #1 (test 1 above) already ran against this DB without
+  // specifying notification_recipients/default_owner_*/protected_admin_emails
+  // — proves bootstrap's own neutral defaults (never the 2026-45 column's
+  // EC-preserving default, which only applies when bootstrap does NOT
+  // explicitly write the column, e.g. an upgrade — see test 4) took effect
+  // on a genuinely fresh INSERT.
+  const { rows } = await db.query('SELECT * FROM company_settings LIMIT 1');
+  const row = rows[0];
+  assert.deepStrictEqual(row.notification_recipients, { to: ['jordan@acme.example'], cc: [] }, 'a fresh install\'s only configured recipient is its own admin — never Michelle/Yaron');
+  assert.strictEqual(row.default_owner_email, 'jordan@acme.example', 'default owner falls back to this installation\'s own admin, never yaron@ecconstructiongroup.com');
+  assert.notStrictEqual(row.default_owner_name, 'Yaron Drilevich');
+  assert.deepStrictEqual(row.protected_admin_emails, [], 'a fresh install protects no admin by name — only the generic "last admin" rule applies');
+  assert.strictEqual(row.email_from_name, 'Acme Remodeling CRM');
+
+  // No EC address appears ANYWHERE in this installation's notification
+  // configuration.
+  const serialized = JSON.stringify(row.notification_recipients) + row.default_owner_email + JSON.stringify(row.protected_admin_emails);
+  assert.ok(!serialized.includes('ecconstructiongroup.com'), 'no EC domain anywhere in this installation\'s notification/owner config');
 });
