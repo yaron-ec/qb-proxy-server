@@ -212,7 +212,7 @@ export default function LeadsModern() {
   // without adding a second widget; only meaningful on the default (active,
   // unfiltered) view, so it's suppressed during search/status filtering.
   const overdueCount = !isGlobalSearch && statusFilter === 'all'
-    ? filteredLeads.filter(l => getFollowUpStatus(l.follow_up_date) === 'overdue').length
+    ? filteredLeads.filter(l => getFollowUpStatus(l.follow_up_date, l.follow_up_status) === 'overdue').length
     : 0;
 
   return (
@@ -416,8 +416,11 @@ function fmt12(t) {
   return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ampm}`;
 }
 
-function getFollowUpStatus(date) {
+// A follow-up marked completed is history, never Overdue (same rule as
+// FollowUpsWidget / My Day).
+function getFollowUpStatus(date, status) {
   if (!date) return null;
+  if (status === 'completed') return 'completed';
   const dateNum = parseFollowUpDate(date);
   if (dateNum === null) return null;
   const todayNum = getTodayLocal();
@@ -479,7 +482,7 @@ function LeadCard({ lead, navigate, onLeadUpdate, onDragStart, isDragging, userR
     lead.signed_contract_document_id && 'Signed document',
   ].filter(Boolean);
   const hasLinkedRecords = linkedRecords.length > 0;
-  const fuStatus = getFollowUpStatus(lead.follow_up_date);
+  const fuStatus = getFollowUpStatus(lead.follow_up_date, lead.follow_up_status);
   const hasFollowUp = !!lead.follow_up_date;
   const isPhoneCall = lead.follow_up_type === 'Phone Call';
   const isMeeting = lead.follow_up_type === 'Meeting';
@@ -800,7 +803,7 @@ function LeadCard({ lead, navigate, onLeadUpdate, onDragStart, isDragging, userR
               </div>
               <span className={`inline-flex items-center gap-1 mt-1 text-[10px] font-bold px-1.5 py-0.5 rounded ${badgeClass}`}>
                 {isMeeting ? '📅' : '📞'}
-                {fuStatus === 'overdue' ? 'Overdue' : fuStatus === 'today' ? 'Due Today' : (lead.follow_up_type || 'Follow-up')}
+                {fuStatus === 'overdue' ? 'Overdue' : fuStatus === 'today' ? 'Due Today' : fuStatus === 'completed' ? 'Completed' : (lead.follow_up_type || 'Follow-up')}
               </span>
             </>
           ) : lead.appointment_date ? (

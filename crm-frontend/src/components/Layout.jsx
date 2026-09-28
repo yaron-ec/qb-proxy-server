@@ -9,6 +9,7 @@ import {
 import { useAuth } from "@/lib/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Tip from "@/components/ui/Tip";
+import QBReconnectBanner from "@/components/QBReconnectBanner";
 import * as railwayCompanySettings from "@/api/railway/companySettings";
 // Logo uses local static asset — no runtime API dependency
 
@@ -170,6 +171,7 @@ function LayoutComponent() {
           paddingBottom: 'calc(4rem + env(safe-area-inset-bottom))',
         }}
       >
+        <QBReconnectBanner user={currentUser} />
         <Outlet />
       </main>
     );
@@ -267,6 +269,7 @@ function LayoutComponent() {
 
       {/* Main Content - Reserved scrollbar space, independent scroll */}
       <main className="flex-1 overflow-auto bg-slate-50" style={{ scrollbarGutter: 'stable' }}>
+        <QBReconnectBanner user={currentUser} />
         <Outlet />
       </main>
     </div>

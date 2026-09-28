@@ -196,7 +196,13 @@ console.log('\n── Refresh Updates Durable Record ──');
 const MANAGER_PATH = path.join(__dirname, '../lib/qbTokenManager.js');
 const managerSource = fs.readFileSync(MANAGER_PATH, 'utf8');
 const refreshFn = () => managerSource.match(/async function refreshUnderLock[\s\S]*?^}/m);
-const intuitFn = () => managerSource.match(/async function callIntuit[\s\S]*?^}/m);
+// callIntuit (bounded transient retry) → interpretRefresh (revoked vs transient, rotation).
+const intuitFn = () => {
+  const a = managerSource.match(/async function callIntuit[\s\S]*?^}/m);
+  const b = managerSource.match(/async function interpretRefresh[\s\S]*?^}/m);
+  return a && b ? [a[0] + b[0]] : null;
+};
+const apiFn = () => managerSource.match(/async function qbApiRequest[\s\S]*?^}/m);
 
 test('the single refresh implementation persists via tokenStore.savePersistedTokens (not a file)', () => {
   assert(refreshFn(), 'refreshUnderLock must exist');
@@ -306,10 +312,11 @@ for (const f of filesToCheck) {
 
 console.log('\n── Credential Lifecycle Tracking ──');
 
-test('qbFetch calls tokenStore.markUsed on success', () => {
+test('qbFetch goes through the canonical qbApiRequest, which calls tokenStore.markUsed on success', () => {
   const fetchMatch = serverSource.match(/async function qbFetch[\s\S]*?^}/m);
   assert(fetchMatch, 'qbFetch must exist');
-  assert(fetchMatch[0].includes('tokenStore.markUsed'), 'qbFetch must call tokenStore.markUsed on success');
+  assert(fetchMatch[0].includes('qbTokens.qbApiRequest('), 'qbFetch must use the canonical authenticated request');
+  assert(apiFn() && apiFn()[0].includes('tokenStore.markUsed'), 'qbApiRequest must call tokenStore.markUsed on success');
 });
 
 test('qbFetch calls tokenStore.markError on failure', () => {
