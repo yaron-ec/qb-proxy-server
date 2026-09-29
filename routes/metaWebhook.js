@@ -23,7 +23,15 @@
 
 const express = require('express');
 const crypto = require('crypto');
+const { requireModuleEnabled } = require('../lib/moduleGate');
 const router = express.Router();
+
+// PRODUCTIZATION PHASE 2: gated on enabled_modules.meta — but only the lead-
+// processing POST. Meta's own GET verification handshake (hub.challenge) must
+// always respond correctly regardless of module state, or Meta's dashboard
+// shows a failed webhook and an admin can never re-enable the module through
+// Meta's own UI.
+router.use((req, res, next) => (req.method === 'GET' ? next() : requireModuleEnabled('meta')(req, res, next)));
 
 const META_VERIFY_TOKEN = process.env.META_VERIFY_TOKEN || process.env.FACEBOOK_VERIFY_TOKEN || '';
 const META_APP_SECRET = process.env.META_APP_SECRET || process.env.FACEBOOK_APP_SECRET || '';

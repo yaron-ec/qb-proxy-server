@@ -1120,6 +1120,13 @@ router.post('/qb-inbound-reconcile', async (req, res) => {
     const workerSecret = process.env.WORKER_SECRET;
     const provided = req.headers['x-worker-secret'] || req.headers['x-proxy-secret'];
     if (!workerSecret || provided !== workerSecret) return res.status(401).json({ error: 'unauthorized' });
+    // PRODUCTIZATION PHASE 2: this cron calls lib/qbInboundSync.js directly,
+    // never through routes/qbInboundSync.js's own gated router — gate here
+    // too, or a company with QuickBooks disabled would still have its cron
+    // fire real QB API calls on a schedule.
+    if (!(await companyConfig.isModuleEnabled('quickbooks'))) {
+      return res.status(404).json({ error: 'module_disabled', module: 'quickbooks', message: "The 'quickbooks' module is not enabled for this installation." });
+    }
     const { syncAllMappedCustomers } = require('../lib/qbInboundSync');
     const result = await syncAllMappedCustomers();
     res.json({ success: true, ...result });

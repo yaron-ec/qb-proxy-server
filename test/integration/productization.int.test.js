@@ -92,6 +92,7 @@ test('1. fresh company installation from an empty DB: bootstrap succeeds, create
   assert.strictEqual(ownerRows[0].n, 0, 'zero owners in a fresh installation — no EC rep data');
 });
 
+
 test('2. bootstrap is idempotent: running it again against the same DB creates no duplicates', { skip }, async () => {
   const fs = require('fs');
   const os = require('os');

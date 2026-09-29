@@ -11,6 +11,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import Tip from "@/components/ui/Tip";
 import QBReconnectBanner from "@/components/QBReconnectBanner";
 import * as railwayCompanySettings from "@/api/railway/companySettings";
+import { hexToHslTriplet } from "@/lib/brandColor";
 // Logo uses local static asset — no runtime API dependency
 
 // Company identity fallback for this deployment (company #1). A future
@@ -151,6 +152,7 @@ function LayoutComponent() {
     name: DEFAULT_COMPANY_NAME,
     location: DEFAULT_COMPANY_LOCATION,
     faviconUrl: null,
+    brandPrimaryColor: null,
   });
   useEffect(() => {
     let cancelled = false;
@@ -170,6 +172,7 @@ function LayoutComponent() {
             ? `${settings.company_city}, ${settings.company_state}`
             : DEFAULT_COMPANY_LOCATION),
         faviconUrl: settings.favicon_url || null,
+        brandPrimaryColor: settings.brand_primary_color || null,
       });
       // Only swap the visible logo once a configured URL has actually
       // finished loading in the browser — a failed preload (404, CORS,
@@ -201,6 +204,19 @@ function LayoutComponent() {
     preload.onerror = () => { /* keep the static default favicon from index.html */ };
     preload.src = companyIdentity.faviconUrl;
   }, [companyIdentity.faviconUrl]);
+
+  // Brand accent color (company_settings.brand_primary_color — PRODUCTIZATION
+  // PHASE 2) overrides the --primary CSS variable that shadcn/ui components
+  // read throughout the app (index.css). Same "never break on a bad value"
+  // discipline as the logo/favicon above: hexToHslTriplet returns null for
+  // anything malformed, and this effect simply does nothing in that case —
+  // the product-default amber token in index.css stays in effect.
+  useEffect(() => {
+    if (!companyIdentity.brandPrimaryColor) return;
+    const hsl = hexToHslTriplet(companyIdentity.brandPrimaryColor);
+    if (!hsl) return;
+    try { document.documentElement.style.setProperty('--primary', hsl); } catch { /* best-effort only */ }
+  }, [companyIdentity.brandPrimaryColor]);
 
   const isActive = (path) =>
     path === "/" ? location.pathname === "/" : location.pathname === path || location.pathname.startsWith(path + "/");

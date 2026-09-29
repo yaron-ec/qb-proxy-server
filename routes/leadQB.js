@@ -32,9 +32,13 @@ const { query } = require('../db/client');
 const qbInternal = require('../lib/qbInternal');
 const qbMatch = require('../lib/qbMatch');
 const { resolveLeadByIdentifier } = require('../lib/leadResolver');
+const { requireModuleEnabled } = require('../lib/moduleGate');
 
 const router = express.Router();
 router.use(requireAuth);
+// PRODUCTIZATION PHASE 2: gated on enabled_modules.quickbooks — a company not
+// using QuickBooks gets a clean 404, never a missing-credential error.
+router.use(requireModuleEnabled('quickbooks'));
 
 const requireAdminManager = requireRole('admin', 'manager');
 

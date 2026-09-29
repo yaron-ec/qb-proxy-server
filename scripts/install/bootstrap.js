@@ -33,6 +33,8 @@
  *     "timezone": "America/New_York",
  *     "locale": "en-US",
  *     "appointment_travel_buffer_minutes": 60,
+ *     "business_hours": { "start": "08:30", "end": "18:30" },
+ *     "brand_primary_color": "#f59e0b",
  *     "enabled_modules": { "quickbooks": false, "gmail": true, ... },
  *     "admin_name": "Jordan Admin",
  *     "admin_email": "jordan@acme.example",
@@ -78,6 +80,8 @@ function loadConfig() {
     timezone: fromFile.timezone ?? env.COMPANY_TIMEZONE ?? null,
     locale: fromFile.locale ?? env.COMPANY_LOCALE ?? null,
     appointment_travel_buffer_minutes: fromFile.appointment_travel_buffer_minutes ?? (env.APPOINTMENT_TRAVEL_BUFFER_MINUTES ? Number(env.APPOINTMENT_TRAVEL_BUFFER_MINUTES) : null),
+    business_hours: fromFile.business_hours ?? null,
+    brand_primary_color: fromFile.brand_primary_color ?? env.COMPANY_BRAND_PRIMARY_COLOR ?? null,
     enabled_modules: fromFile.enabled_modules ?? null,
     notification_recipients: fromFile.notification_recipients ?? null,
     email_from_name: fromFile.email_from_name ?? env.COMPANY_EMAIL_FROM_NAME ?? null,
@@ -146,6 +150,10 @@ async function ensureCompanySettings(db, cfg) {
   if (cfg.timezone) { cols.push('timezone'); vals.push(cfg.timezone); }
   if (cfg.locale) { cols.push('locale'); vals.push(cfg.locale); }
   if (Number.isFinite(cfg.appointment_travel_buffer_minutes)) { cols.push('appointment_travel_buffer_minutes'); vals.push(cfg.appointment_travel_buffer_minutes); }
+  if (cfg.business_hours && typeof cfg.business_hours.start === 'string' && typeof cfg.business_hours.end === 'string') {
+    cols.push('business_hours'); vals.push(JSON.stringify(cfg.business_hours));
+  }
+  if (cfg.brand_primary_color) { cols.push('brand_primary_color'); vals.push(cfg.brand_primary_color); }
   let modulesJson = null;
   if (cfg.enabled_modules) {
     const MODULE_KEYS = ['quickbooks', 'gmail', 'google_calendar', 'google_contacts', 'signnow', 'handoff', 'meta', 'sms', 'website_intake'];
@@ -171,11 +179,22 @@ async function ensureCompanySettings(db, cfg) {
   vals.push(cfg.email_from_name || (cfg.company_name ? `${cfg.company_name} CRM` : 'CRM'));
 
   // Default owner routing fallback: a fresh installation's own admin, never
-  // 'Yaron Drilevich' / yaron@ecconstructiongroup.com.
-  cols.push('default_owner_email');
-  vals.push(cfg.default_owner_email || cfg.admin_email || null);
+  // 'Yaron Drilevich' / yaron@ecconstructiongroup.com (both columns are
+  // NOT NULL, with that EC-shaped literal as their own upgrade-preserving
+  // column DEFAULT — see migration 2026-47 — so simply omitting the column
+  // here would silently resurrect EC's identity for a fresh install; never
+  // do that). admin_name is documented optional (ensureFirstAdmin itself
+  // defers admin creation gracefully when admin_email/admin_password are
+  // absent too) — 'Admin' is a neutral placeholder, matching the same
+  // never-EC-never-null discipline email_from_name already uses above.
   cols.push('default_owner_name');
-  vals.push(cfg.default_owner_name || cfg.admin_name || null);
+  vals.push(cfg.default_owner_name || cfg.admin_name || 'Admin');
+  const defaultOwnerEmail = cfg.default_owner_email || cfg.admin_email || cfg.company_email || null;
+  if (!defaultOwnerEmail) {
+    throw new Error('No default_owner_email, admin_email, or company_email provided — at least one contact email is required to bootstrap a new installation.');
+  }
+  cols.push('default_owner_email');
+  vals.push(defaultOwnerEmail);
 
   // A fresh installation protects no admin beyond the generic "cannot
   // delete the last remaining admin" rule (routes/users.js) — never

@@ -87,6 +87,24 @@ export default function CompanySettingsTab() {
             <Field label="State" value={form.company_state || ""} onChange={v => set("company_state", v)} />
             <Field label="ZIP Code" value={form.company_zip || ""} onChange={v => set("company_zip", v)} />
             <Field label="Company Logo URL" type="url" value={form.company_logo_url || ""} onChange={v => set("company_logo_url", v)} />
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">Brand Primary Color</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  className="h-9 w-12 rounded border border-slate-200 cursor-pointer"
+                  value={/^#[0-9a-fA-F]{6}$/.test(form.brand_primary_color || "") ? form.brand_primary_color : "#f59e0b"}
+                  onChange={e => set("brand_primary_color", e.target.value)}
+                />
+                <input
+                  type="text"
+                  className="flex-1 border border-slate-200 rounded px-3 py-2 text-sm text-slate-800 bg-white focus:outline-none focus:border-orange transition-colors"
+                  placeholder="#f59e0b"
+                  value={form.brand_primary_color || ""}
+                  onChange={e => set("brand_primary_color", e.target.value)}
+                />
+              </div>
+            </div>
             <div className="col-span-2">
               <Field label="Operational Region (shown in sidebar)" value={form.company_region || ""} onChange={v => set("company_region", v)} />
               <p className="text-xs text-slate-400 mt-1">e.g. "SoCal", "NorCal", or "SoCal + NorCal" for an admin/global view. Leave blank to show City, State instead.</p>
