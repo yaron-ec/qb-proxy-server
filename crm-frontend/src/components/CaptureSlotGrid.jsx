@@ -8,7 +8,11 @@ import { Clock, Loader2, AlertCircle, CheckCircle2, ShieldAlert } from "lucide-r
  *
  * Data source: the `blockedSlots` array passed in — produced by the existing
  * Railway availability endpoint (1hr-before + duration + 1hr-after buffer rule).
- * This component does NOT invent its own availability logic.
+ * This component does NOT invent its own availability logic. `slots` (the
+ * grid itself) is likewise passed in — PRODUCTIZATION PHASE 2: the backend's
+ * availability response carries the installation's actual configured grid
+ * (company_settings.business_hours) — defaults to the 8:30 AM-6:30 PM product
+ * default below when the parent hasn't fetched one yet.
  *
  * Admin override (canOverride=true):
  *   Blocked slots remain visually BLOCKED but gain an explicit "Override"
@@ -19,12 +23,12 @@ import { Clock, Loader2, AlertCircle, CheckCircle2, ShieldAlert } from "lucide-r
  *
  * Mobile-first: grid-cols-3 on phones, grid-cols-4 on sm+.
  */
-const SLOTS = [];
+const DEFAULT_SLOTS = [];
 for (let h = 8; h <= 18; h++) {
   for (let m = 0; m < 60; m += 30) {
     if (h === 8 && m === 0) continue; // start at 8:30
     if (h === 18 && m > 30) continue; // stop at 6:30 PM
-    SLOTS.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+    DEFAULT_SLOTS.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
   }
 }
 
@@ -35,10 +39,11 @@ function fmt12(t) {
 
 export default function CaptureSlotGrid({
   date, selectedTime, onSelectTime, blockedSlots, loading, error, onRetry,
-  canOverride = false, overrideSelected = false,
+  canOverride = false, overrideSelected = false, slots,
 }) {
-  const morning = SLOTS.filter((s) => parseInt(s.split(":")[0], 10) < 12);
-  const afternoon = SLOTS.filter((s) => parseInt(s.split(":")[0], 10) >= 12);
+  const effectiveSlots = Array.isArray(slots) && slots.length ? slots : DEFAULT_SLOTS;
+  const morning = effectiveSlots.filter((s) => parseInt(s.split(":")[0], 10) < 12);
+  const afternoon = effectiveSlots.filter((s) => parseInt(s.split(":")[0], 10) >= 12);
 
   if (!date) {
     return (
@@ -150,13 +155,13 @@ export default function CaptureSlotGrid({
     );
   };
 
-  const availableCount = SLOTS.length - (blockedSlots || []).length;
+  const availableCount = effectiveSlots.length - (blockedSlots || []).length;
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between text-[11px] text-slate-500 px-1">
         <span className="font-semibold text-slate-600">Yaron's Availability</span>
-        <span>{availableCount} of {SLOTS.length} open</span>
+        <span>{availableCount} of {effectiveSlots.length} open</span>
       </div>
 
       <div className="flex items-center gap-3 text-[10px] text-slate-500 px-1 flex-wrap">

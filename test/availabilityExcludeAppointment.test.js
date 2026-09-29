@@ -34,6 +34,13 @@ require.cache[dbPath] = {
         const excludeId = params[3];
         return { rows: rowsToReturn.filter(r => !excludeId || r.id !== excludeId) };
       }
+      // lib/companyConfig.js#getCompanyConfig (PRODUCTIZATION PHASE 2, read by
+      // availabilityService's business_hours-aware slot grid) — no
+      // company_settings row in this mock, so it falls back to PRODUCT_DEFAULTS
+      // (the exact historical 8:30 AM-6:30 PM grid this test's assertions assume).
+      if (/^SELECT \* FROM company_settings/i.test(s)) {
+        return { rows: [] };
+      }
       throw new Error('unexpected query in mock: ' + s);
     },
     pool: {}, ensureSchema: async () => {},

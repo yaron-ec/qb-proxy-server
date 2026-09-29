@@ -25,13 +25,16 @@ import { getBlockedSlots } from "@/api/railway/availability";
 import { resolveOwnerEmail } from "@/lib/ownerEmailMap";
 import { Loader2, AlertTriangle } from "lucide-react";
 
-// Times from 8:30 AM to 6:30 PM
-const ALL_SLOTS = [];
+// Default times from 8:30 AM to 6:30 PM (EC's product default). PRODUCTIZATION
+// PHASE 2: the backend's availability response carries the installation's
+// actual configured grid (`slots` — company_settings.business_hours) — used
+// when present, so a company with different business hours sees its own grid.
+const DEFAULT_SLOTS = [];
 for (let h = 8; h <= 18; h++) {
   for (let m = 0; m < 60; m += 30) {
     if (h === 8 && m === 0) continue; // skip 8:00, start at 8:30
     if (h === 18 && m > 30) continue; // stop at 6:30 PM
-    ALL_SLOTS.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+    DEFAULT_SLOTS.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
   }
 }
 
@@ -44,6 +47,7 @@ function fmt12(t) {
 
 export default function AvailableTimePicker({ value, onChange, date, ownerName, disabled, className = "", adminOverride = false, excludeAppointmentId, durationMinutes }) {
   const [blockedSlots, setBlockedSlots] = useState([]);
+  const [allSlots, setAllSlots] = useState(DEFAULT_SLOTS);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState(null);
   const [quotaError, setQuotaError] = useState(false);
@@ -74,6 +78,7 @@ export default function AvailableTimePicker({ value, onChange, date, ownerName, 
       if (!active) return;
       const blocked = data?.blocked_slots || [];
       setBlockedSlots(blocked);
+      setAllSlots(Array.isArray(data?.slots) && data.slots.length ? data.slots : DEFAULT_SLOTS);
       if (!adminOverride && value && blocked.includes(value)) {
         onChange('');
       }
@@ -94,7 +99,7 @@ export default function AvailableTimePicker({ value, onChange, date, ownerName, 
   }, [date, ownerEmail, excludeAppointmentId, durationMinutes]); // Only fetch when these change
 
   // In admin override mode, show all slots; otherwise filter out blocked ones
-  const visibleSlots = adminOverride ? ALL_SLOTS : ALL_SLOTS.filter(s => !blockedSlots.includes(s));
+  const visibleSlots = adminOverride ? allSlots : allSlots.filter(s => !blockedSlots.includes(s));
   const selectedIsBlocked = adminOverride && value && blockedSlots.includes(value);
 
   const handleChange = (e) => {

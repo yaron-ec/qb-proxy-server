@@ -87,6 +87,7 @@ export default function LeadCapture() {
 
   // Appointment availability — fetched from the Railway availability endpoint
   const [blockedSlots, setBlockedSlots] = useState([]);
+  const [availableGridSlots, setAvailableGridSlots] = useState(null);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [slotsError, setSlotsError] = useState(null);
 
@@ -107,6 +108,7 @@ export default function LeadCapture() {
       .then(data => {
         if (cancelled) return;
         setBlockedSlots(data?.blocked_slots || []);
+        setAvailableGridSlots(Array.isArray(data?.slots) && data.slots.length ? data.slots : null);
       })
       .catch(e => {
         if (cancelled) return;
@@ -466,6 +468,7 @@ export default function LeadCapture() {
                   selectedTime={form.appointment_time}
                   onSelectTime={handleSelectTime}
                   blockedSlots={blockedSlots}
+                  slots={availableGridSlots}
                   loading={slotsLoading}
                   error={slotsError}
                   canOverride={canOverride}

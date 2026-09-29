@@ -23,13 +23,17 @@ import { getBlockedSlots } from '@/api/railway/availability';
 // Always use Yaron's calendar for availability, regardless of selected rep
 const AVAILABILITY_OWNER_EMAIL = 'yaron@ecconstructiongroup.com';
 
-// Generate 30-minute slots from 8:30 AM to 6:30 PM (matches the backend's SLOTS)
-const SLOTS = [];
+// Default 30-minute slots from 8:30 AM to 6:30 PM (matches the backend's
+// product-default SLOTS). PRODUCTIZATION PHASE 2: the backend's availability
+// response now carries the installation's actual configured grid (`slots` —
+// company_settings.business_hours) — used when present, so a company with
+// different business hours sees its own grid instead of this EC default.
+const DEFAULT_SLOTS = [];
 for (let h = 8; h <= 18; h++) {
   for (let m = 0; m < 60; m += 30) {
     if (h === 8 && m === 0) continue; // skip 8:00 (before business hours)
     if (h === 18 && m > 30) continue; // skip after 6:30 PM
-    SLOTS.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+    DEFAULT_SLOTS.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
   }
 }
 
@@ -40,6 +44,7 @@ function fmt12(t) {
 
 export default function AppointmentSlotPicker({ date, selectedTime, onSelectTime }) {
   const [blockedSlots, setBlockedSlots] = useState([]);
+  const [slots, setSlots] = useState(DEFAULT_SLOTS);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -53,6 +58,7 @@ export default function AppointmentSlotPicker({ date, selectedTime, onSelectTime
     try {
       const data = await getBlockedSlots({ ownerEmail: AVAILABILITY_OWNER_EMAIL, date: d });
       setBlockedSlots(data.blocked_slots || []);
+      setSlots(Array.isArray(data.slots) && data.slots.length ? data.slots : DEFAULT_SLOTS);
     } catch (e) {
       setError(e.message || 'Failed to load availability');
       setBlockedSlots([]);
@@ -66,8 +72,8 @@ export default function AppointmentSlotPicker({ date, selectedTime, onSelectTime
   }, [date, loadAvailability]);
 
   // Group slots into morning and afternoon for visual clarity
-  const morningSlots = SLOTS.filter(s => parseInt(s.split(':')[0]) < 12);
-  const afternoonSlots = SLOTS.filter(s => parseInt(s.split(':')[0]) >= 12);
+  const morningSlots = slots.filter(s => parseInt(s.split(':')[0]) < 12);
+  const afternoonSlots = slots.filter(s => parseInt(s.split(':')[0]) >= 12);
 
   const renderSlot = (slot) => {
     const isBlocked = blockedSlots.includes(slot);
@@ -144,7 +150,7 @@ export default function AppointmentSlotPicker({ date, selectedTime, onSelectTime
     );
   }
 
-  const availableCount = SLOTS.length - blockedSlots.length;
+  const availableCount = slots.length - blockedSlots.length;
 
   if (availableCount === 0) {
     return (
@@ -161,7 +167,7 @@ export default function AppointmentSlotPicker({ date, selectedTime, onSelectTime
       {/* Summary bar */}
       <div className="flex items-center justify-between text-[11px] text-slate-500 px-1">
         <span className="font-semibold text-slate-600">Yaron's Schedule</span>
-        <span>{availableCount} of {SLOTS.length} slots available</span>
+        <span>{availableCount} of {slots.length} slots available</span>
       </div>
 
       {/* Legend */}
