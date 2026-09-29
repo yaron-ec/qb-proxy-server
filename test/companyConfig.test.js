@@ -88,3 +88,28 @@ test('invalidate() forces a fresh read — a save is visible immediately, not af
   const after = await getCompanyConfig();
   assert.strictEqual(after.company_name, 'call-2', 'after invalidate(), a fresh row is read');
 });
+
+test('a slow read in flight when invalidate() fires never repopulates the cache with stale data', async () => {
+  // Reproduces a real race: request A starts reading company_settings (slow
+  // query), request B saves a change and calls invalidate() before A's query
+  // resolves. A's own return value is necessarily the pre-save snapshot (it
+  // already started), but A must NEVER let that stale result win the cache
+  // for every subsequent reader — that would silently hide B's save for up to
+  // CACHE_MS.
+  let resolveSlowQuery;
+  const slowQuery = new Promise((resolve) => { resolveSlowQuery = resolve; });
+  queryImpl = async () => { await slowQuery; return { rows: [{ company_name: 'stale-before-save' }] }; };
+
+  const slowRead = getCompanyConfig(); // in flight, not yet resolved
+
+  invalidate(); // a concurrent save fires while the slow read is still pending
+  queryImpl = async () => ({ rows: [{ company_name: 'fresh-after-save' }] });
+
+  resolveSlowQuery();
+  const slowResult = await slowRead;
+  assert.strictEqual(slowResult.company_name, 'stale-before-save', "the in-flight read's own return value reflects its own snapshot");
+
+  const nextRead = await getCompanyConfig();
+  assert.strictEqual(nextRead.company_name, 'fresh-after-save',
+    "the stale in-flight read must not have repopulated the cache — the next caller must see the save, not the race loser's snapshot");
+});

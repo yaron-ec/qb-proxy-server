@@ -210,6 +210,42 @@ test('B5. overlapping real appointments (admin override) merge; parity holds and
   assert.ok(!av.blocked_slots.includes('14:30'));
 });
 
+test('B7. PRODUCTIZATION: a configured non-default travel buffer actually changes the blocked window end-to-end', { skip }, async () => {
+  // company_settings is a singleton (ORDER BY created_at ASC LIMIT 1) —
+  // mutate whichever row is actually effective, restore it afterward, so
+  // this is correct standalone or inside the shared aggregate test run.
+  const companyConfig = require(path.join(ROOT, 'lib/companyConfig'));
+  const existing = (await db.query('SELECT id, appointment_travel_buffer_minutes FROM company_settings ORDER BY created_at ASC LIMIT 1')).rows[0];
+  let insertedId = null;
+  if (existing) {
+    await db.query('UPDATE company_settings SET appointment_travel_buffer_minutes = 30 WHERE id = $1', [existing.id]);
+  } else {
+    const ins = await db.query(
+      `INSERT INTO company_settings (company_name, appointment_travel_buffer_minutes) VALUES ('Buffer Test Co', 30) RETURNING id`
+    );
+    insertedId = ins.rows[0].id;
+  }
+  companyConfig.invalidate();
+  try {
+    const day = freshDay();
+    assert.strictEqual((await book(day, '12:00')).status, 201);
+    const av = await assertParity(day);
+    // 30-minute buffer: 12:00–13:00 appointment's busy_range is [11:30,13:30),
+    // NOT the default rule's [11:00,14:00) (see B3, same appointment, default
+    // buffer: 10:30 and 13:30 are BOTH blocked there). A 60-min candidate
+    // slot is blocked when its own [slot, slot+60m) window overlaps that
+    // busy_range.
+    assert.ok(av.blocked_slots.includes('11:30'), '30min buffer: 11:30 (candidate overlaps the buffered start) is blocked');
+    assert.ok(!av.blocked_slots.includes('10:30'), '30min buffer: 10:30 — blocked under the default 60min buffer (B3) — is now available');
+    assert.ok(!av.blocked_slots.includes('13:30'), '30min buffer: 13:30 — blocked under the default 60min buffer (B3) — is now available');
+    assert.strictEqual((await book(day, '10:30')).status, 201, '10:30 now genuinely bookable (write path, not just the availability grid) under the 30-minute buffer');
+  } finally {
+    if (insertedId) await db.query('DELETE FROM company_settings WHERE id = $1', [insertedId]);
+    else await db.query('UPDATE company_settings SET appointment_travel_buffer_minutes = $1 WHERE id = $2', [existing.appointment_travel_buffer_minutes, existing.id]);
+    companyConfig.invalidate();
+  }
+});
+
 test('B6. Phone Call and Meeting FOLLOW-UPS at 12:00 block nothing; a real appointment books at exactly 12:00', { skip }, async () => {
   const day = freshDay();
   for (const type of ['Phone Call', 'Meeting']) {

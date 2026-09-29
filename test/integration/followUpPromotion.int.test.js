@@ -300,9 +300,16 @@ test('P7. promote resolves the installation\'s configured timezone (PRODUCTIZATI
     assert.strictEqual(promote.status, 200, JSON.stringify(promote.body));
 
     const active = (await db.query(`SELECT start_at FROM appointments WHERE lead_id = $1 AND status IN ('scheduled','confirmed')`, [leadId])).rows[0];
-    // 11:00 America/New_York (EDT, UTC-4) -> 15:00 UTC. Had this stayed hardcoded
-    // to Pacific (UTC-7), it would be 18:00 UTC instead — a materially different instant.
-    assert.strictEqual(active.start_at.toISOString().slice(11, 16), '15:00',
+    // 11:00 America/New_York -> UTC, DST-correct for whichever day pickDay()
+    // picked (EDT/UTC-4 or EST/UTC-5) — computed the same way production code
+    // does (toUtcIso), not a hardcoded UTC literal that would only hold for
+    // half the year. Also proves it's NOT silently using Pacific: a Pacific
+    // conversion of the same wall-clock time is a materially different instant.
+    const { toUtcIso } = require('../../lib/booking/slotBlocking');
+    const expectedEastern = toUtcIso(day, '11:00', 'America/New_York');
+    const expectedPacific = toUtcIso(day, '11:00', 'America/Los_Angeles');
+    assert.notStrictEqual(expectedEastern, expectedPacific, 'sanity: Eastern and Pacific must differ for this date');
+    assert.strictEqual(active.start_at.toISOString(), expectedEastern,
       'promote used the installation\'s configured Eastern timezone, not a hardcoded Pacific literal');
   } finally {
     if (insertedId) await db.query('DELETE FROM company_settings WHERE id = $1', [insertedId]);
