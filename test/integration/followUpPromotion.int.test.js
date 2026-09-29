@@ -271,3 +271,42 @@ test('P6. only admin/manager may promote — a sales_rep is forbidden', { skip }
   const promote = await api('POST', `/api/v1/leads/${leadId}/promote-follow-up-to-appointment`, {}, repToken);
   assert.strictEqual(promote.status, 403);
 });
+
+test('P7. promote resolves the installation\'s configured timezone (PRODUCTIZATION), not a hardcoded Pacific literal', { skip }, async () => {
+  const companyConfig = require('../../lib/companyConfig');
+  // company_settings is a singleton read via `ORDER BY created_at ASC LIMIT 1`
+  // (see lib/companyConfig.js) — mutate whichever row is actually the
+  // effective one (insert the very first row if none exists yet) so this
+  // test is correct regardless of what other files in an aggregate run have
+  // already seeded.
+  const existing = (await db.query('SELECT id, timezone FROM company_settings ORDER BY created_at ASC LIMIT 1')).rows[0];
+  let insertedId = null;
+  if (existing) {
+    await db.query('UPDATE company_settings SET timezone = $1 WHERE id = $2', ['America/New_York', existing.id]);
+  } else {
+    const ins = await db.query(
+      `INSERT INTO company_settings (company_name, timezone) VALUES ('TZ Test Co', 'America/New_York') RETURNING id`
+    );
+    insertedId = ins.rows[0].id;
+  }
+  companyConfig.invalidate();
+  try {
+    const create = await api('POST', '/api/public/capture', capturePayload({}), null);
+    leadId = create.body.lead.id;
+    day = pickDay();
+    await api('PUT', `/api/v1/leads/${leadId}/follow-up`, { follow_up_date: day, follow_up_time: '11:00', follow_up_type: 'Meeting', follow_up_status: 'pending' });
+
+    const promote = await api('POST', `/api/v1/leads/${leadId}/promote-follow-up-to-appointment`, {});
+    assert.strictEqual(promote.status, 200, JSON.stringify(promote.body));
+
+    const active = (await db.query(`SELECT start_at FROM appointments WHERE lead_id = $1 AND status IN ('scheduled','confirmed')`, [leadId])).rows[0];
+    // 11:00 America/New_York (EDT, UTC-4) -> 15:00 UTC. Had this stayed hardcoded
+    // to Pacific (UTC-7), it would be 18:00 UTC instead — a materially different instant.
+    assert.strictEqual(active.start_at.toISOString().slice(11, 16), '15:00',
+      'promote used the installation\'s configured Eastern timezone, not a hardcoded Pacific literal');
+  } finally {
+    if (insertedId) await db.query('DELETE FROM company_settings WHERE id = $1', [insertedId]);
+    else await db.query('UPDATE company_settings SET timezone = $1 WHERE id = $2', [existing.timezone, existing.id]);
+    companyConfig.invalidate();
+  }
+});
