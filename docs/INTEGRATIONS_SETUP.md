@@ -135,18 +135,35 @@ reports them as `NOT_CONFIGURED` and continues.
 **Enforcement (Phase 2):** `lib/moduleGate.js#requireModuleEnabled(key)` is
 an Express middleware that returns `404 module_disabled` — never a
 missing-secret error or a fake unhealthy status — for a disabled module's
-routes. Wired into `routes/signnow.js` (every route except `/status`, so
-the admin settings panel can still show "disabled" rather than a broken
-404) and `routes/handoffEstimates.js`. `GET /api/v1/system/info` also
-reports `module_enabled` and a `DISABLED` connection state per integration
-regardless of any stale `integration_credentials` row — see
-`docs/CONFIGURATION_REFERENCE.md`'s "Module keys" section.
+routes. Wired into:
+- `routes/signnow.js` (every route except `/status`, so the admin settings
+  panel can still show "disabled" rather than a broken 404)
+- `routes/handoffEstimates.js`
+- `routes/leadQB.js` and `routes/qbInboundSync.js` (QuickBooks) — including
+  `routes/cronJobs.js#/qb-inbound-reconcile`, which calls
+  `lib/qbInboundSync.js` directly rather than through its own gated router,
+  and would otherwise still fire real QuickBooks API calls on a schedule for
+  a company with QuickBooks disabled
+- `routes/metaWebhook.js`'s lead-processing `POST` only — its `GET`
+  verification handshake (`hub.challenge`) is deliberately never gated, since
+  Meta's own dashboard depends on it always responding correctly
 
-**Still deferred:** QuickBooks routes, Google Calendar/Contacts sync, the
-Meta/SignNow webhook receivers, and both background workers (reminder
-worker, calendar-outbox worker) don't check `isModuleEnabled()` yet — a
-company with e.g. `quickbooks: false` today still has QuickBooks routes
-reachable (they'll fail on missing env vars rather than 404 cleanly). Real,
-tracked gap — wiring the same `moduleGate.js` middleware into the
-remaining ~6 integration surfaces is the concrete next step, deliberately
-not done blind/untested for all of them in one pass.
+`GET /api/v1/system/info` also reports `module_enabled` and a `DISABLED`
+connection state per integration regardless of any stale
+`integration_credentials` row — see `docs/CONFIGURATION_REFERENCE.md`'s
+"Module keys" section. Real-Postgres end-to-end proof (not just the
+middleware in isolation):
+`test/integration/moduleGateWiring.int.test.js`.
+
+**Still deferred:**
+- `routes/signnowWebhook.js` (SignNow's own inbound webhook, distinct from
+  `routes/signnow.js`'s admin-facing routes above) does not check
+  `isModuleEnabled()` yet.
+- Google Calendar/Contacts sync and both background workers (reminder
+  worker, calendar-outbox worker) don't check it either — deliberately not
+  attempted in this pass: unlike the single-router integrations above,
+  Google Calendar is embedded throughout the booking write path itself, and
+  the workers are the exact processes CLAUDE.md flags as
+  never-safe-to-experiment-on (a duplicate execution can
+  double-send/double-process). This needs its own careful, dedicated pass —
+  not a drive-by extension of the route-gating pattern.

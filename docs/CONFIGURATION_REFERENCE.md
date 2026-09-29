@@ -37,13 +37,13 @@ authenticated read) or directly at bootstrap via
 | `company_website` | text | null | |
 | `company_logo_url` | text | null | |
 | `favicon_url` | text | null | Loaded by `crm-frontend/src/components/Layout.jsx` with a preload-then-swap fallback model (see `docs/PRODUCT_ARCHITECTURE.md`) — never wired directly into `index.html`'s build-time `<link rel="icon">`, which stays the static default. |
-| `brand_primary_color` | text | null | Stored/round-trips; not yet read by frontend theming — real, tracked gap. |
+| `brand_primary_color` | text | null | A hex color (e.g. `#f59e0b`) admin-settable via a color picker in Company Settings. `crm-frontend/src/lib/brandColor.js#hexToHslTriplet` converts it to the shadcn/ui `--primary` CSS variable's format; `Layout.jsx` applies it with the same never-break-on-a-bad-value discipline as the logo/favicon (an invalid/missing value simply leaves the product-default amber token in place — see `test/integration/moduleGateWiring` sibling tests and `crm-frontend/src/lib/brandColor.test.jsx`). |
 | `admin_name`/`admin_email` | text | null | Primary admin contact; fallback "to" recipient for `notification_recipients` and fallback `default_owner_email`/`default_owner_name` when those aren't set explicitly. |
 | `company_region` | text | null | Display-only label (e.g. "SoCal", "NorCal") — never a tenancy/routing concept |
-| `timezone` | text | `America/Los_Angeles` | Read via `getCompanyConfig().timezone` / `getTimezone()`. Wired into the actual booking-time conversion (`lib/captureValidation.js#laToUtcStart`, `lib/booking/slotBlocking.js#toUtcIso`, `routes/publicCapture.js`, `routes/metaWebhook.js`, `routes/leads.js`'s appointment booking, `lib/crmActivityNotifier.js`/`routes/cronJobs.js`/`routes/signnowWebhook.js`/`lib/captureAlerts.js`'s displayed timestamps) — see `test/multiTimezoneBooking.test.js`. **Not yet wired into**: `lib/reminderTime.js`'s reminder-window scheduling, `lib/booking/slotBlocking.js`'s `DEFAULT_TZ` constant used for availability blocking, and a few SQL `AT TIME ZONE 'America/Los_Angeles'` literals in `routes/cronJobs.js` — tracked, deferred (see `docs/UPGRADE_RUNBOOK.md`). |
-| `locale` | text | `en-US` | Reserved for future date/number formatting; not yet read anywhere |
-| `business_hours` | jsonb | null | Reserved shape (e.g. `{"mon": "9-5", ...}`); not yet read by availability logic |
-| `appointment_travel_buffer_minutes` | integer | `60` | Matches `lib/booking/bookingService.js`'s current hardcoded Meeting travel buffer. Stored/round-trips; not yet read from config by `bookingService.js` itself — real, tracked gap (the buffer VALUE stays 60 for every installation today; only the timezone the buffer is computed *in* is now company-configurable). |
+| `timezone` | text | `America/Los_Angeles` | Read via `getCompanyConfig().timezone` / `getTimezone()`. Wired into booking-time conversion (`lib/captureValidation.js#laToUtcStart`, `lib/booking/slotBlocking.js#toUtcIso`, `routes/publicCapture.js`, `routes/metaWebhook.js`, `routes/leads.js`'s appointment booking) AND into every reminder-window/scheduling path: `lib/reminderTime.js#pacificToUtcMs`/`toLA`, `lib/reminderEngine.js`, `lib/phoneCallReminders.js`, `lib/booking/followUpReminders.js` (the Phone Call follow-up reminder's Google Calendar event), `lib/booking/phoneCallIntegrity.js` (admin diagnostic). Each resolves it once per run/request rather than per-lead. See `test/multiTimezoneBooking.test.js` and the timezone-propagation Phase 2 commit. A few internal SQL `AT TIME ZONE 'America/Los_Angeles'` literals in `routes/cronJobs.js`'s own display-only logging remain — tracked, low-priority (they affect a log line's readability, not any stored value or customer-facing behavior). |
+| `locale` | text | `en-US` | Read by `lib/reminderTime.js#formatDate` (resolved once per run in `lib/reminderEngine.js`/`lib/phoneCallReminders.js`) for the date format in customer-facing reminder emails — e.g. `en-GB` → "22 July 2026" instead of "July 22, 2026". Not yet wired into every other date-display surface (most of the frontend renders dates via `crm-frontend/src/lib/formatters.js`, which itself hardcodes `en-US`) — tracked, deferred; the reminder-email path was prioritized as the highest-volume customer-facing surface. |
+| `business_hours` | jsonb `{start,end}` (24h `HH:MM`) | null → the product-default 08:30–18:30 grid | Read by `lib/booking/availabilityService.js#getEffectiveSlots()`; `lib/booking/slotBlocking.js#computeSlots(start,end)` generates the grid. Falls back to the default grid on anything malformed — never throws, never silently narrows a company's real bookable hours. The frontend's appointment-time pickers (`AppointmentSlotPicker.jsx`, `AvailableTimePicker.jsx`, `CaptureSlotGrid.jsx`) read the backend's actual grid (`GET .../availability`'s new `slots` field) instead of each having its own hardcoded duplicate. See `test/businessHoursConfig.test.js`, `test/integration/appointmentBufferBoundary.int.test.js#B7`. |
+| `appointment_travel_buffer_minutes` | integer | `60` | Read by `lib/booking/bookingService.js#busyWindow` (what gets stored as an appointment's `busy_range` at write time), `lib/booking/calendarOutbox.js` (the "Driving / Travel Time" event's duration), and `lib/booking/googleAvailability.js#getBufferMs` (buffering a genuine external Google event the same way, so a company's own appointments and outside events use one consistent buffer). CLAUDE.md's canonical "1h before + duration + 1h after" blocking rule is preserved exactly for the default (unconfigured) value — see `test/integration/appointmentBufferBoundary.int.test.js#B1-B6` (unchanged) and `#B7` (proves a different configured value genuinely changes the blocked window end-to-end, including a real booking at a slot the default buffer would reject). |
 | `enabled_modules` | jsonb | every key `false` (a fresh install) / every key `true` (an upgraded EC-shaped row — see `docs/UPGRADE_RUNBOOK.md`) | See "Module keys" below |
 | `installation_id` | uuid | generated on first insert | Immutable. See `docs/SECURITY_MODEL.md` |
 | `crm_activity_notifications_enabled` | boolean | `false` | Existing field, unchanged |
@@ -102,9 +102,12 @@ schema change was needed. See `docs/INTEGRATIONS_SETUP.md`.
 ## Deferred work (tracked, not forgotten)
 
 Phase 2 converted the highest-impact hardcoded EC values: notification
-routing (10 files), default owner/routing, timezone-aware booking, frontend
-branding, module enforcement (2 of ~8 integrations), and admin-protection.
-Still deferred, real and tracked:
+routing (10 files), default owner/routing, timezone-aware booking AND
+reminder scheduling, business-hours-aware availability, the travel buffer,
+reminder-email locale, frontend branding (including `brand_primary_color`,
+previously stored with no reader or admin UI at all), module enforcement
+(SignNow, Handoff, QuickBooks, Meta — 4 of ~8 integrations), and
+admin-protection. Still deferred, real and tracked:
 
 - Full mechanical conversion of the ~150 remaining files with a hardcoded
   `ecconstructiongroup.com` / `America/Los_Angeles` / named-person literal
@@ -112,15 +115,29 @@ Still deferred, real and tracked:
   tooling explicitly scoped to EC (Category C — see
   `docs/SECURITY_MODEL.md`), test fixtures (Category D), or low-traffic
   code paths not yet converted for lack of time, not because they're
-  considered safe to leave.
-- `appointment_travel_buffer_minutes`, `business_hours`, `locale`,
-  `brand_primary_color` — stored/round-trip but not read by the business
-  logic they're meant to configure yet.
-- Module enforcement (`lib/moduleGate.js`) on QuickBooks, Google Calendar/
-  Contacts sync, the Meta/SignNow webhook receivers, and both background
-  workers (reminder worker, calendar-outbox worker) — only SignNow and
-  Handoff are gated so far.
-- `lib/reminderTime.js` and `lib/booking/slotBlocking.js#DEFAULT_TZ` still
-  use `America/Los_Angeles` for reminder-window scheduling and availability
-  blocking, independent of the booking-time conversion that IS now
-  company-configurable.
+  considered safe to leave. Two specific, live (if low-risk) examples found
+  during this pass: `routes/routing.js#DEFAULT_OWNER_STARTS` hardcodes EC's
+  office address as the default driving-route starting point for a rep named
+  exactly "Yaron Drilevich" (harmless for any other installation — the key
+  simply never matches, and real values are configured per-owner via
+  `PUT /owner-config`); `crm-frontend/src/components/AppointmentSlotPicker.jsx`
+  hardcodes `AVAILABILITY_OWNER_EMAIL = 'yaron@ecconstructiongroup.com'`
+  (EC's product decision that "Yaron's calendar is the availability calendar
+  that must be shown" — a second installation needs this made configurable,
+  ideally from `default_owner_email`, as a deliberate UI decision, not a
+  silent side effect of a config-plumbing pass).
+- Module enforcement (`lib/moduleGate.js`) on Google Calendar/Contacts sync
+  and both background workers (reminder worker, calendar-outbox worker) —
+  deliberately NOT extended here: unlike SignNow/Handoff/QuickBooks/Meta's
+  single dedicated routers, Google Calendar is embedded throughout the
+  booking write path itself, and the workers are the exact processes
+  CLAUDE.md flags as never-safe-to-experiment-on (a duplicate execution can
+  double-send/double-process). Needs its own careful pass.
+- `locale` is read only by the reminder-email date format
+  (`lib/reminderTime.js#formatDate`) — the highest-volume customer-facing
+  date surface — not yet by the frontend's own date formatting
+  (`crm-frontend/src/lib/formatters.js` still hardcodes `en-US`) or by every
+  other backend date-display string.
+- A handful of internal, display-only `AT TIME ZONE 'America/Los_Angeles'`
+  SQL literals in `routes/cronJobs.js`'s own logging remain — they affect a
+  log line's readability, never a stored value or customer-facing behavior.
