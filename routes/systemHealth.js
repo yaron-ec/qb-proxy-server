@@ -7,16 +7,35 @@
  *   GET /phone-calls/ambiguous  read-only provenance of the legacy Phone Call
  *                               rows the conversion left 'ambiguous'
  *                               (lib/booking/legacyPhoneCallInvestigation)
+ *   GET /lead-diagnostic/:id    single-lead Follow-Up/Appointment diagnostic
+ *                               bundle (lib/leadDiagnostic) — the safe way to
+ *                               inspect one specific production lead's
+ *                               canonical follow-up, full appointment
+ *                               history, activities, reminder state and
+ *                               calendar/outbox linkage without DB
+ *                               credentials and without any mutation path.
  *
  * Auth: a CRM admin JWT, or the production verification workflow's GitHub
- * OIDC identity (lib/systemHealthAuth). No PII, no secrets. Never writes.
- * Rate-limited and cached for 60s so it can't be used to load Google.
+ * OIDC identity (lib/systemHealthAuth). No secrets. Never writes — every
+ * handler in this router is a read-only GET; there is no corresponding
+ * POST/PUT/DELETE anywhere in this file. /phone-calls* return aggregates
+ * only (no PII); /lead-diagnostic/:id is a deliberate, narrower exception —
+ * it returns one named lead's own data to an admin who could already read
+ * the same lead in full via the normal CRM UI (GET /api/v1/leads/:id), so
+ * it grants no access an admin doesn't already have — its value is
+ * cross-referencing appointment history/events/reminders/outbox state in
+ * one response instead of five separate lookups.
+ * Rate-limited; /phone-calls* are cached for 60s so they can't be used to
+ * load Google, /lead-diagnostic/:id is never cached (a different lead, or
+ * fresh state for the same lead, is expected on every call).
  */
 'use strict';
 
 const express = require('express');
 const { rateLimit } = require('../lib/rateLimit');
 const { requireAdminOrVerificationWorkflow } = require('../lib/systemHealthAuth');
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const router = express.Router();
 router.use(rateLimit({ windowMs: 60 * 1000, max: 10 }));
@@ -49,6 +68,21 @@ router.get('/phone-calls/ambiguous', async (req, res) => {
   try { res.json(await ambiguous()); } catch (e) {
     console.error('[system-health] ambiguous investigation failed:', e.message);
     res.status(500).json({ error: 'investigation_failed' });
+  }
+});
+
+router.get('/lead-diagnostic/:id', async (req, res) => {
+  const id = req.params.id;
+  if (!UUID_RE.test(String(id))) return res.status(400).json({ error: 'invalid_lead_id', message: 'id must be a Railway lead UUID.' });
+  try {
+    const { pool } = require('../db/client');
+    const { getLeadDiagnostic } = require('../lib/leadDiagnostic');
+    const result = await getLeadDiagnostic(pool, id);
+    if (!result) return res.status(404).json({ error: 'not_found' });
+    res.json(result);
+  } catch (e) {
+    console.error('[system-health] lead-diagnostic failed:', e.message);
+    res.status(500).json({ error: 'diagnostic_failed' });
   }
 });
 
