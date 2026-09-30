@@ -131,6 +131,8 @@ async function availability(date) {
   return getAvailability({ owner_id: ownerId, date, timezone: 'America/Los_Angeles', duration_minutes: 60 });
 }
 
+let googleModulesState;
+
 test.before(async () => {
   if (skip) return;
   const express = require('express');
@@ -138,6 +140,10 @@ test.before(async () => {
   pickDay = await require('./freeDays').loadFreeDayPicker(db);
   outbox = require('../../lib/booking/calendarOutbox');
   const { issueAccessToken } = require('../../lib/authService');
+  // PRODUCTIZATION: M6 asserts a real Appointment still books/syncs
+  // normally — see ensureGoogleModulesEnabled.js.
+  googleModulesState = await require('./ensureGoogleModulesEnabled').ensureGoogleModulesEnabled(db);
+  require('../../lib/companyConfig').invalidate();
   await db.query(
     `INSERT INTO owners (email, display_name) VALUES ('yaron@ecconstructiongroup.com', 'Yaron Drilevich')
      ON CONFLICT DO NOTHING`);
@@ -157,6 +163,8 @@ test.before(async () => {
 test.after(async () => {
   if (skip) return;
   server.close();
+  await require('./ensureGoogleModulesEnabled').restoreGoogleModules(db, googleModulesState);
+  require('../../lib/companyConfig').invalidate();
   await db.pool.end();
 });
 

@@ -61,7 +61,7 @@ if (DB_URL) {
   stub('lib/captureAlerts', { sendNewLeadAlert: async (lead) => { alerts.push(lead.id); }, ALERT_RECIPIENTS: [] });
 }
 
-let base, server, db, adminToken;
+let base, server, db, adminToken, googleModulesState;
 let ipSeq = 1;
 const RUN = `c${Date.now().toString(36)}${Math.floor(Math.random() * 1e4)}`;
 
@@ -129,6 +129,10 @@ test.before(async () => {
   const express = require('express');
   db = require(path.join(ROOT, 'db/client'));
   const { issueAccessToken } = require(path.join(ROOT, 'lib/authService'));
+  // PRODUCTIZATION: these tests assert real calendar_outbox/google_contacts_outbox
+  // rows get enqueued for every new lead — see ensureGoogleModulesEnabled.js.
+  googleModulesState = await require('./ensureGoogleModulesEnabled').ensureGoogleModulesEnabled(db);
+  require(path.join(ROOT, 'lib/companyConfig')).invalidate();
   await db.query(`INSERT INTO owners (email, display_name) VALUES ('yaron@ecconstructiongroup.com', 'Yaron Drilevich') ON CONFLICT DO NOTHING`);
   // Created by the calendar/contacts outbox worker at its startup in production.
   await require(path.join(ROOT, 'lib/googleContactsOutbox')).ensureContactsOutbox(db.pool);
@@ -146,6 +150,8 @@ test.before(async () => {
 test.after(async () => {
   if (skip) return;
   server.close();
+  await require('./ensureGoogleModulesEnabled').restoreGoogleModules(db, googleModulesState);
+  require(path.join(ROOT, 'lib/companyConfig')).invalidate();
   await db.pool.end();
 });
 

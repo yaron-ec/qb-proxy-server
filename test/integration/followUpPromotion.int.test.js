@@ -113,6 +113,8 @@ async function getLead(id) {
   return r.body.lead;
 }
 
+let googleModulesState;
+
 test.before(async () => {
   if (skip) return;
   const express = require('express');
@@ -120,6 +122,10 @@ test.before(async () => {
   pickDay = await require('./freeDays').loadFreeDayPicker(db);
   outbox = require('../../lib/booking/calendarOutbox');
   const { issueAccessToken } = require('../../lib/authService');
+  // PRODUCTIZATION: P1 asserts a real Google Calendar event exists after
+  // promotion — see ensureGoogleModulesEnabled.js.
+  googleModulesState = await require('./ensureGoogleModulesEnabled').ensureGoogleModulesEnabled(db);
+  require('../../lib/companyConfig').invalidate();
   await db.query(`INSERT INTO owners (email, display_name) VALUES ('rep@test.example', 'Promotion Tester') ON CONFLICT DO NOTHING`);
   ownerId = (await db.query(`SELECT id FROM owners WHERE email = 'rep@test.example' ORDER BY created_at ASC LIMIT 1`)).rows[0].id;
   appointmentTypeId = (await db.query(`SELECT id FROM appointment_types WHERE is_active = true ORDER BY (name = 'Consultation') DESC, name LIMIT 1`)).rows[0].id;
@@ -137,6 +143,8 @@ test.before(async () => {
 test.after(async () => {
   if (skip) return;
   server.close();
+  await require('./ensureGoogleModulesEnabled').restoreGoogleModules(db, googleModulesState);
+  require('../../lib/companyConfig').invalidate();
   await db.pool.end();
 });
 

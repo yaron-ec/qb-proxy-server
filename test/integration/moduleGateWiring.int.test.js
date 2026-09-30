@@ -30,7 +30,7 @@ if (DB_URL) {
   process.env.WORKER_SECRET = process.env.WORKER_SECRET || 'int-test-worker-secret';
 }
 
-let base, server, db, token, companyConfig;
+let base, server, db, token, companyConfig, pickDay;
 
 async function api(method, url, body, headers) {
   const res = await fetch(base + url, {
@@ -78,6 +78,12 @@ test.before(async () => {
   app.use('/api/v1/qb-inbound', require(path.join(ROOT, 'routes/qbInboundSync')));
   app.use('/api/v1/meta-webhook', require(path.join(ROOT, 'routes/metaWebhook')));
   app.use('/api/v1/cron', require(path.join(ROOT, 'routes/cronJobs')));
+  app.use('/api/v1/leads', require(path.join(ROOT, 'routes/leads')));
+  app.use('/api/public/capture', require(path.join(ROOT, 'routes/publicCapture')));
+  await db.query(`INSERT INTO owners (email, display_name) VALUES ('module-gate-owner@test.example', 'Module Gate Owner') ON CONFLICT DO NOTHING`);
+  // Created by the calendar/contacts outbox worker at its startup in production.
+  await require(path.join(ROOT, 'lib/googleContactsOutbox')).ensureContactsOutbox(db.pool);
+  pickDay = await require('./freeDays').loadFreeDayPicker(db);
   await new Promise((r) => { server = app.listen(0, '127.0.0.1', r); });
   base = `http://127.0.0.1:${server.address().port}`;
 });
@@ -141,4 +147,60 @@ test('routes/metaWebhook.js: POST reaches the real handler (a different failure)
   const res = await fetch(`${base}/api/v1/meta-webhook`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
   const body = await res.json().catch(() => null);
   assert.notStrictEqual(body?.error, 'module_disabled');
+});
+
+// ── lib/booking/calendarOutbox.js / lib/googleContactsOutbox.js: enqueue-time
+// gating, proved end-to-end through the real HTTP capture/appointment routes
+// against real Postgres — not just the mocked unit coverage in
+// test/availabilityGoogleModuleGate.test.js and
+// test/calendarOutboxWorkerModuleGate.test.js. A disabled module must result
+// in ZERO rows ever written to calendar_outbox/google_contacts_outbox for a
+// new appointment/lead — not merely "the worker won't process them" — and an
+// enabled module (EC's real shape) must still enqueue exactly as before.
+
+async function captureWithAppointment(day) {
+  const phone = `${100000 + Math.floor(Math.random() * 899999)}${Date.now() % 10000}`.slice(0, 10);
+  const r = await fetch(`${base}/api/public/capture`, {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      first_name: 'GateTest', last_name: `Lead${Date.now()}`, phone,
+      project_type: 'Kitchen', source: 'Referral', assigned_rep: 'Module Gate Owner',
+      appointment_date: day, appointment_time: '15:00', appointment_type: 'Meeting',
+    }),
+  });
+  const body = await r.json();
+  assert.strictEqual(r.status, 201, JSON.stringify(body));
+  return body.lead;
+}
+
+test('lib/booking/calendarOutbox.js: google_calendar disabled -> booking a real appointment enqueues ZERO calendar_outbox rows', { skip }, async () => {
+  await setModule('google_calendar', false);
+  const lead = await captureWithAppointment(pickDay());
+  const appt = (await db.query(`SELECT id FROM appointments WHERE lead_id = $1`, [lead.id])).rows[0];
+  assert.ok(appt, 'the appointment itself is still created — only the calendar sync is gated');
+  const rows = (await db.query(`SELECT * FROM calendar_outbox WHERE appointment_id = $1`, [appt.id])).rows;
+  assert.strictEqual(rows.length, 0, 'no calendar_outbox row of any kind for this appointment while google_calendar is disabled');
+});
+
+test('lib/booking/calendarOutbox.js: google_calendar enabled -> booking a real Meeting appointment enqueues main + travel calendar_outbox rows (EC\'s preserved behavior)', { skip }, async () => {
+  await setModule('google_calendar', true);
+  const lead = await captureWithAppointment(pickDay());
+  const appt = (await db.query(`SELECT id FROM appointments WHERE lead_id = $1`, [lead.id])).rows[0];
+  const rows = (await db.query(`SELECT action FROM calendar_outbox WHERE appointment_id = $1 ORDER BY action`, [appt.id])).rows;
+  assert.deepStrictEqual(rows.map(r => r.action).sort(), ['create_main', 'create_travel'], 'a Meeting enqueues both a main and a travel event when google_calendar is enabled');
+});
+
+test('lib/googleContactsOutbox.js: google_contacts disabled -> capturing a real lead enqueues ZERO google_contacts_outbox rows', { skip }, async () => {
+  await setModule('google_contacts', false);
+  const lead = await captureWithAppointment(pickDay());
+  const rows = (await db.query(`SELECT * FROM google_contacts_outbox WHERE lead_id = $1`, [lead.id])).rows;
+  assert.strictEqual(rows.length, 0, 'no google_contacts_outbox row for this lead while google_contacts is disabled');
+});
+
+test('lib/googleContactsOutbox.js: google_contacts enabled -> capturing a real lead enqueues exactly one pending google_contacts_outbox row (EC\'s preserved behavior)', { skip }, async () => {
+  await setModule('google_contacts', true);
+  const lead = await captureWithAppointment(pickDay());
+  const rows = (await db.query(`SELECT status FROM google_contacts_outbox WHERE lead_id = $1`, [lead.id])).rows;
+  assert.strictEqual(rows.length, 1, 'exactly one contacts sync job enqueued when google_contacts is enabled');
+  assert.strictEqual(rows[0].status, 'pending');
 });

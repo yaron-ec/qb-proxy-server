@@ -134,6 +134,8 @@ function externalBusy(day, from, to, extra = {}) {
   return id;
 }
 
+let googleModulesState;
+
 test.before(async () => {
   if (skip) return;
   const express = require('express');
@@ -143,6 +145,10 @@ test.before(async () => {
   reminders = require('../../lib/booking/followUpReminders');
   conversion = require('../../lib/booking/legacyPhoneCallConversion');
   ({ getAvailability } = require('../../lib/booking/availabilityService'));
+  // PRODUCTIZATION: this file asserts real Phone Call reminder events and
+  // external-busy-blocking on Google Calendar — see ensureGoogleModulesEnabled.js.
+  googleModulesState = await require('./ensureGoogleModulesEnabled').ensureGoogleModulesEnabled(db);
+  require('../../lib/companyConfig').invalidate();
   await db.query(`INSERT INTO owners (email, display_name) VALUES ('yaron@ecconstructiongroup.com', 'Yaron Drilevich') ON CONFLICT DO NOTHING`);
   await db.query(`INSERT INTO owners (email, display_name) VALUES ('pc-reassign@example.com', 'PC Reassign Owner') ON CONFLICT DO NOTHING`);
   ownerId = (await rows(`SELECT id FROM owners WHERE email = 'yaron@ecconstructiongroup.com'`))[0].id;
@@ -157,7 +163,13 @@ test.before(async () => {
   await new Promise((r) => { server = app.listen(0, '127.0.0.1', r); });
   base = `http://127.0.0.1:${server.address().port}`;
 });
-test.after(async () => { if (skip) return; server.close(); await db.pool.end(); });
+test.after(async () => {
+  if (skip) return;
+  server.close();
+  await require('./ensureGoogleModulesEnabled').restoreGoogleModules(db, googleModulesState);
+  require('../../lib/companyConfig').invalidate();
+  await db.pool.end();
+});
 test.beforeEach(async () => {
   if (skip) return;
   google.reset();

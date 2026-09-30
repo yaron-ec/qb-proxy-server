@@ -141,6 +141,8 @@ async function getLead(id) {
   return r.body.lead;
 }
 
+let googleModulesState;
+
 test.before(async () => {
   if (skip) return;
   const express = require('express');
@@ -148,6 +150,11 @@ test.before(async () => {
   pickDay = await require('./freeDays').loadFreeDayPicker(db);
   outbox = require('../../lib/booking/calendarOutbox');
   const { issueAccessToken } = require('../../lib/authService');
+  // PRODUCTIZATION: this file exercises real Google Calendar sync end-to-end
+  // (through the fake client above) — see ensureGoogleModulesEnabled.js for
+  // why that now needs an explicit company_settings precondition.
+  googleModulesState = await require('./ensureGoogleModulesEnabled').ensureGoogleModulesEnabled(db);
+  require('../../lib/companyConfig').invalidate();
   await db.query(
     `INSERT INTO owners (email, display_name) VALUES ('yaron@ecconstructiongroup.com', 'Yaron Drilevich')
      ON CONFLICT DO NOTHING`);
@@ -165,6 +172,8 @@ test.before(async () => {
 test.after(async () => {
   if (skip) return;
   server.close();
+  await require('./ensureGoogleModulesEnabled').restoreGoogleModules(db, googleModulesState);
+  require('../../lib/companyConfig').invalidate();
   await db.pool.end();
 });
 
