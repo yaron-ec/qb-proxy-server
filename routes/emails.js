@@ -132,7 +132,8 @@ router.post('/leads/:id/remind', requireAuth, async (req, res) => {
   try {
     const lead = await data.getLead(req.params.id);
     if (!lead) return res.status(404).json({ error: 'lead not found' });
-    if (!canAccessLead(req.user, lead)) return res.status(403).json({ error: 'forbidden: not assigned to this lead' });
+    const companyDomain = await require('../lib/companyConfig').getCompanyEmailDomain();
+    if (!canAccessLead(req.user, lead, companyDomain || undefined)) return res.status(403).json({ error: 'forbidden: not assigned to this lead' });
 
     // The canonical appointment only — a follow-up (any type, including
     // 'Meeting') is an internal next action and never gets an appointment reminder.
@@ -140,8 +141,9 @@ router.post('/leads/:id/remind', requireAuth, async (req, res) => {
     const apptTime = lead.appointment_time || '09:00';
     if (!apptDate) return res.status(400).json({ error: 'no appointment date on this lead' });
 
-    const ownerName = lead.assigned_rep || 'EC Construction Group';
-    const ownerEmail = data.resolveOwnerEmail(lead.assigned_rep) || (await notificationRecipients.getPrimaryRecipient());
+    const companyName = await notificationRecipients.getSenderName();
+    const ownerName = lead.assigned_rep || companyName;
+    const ownerEmail = data.resolveOwnerEmail(lead.assigned_rep, companyDomain || undefined) || (await notificationRecipients.getPrimaryRecipient());
     const clientName = `${lead.first_name || ''} ${lead.last_name || ''}`.trim();
     const address = [lead.property_address, lead.city].filter(Boolean).join(', ');
     const baseKey = `manual:${lead.id}:${apptDate}:${apptTime}`;
@@ -167,7 +169,7 @@ router.post('/leads/:id/remind', requireAuth, async (req, res) => {
     } else if (lead.email) {
       const custHtml = templates.manualCustomerReminderEmail({ firstName: lead.first_name || 'there', date: apptDate, time: apptTime, address, projectType: lead.project_type || '', ownerName });
       try {
-        const r = await emailService.send({ to: lead.email, cc: await notificationRecipients.getAllStaffRecipients(), replyTo: ownerEmail, subject: 'Appointment Reminder — EC Construction Group', htmlBody: custHtml, idempotencyKey: `${baseKey}:customer`, role: 'customer' });
+        const r = await emailService.send({ to: lead.email, cc: await notificationRecipients.getAllStaffRecipients(), replyTo: ownerEmail, subject: `Appointment Reminder — ${companyName}`, htmlBody: custHtml, idempotencyKey: `${baseKey}:customer`, role: 'customer' });
         results.customer = { email: lead.email, ...r };
       } catch (e) { results.customer = { email: lead.email, ok: false, error: e.message }; }
     } else {
@@ -190,11 +192,12 @@ router.post('/invoices/:id/email', requireAuth, async (req, res) => {
     if (!invoice) return res.status(404).json({ error: 'invoice not found' });
     const lead = invoice.lead_id ? await data.getLead(invoice.lead_id) : null;
     if (!lead) return res.status(404).json({ error: 'lead not found for invoice' });
-    if (!canAccessLead(req.user, lead)) return res.status(403).json({ error: 'forbidden: not assigned to this lead' });
+    const companyDomain = await require('../lib/companyConfig').getCompanyEmailDomain();
+    if (!canAccessLead(req.user, lead, companyDomain || undefined)) return res.status(403).json({ error: 'forbidden: not assigned to this lead' });
 
     const recipients = [];
     if (lead.email) recipients.push(lead.email);
-    const ownerEmail = data.resolveOwnerEmail(lead.assigned_rep);
+    const ownerEmail = data.resolveOwnerEmail(lead.assigned_rep, companyDomain || undefined);
     if (ownerEmail && ownerEmail !== lead.email) recipients.push(ownerEmail);
     if (!recipients.length) return res.status(400).json({ error: 'no recipients' });
 
@@ -226,7 +229,7 @@ router.post('/invoices/:id/email', requireAuth, async (req, res) => {
     for (const recipient of recipients) {
       try {
         const r = await emailService.send({
-          to: recipient, subject: `Invoice #${invoice.qb_invoice_number || invoice.invoice_number || invoice.qb_invoice_id} — EC Construction Group`,
+          to: recipient, subject: `Invoice #${invoice.qb_invoice_number || invoice.invoice_number || invoice.qb_invoice_id} — ${await notificationRecipients.getSenderName()}`,
           htmlBody: html, attachments: attachment ? [attachment] : [],
           idempotencyKey: `invoice:${invoice.id}:${recipient}`, role: 'invoice',
         });

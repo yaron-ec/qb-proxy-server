@@ -115,7 +115,7 @@ function createWebsiteLeadsRouter(deps) {
       const base = {
         idempotency_key: ref,
         external_ref: ref,
-        owner_email: ownerEmail(),
+        owner_email: await ownerEmail(),
         owner_display_name: ownerDisplayName(),
         first_name: lead.first_name,
         last_name: lead.last_name,
@@ -285,7 +285,7 @@ function defaultRouter() {
   const leadsRoutes = require('./leads');
   return createWebsiteLeadsRouter({
     query: db.query, pool: db.pool, createBooking, BookingError,
-    ownerEmail: () => resolveOwnerEmail(DEFAULT_INTAKE_REP),
+    ownerEmail: async () => resolveOwnerEmail(DEFAULT_INTAKE_REP, (await require('../lib/companyConfig').getCompanyEmailDomain()) || undefined),
     ownerDisplayName: () => DEFAULT_INTAKE_REP,
     sendNewLeadAlert, enqueueContactSync, removeFromReminders,
     cleanupLeadTextRefs: leadsRoutes.cleanupLeadTextRefs,

@@ -135,7 +135,8 @@ router.get('/availability', availLimiter, async (req, res) => {
 // ── POST / — atomic lead + appointment create ──────────────────────────────
 router.post('/', submitLimiter, async (req, res) => {
   try {
-    const v = validateCapturePayload(req.body || {});
+    const ownerDomain = (await require('../lib/companyConfig').getCompanyEmailDomain()) || undefined;
+    const v = validateCapturePayload(req.body || {}, { ownerDomain });
     if (!v.ok) return res.status(400).json({ error: 'validation_failed', message: v.errors.join('; '), details: v.errors });
     const c = v.cleaned;
 
