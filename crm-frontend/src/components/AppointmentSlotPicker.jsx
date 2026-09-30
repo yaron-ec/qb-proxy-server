@@ -13,15 +13,20 @@
  * travel buffer: 1hr meeting + 1hr before/after — same rule the backend
  * write-path conflict check enforces.
  *
- * Yaron's calendar is always shown regardless of the selected rep, per requirement:
- * "Yaron's calendar is the availability calendar that must be shown."
+ * One single calendar is always shown regardless of the selected rep, per
+ * requirement: "Yaron's calendar is the availability calendar that must be
+ * shown" (EC's own case — Yaron is EC's default_owner_email). PRODUCTIZATION
+ * PHASE 2: which calendar that is comes from this installation's configured
+ * company_settings.default_owner_email, not a hardcoded EC address — a
+ * fresh installation's own default owner is shown instead.
  */
 import { useState, useEffect, useCallback } from 'react';
 import { Clock, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { getBlockedSlots } from '@/api/railway/availability';
+import * as railwayCompanySettings from '@/api/railway/companySettings';
 
-// Always use Yaron's calendar for availability, regardless of selected rep
-const AVAILABILITY_OWNER_EMAIL = 'yaron@ecconstructiongroup.com';
+// Fallback only if this installation hasn't configured a default owner yet.
+const FALLBACK_OWNER_EMAIL = 'yaron@ecconstructiongroup.com';
 
 // Default 30-minute slots from 8:30 AM to 6:30 PM (matches the backend's
 // product-default SLOTS). PRODUCTIZATION PHASE 2: the backend's availability
@@ -47,6 +52,15 @@ export default function AppointmentSlotPicker({ date, selectedTime, onSelectTime
   const [slots, setSlots] = useState(DEFAULT_SLOTS);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [ownerEmail, setOwnerEmail] = useState(FALLBACK_OWNER_EMAIL);
+
+  useEffect(() => {
+    let cancelled = false;
+    railwayCompanySettings.get()
+      .then((cfg) => { if (!cancelled && cfg?.default_owner_email) setOwnerEmail(cfg.default_owner_email); })
+      .catch(() => { /* keep FALLBACK_OWNER_EMAIL */ });
+    return () => { cancelled = true; };
+  }, []);
 
   const loadAvailability = useCallback(async (d) => {
     if (!d) {
@@ -56,7 +70,7 @@ export default function AppointmentSlotPicker({ date, selectedTime, onSelectTime
     setLoading(true);
     setError(null);
     try {
-      const data = await getBlockedSlots({ ownerEmail: AVAILABILITY_OWNER_EMAIL, date: d });
+      const data = await getBlockedSlots({ ownerEmail, date: d });
       setBlockedSlots(data.blocked_slots || []);
       setSlots(Array.isArray(data.slots) && data.slots.length ? data.slots : DEFAULT_SLOTS);
     } catch (e) {
@@ -65,7 +79,7 @@ export default function AppointmentSlotPicker({ date, selectedTime, onSelectTime
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [ownerEmail]);
 
   useEffect(() => {
     loadAvailability(date);

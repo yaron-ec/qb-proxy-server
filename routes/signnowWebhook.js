@@ -36,22 +36,12 @@ const SIGNNOW_BASE = process.env.SIGNNOW_API_BASE || 'https://api.signnow.com';
 // lib/notificationRecipients.js). Resolved per-request below, not at
 // module scope, since it depends on company_settings.
 //
-// OWNER_EMAIL_MAP below is a known, deliberately-scoped Category C/D
-// remainder: a static rep-name→email map specific to EC's current roster.
-// The Owner Directory (owners table) is now the authoritative source for
-// this same mapping elsewhere in the app (routes/leads.js's
-// resolveOwnerScope, lib/dataAccessRailway.js#resolveOwnerEmail) — wiring
-// this webhook to query it instead of this static map is tracked as a
-// follow-up, not attempted here to avoid widening this fix's blast radius
-// beyond notification routing.
-const OWNER_EMAIL_MAP = {
-  'Yaron': 'yaron@ecconstructiongroup.com',
-  'Yaron Drilevich': 'yaron@ecconstructiongroup.com',
-  'Mickey': 'mickey@ecconstructiongroup.com',
-  'Mickey Gad': 'mickey@ecconstructiongroup.com',
-  'Victoria': 'victoria@ecconstructiongroup.com',
-  'Michelle': 'michelle@ecconstructiongroup.com',
-};
+// The per-lead owner email previously came from a static EC-roster
+// rep-name->email map (OWNER_EMAIL_MAP); it now comes directly from the
+// owners table (joined in the query below), the authoritative source used
+// everywhere else in the app (routes/leads.js's resolveOwnerScope,
+// lib/dataAccessRailway.js#resolveOwnerEmail) — no name-guessing, and no
+// EC-specific roster baked into this file.
 
 function isMainContract(documentName) {
   if (!documentName) return false;
@@ -212,7 +202,10 @@ router.post('/', express.json(), async (req, res) => {
 
     // ── If main contract: mark lead as Sold ───────────────────────────────
     if (mainContract && docRecord.lead_id) {
-      const leadRes = await query('SELECT * FROM leads WHERE id = $1', [docRecord.lead_id]);
+      const leadRes = await query(
+        `SELECT l.*, o.email AS owner_email FROM leads l LEFT JOIN owners o ON o.id = l.owner_id WHERE l.id = $1`,
+        [docRecord.lead_id]
+      );
       const lead = leadRes.rows[0];
 
       if (lead && lead.status !== 'Sold') {
@@ -243,11 +236,14 @@ router.post('/', express.json(), async (req, res) => {
 
         const htmlEmailBody = `<pre style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:15px;line-height:1.6;color:#1A1A2E;white-space:pre-wrap;word-wrap:break-word;">${emailBody.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
 
-        // Build recipient list (this installation's staff recipients + lead owner, deduped)
+        // Build recipient list (this installation's staff recipients + lead owner, deduped).
+        // The owners table (joined above) is the authoritative rep->email
+        // mapping — no name-guessing needed.
         const recipients = new Set(await notificationRecipients.getAllStaffRecipients());
-        if (lead.assigned_rep) {
-          const ownerEmail = OWNER_EMAIL_MAP[lead.assigned_rep] || (lead.assigned_rep.includes('@') ? lead.assigned_rep : null);
-          if (ownerEmail) recipients.add(ownerEmail);
+        if (lead.owner_email) {
+          recipients.add(lead.owner_email);
+        } else if (lead.assigned_rep && lead.assigned_rep.includes('@')) {
+          recipients.add(lead.assigned_rep);
         }
 
         const recipientList = Array.from(recipients).filter(Boolean);

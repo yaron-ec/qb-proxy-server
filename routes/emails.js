@@ -167,7 +167,7 @@ router.post('/leads/:id/remind', requireAuth, async (req, res) => {
     if (lead.customer_reminders_disabled) {
       results.customer = { status: 'skipped', reason: 'customer opted out' };
     } else if (lead.email) {
-      const custHtml = templates.manualCustomerReminderEmail({ firstName: lead.first_name || 'there', date: apptDate, time: apptTime, address, projectType: lead.project_type || '', ownerName });
+      const custHtml = templates.manualCustomerReminderEmail({ firstName: lead.first_name || 'there', date: apptDate, time: apptTime, address, projectType: lead.project_type || '', ownerName, company: { name: companyName } });
       try {
         const r = await emailService.send({ to: lead.email, cc: await notificationRecipients.getAllStaffRecipients(), replyTo: ownerEmail, subject: `Appointment Reminder — ${companyName}`, htmlBody: custHtml, idempotencyKey: `${baseKey}:customer`, role: 'customer' });
         results.customer = { email: lead.email, ...r };
@@ -220,16 +220,17 @@ router.post('/invoices/:id/email', requireAuth, async (req, res) => {
       }
     }
 
+    const companyName = await notificationRecipients.getSenderName();
     const html = templates.invoiceEmail({
       clientName: `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || 'Customer',
       invoiceNumber: invoice.qb_invoice_number || invoice.invoice_number || invoice.qb_invoice_id,
-      amount: invoice.amount, projectType: lead.project_type,
+      amount: invoice.amount, projectType: lead.project_type, company: { name: companyName },
     });
     const results = [];
     for (const recipient of recipients) {
       try {
         const r = await emailService.send({
-          to: recipient, subject: `Invoice #${invoice.qb_invoice_number || invoice.invoice_number || invoice.qb_invoice_id} — ${await notificationRecipients.getSenderName()}`,
+          to: recipient, subject: `Invoice #${invoice.qb_invoice_number || invoice.invoice_number || invoice.qb_invoice_id} — ${companyName}`,
           htmlBody: html, attachments: attachment ? [attachment] : [],
           idempotencyKey: `invoice:${invoice.id}:${recipient}`, role: 'invoice',
         });

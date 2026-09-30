@@ -49,6 +49,11 @@ function createWebsiteLeadsRouter(deps) {
     cleanupLeadTextRefs, cancelAppointmentsForLeadDelete,
     getSecret = () => process.env.WEBSITE_LEAD_WEBHOOK_SECRET,
     crmPublicUrl = () => process.env.CRM_PUBLIC_URL || '',
+    // Dependency-injected like getSecret/crmPublicUrl above (tests pass
+    // their own synchronous stub); defaultRouter() below wires the real,
+    // company_settings-backed async resolver. Default here never touches a
+    // DB, matching every other dep's synchronous, no-I/O default.
+    websiteDomain = () => 'ecconstructiongroup.com',
     log = console,
   } = deps;
 
@@ -93,7 +98,7 @@ function createWebsiteLeadsRouter(deps) {
   }
 
   router.post('/', rateLimit({ windowMs: 60 * 1000, max: 60 }), requireSecret, async (req, res) => {
-    const m = mapWebsiteLead(req.body);
+    const m = mapWebsiteLead(req.body, { websiteDomain: await websiteDomain() });
     if (!m.ok) return res.status(400).json({ error: 'validation_failed', details: m.errors });
     const lead = m.lead;
     const ref = externalRefFor(req.headers['idempotency-key'], req.body);
@@ -287,6 +292,10 @@ function defaultRouter() {
     query: db.query, pool: db.pool, createBooking, BookingError,
     ownerEmail: async () => resolveOwnerEmail(DEFAULT_INTAKE_REP, (await require('../lib/companyConfig').getCompanyEmailDomain()) || undefined),
     ownerDisplayName: () => DEFAULT_INTAKE_REP,
+    websiteDomain: async () => {
+      const cfg = await require('../lib/companyConfig').getCompanyConfig();
+      return (cfg.company_website || 'https://ecconstructiongroup.com').replace(/^https?:\/\//, '');
+    },
     sendNewLeadAlert, enqueueContactSync, removeFromReminders,
     cleanupLeadTextRefs: leadsRoutes.cleanupLeadTextRefs,
     cancelAppointmentsForLeadDelete: leadsRoutes.cancelAppointmentsForLeadDelete,
