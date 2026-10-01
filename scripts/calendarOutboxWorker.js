@@ -37,7 +37,7 @@ const companyConfig = require('../lib/companyConfig');
 
 // Reconciliation runs every N ticks to avoid hammering Google on every loop
 const RECONCILE_EVERY_N_TICKS = parseInt(process.env.CALENDAR_RECONCILE_INTERVAL || '30', 10);
-// Phone Call follow-up reminders (non-blocking Google visibility) every N ticks
+// Follow-up reminders of ANY type (non-blocking Google visibility) every N ticks
 const FOLLOWUP_REMINDERS_EVERY_N_TICKS = parseInt(process.env.FOLLOWUP_REMINDER_INTERVAL || '6', 10);
 let _tickCount = 0;
 let _reminderTick = 0;

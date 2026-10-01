@@ -14,11 +14,14 @@
  * Proves, end to end through HTTP → routes → bookingService → calendar
  * outbox worker → reminder projection → availability → routing:
  *   Meeting can be selected/saved and survives reload; it creates zero
- *   appointments, zero Google Calendar events, zero travel events, blocks no
- *   slot, produces no customer appointment reminder and no driving stop; a
- *   real Appointment can be booked at the exact same time (and behaves
- *   exactly as before — buffered, blocking, main + travel events); a Phone
- *   Call follow-up remains non-blocking.
+ *   appointments, zero appointment-style Google Calendar main/travel events,
+ *   blocks no slot, produces no customer appointment reminder and no driving
+ *   stop; a real Appointment can be booked at the exact same time (and
+ *   behaves exactly as before — buffered, blocking, main + travel events); a
+ *   Phone Call follow-up remains non-blocking. This file never exercises
+ *   lib/booking/followUpReminders.js's SEPARATE non-blocking reminder sync
+ *   (permanent rule, all follow-up types) — see
+ *   test/integration/phoneCallCalendarReminder.int.test.js case N for that.
  */
 const test = require('node:test');
 const assert = require('node:assert');

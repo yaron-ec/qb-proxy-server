@@ -201,6 +201,30 @@ test('A/B/C/M. Phone Call at 10:00 → one free reminder event on Google; 10:00 
   assert.strictEqual((await apptsOf(visit)).length, 1);
 });
 
+test('N. PERMANENT RULE: a Meeting follow-up gets the exact same free, non-blocking reminder treatment as a Phone Call', { skip }, async () => {
+  const day = pickDay();
+  const meetingLead = await capture({ follow_up_date: day, follow_up_time: '14:00', follow_up_type: 'Meeting' });
+  assert.deepStrictEqual(await apptsOf(meetingLead), [], 'still never an appointment');
+  await reconcile();
+  const [ev, ...more] = liveReminders(meetingLead);
+  assert.ok(ev, 'a Meeting follow-up gets a reminder event on Google Calendar');
+  assert.deepStrictEqual(more, [], 'exactly one');
+  assert.strictEqual(ev.transparency, 'transparent');
+  assert.strictEqual(ev.extendedProperties.private.ec_blocking, 'false');
+  assert.match(ev.summary, /^Meeting: /);
+  const av = await avail(day);
+  assert.deepStrictEqual(av.blocked_slots.filter((s) => s === '14:00'), [], 'Meeting reminder never blocks its own slot');
+  const row = (await rows('SELECT followup_kind FROM followup_calendar_reminders WHERE lead_id = $1', [meetingLead]))[0];
+  assert.strictEqual(row.followup_kind, 'meeting');
+  // A real appointment still books at the exact same time as the Meeting follow-up.
+  const visit = await capture({ appointment_date: day, appointment_time: '14:00' });
+  assert.strictEqual((await apptsOf(visit)).length, 1);
+  // Marking the Meeting follow-up done removes its reminder (same lifecycle as Phone Call).
+  assert.strictEqual((await api('PUT', `/api/v1/leads/${meetingLead}/follow-up`, { follow_up_status: 'completed' })).status, 200);
+  await reconcile();
+  assert.deepStrictEqual(liveReminders(meetingLead), [], 'completed Meeting follow-up reminder removed');
+});
+
 test('D/E. A genuine external Google busy event still blocks ±1h and rejects a booking; a real appointment blocks 1h before + duration + 1h after', { skip }, async () => {
   const day = pickDay();
   externalBusy(day, '13:00', '14:00');
@@ -254,20 +278,29 @@ test('G/I. Reschedule and owner reassignment update the SAME event (no duplicate
   assert.strictEqual(st.owner_email, 'pc-reassign@example.com');
 });
 
-test('H. Complete / clear / retype / delete removes the future reminder; a later Phone Call gets a fresh event', { skip }, async () => {
+test('H. Complete / clear / delete removes the future reminder; retyping (still active) keeps the SAME event; a later Phone Call gets a fresh event', { skip }, async () => {
   const day = pickDay();
   const [a, b, c, d] = [await phoneCall(day, '09:00'), await phoneCall(day, '09:30'), await phoneCall(day, '11:00'), await phoneCall(day, '11:30')];
   await reconcile();
   for (const id of [a, b, c, d]) assert.strictEqual(liveReminders(id).length, 1);
   const firstId = liveReminders(a)[0].id;
+  const cEventId = liveReminders(c)[0].id;
   assert.strictEqual((await api('PUT', `/api/v1/leads/${a}/follow-up`, { follow_up_status: 'completed' })).status, 200);
   assert.strictEqual((await api('PUT', `/api/v1/leads/${b}/follow-up`, { follow_up_date: null, follow_up_type: null, follow_up_time: null })).status, 200);
+  // PERMANENT RULE: retyping to another type (Email) is still an ACTIVE,
+  // timed follow-up — it keeps the SAME reminder event, just relabeled, it
+  // is never removed by a mere retype.
   assert.strictEqual((await api('PUT', `/api/v1/leads/${c}/follow-up`, { follow_up_type: 'Email' })).status, 200);
   const del = await api('DELETE', `/api/v1/leads/${d}`);
   assert.ok([200, 204].includes(del.status), JSON.stringify(del.body));
   const s = await reconcile();
-  assert.ok(s.removed >= 4, JSON.stringify(s));
-  for (const id of [a, b, c, d]) assert.deepStrictEqual(liveReminders(id), [], `reminder for ${id} removed`);
+  assert.ok(s.removed >= 3, JSON.stringify(s));
+  for (const id of [a, b, d]) assert.deepStrictEqual(liveReminders(id), [], `reminder for ${id} removed`);
+  const [cAfter] = liveReminders(c);
+  assert.ok(cAfter, 'C: retyping keeps a reminder — it did not disappear');
+  assert.strictEqual(cAfter.id, cEventId, 'C: same event, updated in place');
+  assert.match(cAfter.summary, /^Email: /);
+  assert.strictEqual(cAfter.extendedProperties.private.ec_followup_kind, 'email');
   // Re-opening a Phone Call for lead a creates a NEW event (a deleted id is never reused).
   assert.strictEqual((await api('PUT', `/api/v1/leads/${a}/follow-up`, { follow_up_status: 'pending', follow_up_time: '16:00' })).status, 200);
   await reconcile();
