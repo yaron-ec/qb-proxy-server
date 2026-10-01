@@ -110,8 +110,6 @@ function LeadDetailModernInner() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Railway-first: try the Railway composite detail endpoint.
-        // Falls back to Base44 getLeadDetail for leads not yet migrated to Railway.
         let leadData, acts, dealList, owners, pTypes, lSources;
 
         const data = await railwayLeads.getDetailByExternal(id);
@@ -122,7 +120,17 @@ function LeadDetailModernInner() {
         acts = data.activities || [];
         dealList = data.deals || [];
         owners = data.contactOwners || [];
-        if (data.projectTypes) pTypes = data.projectTypes;
+        // REGRESSION (production defect: Job Type editor opened with an empty
+        // checkbox list): routes/leads.js's /detail composite always returns
+        // `projectTypes: appLists.projectTypes || []` — a real, empty array
+        // whenever the app_settings 'app_lists' row doesn't exist or has no
+        // projectTypes saved. `if (data.projectTypes)` is true for `[]` too
+        // (empty arrays are truthy in JS), so that empty array was silently
+        // overwriting the canonical EC_PROJECT_TYPES default `projectTypes`
+        // state was initialized with, leaving the "Job Type" multiselect
+        // editor with zero options to render. Only override the canonical
+        // default when the server actually sent a non-empty list.
+        if (Array.isArray(data.projectTypes) && data.projectTypes.length > 0) pTypes = data.projectTypes;
         if (data.leadSources) lSources = data.leadSources;
 
         setLead(leadData);
@@ -637,9 +645,12 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
           </EditableField>
         </CRMField>
 
-        {/* Job Type — editable (click row) + copy (no pencil) */}
+        {/* Job Type — editable (click row) + copy (no pencil). Belt-and-suspenders:
+            fall back to EC_PROJECT_TYPES directly at the call site too, so this
+            editor can never render an empty option list even if `projectTypes`
+            state were emptied by some future change elsewhere. */}
         <CRMField label="Job Type" icon={Briefcase}>
-          <EditableField value={lead.project_type} onSave={v => updateField("project_type", v)} type="multiselect" options={projectTypes} editable
+          <EditableField value={lead.project_type} onSave={v => updateField("project_type", v)} type="multiselect" options={projectTypes.length > 0 ? projectTypes : EC_PROJECT_TYPES} editable
             copyValue={lead.project_type ? formatProjectType(lead.project_type) : null} copyLabel="Job Type">
             <span className="crm-value">{formatProjectType(lead.project_type) || <span className="crm-empty">—</span>}</span>
           </EditableField>
@@ -908,10 +919,9 @@ export function EditableField({ label, value, onSave, type = "text", options = [
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const rawValue = (value === "—" || value === null || value === undefined) ? "" : String(value);
+  const parseMulti = (v) => (v && v !== "—" ? String(v).split(",").map(x => x.trim()).filter(Boolean) : []);
   const [editVal, setEditVal] = useState(rawValue);
-  const [selectedMulti, setSelectedMulti] = useState(() =>
-    type === "multiselect" && value && value !== "—" ? String(value).split(",").map(v => v.trim()).filter(v => v) : []
-  );
+  const [selectedMulti, setSelectedMulti] = useState(() => type === "multiselect" ? parseMulti(value) : []);
 
   // Async-aware save: shows loading state, preserves edit values on error,
   // only exits edit mode on success. Prevents the "stuck Saving..." state.
@@ -995,7 +1005,7 @@ export function EditableField({ label, value, onSave, type = "text", options = [
           {saving && <RefreshCw className="w-3 h-3 animate-spin" />}
           {saving ? 'Saving...' : 'Save'}
         </button>
-        <button onClick={() => { setEditVal(rawValue); setSaveError(null); setIsEditing(false); }} disabled={saving} className="flex-1 px-2 py-1 text-xs text-slate-600 border border-slate-200 rounded hover:bg-slate-50 transition-colors disabled:opacity-50">Cancel</button>
+        <button onClick={() => { setEditVal(rawValue); setSelectedMulti(parseMulti(value)); setSaveError(null); setIsEditing(false); }} disabled={saving} className="flex-1 px-2 py-1 text-xs text-slate-600 border border-slate-200 rounded hover:bg-slate-50 transition-colors disabled:opacity-50">Cancel</button>
       </div>
     </div>
   );
