@@ -14,13 +14,18 @@
  * the backend (blocks availability, 1h duration, Driving/Travel Time, one
  * calendar meeting representation — see lib/booking/followUpMeeting.js) and
  * My Day (pages/MobileDayView.jsx) is the one frontend surface that reflects
- * this in its own schedule/count/map, via its own `meetingOf()` helper. This
- * does not change anything this file asserts: Lead Detail's own Follow-Up
- * form still never calls the appointment API or syncs the calendar directly,
- * and `syncCalendar`/`updateAppointment` still go uncalled when saving a
- * Meeting follow-up — see the "No frontend path converts a Meeting follow-up
- * into an appointment" describe block below for MobileDayView.jsx's narrow,
- * documented carve-out.
+ * this in its own schedule/count/map, via its own candidate-building logic
+ * (isAppointmentSupersededForDay + a per-lead candidates loop — mirrors the
+ * backend's lib/booking/currentAction.js, PERMANENT RULE: an active
+ * Meeting-type Follow-Up supersedes a same-day Appointment, even at a
+ * different time — see test/currentAction.test.js and
+ * MobileDayView.dateSync.test.jsx's Muhammad Khan/Jamey Corey/Mario Ibanez
+ * cases). This does not change anything this file asserts: Lead Detail's
+ * own Follow-Up form still never calls the appointment API or syncs the
+ * calendar directly, and `syncCalendar`/`updateAppointment` still go
+ * uncalled when saving a Meeting follow-up — see the "No frontend path
+ * converts a Meeting follow-up into an appointment" describe block below
+ * for MobileDayView.jsx's narrow, documented carve-out.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -165,12 +170,12 @@ describe('No frontend path converts a Meeting follow-up into an appointment', ()
     expect(src).not.toMatch(/follow_up_type\s*===?\s*['"]Meeting['"]/);
   });
 
-  it('pages/MobileDayView.jsx never falls back from appointment fields to follow-up fields (it checks the Appointment branch first and returns, it never ORs the two)', () => {
+  it('pages/MobileDayView.jsx never falls back from appointment fields to follow-up fields (it checks each candidate independently, it never ORs the two)', () => {
     const src = fs.readFileSync(path.join(SRC, 'pages/MobileDayView.jsx'), 'utf8');
     expect(src).not.toMatch(/appointment_(date|time)\s*\|\|\s*[\w.]*follow_up_/);
-    const meetingOfMatch = src.match(/const meetingOf = \(l\) => \{[\s\S]*?\n {4}\};/);
-    expect(meetingOfMatch, 'meetingOf() helper must exist').toBeTruthy();
-    expect(meetingOfMatch[0]).toMatch(/l\.appointment_date/);
-    expect(meetingOfMatch[0]).toMatch(/l\.follow_up_type === "Meeting"/);
+    const supersededMatch = src.match(/const isAppointmentSupersededForDay = \(l, day\) =>[\s\S]*?;/);
+    expect(supersededMatch, 'isAppointmentSupersededForDay() helper must exist (mirrors lib/booking/currentAction.js)').toBeTruthy();
+    expect(supersededMatch[0]).toMatch(/l\.appointment_date/);
+    expect(supersededMatch[0]).toMatch(/l\.follow_up_type === "Meeting"/);
   });
 });

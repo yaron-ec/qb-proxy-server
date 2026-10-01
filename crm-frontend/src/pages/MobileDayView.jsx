@@ -326,34 +326,40 @@ export default function MobileDayView() {
     // Match desktop exactly: same excluded statuses
     const excluded = ["Lost", "DNQ", "Cancelled", "Closed Lost"];
 
-    // CANONICAL PHYSICAL MEETING (PERMANENT RULE): a lead's canonical
-    // Appointment Meeting (site visit) OR, when it has none, an active
-    // Meeting-type Follow-Up — both are real physical meetings and belong
-    // in My Day's schedule/map. Phone Call/Text/Email/Other follow-ups are
-    // non-physical reminders and never become a route stop here. The
-    // Appointment always wins when both exist on the same lead (the PR #8
-    // mirror-dedup principle horizontally applied): this returns at most
-    // one window per lead, so a proven mirror never renders as two entries.
-    const meetingOf = (l) => {
-      if (l.appointment_date && l.appointment_type !== "Phone Call") {
-        return { date: l.appointment_date, time: l.appointment_time };
+    // AUTHORITATIVE CURRENT-ACTION RULE (PERMANENT RULE, post-Muhammad-Khan/
+    // Jamey-Corey production defect — mirrors lib/booking/currentAction.js;
+    // keep these in sync): the Follow-Up / Next Update is the authoritative
+    // current next action for a lead. An ACTIVE Meeting-type Follow-Up
+    // supersedes the lead's Appointment for "current physical meeting"
+    // purposes on any day where BOTH are dated the SAME day — even when
+    // their times differ (production evidence: Muhammad Khan, Appointment
+    // 9:00 AM + Follow-Up Meeting 10:00 AM — only the 10:00 AM Follow-Up is
+    // current work, the 9:00 AM Appointment stays historical). This is
+    // evaluated PER DAY, not once per lead: an Appointment dated a different
+    // day than any competing active Follow-Up is unaffected and still shows
+    // on its own day (the Jamey Corey shape — historical Sep 29 Appointment,
+    // independent Oct 1 Follow-Up — and the "independent future Appointment"
+    // case both rely on this). Phone Call/Text/Email/Other follow-ups never
+    // supersede an Appointment — they are genuinely independent obligations,
+    // not a second recording of the same physical meeting, and are not
+    // physical-meeting candidates here at all. Neither record is ever
+    // altered or deleted by this selection.
+    const isAppointmentSupersededForDay = (l, day) =>
+      !!l.appointment_date && l.appointment_type !== "Phone Call" && l.appointment_date === day &&
+      l.follow_up_type === "Meeting" && l.follow_up_status !== "completed" && l.follow_up_date === day;
+
+    const candidates = [];
+    for (const l of allLeads) {
+      if (excluded.includes(l.status)) continue;
+      if (!(l.property_address || l.city)) continue;
+      if (l.follow_up_type === "Meeting" && l.follow_up_status !== "completed" && l.follow_up_date) {
+        candidates.push({ ...l, _mtgDate: l.follow_up_date, _mtgTime: l.follow_up_time || null });
       }
-      if (
-        l.follow_up_type === "Meeting" &&
-        l.follow_up_status !== "completed" &&
-        l.follow_up_date
-      ) {
-        return { date: l.follow_up_date, time: l.follow_up_time };
+      if (l.appointment_date && l.appointment_type !== "Phone Call" && !isAppointmentSupersededForDay(l, l.appointment_date)) {
+        candidates.push({ ...l, _mtgDate: l.appointment_date, _mtgTime: l.appointment_time || null });
       }
-      return null;
-    };
-    const filtered = allLeads.map(l => {
-      const m = meetingOf(l);
-      return m ? { ...l, _mtgDate: m.date, _mtgTime: m.time || null } : null;
-    }).filter(l => {
-      if (!l) return false;
-      if (!(l.property_address || l.city)) return false;
-      if (excluded.includes(l.status)) return false;
+    }
+    const filtered = candidates.filter(l => {
       if (dateFilter === "today") return l._mtgDate === today;
       if (dateFilter === "tomorrow") return l._mtgDate === tomorrow;
       if (dateFilter === "week") return next7.includes(l._mtgDate);

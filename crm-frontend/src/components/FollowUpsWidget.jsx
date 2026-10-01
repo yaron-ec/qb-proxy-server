@@ -84,46 +84,31 @@ function formatFollowUpDate(dateStr) {
   return new Date(yr, mo, dy).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-// 'HH:MM' / 'HH:MM:SS' -> 'HH:MM', for comparing times that may come from
-// different columns with slightly different Postgres TIME text formatting.
-// Known narrow edge case (documented, not fixed here — see CLAUDE.md's
-// "Dashboard Today's Work double-count" note): the backend's own kind match
-// is appt.kind === follow_up_type, where appt.kind is a DERIVED
-// classification (lib/booking/appointmentKind.js) that reads 'Phone Call'
-// only for a rare, pre-separation LEGACY unbuffered appointment row — every
-// current/normal appointment, whatever its appointment_type name (Meeting,
-// Site Visit, Consultation, ...), is 'Meeting'-kind. This frontend check has
-// no per-row buffering signal, so it treats ANY active appointment as
-// 'Meeting'-kind; a same-date/time/no-notes Meeting follow-up next to one of
-// those rare legacy rows could be suppressed here even though the backend
-// would call it DIVERGENT, not MIRROR. Those legacy rows are actively being
-// converted away by lib/booking/legacyPhoneCallConversion.js and shrink over
-// time; this is display-only and never loses data (Lead Detail always shows
-// both records).
-function hhmm(t) {
-  if (!t) return '';
-  const m = String(t).trim().match(/^(\d{1,2}):(\d{2})/);
-  return m ? `${m[1].padStart(2, '0')}:${m[2]}` : String(t);
-}
-
-// A Follow-Up that exactly mirrors its own lead's active Appointment (same
-// date, same time, type 'Meeting' — a real Appointment is never a 'Phone
-// Call', so a follow-up can only mirror the appointment's one real kind —
-// and no notes) represents the SAME real-world action recorded twice, not a
-// second one. This is the frontend's DISPLAY-only counterpart of the
-// backend's own, already-production-proven MIRROR classification
-// (scripts/auditAppointmentFollowUp.js#classify/assess) — it never reads or
-// changes any stored data, only decides whether "Today's Work" counts one
-// obligation once instead of twice. A genuinely independent follow-up — any
-// different date, different time, a different type, or one carrying notes —
-// is NEVER affected and still shows as its own entry (the Jamey Corey shape:
-// an appointment on one day and an unrelated follow-up on another always
-// shows both, since the dates differ).
-function isFollowUpMirrorOfAppointment(l) {
-  return !!l.appointment_date && !!l.follow_up_date && !l.follow_up_notes
+// AUTHORITATIVE CURRENT-ACTION RULE (PERMANENT RULE, post-Muhammad-Khan/
+// Jamey-Corey production defect — supersedes the narrower, exact-time-only
+// "mirror" rule this function replaces): the Follow-Up / Next Update is the
+// authoritative CURRENT NEXT ACTION for a lead. An ACTIVE Meeting-type
+// Follow-Up dated the SAME DAY as the lead's own Appointment supersedes
+// that Appointment for "current work" purposes — regardless of whether
+// their times also match. Production evidence (Muhammad Khan: a 9:00 AM
+// Appointment plus an active 10:00 AM Meeting Follow-Up) proved exact-time
+// mirroring alone was insufficient: the two are not a mirror (different
+// times), yet the Follow-Up is still the one real current obligation to
+// show. The Appointment record itself is never altered or deleted — this
+// is a display/selection decision only (Lead Detail always shows both). A
+// Follow-Up of any OTHER type (Phone Call/Text/Email/Other) never
+// supersedes the Appointment: they are genuinely independent kinds of
+// obligations, not two recordings of the same physical meeting. A
+// different-day pair (the Jamey Corey shape: an Appointment on one day and
+// an active Follow-Up on another) is unaffected — each shows on its own
+// day, exactly as this same selector is implemented in the backend
+// (lib/booking/currentAction.js#isAppointmentSupersededForDay) and in My
+// Day (pages/MobileDayView.jsx) — keep these three in sync.
+function isAppointmentSupersededByFollowUp(l) {
+  return !!l.appointment_date && !!l.follow_up_date
+    && l.follow_up_status !== 'completed'
     && l.follow_up_type === 'Meeting'
-    && l.appointment_date === l.follow_up_date
-    && hhmm(l.appointment_time) === hhmm(l.follow_up_time);
+    && l.appointment_date === l.follow_up_date;
 }
 
 function parseBudgetValue(budgetStr) {
@@ -194,7 +179,11 @@ export default function FollowUpsWidget({ leads: propLeads, allLeads: propAllLea
     // Two independent sources, bucketed separately:
     //   • the APPOINTMENT (canonical appointments row → lead.appointment_*)
     //   • the FOLLOW-UP (lead.follow_up_*), skipped once marked completed.
-    // A lead can legitimately appear once for each.
+    // A lead can legitimately appear once for each — EXCEPT the Appointment
+    // is skipped entirely when it is superseded by an active Meeting
+    // Follow-Up dated the same day (AUTHORITATIVE CURRENT-ACTION RULE — see
+    // isAppointmentSupersededByFollowUp() above). The Follow-Up is always
+    // bucketed when active; it is never suppressed by the Appointment.
     const bucket = (l, dateStr, isMeeting, kind) => {
       const d = parseDateInt(dateStr);
       if (d === null) return;
@@ -204,11 +193,10 @@ export default function FollowUpsWidget({ leads: propLeads, allLeads: propAllLea
       else if (d > tomorrow && d <= in7days) (isMeeting ? thisWeekMeetings : thisWeekCalls).push(entry);
     };
     for (const l of activeLeads) {
-      if (l.appointment_date) bucket(l, l.appointment_date, l.appointment_type !== 'Phone Call', 'appointment');
-      // Skip the Follow-up entry when it's a proven mirror of this lead's own
-      // Appointment (same date/time/kind, no notes) — one real obligation,
-      // shown once. See isFollowUpMirrorOfAppointment() above.
-      if (l.follow_up_date && l.follow_up_status !== 'completed' && !isFollowUpMirrorOfAppointment(l)) {
+      if (l.appointment_date && !isAppointmentSupersededByFollowUp(l)) {
+        bucket(l, l.appointment_date, l.appointment_type !== 'Phone Call', 'appointment');
+      }
+      if (l.follow_up_date && l.follow_up_status !== 'completed') {
         bucket(l, l.follow_up_date, l.follow_up_type === 'Meeting', 'follow_up');
       }
     }

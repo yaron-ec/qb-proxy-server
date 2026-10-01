@@ -219,13 +219,18 @@ test('10. Routing: appointments remain the primary source everywhere; routing.js
     'routes/routingDiagnostic.js'
   );
   // routes/routing.js (Daily Map's /daily-schedule) DOES now UNION active
-  // Meeting Follow-Ups as additional route stops, deduped against a real
-  // appointment for the same lead (PR #8 mirror-dedup principle, applied
-  // horizontally — the appointment always wins).
+  // Meeting Follow-Ups as additional route stops. AUTHORITATIVE
+  // CURRENT-ACTION RULE (post-Muhammad-Khan/Jamey-Corey, supersedes the
+  // narrower "appointment always wins" mirror-dedup that briefly shipped
+  // alongside this file's earlier version): when a lead has BOTH an
+  // Appointment and an active Meeting Follow-Up dated the SAME day, the
+  // Follow-Up wins (even at a different time) via the one canonical
+  // selector, lib/booking/currentAction.js#isAppointmentSupersededForDay.
   const routingSrc = fs.readFileSync(path.join(ROOT, 'routes/routing.js'), 'utf8');
   assert.match(routingSrc, /l\.follow_up_type\s*=\s*'Meeting'/, 'routes/routing.js must query active Meeting Follow-Ups');
   assert.match(routingSrc, /l\.follow_up_date\s*=\s*\$/, 'routes/routing.js');
-  assert.match(routingSrc, /apptLeadIds\.has\(r\.id\)/, 'routes/routing.js must dedupe a Meeting Follow-Up against its own lead\'s real appointment');
+  assert.match(routingSrc, /require\(['"]\.\.\/lib\/booking\/currentAction['"]\)/, 'routes/routing.js must use the one canonical current-action selector');
+  assert.match(routingSrc, /isAppointmentSupersededForDay/, 'routes/routing.js must dedupe a lead\'s Appointment against its own active same-day Meeting Follow-Up');
 });
 
 test('11. Manual reminder route uses the appointment only, never the follow-up', () => {

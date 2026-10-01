@@ -281,15 +281,18 @@ router.get('/daily-schedule', async (req, res) => {
     // start_at) — kind comes from the appointment itself, never from a
     // follow-up.
     //
-    // PERMANENT RULE (post-Jamey-Corey production defect): a PHYSICAL MEETING
-    // is a canonical Appointment Meeting OR an active Meeting-type Follow-Up
-    // — both are real physical meetings and belong on the Daily Map as route
-    // stops with full traffic-aware routing. Phone Call/Text/Email/Other
-    // follow-ups remain non-physical reminders and are NEVER route stops.
-    // Below, active Meeting Follow-Ups are UNIONed in as additional stops,
-    // deduped against real appointments for the same lead (the appointment
-    // always wins — same mirror-dedup principle as the PR #8 Dashboard fix,
-    // applied horizontally here).
+    // AUTHORITATIVE CURRENT-ACTION RULE (post-Muhammad-Khan/Jamey-Corey
+    // production defects — see lib/booking/currentAction.js, the ONE
+    // canonical selector): a PHYSICAL MEETING is a canonical Appointment
+    // Meeting OR an active Meeting-type Follow-Up, and belongs on the Daily
+    // Map as a route stop with full traffic-aware routing. Phone Call/Text/
+    // Email/Other follow-ups remain non-physical reminders and are NEVER
+    // route stops. Below, active Meeting Follow-Ups are UNIONed in as
+    // additional stops; when a lead has BOTH an Appointment and an active
+    // Meeting Follow-Up dated this SAME day, the Follow-Up is authoritative
+    // and the Appointment is excluded as a route stop (NOT merely an
+    // exact-time mirror check — the Follow-Up wins even at a different time;
+    // this is a selection rule, never a deletion of the Appointment record).
     const offsetMs = getLaOffsetMs(date);
     const dayStartUtc = new Date(new Date(`${date}T00:00:00`).getTime() - offsetMs);
     const dayEndUtc = new Date(dayStartUtc.getTime() + 24 * 60 * 60 * 1000);
@@ -319,7 +322,9 @@ router.get('/daily-schedule', async (req, res) => {
               l.project_type, COALESCE(o.display_name, o.email) AS assigned_rep,
               l.follow_up_time, l.status,
               l.verified_property_address, l.property_lat, l.property_lng, l.property_geocode_status,
-              a.start_at, a.id AS appointment_id
+              a.start_at, a.id AS appointment_id,
+              l.follow_up_date AS lead_follow_up_date, l.follow_up_time AS lead_follow_up_time,
+              l.follow_up_type AS lead_follow_up_type, l.follow_up_status AS lead_follow_up_status
        FROM appointments a
        JOIN leads l ON l.id = a.lead_id
        LEFT JOIN owners o ON o.id = a.owner_id
@@ -365,19 +370,28 @@ router.get('/daily-schedule', async (req, res) => {
     );
 
     // Convert start_at to follow_up_time for display (appointments table uses TIMESTAMPTZ)
-    const apptLeads = apptRows.map(r => ({
+    const apptLeadsRaw = apptRows.map(r => ({
       ...r,
       follow_up_time: r.start_at ? isoToLaTime(r.start_at) : r.follow_up_time,
       follow_up_date: date,
     }));
 
-    // Mirror-dedup (PR #8 principle, applied horizontally): a lead whose
-    // Meeting Follow-Up is a proven mirror of its own real Appointment must
-    // not render as two route stops — the Appointment always wins.
-    const apptLeadIds = new Set(apptLeads.map(r => r.id));
-    const followUpLeads = fuRows
-      .filter(r => !apptLeadIds.has(r.id))
-      .map(r => ({ ...r, follow_up_date: date, is_meeting_followup: true }));
+    // AUTHORITATIVE CURRENT-ACTION RULE (lib/booking/currentAction.js): an
+    // active Meeting Follow-Up dated this SAME day supersedes the lead's own
+    // Appointment as the current physical meeting — even at a DIFFERENT time
+    // than the Appointment, not only an exact mirror (Muhammad Khan
+    // production evidence). The superseded Appointment is excluded as a
+    // route stop entirely; it is never deleted, and remains
+    // visible/historical in Lead Detail.
+    const { isAppointmentSupersededForDay } = require('../lib/booking/currentAction');
+    const apptLeads = apptLeadsRaw.filter(r => !isAppointmentSupersededForDay({
+      appointment_date: date,
+      follow_up_date: r.lead_follow_up_date,
+      follow_up_time: r.lead_follow_up_time,
+      follow_up_type: r.lead_follow_up_type,
+      follow_up_status: r.lead_follow_up_status,
+    }, date));
+    const followUpLeads = fuRows.map(r => ({ ...r, follow_up_date: date, is_meeting_followup: true }));
 
     const leads = [...apptLeads, ...followUpLeads];
 

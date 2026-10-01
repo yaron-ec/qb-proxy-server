@@ -163,7 +163,7 @@ describe('MobileDayView — canonical PHYSICAL MEETING data semantics (List view
     await waitFor(() => expect(screen.getByText(/No meetings scheduled for today/)).toBeInTheDocument());
   });
 
-  it('mirror-dedup (PR #8 principle): a lead with BOTH a real Appointment and an exact-mirror Meeting Follow-Up counts ONCE, not twice', async () => {
+  it('exact-time same-day match: a lead with BOTH a real Appointment and an exact-mirror Meeting Follow-Up counts ONCE, not twice', async () => {
     listLeads.mockResolvedValue({ items: [
       leadFixture({
         appointment_date: getTodayLocal(), appointment_time: '12:00', appointment_type: 'Meeting',
@@ -172,6 +172,74 @@ describe('MobileDayView — canonical PHYSICAL MEETING data semantics (List view
     ] });
     await renderMyDay();
     fireEvent.click(screen.getByText('List'));
+    await waitFor(() => expect(screen.getByText(/1 appointment/)).toBeInTheDocument());
+  });
+});
+
+describe('MobileDayView — AUTHORITATIVE CURRENT-ACTION RULE (production evidence: Muhammad Khan, Jamey Corey, Mario Ibanez)', () => {
+  it('MUHAMMAD KHAN: Appointment 9:00 AM + active Meeting Follow-Up 10:00 AM (same day, DIFFERENT time) — ONLY the 10:00 AM Follow-Up counts as today\'s physical meeting', async () => {
+    listLeads.mockResolvedValue({ items: [
+      leadFixture({
+        first_name: 'Muhammad', last_name: 'Khan',
+        appointment_date: getTodayLocal(), appointment_time: '09:00', appointment_type: 'Meeting',
+        follow_up_type: 'Meeting', follow_up_date: getTodayLocal(), follow_up_time: '10:00', follow_up_status: 'pending',
+      }),
+    ] });
+    await renderMyDay();
+    fireEvent.click(screen.getByText('List'));
+    await waitFor(() => expect(screen.getByText(/1 appointment/)).toBeInTheDocument());
+    expect(screen.queryByText('09:00')).not.toBeInTheDocument();
+    expect(screen.getByText('10:00')).toBeInTheDocument();
+  });
+
+  it('JAMEY COREY: historical Appointment Sep 29 + active Meeting Follow-Up Oct 1 — viewing Oct 1 (today) shows ONLY the Follow-Up', async () => {
+    listLeads.mockResolvedValue({ items: [
+      leadFixture({
+        first_name: 'Jamey', last_name: 'Corey',
+        appointment_date: '2026-09-29', appointment_time: '18:00', appointment_type: 'Meeting',
+        follow_up_type: 'Meeting', follow_up_date: getTodayLocal(), follow_up_time: '12:00', follow_up_status: 'pending',
+      }),
+    ] });
+    await renderMyDay();
+    fireEvent.click(screen.getByText('List'));
+    await waitFor(() => expect(screen.getByText(/1 appointment/)).toBeInTheDocument());
+    expect(screen.getByText('12:00')).toBeInTheDocument();
+  });
+
+  it('MARIO IBANEZ: a current Appointment with no superseding active Follow-Up remains today\'s physical meeting', async () => {
+    listLeads.mockResolvedValue({ items: [
+      leadFixture({
+        first_name: 'Mario', last_name: 'Ibanez',
+        appointment_date: getTodayLocal(), appointment_time: '14:00', appointment_type: 'Meeting',
+      }),
+    ] });
+    await renderMyDay();
+    fireEvent.click(screen.getByText('List'));
+    await waitFor(() => expect(screen.getByText(/1 appointment/)).toBeInTheDocument());
+    expect(screen.getByText('14:00')).toBeInTheDocument();
+  });
+
+  it('a same-day Phone Call Follow-Up never supersedes the Appointment — the Appointment remains today\'s physical meeting', async () => {
+    listLeads.mockResolvedValue({ items: [
+      leadFixture({
+        appointment_date: getTodayLocal(), appointment_time: '14:00', appointment_type: 'Meeting',
+        follow_up_type: 'Phone Call', follow_up_date: getTodayLocal(), follow_up_time: '09:00', follow_up_status: 'pending',
+      }),
+    ] });
+    await renderMyDay();
+    fireEvent.click(screen.getByText('List'));
+    await waitFor(() => expect(screen.getByText(/1 appointment/)).toBeInTheDocument());
+    expect(screen.getByText('14:00')).toBeInTheDocument();
+  });
+
+  it('an independent future Appointment NOT superseded by a Follow-Up dated a different day is preserved on its own day (Next 7 Days)', async () => {
+    const d5 = (() => { const d = new Date(); d.setDate(d.getDate() + 5); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })();
+    listLeads.mockResolvedValue({ items: [
+      leadFixture({ appointment_date: d5, appointment_time: '11:00', appointment_type: 'Meeting' }),
+    ] });
+    await renderMyDay();
+    fireEvent.click(screen.getByText('List'));
+    fireEvent.click(screen.getByText('Next 7 Days'));
     await waitFor(() => expect(screen.getByText(/1 appointment/)).toBeInTheDocument());
   });
 });
