@@ -2,13 +2,17 @@
 'use strict';
 
 /**
- * currentActionRouting.int.test.js — REAL-Postgres proof of the
+ * currentActionRouting.int.test.js — REAL-Postgres proof of the FINAL
  * AUTHORITATIVE CURRENT-ACTION RULE (lib/booking/currentAction.js) against
  * the exact production shapes that required the correction: Muhammad Khan,
- * Jamey Corey, Mario Ibanez. Exercises the real HTTP API
- * (routes/leads.js, routes/routing.js) end to end — no mocks beyond Google
- * Maps (stubbed so routing never needs network access). Skipped without
- * TEST_DATABASE_URL.
+ * Jamey Corey, Mario Ibanez. Current work — including Daily Map/routing
+ * stops — is derived ENTIRELY from the Follow-Up / Next Update; the
+ * Appointment is historical/reference data only and is NEVER a route-stop
+ * fallback, even when no active Follow-Up exists at all (routes/routing.js's
+ * /daily-schedule no longer queries the `appointments` table at all).
+ * Exercises the real HTTP API (routes/leads.js, routes/routing.js) end to
+ * end — no mocks beyond Google Maps (stubbed so routing never needs network
+ * access). Skipped without TEST_DATABASE_URL.
  */
 const test = require('node:test');
 const assert = require('node:assert');
@@ -120,7 +124,7 @@ test('MUHAMMAD KHAN: Appointment 9:00 AM + active Meeting Follow-Up 10:00 AM (sa
   assert.strictEqual(lead.appointment_time, '09:00');
 });
 
-test('JAMEY COREY: historical Appointment + active Meeting Follow-Up on a LATER day — the later day shows ONLY the Follow-Up; the Appointment is unaffected on its own (earlier) day', { skip }, async () => {
+test('JAMEY COREY: historical Appointment + active Meeting Follow-Up on a LATER day — the later day shows ONLY the Follow-Up; the Appointment\'s OWN day has NO route stop at all (no fallback)', { skip }, async () => {
   const apptDay = pickDay();
   const followUpDay = pickDay();
   const id = await createLead('Jamey', 'Corey');
@@ -132,28 +136,32 @@ test('JAMEY COREY: historical Appointment + active Meeting Follow-Up on a LATER 
   assert.strictEqual(followUpStops.length, 1, JSON.stringify(followUpDaySchedule));
   assert.strictEqual(followUpStops[0].is_meeting_followup, true);
 
-  // On the Appointment's OWN day (a different day than the Follow-Up), it is
-  // unaffected and still shows as a route stop — never superseded, since
-  // supersession is evaluated per day.
-  const apptDaySchedule = await scheduleFor(apptDay);
-  const apptStops = apptDaySchedule.filter((s) => s.id === id);
-  assert.strictEqual(apptStops.length, 1, JSON.stringify(apptDaySchedule));
-  assert.ok(!apptStops[0].is_meeting_followup, 'on its own day, the Appointment is the stop');
+  // On the Appointment's OWN day (a different day than the Follow-Up), there
+  // is NO route stop at all — the Appointment is historical/reference data
+  // only and is never a fallback source of current work/route stops.
+  if (apptDay !== followUpDay) {
+    const apptDaySchedule = await scheduleFor(apptDay);
+    const apptStops = apptDaySchedule.filter((s) => s.id === id);
+    assert.strictEqual(apptStops.length, 0, JSON.stringify(apptDaySchedule));
+  }
 });
 
-test('MARIO IBANEZ: a current Appointment with no superseding active Follow-Up remains the current physical meeting / route stop', { skip }, async () => {
+test('MARIO IBANEZ: a current Appointment with NO active Follow-Up produces NO route stop at all (the Appointment never fills in)', { skip }, async () => {
   const day = pickDay();
   const id = await createLead('Mario', 'Ibanez');
   await setAppointment(id, day, '14:00');
 
   const schedule = await scheduleFor(day);
   const stops = schedule.filter((s) => s.id === id);
-  assert.strictEqual(stops.length, 1, JSON.stringify(schedule));
-  assert.ok(!stops[0].is_meeting_followup);
-  assert.strictEqual(stops[0].follow_up_time, '14:00');
+  assert.strictEqual(stops.length, 0, JSON.stringify(schedule));
+
+  // The Appointment record itself is still there — Lead Detail is unaffected.
+  const lead = (await api('GET', `/api/v1/leads/${id}`)).body.lead;
+  assert.strictEqual(lead.appointment_date, day);
+  assert.strictEqual(lead.appointment_time, '14:00');
 });
 
-test('a same-day Phone Call Follow-Up never supersedes the Appointment as a route stop (only Meeting-type Follow-Ups do)', { skip }, async () => {
+test('a same-day Phone Call Follow-Up is never a route stop (non-physical), and the Appointment is never a route stop either — zero stops total', { skip }, async () => {
   const day = pickDay();
   const id = await createLead('Call', 'Independent');
   await setAppointment(id, day, '14:00');
@@ -161,12 +169,10 @@ test('a same-day Phone Call Follow-Up never supersedes the Appointment as a rout
 
   const schedule = await scheduleFor(day);
   const stops = schedule.filter((s) => s.id === id);
-  assert.strictEqual(stops.length, 1, JSON.stringify(schedule));
-  assert.ok(!stops[0].is_meeting_followup, 'the Appointment remains the route stop — a Phone Call Follow-Up is a non-physical, independent obligation');
-  assert.strictEqual(stops[0].follow_up_time, '14:00');
+  assert.strictEqual(stops.length, 0, JSON.stringify(schedule));
 });
 
-test('completing the superseding Meeting Follow-Up restores the Appointment as the route stop', { skip }, async () => {
+test('completing the active Meeting Follow-Up removes the route stop entirely — the Appointment never restores as the stop (no fallback lifecycle)', { skip }, async () => {
   const day = pickDay();
   const id = await createLead('Reopen', 'Case');
   await setAppointment(id, day, '09:00');
@@ -178,11 +184,10 @@ test('completing the superseding Meeting Follow-Up restores the Appointment as t
 
   const schedule = await scheduleFor(day);
   const stops = schedule.filter((s) => s.id === id);
-  assert.strictEqual(stops.length, 1, JSON.stringify(schedule));
-  assert.ok(!stops[0].is_meeting_followup, 'the Appointment is current again once the Follow-Up is completed');
+  assert.strictEqual(stops.length, 0, JSON.stringify(schedule), 'no stop at all once the Follow-Up is completed — the Appointment never becomes current');
 });
 
-test('repeated calls to /daily-schedule are idempotent (no state mutation) for a superseded pair', { skip }, async () => {
+test('repeated calls to /daily-schedule are idempotent (no state mutation) for an Appointment + active Meeting Follow-Up pair', { skip }, async () => {
   const day = pickDay();
   const id = await createLead('Idem', 'Potent');
   await setAppointment(id, day, '09:00');

@@ -107,7 +107,14 @@ export default function Dashboard() {
       rangeStart.setDate(rangeStart.getDate() - opt.days);
     }
     return leads.filter(l => {
-      const dateStr = l.follow_up_date || l.appointment_date;
+      // FINAL RULE: current work (a future/current range, i.e. "Next 7 Days")
+      // is derived ENTIRELY from the Follow-Up — an Appointment with no
+      // Follow-Up must never be scoped in here as if it were current work.
+      // A PAST range is explicitly historical/audit browsing (CLAUDE.md's
+      // carve-out), where the Appointment remains a legitimate fallback —
+      // see FollowUpsWidget.jsx's own pastRangeLeads sort key, which does
+      // the same thing for the identical reason.
+      const dateStr = opt.direction === 'past' ? (l.follow_up_date || l.appointment_date) : l.follow_up_date;
       if (!dateStr) return false;
       const m = String(dateStr).match(/(\d{4})-(\d{2})-(\d{2})/);
       if (!m) return false;

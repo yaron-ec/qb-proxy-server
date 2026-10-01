@@ -37,9 +37,12 @@
  *     leads with a dated 'Meeting' follow-up in as driving stops using a
  *     DIFFERENT, ungated mechanism than today's (routingDiagnostic's
  *     appointment query also selected by l.follow_up_type = 'Meeting') — that
- *     was removed. routes/routing.js has since been DELIBERATELY re-extended
- *     under the PERMANENT RULE below with a narrower, gated, mirror-deduped
- *     version; routingDiagnostic.js was not.
+ *     was removed. routes/routing.js has since been rebuilt under the FINAL
+ *     AUTHORITATIVE CURRENT-ACTION RULE (see test 10): it now sources route
+ *     stops ENTIRELY from active Meeting Follow-Ups and never queries the
+ *     appointments table at all — there is no Appointment fallback.
+ *     routingDiagnostic.js is an unrelated ops-only surface and was not
+ *     changed.
  *   - routes/emails.js POST /leads/:id/remind preferred the follow-up over
  *     the appointment (and lib/dataAccessRailway#getLead read appointment_*
  *     from `leads`, which has no such columns).
@@ -205,32 +208,29 @@ test('9. No backend runtime code selects on follow_up_type = Meeting (SQL or JS)
   assert.deepStrictEqual(offenders, []);
 });
 
-test('10. Routing: appointments remain the primary source everywhere; routing.js additionally UNIONs active Meeting Follow-Ups (PERMANENT RULE, mirror-deduped); routingDiagnostic.js is unchanged', () => {
-  for (const f of ['routes/routing.js', 'routes/routingDiagnostic.js']) {
-    const src = fs.readFileSync(path.join(ROOT, f), 'utf8');
-    assert.doesNotMatch(src, /legacyWhere/, f);
-    assert.match(src, /lower\(a\.busy_range\) < a\.start_at/, `${f}: Meetings identified by their own buffered busy_range`);
-  }
+test('10. Routing: routes/routing.js (Daily Map\'s /daily-schedule) sources route stops ENTIRELY from active Meeting Follow-Ups, with NO Appointment fallback (FINAL RULE); routingDiagnostic.js (ops-only, unrelated) is unchanged', () => {
   // routingDiagnostic.js is an ops-only diagnostic surface, not part of the
-  // Daily Map UI — deliberately NOT extended with the Meeting Follow-Up rule.
-  assert.doesNotMatch(
-    fs.readFileSync(path.join(ROOT, 'routes/routingDiagnostic.js'), 'utf8'),
-    /l\.follow_up_date\s*=\s*\$/,
-    'routes/routingDiagnostic.js'
-  );
-  // routes/routing.js (Daily Map's /daily-schedule) DOES now UNION active
-  // Meeting Follow-Ups as additional route stops. AUTHORITATIVE
-  // CURRENT-ACTION RULE (post-Muhammad-Khan/Jamey-Corey, supersedes the
-  // narrower "appointment always wins" mirror-dedup that briefly shipped
-  // alongside this file's earlier version): when a lead has BOTH an
-  // Appointment and an active Meeting Follow-Up dated the SAME day, the
-  // Follow-Up wins (even at a different time) via the one canonical
-  // selector, lib/booking/currentAction.js#isAppointmentSupersededForDay.
+  // Daily Map UI — unaffected by the FINAL current-action rule and still
+  // queries the appointments table directly, exactly as before.
+  const diagSrc = fs.readFileSync(path.join(ROOT, 'routes/routingDiagnostic.js'), 'utf8');
+  assert.doesNotMatch(diagSrc, /legacyWhere/, 'routes/routingDiagnostic.js');
+  assert.match(diagSrc, /lower\(a\.busy_range\) < a\.start_at/, 'routes/routingDiagnostic.js: Meetings identified by their own buffered busy_range');
+  assert.doesNotMatch(diagSrc, /l\.follow_up_date\s*=\s*\$/, 'routes/routingDiagnostic.js');
+
+  // routes/routing.js (Daily Map's /daily-schedule) — FINAL AUTHORITATIVE
+  // CURRENT-ACTION RULE (post-Muhammad-Khan/Jamey-Corey/Mario-Ibanez,
+  // supersedes an earlier "Follow-Up supersedes a same-day Appointment,
+  // Appointment is the fallback" model): current work — including route
+  // stops — is derived ENTIRELY from the Follow-Up / Next Update. The
+  // Appointment is historical/reference data only and is NEVER a route-stop
+  // source, with or without a competing Follow-Up — routes/routing.js's
+  // /daily-schedule no longer queries the `appointments` table at ALL.
   const routingSrc = fs.readFileSync(path.join(ROOT, 'routes/routing.js'), 'utf8');
   assert.match(routingSrc, /l\.follow_up_type\s*=\s*'Meeting'/, 'routes/routing.js must query active Meeting Follow-Ups');
   assert.match(routingSrc, /l\.follow_up_date\s*=\s*\$/, 'routes/routing.js');
-  assert.match(routingSrc, /require\(['"]\.\.\/lib\/booking\/currentAction['"]\)/, 'routes/routing.js must use the one canonical current-action selector');
-  assert.match(routingSrc, /isAppointmentSupersededForDay/, 'routes/routing.js must dedupe a lead\'s Appointment against its own active same-day Meeting Follow-Up');
+  assert.doesNotMatch(routingSrc, /FROM\s+appointments\b/i, 'routes/routing.js must never query the appointments table — there is no Appointment fallback for route stops');
+  assert.doesNotMatch(routingSrc, /JOIN\s+appointments\b/i, 'routes/routing.js must never join the appointments table — there is no Appointment fallback for route stops');
+  assert.doesNotMatch(routingSrc, /isAppointmentSupersededForDay/, 'routes/routing.js must not contain the superseded (non-final) supersession framing');
 });
 
 test('11. Manual reminder route uses the appointment only, never the follow-up', () => {

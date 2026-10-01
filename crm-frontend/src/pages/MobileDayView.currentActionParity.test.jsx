@@ -3,24 +3,28 @@
  *
  * Runs the shared canonical truth table (test/fixtures/currentActionCases.js)
  * against the exact predicate MobileDayView.jsx uses to decide whether a
- * lead's Appointment is superseded by an active Meeting Follow-Up
- * (isAppointmentSupersededForDay, exported alongside the page's default
+ * lead has a current PHYSICAL meeting on a given day
+ * (isCurrentPhysicalMeetingForDay, exported alongside the page's default
  * export purely for this test). The identical fixture is also run against
  * the backend's canonical lib/booking/currentAction.js
- * (test/currentAction.test.js) and against
- * crm-frontend/src/components/FollowUpsWidget.jsx
- * (FollowUpsWidget.currentActionParity.test.jsx) — if this file's logic is
- * ever changed inconsistently with a case below, THIS test fails
- * immediately, without needing a full component render or a backend run.
+ * (test/currentAction.test.js) — if this file's logic is ever changed
+ * inconsistently with a case below, THIS test fails immediately, without
+ * needing a full component render or a backend run.
+ *
+ * FINAL RULE: current work is derived entirely from the Follow-Up — there
+ * is no Appointment fallback. isCurrentPhysicalMeetingForDay(lead, day) is
+ * only ever asked "does this lead's own Follow-Up make day `day` a
+ * physical meeting" — each case's fixture `day` is always the Follow-Up's
+ * own date when expected.isCurrent is true, so this maps directly.
  */
 import { describe, it, expect } from 'vitest';
-import { isAppointmentSupersededForDay } from './MobileDayView';
+import { isCurrentPhysicalMeetingForDay } from './MobileDayView';
 import CASES from '../../../test/fixtures/currentActionCases.js';
 
-describe('MobileDayView.isAppointmentSupersededForDay — canonical fixture parity', () => {
+describe('MobileDayView.isCurrentPhysicalMeetingForDay — canonical fixture parity', () => {
   for (const c of CASES) {
     it(c.name, () => {
-      expect(isAppointmentSupersededForDay(c.lead, c.day)).toBe(c.superseded);
+      expect(isCurrentPhysicalMeetingForDay(c.lead, c.day)).toBe(c.expected.isPhysicalMeeting);
     });
   }
 });

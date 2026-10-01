@@ -1,14 +1,14 @@
 /**
  * FollowUpsWidget.test.jsx — Today's Work card-identity/isolation regression
- * coverage (production defect: two cards rendered for the same lead were
- * reported as "duplicates", and completing one follow-up appeared to make
- * an unrelated appointment card disappear too).
- *
- * Domain model under test (see lib/booking/appointmentView.js and
- * CLAUDE.md's "Appointment vs Follow-Up" invariant):
- *   - the APPOINTMENT and the FOLLOW-UP are separate canonical entities;
- *   - a lead may legitimately have one, the other, both, or neither;
- *   - completing/clearing one must never remove the other from the render.
+ * coverage, now under the FINAL AUTHORITATIVE CURRENT-ACTION RULE
+ * (post-Muhammad-Khan/Jamey-Corey/Mario-Ibanez production correction, see
+ * lib/booking/currentAction.js and CLAUDE.md's "Appointment vs Follow-Up"
+ * invariant): current work is derived ENTIRELY from the Follow-Up / Next
+ * Update. The Appointment is historical/reference data only and is NEVER a
+ * fallback source of current work — not even when the lead has no active
+ * Follow-Up at all. Every rendered current-work card is therefore always
+ * labeled "Follow-up · <type>" — there is no "Appointment · <type>" badge
+ * anywhere in this component any more.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -48,94 +48,84 @@ beforeEach(() => {
   updateFollowUp.mockReset();
 });
 
-describe('FollowUpsWidget — Today\'s Work card identity', () => {
-  it('a lead with ONLY a real appointment renders exactly one card, labeled Appointment', () => {
-    const lead = baseLead({ appointment_date: todayStr(), appointment_time: '12:00', appointment_type: 'Meeting' });
+describe('FollowUpsWidget — Today\'s Work card identity (FINAL RULE: Follow-Up only, no Appointment fallback)', () => {
+  it('REGRESSION (Mario Ibanez shape): a lead with ONLY a current Appointment and NO Follow-Up renders NO current-work card at all', () => {
+    const lead = baseLead({ appointment_date: todayStr(), appointment_time: '14:00', appointment_type: 'Meeting' });
     renderWidget({ leads: [lead], allLeads: [lead], deals: [] });
-    const badges = screen.getAllByText(/Appointment · Meeting|Follow-up · Meeting/);
-    expect(badges).toHaveLength(1);
-    expect(badges[0].textContent).toMatch(/Appointment · Meeting/);
+    expect(screen.queryByText("Today's Work")).toBeFalsy();
+    expect(screen.queryByText(/Follow-up ·/)).toBeFalsy();
+    expect(screen.queryByText(/Appointment ·/)).toBeFalsy();
   });
 
   it('a lead with ONLY a Meeting follow-up renders exactly one card, labeled Follow-up', () => {
     const lead = baseLead({ follow_up_date: todayStr(), follow_up_time: '12:00', follow_up_type: 'Meeting', follow_up_status: 'pending' });
     renderWidget({ leads: [lead], allLeads: [lead], deals: [] });
-    const badges = screen.getAllByText(/Appointment · Meeting|Follow-up · Meeting/);
+    const badges = screen.getAllByText(/Follow-up · Meeting/);
     expect(badges).toHaveLength(1);
-    expect(badges[0].textContent).toMatch(/Follow-up · Meeting/);
   });
 
-  it('REGRESSION (Muhammad Khan, production): an active Meeting Follow-Up supersedes a same-day Appointment at a DIFFERENT time — renders ONLY the Follow-Up, not both', () => {
-    // Production report: Dashboard showed "Appointment · Meeting · 9:00 AM"
-    // AND "Follow-up · Meeting · 10:00 AM" as two separate current-work
-    // items. They are not an exact-time mirror, yet the Follow-Up is still
-    // the one authoritative current action (AUTHORITATIVE CURRENT-ACTION
-    // RULE) — the stale 9:00 AM Appointment must not also appear.
+  it('REGRESSION (Muhammad Khan, production): an Appointment 9:00 AM + an active Meeting Follow-Up 10:00 AM — renders ONLY the Follow-Up, never the Appointment', () => {
     const lead = baseLead({
       appointment_date: todayStr(), appointment_time: '09:00', appointment_type: 'Meeting',
       follow_up_date: todayStr(), follow_up_time: '10:00', follow_up_type: 'Meeting', follow_up_status: 'pending',
     });
     renderWidget({ leads: [lead], allLeads: [lead], deals: [] });
-    const badges = screen.getAllByText(/Appointment · Meeting|Follow-up · Meeting/);
-    expect(badges).toHaveLength(1);
-    expect(badges[0].textContent).toMatch(/Follow-up · Meeting/);
+    expect(screen.getAllByText(/Follow-up · Meeting/)).toHaveLength(1);
+    expect(screen.queryByText(/Appointment ·/)).toBeFalsy();
   });
 
-  it('REGRESSION (Roger Dayan, exact-time case, still correct under the broader rule): an exact date/time match also renders ONE card — the Follow-Up wins', () => {
+  it('an exact date/time match between Appointment and Follow-Up also renders ONE card — the Follow-Up, never a mirror check', () => {
     const lead = baseLead({
       appointment_date: todayStr(), appointment_time: '16:00', appointment_type: 'Meeting',
       follow_up_date: todayStr(), follow_up_time: '16:00', follow_up_type: 'Meeting', follow_up_status: 'pending',
     });
     renderWidget({ leads: [lead], allLeads: [lead], deals: [] });
-    const badges = screen.getAllByText(/Appointment · Meeting|Follow-up · Meeting/);
-    expect(badges).toHaveLength(1);
-    expect(badges[0].textContent).toMatch(/Follow-up · Meeting/);
+    expect(screen.getAllByText(/Follow-up · Meeting/)).toHaveLength(1);
+    expect(screen.queryByText(/Appointment ·/)).toBeFalsy();
   });
 
-  it('a same-day Meeting Follow-Up carrying its own notes STILL supersedes the Appointment (notes are not a factor in the authoritative-next-action rule)', () => {
+  it('a same-day Meeting Follow-Up carrying its own notes still renders as the ONLY current-work card', () => {
     const lead = baseLead({
       appointment_date: todayStr(), appointment_time: '12:00', appointment_type: 'Meeting',
       follow_up_date: todayStr(), follow_up_time: '12:00', follow_up_type: 'Meeting', follow_up_status: 'pending',
       follow_up_notes: 'Also confirm they received the revised estimate',
     });
     renderWidget({ leads: [lead], allLeads: [lead], deals: [] });
-    const badges = screen.getAllByText(/Appointment · Meeting|Follow-up · Meeting/);
-    expect(badges).toHaveLength(1);
-    expect(badges[0].textContent).toMatch(/Follow-up · Meeting/);
+    expect(screen.getAllByText(/Follow-up · Meeting/)).toHaveLength(1);
   });
 
-  it('REGRESSION (Jamey Corey shape, preserved): an Appointment and an active Follow-Up on genuinely DIFFERENT days both still appear, each on its own day — never merged, never superseded', () => {
+  it('REGRESSION (Jamey Corey shape): a historical Appointment today + an active Follow-Up tomorrow — ONLY the Follow-Up shows, under Tomorrow; the Appointment never appears as current work today', () => {
     const lead = baseLead({
       appointment_date: todayStr(), appointment_time: '12:00', appointment_type: 'Meeting',
       follow_up_date: tomorrowStr(), follow_up_time: '12:00', follow_up_type: 'Meeting', follow_up_status: 'pending',
     });
     renderWidget({ leads: [lead], allLeads: [lead], deals: [] });
-    // Appointment shows under Today's Work (not superseded — the Follow-Up is dated a different day)...
-    expect(screen.getAllByText(/Appointment · Meeting/)).toHaveLength(1);
-    // ...and the independent future Follow-Up shows under Tomorrow — both present.
+    expect(screen.queryByText("Today's Work")).toBeFalsy();
+    expect(screen.queryByText(/Appointment ·/)).toBeFalsy();
     expect(screen.getAllByText(/Follow-up · Meeting/)).toHaveLength(1);
     expect(screen.getByText('Tomorrow')).toBeTruthy();
   });
 
-  it('REGRESSION (Mario Ibanez shape): a lead with ONLY a current Appointment and no superseding Follow-Up renders the Appointment as current work', () => {
-    const lead = baseLead({ appointment_date: todayStr(), appointment_time: '14:00', appointment_type: 'Meeting' });
-    renderWidget({ leads: [lead], allLeads: [lead], deals: [] });
-    const badges = screen.getAllByText(/Appointment · Meeting|Follow-up · Meeting/);
-    expect(badges).toHaveLength(1);
-    expect(badges[0].textContent).toMatch(/Appointment · Meeting/);
-  });
-
-  it('a same-day Phone Call/Text/Email/Other Follow-Up never supersedes the Appointment — both are genuinely independent and both render', () => {
+  it('a same-day Phone Call/Text/Email/Other Follow-Up renders as the ONLY current-work card — the Appointment never appears alongside it', () => {
     const lead = baseLead({
       appointment_date: todayStr(), appointment_time: '09:00', appointment_type: 'Meeting',
       follow_up_date: todayStr(), follow_up_time: '08:00', follow_up_type: 'Phone Call', follow_up_status: 'pending',
     });
     renderWidget({ leads: [lead], allLeads: [lead], deals: [] });
-    expect(screen.getAllByText(/Appointment · Meeting/)).toHaveLength(1);
     expect(screen.getAllByText(/Follow-up · Phone Call/)).toHaveLength(1);
+    expect(screen.queryByText(/Appointment ·/)).toBeFalsy();
   });
 
-  it('completing a superseding Follow-Up reveals the previously-hidden same-day Appointment (supersession lifecycle)', async () => {
+  it('the Appointment date/time still appears as reference info on the Follow-Up card ("Appt: ..."), never as its own current-work entry', () => {
+    const lead = baseLead({
+      appointment_date: todayStr(), appointment_time: '09:00', appointment_type: 'Meeting',
+      follow_up_date: todayStr(), follow_up_time: '10:00', follow_up_type: 'Meeting', follow_up_status: 'pending',
+    });
+    renderWidget({ leads: [lead], allLeads: [lead], deals: [] });
+    expect(screen.getByText(/Appt:/)).toBeTruthy();
+  });
+
+  it('completing the active Follow-Up removes the lead from current work entirely — the Appointment never fills in (no fallback lifecycle)', async () => {
     const lead = baseLead({
       appointment_date: todayStr(), appointment_time: '09:00', appointment_type: 'Meeting',
       follow_up_date: todayStr(), follow_up_time: '14:00', follow_up_type: 'Meeting', follow_up_status: 'pending',
@@ -143,24 +133,20 @@ describe('FollowUpsWidget — Today\'s Work card identity', () => {
     updateFollowUp.mockResolvedValue({ lead: { ...lead, follow_up_status: 'completed' } });
 
     renderWidget({ leads: [lead], allLeads: [lead], deals: [] });
-    // Only the Follow-Up shows initially — the Appointment is superseded.
-    let badges = screen.getAllByText(/Appointment · Meeting|Follow-up · Meeting/);
-    expect(badges).toHaveLength(1);
-    expect(badges[0].textContent).toMatch(/Follow-up · Meeting/);
+    expect(screen.getAllByText(/Follow-up · Meeting/)).toHaveLength(1);
 
     const completeBtn = screen.getByTitle('Mark follow-up done');
     fireEvent.click(completeBtn);
 
     await waitFor(() => {
-      const remaining = screen.getAllByText(/Appointment · Meeting|Follow-up · Meeting/);
-      expect(remaining).toHaveLength(1);
-      expect(remaining[0].textContent).toMatch(/Appointment · Meeting/);
+      expect(screen.queryByText("Today's Work")).toBeFalsy();
     });
+    expect(screen.queryByText(/Follow-up ·/)).toBeFalsy();
+    expect(screen.queryByText(/Appointment ·/)).toBeFalsy();
 
     // The API call that ran was the follow-up-only endpoint — never an
     // appointment cancel/delete call, and it carried only the follow-up
-    // status field, never appointment fields. The Appointment record itself
-    // was never touched — it simply stopped being superseded.
+    // status field. The Appointment record itself was never touched.
     expect(updateFollowUp).toHaveBeenCalledTimes(1);
     expect(updateFollowUp).toHaveBeenCalledWith('lead-1', { follow_up_status: 'completed' });
   });

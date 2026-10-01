@@ -107,31 +107,27 @@ function formatDateLabel(dateStr) {
   return new Date(y, mo - 1, d).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 }
 
-// AUTHORITATIVE CURRENT-ACTION RULE (PERMANENT RULE, post-Muhammad-Khan/
-// Jamey-Corey production defect — mirrors lib/booking/currentAction.js's
-// isAppointmentSupersededForDay(); keep these in sync, and see
-// test/fixtures/currentActionCases.js, the canonical truth table both this
-// function and the backend selector are tested against, for drift
-// protection): the Follow-Up / Next Update is the authoritative current
-// next action for a lead. An ACTIVE Meeting-type Follow-Up supersedes the
-// lead's Appointment for "current physical meeting" purposes on any day
-// where BOTH are dated the SAME day — even when their times differ
-// (production evidence: Muhammad Khan, Appointment 9:00 AM + Follow-Up
-// Meeting 10:00 AM — only the 10:00 AM Follow-Up is current work, the
-// 9:00 AM Appointment stays historical). This is evaluated PER DAY, not
-// once per lead: an Appointment dated a different day than any competing
-// active Follow-Up is unaffected and still shows on its own day (the Jamey
-// Corey shape — historical Sep 29 Appointment, independent Oct 1
-// Follow-Up — and the "independent future Appointment" case both rely on
-// this). Phone Call/Text/Email/Other follow-ups never supersede an
-// Appointment — they are genuinely independent obligations, not a second
-// recording of the same physical meeting. Neither record is ever altered
-// or deleted by this selection — exported as a named export (alongside the
-// page's default export) purely so this exact predicate is unit-testable
-// against the shared canonical fixture, without a full component render.
-export function isAppointmentSupersededForDay(l, day) {
-  return !!l.appointment_date && l.appointment_type !== "Phone Call" && l.appointment_date === day &&
-    l.follow_up_type === "Meeting" && l.follow_up_status !== "completed" && l.follow_up_date === day;
+// FINAL AUTHORITATIVE CURRENT-ACTION RULE (post-Muhammad-Khan/Jamey-Corey/
+// Mario-Ibanez production correction — mirrors lib/booking/currentAction.js's
+// isCurrentWorkForDay()/currentActionForDay(); keep these in sync, and see
+// test/fixtures/currentActionCases.js, the canonical truth table all three
+// implementations are tested against, for drift protection): current work
+// is derived ENTIRELY from the Follow-Up / Next Update. Appointment Date/
+// Time is historical/reference tracking data ONLY and is NEVER a fallback
+// source of current work — not even when the lead has no active Follow-Up
+// at all (Mario Ibanez: his current work is whatever his own Follow-Up /
+// Next Update says; if he has none, he has none, Appointment or not).
+// Neither record is ever altered or deleted by this selection. The
+// Appointment's own independent booking/calendar/travel/availability
+// pipeline is completely untouched — this only governs what counts as
+// CURRENT WORK for My Day's list/map/counts. Exported as a named export
+// (alongside the page's default export) purely so this exact predicate is
+// unit-testable against the shared canonical fixture, without a full
+// component render.
+export function isCurrentPhysicalMeetingForDay(l, day) {
+  return !!l &&
+    l.follow_up_type === "Meeting" && l.follow_up_status !== "completed" &&
+    !!l.follow_up_date && l.follow_up_date === day && !!l.follow_up_time;
 }
 
 const DATE_FILTERS = [
@@ -353,15 +349,16 @@ export default function MobileDayView() {
     // Match desktop exactly: same excluded statuses
     const excluded = ["Lost", "DNQ", "Cancelled", "Closed Lost"];
 
+    // FINAL RULE: current physical meetings come ENTIRELY from the active
+    // Meeting-type Follow-Up — the Appointment is never a fallback, even
+    // when the lead has no active Follow-Up at all (see
+    // isCurrentPhysicalMeetingForDay() above).
     const candidates = [];
     for (const l of allLeads) {
       if (excluded.includes(l.status)) continue;
       if (!(l.property_address || l.city)) continue;
-      if (l.follow_up_type === "Meeting" && l.follow_up_status !== "completed" && l.follow_up_date) {
+      if (l.follow_up_date && isCurrentPhysicalMeetingForDay(l, l.follow_up_date)) {
         candidates.push({ ...l, _mtgDate: l.follow_up_date, _mtgTime: l.follow_up_time || null });
-      }
-      if (l.appointment_date && l.appointment_type !== "Phone Call" && !isAppointmentSupersededForDay(l, l.appointment_date)) {
-        candidates.push({ ...l, _mtgDate: l.appointment_date, _mtgTime: l.appointment_time || null });
       }
     }
     const filtered = candidates.filter(l => {

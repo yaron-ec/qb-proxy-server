@@ -391,16 +391,18 @@ test('M6. MIRROR-DEDUP (PR #8 principle, applied to calendar sync): booking a re
   const other = await api('POST', '/api/public/capture', capturePayload({ appointment_date: day, appointment_time: '15:30' }), null);
   assert.strictEqual(other.status, 409, JSON.stringify(other.body));
 
-  // Routing now has exactly one stop — the FOLLOW-UP (AUTHORITATIVE
-  // CURRENT-ACTION RULE: an active Meeting Follow-Up dated the same day
-  // supersedes the Appointment as a route stop even when, as here, it is
-  // also an exact-time match — the Appointment is never deleted, and its
-  // own calendar/availability presence above is completely unaffected).
+  // Routing now has exactly one stop — the FOLLOW-UP (FINAL AUTHORITATIVE
+  // CURRENT-ACTION RULE: route stops come ENTIRELY from the active Meeting
+  // Follow-Up; routes/routing.js's /daily-schedule never queries the
+  // `appointments` table at all, so the Appointment — even an exact-time
+  // match — can never itself be, or produce, a second route stop. The
+  // Appointment is never deleted, and its own calendar/availability
+  // presence above is completely unaffected).
   const route = await api('GET', `/api/v1/routing/daily-schedule?date=${day}&owner=all`);
   assert.strictEqual(route.status, 200, JSON.stringify(route.body));
   const stops = (route.body.schedule || []).filter(s => s.id === leadId || s.lead_id === leadId);
   assert.strictEqual(stops.length, 1, JSON.stringify(route.body.schedule));
-  assert.ok(stops[0].is_meeting_followup, 'the Follow-Up stop wins, per the authoritative current-action rule');
+  assert.ok(stops[0].is_meeting_followup, 'the Follow-Up is the only possible route-stop source');
 });
 
 test('M6b. Completing the Meeting follow-up after it has been mirror-deduped changes nothing further (idempotent cleanup edge case)', { skip }, async () => {

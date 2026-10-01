@@ -170,12 +170,12 @@ describe('No frontend path converts a Meeting follow-up into an appointment', ()
     expect(src).not.toMatch(/follow_up_type\s*===?\s*['"]Meeting['"]/);
   });
 
-  it('pages/MobileDayView.jsx never falls back from appointment fields to follow-up fields (it checks each candidate independently, it never ORs the two)', () => {
+  it('pages/MobileDayView.jsx derives current physical meetings ENTIRELY from the Follow-Up — it never reads appointment_date/appointment_time at all for current-work selection (FINAL RULE: no Appointment fallback)', () => {
     const src = fs.readFileSync(path.join(SRC, 'pages/MobileDayView.jsx'), 'utf8');
     expect(src).not.toMatch(/appointment_(date|time)\s*\|\|\s*[\w.]*follow_up_/);
-    const supersededMatch = src.match(/export function isAppointmentSupersededForDay\(l, day\) \{[\s\S]*?\n\}/);
-    expect(supersededMatch, 'isAppointmentSupersededForDay() helper must exist (mirrors lib/booking/currentAction.js — see MobileDayView.currentActionParity.test.jsx)').toBeTruthy();
-    expect(supersededMatch[0]).toMatch(/l\.appointment_date/);
-    expect(supersededMatch[0]).toMatch(/l\.follow_up_type === "Meeting"/);
+    const predicateMatch = src.match(/export function isCurrentPhysicalMeetingForDay\(l, day\) \{[\s\S]*?\n\}/);
+    expect(predicateMatch, 'isCurrentPhysicalMeetingForDay() helper must exist (mirrors lib/booking/currentAction.js — see MobileDayView.currentActionParity.test.jsx)').toBeTruthy();
+    expect(predicateMatch[0]).not.toMatch(/appointment_date|appointment_time|appointment_type/);
+    expect(predicateMatch[0]).toMatch(/l\.follow_up_type === "Meeting"/);
   });
 });

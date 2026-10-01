@@ -84,35 +84,31 @@ function formatFollowUpDate(dateStr) {
   return new Date(yr, mo, dy).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-// AUTHORITATIVE CURRENT-ACTION RULE (PERMANENT RULE, post-Muhammad-Khan/
-// Jamey-Corey production defect — supersedes the narrower, exact-time-only
-// "mirror" rule this function replaces): the Follow-Up / Next Update is the
-// authoritative CURRENT NEXT ACTION for a lead. An ACTIVE Meeting-type
-// Follow-Up dated the SAME DAY as the lead's own Appointment supersedes
-// that Appointment for "current work" purposes — regardless of whether
-// their times also match. Production evidence (Muhammad Khan: a 9:00 AM
-// Appointment plus an active 10:00 AM Meeting Follow-Up) proved exact-time
-// mirroring alone was insufficient: the two are not a mirror (different
-// times), yet the Follow-Up is still the one real current obligation to
-// show. The Appointment record itself is never altered or deleted — this
-// is a display/selection decision only (Lead Detail always shows both). A
-// Follow-Up of any OTHER type (Phone Call/Text/Email/Other) never
-// supersedes the Appointment: they are genuinely independent kinds of
-// obligations, not two recordings of the same physical meeting. A
-// different-day pair (the Jamey Corey shape: an Appointment on one day and
-// an active Follow-Up on another) is unaffected — each shows on its own
-// day, exactly as this same selector is implemented in the backend
-// (lib/booking/currentAction.js#isAppointmentSupersededForDay) and in My
-// Day (pages/MobileDayView.jsx#isAppointmentSupersededForDay) — keep these
-// three in sync. Exported (alongside the page's default export) so this
-// exact predicate is unit-testable against the shared canonical fixture
-// (test/fixtures/currentActionCases.js) for drift protection — see
-// FollowUpsWidget.currentActionParity.test.jsx.
-export function isAppointmentSupersededByFollowUp(l) {
-  return !!l.appointment_date && !!l.follow_up_date
-    && l.follow_up_status !== 'completed'
-    && l.follow_up_type === 'Meeting'
-    && l.appointment_date === l.follow_up_date;
+// FINAL AUTHORITATIVE CURRENT-ACTION RULE (post-Muhammad-Khan/Jamey-Corey/
+// Mario-Ibanez production correction — supersedes an earlier "Follow-Up
+// supersedes a same-day Appointment" model, itself a correction of an even
+// earlier additive model): the Follow-Up / Next Update is the ONLY source
+// of CURRENT WORK for a lead. The Appointment is historical/reference
+// tracking data and is NEVER current work — not even when the lead has no
+// active Follow-Up at all (Mario Ibanez: his current work is whatever his
+// own Follow-Up says; none means none, Appointment or not). The Appointment
+// record itself is never altered or deleted and may still be shown as
+// reference info alongside the current Follow-Up (see LeadCard's "Appt: "
+// line below). This exact rule lives in lib/booking/currentAction.js
+// (backend, canonical) and crm-frontend/src/pages/MobileDayView.jsx
+// (isCurrentPhysicalMeetingForDay) — keep all three in sync; see
+// test/fixtures/currentActionCases.js for the shared drift-protection
+// fixture and FollowUpsWidget.currentActionParity.test.jsx.
+
+// Minimal hoisted predicate mirroring the exact condition the `sections`
+// bucketing loop below uses to decide whether a lead has current work for a
+// given day (lib/booking/currentAction.js#isCurrentWorkForDay's frontend
+// shape, minus the shared isActiveFollowUpReminder helper, which isn't
+// available on the frontend). Exported alongside the default export purely
+// so FollowUpsWidget.currentActionParity.test.jsx can run the shared
+// canonical fixture against it without a full component render.
+export function isFollowUpCurrentForDay(lead, day) {
+  return !!lead && !!lead.follow_up_type && lead.follow_up_date === day && lead.follow_up_status !== 'completed';
 }
 
 function parseBudgetValue(budgetStr) {
@@ -180,14 +176,10 @@ export default function FollowUpsWidget({ leads: propLeads, allLeads: propAllLea
     const tomorrow = tomorrowInt();
     const in7days = futureDateInt(7);
 
-    // Two independent sources, bucketed separately:
-    //   • the APPOINTMENT (canonical appointments row → lead.appointment_*)
-    //   • the FOLLOW-UP (lead.follow_up_*), skipped once marked completed.
-    // A lead can legitimately appear once for each — EXCEPT the Appointment
-    // is skipped entirely when it is superseded by an active Meeting
-    // Follow-Up dated the same day (AUTHORITATIVE CURRENT-ACTION RULE — see
-    // isAppointmentSupersededByFollowUp() above). The Follow-Up is always
-    // bucketed when active; it is never suppressed by the Appointment.
+    // FINAL RULE: current work comes ENTIRELY from the Follow-Up
+    // (lead.follow_up_*), skipped once marked completed. The Appointment is
+    // never bucketed here — it is historical/reference data only (still
+    // shown as reference info on the card, see LeadCard's "Appt: " line).
     const bucket = (l, dateStr, isMeeting, kind) => {
       const d = parseDateInt(dateStr);
       if (d === null) return;
@@ -197,15 +189,12 @@ export default function FollowUpsWidget({ leads: propLeads, allLeads: propAllLea
       else if (d > tomorrow && d <= in7days) (isMeeting ? thisWeekMeetings : thisWeekCalls).push(entry);
     };
     for (const l of activeLeads) {
-      if (l.appointment_date && !isAppointmentSupersededByFollowUp(l)) {
-        bucket(l, l.appointment_date, l.appointment_type !== 'Phone Call', 'appointment');
-      }
-      if (l.follow_up_date && l.follow_up_status !== 'completed') {
+      if (isFollowUpCurrentForDay(l, l.follow_up_date)) {
         bucket(l, l.follow_up_date, l.follow_up_type === 'Meeting', 'follow_up');
       }
     }
 
-    const timeOf = (e) => (e.kind === 'appointment' ? e.lead.appointment_time : e.lead.follow_up_time) || '';
+    const timeOf = (e) => e.lead.follow_up_time || '';
     const sortByTime = (a, b) => timeOf(a).localeCompare(timeOf(b));
     return {
       todayMeetings: todayMeetings.sort(sortByTime),
@@ -476,9 +465,10 @@ function Group({ label, labelClass, leads, onComplete, completing, isOverdue, no
 
 function LeadCard({ lead, onComplete, completing, isOverdue }) {
   const navigate = useNavigate();
-  // An appointment entry shows the appointment; everything else shows the follow-up.
-  const isAppt = lead._sectionKind === 'appointment';
-  const entryType = isAppt ? lead.appointment_type : lead.follow_up_type;
+  // FINAL RULE: current work is always Follow-Up-sourced — the Appointment
+  // is never the entry itself, only optional reference info (see the
+  // "Appt: " line below).
+  const entryType = lead.follow_up_type;
   const isMeeting = entryType === 'Meeting';
 
   const accentColor = isOverdue ? 'border-l-red-400' : isMeeting ? 'border-l-purple-400' : 'border-l-green-400';
@@ -490,9 +480,9 @@ function LeadCard({ lead, onComplete, completing, isOverdue }) {
   const createdDays = daysAgoFromUTC(Date.UTC(
     ...createdDateStr.split('-').map((v, i) => i === 1 ? parseInt(v) - 1 : parseInt(v))
   ));
-  const displayDate = isAppt ? lead.appointment_date : (lead.follow_up_date || lead._sectionDate);
+  const displayDate = lead.follow_up_date || lead._sectionDate;
   const followUpLabel = formatFollowUpDate(displayDate);
-  const entryTime = isAppt ? lead.appointment_time : lead.follow_up_time;
+  const entryTime = lead.follow_up_time;
   const timeLabel = entryTime ? fmt12(entryTime) : '';
 
   const handleRowClick = () => {
@@ -511,7 +501,7 @@ function LeadCard({ lead, onComplete, completing, isOverdue }) {
             <span className="text-sm font-bold text-slate-900 group-hover:text-amber-600 transition-colors">{clientName}</span>
             {entryType && (
               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${typeColor}`}>
-                {typeIcon} {isAppt ? `Appointment · ${entryType}` : `Follow-up · ${entryType}`}
+                {typeIcon} {`Follow-up · ${entryType}`}
               </span>
             )}
           </div>
@@ -530,12 +520,10 @@ function LeadCard({ lead, onComplete, completing, isOverdue }) {
           <div onClick={e => e.stopPropagation()}>
             <ContactActions phone={lead.phone} email={lead.email} size="sm" />
           </div>
-          {!isAppt && (
-            <button onClick={(e) => onComplete(e, lead)} disabled={completing[lead.id]}
-              className="p-1.5 rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors disabled:opacity-40" title="Mark follow-up done">
-              <CheckCircle className="w-3 h-3" />
-            </button>
-          )}
+          <button onClick={(e) => onComplete(e, lead)} disabled={completing[lead.id]}
+            className="p-1.5 rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors disabled:opacity-40" title="Mark follow-up done">
+            <CheckCircle className="w-3 h-3" />
+          </button>
           <div className="w-px h-4 bg-slate-200 mx-0.5" />
           <button onClick={handleRowClick}
             className="p-1.5 rounded-md bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" title="Open Lead Details">
@@ -569,7 +557,7 @@ function LeadCard({ lead, onComplete, completing, isOverdue }) {
             <span>{followUpLabel}{timeLabel ? ` · ${timeLabel}` : ''}</span>
           </span>
         )}
-        {lead.appointment_date && !isAppt && (
+        {lead.appointment_date && (
           <span className="flex items-center gap-1 text-slate-500">
             <span className="text-slate-400">📆</span>
             <span>Appt: {lead.appointment_date}{lead.appointment_time ? ` ${fmt12(lead.appointment_time)}` : ''}</span>

@@ -273,71 +273,22 @@ router.get('/daily-schedule', async (req, res) => {
       });
     }
 
-    // Query the CANONICAL appointments table (source of truth for appointments).
-    // Join to leads for address info. Filter by appointment status (not lead
-    // status) — Lost/Sold leads with active appointments MUST appear.
-    // Phone Calls are excluded (no driving): an appointment is a Meeting when
-    // its reserved busy_range includes the travel buffer (lower(busy_range) <
-    // start_at) — kind comes from the appointment itself, never from a
-    // follow-up.
-    //
-    // AUTHORITATIVE CURRENT-ACTION RULE (post-Muhammad-Khan/Jamey-Corey
-    // production defects — see lib/booking/currentAction.js, the ONE
-    // canonical selector): a PHYSICAL MEETING is a canonical Appointment
-    // Meeting OR an active Meeting-type Follow-Up, and belongs on the Daily
-    // Map as a route stop with full traffic-aware routing. Phone Call/Text/
-    // Email/Other follow-ups remain non-physical reminders and are NEVER
-    // route stops. Below, active Meeting Follow-Ups are UNIONed in as
-    // additional stops; when a lead has BOTH an Appointment and an active
-    // Meeting Follow-Up dated this SAME day, the Follow-Up is authoritative
-    // and the Appointment is excluded as a route stop (NOT merely an
-    // exact-time mirror check — the Follow-Up wins even at a different time;
-    // this is a selection rule, never a deletion of the Appointment record).
-    const offsetMs = getLaOffsetMs(date);
-    const dayStartUtc = new Date(new Date(`${date}T00:00:00`).getTime() - offsetMs);
-    const dayEndUtc = new Date(dayStartUtc.getTime() + 24 * 60 * 60 * 1000);
-
-    const params = [dayStartUtc.toISOString(), dayEndUtc.toISOString()];
-    let apptWhere = `a.start_at >= $1::timestamptz AND a.start_at < $2::timestamptz AND a.status IN ('scheduled', 'confirmed') AND lower(a.busy_range) < a.start_at AND (l.status IS NULL OR l.status NOT IN ('Lost', 'DNQ'))`;
-
-    if (owner && owner !== 'all') {
-      if (owner === 'Unassigned') {
-        apptWhere += ` AND a.owner_id IS NULL`;
-      } else {
-        apptWhere += ` AND (o.display_name = $${params.length + 1} OR o.email = $${params.length + 1})`;
-        params.push(owner);
-      }
-    }
-    if (city && city !== 'all') {
-      apptWhere += ` AND LOWER(l.city) = LOWER($${params.length + 1})`;
-      params.push(city);
-    }
-    if (project_type && project_type !== 'all') {
-      apptWhere += ` AND LOWER(l.project_type) LIKE LOWER($${params.length + 1})`;
-      params.push(`%${project_type}%`);
-    }
-
-    const { rows: apptRows } = await query(
-      `SELECT l.id, l.first_name, l.last_name, l.property_address, l.city, l.state, l.zip, l.phone, l.email,
-              l.project_type, COALESCE(o.display_name, o.email) AS assigned_rep,
-              l.follow_up_time, l.status,
-              l.verified_property_address, l.property_lat, l.property_lng, l.property_geocode_status,
-              a.start_at, a.id AS appointment_id,
-              l.follow_up_date AS lead_follow_up_date, l.follow_up_time AS lead_follow_up_time,
-              l.follow_up_type AS lead_follow_up_type, l.follow_up_status AS lead_follow_up_status
-       FROM appointments a
-       JOIN leads l ON l.id = a.lead_id
-       LEFT JOIN owners o ON o.id = a.owner_id
-       WHERE ${apptWhere}
-       ORDER BY a.start_at ASC`,
-      params
-    );
-
-    // Active Meeting Follow-Ups for the same day — a second physical-meeting
-    // source alongside appointments (PERMANENT RULE above). follow_up_date is
-    // a plain DATE column (business-date semantics, not an instant), so this
-    // is a literal date-string match — no UTC day-boundary math needed, and
-    // none of the appointments' own timezone conversion risk applies here.
+    // FINAL AUTHORITATIVE CURRENT-ACTION RULE (post-Muhammad-Khan/
+    // Jamey-Corey/Mario-Ibanez production correction — see
+    // lib/booking/currentAction.js, the ONE canonical selector): current
+    // work — including Daily Map route stops — is derived ENTIRELY from the
+    // Follow-Up / Next Update. Appointment Date/Time is historical/
+    // reference tracking data only and is NEVER a route-stop source, with
+    // or without a competing Follow-Up (there is no Appointment fallback —
+    // the `appointments` table is deliberately not queried here at all).
+    // The Appointment's own independent booking/calendar/travel/
+    // availability pipeline (lib/booking/bookingService.js,
+    // calendarOutbox.js, appointmentWriter.js) is completely untouched by
+    // this — booking a real Appointment still syncs its own Google
+    // Calendar and blocks availability exactly as before; it is simply
+    // never surfaced as a route stop here. Only an ACTIVE Meeting-type
+    // Follow-Up is a physical-meeting route stop; Phone Call/Text/Email/
+    // Other follow-ups remain non-physical and are never route stops.
     const fuParams = [date];
     let fuWhere = `l.follow_up_type = 'Meeting' AND l.follow_up_date = $1 AND l.follow_up_status IS DISTINCT FROM 'completed' AND l.follow_up_time IS NOT NULL AND (l.status IS NULL OR l.status NOT IN ('Lost', 'DNQ'))`;
 
@@ -369,31 +320,7 @@ router.get('/daily-schedule', async (req, res) => {
       fuParams
     );
 
-    // Convert start_at to follow_up_time for display (appointments table uses TIMESTAMPTZ)
-    const apptLeadsRaw = apptRows.map(r => ({
-      ...r,
-      follow_up_time: r.start_at ? isoToLaTime(r.start_at) : r.follow_up_time,
-      follow_up_date: date,
-    }));
-
-    // AUTHORITATIVE CURRENT-ACTION RULE (lib/booking/currentAction.js): an
-    // active Meeting Follow-Up dated this SAME day supersedes the lead's own
-    // Appointment as the current physical meeting — even at a DIFFERENT time
-    // than the Appointment, not only an exact mirror (Muhammad Khan
-    // production evidence). The superseded Appointment is excluded as a
-    // route stop entirely; it is never deleted, and remains
-    // visible/historical in Lead Detail.
-    const { isAppointmentSupersededForDay } = require('../lib/booking/currentAction');
-    const apptLeads = apptLeadsRaw.filter(r => !isAppointmentSupersededForDay({
-      appointment_date: date,
-      follow_up_date: r.lead_follow_up_date,
-      follow_up_time: r.lead_follow_up_time,
-      follow_up_type: r.lead_follow_up_type,
-      follow_up_status: r.lead_follow_up_status,
-    }, date));
-    const followUpLeads = fuRows.map(r => ({ ...r, follow_up_date: date, is_meeting_followup: true }));
-
-    const leads = [...apptLeads, ...followUpLeads];
+    const leads = fuRows.map(r => ({ ...r, follow_up_date: date, is_meeting_followup: true }));
 
     if (leads.length === 0) {
       return res.json({ appointments: [], schedule: [], owner_config: await getOwnerStarts() });

@@ -75,8 +75,12 @@ async function renderMyDay() {
 }
 
 describe('MobileDayView → DailyMap date threading (PERMANENT RULE)', () => {
+  // FINAL RULE: current physical meetings come ENTIRELY from an active
+  // Meeting-type Follow-Up — an Appointment alone (no Follow-Up) produces NO
+  // current work at all, so these fixtures use follow_up_* fields (not
+  // appointment_*) to exercise the date-threading behavior under test here.
   it('Today (default): Daily Map receives today\'s date', async () => {
-    listLeads.mockResolvedValue({ items: [leadFixture({ appointment_date: getTodayLocal(), appointment_time: '09:00', appointment_type: 'Meeting' })] });
+    listLeads.mockResolvedValue({ items: [leadFixture({ follow_up_type: 'Meeting', follow_up_date: getTodayLocal(), follow_up_time: '09:00', follow_up_status: 'pending' })] });
     await renderMyDay();
     await screen.findByTestId('daily-map-stub');
     const last = dailyMapProps[dailyMapProps.length - 1];
@@ -85,7 +89,7 @@ describe('MobileDayView → DailyMap date threading (PERMANENT RULE)', () => {
   });
 
   it('Tomorrow: Daily Map automatically moves to tomorrow\'s date — never the stale today date', async () => {
-    listLeads.mockResolvedValue({ items: [leadFixture({ appointment_date: getTomorrowLocal(), appointment_time: '12:00', appointment_type: 'Meeting' })] });
+    listLeads.mockResolvedValue({ items: [leadFixture({ follow_up_type: 'Meeting', follow_up_date: getTomorrowLocal(), follow_up_time: '12:00', follow_up_status: 'pending' })] });
     await renderMyDay();
     fireEvent.click(screen.getByText('Tomorrow'));
     await screen.findByTestId('daily-map-stub');
@@ -100,8 +104,8 @@ describe('MobileDayView → DailyMap date threading (PERMANENT RULE)', () => {
 
   it('switching Tomorrow → Today moves the map back to today (no stale retention either direction)', async () => {
     listLeads.mockResolvedValue({ items: [
-      leadFixture({ id: 'l-today', appointment_date: getTodayLocal(), appointment_time: '09:00', appointment_type: 'Meeting' }),
-      leadFixture({ id: 'l-tomorrow', appointment_date: getTomorrowLocal(), appointment_time: '09:00', appointment_type: 'Meeting' }),
+      leadFixture({ id: 'l-today', follow_up_type: 'Meeting', follow_up_date: getTodayLocal(), follow_up_time: '09:00', follow_up_status: 'pending' }),
+      leadFixture({ id: 'l-tomorrow', follow_up_type: 'Meeting', follow_up_date: getTomorrowLocal(), follow_up_time: '09:00', follow_up_status: 'pending' }),
     ] });
     await renderMyDay();
     fireEvent.click(screen.getByText('Tomorrow'));
@@ -111,7 +115,7 @@ describe('MobileDayView → DailyMap date threading (PERMANENT RULE)', () => {
   });
 
   it('Next 7 Days: defaults to a clear single day (today) within the period and exposes Daily Map\'s own date picker rather than silently showing an unrelated stale date', async () => {
-    listLeads.mockResolvedValue({ items: [leadFixture({ appointment_date: getTodayLocal(), appointment_time: '09:00', appointment_type: 'Meeting' })] });
+    listLeads.mockResolvedValue({ items: [leadFixture({ follow_up_type: 'Meeting', follow_up_date: getTodayLocal(), follow_up_time: '09:00', follow_up_status: 'pending' })] });
     await renderMyDay();
     fireEvent.click(screen.getByText('Next 7 Days'));
     await screen.findByTestId('daily-map-stub');
@@ -124,8 +128,8 @@ describe('MobileDayView → DailyMap date threading (PERMANENT RULE)', () => {
 
   it('owner filter selected in My Day\'s rep pills is threaded into the embedded Daily Map (filters stay consistent across List/Map)', async () => {
     listLeads.mockResolvedValue({ items: [
-      leadFixture({ id: 'l1', assigned_rep: 'Yaron Drilevich', appointment_date: getTodayLocal(), appointment_time: '09:00', appointment_type: 'Meeting' }),
-      leadFixture({ id: 'l2', assigned_rep: 'Ethan Magen', appointment_date: getTodayLocal(), appointment_time: '10:00', appointment_type: 'Meeting' }),
+      leadFixture({ id: 'l1', assigned_rep: 'Yaron Drilevich', follow_up_type: 'Meeting', follow_up_date: getTodayLocal(), follow_up_time: '09:00', follow_up_status: 'pending' }),
+      leadFixture({ id: 'l2', assigned_rep: 'Ethan Magen', follow_up_type: 'Meeting', follow_up_date: getTodayLocal(), follow_up_time: '10:00', follow_up_status: 'pending' }),
     ] });
     await renderMyDay();
     await screen.findByTestId('daily-map-stub');
@@ -163,7 +167,7 @@ describe('MobileDayView — canonical PHYSICAL MEETING data semantics (List view
     await waitFor(() => expect(screen.getByText(/No meetings scheduled for today/)).toBeInTheDocument());
   });
 
-  it('exact-time same-day match: a lead with BOTH a real Appointment and an exact-mirror Meeting Follow-Up counts ONCE, not twice', async () => {
+  it('exact-time same-day match: a lead with BOTH a real Appointment and an exact-mirror Meeting Follow-Up counts ONCE (the Follow-Up; the Appointment is never itself a current-work source)', async () => {
     listLeads.mockResolvedValue({ items: [
       leadFixture({
         appointment_date: getTodayLocal(), appointment_time: '12:00', appointment_type: 'Meeting',
@@ -206,7 +210,7 @@ describe('MobileDayView — AUTHORITATIVE CURRENT-ACTION RULE (production eviden
     expect(screen.getByText('12:00')).toBeInTheDocument();
   });
 
-  it('MARIO IBANEZ: a current Appointment with no superseding active Follow-Up remains today\'s physical meeting', async () => {
+  it('MARIO IBANEZ: a current Appointment with NO active Follow-Up produces NO current work at all (the Appointment never fills in)', async () => {
     listLeads.mockResolvedValue({ items: [
       leadFixture({
         first_name: 'Mario', last_name: 'Ibanez',
@@ -215,11 +219,11 @@ describe('MobileDayView — AUTHORITATIVE CURRENT-ACTION RULE (production eviden
     ] });
     await renderMyDay();
     fireEvent.click(screen.getByText('List'));
-    await waitFor(() => expect(screen.getByText(/1 appointment/)).toBeInTheDocument());
-    expect(screen.getByText('14:00')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText(/No meetings scheduled for today/)).toBeInTheDocument());
+    expect(screen.queryByText('14:00')).not.toBeInTheDocument();
   });
 
-  it('a same-day Phone Call Follow-Up never supersedes the Appointment — the Appointment remains today\'s physical meeting', async () => {
+  it('a same-day Phone Call Follow-Up is current work as a non-physical action (never a route-stop/map meeting); the Appointment never fills in as a physical meeting either', async () => {
     listLeads.mockResolvedValue({ items: [
       leadFixture({
         appointment_date: getTodayLocal(), appointment_time: '14:00', appointment_type: 'Meeting',
@@ -228,11 +232,11 @@ describe('MobileDayView — AUTHORITATIVE CURRENT-ACTION RULE (production eviden
     ] });
     await renderMyDay();
     fireEvent.click(screen.getByText('List'));
-    await waitFor(() => expect(screen.getByText(/1 appointment/)).toBeInTheDocument());
-    expect(screen.getByText('14:00')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText(/No meetings scheduled for today/)).toBeInTheDocument());
+    expect(screen.queryByText('14:00')).not.toBeInTheDocument();
   });
 
-  it('an independent future Appointment NOT superseded by a Follow-Up dated a different day is preserved on its own day (Next 7 Days)', async () => {
+  it('an Appointment with no Follow-Up at all, dated a future day, produces NO current work on that day either (no fallback) — Next 7 Days shows nothing for it', async () => {
     const d5 = (() => { const d = new Date(); d.setDate(d.getDate() + 5); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })();
     listLeads.mockResolvedValue({ items: [
       leadFixture({ appointment_date: d5, appointment_time: '11:00', appointment_type: 'Meeting' }),
@@ -240,6 +244,6 @@ describe('MobileDayView — AUTHORITATIVE CURRENT-ACTION RULE (production eviden
     await renderMyDay();
     fireEvent.click(screen.getByText('List'));
     fireEvent.click(screen.getByText('Next 7 Days'));
-    await waitFor(() => expect(screen.getByText(/1 appointment/)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/No meetings in the next 7 days/)).toBeInTheDocument());
   });
 });
