@@ -14,9 +14,10 @@
  *   1. Update signnow_documents status → signed
  *   2. Download & save signed PDF to R2
  *   3. Create lead_attachment record
- *   4. Update Lead status → Sold
- *   5. Save signed_contract_date, sold_date, sold_by_source
- *   6. Add activity log entry
+ *   4. Update Lead status → Sold (same transaction as the document status and
+ *      the activity; the signing time is signnow_documents.signed_at and the
+ *      transition is recorded in lead_status_events)
+ *   5. Add activity log entry
  *   7. Send email notifications to Yaron, Michelle, and lead owner
  *
  * Idempotent: skips if document already marked as signed.
@@ -93,7 +94,7 @@ router.post('/', express.json(), async (req, res) => {
       return res.json({ received: true, processed: false });
     }
 
-    const { query } = require('../db/client');
+    const { query, pool } = require('../db/client');
     const signnowClient = require('../lib/signnowClient');
     const r2Client = require('../lib/r2Client');
 
@@ -172,49 +173,74 @@ router.post('/', express.json(), async (req, res) => {
       pdfUrl = docRecord.pdf_url;
     }
 
-    // ── Update signnow_documents record ──────────────────────────────────
-    await query(
-      `UPDATE signnow_documents SET status = 'signed', signed_at = COALESCE(signed_at, $1),
-       last_status_check = $1, pdf_url = COALESCE(pdf_url, $2), updated_at = NOW()
-       WHERE document_id = $3`,
-      [signedAt, pdfUrl, docId]
-    );
-
     // ── Determine if this is a main contract ──────────────────────────────
     const mainContract = isMainContract(docRecord.document_name);
     console.log(`[signnow-webhook] Document "${docRecord.document_name}" isMainContract: ${mainContract}`);
 
-    // ── Activity log (only on first transition to signed) ─────────────────
-    if (!wasAlreadySigned) {
-      const activityContent = mainContract
-        ? `✅ Main contract signed in SignNow: "${docRecord.document_name}". Lead automatically marked as Sold.${pdfSaved ? ' Signed PDF saved to attachments.' : ''}`
-        : `✅ Contract signed in SignNow: "${docRecord.document_name}".${pdfSaved ? ' Signed PDF saved to attachments.' : ''}`;
-
-      await query(
-        `INSERT INTO activities (lead_id, type, content, author, source, created_at)
-         VALUES ($1, 'note', $2, 'SignNow (auto)', 'manual', $3)`,
-        [docRecord.lead_id, activityContent, signedAt]
+    // ── Document status + lead Sold + activity: ONE transaction ───────────
+    // Previously the document was marked 'signed' and an activity claiming
+    // "Lead automatically marked as Sold" was written BEFORE an UPDATE that
+    // set four leads columns which do not exist (signed_contract_date,
+    // signed_contract_document_id, sold_date, sold_by_source). That UPDATE
+    // always failed, the error was swallowed (200 to SignNow, so no retry),
+    // and the already-'signed' document was skipped on every later delivery.
+    // Now only existing columns are written and all three changes commit
+    // together, so a failure leaves the document un-signed and a later
+    // delivery processes it again. The signing time stays canonical in
+    // signnow_documents.signed_at; the Sold transition is recorded by the
+    // lead_status_events trigger (change_source 'signnow').
+    let lead = null;
+    let markedSold = false;
+    const tx = await pool.connect();
+    try {
+      await tx.query('BEGIN');
+      await tx.query(
+        `SELECT set_config('ec.actor', 'SignNow webhook', true), set_config('ec.change_source', 'signnow', true), set_config('ec.status_reason', $1, true)`,
+        [`signnow_document:${docId}`.slice(0, 60)]);
+      await tx.query(
+        `UPDATE signnow_documents SET status = 'signed', signed_at = COALESCE(signed_at, $1),
+         last_status_check = $1, pdf_url = COALESCE(pdf_url, $2), updated_at = NOW()
+         WHERE document_id = $3`,
+        [signedAt, pdfUrl, docId]
       );
+      if (mainContract && docRecord.lead_id) {
+        lead = (await tx.query(
+          `SELECT l.*, o.email AS owner_email FROM leads l LEFT JOIN owners o ON o.id = l.owner_id WHERE l.id = $1 FOR UPDATE OF l`,
+          [docRecord.lead_id]
+        )).rows[0] || null;
+        if (lead && lead.status !== 'Sold') {
+          await tx.query(`UPDATE leads SET status = 'Sold', updated_at = NOW() WHERE id = $1`, [docRecord.lead_id]);
+          markedSold = true;
+        }
+      }
+      // Activity log (only on first transition to signed), stating what actually happened.
+      if (!wasAlreadySigned) {
+        const soldText = !mainContract ? ''
+          : markedSold ? ' Lead automatically marked as Sold.'
+          : lead ? ' Lead was already Sold.' : '';
+        const activityContent = mainContract
+          ? `✅ Main contract signed in SignNow: "${docRecord.document_name}".${soldText}${pdfSaved ? ' Signed PDF saved to attachments.' : ''}`
+          : `✅ Contract signed in SignNow: "${docRecord.document_name}".${pdfSaved ? ' Signed PDF saved to attachments.' : ''}`;
+        await tx.query(
+          `INSERT INTO activities (lead_id, type, content, author, source, created_at)
+           VALUES ($1, 'note', $2, 'SignNow (auto)', 'manual', $3)`,
+          [docRecord.lead_id, activityContent, signedAt]
+        );
+      }
+      await tx.query('COMMIT');
+    } catch (e) {
+      await tx.query('ROLLBACK').catch(() => {});
+      throw e;
+    } finally {
+      tx.release();
     }
 
     // ── Email notification summary ───────────────────────────────────────
     const emailNotification = { attempted: 0, sent: 0, failed: 0 };
 
-    // ── If main contract: mark lead as Sold ───────────────────────────────
+    // ── If main contract: notify that the lead was marked Sold ────────────
     if (mainContract && docRecord.lead_id) {
-      const leadRes = await query(
-        `SELECT l.*, o.email AS owner_email FROM leads l LEFT JOIN owners o ON o.id = l.owner_id WHERE l.id = $1`,
-        [docRecord.lead_id]
-      );
-      const lead = leadRes.rows[0];
-
-      if (lead && lead.status !== 'Sold') {
-        await query(
-          `UPDATE leads SET status = 'Sold', signed_contract_date = $1,
-           signed_contract_document_id = $2, sold_date = $1, sold_by_source = 'SignNow',
-           updated_at = NOW() WHERE id = $3`,
-          [signedAt, docId, docRecord.lead_id]
-        );
+      if (lead && markedSold) {
         console.log(`[signnow-webhook] Lead ${docRecord.lead_id} marked as Sold`);
 
         // ── Send notifications via Railway EmailService ─────────────────
@@ -288,7 +314,9 @@ router.post('/', express.json(), async (req, res) => {
     });
   } catch (e) {
     console.error('[signnow-webhook] error:', e.message);
-    // Return 200 to prevent retries — the document will be picked up by status polling
+    // 200 (unchanged contract with SignNow). Nothing is left half-written: the
+    // document/lead/activity transaction rolled back, so the document is not
+    // marked 'signed' and the next delivery for it is processed again.
     res.status(200).json({ received: true, processed: false, error: e.message });
   }
 });

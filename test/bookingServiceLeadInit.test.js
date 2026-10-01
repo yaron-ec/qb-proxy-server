@@ -4,7 +4,7 @@
 /**
  * bookingServiceLeadInit.test.js — New Lead initial state (canonical model).
  *
- * A lead born WITH its first appointment starts as "Appointment Scheduled" /
+ * A lead born WITH its first appointment starts as "Appointment scheduled" /
  * "First Meeting"; a lead born without one starts as "New". The appointment is
  * NEVER mirrored into the lead's follow_up_* fields — that mirror is exactly
  * what made Lead Detail show "Appointment: Not set" next to
@@ -101,7 +101,7 @@ require.cache[addressPipelinePath] = {
 
 delete require.cache[require.resolve('../lib/booking/bookingService')];
 
-test('a brand new Lead created with its first appointment starts as "Appointment Scheduled" / "First Meeting"', async () => {
+test('a brand new Lead created with its first appointment starts as "Appointment scheduled" (canonical spelling) / "First Meeting"', async () => {
   resetLeads();
   resolveLeadImpl = async () => ({ action: 'create' });
   const { createBooking } = require('../lib/booking/bookingService');
@@ -111,7 +111,9 @@ test('a brand new Lead created with its first appointment starts as "Appointment
     start_at: '2026-08-01T17:00:00Z', appointment_type_id: 'type-1',
   });
   assert.strictEqual(leadsTable.length, 1);
-  assert.strictEqual(leadsTable[0].status, 'Appointment Scheduled');
+  // Canonical spelling (lib/leadStatus.js) — every report/filter/Kanban column
+  // compares exactly; the old 'Appointment Scheduled' fell out of all of them.
+  assert.strictEqual(leadsTable[0].status, 'Appointment scheduled');
   assert.strictEqual(leadsTable[0].meeting_stage, 'First Meeting');
   assert.strictEqual(appointmentInserts, 1);
 });

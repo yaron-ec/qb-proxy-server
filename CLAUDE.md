@@ -477,6 +477,77 @@ about topology, this file wins; go correct `railway.json` and
   `access_token`/`app_id` from the URL into `base44_*` localStorage keys on
   every page load) was removed.
 
+## Marketing attribution + funnel history (Growth Engine Phase 1)
+
+Migration `2026-48-marketing-attribution.sql`; code in `lib/marketing/`.
+Three things are kept apart and must stay apart:
+
+- **Lead / person** — `leads`. **Inquiry** — `lead_submissions` (one row per
+  form submission, idempotent on `external_ref`; extended with origin,
+  intake action, page/conversion page, form id, consent incl. GPC, touch
+  pointers, `merged_from_lead_id`). **Marketing touch** — `marketing_touches`
+  (append-only; one row per distinct visit/click per lead via `content_hash`;
+  every UTM, gclid/gbraid/wbraid/msclkid/fbclid, gad_source/gad_campaignid,
+  landing page, referrer; the click/landing time, not the insert time).
+- `leads.first_touch_id` is **immutable** once set (trigger
+  `leads_first_touch_guard`); the only way to change it is
+  `attributionStore.correctFirstTouch` (explicit actor + reason, audited in
+  `lead_attribution_audit`). `last_touch_id` = last MEANINGFUL (non-Direct)
+  touch, only moves forward in time. `conversion_touch_id` = the touch of the
+  inquiry that created the lead, set once.
+- Website intake (`routes/websiteLeads.js`) records the inquiry + touches
+  (`attributionStore.recordWebsiteInquiry`) BEFORE any note, alert or
+  Google Contacts enqueue; a failure releases the receipt claim so the
+  website's retry delivers again without duplicate side effects. Payloads
+  from older website builds (no `attribution.v`) are mapped compatibly
+  (`lib/marketing/websiteAttribution.js`). Values are re-validated; invalid
+  values are dropped, never repaired; nothing (keyword, ad group, campaign)
+  is inferred.
+- **Channels**: `lib/marketing/channelClassifier.js` (versioned, `v1`). A
+  Google referrer without tagging is `google_organic_or_gbp` — never guessed
+  as Organic or Business Profile; Business Profile / LSA / offline only when
+  explicitly tagged. Raw `leads.source` is never rewritten:
+  `lead_source_mappings` (raw value → channel + optional `lead_providers`
+  row) is data, maintained with `scripts/marketing/applySourceMappings.js`
+  (report-only unless `APPLY=1`; EC's file: `docs/marketing/ec-source-mappings.json`).
+  **People are lead providers, never channels, and never CRM users** — do not
+  hardcode provider names in code. Read model: `lead_attribution_v`.
+- **Funnel**: `lead_status_events` is written by trigger
+  `leads_status_history` for EVERY status change from any writer (actor /
+  source / reason come from `set_config('ec.actor'|'ec.change_source'|
+  'ec.status_reason', …, true)` when the writer sets them —
+  `attributionStore.setChangeContext`). `lead_funnel_v` derives Appointment
+  (real Meeting-shaped `appointments` rows), Estimate (non-Draft `estimates`,
+  Handoff matches by phone/email only, status → Proposal Sent) and Sold
+  (`deals`, SignNow main contract `signed_at`, status → Sold) from the
+  existing canonical records — do not duplicate them into new tables.
+  **Qualified is NOT a lead status**: explicit, versioned decisions in
+  `lead_qualification_events` (`POST /api/v1/leads/:id/qualification`,
+  `lib/marketing/qualification.js`, definition `v1`); never inferred for
+  historical leads.
+- **Merges** (`routes/mergeLeads.js`) move touches, inquiries, status and
+  qualification events to the survivor with `merged_from_lead_id`, never
+  delete one and never overwrite the survivor's first touch; the merged lead
+  gets `merged_into_lead_id`/`merged_at` and its DNQ is recorded with reason
+  `merged_duplicate` (excluded from funnel/attribution views).
+- **Lead status spelling**: `lib/leadStatus.js` is the one vocabulary.
+  Writers canonicalize; `serializeLead` serves canonical spelling for rows
+  stored before the fix (`'Appointment Scheduled'` → `'Appointment scheduled'`);
+  stored values are not rewritten.
+- `test/leadsColumnWrites.test.js` fails if ANY backend writer targets a
+  `leads` column no migration defines — literal SQL, every reviewed dynamic
+  SQL builder (`DYNAMIC_SITES`; a new one fails until reviewed) and every
+  `rda.update/create('Lead', …)` payload. No exceptions are allow-listed. This
+  is how the SignNow-Sold, merge, QB sync-error (`qb_last_error`) and Base44-era
+  Handoff/QB writes (`handoff_estimate_status`, `appointment_date`,
+  `handoff_project_*`) were hidden: each failed in Postgres inside a swallowed
+  catch. QB sync failures now set the canonical `qb_last_sync_result='error'`;
+  the dead Handoff/QB lead writes were removed (a lead's Handoff/QB estimates are
+  `handoff_estimates` rows; never copy an estimate date into
+  appointment/follow-up fields); `/handoff/sync-projects` is report-only.
+- No customer data is sent to Google from here. Read-only aggregate check:
+  `GET /api/v1/system/attribution-integrity` (System Health auth).
+
 ## Working subsystems — do not redesign without new evidence
 
 These have been manually/independently verified working in production, or

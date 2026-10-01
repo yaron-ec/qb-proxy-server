@@ -45,6 +45,7 @@ const express = require('express');
 const { requireAuth, requireRole } = require('../lib/rbac');
 const { pool } = require('../db/client');
 const { UUID_RE } = require('../lib/leadResolver');
+const { setChangeContext, moveAttributionForMerge } = require('../lib/marketing/attributionStore');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -66,6 +67,8 @@ router.post('/merge', requireAdmin, async (req, res) => {
     }
 
     await client.query('BEGIN');
+    // Status history (lead_status_events trigger) records who/why for this merge.
+    await setChangeContext(client, { actor: req.user && req.user.email, source: 'merge', reason: 'merge_status_resolution' });
 
     // 1. Fetch both leads (FOR UPDATE to prevent concurrent modification)
     const { rows: keepRows } = await client.query('SELECT * FROM leads WHERE id = $1 FOR UPDATE', [lead_id_keep]);
@@ -76,6 +79,11 @@ router.post('/merge', requireAdmin, async (req, res) => {
     if (!leadKeep || !leadMerge) {
       await client.query('ROLLBACK');
       return res.status(404).json({ error: 'One or both leads not found' });
+    }
+
+    if (leadKeep.merged_into_lead_id || leadMerge.merged_into_lead_id) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: 'already_merged', message: 'One of these leads was already merged into another lead.' });
     }
 
     // 2. Determine survivor (oldest by crm_created_date, fall back to created_at)
@@ -164,7 +172,10 @@ router.post('/merge', requireAdmin, async (req, res) => {
     stats.attachments = atr.rowCount || 0;
 
     // lead_submissions (UUID FK, nullable)
-    const sr = await client.query('UPDATE lead_submissions SET lead_id = $1 WHERE lead_id = $2', [survivorId, mergedId]);
+    // Every inquiry is kept, with lineage to the lead it was first recorded on.
+    const sr = await client.query(
+      'UPDATE lead_submissions SET lead_id = $1, merged_from_lead_id = COALESCE(merged_from_lead_id, $2) WHERE lead_id = $2',
+      [survivorId, mergedId]);
     stats.submissions = sr.rowCount || 0;
 
     // appointments (UUID FK, SET NULL) — update to survivor (no duplicate: each appt has one lead_id)
@@ -187,6 +198,14 @@ router.post('/merge', requireAdmin, async (req, res) => {
     const qmr = await client.query('UPDATE qb_invoice_sale_map SET crm_lead_id = $1 WHERE crm_lead_id = $2', [String(survivorId), String(mergedId)]);
     stats.qb_map = qmr.rowCount || 0;
 
+    // Marketing touches, status + qualification history and the attribution
+    // pointers (lib/marketing/attributionStore — never deletes a touch, never
+    // overwrites the survivor's first touch, keeps every click identifier).
+    const attr = await moveAttributionForMerge(client, { survivorId, mergedId, actor: req.user && req.user.email });
+    stats.touches = attr.touches;
+    stats.status_events = attr.status_events;
+    stats.qualification_events = attr.qualification_events;
+
     // 5. Write merge audit activity to survivor
     await client.query(`
       INSERT INTO activities (lead_id, type, content, author, source, created_at, updated_at)
@@ -198,17 +217,22 @@ router.post('/merge', requireAdmin, async (req, res) => {
       `${stats.invoices} invoices, ${stats.appointments} appointments, ${stats.estimates} estimates.`,
     ]);
 
-    // 6. Soft-delete the merged lead (status='DNQ', notes appended) — preserve audit trail
+    // 6. Soft-delete the merged lead (status='DNQ', notes appended) — preserve audit trail.
+    // merged_into_lead_id/merged_at are the lineage (the previous columns this
+    // wrote — duplicate_merged, last_merge_date, merge_count — never existed,
+    // so every merge rolled back). The DNQ is recorded in the status history
+    // with reason 'merged_duplicate', which funnel/marketing views exclude:
+    // a merge is never counted as a disqualified lead.
+    await setChangeContext(client, { actor: req.user && req.user.email, source: 'merge', reason: 'merged_duplicate' });
     await client.query(`
       UPDATE leads SET
         status = 'DNQ',
         notes = COALESCE(notes, '') || E'\n\n[Merged into lead ID: ' || $1 || ']',
-        duplicate_merged = true,
-        last_merge_date = NOW(),
-        merge_count = COALESCE(merge_count, 0) + 1,
+        merged_into_lead_id = $3,
+        merged_at = NOW(),
         updated_at = NOW()
       WHERE id = $2
-    `, [String(survivorId), mergedId]);
+    `, [String(survivorId), mergedId, survivorId]);
 
     await client.query('COMMIT');
 
