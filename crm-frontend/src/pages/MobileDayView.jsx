@@ -283,6 +283,20 @@ export default function MobileDayView() {
   const [view, setView] = useState(() =>
     new URLSearchParams(window.location.search).get("view") === "list" ? "list" : "map"
   ); // "list" | "map"
+  // PERMANENT RULE: the Today/Tomorrow/Next 7 Days selector is authoritative
+  // for the embedded Daily Map — it must move automatically to the selected
+  // day's date and never show a stale prior-selection date. Today/Tomorrow
+  // map to that exact single day. Next 7 Days has no single inherent date,
+  // so it defaults to today (a clear day within the period) and — unlike
+  // Today/Tomorrow — still exposes Daily Map's own date picker so a specific
+  // day within the week can be chosen explicitly, rather than silently
+  // showing an unrelated stale single-day map.
+  const [mapDate, setMapDate] = useState(() => getTodayLocal());
+  useEffect(() => {
+    if (dateFilter === "today") setMapDate(getTodayLocal());
+    else if (dateFilter === "tomorrow") setMapDate(getTomorrowLocal());
+    else setMapDate(getTodayLocal());
+  }, [dateFilter]);
 
   useEffect(() => {
     const init = async () => {
@@ -312,13 +326,26 @@ export default function MobileDayView() {
     // Match desktop exactly: same excluded statuses
     const excluded = ["Lost", "DNQ", "Cancelled", "Closed Lost"];
 
-    // A lead's meeting = its canonical appointment when that is a Meeting
-    // (site visit). Follow-ups — including a 'Meeting' follow-up — are
-    // internal next actions and never become a driving stop. Phone Calls
-    // need no driving.
+    // CANONICAL PHYSICAL MEETING (PERMANENT RULE): a lead's canonical
+    // Appointment Meeting (site visit) OR, when it has none, an active
+    // Meeting-type Follow-Up — both are real physical meetings and belong
+    // in My Day's schedule/map. Phone Call/Text/Email/Other follow-ups are
+    // non-physical reminders and never become a route stop here. The
+    // Appointment always wins when both exist on the same lead (the PR #8
+    // mirror-dedup principle horizontally applied): this returns at most
+    // one window per lead, so a proven mirror never renders as two entries.
     const meetingOf = (l) => {
-      if (!l.appointment_date || l.appointment_type === "Phone Call") return null;
-      return { date: l.appointment_date, time: l.appointment_time };
+      if (l.appointment_date && l.appointment_type !== "Phone Call") {
+        return { date: l.appointment_date, time: l.appointment_time };
+      }
+      if (
+        l.follow_up_type === "Meeting" &&
+        l.follow_up_status !== "completed" &&
+        l.follow_up_date
+      ) {
+        return { date: l.follow_up_date, time: l.follow_up_time };
+      }
+      return null;
     };
     const filtered = allLeads.map(l => {
       const m = meetingOf(l);
@@ -522,7 +549,7 @@ export default function MobileDayView() {
                 <div className="w-7 h-7 border-4 border-slate-200 border-t-amber-600 rounded-full animate-spin" />
               </div>
             }>
-              <DailyMap />
+              <DailyMap date={mapDate} onDateChange={setMapDate} hideDatePicker={dateFilter !== "week"} ownerFilter={ownerFilter} />
             </Suspense>
           </MapPageErrorBoundary>
         </div>

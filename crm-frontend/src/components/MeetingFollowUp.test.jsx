@@ -2,10 +2,25 @@
  * MeetingFollowUp.test.jsx — Lead Detail → Follow-Up / Next Update → Type
  * "Meeting".
  *
- * A 'Meeting' follow-up is STILL ONLY A FOLLOW-UP (an internal next action).
- * It can be selected and saved through PUT /:id/follow-up, survives a reload,
- * and never becomes an appointment in the UI: no appointment API call, no
- * calendar sync, no customer appointment reminder, no driving stop.
+ * A 'Meeting' follow-up is STILL ONLY A FOLLOW-UP RECORD (an internal next
+ * action, leads.follow_up_*). It can be selected and saved through
+ * PUT /:id/follow-up, survives a reload, and never becomes an `appointments`
+ * row in the UI: no appointment API call from this form, no customer
+ * appointment reminder (that stays appointment-only), no driving stop from
+ * Lead Detail itself.
+ *
+ * UPDATED (post-Jamey-Corey production defect, PERMANENT RULE): an ACTIVE
+ * Meeting Follow-Up now gets real physical-meeting SCHEDULING SEMANTICS on
+ * the backend (blocks availability, 1h duration, Driving/Travel Time, one
+ * calendar meeting representation — see lib/booking/followUpMeeting.js) and
+ * My Day (pages/MobileDayView.jsx) is the one frontend surface that reflects
+ * this in its own schedule/count/map, via its own `meetingOf()` helper. This
+ * does not change anything this file asserts: Lead Detail's own Follow-Up
+ * form still never calls the appointment API or syncs the calendar directly,
+ * and `syncCalendar`/`updateAppointment` still go uncalled when saving a
+ * Meeting follow-up — see the "No frontend path converts a Meeting follow-up
+ * into an appointment" describe block below for MobileDayView.jsx's narrow,
+ * documented carve-out.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -110,6 +125,16 @@ describe('No frontend path converts a Meeting follow-up into an appointment', ()
     'pages/LeadsModern.jsx',          // row badge
     'pages/OverdueLeads.jsx',         // icon
   ]);
+  // PERMANENT RULE (post-Jamey-Corey production defect): the canonical
+  // PHYSICAL MEETING is a real Appointment Meeting OR an active Meeting-type
+  // Follow-Up (lib/booking/followUpMeeting.js on the backend). My Day is the
+  // one frontend surface that must apply this SAME canonical definition (for
+  // its schedule/count/map), so it is a deliberate SECOND physical-meeting
+  // source — not a display-only badge, and not a fallback FROM the
+  // appointment (see the dedicated it() below, which proves it never does
+  // `appointment_date || follow_up_date`-style fallback; the Appointment
+  // branch is always checked and returned first).
+  const PHYSICAL_MEETING_SOURCE = new Set(['pages/MobileDayView.jsx']);
   const files = [];
   (function walk(dir) {
     for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -119,11 +144,11 @@ describe('No frontend path converts a Meeting follow-up into an appointment', ()
     }
   })(SRC);
 
-  it('only display-only files compare follow_up_type to "Meeting"', () => {
+  it('only display-only files and the My Day physical-meeting source compare follow_up_type to "Meeting"', () => {
     const offenders = files
       .filter(f => /follow_up_type\s*[!=]==?\s*['"]Meeting['"]/.test(fs.readFileSync(f, 'utf8')))
       .map(f => path.relative(SRC, f).split(path.sep).join('/'))
-      .filter(f => !DISPLAY_ONLY.has(f));
+      .filter(f => !DISPLAY_ONLY.has(f) && !PHYSICAL_MEETING_SOURCE.has(f));
     expect(offenders).toEqual([]);
   });
 
@@ -134,10 +159,18 @@ describe('No frontend path converts a Meeting follow-up into an appointment', ()
     'components/TestReminderPanel.jsx',
     'components/ReminderHealthPanel.jsx',
     'components/MeetingPipelineAudit.jsx',
-    'pages/MobileDayView.jsx',
   ])('%s never falls back from the appointment to the follow-up', (rel) => {
     const src = fs.readFileSync(path.join(SRC, rel), 'utf8');
     expect(src).not.toMatch(/appointment_(date|time)\s*\|\|\s*[\w.]*follow_up_/);
     expect(src).not.toMatch(/follow_up_type\s*===?\s*['"]Meeting['"]/);
+  });
+
+  it('pages/MobileDayView.jsx never falls back from appointment fields to follow-up fields (it checks the Appointment branch first and returns, it never ORs the two)', () => {
+    const src = fs.readFileSync(path.join(SRC, 'pages/MobileDayView.jsx'), 'utf8');
+    expect(src).not.toMatch(/appointment_(date|time)\s*\|\|\s*[\w.]*follow_up_/);
+    const meetingOfMatch = src.match(/const meetingOf = \(l\) => \{[\s\S]*?\n {4}\};/);
+    expect(meetingOfMatch, 'meetingOf() helper must exist').toBeTruthy();
+    expect(meetingOfMatch[0]).toMatch(/l\.appointment_date/);
+    expect(meetingOfMatch[0]).toMatch(/l\.follow_up_type === "Meeting"/);
   });
 });

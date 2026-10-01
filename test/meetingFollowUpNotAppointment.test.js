@@ -6,25 +6,40 @@
  * Update → Type "Meeting".
  *
  * CANONICAL RULE: a follow-up of type 'Meeting' is STILL ONLY A FOLLOW-UP
- * (leads.follow_up_*, an internal next action). It must never become an
- * Appointment / Site Visit: no appointments row, no availability blocking,
- * no appointment-style Google Calendar main/travel event, no Driving/Travel
- * Time, no 1h buffer, no customer appointment reminder. Only the canonical
- * appointments row is an appointment (lib/booking/appointmentView.js). (A
- * Meeting follow-up DOES get its own separate, non-blocking Google Calendar
- * *reminder* event under the permanent follow-up-calendar-sync rule — see
- * lib/booking/followUpReminders.js and
- * test/integration/phoneCallCalendarReminder.int.test.js case N — which is
- * unrelated to and does not affect anything tested in this file.)
+ * (leads.follow_up_*, an internal next action), never an appointments row —
+ * `lib/booking/bookingService.js` only ever creates one from `start_at`, and
+ * only the canonical appointments row is an appointment
+ * (lib/booking/appointmentView.js).
+ *
+ * UPDATED (post-Jamey-Corey production defect, PERMANENT RULE): an ACTIVE
+ * Meeting Follow-Up now gets the SAME physical-meeting SCHEDULING SEMANTICS
+ * as a real Appointment — it blocks availability, gets a 1h duration, a
+ * Driving/Travel Time block via the canonical travel engine, and ONE
+ * calendar meeting representation (no separate 15-min generic reminder in
+ * addition) — all built by literally reusing `calendarOutbox.js#buildOperation`
+ * via a virtual-appointment adapter
+ * (`lib/booking/followUpMeeting.js#virtualAppointmentFor`), never a second
+ * implementation. This does NOT create an appointments row and does NOT
+ * change anything tested in this file: reminders, the manual reminder
+ * route, and routing (tests 3-8, 10, 11) are proven unchanged. Only
+ * `lib/booking/availabilityService.js` is allowed to read an active Meeting
+ * Follow-Up as a busy source — see test 9's and test 12's carve-outs below,
+ * and test/followUpMeeting.test.js /
+ * test/integration/phoneCallCalendarReminder.int.test.js case N for the
+ * calendar-sync proof.
  *
  * Found and fixed in the systemic audit (every one read the follow-up as an
  * appointment):
  *   - lib/reminderTime.js#appointmentParts fell back to a dated 'Meeting' /
  *     'Phone Call' follow-up → customer "Appointment Reminder" emails and
  *     action-page fingerprints for a follow-up.
- *   - routes/routing.js + routes/routingDiagnostic.js UNIONed leads with a
- *     dated 'Meeting' follow-up in as driving stops; routingDiagnostic's
- *     appointment query also selected by l.follow_up_type = 'Meeting'.
+ *   - routes/routing.js + routes/routingDiagnostic.js previously UNIONed
+ *     leads with a dated 'Meeting' follow-up in as driving stops using a
+ *     DIFFERENT, ungated mechanism than today's (routingDiagnostic's
+ *     appointment query also selected by l.follow_up_type = 'Meeting') — that
+ *     was removed. routes/routing.js has since been DELIBERATELY re-extended
+ *     under the PERMANENT RULE below with a narrower, gated, mirror-deduped
+ *     version; routingDiagnostic.js was not.
  *   - routes/emails.js POST /leads/:id/remind preferred the follow-up over
  *     the appointment (and lib/dataAccessRailway#getLead read appointment_*
  *     from `leads`, which has no such columns).
@@ -158,9 +173,30 @@ function runtimeFiles() {
   return out.filter(f => fs.existsSync(path.join(ROOT, f)));
 }
 
-test('9. No backend runtime code selects on follow_up_type = Meeting (SQL or JS)', () => {
+test('9. No backend runtime code selects on follow_up_type = Meeting (SQL or JS), except the one documented availability carve-out', () => {
+  // PERMANENT RULE (post-Jamey-Corey production defect): an active Meeting
+  // Follow-Up is a real physical meeting and must use the SAME canonical
+  // physical-meeting scheduling semantics as an Appointment — including
+  // BLOCKING availability. lib/booking/availabilityService.js is therefore
+  // the one, deliberate, narrowly-scoped place allowed to select on
+  // follow_up_type = 'Meeting', solely to add it as an additional busy
+  // source (see lib/booking/followUpMeeting.js#isActiveMeetingFollowUp and
+  // test/followUpMeeting.test.js). This does NOT weaken the original intent
+  // of this test: a Meeting follow-up must still never be read as, or
+  // conflated with, an appointments row anywhere else — reminders, routing
+  // and the manual reminder route are proven unchanged by tests 3-8, 10, 11.
+  // routes/routing.js (Daily Map's /daily-schedule) is a second deliberate
+  // carve-out, for the identical reason: an active Meeting Follow-Up is a
+  // real physical meeting and must appear as a route stop (see test 10's
+  // carve-out below). lib/booking/appointmentWriter.js is a third: the
+  // write-path conflict check must enforce the SAME blocking the
+  // availability display shows, or a slot shown blocked could still be
+  // double-booked (see test 12's carve-out below and
+  // test/appointmentAvailabilityParity.test.js).
+  const ALLOWED = ['lib/booking/availabilityService.js', 'routes/routing.js', 'lib/booking/appointmentWriter.js'];
   const offenders = [];
   for (const f of runtimeFiles()) {
+    if (ALLOWED.includes(f)) continue;
     const code = fs.readFileSync(path.join(ROOT, f), 'utf8')
       .replace(/\/\*[\s\S]*?\*\//g, '')   // block comments
       .replace(/^\s*\/\/.*$/gm, '');         // line comments
@@ -169,13 +205,27 @@ test('9. No backend runtime code selects on follow_up_type = Meeting (SQL or JS)
   assert.deepStrictEqual(offenders, []);
 });
 
-test('10. Routing (driving stops) comes from the appointments table only — no follow-up UNION', () => {
+test('10. Routing: appointments remain the primary source everywhere; routing.js additionally UNIONs active Meeting Follow-Ups (PERMANENT RULE, mirror-deduped); routingDiagnostic.js is unchanged', () => {
   for (const f of ['routes/routing.js', 'routes/routingDiagnostic.js']) {
     const src = fs.readFileSync(path.join(ROOT, f), 'utf8');
     assert.doesNotMatch(src, /legacyWhere/, f);
-    assert.doesNotMatch(src, /l\.follow_up_date\s*=\s*\$/, f);
     assert.match(src, /lower\(a\.busy_range\) < a\.start_at/, `${f}: Meetings identified by their own buffered busy_range`);
   }
+  // routingDiagnostic.js is an ops-only diagnostic surface, not part of the
+  // Daily Map UI — deliberately NOT extended with the Meeting Follow-Up rule.
+  assert.doesNotMatch(
+    fs.readFileSync(path.join(ROOT, 'routes/routingDiagnostic.js'), 'utf8'),
+    /l\.follow_up_date\s*=\s*\$/,
+    'routes/routingDiagnostic.js'
+  );
+  // routes/routing.js (Daily Map's /daily-schedule) DOES now UNION active
+  // Meeting Follow-Ups as additional route stops, deduped against a real
+  // appointment for the same lead (PR #8 mirror-dedup principle, applied
+  // horizontally — the appointment always wins).
+  const routingSrc = fs.readFileSync(path.join(ROOT, 'routes/routing.js'), 'utf8');
+  assert.match(routingSrc, /l\.follow_up_type\s*=\s*'Meeting'/, 'routes/routing.js must query active Meeting Follow-Ups');
+  assert.match(routingSrc, /l\.follow_up_date\s*=\s*\$/, 'routes/routing.js');
+  assert.match(routingSrc, /apptLeadIds\.has\(r\.id\)/, 'routes/routing.js must dedupe a Meeting Follow-Up against its own lead\'s real appointment');
 });
 
 test('11. Manual reminder route uses the appointment only, never the follow-up', () => {
@@ -189,7 +239,20 @@ test('11. Manual reminder route uses the appointment only, never the follow-up',
 test('12. Booking creates an appointment only from start_at — never from follow-up fields', () => {
   const src = fs.readFileSync(path.join(ROOT, 'lib/booking/bookingService.js'), 'utf8');
   assert.match(src, /const withAppointment = !!start_at;/);
-  for (const f of ['lib/booking/appointmentWriter.js', 'lib/booking/availabilityService.js', 'lib/booking/slotBlocking.js', 'lib/booking/googleAvailability.js']) {
+  // lib/booking/availabilityService.js and lib/booking/appointmentWriter.js
+  // are EXCLUDED from this list under the PERMANENT RULE above: they
+  // deliberately read active Meeting Follow-Ups as an additional busy /
+  // conflict source (lib/booking/followUpMeeting.js) so the availability
+  // display and the write-path enforcement agree. Neither ever
+  // creates/writes an appointments row FROM a follow-up — that guarantee is
+  // unaffected and remains proven for slotBlocking.js and
+  // googleAvailability.js below.
+  for (const f of ['lib/booking/slotBlocking.js', 'lib/booking/googleAvailability.js']) {
     assert.doesNotMatch(fs.readFileSync(path.join(ROOT, f), 'utf8'), /follow_up/, `${f} must not read follow-ups`);
   }
+  assert.doesNotMatch(
+    fs.readFileSync(path.join(ROOT, 'lib/booking/appointmentWriter.js'), 'utf8'),
+    /INSERT INTO appointments/,
+    'lib/booking/appointmentWriter.js must still never itself write an appointments row from a follow-up'
+  );
 });

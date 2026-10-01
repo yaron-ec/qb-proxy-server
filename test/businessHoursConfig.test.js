@@ -40,6 +40,9 @@ require.cache[dbPath] = {
       const s = String(sql).replace(/\s+/g, ' ').trim();
       if (/^SELECT id, start_at, end_at, timezone/i.test(s)) return { rows: [] };
       if (/^SELECT \* FROM company_settings/i.test(s)) return { rows: rowToReturn ? [rowToReturn] : [] };
+      // Meeting Follow-Ups as an additional busy source (PERMANENT RULE) —
+      // none in this test's fixtures.
+      if (/^SELECT l\.id, l\.follow_up_date/i.test(s)) return { rows: [] };
       throw new Error('unexpected query in mock: ' + s);
     },
     pool: {}, ensureSchema: async () => {},

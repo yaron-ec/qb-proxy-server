@@ -60,13 +60,39 @@ async function geocodeAddress(address) {
 
 export { geocodeAddress };
 
-export default function DailyMap() {
-  const [selectedDate, setSelectedDate] = useState(getTodayLocal());
+export default function DailyMap({ date: controlledDate, onDateChange, hideDatePicker, ownerFilter: controlledOwnerFilter } = {}) {
+  const [selectedDate, setSelectedDate] = useState(controlledDate || getTodayLocal());
+
+  // Controlled mode (e.g. My Day's Map view, which drives this from its own
+  // Today/Tomorrow/Next 7 Days selector — PERMANENT RULE: that selector must
+  // be authoritative for this date, never leaving a stale prior date active).
+  // Standalone /daily-map usage (controlledDate undefined) keeps its own
+  // internal state, unaffected.
+  useEffect(() => {
+    if (controlledDate && controlledDate !== selectedDate) {
+      setSelectedDate(controlledDate);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [controlledDate]);
+
+  const handleDateChange = (next) => {
+    setSelectedDate(next);
+    if (onDateChange) onDateChange(next);
+  };
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [routeError, setRouteError] = useState(null);
   const [view, setView] = useState("split");
-  const [ownerFilter, setOwnerFilter] = useState("all");
+  const [ownerFilter, setOwnerFilter] = useState(controlledOwnerFilter || "all");
+  // My Day's own rep pills are authoritative when embedded there, so the
+  // selected period's owner filter stays consistent between List and Map
+  // (PERMANENT RULE) instead of Map silently reverting to "All Reps".
+  useEffect(() => {
+    if (controlledOwnerFilter && controlledOwnerFilter !== ownerFilter) {
+      setOwnerFilter(controlledOwnerFilter);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [controlledOwnerFilter]);
   const [cityFilter, setCityFilter] = useState("all");
   const [projectTypeFilter, setProjectTypeFilter] = useState("all");
   const [selectedLead, setSelectedLead] = useState(null);
@@ -161,12 +187,14 @@ export default function DailyMap() {
       <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200 flex-shrink-0">
         <div className="flex items-center gap-3">
           <h1 className="text-lg font-bold text-slate-900">Daily Map</h1>
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="text-sm border border-slate-200 rounded-lg px-3 py-1.5"
-          />
+          {!hideDatePicker && (
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => handleDateChange(e.target.value)}
+              className="text-sm border border-slate-200 rounded-lg px-3 py-1.5"
+            />
+          )}
         </div>
         <div className="flex items-center gap-2">
           <button

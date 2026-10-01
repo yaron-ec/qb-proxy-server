@@ -41,6 +41,11 @@ require.cache[dbPath] = {
       if (/^SELECT \* FROM company_settings/i.test(s)) {
         return { rows: [] };
       }
+      // Meeting Follow-Ups as an additional busy source (PERMANENT RULE) —
+      // none in this test's fixtures.
+      if (/^SELECT l\.id, l\.follow_up_date/i.test(s)) {
+        return { rows: [] };
+      }
       throw new Error('unexpected query in mock: ' + s);
     },
     pool: {}, ensureSchema: async () => {},

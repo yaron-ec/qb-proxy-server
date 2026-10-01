@@ -278,9 +278,18 @@ router.get('/daily-schedule', async (req, res) => {
     // status) — Lost/Sold leads with active appointments MUST appear.
     // Phone Calls are excluded (no driving): an appointment is a Meeting when
     // its reserved busy_range includes the travel buffer (lower(busy_range) <
-    // start_at) — kind comes from the appointment itself, never from the
-    // lead's follow-up. Follow-ups — including a 'Meeting' follow-up — are
-    // internal next actions and never become route stops.
+    // start_at) — kind comes from the appointment itself, never from a
+    // follow-up.
+    //
+    // PERMANENT RULE (post-Jamey-Corey production defect): a PHYSICAL MEETING
+    // is a canonical Appointment Meeting OR an active Meeting-type Follow-Up
+    // — both are real physical meetings and belong on the Daily Map as route
+    // stops with full traffic-aware routing. Phone Call/Text/Email/Other
+    // follow-ups remain non-physical reminders and are NEVER route stops.
+    // Below, active Meeting Follow-Ups are UNIONed in as additional stops,
+    // deduped against real appointments for the same lead (the appointment
+    // always wins — same mirror-dedup principle as the PR #8 Dashboard fix,
+    // applied horizontally here).
     const offsetMs = getLaOffsetMs(date);
     const dayStartUtc = new Date(new Date(`${date}T00:00:00`).getTime() - offsetMs);
     const dayEndUtc = new Date(dayStartUtc.getTime() + 24 * 60 * 60 * 1000);
@@ -319,12 +328,58 @@ router.get('/daily-schedule', async (req, res) => {
       params
     );
 
+    // Active Meeting Follow-Ups for the same day — a second physical-meeting
+    // source alongside appointments (PERMANENT RULE above). follow_up_date is
+    // a plain DATE column (business-date semantics, not an instant), so this
+    // is a literal date-string match — no UTC day-boundary math needed, and
+    // none of the appointments' own timezone conversion risk applies here.
+    const fuParams = [date];
+    let fuWhere = `l.follow_up_type = 'Meeting' AND l.follow_up_date = $1 AND l.follow_up_status IS DISTINCT FROM 'completed' AND l.follow_up_time IS NOT NULL AND (l.status IS NULL OR l.status NOT IN ('Lost', 'DNQ'))`;
+
+    if (owner && owner !== 'all') {
+      if (owner === 'Unassigned') {
+        fuWhere += ` AND l.owner_id IS NULL`;
+      } else {
+        fuWhere += ` AND (fo.display_name = $${fuParams.length + 1} OR fo.email = $${fuParams.length + 1})`;
+        fuParams.push(owner);
+      }
+    }
+    if (city && city !== 'all') {
+      fuWhere += ` AND LOWER(l.city) = LOWER($${fuParams.length + 1})`;
+      fuParams.push(city);
+    }
+    if (project_type && project_type !== 'all') {
+      fuWhere += ` AND LOWER(l.project_type) LIKE LOWER($${fuParams.length + 1})`;
+      fuParams.push(`%${project_type}%`);
+    }
+
+    const { rows: fuRows } = await query(
+      `SELECT l.id, l.first_name, l.last_name, l.property_address, l.city, l.state, l.zip, l.phone, l.email,
+              l.project_type, COALESCE(fo.display_name, fo.email) AS assigned_rep,
+              l.follow_up_time, l.status,
+              l.verified_property_address, l.property_lat, l.property_lng, l.property_geocode_status
+       FROM leads l
+       LEFT JOIN owners fo ON fo.id = l.owner_id
+       WHERE ${fuWhere}`,
+      fuParams
+    );
+
     // Convert start_at to follow_up_time for display (appointments table uses TIMESTAMPTZ)
-    const leads = apptRows.map(r => ({
+    const apptLeads = apptRows.map(r => ({
       ...r,
       follow_up_time: r.start_at ? isoToLaTime(r.start_at) : r.follow_up_time,
       follow_up_date: date,
     }));
+
+    // Mirror-dedup (PR #8 principle, applied horizontally): a lead whose
+    // Meeting Follow-Up is a proven mirror of its own real Appointment must
+    // not render as two route stops — the Appointment always wins.
+    const apptLeadIds = new Set(apptLeads.map(r => r.id));
+    const followUpLeads = fuRows
+      .filter(r => !apptLeadIds.has(r.id))
+      .map(r => ({ ...r, follow_up_date: date, is_meeting_followup: true }));
+
+    const leads = [...apptLeads, ...followUpLeads];
 
     if (leads.length === 0) {
       return res.json({ appointments: [], schedule: [], owner_config: await getOwnerStarts() });

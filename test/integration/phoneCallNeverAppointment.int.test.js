@@ -177,15 +177,23 @@ test('A2. PUT /appointment with appointment_type "Phone Call" saves the follow-u
   await capture({ appointment_date: day, appointment_time: '09:00' });
 });
 
-test('E. Meeting follow-up → zero appointment, zero Google/travel/buffer, never blocks', { skip }, async () => {
+test('E. Meeting follow-up → zero appointment row, zero calendar_outbox rows — but PERMANENT RULE: it now blocks availability like a real Appointment Meeting, and a DIFFERENT lead cannot double-book over it', { skip }, async () => {
   const day = pickDay();
   const id = await capture({ follow_up_date: day, follow_up_time: '11:00', follow_up_type: 'Meeting' });
-  assert.deepStrictEqual(await apptsOf(id), []);
-  assert.deepStrictEqual(await outboxOf(id), []);
+  assert.deepStrictEqual(await apptsOf(id), [], 'still never an appointments row');
+  assert.deepStrictEqual(await outboxOf(id), [], 'its calendar presence is reconciled via followUpReminders.js, never calendar_outbox');
   const { getAvailability } = require('../../lib/booking/availabilityService');
   const av = await getAvailability({ owner_id: ownerId, date: day, timezone: TZ, duration_minutes: 60 });
-  assert.deepStrictEqual(av.blocked_slots, []);
-  await capture({ appointment_date: day, appointment_time: '11:00' });
+  for (const s of ['10:00', '10:30', '11:00', '11:30']) assert.ok(av.blocked_slots.includes(s), `${s} blocked`);
+  assert.ok(!av.blocked_slots.includes('09:00') && !av.blocked_slots.includes('13:00'), 'boundaries stay free');
+  // A DIFFERENT lead cannot book the same owner over it (write-path parity).
+  const other = await api('POST', '/api/public/capture', payload({ appointment_date: day, appointment_time: '11:00' }), null);
+  assert.strictEqual(other.status, 409, JSON.stringify(other.body));
+  // Converting THIS SAME lead's own Meeting follow-up into a real appointment
+  // at the exact same time is the expected flow, never a self-conflict.
+  const own = await api('PUT', `/api/v1/leads/${id}/appointment`, { appointment_date: day, appointment_time: '11:00', appointment_type: 'Meeting' });
+  assert.strictEqual(own.status, 200, JSON.stringify(own.body));
+  assert.strictEqual((await apptsOf(id)).length, 1);
 });
 
 test('F/G. Site Visit → main event + ONE Driving / Travel Time after it, 1h buffers, exact boundary rule', { skip }, async () => {

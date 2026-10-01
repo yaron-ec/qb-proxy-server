@@ -201,28 +201,61 @@ test('A/B/C/M. Phone Call at 10:00 → one free reminder event on Google; 10:00 
   assert.strictEqual((await apptsOf(visit)).length, 1);
 });
 
-test('N. PERMANENT RULE: a Meeting follow-up gets the exact same free, non-blocking reminder treatment as a Phone Call', { skip }, async () => {
+test('N. PERMANENT RULE (post-Jamey-Corey production defect): a Meeting follow-up gets the SAME physical-meeting treatment as a real Appointment — 1h BUSY meeting + travel, never the generic free reminder', { skip }, async () => {
   const day = pickDay();
   const meetingLead = await capture({ follow_up_date: day, follow_up_time: '14:00', follow_up_type: 'Meeting' });
-  assert.deepStrictEqual(await apptsOf(meetingLead), [], 'still never an appointment');
+  assert.deepStrictEqual(await apptsOf(meetingLead), [], 'still never an appointment row');
   await reconcile();
-  const [ev, ...more] = liveReminders(meetingLead);
-  assert.ok(ev, 'a Meeting follow-up gets a reminder event on Google Calendar');
-  assert.deepStrictEqual(more, [], 'exactly one');
-  assert.strictEqual(ev.transparency, 'transparent');
-  assert.strictEqual(ev.extendedProperties.private.ec_blocking, 'false');
-  assert.match(ev.summary, /^Meeting: /);
+  // No generic 15-minute reminder for Meeting — it gets the full physical-
+  // meeting representation instead (main + travel, tagged with the virtual
+  // appointment id `followup-meeting:<leadId>:g*`).
+  assert.deepStrictEqual(liveReminders(meetingLead), [], 'no generic reminder IN ADDITION to the physical meeting');
+  const liveMeeting = (kind) => [...google.events.values()].filter((e) => e.status !== 'cancelled'
+    && e.extendedProperties?.private?.ec_appointment_id === `followup-meeting:${meetingLead}:g0`
+    && e.extendedProperties.private.ec_kind === kind);
+  const [main] = liveMeeting('main');
+  const [travel] = liveMeeting('travel');
+  assert.ok(main, 'main physical-meeting event exists');
+  assert.ok(travel, 'travel event exists');
+  assert.strictEqual(main.transparency, undefined, 'BUSY — a real physical meeting');
+  assert.match(main.summary, /^Meeting with /);
+  const mainEndMs = utcOf(main.end);
+  assert.strictEqual(mainEndMs - utcOf(main.start), 60 * 60 * 1000, 'exactly 1 hour');
+  assert.strictEqual(utcOf(travel.start), mainEndMs, 'travel starts right after the meeting ends');
   const av = await avail(day);
-  assert.deepStrictEqual(av.blocked_slots.filter((s) => s === '14:00'), [], 'Meeting reminder never blocks its own slot');
-  const row = (await rows('SELECT followup_kind FROM followup_calendar_reminders WHERE lead_id = $1', [meetingLead]))[0];
+  assert.ok(av.blocked_slots.includes('14:00'), 'the physical meeting now blocks its own slot, exactly like a real Appointment');
+  const row = (await rows('SELECT representation, followup_kind FROM followup_calendar_reminders WHERE lead_id = $1', [meetingLead]))[0];
+  assert.strictEqual(row.representation, 'meeting');
   assert.strictEqual(row.followup_kind, 'meeting');
-  // A real appointment still books at the exact same time as the Meeting follow-up.
-  const visit = await capture({ appointment_date: day, appointment_time: '14:00' });
-  assert.strictEqual((await apptsOf(visit)).length, 1);
-  // Marking the Meeting follow-up done removes its reminder (same lifecycle as Phone Call).
+  // A DIFFERENT lead's real appointment at the exact same time is rejected
+  // (write-path parity with the availability display).
+  await capture({ appointment_date: day, appointment_time: '14:00' }, 409);
+  // Converting THIS lead's own Meeting follow-up into a real appointment at
+  // the exact same time is the expected mirror flow, never a self-conflict —
+  // and reconciling afterward removes the follow-up's own duplicate
+  // representation (never two physical-meeting pairs for the one event).
+  const visitRes = await api('PUT', `/api/v1/leads/${meetingLead}/appointment`, { appointment_date: day, appointment_time: '14:00', appointment_type: 'Meeting' });
+  assert.strictEqual(visitRes.status, 200, JSON.stringify(visitRes.body));
+  assert.strictEqual((await apptsOf(meetingLead)).length, 1);
+  const s = await reconcile();
+  assert.ok(s.removed >= 1, JSON.stringify(s));
+  assert.deepStrictEqual(liveMeeting('main'), [], 'the follow-up\'s own main event is gone — mirror-deduped against the real Appointment');
+  assert.deepStrictEqual(liveMeeting('travel'), [], 'the follow-up\'s own travel event is gone');
+});
+
+test('N2. A STANDALONE Meeting follow-up (never mirrored): marking it done removes its meeting + travel events', { skip }, async () => {
+  const day = pickDay();
+  const meetingLead = await capture({ follow_up_date: day, follow_up_time: '09:00', follow_up_type: 'Meeting' });
+  await reconcile();
+  const liveMeeting = (kind) => [...google.events.values()].filter((e) => e.status !== 'cancelled'
+    && e.extendedProperties?.private?.ec_appointment_id === `followup-meeting:${meetingLead}:g0`
+    && e.extendedProperties.private.ec_kind === kind);
+  assert.strictEqual(liveMeeting('main').length, 1);
+  assert.strictEqual(liveMeeting('travel').length, 1);
   assert.strictEqual((await api('PUT', `/api/v1/leads/${meetingLead}/follow-up`, { follow_up_status: 'completed' })).status, 200);
   await reconcile();
-  assert.deepStrictEqual(liveReminders(meetingLead), [], 'completed Meeting follow-up reminder removed');
+  assert.deepStrictEqual(liveMeeting('main'), []);
+  assert.deepStrictEqual(liveMeeting('travel'), []);
 });
 
 test('D/E. A genuine external Google busy event still blocks ±1h and rejects a booking; a real appointment blocks 1h before + duration + 1h after', { skip }, async () => {
