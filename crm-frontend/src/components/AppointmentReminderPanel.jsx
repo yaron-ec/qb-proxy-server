@@ -1,5 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AlertTriangle, Mail, CheckCircle2, Send, Clock } from 'lucide-react';
+import * as railwayCompanySettings from '@/api/railway/companySettings';
+import { resolveOwnerEmail } from '@/lib/ownerEmailMap';
+
+const EC_DEFAULTS = { name: 'EC Construction Group', phone: '(310) 310-4108', domain: 'ecconstructiongroup.com', staffCc: ['michelle@ecconstructiongroup.com'] };
 
 
 function fmt12(t) {
@@ -17,6 +21,28 @@ function formatDate(dateStr) {
 export default function AppointmentReminderPanel({ lead }) {
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState(null);
+  const [company, setCompany] = useState(EC_DEFAULTS);
+
+  useEffect(() => {
+    let cancelled = false;
+    railwayCompanySettings.get()
+      .then((cfg) => {
+        if (cancelled || !cfg) return;
+        const email = cfg.company_email || cfg.admin_email;
+        const domain = email && email.includes('@') ? email.split('@')[1] : EC_DEFAULTS.domain;
+        const staffCc = Array.isArray(cfg.notification_recipients?.cc) && cfg.notification_recipients.cc.length
+          ? cfg.notification_recipients.cc
+          : (Array.isArray(cfg.notification_recipients?.to) ? cfg.notification_recipients.to : []);
+        setCompany({
+          name: cfg.company_name || EC_DEFAULTS.name,
+          phone: cfg.company_phone || EC_DEFAULTS.phone,
+          domain,
+          staffCc,
+        });
+      })
+      .catch(() => { /* keep EC_DEFAULTS */ });
+    return () => { cancelled = true; };
+  }, []);
 
   // Customer appointment reminders come from the canonical appointment only.
   // A follow-up (any type, including 'Meeting') is an internal next action.
@@ -37,28 +63,28 @@ export default function AppointmentReminderPanel({ lead }) {
     setResult(null);
     try {
       const clientName = `${lead.first_name || ''} ${lead.last_name || ''}`.trim();
-      const ownerName = lead.assigned_rep || 'EC Construction Group';
+      const ownerName = lead.assigned_rep || company.name;
       const address = [lead.property_address, lead.city].filter(Boolean).join(', ');
-      const subject = `Appointment Reminder — EC Construction Group`;
+      const subject = `Appointment Reminder — ${company.name}`;
       const body = `<html><body style="font-family:sans-serif;color:#1a1a2e;padding:24px;">
         <h2 style="color:#0B2D5C;">Upcoming Appointment Reminder</h2>
         <p>Hi ${lead.first_name || 'there'},</p>
-        <p>This is a friendly reminder from <strong>${ownerName}</strong> at EC Construction Group about your upcoming ${apptType}.</p>
+        <p>This is a friendly reminder from <strong>${ownerName}</strong> at ${company.name} about your upcoming ${apptType}.</p>
         <table style="background:#f4f6fa;border-radius:8px;padding:20px;margin:16px 0;width:100%;border-collapse:collapse;">
           ${apptDate ? `<tr><td style="padding:6px 0;font-weight:600;width:140px;">Date</td><td>${dateLabel}</td></tr>` : ''}
           ${timeLabel ? `<tr><td style="padding:6px 0;font-weight:600;">Time</td><td>${timeLabel}</td></tr>` : ''}
           ${address ? `<tr><td style="padding:6px 0;font-weight:600;">Address</td><td>${address}</td></tr>` : ''}
           ${lead.project_type ? `<tr><td style="padding:6px 0;font-weight:600;">Project</td><td>${lead.project_type}</td></tr>` : ''}
         </table>
-        <p>If you need to reschedule, please contact us at (310) 310-4108.</p>
-        <p>We look forward to seeing you!<br><strong>${ownerName}</strong><br>EC Construction Group</p>
+        <p>If you need to reschedule, please contact us at ${company.phone}.</p>
+        <p>We look forward to seeing you!<br><strong>${ownerName}</strong><br>${company.name}</p>
       </body></html>`;
 
       const recipients = [];
       if (lead.email) recipients.push(lead.email);
-      const ownerEmail = (() => { const f = ownerName.trim().split(/\s+/)[0].toLowerCase(); return f ? `${f}@ecconstructiongroup.com` : null; })();
+      const ownerEmail = resolveOwnerEmail(ownerName, company.domain);
       if (ownerEmail) recipients.push(ownerEmail);
-      recipients.push('michelle@ecconstructiongroup.com');
+      recipients.push(...company.staffCc);
       const uniqRecipients = [...new Set(recipients)];
 
       const { sendAppointmentReminder } = await import('@/lib/emailTransport');

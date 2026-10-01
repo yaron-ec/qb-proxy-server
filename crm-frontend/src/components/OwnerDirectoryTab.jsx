@@ -322,7 +322,7 @@ function ReplyToContactDirectory({ readOnly }) {
                           value={draftEmail}
                           onChange={(e) => setDraftEmail(e.target.value)}
                           className="w-full text-xs font-mono border border-slate-300 rounded px-2 py-1"
-                          placeholder="email@ecconstructiongroup.com"
+                          placeholder="name@yourcompany.com"
                         />
                         {error && <p className="text-[11px] text-red-600 mt-1">{error}</p>}
                       </td>

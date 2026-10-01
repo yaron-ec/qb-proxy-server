@@ -23,6 +23,7 @@
 import { useState, useEffect, useRef } from "react";
 import { getBlockedSlots } from "@/api/railway/availability";
 import { resolveOwnerEmail } from "@/lib/ownerEmailMap";
+import { useCompanyEmailDomain } from "@/hooks/useCompanyEmailDomain";
 import { Loader2, AlertTriangle } from "lucide-react";
 
 // Default times from 8:30 AM to 6:30 PM (EC's product default). PRODUCTIZATION
@@ -53,7 +54,8 @@ export default function AvailableTimePicker({ value, onChange, date, ownerName, 
   const [quotaError, setQuotaError] = useState(false);
   const abortRef = useRef(null);
 
-  const ownerEmail = resolveOwnerEmail(ownerName);
+  const emailDomain = useCompanyEmailDomain();
+  const ownerEmail = resolveOwnerEmail(ownerName, emailDomain);
 
   useEffect(() => {
     // Cancel any in-flight request

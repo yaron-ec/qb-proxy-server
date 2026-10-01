@@ -566,7 +566,12 @@ async function testTestEmailStableNonce() {
   // TestReminderPanel now passes lead.id as nonce (no Date.now())
   await transport.sendTestEmail('yaron@ecconstructiongroup.com', 'lead123');
 
-  const body = JSON.parse(calls[0].opts.body);
+  // sendTestEmail now also fetches company branding (GET /api/v1/company-settings,
+  // no body) before sending, so the email-send call is no longer necessarily
+  // calls[0] — find it by URL instead of assuming position.
+  const sendCall = calls.find(c => c.url.includes('/api/v1/emails/send'));
+  assert.ok(sendCall, 'Should call the email send endpoint');
+  const body = JSON.parse(sendCall.opts.body);
   assert.strictEqual(body.idempotencyKey, 'test-email:yaron@ecconstructiongroup.com:lead123');
   assert.ok(!body.idempotencyKey.includes('Date.now'), 'Key must not contain Date.now()');
   console.log('  ✓ test email nonce is stable (no Date.now)');

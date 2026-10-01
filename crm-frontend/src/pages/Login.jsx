@@ -142,7 +142,7 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="pl-9"
                 disabled={submitting || googleRedirecting}
-                placeholder="you@ecconstructiongroup.com"
+                placeholder="you@yourcompany.com"
               />
             </div>
           </div>

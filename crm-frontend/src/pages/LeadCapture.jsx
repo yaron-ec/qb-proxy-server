@@ -7,9 +7,6 @@ import { useAuth } from "@/lib/AuthContext";
 import { CheckCircle, Upload, X, Phone, MapPin, Briefcase, AlertCircle, Loader2, ArrowLeft, Calendar, ShieldAlert, ListTodo } from "lucide-react";
 import CaptureSlotGrid from "@/components/CaptureSlotGrid";
 
-// Server-side allowlist is authoritative; this mirror only gates the UI.
-const ADMIN_OVERRIDE_EMAILS = ["yaron@ecconstructiongroup.com", "michelle@ecconstructiongroup.com"];
-
 // Fallback defaults — imported from single source of truth.
 // Canonical Lead Sources match app_settings (key='app_lists') value.sources.
 // Yair is a Lead Provider only — NOT a CRM user/owner/admin.
@@ -49,11 +46,10 @@ export default function LeadCapture() {
   const returnToCRM = new URLSearchParams(window.location.search).get("returnToCRM") === "true";
   const { user } = useAuth();
 
-  // Admin override is allowed ONLY for Yaron / Michelle (server re-verifies).
+  // Admin override affordance — the server is authoritative (lib/captureOverrideAuth.js's
+  // ADMIN_OVERRIDE_EMAILS allowlist, or a role check); this only gates the UI.
   // Non-admins / public users never see the override affordance.
-  const canOverride = !!user
-    && user.role === "admin"
-    && ADMIN_OVERRIDE_EMAILS.includes((user.email || "").toLowerCase());
+  const canOverride = !!user && user.role === "admin";
 
   const [form, setForm] = useState(emptyForm());
   const [submitted, setSubmitted] = useState(false);
