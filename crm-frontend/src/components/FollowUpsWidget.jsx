@@ -86,6 +86,20 @@ function formatFollowUpDate(dateStr) {
 
 // 'HH:MM' / 'HH:MM:SS' -> 'HH:MM', for comparing times that may come from
 // different columns with slightly different Postgres TIME text formatting.
+// Known narrow edge case (documented, not fixed here — see CLAUDE.md's
+// "Dashboard Today's Work double-count" note): the backend's own kind match
+// is appt.kind === follow_up_type, where appt.kind is a DERIVED
+// classification (lib/booking/appointmentKind.js) that reads 'Phone Call'
+// only for a rare, pre-separation LEGACY unbuffered appointment row — every
+// current/normal appointment, whatever its appointment_type name (Meeting,
+// Site Visit, Consultation, ...), is 'Meeting'-kind. This frontend check has
+// no per-row buffering signal, so it treats ANY active appointment as
+// 'Meeting'-kind; a same-date/time/no-notes Meeting follow-up next to one of
+// those rare legacy rows could be suppressed here even though the backend
+// would call it DIVERGENT, not MIRROR. Those legacy rows are actively being
+// converted away by lib/booking/legacyPhoneCallConversion.js and shrink over
+// time; this is display-only and never loses data (Lead Detail always shows
+// both records).
 function hhmm(t) {
   if (!t) return '';
   const m = String(t).trim().match(/^(\d{1,2}):(\d{2})/);

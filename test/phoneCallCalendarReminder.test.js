@@ -73,6 +73,23 @@ test('a Meeting follow-up gets the same kind of reminder, correctly labeled — 
   assert.strictEqual(isNonBlockingCrmGoogleEvent(ev), true, 'a Meeting reminder is excluded from availability exactly like a Phone Call one');
 });
 
+test('timezone/DST: a Meeting follow-up reminder computes the correct UTC instant on both sides of the US spring-forward transition (2026-03-08)', () => {
+  // Reuses the same toUtcIso/isoToLaParts primitives as the Appointment path
+  // (lib/booking/slotBlocking.js, already proven DST-correct by
+  // test/multiTimezoneBooking.test.js) — the permanent rule changed WHICH
+  // follow-up types get a reminder, never HOW the time is converted.
+  const before = { ...LEAD, follow_up_type: 'Meeting', follow_up_date: '2026-03-07', follow_up_time: '10:00' }; // PST (UTC-8)
+  const after = { ...LEAD, follow_up_type: 'Meeting', follow_up_date: '2026-03-09', follow_up_time: '10:00' }; // PDT (UTC-7)
+  assert.strictEqual(followUpStartIso(before), '2026-03-07T18:00:00.000Z');
+  assert.strictEqual(followUpStartIso(after), '2026-03-09T17:00:00.000Z');
+  const evBefore = buildReminderEvent(before, '', 0);
+  const evAfter = buildReminderEvent(after, '', 0);
+  assert.strictEqual(evBefore.start.dateTime, '2026-03-07T10:00:00');
+  assert.strictEqual(evAfter.start.dateTime, '2026-03-09T10:00:00');
+  assert.strictEqual(evBefore.start.timeZone, 'America/Los_Angeles');
+  assert.strictEqual(evAfter.start.timeZone, 'America/Los_Angeles');
+});
+
 test('the reminder id is deterministic per lead + generation (a reschedule keeps the id; a new generation never reuses one)', () => {
   const a = buildReminderEvent(LEAD, '', 0);
   const moved = buildReminderEvent({ ...LEAD, follow_up_date: '2026-10-20', follow_up_time: '15:30', owner_email: 'other@example.com' }, '', 0);

@@ -357,7 +357,20 @@ about topology, this file wins; go correct `railway.json` and
   --apply`, and an unproven one only by a human-confirmed
   `--promote=<lead_id>` (DIV_OTHER) or by direct review — never automatically
   from the dashboard. Regression coverage (both shapes):
-  `crm-frontend/src/components/FollowUpsWidget.test.jsx`.
+  `crm-frontend/src/components/FollowUpsWidget.test.jsx`. Verified consistent
+  with `/my-day` (`crm-frontend/src/pages/MobileDayView.jsx`): that page
+  never lists a Follow-Up as its own row at all (it lists Appointments only,
+  for driving/routing, plus a single aggregate overdue-follow-up count), so
+  it has no equivalent duplicate-row risk to begin with — both surfaces
+  render at most one obligation per real event. Known narrow limitation
+  (documented in `FollowUpsWidget.jsx`, not fixed): this check treats any
+  active appointment as kind `'Meeting'`, same as the backend does for every
+  current row, but unlike the backend it has no per-row signal for the rare,
+  shrinking legacy unbuffered ("Phone Call"-kind) appointment rows — a
+  same-date/time/no-notes Meeting follow-up next to one of those could be
+  suppressed here where the backend's own classifier would call it
+  DIVERGENT; this is display-only and never hides anything from Lead Detail,
+  which always shows both records.
   Writes: `PUT /api/v1/leads/:id/appointment` vs `PUT /api/v1/leads/:id/follow-up`.
   Real-Postgres coverage: `npm run test:integration` (needs a disposable,
   migrated `TEST_DATABASE_URL`). It runs the files one at a time because
