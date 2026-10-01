@@ -1,9 +1,10 @@
 /**
  * ProjectTab — Handoff estimates, work dates, project status.
  */
-import { Calendar, Briefcase } from "lucide-react";
+import { Calendar } from "lucide-react";
 import HandoffEstimatesPanel from "@/components/HandoffEstimatesPanel";
 import { EditableInfoRow } from "./EditableFields";
+import ProjectTypeSelector from "@/components/ProjectTypeSelector";
 
 export default function ProjectTab({ deal, lead, updateField, setLead, saving }) {
   return (
@@ -27,8 +28,16 @@ export default function ProjectTab({ deal, lead, updateField, setLead, saving })
           type="date" onSave={v => updateField("work_start_date", v)} saving={saving === "work_start_date"} />
         <EditableInfoRow icon={Calendar} label="Work End Date" value={deal.work_end_date}
           type="date" onSave={v => updateField("work_end_date", v)} saving={saving === "work_end_date"} />
-        <EditableInfoRow icon={Briefcase} label="Project Type" value={deal.project_type || lead?.project_type}
-          onSave={v => updateField("project_type", v)} saving={saving === "project_type"} />
+        {/* Uses the same canonical ProjectTypeSelector as Overview tab (the
+            SINGLE source of truth, lib/projectTypes.js#EC_PROJECT_TYPES) —
+            this used to be a free-text EditableInfoRow that let any string
+            be saved, bypassing the canonical vocabulary entirely and giving
+            Deal Detail two divergent Project Type editors for one field. */}
+        <ProjectTypeSelector
+          value={deal.project_type || lead?.project_type}
+          onSave={types => updateField("project_type", Array.isArray(types) ? types.join(", ") : types)}
+          label="Project Type"
+        />
       </div>
     </div>
   );
