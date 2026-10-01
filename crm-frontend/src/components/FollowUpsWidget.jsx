@@ -84,6 +84,34 @@ function formatFollowUpDate(dateStr) {
   return new Date(yr, mo, dy).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+// 'HH:MM' / 'HH:MM:SS' -> 'HH:MM', for comparing times that may come from
+// different columns with slightly different Postgres TIME text formatting.
+function hhmm(t) {
+  if (!t) return '';
+  const m = String(t).trim().match(/^(\d{1,2}):(\d{2})/);
+  return m ? `${m[1].padStart(2, '0')}:${m[2]}` : String(t);
+}
+
+// A Follow-Up that exactly mirrors its own lead's active Appointment (same
+// date, same time, type 'Meeting' — a real Appointment is never a 'Phone
+// Call', so a follow-up can only mirror the appointment's one real kind —
+// and no notes) represents the SAME real-world action recorded twice, not a
+// second one. This is the frontend's DISPLAY-only counterpart of the
+// backend's own, already-production-proven MIRROR classification
+// (scripts/auditAppointmentFollowUp.js#classify/assess) — it never reads or
+// changes any stored data, only decides whether "Today's Work" counts one
+// obligation once instead of twice. A genuinely independent follow-up — any
+// different date, different time, a different type, or one carrying notes —
+// is NEVER affected and still shows as its own entry (the Jamey Corey shape:
+// an appointment on one day and an unrelated follow-up on another always
+// shows both, since the dates differ).
+function isFollowUpMirrorOfAppointment(l) {
+  return !!l.appointment_date && !!l.follow_up_date && !l.follow_up_notes
+    && l.follow_up_type === 'Meeting'
+    && l.appointment_date === l.follow_up_date
+    && hhmm(l.appointment_time) === hhmm(l.follow_up_time);
+}
+
 function parseBudgetValue(budgetStr) {
   if (!budgetStr) return 0;
   if (budgetStr.includes('300,000+')) return 300000;
@@ -163,7 +191,12 @@ export default function FollowUpsWidget({ leads: propLeads, allLeads: propAllLea
     };
     for (const l of activeLeads) {
       if (l.appointment_date) bucket(l, l.appointment_date, l.appointment_type !== 'Phone Call', 'appointment');
-      if (l.follow_up_date && l.follow_up_status !== 'completed') bucket(l, l.follow_up_date, l.follow_up_type === 'Meeting', 'follow_up');
+      // Skip the Follow-up entry when it's a proven mirror of this lead's own
+      // Appointment (same date/time/kind, no notes) — one real obligation,
+      // shown once. See isFollowUpMirrorOfAppointment() above.
+      if (l.follow_up_date && l.follow_up_status !== 'completed' && !isFollowUpMirrorOfAppointment(l)) {
+        bucket(l, l.follow_up_date, l.follow_up_type === 'Meeting', 'follow_up');
+      }
     }
 
     const timeOf = (e) => (e.kind === 'appointment' ? e.lead.appointment_time : e.lead.follow_up_time) || '';

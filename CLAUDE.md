@@ -332,6 +332,32 @@ about topology, this file wins; go correct `railway.json` and
   calendar visibility" below; that is a different, additive mechanism from
   the appointment's busy/blocking calendar sync and never affects
   availability, routing, or appointment reminders.
+  **Dashboard "Today's Work" double-count** (production report, lead "Roger
+  Dayan"): because a lead can legitimately carry both an active Appointment
+  and an independent Follow-Up, `crm-frontend/src/components/
+  FollowUpsWidget.jsx` buckets them as two separate entries — correct when
+  they really are two actions, wrong when the Follow-Up is just the same
+  appointment recorded a second time (e.g. entered via Follow-Up / Next
+  Update instead of the Appointment editor, the same root pattern
+  `scripts/auditAppointmentFollowUp.js` classifies as MIRROR/MIRROR_UNPROVEN
+  on the backend). Fix: `FollowUpsWidget.jsx#isFollowUpMirrorOfAppointment` —
+  a DISPLAY-only check (never reads/writes the database) that suppresses the
+  Follow-Up entry ONLY when it is an exact mirror of the lead's own
+  Appointment: same date, same time, `follow_up_type === 'Meeting'` (a real
+  Appointment is never a Phone Call), and no `follow_up_notes`. ANY
+  difference — a different date, a different time, or notes present — means
+  both entries still render; this is deliberately narrower than the
+  backend's own MIRROR match and never auto-merges on timestamp alone. A
+  genuinely independent same-day or different-day pair (the "Jamey Corey"
+  shape — an appointment on one day and an unrelated future follow-up on
+  another) is unaffected and still shows both. This is presentation-only: it
+  does not clear, delete or modify `follow_up_*`/`appointment_*` on any
+  record — a provably-safe (migration/pre-separation provenance) DATA-level
+  MIRROR is still only ever cleared by `scripts/auditAppointmentFollowUp.js
+  --apply`, and an unproven one only by a human-confirmed
+  `--promote=<lead_id>` (DIV_OTHER) or by direct review — never automatically
+  from the dashboard. Regression coverage (both shapes):
+  `crm-frontend/src/components/FollowUpsWidget.test.jsx`.
   Writes: `PUT /api/v1/leads/:id/appointment` vs `PUT /api/v1/leads/:id/follow-up`.
   Real-Postgres coverage: `npm run test:integration` (needs a disposable,
   migrated `TEST_DATABASE_URL`). It runs the files one at a time because
