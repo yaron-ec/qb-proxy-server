@@ -107,6 +107,33 @@ function formatDateLabel(dateStr) {
   return new Date(y, mo - 1, d).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 }
 
+// AUTHORITATIVE CURRENT-ACTION RULE (PERMANENT RULE, post-Muhammad-Khan/
+// Jamey-Corey production defect — mirrors lib/booking/currentAction.js's
+// isAppointmentSupersededForDay(); keep these in sync, and see
+// test/fixtures/currentActionCases.js, the canonical truth table both this
+// function and the backend selector are tested against, for drift
+// protection): the Follow-Up / Next Update is the authoritative current
+// next action for a lead. An ACTIVE Meeting-type Follow-Up supersedes the
+// lead's Appointment for "current physical meeting" purposes on any day
+// where BOTH are dated the SAME day — even when their times differ
+// (production evidence: Muhammad Khan, Appointment 9:00 AM + Follow-Up
+// Meeting 10:00 AM — only the 10:00 AM Follow-Up is current work, the
+// 9:00 AM Appointment stays historical). This is evaluated PER DAY, not
+// once per lead: an Appointment dated a different day than any competing
+// active Follow-Up is unaffected and still shows on its own day (the Jamey
+// Corey shape — historical Sep 29 Appointment, independent Oct 1
+// Follow-Up — and the "independent future Appointment" case both rely on
+// this). Phone Call/Text/Email/Other follow-ups never supersede an
+// Appointment — they are genuinely independent obligations, not a second
+// recording of the same physical meeting. Neither record is ever altered
+// or deleted by this selection — exported as a named export (alongside the
+// page's default export) purely so this exact predicate is unit-testable
+// against the shared canonical fixture, without a full component render.
+export function isAppointmentSupersededForDay(l, day) {
+  return !!l.appointment_date && l.appointment_type !== "Phone Call" && l.appointment_date === day &&
+    l.follow_up_type === "Meeting" && l.follow_up_status !== "completed" && l.follow_up_date === day;
+}
+
 const DATE_FILTERS = [
   { label: "Today", value: "today" },
   { label: "Tomorrow", value: "tomorrow" },
@@ -325,28 +352,6 @@ export default function MobileDayView() {
     const next7 = getNext7DaysLocal();
     // Match desktop exactly: same excluded statuses
     const excluded = ["Lost", "DNQ", "Cancelled", "Closed Lost"];
-
-    // AUTHORITATIVE CURRENT-ACTION RULE (PERMANENT RULE, post-Muhammad-Khan/
-    // Jamey-Corey production defect — mirrors lib/booking/currentAction.js;
-    // keep these in sync): the Follow-Up / Next Update is the authoritative
-    // current next action for a lead. An ACTIVE Meeting-type Follow-Up
-    // supersedes the lead's Appointment for "current physical meeting"
-    // purposes on any day where BOTH are dated the SAME day — even when
-    // their times differ (production evidence: Muhammad Khan, Appointment
-    // 9:00 AM + Follow-Up Meeting 10:00 AM — only the 10:00 AM Follow-Up is
-    // current work, the 9:00 AM Appointment stays historical). This is
-    // evaluated PER DAY, not once per lead: an Appointment dated a different
-    // day than any competing active Follow-Up is unaffected and still shows
-    // on its own day (the Jamey Corey shape — historical Sep 29 Appointment,
-    // independent Oct 1 Follow-Up — and the "independent future Appointment"
-    // case both rely on this). Phone Call/Text/Email/Other follow-ups never
-    // supersede an Appointment — they are genuinely independent obligations,
-    // not a second recording of the same physical meeting, and are not
-    // physical-meeting candidates here at all. Neither record is ever
-    // altered or deleted by this selection.
-    const isAppointmentSupersededForDay = (l, day) =>
-      !!l.appointment_date && l.appointment_type !== "Phone Call" && l.appointment_date === day &&
-      l.follow_up_type === "Meeting" && l.follow_up_status !== "completed" && l.follow_up_date === day;
 
     const candidates = [];
     for (const l of allLeads) {

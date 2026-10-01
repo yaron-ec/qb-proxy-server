@@ -173,8 +173,8 @@ describe('No frontend path converts a Meeting follow-up into an appointment', ()
   it('pages/MobileDayView.jsx never falls back from appointment fields to follow-up fields (it checks each candidate independently, it never ORs the two)', () => {
     const src = fs.readFileSync(path.join(SRC, 'pages/MobileDayView.jsx'), 'utf8');
     expect(src).not.toMatch(/appointment_(date|time)\s*\|\|\s*[\w.]*follow_up_/);
-    const supersededMatch = src.match(/const isAppointmentSupersededForDay = \(l, day\) =>[\s\S]*?;/);
-    expect(supersededMatch, 'isAppointmentSupersededForDay() helper must exist (mirrors lib/booking/currentAction.js)').toBeTruthy();
+    const supersededMatch = src.match(/export function isAppointmentSupersededForDay\(l, day\) \{[\s\S]*?\n\}/);
+    expect(supersededMatch, 'isAppointmentSupersededForDay() helper must exist (mirrors lib/booking/currentAction.js — see MobileDayView.currentActionParity.test.jsx)').toBeTruthy();
     expect(supersededMatch[0]).toMatch(/l\.appointment_date/);
     expect(supersededMatch[0]).toMatch(/l\.follow_up_type === "Meeting"/);
   });

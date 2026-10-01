@@ -103,8 +103,12 @@ function formatFollowUpDate(dateStr) {
 // an active Follow-Up on another) is unaffected — each shows on its own
 // day, exactly as this same selector is implemented in the backend
 // (lib/booking/currentAction.js#isAppointmentSupersededForDay) and in My
-// Day (pages/MobileDayView.jsx) — keep these three in sync.
-function isAppointmentSupersededByFollowUp(l) {
+// Day (pages/MobileDayView.jsx#isAppointmentSupersededForDay) — keep these
+// three in sync. Exported (alongside the page's default export) so this
+// exact predicate is unit-testable against the shared canonical fixture
+// (test/fixtures/currentActionCases.js) for drift protection — see
+// FollowUpsWidget.currentActionParity.test.jsx.
+export function isAppointmentSupersededByFollowUp(l) {
   return !!l.appointment_date && !!l.follow_up_date
     && l.follow_up_status !== 'completed'
     && l.follow_up_type === 'Meeting'

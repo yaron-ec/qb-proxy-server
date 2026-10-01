@@ -10,6 +10,7 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const { currentPhysicalMeetingForDay, isAppointmentSupersededForDay } = require('../lib/booking/currentAction');
+const CASES = require('./fixtures/currentActionCases');
 
 function lead(overrides) {
   return {
@@ -94,3 +95,17 @@ test('a legacy Phone Call appointment_type is never treated as a physical Appoin
   const l = lead({ appointment_date: '2026-10-01', appointment_time: '09:00', appointment_type: 'Phone Call' });
   assert.strictEqual(currentPhysicalMeetingForDay(l, '2026-10-01'), null);
 });
+
+// DRIFT PROTECTION: the shared canonical truth table (test/fixtures/
+// currentActionCases.js) is also run against the two frontend mirrors of
+// this exact predicate (crm-frontend/src/pages/MobileDayView.jsx and
+// crm-frontend/src/components/FollowUpsWidget.jsx) — see
+// MobileDayView.currentActionParity.test.jsx and
+// FollowUpsWidget.currentActionParity.test.jsx. If any of the three
+// implementations is ever changed inconsistently with a case below, ITS
+// OWN test fails immediately.
+for (const c of CASES) {
+  test(`fixture: ${c.name}`, () => {
+    assert.strictEqual(isAppointmentSupersededForDay(c.lead, c.day), c.superseded, JSON.stringify(c));
+  });
+}
