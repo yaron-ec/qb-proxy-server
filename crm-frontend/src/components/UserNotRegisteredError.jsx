@@ -23,8 +23,7 @@ const UserNotRegisteredError = ({ authError, user }) => {
             <Mail className="w-3.5 h-3.5" /> Contact Admin
           </p>
           <p className="text-xs text-slate-500">
-            yaron@ecconstructiongroup.com<br />
-            michelle@ecconstructiongroup.com
+            Contact your CRM administrator to have your account created.
           </p>
         </div>
         <button

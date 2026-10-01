@@ -14,11 +14,14 @@
  * Proves, end to end through HTTP → routes → bookingService → calendar
  * outbox worker → reminder projection → availability → routing:
  *   Meeting can be selected/saved and survives reload; it creates zero
- *   appointments, zero Google Calendar events, zero travel events, blocks no
- *   slot, produces no customer appointment reminder and no driving stop; a
- *   real Appointment can be booked at the exact same time (and behaves
- *   exactly as before — buffered, blocking, main + travel events); a Phone
- *   Call follow-up remains non-blocking.
+ *   appointments, zero appointment-style Google Calendar main/travel events,
+ *   blocks no slot, produces no customer appointment reminder and no driving
+ *   stop; a real Appointment can be booked at the exact same time (and
+ *   behaves exactly as before — buffered, blocking, main + travel events); a
+ *   Phone Call follow-up remains non-blocking. This file never exercises
+ *   lib/booking/followUpReminders.js's SEPARATE non-blocking reminder sync
+ *   (permanent rule, all follow-up types) — see
+ *   test/integration/phoneCallCalendarReminder.int.test.js case N for that.
  */
 const test = require('node:test');
 const assert = require('node:assert');
@@ -131,6 +134,8 @@ async function availability(date) {
   return getAvailability({ owner_id: ownerId, date, timezone: 'America/Los_Angeles', duration_minutes: 60 });
 }
 
+let googleModulesState;
+
 test.before(async () => {
   if (skip) return;
   const express = require('express');
@@ -138,6 +143,10 @@ test.before(async () => {
   pickDay = await require('./freeDays').loadFreeDayPicker(db);
   outbox = require('../../lib/booking/calendarOutbox');
   const { issueAccessToken } = require('../../lib/authService');
+  // PRODUCTIZATION: M6 asserts a real Appointment still books/syncs
+  // normally — see ensureGoogleModulesEnabled.js.
+  googleModulesState = await require('./ensureGoogleModulesEnabled').ensureGoogleModulesEnabled(db);
+  require('../../lib/companyConfig').invalidate();
   await db.query(
     `INSERT INTO owners (email, display_name) VALUES ('yaron@ecconstructiongroup.com', 'Yaron Drilevich')
      ON CONFLICT DO NOTHING`);
@@ -157,6 +166,8 @@ test.before(async () => {
 test.after(async () => {
   if (skip) return;
   server.close();
+  await require('./ensureGoogleModulesEnabled').restoreGoogleModules(db, googleModulesState);
+  require('../../lib/companyConfig').invalidate();
   await db.pool.end();
 });
 

@@ -111,12 +111,18 @@ async function legacyPhoneCall(leadId, day, hhmm, { withTravel = false } = {}) {
   return a;
 }
 
+let googleModulesState;
+
 test.before(async () => {
   if (skip) return;
   const express = require('express');
   db = require('../../db/client');
   pickDay = await require('./freeDays').loadFreeDayPicker(db);
   outbox = require('../../lib/booking/calendarOutbox');
+  // PRODUCTIZATION: this file asserts real Site Visit main+travel Google
+  // Calendar events — see ensureGoogleModulesEnabled.js.
+  googleModulesState = await require('./ensureGoogleModulesEnabled').ensureGoogleModulesEnabled(db);
+  require('../../lib/companyConfig').invalidate();
   await db.query(`INSERT INTO owners (email, display_name) VALUES ('yaron@ecconstructiongroup.com', 'Yaron Drilevich') ON CONFLICT DO NOTHING`);
   ownerId = (await rows(`SELECT id FROM owners WHERE email = 'yaron@ecconstructiongroup.com'`))[0].id;
   token = require('../../lib/authService').issueAccessToken({ id: '00000000-0000-0000-0000-0000000000a1', email: 'yaron@ecconstructiongroup.com', role: 'admin' });
@@ -128,7 +134,13 @@ test.before(async () => {
   await new Promise(r => { server = app.listen(0, '127.0.0.1', r); });
   base = `http://127.0.0.1:${server.address().port}`;
 });
-test.after(async () => { if (skip) return; server.close(); await db.pool.end(); });
+test.after(async () => {
+  if (skip) return;
+  server.close();
+  await require('./ensureGoogleModulesEnabled').restoreGoogleModules(db, googleModulesState);
+  require('../../lib/companyConfig').invalidate();
+  await db.pool.end();
+});
 test.beforeEach(async () => { if (!skip) { google.reset(); await parkForeignOutbox(); } });
 
 test('A/B/C/D. Phone Call at 10:00 → follow-up only (no row, no buffer, no travel); a Site Visit books at 10:00; call reminder kept', { skip }, async () => {

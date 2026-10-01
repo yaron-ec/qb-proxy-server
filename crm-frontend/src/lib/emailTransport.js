@@ -40,11 +40,13 @@ import {
   manualCustomerReminderHtml,
   invoiceEmailHtml,
   testEmailHtml,
+  EC_COMPANY,
 } from '@/lib/crmEmailTemplates';
 import * as railwayLeads from '@/api/railway/leads';
 import * as railwayActivities from '@/api/railway/activities';
 import * as railwayInvoices from '@/api/railway/invoices';
 import * as railwayLeadAttachments from '@/api/railway/leadAttachments';
+import * as railwayCompanySettings from '@/api/railway/companySettings';
 import { RAILWAY_API_URL } from '@/lib/apiConfig';
 
 export { IdempotencyKeys };
@@ -150,15 +152,43 @@ async function sendViaRailway({ to, cc, replyTo, subject, htmlBody, attachments,
 function primaryRecipient(to) { return Array.isArray(to) ? to[0] : to; }
 function firstAttachment(attachments) { return Array.isArray(attachments) ? attachments[0] : attachments; }
 
-const MICHELLE_EMAIL = 'michelle@ecconstructiongroup.com';
-const YARON_EMAIL = 'yaron@ecconstructiongroup.com';
 const CRM_PUBLIC_URL = (typeof window !== 'undefined' && window.location && window.location.origin) || 'https://crm.ecconstructiongroup.com';
 
-function resolveOwnerEmail(ownerName) {
-  if (!ownerName) return MICHELLE_EMAIL;
+// PRODUCTIZATION PHASE 2: this installation's real company_settings, fetched
+// once per page load and cached (company_settings changes rarely — an admin
+// editing Company Settings — so a stale value for the rest of one session is
+// an acceptable tradeoff for not re-fetching on every send). Falls back to
+// EC's exact historical values on fetch failure, so behavior is unchanged if
+// this call fails for any reason.
+let _brandingPromise = null;
+function getCompanyBranding() {
+  if (!_brandingPromise) {
+    _brandingPromise = railwayCompanySettings.get()
+      .then((cfg) => {
+        const email = cfg?.company_email || cfg?.admin_email;
+        const domain = email && email.includes('@') ? email.split('@')[1] : EC_COMPANY.domain;
+        const staffCc = Array.isArray(cfg?.notification_recipients?.cc) && cfg.notification_recipients.cc.length
+          ? cfg.notification_recipients.cc
+          : (Array.isArray(cfg?.notification_recipients?.to) ? cfg.notification_recipients.to : []);
+        return {
+          name: cfg?.company_name || EC_COMPANY.name,
+          phone: cfg?.company_phone || EC_COMPANY.phone,
+          website: cfg?.company_website || EC_COMPANY.website,
+          domain,
+          staffCc,
+          defaultOwnerEmail: cfg?.default_owner_email || null,
+          defaultOwnerName: cfg?.default_owner_name || null,
+        };
+      })
+      .catch(() => ({ ...EC_COMPANY, staffCc: [], defaultOwnerEmail: null, defaultOwnerName: null }));
+  }
+  return _brandingPromise;
+}
+
+function resolveOwnerEmail(ownerName, domain) {
+  if (!ownerName) return null;
   const first = String(ownerName).trim().split(/\s+/)[0].toLowerCase();
-  if (first === 'mickey' || first === 'micky') return 'micky@ecconstructiongroup.com';
-  return first ? `${first}@ecconstructiongroup.com` : MICHELLE_EMAIL;
+  return first ? `${first}@${domain || EC_COMPANY.domain}` : null;
 }
 
 function fmt12(t) {
@@ -209,11 +239,12 @@ export async function sendInvoiceEmail(invoiceId, { recipient, version } = {}) {
     const lead = leadRes?.lead || leadRes;
     if (!lead) throw new Error('Lead not found for invoice');
 
+    const branding = await getCompanyBranding();
     // Collect recipients — Customer & Sales Rep only (NOT office), same as Base44
     const recipients = [];
     if (lead.email) recipients.push(lead.email);
     if (lead.assigned_rep && lead.assigned_rep !== lead.email) {
-      const ownerEmail = resolveOwnerEmail(lead.assigned_rep);
+      const ownerEmail = resolveOwnerEmail(lead.assigned_rep, branding.domain);
       if (ownerEmail && !recipients.includes(ownerEmail)) recipients.push(ownerEmail);
     }
     if (recipient) {
@@ -246,12 +277,13 @@ export async function sendInvoiceEmail(invoiceId, { recipient, version } = {}) {
     }
 
     const invoiceNumber = invoice.qb_invoice_number || invoice.invoice_number;
-    const subject = `EC Construction Group Invoice #${invoiceNumber}`;
+    const subject = `${branding.name} Invoice #${invoiceNumber}`;
     const htmlBody = invoiceEmailHtml({
       firstName: lead.first_name,
       invoiceNumber,
       amount: invoice.amount,
       projectType: lead.project_type,
+      company: branding,
     });
 
     // Send to each recipient separately (preserves per-recipient idempotency)
@@ -332,14 +364,15 @@ export async function sendManualReminder(leadId, { scheduledStart } = {}) {
     const apptTime = lead.appointment_time || '09:00';
     if (!apptDate) throw new Error('No appointment date on this lead');
 
+    const branding = await getCompanyBranding();
     const clientName = `${lead.first_name || ''} ${lead.last_name || ''}`.trim();
-    const ownerName = lead.assigned_rep || 'Yaron Drilevich';
-    const ownerEmail = resolveOwnerEmail(lead.assigned_rep);
+    const ownerName = lead.assigned_rep || branding.defaultOwnerName || branding.name;
+    const ownerEmail = resolveOwnerEmail(lead.assigned_rep, branding.domain) || branding.defaultOwnerEmail;
     const address = [lead.property_address, lead.city].filter(Boolean).join(', ') || '';
     const dateFormatted = formatDate(apptDate);
     const timeFormatted = fmt12(apptTime);
 
-    const staffRecipients = Array.from(new Set([ownerEmail, MICHELLE_EMAIL, YARON_EMAIL]));
+    const staffRecipients = Array.from(new Set([ownerEmail, ...branding.staffCc].filter(Boolean)));
     const staffSubject = `Manual Reminder: ${clientName} — ${dateFormatted} at ${timeFormatted}`;
     const staffHtml = manualStaffReminderHtml({
       ownerName, clientName,
@@ -348,6 +381,7 @@ export async function sendManualReminder(leadId, { scheduledStart } = {}) {
       date: dateFormatted, time: timeFormatted,
       address, projectType: lead.project_type || '',
       notes: lead.notes || '', leadId: lead.id, crmUrl: CRM_PUBLIC_URL,
+      company: branding,
     });
 
     const results = { staff: [], customer: null };
@@ -370,18 +404,18 @@ export async function sendManualReminder(leadId, { scheduledStart } = {}) {
     if (lead.customer_reminders_disabled) {
       results.customer = { status: 'skipped', reason: 'customer opted out' };
     } else if (lead.email) {
-      const custSubject = `Appointment Reminder — EC Construction Group`;
+      const custSubject = `Appointment Reminder — ${branding.name}`;
       const custHtml = manualCustomerReminderHtml({
         firstName: lead.first_name || 'there',
         date: dateFormatted, time: timeFormatted,
         address, projectType: lead.project_type || '',
-        ownerName,
+        ownerName, company: branding,
       });
       const key = IdempotencyKeys.manualReminder(leadId, lead.email, 'customer', scheduledStart || apptDate);
       try {
         const r = await sendViaRailway({
           to: lead.email,
-          cc: [MICHELLE_EMAIL, YARON_EMAIL],
+          cc: branding.staffCc,
           replyTo: ownerEmail,
           subject: custSubject, htmlBody: custHtml,
           idempotencyKey: key, role: 'customer',
@@ -445,10 +479,11 @@ export async function sendAppointmentReminder({ recipients, subject, htmlBody, l
 // ── TEST ─────────────────────────────────────────────────────────────────────
 export async function sendTestEmail(to, nonce) {
   if (FLOW_OWNERSHIP.TEST === 'railway') {
+    const branding = await getCompanyBranding();
     const key = IdempotencyKeys.test(to, nonce);
-    const htmlBody = testEmailHtml(nonce);
+    const htmlBody = testEmailHtml(nonce, to, branding);
     return sendViaRailway({
-      to, subject: 'EC Construction Group — Test Email',
+      to, subject: 'CRM Test Email',
       htmlBody, idempotencyKey: key, role: 'test',
     });
   }

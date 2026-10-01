@@ -1,9 +1,19 @@
 import { useState, useEffect, useRef } from "react";
 import { Copy, Check, QrCode, ExternalLink, Smartphone } from "lucide-react";
+import * as railwayCompanySettings from "@/api/railway/companySettings";
 
 export default function CaptureLinkTab() {
   const [copied, setCopied] = useState(false);
   const [qrLoaded, setQrLoaded] = useState(false);
+  const [defaultOwnerEmail, setDefaultOwnerEmail] = useState('yaron@ecconstructiongroup.com');
+
+  useEffect(() => {
+    let cancelled = false;
+    railwayCompanySettings.get()
+      .then((cfg) => { if (!cancelled && cfg?.default_owner_email) setDefaultOwnerEmail(cfg.default_owner_email); })
+      .catch(() => { /* keep fallback */ });
+    return () => { cancelled = true; };
+  }, []);
 
   const captureUrl = `${window.location.origin}/capture`;
 
@@ -94,7 +104,7 @@ export default function CaptureLinkTab() {
             <h3 className="text-xs font-bold text-blue-900 uppercase tracking-wide mb-2">Calendar Availability — Admin Note</h3>
             <p className="text-sm text-blue-800 leading-relaxed">
               Availability checks for assigned sales reps depend on <strong>Google Calendar sharing permissions</strong>. If a rep's calendar is not shared with{" "}
-              <span className="font-mono text-xs bg-blue-100 px-1 py-0.5 rounded">yaron@ecconstructiongroup.com</span>,
+              <span className="font-mono text-xs bg-blue-100 px-1 py-0.5 rounded">{defaultOwnerEmail}</span>,
               the system can only check <strong>CRM meetings</strong> for that rep — not their personal Google Calendar events.
             </p>
             <p className="text-xs text-blue-700 mt-2">

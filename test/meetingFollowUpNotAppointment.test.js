@@ -8,9 +8,14 @@
  * CANONICAL RULE: a follow-up of type 'Meeting' is STILL ONLY A FOLLOW-UP
  * (leads.follow_up_*, an internal next action). It must never become an
  * Appointment / Site Visit: no appointments row, no availability blocking,
- * no Google Calendar event, no Driving/Travel Time, no 1h buffer, no
- * customer appointment reminder. Only the canonical appointments row is an
- * appointment (lib/booking/appointmentView.js).
+ * no appointment-style Google Calendar main/travel event, no Driving/Travel
+ * Time, no 1h buffer, no customer appointment reminder. Only the canonical
+ * appointments row is an appointment (lib/booking/appointmentView.js). (A
+ * Meeting follow-up DOES get its own separate, non-blocking Google Calendar
+ * *reminder* event under the permanent follow-up-calendar-sync rule — see
+ * lib/booking/followUpReminders.js and
+ * test/integration/phoneCallCalendarReminder.int.test.js case N — which is
+ * unrelated to and does not affect anything tested in this file.)
  *
  * Found and fixed in the systemic audit (every one read the follow-up as an
  * appointment):

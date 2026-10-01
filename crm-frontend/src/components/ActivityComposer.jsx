@@ -14,6 +14,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { AlertCircle, FileText, Phone, Mail, CheckSquare, Calendar } from "lucide-react";
 import AvailableTimePicker from "./AvailableTimePicker";
 import { EMAIL_TEMPLATES, renderTemplate } from "@/lib/emailTemplates";
+import * as railwayCompanySettings from "@/api/railway/companySettings";
 
 // Standard: call=green, note=blue, email=amber, task=amber, meeting=purple
 const ACTIVITY_TYPES = [
@@ -63,6 +64,15 @@ export default function ActivityComposer({ lead, onActivityCreated }) {
   const [saving, setSaving] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [ownerEmails, setOwnerEmails] = useState({});
+  const [company, setCompany] = useState({ name: "EC Construction Group", email: "contact@ecconstructiongroup.com" });
+
+  useEffect(() => {
+    let cancelled = false;
+    railwayCompanySettings.get()
+      .then((cfg) => { if (!cancelled && cfg) setCompany({ name: cfg.company_name || "EC Construction Group", email: cfg.company_email || cfg.admin_email || "contact@ecconstructiongroup.com" }); })
+      .catch(() => { /* keep default */ });
+    return () => { cancelled = true; };
+  }, []);
 
   // Call-specific state
   const [callOutcome, setCallOutcome] = useState("");
@@ -305,9 +315,9 @@ export default function ActivityComposer({ lead, onActivityCreated }) {
 
     return {
       lead_name: `${lead.first_name} ${lead.last_name}`,
-      company_name: "EC Construction Group",
+      company_name: company.name,
       owner_name: lead.assigned_rep,
-      owner_email: resolveOwnerEmail(lead.assigned_rep) || "contact@ecconstructiongroup.com",
+      owner_email: resolveOwnerEmail(lead.assigned_rep) || company.email,
       appointment_date: date,
       appointment_time: time,
       client_phone: lead.phone || "N/A",

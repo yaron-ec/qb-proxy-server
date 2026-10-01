@@ -1,11 +1,16 @@
 import { useState } from 'react';
 import { Send, AlertCircle, CheckCircle, Copy } from 'lucide-react';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function TestReminderPanel({ lead, onClose }) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
+  const { user: authUser } = useAuth();
+  // Send to the logged-in admin's own email — never a hardcoded address,
+  // so "send yourself a test" actually reaches whoever is testing it.
+  const testRecipient = authUser?.email || '';
 
   const handleSendTest = async () => {
     setLoading(true);
@@ -17,12 +22,12 @@ export default function TestReminderPanel({ lead, onClose }) {
       // instead of calling the Base44 function directly.
       const { sendTestEmail } = await import('@/lib/emailTransport');
       const nonce = lead.id;
-      const result = await sendTestEmail('yaron@ecconstructiongroup.com', nonce);
+      const result = await sendTestEmail(testRecipient, nonce);
 
       if (result && result.ok !== false) {
         setResult({
           success: true,
-          message: `Test email sent to yaron@ecconstructiongroup.com via Railway Email Service.`,
+          message: `Test email sent to ${testRecipient} via Railway Email Service.`,
           gmailMessageId: result.gmailMessageId,
           idempotent: result.idempotent,
         });
@@ -50,7 +55,7 @@ export default function TestReminderPanel({ lead, onClose }) {
       <div>
         <h3 className="text-lg font-bold text-slate-900 mb-2">Test Appointment Reminder</h3>
         <p className="text-sm text-slate-600">
-          Send a test reminder email to yaron@ecconstructiongroup.com to verify formatting and merge fields before enabling automatic reminders.
+          Send a test reminder email to yourself ({testRecipient}) to verify formatting and merge fields before enabling automatic reminders.
         </p>
       </div>
 
@@ -76,7 +81,7 @@ export default function TestReminderPanel({ lead, onClose }) {
             <div>
               <p className="text-sm font-semibold text-blue-900 mb-1">Test Details</p>
               <div className="text-xs text-blue-800 space-y-1">
-                <div><strong>Recipient:</strong> yaron@ecconstructiongroup.com</div>
+                <div><strong>Recipient:</strong> {testRecipient}</div>
                 <div><strong>Client Name:</strong> {lead.first_name} {lead.last_name}</div>
                 <div><strong>Appointment:</strong> {lead.appointment_date} at {lead.appointment_time}</div>
                 <div><strong>Owner:</strong> {lead.assigned_rep || 'Not assigned'}</div>

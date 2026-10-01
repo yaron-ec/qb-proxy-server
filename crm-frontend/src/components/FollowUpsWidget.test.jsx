@@ -29,6 +29,12 @@ function todayStr() {
   return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
 }
 
+function tomorrowStr() {
+  const n = new Date();
+  n.setDate(n.getDate() + 1);
+  return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
+}
+
 function baseLead(overrides = {}) {
   return {
     id: 'lead-1', first_name: 'Jann', last_name: 'Ziegenhohn', status: 'New',
@@ -59,10 +65,13 @@ describe('FollowUpsWidget — Today\'s Work card identity', () => {
     expect(badges[0].textContent).toMatch(/Follow-up · Meeting/);
   });
 
-  it('a lead with a real Appointment AND a genuinely independent Follow-Up (different note/content) renders two distinct cards', () => {
+  it('a lead with a real Appointment AND a genuinely independent same-day Follow-Up (different TIME) renders two distinct cards', () => {
+    // "Independent" means it does NOT describe the same real-world moment as
+    // the appointment — here, a different time on the same day (e.g. a
+    // morning site visit plus an unrelated afternoon call-to-confirm).
     const lead = baseLead({
-      appointment_date: todayStr(), appointment_time: '12:00', appointment_type: 'Meeting',
-      follow_up_date: todayStr(), follow_up_time: '12:00', follow_up_type: 'Meeting', follow_up_status: 'pending',
+      appointment_date: todayStr(), appointment_time: '09:00', appointment_type: 'Meeting',
+      follow_up_date: todayStr(), follow_up_time: '14:00', follow_up_type: 'Meeting', follow_up_status: 'pending',
     });
     renderWidget({ leads: [lead], allLeads: [lead], deals: [] });
     const badges = screen.getAllByText(/Appointment · Meeting|Follow-up · Meeting/);
@@ -74,10 +83,53 @@ describe('FollowUpsWidget — Today\'s Work card identity', () => {
     expect(labels.some((t) => t.includes('Follow-up · Meeting'))).toBe(true);
   });
 
-  it('completing the Follow-Up removes ONLY the Follow-Up card — the Appointment card remains, in the same render pass', async () => {
+  it('a lead with a real Appointment AND a Follow-Up at the exact same date/time, but carrying its own notes, still renders two distinct cards', () => {
+    // Notes are a human signal of deliberate, separate authorship (the
+    // backend's own MIRROR classifier in scripts/auditAppointmentFollowUp.js
+    // treats a noted follow-up the same way) — never collapsed, even though
+    // the date/time/type all line up.
     const lead = baseLead({
       appointment_date: todayStr(), appointment_time: '12:00', appointment_type: 'Meeting',
       follow_up_date: todayStr(), follow_up_time: '12:00', follow_up_type: 'Meeting', follow_up_status: 'pending',
+      follow_up_notes: 'Also confirm they received the revised estimate',
+    });
+    renderWidget({ leads: [lead], allLeads: [lead], deals: [] });
+    expect(screen.getAllByText(/Appointment · Meeting|Follow-up · Meeting/)).toHaveLength(2);
+  });
+
+  it('REGRESSION (Roger Dayan): a Follow-Up that exactly mirrors its own Appointment (same date, time, type, no notes) renders ONE card, not two', () => {
+    // Production report: "Today's Work" showed the same lead twice —
+    // "Appointment · Meeting · 4:00 PM" and "Follow-up · Meeting · 4:00 PM" —
+    // both for the identical moment. Nothing here distinguishes the
+    // follow-up as a second, independent action, so it must not be counted
+    // as a second work item; the canonical Appointment entry is kept.
+    const lead = baseLead({
+      appointment_date: todayStr(), appointment_time: '16:00', appointment_type: 'Meeting',
+      follow_up_date: todayStr(), follow_up_time: '16:00', follow_up_type: 'Meeting', follow_up_status: 'pending',
+    });
+    renderWidget({ leads: [lead], allLeads: [lead], deals: [] });
+    const badges = screen.getAllByText(/Appointment · Meeting|Follow-up · Meeting/);
+    expect(badges).toHaveLength(1);
+    expect(badges[0].textContent).toMatch(/Appointment · Meeting/);
+  });
+
+  it('REGRESSION (Jamey Corey shape, preserved): an Appointment and a Follow-Up on genuinely DIFFERENT days both still appear in their own day — never merged', () => {
+    const lead = baseLead({
+      appointment_date: todayStr(), appointment_time: '12:00', appointment_type: 'Meeting',
+      follow_up_date: tomorrowStr(), follow_up_time: '12:00', follow_up_type: 'Meeting', follow_up_status: 'pending',
+    });
+    renderWidget({ leads: [lead], allLeads: [lead], deals: [] });
+    // Appointment shows under Today's Work...
+    expect(screen.getAllByText(/Appointment · Meeting/)).toHaveLength(1);
+    // ...and the independent future Follow-Up shows under Tomorrow — both present.
+    expect(screen.getAllByText(/Follow-up · Meeting/)).toHaveLength(1);
+    expect(screen.getByText('Tomorrow')).toBeTruthy();
+  });
+
+  it('completing the Follow-Up removes ONLY the Follow-Up card — the Appointment card remains, in the same render pass', async () => {
+    const lead = baseLead({
+      appointment_date: todayStr(), appointment_time: '09:00', appointment_type: 'Meeting',
+      follow_up_date: todayStr(), follow_up_time: '14:00', follow_up_type: 'Meeting', follow_up_status: 'pending',
     });
     updateFollowUp.mockResolvedValue({ lead: { ...lead, follow_up_status: 'completed' } });
 

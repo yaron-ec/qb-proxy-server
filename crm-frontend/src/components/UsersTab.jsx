@@ -116,7 +116,7 @@ function UserModal({ user, onSave, onClose, saving, error }) {
               className={`w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-orange transition-colors ${!isNew ? "bg-slate-50 text-slate-500" : ""}`}
               value={form.email}
               onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-              placeholder="user@ecconstructiongroup.com"
+              placeholder="user@yourcompany.com"
               readOnly={!isNew}
             />
           </div>

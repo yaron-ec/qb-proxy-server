@@ -258,7 +258,7 @@ router.post('/notify-status-change', async (req, res) => {
     const result = await emailService.send({
       to: lead.email,
       cc: await notificationRecipients.getAllStaffRecipients(),
-      subject: `Project Status Update — EC Construction Group`,
+      subject: `Project Status Update — ${await notificationRecipients.getSenderName()}`,
       htmlBody: html,
       idempotencyKey: `status-change:${lead.id}:${new_status}`,
       role: 'status_notification',
@@ -289,8 +289,9 @@ router.post('/send-project-status-email', async (req, res) => {
     if (!lead) return res.status(404).json({ error: 'lead not found' });
     if (!lead.email) return res.json({ ok: true, skipped: 'no customer email', job: 'send-project-status-email' });
 
+    const companyName = await notificationRecipients.getSenderName();
     const firstName = lead.first_name || 'there';
-    const ownerName = lead.owner_display_name || 'EC Construction Group';
+    const ownerName = lead.owner_display_name || companyName;
     const html = templates.statusChangeEmail({
       clientName: firstName,
       itemName: project_status || 'Project Update',
@@ -302,7 +303,7 @@ router.post('/send-project-status-email', async (req, res) => {
     const result = await emailService.send({
       to: lead.email,
       cc: await notificationRecipients.getAllStaffRecipients(),
-      subject: `Project Status: ${project_status || 'Update'} — EC Construction Group`,
+      subject: `Project Status: ${project_status || 'Update'} — ${companyName}`,
       htmlBody: html,
       idempotencyKey: `project-status:${lead.id}:${project_status || 'update'}`,
       role: 'project_status',

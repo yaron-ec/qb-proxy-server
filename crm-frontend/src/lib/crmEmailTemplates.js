@@ -8,7 +8,19 @@
  * Used by src/lib/emailTransport.js when FLOW_OWNERSHIP is 'railway'.
  */
 
-const LOGO_URL = 'https://crm.ecconstructiongroup.com/email-logo.png';
+// PRODUCTIZATION PHASE 2: every exported function below takes an optional
+// `company` object (name/phone/domain/website), defaulting to EC's exact
+// historical values so an existing caller that doesn't pass one is
+// unaffected. crm-frontend/src/lib/emailTransport.js resolves this
+// installation's real company_settings once and passes it through.
+export const EC_COMPANY = Object.freeze({
+  name: 'EC Construction Group',
+  phone: '(310) 310-4108',
+  domain: 'ecconstructiongroup.com',
+  website: 'https://ecconstructiongroup.com',
+});
+const CRM_ORIGIN = (typeof window !== 'undefined' && window.location && window.location.origin) || 'https://crm.ecconstructiongroup.com';
+const LOGO_URL = `${CRM_ORIGIN}/email-logo.png`;
 const NAVY = '#0B2D5C';
 const GOLD = '#C9A227';
 const LIGHT_GRAY = '#F4F6FA';
@@ -42,19 +54,19 @@ const BASE_CSS = `
   .footer-sub a { color:${GOLD};text-decoration:none; }
 `;
 
-function wrap(inner) {
+function wrap(inner, company = EC_COMPANY) {
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${BASE_CSS}</style></head><body>
   <div class="wrapper">
-    <div class="header"><img src="${LOGO_URL}" alt="EC Construction Group"></div>
+    <div class="header"><img src="${LOGO_URL}" alt="${company.name}"></div>
     <div class="body">${inner}</div>
-    <div class="footer"><div class="footer-name">EC Construction Group</div><div class="footer-sub">Licensed &amp; Insured &nbsp;·&nbsp; Southern &amp; Northern California<br><a href="https://ecconstructiongroup.com">ecconstructiongroup.com</a></div></div>
+    <div class="footer"><div class="footer-name">${company.name}</div><div class="footer-sub">Licensed &amp; Insured<br><a href="${company.website}">${company.domain}</a></div></div>
   </div></body></html>`;
 }
 
 /**
  * Staff reminder HTML — exact copy of sendManualReminder's staffEmail template.
  */
-export function manualStaffReminderHtml({ ownerName, clientName, clientPhone, clientEmail, date, time, address, projectType, notes, leadId, crmUrl }) {
+export function manualStaffReminderHtml({ ownerName, clientName, clientPhone, clientEmail, date, time, address, projectType, notes, leadId, crmUrl, company = EC_COMPANY }) {
   const mapsUrl = address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}` : null;
   const notesHtml = notes ? `<div class="note-box"><div class="note-label">📝 Notes</div><div style="font-size:14px;line-height:1.8;white-space:pre-wrap;">${notes}</div></div>` : '';
   const mapsBtn = mapsUrl ? `<a href="${mapsUrl}" style="display:inline-block;background:#fff;color:${NAVY} !important;text-decoration:none;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:14px 28px;border-radius:6px;border:2px solid ${NAVY};margin-left:12px;">📍 Google Maps</a>` : '';
@@ -62,7 +74,7 @@ export function manualStaffReminderHtml({ ownerName, clientName, clientPhone, cl
 
   return wrap(`
     <div class="email-title">📅 Manual Appointment Reminder</div>
-    <div class="email-subtitle">Sent manually from CRM — EC Construction Group</div>
+    <div class="email-subtitle">Sent manually from CRM — ${company.name}</div>
     <div class="greeting">Hello ${ownerName},<br><br>This is a manual reminder for your upcoming appointment. Please review the details below.</div>
     <div class="detail-card">
       <div class="detail-card-title">Customer &amp; Appointment Details</div>
@@ -78,17 +90,17 @@ export function manualStaffReminderHtml({ ownerName, clientName, clientPhone, cl
     <div class="cta">
       <a href="${leadLink}" class="btn">Open Lead in CRM</a>${mapsBtn}
     </div>
-  `);
+  `, company);
 }
 
 /**
  * Customer reminder HTML — exact copy of sendManualReminder's customerEmail template.
  */
-export function manualCustomerReminderHtml({ firstName, date, time, address, projectType, ownerName }) {
+export function manualCustomerReminderHtml({ firstName, date, time, address, projectType, ownerName, company = EC_COMPANY }) {
   return wrap(`
     <div class="email-title">Upcoming Appointment Reminder</div>
     <div class="email-subtitle">Your appointment is coming up soon</div>
-    <div class="greeting">Hi ${firstName},<br><br>This is a reminder from <strong>${ownerName}</strong> at EC Construction Group. We're looking forward to meeting with you.</div>
+    <div class="greeting">Hi ${firstName},<br><br>This is a reminder from <strong>${ownerName}</strong> at ${company.name}. We're looking forward to meeting with you.</div>
     <div class="detail-card">
       <div class="detail-card-title">Appointment Details</div>
       <div class="row"><span class="lbl">📅 Date</span><span class="val">${date}</span></div>
@@ -97,10 +109,10 @@ export function manualCustomerReminderHtml({ firstName, date, time, address, pro
       ${projectType ? `<div class="row"><span class="lbl">🏗️ Project</span><span class="val">${projectType}</span></div>` : ''}
       <div class="row"><span class="lbl">👤 Rep</span><span class="val">${ownerName}</span></div>
     </div>
-    <div class="notice"><strong>Important:</strong> Please ensure all decision makers are present. To reschedule, contact us at (310) 310-4108.</div>
-    <div class="cta"><a href="https://ecconstructiongroup.com" class="btn">View Our Work</a></div>
-    <p style="font-size:14px;color:${TEXT_MUTED};line-height:1.7;margin-top:16px;">See you soon!<br><br>Warm regards,<br><strong style="color:${NAVY}">${ownerName}</strong><br><span style="color:${TEXT_MUTED}">EC Construction Group</span></p>
-  `);
+    <div class="notice"><strong>Important:</strong> Please ensure all decision makers are present. To reschedule, contact us at ${company.phone}.</div>
+    <div class="cta"><a href="${company.website}" class="btn">View Our Work</a></div>
+    <p style="font-size:14px;color:${TEXT_MUTED};line-height:1.7;margin-top:16px;">See you soon!<br><br>Warm regards,<br><strong style="color:${NAVY}">${ownerName}</strong><br><span style="color:${TEXT_MUTED}">${company.name}</span></p>
+  `, company);
 }
 
 /**
@@ -122,26 +134,26 @@ export function manualCustomerReminderHtml({ firstName, date, time, address, pro
  *   Thank you,
  *   EC Construction Group
  */
-export function invoiceEmailHtml({ firstName, invoiceNumber, amount, projectType }) {
+export function invoiceEmailHtml({ firstName, invoiceNumber, amount, projectType, company = EC_COMPANY }) {
   const num = invoiceNumber || '';
   const amt = Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
   const project = projectType || 'N/A';
-  return `<html><body>Hello ${firstName || ''},<br><br>Attached is your invoice from EC Construction Group.<br><br>Invoice #: ${num}<br>Amount: $${amt}<br>Project: ${project}<br><br>Thank you,<br>EC Construction Group</body></html>`;
+  return `<html><body>Hello ${firstName || ''},<br><br>Attached is your invoice from ${company.name}.<br><br>Invoice #: ${num}<br>Amount: $${amt}<br>Project: ${project}<br><br>Thank you,<br>${company.name}</body></html>`;
 }
 
 /**
  * Simple test email HTML.
  */
-export function testEmailHtml(nonce) {
+export function testEmailHtml(nonce, recipient, company = EC_COMPANY) {
   return wrap(`
-    <div class="email-title">Test Email from EC Construction Group CRM</div>
+    <div class="email-title">Test Email from ${company.name} CRM</div>
     <div class="email-subtitle">Railway Email Service Test</div>
-    <div class="greeting">This is a test email from the EC Construction Group CRM sent via the Railway Email Service.</div>
+    <div class="greeting">This is a test email from the ${company.name} CRM sent via the Railway Email Service.</div>
     <div class="detail-card">
       <div class="detail-card-title">Test Details</div>
       <div class="row"><span class="lbl">Nonce</span><span class="val" style="font-family:monospace;">${nonce || ''}</span></div>
-      <div class="row"><span class="lbl">Sender</span><span class="val">yaron@ecconstructiongroup.com</span></div>
+      <div class="row"><span class="lbl">Recipient</span><span class="val">${recipient || ''}</span></div>
     </div>
     <p style="font-size:14px;color:${TEXT_MUTED};line-height:1.7;">No customer email was sent. This is a service verification only.</p>
-  `);
+  `, company);
 }

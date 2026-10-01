@@ -3,8 +3,10 @@ import { leads as railwayLeads } from "@/api/railway";
 import { Phone, MessageSquare, Mail, Calendar, ListTodo, AlertTriangle, Pencil, X, CheckCircle2 } from "lucide-react";
 
 // Mirrors lib/followUp.js FOLLOW_UP_TYPES (server is authoritative). A
-// 'Meeting' follow-up is still only a follow-up: it never creates an
-// appointment, blocks availability, or touches Google Calendar/reminders. A
+// follow-up (any type, including 'Meeting') is still only a follow-up: it
+// never creates an appointment or blocks availability. It does get a
+// separate, non-blocking ("free") Google Calendar reminder, synced
+// asynchronously by the calendar worker — never a busy/blocking event. A
 // customer visit is booked as the Appointment.
 const FOLLOW_UP_TYPES = ["Phone Call", "Text", "Email", "Meeting", "Other"];
 const TYPE_ICON = { "Phone Call": Phone, Text: MessageSquare, Email: Mail, Meeting: Calendar, Other: ListTodo };
@@ -20,8 +22,10 @@ function fmt12(t) {
  *
  * Reads and writes ONLY the follow-up (leads.follow_up_date / _time / _type /
  * _notes / _status) through PUT /api/v1/leads/:id/follow-up. A follow-up never
- * creates, moves or cancels the appointment and never touches Google Calendar
- * (the appointment has its own editor: AppointmentEditor).
+ * creates, moves or cancels the appointment (the appointment has its own
+ * editor: AppointmentEditor) and never blocks availability — though an
+ * active, timed follow-up does get its own non-blocking Google Calendar
+ * reminder, synced in the background by the calendar worker.
  */
 export default function FollowUpScheduler({ lead, onLeadUpdate }) {
   const [editing, setEditing] = useState(false);
@@ -162,7 +166,7 @@ export default function FollowUpScheduler({ lead, onLeadUpdate }) {
           placeholder="What should happen next?"
           className="w-full border border-slate-200 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" />
       </div>
-      <p className="text-[10px] text-slate-400">Follow-ups are internal reminders — they don't book a visit or add a Google Calendar event.</p>
+      <p className="text-[10px] text-slate-400">Follow-ups are internal reminders — they don't book a visit or block your calendar (you'll see a free reminder on your Google Calendar).</p>
       {errorBox}
       <div className="flex gap-2">
         <button onClick={handleSave} disabled={saving || !date || !type}

@@ -52,6 +52,16 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
+// PRODUCTIZATION: lib/googleContactsOutbox.js#enqueueContactSync now checks
+// isModuleEnabled('google_contacts') before enqueueing — mock companyConfig
+// so that check resolves without a real DB connection (matching this file's
+// assumption throughout: google_contacts is enabled, as it is for EC).
+const companyConfigPath = require.resolve('../lib/companyConfig');
+require.cache[companyConfigPath] = {
+  id: companyConfigPath, filename: companyConfigPath, loaded: true,
+  exports: { isModuleEnabled: async () => true, getCompanyConfig: async () => ({ enabled_modules: { google_contacts: true } }) },
+};
+
 function readRepo(rel) {
   return fs.readFileSync(path.resolve(__dirname, '..', rel), 'utf8');
 }

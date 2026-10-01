@@ -5,9 +5,7 @@ import { resolveOwnerEmail } from "@/lib/ownerEmailMap";
 import { validateSlot } from "@/api/railway/availability";
 import { Calendar, Phone, AlertTriangle, Pencil, X, ShieldAlert, Loader2, RefreshCw } from "lucide-react";
 import AvailableTimePicker from "@/components/AvailableTimePicker";
-
-// Server-side allowlist is authoritative; this mirror only gates the UI.
-const ADMIN_OVERRIDE_EMAILS = ['michelle@ecconstructiongroup.com', 'yaron@ecconstructiongroup.com'];
+import { useCompanyEmailDomain } from "@/hooks/useCompanyEmailDomain";
 const POLL_MS = 5000;
 const POLL_MAX_MS = 2 * 60 * 1000;
 
@@ -43,10 +41,10 @@ export default function AppointmentEditor({ lead, onLeadUpdate }) {
   const [pollExpired, setPollExpired] = useState(false);
   const [retrying, setRetrying] = useState(false);
   const { user: authUser } = useAuth();
+  const emailDomain = useCompanyEmailDomain();
   const pollStart = useRef(null);
 
-  const isAdminUser = !!authUser && (authUser.role === 'admin'
-    || ADMIN_OVERRIDE_EMAILS.includes((authUser.email || '').toLowerCase()));
+  const isAdminUser = !!authUser && authUser.role === 'admin';
   const syncStatus = appt?.calendar_sync_status || null;
 
   // Poll the lead while the calendar sync is unresolved so the UI never sits
@@ -112,7 +110,7 @@ export default function AppointmentEditor({ lead, onLeadUpdate }) {
       }
     }
     // Client-side pre-check; the server re-checks under the owner-schedule lock.
-    const ownerEmailForCheck = resolveOwnerEmail(lead.assigned_rep);
+    const ownerEmailForCheck = resolveOwnerEmail(lead.assigned_rep, emailDomain);
     if (ownerEmailForCheck && !(isAdminUser && overrideEnabled)) {
       try {
         const av = await validateSlot({ ownerEmail: ownerEmailForCheck, date, time, excludeAppointmentId: appt?.id });
@@ -237,7 +235,7 @@ export default function AppointmentEditor({ lead, onLeadUpdate }) {
     );
   }
 
-  const ownerEmail = resolveOwnerEmail(lead.assigned_rep);
+  const ownerEmail = resolveOwnerEmail(lead.assigned_rep, emailDomain);
   return (
     <div className="space-y-3" data-testid="appointment-editor">
       <div className="flex items-center justify-between">

@@ -321,12 +321,56 @@ about topology, this file wins; go correct `railway.json` and
   `leads.follow_up_*` (+ notes/status), an internal next action that never
   creates/moves/cancels an appointment. Never mirror one into the other.
   This holds for EVERY follow-up type, including `'Meeting'`: a Meeting
-  follow-up never books, blocks availability, gets a 1h buffer, creates a
-  Google Calendar/travel event, becomes a routing stop or triggers a customer
-  appointment reminder — never read `follow_up_*` as a fallback for
-  `appointment_*` (guarded by `test/meetingFollowUpNotAppointment.test.js`,
+  follow-up never books, blocks availability, gets a 1h buffer, creates an
+  appointment-style Google Calendar main/travel event, becomes a routing stop
+  or triggers a customer appointment reminder — never read `follow_up_*` as a
+  fallback for `appointment_*` (guarded by
+  `test/meetingFollowUpNotAppointment.test.js`,
   `crm-frontend/src/components/MeetingFollowUp.test.jsx` and
-  `test/integration/meetingFollowUp.int.test.js`).
+  `test/integration/meetingFollowUp.int.test.js`). It DOES get its own
+  separate, non-blocking Google Calendar *reminder* event — see "Follow-up
+  calendar visibility" below; that is a different, additive mechanism from
+  the appointment's busy/blocking calendar sync and never affects
+  availability, routing, or appointment reminders.
+  **Dashboard "Today's Work" double-count** (production report, lead "Roger
+  Dayan"): because a lead can legitimately carry both an active Appointment
+  and an independent Follow-Up, `crm-frontend/src/components/
+  FollowUpsWidget.jsx` buckets them as two separate entries — correct when
+  they really are two actions, wrong when the Follow-Up is just the same
+  appointment recorded a second time (e.g. entered via Follow-Up / Next
+  Update instead of the Appointment editor, the same root pattern
+  `scripts/auditAppointmentFollowUp.js` classifies as MIRROR/MIRROR_UNPROVEN
+  on the backend). Fix: `FollowUpsWidget.jsx#isFollowUpMirrorOfAppointment` —
+  a DISPLAY-only check (never reads/writes the database) that suppresses the
+  Follow-Up entry ONLY when it is an exact mirror of the lead's own
+  Appointment: same date, same time, `follow_up_type === 'Meeting'` (a real
+  Appointment is never a Phone Call), and no `follow_up_notes`. ANY
+  difference — a different date, a different time, or notes present — means
+  both entries still render; this is deliberately narrower than the
+  backend's own MIRROR match and never auto-merges on timestamp alone. A
+  genuinely independent same-day or different-day pair (the "Jamey Corey"
+  shape — an appointment on one day and an unrelated future follow-up on
+  another) is unaffected and still shows both. This is presentation-only: it
+  does not clear, delete or modify `follow_up_*`/`appointment_*` on any
+  record — a provably-safe (migration/pre-separation provenance) DATA-level
+  MIRROR is still only ever cleared by `scripts/auditAppointmentFollowUp.js
+  --apply`, and an unproven one only by a human-confirmed
+  `--promote=<lead_id>` (DIV_OTHER) or by direct review — never automatically
+  from the dashboard. Regression coverage (both shapes):
+  `crm-frontend/src/components/FollowUpsWidget.test.jsx`. Verified consistent
+  with `/my-day` (`crm-frontend/src/pages/MobileDayView.jsx`): that page
+  never lists a Follow-Up as its own row at all (it lists Appointments only,
+  for driving/routing, plus a single aggregate overdue-follow-up count), so
+  it has no equivalent duplicate-row risk to begin with — both surfaces
+  render at most one obligation per real event. Known narrow limitation
+  (documented in `FollowUpsWidget.jsx`, not fixed): this check treats any
+  active appointment as kind `'Meeting'`, same as the backend does for every
+  current row, but unlike the backend it has no per-row signal for the rare,
+  shrinking legacy unbuffered ("Phone Call"-kind) appointment rows — a
+  same-date/time/no-notes Meeting follow-up next to one of those could be
+  suppressed here where the backend's own classifier would call it
+  DIVERGENT; this is display-only and never hides anything from Lead Detail,
+  which always shows both records.
   Writes: `PUT /api/v1/leads/:id/appointment` vs `PUT /api/v1/leads/:id/follow-up`.
   Real-Postgres coverage: `npm run test:integration` (needs a disposable,
   migrated `TEST_DATABASE_URL`). It runs the files one at a time because
@@ -352,31 +396,49 @@ about topology, this file wins; go correct `railway.json` and
   Site Visit is untouched), and a missing `appointment_type` on a lead with a
   legacy Phone Call row is a 400, never a silent Site Visit. The Appointment
   editor offers no Phone Call kind.
-- **Phone Call calendar visibility = one non-blocking reminder** (one
-  canonical classification: `lib/booking/phoneCallModel.js`). The lead's
-  active, timed Phone Call follow-up is the ONLY source; the calendar worker
-  reconciles it (`lib/booking/followUpReminders.js`, state in
-  `followup_calendar_reminders`) to exactly one Google event per lead —
-  deterministic id (per lead + generation), `transparency: transparent`,
-  private `ec_kind=followup_reminder`, `ec_blocking=false`, owner as the only
-  attendee, no travel. Reschedule / reassignment / note edits update the same
-  event; completed / cleared / retyped / deleted removes it (a past one is
-  kept as history). Availability ignores it by the private marker
-  (`isNonBlockingCrmGoogleEvent`), never by title or Google free/busy alone;
-  external Google events keep blocking. Legacy Phone Call appointment rows
-  never get a main/travel event (`enqueueCreate/enqueueUpdate`, worker
-  backstop, `reconcileSyncedAppointments`), their old Google events are
-  dropped from availability by `ec_appointment_id`
-  (`dropLegacyPhoneCallWindows`), and active future ones are moved onto the
-  lead's follow-up by `lib/booking/legacyPhoneCallConversion.js` (backed up in
+- **Follow-up calendar visibility = one non-blocking reminder, for EVERY
+  follow-up type (PERMANENT RULE)** (one canonical classification:
+  `lib/booking/phoneCallModel.js#isActiveFollowUpReminder`,
+  `CALENDAR_REMINDER_FOLLOWUP_TYPES = FOLLOW_UP_TYPES`). This was originally
+  Phone-Call-only; it was generalized to cover Phone Call, Meeting, Text,
+  Email and Other identically after a production report
+  (lead "Jamey Corey") showed a Meeting follow-up with no Google Calendar
+  presence, which was then-current, documented, intentional behavior — not a
+  bug — until this rule superseded it. The lead's active, timed follow-up
+  (any type) is the ONLY source; the calendar worker reconciles it
+  (`lib/booking/followUpReminders.js`, state in
+  `followup_calendar_reminders`, including its `followup_kind` column) to
+  exactly one Google event per lead — deterministic id (per lead +
+  generation), `transparency: transparent`, private
+  `ec_kind=followup_reminder`, `ec_blocking=false`, `ec_followup_kind`
+  reflecting the actual type (e.g. `meeting`, `phone_call`), summary/
+  description reflecting the actual type (e.g. `Meeting: <name>`), owner as
+  the only attendee, no travel. Reschedule / reassignment / note edits /
+  **retype** all update the SAME event in place (retyping while still active
+  — e.g. Phone Call → Email — never removes it, only relabels it); completed
+  / cleared / deleted removes it (a past one is kept as history). This stays
+  fully independent of the Appointment (which remains busy/blocking, synced
+  separately by `lib/booking/calendarOutbox.js`) — neither path ever
+  overwrites, clears, moves or completes the other. Availability ignores the
+  reminder by the private marker (`isNonBlockingCrmGoogleEvent`), never by
+  title or Google free/busy alone; external Google events keep blocking.
+  Legacy Phone Call appointment rows never get a main/travel event
+  (`enqueueCreate/enqueueUpdate`, worker backstop,
+  `reconcileSyncedAppointments`), their old Google events are dropped from
+  availability by `ec_appointment_id` (`dropLegacyPhoneCallWindows`), and
+  active future ones are moved onto the lead's follow-up by
+  `lib/booking/legacyPhoneCallConversion.js` (backed up in
   `legacy_phone_call_conversions`; different active follow-up / closed lead →
   `ambiguous`, untouched; undo: `scripts/revertLegacyPhoneCallConversion.js`,
-  report-only unless `APPLY=1`). Meeting follow-ups stay CRM-only. Live
-  aggregate proof (no PII): admin-only `GET /api/v1/system/phone-calls`
-  (+ `/phone-calls/ambiguous`, read-only provenance of ambiguous rows) —
-  `routes/systemHealth.js`; auth = CRM admin JWT or the website repo's
-  private `final-verify.yml` GitHub OIDC identity (`lib/systemHealthAuth.js`).
-  Real-Postgres coverage: `test/integration/phoneCallCalendarReminder.int.test.js`.
+  report-only unless `APPLY=1`). Live aggregate proof (no PII, now
+  type-agnostic though its JSON field names keep their original
+  `phone_call_*` spelling for API stability): admin-only
+  `GET /api/v1/system/phone-calls` (+ `/phone-calls/ambiguous`, read-only
+  provenance of ambiguous rows) — `routes/systemHealth.js`; auth = CRM admin
+  JWT or the website repo's private `final-verify.yml` GitHub OIDC identity
+  (`lib/systemHealthAuth.js`). Real-Postgres coverage:
+  `test/integration/phoneCallCalendarReminder.int.test.js` (including case N,
+  the Meeting-type proof, and case H, the retype-keeps-the-event proof).
 - **Driving / Travel Time** exists only for an ACTIVE Site Visit —
   `lib/booking/appointmentKind.js#travelAllowed`, checked in
   `calendarOutbox.enqueueCreate/enqueueUpdate` AND again by the worker before

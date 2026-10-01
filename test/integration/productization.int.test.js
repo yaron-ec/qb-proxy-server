@@ -52,8 +52,41 @@ function runBootstrap(configPath) {
 }
 
 let db;
-test.before(async () => { if (!skip) db = require('../../db/client'); });
-test.after(async () => { if (!skip) await db.pool.end(); });
+let freshDbName, adminDbUrlForFresh;
+test.before(async () => {
+  if (skip) return;
+  // PRODUCTIZATION: tests 1/2/3/5 below assert a "fresh company install"
+  // starts from ZERO EC/other data — a claim `npm run test:integration`'s
+  // shared aggregate database (documented in CLAUDE.md: every *.int.test.js
+  // file in one run shares one DB) cannot support once any other file in
+  // the same run has created its own leads/appointments. Test 4 already
+  // solves exactly this by giving itself an ephemeral, uniquely-named
+  // database; apply the same pattern to the whole file's shared `db` so
+  // "empty DB" is genuinely empty regardless of run order.
+  const { execSync } = require('child_process');
+  const adminUrl = new URL(DB_URL);
+  adminDbUrlForFresh = `${adminUrl.protocol}//${adminUrl.username}:${adminUrl.password}@${adminUrl.host}/postgres`;
+  freshDbName = `productization_fresh_${Date.now()}`;
+  execSync(`psql "${adminDbUrlForFresh}" -c "CREATE DATABASE ${freshDbName};"`, { stdio: 'ignore' });
+  const freshUrl = `${adminUrl.protocol}//${adminUrl.username}:${adminUrl.password}@${adminUrl.host}/${freshDbName}`;
+  execFileSync('node', [path.join(ROOT, 'db', 'migrate.js')], { env: { ...process.env, DATABASE_URL: freshUrl }, stdio: 'ignore' });
+  process.env.DATABASE_URL = freshUrl;
+  delete require.cache[require.resolve('../../db/client')];
+  db = require('../../db/client');
+});
+test.after(async () => {
+  if (skip) return;
+  await db.pool.end();
+  const { execSync } = require('child_process');
+  // Restore the shared aggregate DATABASE_URL + a fresh db/client pool bound
+  // to it, so any *.int.test.js file that runs after this one in the same
+  // `npm run test:integration` process (alphabetically, only
+  // qbTokenLifecycle.int.test.js does) gets the real shared DB back, not
+  // this file's now-dropped ephemeral one.
+  process.env.DATABASE_URL = DB_URL;
+  delete require.cache[require.resolve('../../db/client')];
+  execSync(`psql "${adminDbUrlForFresh}" -c "DROP DATABASE ${freshDbName};"`, { stdio: 'ignore' });
+});
 
 test('1. fresh company installation from an empty DB: bootstrap succeeds, creates exactly one company_settings row and one admin, zero EC data', { skip }, async () => {
   const fs = require('fs');

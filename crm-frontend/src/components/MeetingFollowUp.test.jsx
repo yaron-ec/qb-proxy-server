@@ -26,6 +26,9 @@ vi.mock('@/api/railway', () => ({
     syncCalendar: (...a) => syncCalendar(...a),
   },
 }));
+vi.mock('@/lib/AuthContext', () => ({
+  useAuth: () => ({ user: { email: 'admin@ecconstructiongroup.com', role: 'admin' } }),
+}));
 
 function lead(overrides = {}) {
   return {

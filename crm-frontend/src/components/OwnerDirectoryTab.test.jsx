@@ -70,7 +70,7 @@ describe('Reply-To Contact Directory (admin view — read-only audit + managemen
     await waitFor(() => expect(screen.getByText('yaron.ecrenewables@gmail.com')).toBeTruthy());
 
     fireEvent.click(screen.getByTitle('Edit'));
-    const emailInput = screen.getByPlaceholderText('email@ecconstructiongroup.com');
+    const emailInput = screen.getByPlaceholderText('name@yourcompany.com');
     fireEvent.change(emailInput, { target: { value: 'yaron@ecconstructiongroup.com' } });
     fireEvent.click(screen.getByTitle('Save'));
 
