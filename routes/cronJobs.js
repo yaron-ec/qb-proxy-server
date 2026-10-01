@@ -129,7 +129,7 @@ router.post('/mark-invalid-contacts', async (req, res) => {
       WHERE record_type = 'Lead'
         AND (phone IS NULL OR phone = '' OR length(regexp_replace(phone, '\\D', '', 'g')) < 10)
         AND (email IS NULL OR email = '')
-        AND status NOT IN ('Sold', 'Appointment scheduled')
+        AND status NOT IN ('Sold', 'Appointment scheduled', 'Appointment Scheduled')  -- both stored spellings (lib/leadStatus.js)
     `);
 
     res.json({ ok: true, marked: rowCount, job: 'mark-invalid-contacts' });

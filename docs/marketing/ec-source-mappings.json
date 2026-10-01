@@ -1,0 +1,16 @@
+{
+  "_comment": "EC Construction Group installation data for scripts/marketing/applySourceMappings.js (report-only unless APPLY=1). Business decisions 2026-10: people are lead providers, never channels; Yair is a lead provider (not a CRM user) with channel Referral. Channels for Sharon and Ethan are not decided yet, so they stay 'unknown' (provider preserved) rather than guessed. Yelp, Repeat customer and Website are intentionally not mapped: Website leads are classified from their recorded touches, and the others await a decision. leads.source is never rewritten.",
+  "providers": [
+    { "name": "Yair", "kind": "partner", "notes": "Lead provider. Not a CRM user." },
+    { "name": "Sharon", "kind": "partner", "notes": "Lead provider. Channel to be confirmed." },
+    { "name": "Ethan", "kind": "other", "notes": "Lead provider. Channel to be confirmed." }
+  ],
+  "mappings": [
+    { "raw_source": "Yair", "channel": "referral", "provider": "Yair" },
+    { "raw_source": "Sharon", "channel": "unknown", "provider": "Sharon", "notes": "Provider preserved; channel not decided." },
+    { "raw_source": "Ethan", "channel": "unknown", "provider": "Ethan", "notes": "Provider preserved; channel not decided." },
+    { "raw_source": "Referral", "channel": "referral" },
+    { "raw_source": "Instagram / Facebook", "channel": "meta" },
+    { "raw_source": "Other", "channel": "other" }
+  ]
+}

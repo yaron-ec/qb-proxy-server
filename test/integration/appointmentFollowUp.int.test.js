@@ -189,7 +189,8 @@ test('1. New Lead with appointment only → Appointment set, Follow-up empty, no
   assert.strictEqual(lead.appointment.status, 'scheduled');
   assert.strictEqual(lead.follow_up_date, null, 'appointment must not be mirrored into follow-up');
   assert.strictEqual(lead.follow_up_type, null);
-  assert.strictEqual(lead.status, 'Appointment Scheduled');
+  // Canonical spelling (lib/leadStatus.js): the one every report/filter compares against.
+  assert.strictEqual(lead.status, 'Appointment scheduled');
 });
 
 test('2. New Lead with follow-up only → no appointment row, follow-up persisted', { skip }, async () => {

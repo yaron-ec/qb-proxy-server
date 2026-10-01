@@ -7,6 +7,10 @@
  *   GET /phone-calls/ambiguous  read-only provenance of the legacy Phone Call
  *                               rows the conversion left 'ambiguous'
  *                               (lib/booking/legacyPhoneCallInvestigation)
+ *   GET /attribution-integrity  aggregate attribution / funnel-history /
+ *                               status-vocabulary / SignNow-Sold integrity
+ *                               (lib/marketing/attributionIntegrity — counts
+ *                               and labels only, no PII)
  *   GET /lead-diagnostic/:id    single-lead Follow-Up/Appointment diagnostic
  *                               bundle (lib/leadDiagnostic) — the safe way to
  *                               inspect one specific production lead's
@@ -56,6 +60,7 @@ function cached(fn) {
 }
 const integrity = cached(() => require('../lib/booking/phoneCallIntegrity').phoneCallIntegrity());
 const ambiguous = cached(() => require('../lib/booking/legacyPhoneCallInvestigation').investigateAmbiguousLegacyPhoneCalls());
+const attribution = cached(() => require('../lib/marketing/attributionIntegrity').attributionIntegrity(require('../db/client').pool));
 
 router.get('/phone-calls', async (req, res) => {
   try { res.json(await integrity()); } catch (e) {
@@ -68,6 +73,15 @@ router.get('/phone-calls/ambiguous', async (req, res) => {
   try { res.json(await ambiguous()); } catch (e) {
     console.error('[system-health] ambiguous investigation failed:', e.message);
     res.status(500).json({ error: 'investigation_failed' });
+  }
+});
+
+// Growth Engine foundation + Phase 0 defects: aggregates only (no PII, no
+// click identifiers) — lib/marketing/attributionIntegrity.
+router.get('/attribution-integrity', async (req, res) => {
+  try { res.json(await attribution()); } catch (e) {
+    console.error('[system-health] attribution-integrity failed:', e.message);
+    res.status(500).json({ error: 'attribution_integrity_failed' });
   }
 });
 

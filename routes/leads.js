@@ -18,6 +18,7 @@
  */
 'use strict';
 
+const { canonicalLeadStatus } = require('../lib/leadStatus');
 const express = require('express');
 const { requireAuth, requireRole } = require('../lib/rbac');
 const { canonicalEmail } = require('../lib/authorization');
@@ -204,7 +205,8 @@ function serializeLead(row, appointment = null) {
     referral_name: row.referral_name,
     owner_id: row.owner_id,
     assigned_rep: row.owner_display_name || row.owner_email || null,
-    status: row.status,
+    // Canonical spelling for rows stored before the status fix (lib/leadStatus.js).
+    status: canonicalLeadStatus(row.status),
     notes: row.notes,
     message: row.message || null,
     lead_score: row.lead_score || 0,
@@ -414,7 +416,7 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
     // CRM fields (from body, pass through)
     for (const col of CRM_FIELDS) {
       if (body[col] !== undefined) {
-        let val = body[col];
+        let val = col === 'status' ? canonicalLeadStatus(body[col]) : body[col];
         // Handle boolean fields
         if (['is_new_intake_lead', 'customer_reminders_disabled'].includes(col)) {
           val = val === true || val === 'true';
@@ -1133,7 +1135,7 @@ router.post('/', requireAuth, async (req, res) => {
           addrFields?.zip || body.zip || null,
           body.project_type || null,
           body.budget_range || null, body.start_timeframe || null, body.source || 'Website', body.referral_name || null,
-          body.status || 'New', body.notes || null, body.message || null, body.lead_score || 0, body.is_new_intake_lead !== false,
+          canonicalLeadStatus(body.status) || 'New', body.notes || null, body.message || null, body.lead_score || 0, body.is_new_intake_lead !== false,
           body.customer_reminders_disabled === true, body.photo_urls || [], body.record_type || 'Lead',
           body.follow_up_date || null, body.follow_up_time || null, body.follow_up_type || null, body.meeting_stage || null,
           addrFields?.verified_property_address || null,
@@ -1398,7 +1400,7 @@ router.put('/:id', requireAuth, async (req, res) => {
     // ── CRM fields ──────────────────────────────────────────────────────
     for (const col of UPDATABLE_FIELDS) {
       if (body[col] !== undefined) {
-        let val = body[col];
+        let val = col === 'status' ? canonicalLeadStatus(body[col]) : body[col];
         // Handle boolean fields
         if (['is_new_intake_lead', 'customer_reminders_disabled'].includes(col)) {
           val = val === true || val === 'true';
@@ -1450,6 +1452,9 @@ router.put('/:id', requireAuth, async (req, res) => {
     let fullRow;
     try {
       await client.query('BEGIN');
+      // Who changed it, for the lead_status_events trigger (this transaction only).
+      await client.query(`SELECT set_config('ec.actor', $1, true), set_config('ec.change_source', 'crm_ui', true)`,
+        [String((req.user && req.user.email) || '').slice(0, 200)]);
       const { rows } = await client.query(sql, params);
       const updated = rows[0];
       if (!updated) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'not_found' }); }

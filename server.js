@@ -1254,6 +1254,8 @@ app.use('/api/v1/admin/gmail-oauth', require('./routes/adminGmailOAuth'));
 // Railway-native lead merge (must mount BEFORE leads router so /merge doesn't
 // get caught by leads /:id route)
 app.use('/api/v1/leads', require('./routes/mergeLeads'));
+// Explicit, versioned Qualified decisions (marketing attribute, not a status).
+app.use('/api/v1/leads', require('./routes/leadQualification'));
 // R1A: Railway CRM Lead + Owner API (read-only foundation; writes arrive in R1B)
 app.use('/api/v1/leads', require('./routes/leads'));
 // Lead-scoped Gmail correspondence (never a raw whole-mailbox search — see

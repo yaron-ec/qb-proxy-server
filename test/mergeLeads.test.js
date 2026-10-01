@@ -72,9 +72,12 @@ test('Merge leads: writes merge audit activity to survivor', () => {
 test('Merge leads: soft-deletes merged lead (status=DNQ, not physical DELETE)', () => {
   const src = fs.readFileSync(path.join(ROOT, 'routes', 'mergeLeads.js'), 'utf8');
   assert.ok(src.includes("status = 'DNQ'"), 'must set status to DNQ');
-  assert.ok(src.includes('duplicate_merged = true'), 'must set duplicate_merged flag');
-  assert.ok(src.includes('last_merge_date = NOW()'), 'must set last_merge_date');
-  assert.ok(src.includes('merge_count'), 'must increment merge_count');
+  // Lineage uses columns that exist (migration 2026-48). The previous
+  // duplicate_merged / last_merge_date / merge_count columns never existed,
+  // so every merge rolled back — they must not come back.
+  assert.ok(src.includes('merged_into_lead_id = $3'), 'must record merged_into_lead_id');
+  assert.ok(src.includes('merged_at = NOW()'), 'must record merged_at');
+  assert.ok(!/duplicate_merged|last_merge_date|merge_count/.test(src.replace(/\/\/.*$/gm, '')), 'must not write nonexistent columns');
   assert.ok(!/DELETE FROM leads/.test(src), 'must NOT physically DELETE the merged lead');
 });
 

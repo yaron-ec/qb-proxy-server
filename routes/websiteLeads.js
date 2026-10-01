@@ -47,6 +47,7 @@ function createWebsiteLeadsRouter(deps) {
     query, pool, createBooking, BookingError, ownerEmail, ownerDisplayName,
     sendNewLeadAlert, enqueueContactSync, removeFromReminders,
     cleanupLeadTextRefs, cancelAppointmentsForLeadDelete,
+    recordInquiry = null,
     getSecret = () => process.env.WEBSITE_LEAD_WEBHOOK_SECRET,
     crmPublicUrl = () => process.env.CRM_PUBLIC_URL || '',
     // Dependency-injected like getSecret/crmPublicUrl above (tests pass
@@ -154,6 +155,14 @@ function createWebsiteLeadsRouter(deps) {
       // is an existing customer.
       if (booking.idempotent && booking.lead.external_ref !== ref) action = 'matched_existing';
 
+      // Marketing attribution + per-inquiry history (lib/marketing/attributionStore,
+      // idempotent on the delivery reference). Recorded BEFORE any note, alert
+      // or Google Contacts enqueue: if it fails, the claim is released and the
+      // website's retry delivers again without having sent anything twice.
+      if (recordInquiry) {
+        await recordInquiry(pool, { leadId, externalRef: ref, action, lead, attribution: m.attribution });
+      }
+
       const inquiry = [
         action === 'matched_existing' ? 'Repeat inquiry from the website form.' : 'Website inquiry.',
         lead.website_lead_id ? `Website lead ID: ${lead.website_lead_id}` : null,
@@ -241,6 +250,24 @@ function createWebsiteLeadsRouter(deps) {
         emails_logged: await count(`SELECT count(*) AS n FROM email_send_logs WHERE idempotency_key LIKE '%' || $1 || '%' OR lower(recipient) = lower($2)`, [String(lead.id), lead.email || '']),
         total_leads_before_cleanup: await count('SELECT count(*) AS n FROM leads', []),
       } : null;
+      // Attribution as the CRM stored it (test leads only): inquiries, touches
+      // and the lead pointers — so the end-to-end check proves the full path.
+      if (evidence) {
+        try {
+          const subs = (await query(
+            `SELECT intake_action, form_type, conversion_page, page_url, consent_sms, consent_email, consent_gpc,
+                    first_touch_id IS NOT NULL AS has_first, last_touch_id IS NOT NULL AS has_last,
+                    conversion_touch_id IS NOT NULL AS has_conversion, website_submission_id
+               FROM lead_submissions WHERE lead_id = $1 ORDER BY submitted_at`, [lead.id])).rows;
+          const touches = (await query(
+            `SELECT t.id, t.channel_code, t.source, t.medium, t.campaign, t.campaign_id, t.landing_page, t.referrer,
+                    t.utm_source, t.utm_medium, t.utm_campaign, t.utm_term, t.gclid, t.gbraid, t.wbraid, t.occurred_at,
+                    (t.id = l.first_touch_id) AS is_first, (t.id = l.last_touch_id) AS is_last, (t.id = l.conversion_touch_id) AS is_conversion
+               FROM marketing_touches t JOIN leads l ON l.id = t.lead_id WHERE t.lead_id = $1 ORDER BY t.occurred_at`, [lead.id])).rows;
+          const status_events = await count('SELECT count(*) AS n FROM lead_status_events WHERE lead_id = $1', [lead.id]);
+          evidence.attribution = { submissions: subs, touches, status_events };
+        } catch (_) { evidence.attribution = null; }
+      }
 
       const client = await pool.connect();
       try {
@@ -288,7 +315,9 @@ function defaultRouter() {
   const { enqueueContactSync } = require('../lib/googleContactsOutbox');
   const { removeFromReminders } = require('../lib/reminderProjection');
   const leadsRoutes = require('./leads');
+  const { recordWebsiteInquiry } = require('../lib/marketing/attributionStore');
   return createWebsiteLeadsRouter({
+    recordInquiry: recordWebsiteInquiry,
     query: db.query, pool: db.pool, createBooking, BookingError,
     ownerEmail: async () => resolveOwnerEmail(DEFAULT_INTAKE_REP, (await require('../lib/companyConfig').getCompanyEmailDomain()) || undefined),
     ownerDisplayName: () => DEFAULT_INTAKE_REP,
