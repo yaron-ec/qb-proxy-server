@@ -139,6 +139,10 @@ require.cache[dbPath] = {
         // Faithfully replicate the real predicate against the fixture rows.
         return { rows: rowsToReturn.filter(r => new Date(r.busy_start).getTime() < new Date(r.start_at).getTime()) };
       }
+      if (/^SELECT \* FROM company_settings/i.test(s)) return { rows: [] };
+      // Meeting Follow-Ups as an additional busy source (PERMANENT RULE) —
+      // none in this test's fixtures.
+      if (/^SELECT l\.id, l\.follow_up_date/i.test(s)) return { rows: [] };
       throw new Error('unexpected query in mock: ' + s);
     },
     pool: {}, ensureSchema: async () => {},
@@ -205,6 +209,9 @@ function makeClient() {
       if (/^INSERT INTO appointment_events/i.test(s)) return { rows: [] };
       if (/^INSERT INTO booking_idempotency/i.test(s)) return { rows: [] };
       if (/^SELECT \* FROM leads WHERE id = \$1/i.test(s)) return { rows: [{ id: params[0] }] };
+      // Meeting Follow-Ups as an additional write-path conflict source
+      // (PERMANENT RULE) — none in this fixture.
+      if (/^SELECT l\.id, l\.follow_up_date/i.test(s)) return { rows: [] };
       throw new Error('mock client: unrecognized query: ' + s);
     },
     release: () => {},

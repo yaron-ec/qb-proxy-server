@@ -246,15 +246,28 @@ test('B7. PRODUCTIZATION: a configured non-default travel buffer actually change
   }
 });
 
-test('B6. Phone Call and Meeting FOLLOW-UPS at 12:00 block nothing; a real appointment books at exactly 12:00', { skip }, async () => {
+test('B6. A Phone Call FOLLOW-UP at 12:00 blocks nothing; a real appointment books at exactly 12:00', { skip }, async () => {
   const day = freshDay();
-  for (const type of ['Phone Call', 'Meeting']) {
-    const f = await api('POST', '/api/public/capture', lead({ follow_up_date: day, follow_up_time: '12:00', follow_up_type: type }));
-    assert.strictEqual(f.status, 201, JSON.stringify(f.body));
-    assert.strictEqual(f.body.appointment, null);
-  }
+  const f = await api('POST', '/api/public/capture', lead({ follow_up_date: day, follow_up_time: '12:00', follow_up_type: 'Phone Call' }));
+  assert.strictEqual(f.status, 201, JSON.stringify(f.body));
+  assert.strictEqual(f.body.appointment, null);
   const av = await assertParity(day);
   assert.deepStrictEqual(av.blocked_slots, []);
   assert.deepStrictEqual(av.busy_windows, []);
   assert.strictEqual((await book(day, '12:00')).status, 201);
+});
+
+test('B6b. PERMANENT RULE: a Meeting FOLLOW-UP at 12:00 blocks like a real Appointment Meeting (1h before + duration + 1h after), and UI/write-path parity holds', { skip }, async () => {
+  const day = freshDay();
+  const f = await api('POST', '/api/public/capture', lead({ follow_up_date: day, follow_up_time: '12:00', follow_up_type: 'Meeting' }));
+  assert.strictEqual(f.status, 201, JSON.stringify(f.body));
+  assert.strictEqual(f.body.appointment, null, 'still never an appointments row');
+  const av = await assertParity(day);
+  for (const s of ['11:00', '11:30', '12:00', '12:30']) assert.ok(av.blocked_slots.includes(s), `${s} blocked`);
+  assert.ok(!av.blocked_slots.includes('10:00') && !av.blocked_slots.includes('14:00'), 'boundaries stay free');
+  // A booking attempt at the exact same slot is rejected — parity between
+  // the availability display and the write-path conflict check.
+  assert.strictEqual((await book(day, '12:00')).status, 409);
+  // 14:00 touches the boundary exactly and is allowed, same as a real Appointment.
+  assert.strictEqual((await book(day, '14:00')).status, 201);
 });

@@ -273,58 +273,54 @@ router.get('/daily-schedule', async (req, res) => {
       });
     }
 
-    // Query the CANONICAL appointments table (source of truth for appointments).
-    // Join to leads for address info. Filter by appointment status (not lead
-    // status) — Lost/Sold leads with active appointments MUST appear.
-    // Phone Calls are excluded (no driving): an appointment is a Meeting when
-    // its reserved busy_range includes the travel buffer (lower(busy_range) <
-    // start_at) — kind comes from the appointment itself, never from the
-    // lead's follow-up. Follow-ups — including a 'Meeting' follow-up — are
-    // internal next actions and never become route stops.
-    const offsetMs = getLaOffsetMs(date);
-    const dayStartUtc = new Date(new Date(`${date}T00:00:00`).getTime() - offsetMs);
-    const dayEndUtc = new Date(dayStartUtc.getTime() + 24 * 60 * 60 * 1000);
-
-    const params = [dayStartUtc.toISOString(), dayEndUtc.toISOString()];
-    let apptWhere = `a.start_at >= $1::timestamptz AND a.start_at < $2::timestamptz AND a.status IN ('scheduled', 'confirmed') AND lower(a.busy_range) < a.start_at AND (l.status IS NULL OR l.status NOT IN ('Lost', 'DNQ'))`;
+    // FINAL AUTHORITATIVE CURRENT-ACTION RULE (post-Muhammad-Khan/
+    // Jamey-Corey/Mario-Ibanez production correction — see
+    // lib/booking/currentAction.js, the ONE canonical selector): current
+    // work — including Daily Map route stops — is derived ENTIRELY from the
+    // Follow-Up / Next Update. Appointment Date/Time is historical/
+    // reference tracking data only and is NEVER a route-stop source, with
+    // or without a competing Follow-Up (there is no Appointment fallback —
+    // the `appointments` table is deliberately not queried here at all).
+    // The Appointment's own independent booking/calendar/travel/
+    // availability pipeline (lib/booking/bookingService.js,
+    // calendarOutbox.js, appointmentWriter.js) is completely untouched by
+    // this — booking a real Appointment still syncs its own Google
+    // Calendar and blocks availability exactly as before; it is simply
+    // never surfaced as a route stop here. Only an ACTIVE Meeting-type
+    // Follow-Up is a physical-meeting route stop; Phone Call/Text/Email/
+    // Other follow-ups remain non-physical and are never route stops.
+    const fuParams = [date];
+    let fuWhere = `l.follow_up_type = 'Meeting' AND l.follow_up_date = $1 AND l.follow_up_status IS DISTINCT FROM 'completed' AND l.follow_up_time IS NOT NULL AND (l.status IS NULL OR l.status NOT IN ('Lost', 'DNQ'))`;
 
     if (owner && owner !== 'all') {
       if (owner === 'Unassigned') {
-        apptWhere += ` AND a.owner_id IS NULL`;
+        fuWhere += ` AND l.owner_id IS NULL`;
       } else {
-        apptWhere += ` AND (o.display_name = $${params.length + 1} OR o.email = $${params.length + 1})`;
-        params.push(owner);
+        fuWhere += ` AND (fo.display_name = $${fuParams.length + 1} OR fo.email = $${fuParams.length + 1})`;
+        fuParams.push(owner);
       }
     }
     if (city && city !== 'all') {
-      apptWhere += ` AND LOWER(l.city) = LOWER($${params.length + 1})`;
-      params.push(city);
+      fuWhere += ` AND LOWER(l.city) = LOWER($${fuParams.length + 1})`;
+      fuParams.push(city);
     }
     if (project_type && project_type !== 'all') {
-      apptWhere += ` AND LOWER(l.project_type) LIKE LOWER($${params.length + 1})`;
-      params.push(`%${project_type}%`);
+      fuWhere += ` AND LOWER(l.project_type) LIKE LOWER($${fuParams.length + 1})`;
+      fuParams.push(`%${project_type}%`);
     }
 
-    const { rows: apptRows } = await query(
+    const { rows: fuRows } = await query(
       `SELECT l.id, l.first_name, l.last_name, l.property_address, l.city, l.state, l.zip, l.phone, l.email,
-              l.project_type, COALESCE(o.display_name, o.email) AS assigned_rep,
+              l.project_type, COALESCE(fo.display_name, fo.email) AS assigned_rep,
               l.follow_up_time, l.status,
-              l.verified_property_address, l.property_lat, l.property_lng, l.property_geocode_status,
-              a.start_at, a.id AS appointment_id
-       FROM appointments a
-       JOIN leads l ON l.id = a.lead_id
-       LEFT JOIN owners o ON o.id = a.owner_id
-       WHERE ${apptWhere}
-       ORDER BY a.start_at ASC`,
-      params
+              l.verified_property_address, l.property_lat, l.property_lng, l.property_geocode_status
+       FROM leads l
+       LEFT JOIN owners fo ON fo.id = l.owner_id
+       WHERE ${fuWhere}`,
+      fuParams
     );
 
-    // Convert start_at to follow_up_time for display (appointments table uses TIMESTAMPTZ)
-    const leads = apptRows.map(r => ({
-      ...r,
-      follow_up_time: r.start_at ? isoToLaTime(r.start_at) : r.follow_up_time,
-      follow_up_date: date,
-    }));
+    const leads = fuRows.map(r => ({ ...r, follow_up_date: date, is_meeting_followup: true }));
 
     if (leads.length === 0) {
       return res.json({ appointments: [], schedule: [], owner_config: await getOwnerStarts() });

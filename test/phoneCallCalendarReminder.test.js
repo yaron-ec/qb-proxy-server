@@ -7,11 +7,13 @@
  * follow-up reminder event (lib/booking/followUpReminders.js) and the legacy
  * Phone Call row classifier (lib/booking/legacyPhoneCallConversion.js).
  *
- * PERMANENT RULE: every follow-up type (not just Phone Call) gets the same
- * non-blocking Google Calendar reminder — see isActiveFollowUpReminder() and
- * CALENDAR_REMINDER_FOLLOWUP_TYPES. This file keeps Phone Call as its primary
- * worked example (it's the oldest, most-exercised case) and adds explicit
- * Meeting coverage to prove the rule is genuinely type-agnostic.
+ * PERMANENT RULE: every follow-up type gets SOME calendar representation
+ * (isActiveFollowUpReminder() / CALENDAR_REMINDER_FOLLOWUP_TYPES) — but WHICH
+ * one depends on type: Phone Call/Text/Email/Other get the lightweight, FREE,
+ * non-blocking 15-minute reminder this file tests (buildReminderEvent);
+ * Meeting gets a real physical-meeting representation (1h, BUSY, + travel) —
+ * see test/followUpMeeting.test.js and
+ * lib/booking/followUpReminders.js#desiredRepresentation for that split.
  * Real-Postgres coverage: test/integration/phoneCallCalendarReminder.int.test.js.
  */
 const test = require('node:test');
@@ -20,7 +22,7 @@ const {
   isActiveFollowUpReminder, isNonBlockingCrmGoogleEvent, followUpStartIso, CALENDAR_REMINDER_FOLLOWUP_TYPES,
 } = require('../lib/booking/phoneCallModel');
 const { FOLLOW_UP_TYPES } = require('../lib/followUp');
-const { buildReminderEvent, reminderEventId, fingerprint } = require('../lib/booking/followUpReminders');
+const { buildReminderEvent, reminderEventId, fingerprint, desiredRepresentation } = require('../lib/booking/followUpReminders');
 const { isExcluded, eventToBusyWindow } = require('../lib/booking/googleAvailability');
 const { classify, laDateTime } = require('../lib/booking/legacyPhoneCallConversion');
 const { computeBlockedSlots, SLOTS } = require('../lib/booking/slotBlocking');
@@ -61,25 +63,20 @@ test('the reminder event is a free, marked, owner-only, 15-minute reminder at th
   assert.strictEqual(followUpStartIso(LEAD), '2026-10-14T17:00:00.000Z');
 });
 
-test('a Meeting follow-up gets the same kind of reminder, correctly labeled — still FREE, still owner-only', () => {
-  const meeting = { ...LEAD, follow_up_type: 'Meeting' };
-  const ev = buildReminderEvent(meeting, 'https://crm.example.com/', 0);
-  assert.strictEqual(ev.id, reminderEventId(LEAD.id, 0), 'same deterministic id scheme — keyed by lead, not type');
-  assert.strictEqual(ev.transparency, 'transparent');
-  assert.match(ev.summary, /^Meeting: Test Lead$/);
-  assert.match(ev.description, /^Meeting follow-up reminder \(CRM\)\./);
-  assert.strictEqual(ev.extendedProperties.private.ec_followup_kind, 'meeting');
-  assert.strictEqual(ev.extendedProperties.private.ec_blocking, 'false');
-  assert.strictEqual(isNonBlockingCrmGoogleEvent(ev), true, 'a Meeting reminder is excluded from availability exactly like a Phone Call one');
+test('desiredRepresentation: Meeting gets the physical-meeting representation; everything else gets the lightweight reminder', () => {
+  assert.strictEqual(desiredRepresentation({ ...LEAD, follow_up_type: 'Meeting' }), 'meeting');
+  for (const t of ['Phone Call', 'Text', 'Email', 'Other']) {
+    assert.strictEqual(desiredRepresentation({ ...LEAD, follow_up_type: t }), 'reminder', `${t} stays the lightweight reminder`);
+  }
 });
 
-test('timezone/DST: a Meeting follow-up reminder computes the correct UTC instant on both sides of the US spring-forward transition (2026-03-08)', () => {
+test('timezone/DST: the follow-up time conversion is correct on both sides of the US spring-forward transition (2026-03-08) — shared by both representations', () => {
   // Reuses the same toUtcIso/isoToLaParts primitives as the Appointment path
   // (lib/booking/slotBlocking.js, already proven DST-correct by
-  // test/multiTimezoneBooking.test.js) — the permanent rule changed WHICH
-  // follow-up types get a reminder, never HOW the time is converted.
-  const before = { ...LEAD, follow_up_type: 'Meeting', follow_up_date: '2026-03-07', follow_up_time: '10:00' }; // PST (UTC-8)
-  const after = { ...LEAD, follow_up_type: 'Meeting', follow_up_date: '2026-03-09', follow_up_time: '10:00' }; // PDT (UTC-7)
+  // test/multiTimezoneBooking.test.js). See test/followUpMeeting.test.js for
+  // the Meeting-representation-specific DST proof (1h duration + travel).
+  const before = { ...LEAD, follow_up_date: '2026-03-07', follow_up_time: '10:00' }; // PST (UTC-8)
+  const after = { ...LEAD, follow_up_date: '2026-03-09', follow_up_time: '10:00' }; // PDT (UTC-7)
   assert.strictEqual(followUpStartIso(before), '2026-03-07T18:00:00.000Z');
   assert.strictEqual(followUpStartIso(after), '2026-03-09T17:00:00.000Z');
   const evBefore = buildReminderEvent(before, '', 0);

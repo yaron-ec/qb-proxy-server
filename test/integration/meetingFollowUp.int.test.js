@@ -3,7 +3,13 @@
 
 /**
  * meetingFollowUp.int.test.js — REAL-Postgres regression test: a Follow-Up
- * of type 'Meeting' is STILL ONLY A FOLLOW-UP.
+ * of type 'Meeting' is still only a FOLLOW-UP RECORD (never an `appointments`
+ * row), but — PERMANENT RULE, post-Jamey-Corey production defect — an ACTIVE
+ * one now gets the SAME physical-meeting SCHEDULING SEMANTICS as a real
+ * Appointment once reconciled: 1h duration, a BUSY main calendar event, a
+ * Driving/Travel Time event via the canonical travel engine
+ * (calendarOutbox.js#buildOperation, reused through a virtual-appointment
+ * adapter — never a second implementation), and it blocks availability.
  *
  * Runs only when TEST_DATABASE_URL points at a DISPOSABLE, migrated database
  * (same harness as appointmentFollowUp.int.test.js); skipped otherwise:
@@ -11,17 +17,19 @@
  *   TEST_DATABASE_URL=postgres://postgres@localhost:5432/crm_int \
  *     node --test test/integration/meetingFollowUp.int.test.js
  *
- * Proves, end to end through HTTP → routes → bookingService → calendar
- * outbox worker → reminder projection → availability → routing:
+ * Proves, end to end through HTTP → routes → bookingService → followUpReminders
+ * reconciler → calendarOutbox.buildOperation → availability → routing:
  *   Meeting can be selected/saved and survives reload; it creates zero
- *   appointments, zero appointment-style Google Calendar main/travel events,
- *   blocks no slot, produces no customer appointment reminder and no driving
- *   stop; a real Appointment can be booked at the exact same time (and
- *   behaves exactly as before — buffered, blocking, main + travel events); a
- *   Phone Call follow-up remains non-blocking. This file never exercises
- *   lib/booking/followUpReminders.js's SEPARATE non-blocking reminder sync
- *   (permanent rule, all follow-up types) — see
- *   test/integration/phoneCallCalendarReminder.int.test.js case N for that.
+ *   appointments rows; once reconciled it gets exactly one physical-meeting
+ *   representation (main + travel, no separate generic 15-min reminder in
+ *   addition); it blocks its own slot (1h buffer each side); it appears as a
+ *   routing.js driving stop; a real Appointment can still be booked at the
+ *   exact same time (and behaves exactly as before — buffered, blocking,
+ *   main + travel events, and wins the mirror-dedup against the Follow-Up in
+ *   routing); a Phone Call follow-up remains the old free/non-blocking
+ *   reminder treatment. See test/integration/phoneCallCalendarReminder.int.test.js
+ *   case N for the Phone Call/Text/Email/Other reminder-only proof, and
+ *   test/followUpMeeting.test.js for the pure-unit adapter/DST proof.
  */
 const test = require('node:test');
 const assert = require('node:assert');
@@ -129,9 +137,41 @@ async function counts(leadId) {
   return { appointments: a.rows[0].n, outbox: o.rows[0].n, events: events.length };
 }
 
-async function availability(date) {
+async function availability(date, excludeLeadId) {
   const { getAvailability } = require('../../lib/booking/availabilityService');
-  return getAvailability({ owner_id: ownerId, date, timezone: 'America/Los_Angeles', duration_minutes: 60 });
+  return getAvailability({ owner_id: ownerId, date, timezone: 'America/Los_Angeles', duration_minutes: 60, exclude_lead_id: excludeLeadId });
+}
+
+// The Meeting Follow-Up's physical-meeting representation is reconciled by
+// followUpReminders.js (calling calendarOutbox.buildOperation directly via a
+// virtual-appointment adapter) — a SEPARATE mechanism from calendar_outbox /
+// drainOutbox(), which only processes real `appointments` rows.
+const reconcile = (now) => require('../../lib/booking/followUpReminders')
+  .reconcileFollowUpReminders(db.pool, { google: require('../../lib/booking/googleCalendarClient'), limit: 100000, delayMs: 0, crmPublicUrl: '', ...(now ? { now } : {}) });
+
+// Events tagged with the virtual appointment id `followup-meeting:<leadId>:g*`
+// (calendarOutbox.js's extendedProperties.private.ec_appointment_id).
+function liveMeetingEvents(leadId, kind) {
+  return [...google.events.values()].filter((e) =>
+    e.status !== 'cancelled'
+    && typeof e.extendedProperties?.private?.ec_appointment_id === 'string'
+    && e.extendedProperties.private.ec_appointment_id.startsWith(`followup-meeting:${leadId}:`)
+    && (!kind || e.extendedProperties.private.ec_kind === kind));
+}
+function liveReminderEvents(leadId) {
+  return [...google.events.values()].filter((e) => e.status !== 'cancelled'
+    && e.extendedProperties?.private?.ec_kind === 'followup_reminder'
+    && e.extendedProperties?.private?.ec_lead_id === String(leadId));
+}
+// A Google event's {dateTime, timeZone} is a LOCAL wall-clock time, not UTC —
+// Date.parse(dateTime) alone (no timeZone offset) silently parses it as if
+// it were UTC. Mirrors phoneCallCalendarReminder.int.test.js's utcOf().
+function utcOf(t) {
+  if (!t) return null;
+  if (!t.dateTime) return typeof t === 'string' ? Date.parse(t) : null;
+  if (/[zZ]|[+-]\d\d:\d\d$/.test(t.dateTime)) return Date.parse(t.dateTime);
+  const { toUtcIso } = require('../../lib/booking/slotBlocking');
+  return Date.parse(toUtcIso(t.dateTime.slice(0, 10), t.dateTime.slice(11, 16), t.timeZone || 'America/Los_Angeles'));
 }
 
 let googleModulesState;
@@ -202,19 +242,82 @@ test('M1. Meeting follow-up can be saved (New Lead + Lead Detail PUT /:id/follow
   assert.strictEqual(lead.google_event_id, null);
 });
 
-test('M2. Zero appointments, zero Google Calendar events, zero travel events', { skip }, async () => {
+test('M2. Still zero appointments rows — the physical-meeting representation never writes to the appointments table', { skip }, async () => {
   await drainOutbox();
   assert.deepStrictEqual(await counts(leadId), { appointments: 0, outbox: 0, events: 0 });
-  // No Google Calendar event (main or travel) mentions this lead at all.
-  const { last_name } = (await db.query('SELECT last_name FROM leads WHERE id = $1', [leadId])).rows[0];
-  const mentions = [...google.events.values()].filter(e => JSON.stringify(e).includes(last_name) || JSON.stringify(e).includes(leadId));
-  assert.deepStrictEqual(mentions, []);
 });
 
-test('M3. No slot is blocked by the Meeting follow-up (no 1h buffer, no availability impact)', { skip }, async () => {
+test('M2b. PERMANENT RULE: reconciling an active Meeting follow-up produces exactly ONE physical-meeting representation — 1h BUSY main + travel — and NO separate generic reminder', { skip }, async () => {
+  const s = await reconcile();
+  assert.ok(s.upserted >= 1, JSON.stringify(s));
+  assert.deepStrictEqual(liveReminderEvents(leadId), [], 'no generic 15-min reminder IN ADDITION to the physical meeting');
+  const [main, ...moreMain] = liveMeetingEvents(leadId, 'main');
+  const [travel, ...moreTravel] = liveMeetingEvents(leadId, 'travel');
+  assert.ok(main, 'main physical-meeting event exists');
+  assert.deepStrictEqual(moreMain, [], 'exactly one main event');
+  assert.ok(travel, 'travel event exists');
+  assert.deepStrictEqual(moreTravel, [], 'exactly one travel event');
+  assert.strictEqual(main.transparency, undefined, 'BUSY (not transparent) — a real physical meeting');
+  assert.match(main.summary, /^Meeting with /);
+  assert.strictEqual(main.extendedProperties.private.ec_appointment_kind, 'meeting');
+  const startMs = utcOf(main.start);
+  const endMs = utcOf(main.end);
+  assert.strictEqual(endMs - startMs, 60 * 60 * 1000, 'exactly 1 hour, not 15 minutes');
+  assert.strictEqual(startMs, Date.parse(require('../../lib/booking/slotBlocking').toUtcIso(day, '11:00', 'America/Los_Angeles')));
+  const travelStartMs = utcOf(travel.start);
+  assert.strictEqual(travelStartMs, endMs, 'travel starts right after the meeting ends');
+  assert.strictEqual(travel.transparency, 'opaque', 'travel time itself is also busy, same as a real Appointment\'s travel event');
+  const row = (await db.query('SELECT * FROM followup_calendar_reminders WHERE lead_id = $1', [leadId])).rows[0];
+  assert.strictEqual(row.representation, 'meeting');
+});
+
+test('M3. The physical meeting now blocks availability exactly like a real Appointment Meeting (1h before + duration + 1h after)', { skip }, async () => {
   const av = await availability(day);
-  assert.deepStrictEqual(av.busy_windows, []);
-  assert.deepStrictEqual(av.blocked_slots, []);
+  assert.strictEqual(av.busy_windows.length, 1);
+  for (const s of ['10:00', '10:30', '11:00', '11:30']) assert.ok(av.blocked_slots.includes(s), `${s} blocked`);
+  assert.ok(!av.blocked_slots.includes('09:00') && !av.blocked_slots.includes('13:00'), 'boundaries stay free');
+});
+
+test('M3b. Rescheduling the Meeting follow-up moves BOTH the meeting and travel events — no duplicates', { skip }, async () => {
+  const [oldMain] = liveMeetingEvents(leadId, 'main');
+  const [oldTravel] = liveMeetingEvents(leadId, 'travel');
+  const r = await api('PUT', `/api/v1/leads/${leadId}/follow-up`, { follow_up_time: '15:00' });
+  assert.strictEqual(r.status, 200, JSON.stringify(r.body));
+  await reconcile();
+  assert.strictEqual(google.events.get(oldMain.id)?.status, 'cancelled', 'old main event cancelled');
+  assert.strictEqual(google.events.get(oldTravel.id)?.status, 'cancelled', 'old travel event cancelled');
+  const mains = liveMeetingEvents(leadId, 'main');
+  const travels = liveMeetingEvents(leadId, 'travel');
+  assert.strictEqual(mains.length, 1, 'exactly one live main event after reschedule');
+  assert.strictEqual(travels.length, 1, 'exactly one live travel event after reschedule');
+  assert.strictEqual(utcOf(mains[0].start), Date.parse(require('../../lib/booking/slotBlocking').toUtcIso(day, '15:00', 'America/Los_Angeles')));
+  const av = await availability(day);
+  assert.ok(av.blocked_slots.includes('15:00'), 'new time blocks');
+  assert.ok(!av.blocked_slots.includes('11:00'), 'old time no longer blocks');
+});
+
+test('M3c. Owner reassignment moves the meeting + travel calendar ownership correctly', { skip }, async () => {
+  await db.query(`INSERT INTO owners (email, display_name) VALUES ('mtg-reassign@example.com', 'Meeting Reassign Owner') ON CONFLICT DO NOTHING`);
+  const otherOwner = (await db.query(`SELECT id FROM owners WHERE email = 'mtg-reassign@example.com'`)).rows[0].id;
+  const r = await api('PUT', `/api/v1/leads/${leadId}`, { owner_id: otherOwner });
+  assert.strictEqual(r.status, 200, JSON.stringify(r.body));
+  await reconcile();
+  const [main] = liveMeetingEvents(leadId, 'main');
+  assert.ok(main, 'still exactly one main event after reassignment');
+  assert.ok(main.attendees.some((a) => a.email === 'mtg-reassign@example.com'), 'now includes the new owner');
+  const row = (await db.query('SELECT owner_email FROM followup_calendar_reminders WHERE lead_id = $1', [leadId])).rows[0];
+  assert.strictEqual(row.owner_email, 'mtg-reassign@example.com');
+  // Reassign back to the original owner for the rest of this file's tests.
+  const back = await api('PUT', `/api/v1/leads/${leadId}`, { owner_id: ownerId });
+  assert.strictEqual(back.status, 200, JSON.stringify(back.body));
+  await reconcile();
+});
+
+test('M3d. Repeated reconciliation is idempotent — no Google call when nothing changed', { skip }, async () => {
+  const s1 = await reconcile();
+  assert.ok(s1.unchanged >= 1, JSON.stringify(s1));
+  assert.strictEqual(liveMeetingEvents(leadId, 'main').length, 1);
+  assert.strictEqual(liveMeetingEvents(leadId, 'travel').length, 1);
 });
 
 test('M4. No customer appointment reminder: the projection carries no appointment and the engine sees none', { skip }, async () => {
@@ -233,23 +336,29 @@ test('M4. No customer appointment reminder: the projection carries no appointmen
   assert.strictEqual(claims.rows[0].n, 0);
 });
 
-test('M5. No driving stop: routing lists no appointment for a Meeting follow-up', { skip }, async () => {
+test('M5. Routing: the active Meeting follow-up now appears as a physical route stop (PERMANENT RULE), with full traffic-aware routing fields', { skip }, async () => {
   const r = await api('GET', `/api/v1/routing/daily-schedule?date=${day}&owner=all`);
   assert.strictEqual(r.status, 200, JSON.stringify(r.body));
-  assert.deepStrictEqual(r.body.appointments, []);
-  assert.deepStrictEqual(r.body.schedule, []);
+  const stops = (r.body.schedule || []).filter(s => s.id === leadId);
+  assert.strictEqual(stops.length, 1, JSON.stringify(r.body.schedule));
+  assert.strictEqual(stops[0].is_meeting_followup, true);
+  assert.strictEqual(stops[0].follow_up_time, '15:00');
 });
 
-test('M6. A real Appointment can be booked at the exact same time; existing Appointment behavior is unchanged', { skip }, async () => {
-  const r = await api('PUT', `/api/v1/leads/${leadId}/appointment`, { appointment_date: day, appointment_time: '11:00', appointment_type: 'Meeting' });
+test('M6. MIRROR-DEDUP (PR #8 principle, applied to calendar sync): booking a real Appointment at the EXACT same time as the active Meeting follow-up removes the follow-up\'s own calendar presence — never two physical-meeting representations for the one event', { skip }, async () => {
+  // The follow-up is currently at 15:00 (rescheduled in M3b) — book the real
+  // Appointment at that exact same moment.
+  const r = await api('PUT', `/api/v1/leads/${leadId}/appointment`, { appointment_date: day, appointment_time: '15:00', appointment_type: 'Meeting' });
   assert.strictEqual(r.status, 200, JSON.stringify(r.body));
   const lead = await getLead(leadId);
   assert.strictEqual(lead.appointment_date, day);
-  assert.strictEqual(lead.appointment_time, '11:00');
+  assert.strictEqual(lead.appointment_time, '15:00');
   assert.strictEqual(lead.appointment_type, 'Meeting');
-  // The follow-up is untouched and still only a follow-up.
+  // The follow-up record itself is untouched — Appointment and Follow-Up
+  // remain independent CRM records; only their CALENDAR representation dedupes.
   assert.strictEqual(lead.follow_up_type, 'Meeting');
   assert.strictEqual(lead.follow_up_date, day);
+  assert.strictEqual(lead.follow_up_time, '15:00');
 
   // Exactly one appointment, buffered 1h each side (Meeting behavior unchanged).
   const rows = (await db.query(
@@ -258,26 +367,86 @@ test('M6. A real Appointment can be booked at the exact same time; existing Appo
   assert.strictEqual(new Date(rows[0].start_at) - new Date(rows[0].bs), 3600000);
   assert.strictEqual(new Date(rows[0].be) - new Date(rows[0].end_at), 3600000);
 
-  // Google Calendar: main + travel for the APPOINTMENT only.
+  // Google Calendar: the APPOINTMENT's own main + travel sync normally.
   await drainOutbox();
   const after = await getLead(leadId);
   assert.ok(after.google_event_id, 'appointment main event synced');
   assert.ok(after.google_travel_event_id, 'appointment travel event synced');
 
-  // It (and only it) now blocks availability around 11:00.
+  // Reconciling now removes the Meeting follow-up's OWN separate physical-
+  // meeting representation (it is a proven exact mirror of the Appointment) —
+  // never two BUSY main+travel pairs for the one meeting.
+  const s = await reconcile();
+  assert.ok(s.removed >= 1, JSON.stringify(s));
+  assert.deepStrictEqual(liveMeetingEvents(leadId, 'main'), [], 'the follow-up\'s own main event is gone — the Appointment\'s own event is a DIFFERENT id and unaffected');
+  assert.deepStrictEqual(liveMeetingEvents(leadId, 'travel'), [], 'the follow-up\'s own travel event is gone');
+  assert.deepStrictEqual(liveReminderEvents(leadId), [], 'no generic reminder either — fully covered by the Appointment');
+
+  // Exactly ONE blocked window around 15:00 — never doubled.
   const av = await availability(day);
   assert.strictEqual(av.busy_windows.length, 1);
-  assert.ok(av.blocked_slots.includes('11:00'));
+  assert.ok(av.blocked_slots.includes('15:00'));
 
   // A second appointment for the same owner overlapping it is still rejected.
-  const other = await api('POST', '/api/public/capture', capturePayload({ appointment_date: day, appointment_time: '11:30' }), null);
+  const other = await api('POST', '/api/public/capture', capturePayload({ appointment_date: day, appointment_time: '15:30' }), null);
   assert.strictEqual(other.status, 409, JSON.stringify(other.body));
 
-  // Routing now has exactly one stop — the appointment.
+  // Routing now has exactly one stop — the FOLLOW-UP (FINAL AUTHORITATIVE
+  // CURRENT-ACTION RULE: route stops come ENTIRELY from the active Meeting
+  // Follow-Up; routes/routing.js's /daily-schedule never queries the
+  // `appointments` table at all, so the Appointment — even an exact-time
+  // match — can never itself be, or produce, a second route stop. The
+  // Appointment is never deleted, and its own calendar/availability
+  // presence above is completely unaffected).
   const route = await api('GET', `/api/v1/routing/daily-schedule?date=${day}&owner=all`);
   assert.strictEqual(route.status, 200, JSON.stringify(route.body));
   const stops = (route.body.schedule || []).filter(s => s.id === leadId || s.lead_id === leadId);
   assert.strictEqual(stops.length, 1, JSON.stringify(route.body.schedule));
+  assert.ok(stops[0].is_meeting_followup, 'the Follow-Up is the only possible route-stop source');
+});
+
+test('M6b. Completing the Meeting follow-up after it has been mirror-deduped changes nothing further (idempotent cleanup edge case)', { skip }, async () => {
+  const r = await api('PUT', `/api/v1/leads/${leadId}/follow-up`, { follow_up_status: 'completed' });
+  assert.strictEqual(r.status, 200, JSON.stringify(r.body));
+  const s = await reconcile();
+  assert.deepStrictEqual(liveMeetingEvents(leadId), []);
+  assert.deepStrictEqual(liveReminderEvents(leadId), []);
+  // The appointment's own calendar presence is completely unaffected.
+  const after = await getLead(leadId);
+  assert.ok(after.google_event_id);
+  assert.ok(after.google_travel_event_id);
+});
+
+test('M6c. Completing (or deleting) a STANDALONE active Meeting follow-up (never mirrored) cleans up its future meeting + travel state correctly', { skip }, async () => {
+  const d = uniqueDay();
+  const r = await api('POST', '/api/public/capture', capturePayload({
+    follow_up_date: d, follow_up_time: '09:00', follow_up_type: 'Meeting',
+  }), null);
+  assert.strictEqual(r.status, 201, JSON.stringify(r.body));
+  const id = r.body.lead.id;
+  await reconcile();
+  assert.strictEqual(liveMeetingEvents(id, 'main').length, 1);
+  assert.strictEqual(liveMeetingEvents(id, 'travel').length, 1);
+  assert.ok((await availability(d)).blocked_slots.includes('09:00'));
+
+  const complete = await api('PUT', `/api/v1/leads/${id}/follow-up`, { follow_up_status: 'completed' });
+  assert.strictEqual(complete.status, 200, JSON.stringify(complete.body));
+  const s = await reconcile();
+  assert.ok(s.removed >= 1, JSON.stringify(s));
+  assert.deepStrictEqual(liveMeetingEvents(id), [], 'both meeting + travel events removed on completion');
+  assert.ok(!(await availability(d)).blocked_slots.includes('09:00'), 'no longer blocks once completed');
+
+  // Re-opening it with a new time gets a fresh event (a removed id never reused).
+  const reopen = await api('PUT', `/api/v1/leads/${id}/follow-up`, { follow_up_status: 'pending', follow_up_date: d, follow_up_time: '09:00' });
+  assert.strictEqual(reopen.status, 200, JSON.stringify(reopen.body));
+  await reconcile();
+  assert.strictEqual(liveMeetingEvents(id, 'main').length, 1);
+
+  // Deleting the lead entirely also cleans it up.
+  const del = await api('DELETE', `/api/v1/leads/${id}`);
+  assert.ok([200, 204].includes(del.status), JSON.stringify(del.body));
+  await reconcile();
+  assert.deepStrictEqual(liveMeetingEvents(id), [], 'deleting the lead removes its meeting + travel events');
 });
 
 test('M7. A Phone Call follow-up remains non-blocking (no appointment, no calendar, no busy window)', { skip }, async () => {

@@ -107,6 +107,29 @@ function formatDateLabel(dateStr) {
   return new Date(y, mo - 1, d).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 }
 
+// FINAL AUTHORITATIVE CURRENT-ACTION RULE (post-Muhammad-Khan/Jamey-Corey/
+// Mario-Ibanez production correction — mirrors lib/booking/currentAction.js's
+// isCurrentWorkForDay()/currentActionForDay(); keep these in sync, and see
+// test/fixtures/currentActionCases.js, the canonical truth table all three
+// implementations are tested against, for drift protection): current work
+// is derived ENTIRELY from the Follow-Up / Next Update. Appointment Date/
+// Time is historical/reference tracking data ONLY and is NEVER a fallback
+// source of current work — not even when the lead has no active Follow-Up
+// at all (Mario Ibanez: his current work is whatever his own Follow-Up /
+// Next Update says; if he has none, he has none, Appointment or not).
+// Neither record is ever altered or deleted by this selection. The
+// Appointment's own independent booking/calendar/travel/availability
+// pipeline is completely untouched — this only governs what counts as
+// CURRENT WORK for My Day's list/map/counts. Exported as a named export
+// (alongside the page's default export) purely so this exact predicate is
+// unit-testable against the shared canonical fixture, without a full
+// component render.
+export function isCurrentPhysicalMeetingForDay(l, day) {
+  return !!l &&
+    l.follow_up_type === "Meeting" && l.follow_up_status !== "completed" &&
+    !!l.follow_up_date && l.follow_up_date === day && !!l.follow_up_time;
+}
+
 const DATE_FILTERS = [
   { label: "Today", value: "today" },
   { label: "Tomorrow", value: "tomorrow" },
@@ -283,6 +306,20 @@ export default function MobileDayView() {
   const [view, setView] = useState(() =>
     new URLSearchParams(window.location.search).get("view") === "list" ? "list" : "map"
   ); // "list" | "map"
+  // PERMANENT RULE: the Today/Tomorrow/Next 7 Days selector is authoritative
+  // for the embedded Daily Map — it must move automatically to the selected
+  // day's date and never show a stale prior-selection date. Today/Tomorrow
+  // map to that exact single day. Next 7 Days has no single inherent date,
+  // so it defaults to today (a clear day within the period) and — unlike
+  // Today/Tomorrow — still exposes Daily Map's own date picker so a specific
+  // day within the week can be chosen explicitly, rather than silently
+  // showing an unrelated stale single-day map.
+  const [mapDate, setMapDate] = useState(() => getTodayLocal());
+  useEffect(() => {
+    if (dateFilter === "today") setMapDate(getTodayLocal());
+    else if (dateFilter === "tomorrow") setMapDate(getTomorrowLocal());
+    else setMapDate(getTodayLocal());
+  }, [dateFilter]);
 
   useEffect(() => {
     const init = async () => {
@@ -312,21 +349,19 @@ export default function MobileDayView() {
     // Match desktop exactly: same excluded statuses
     const excluded = ["Lost", "DNQ", "Cancelled", "Closed Lost"];
 
-    // A lead's meeting = its canonical appointment when that is a Meeting
-    // (site visit). Follow-ups — including a 'Meeting' follow-up — are
-    // internal next actions and never become a driving stop. Phone Calls
-    // need no driving.
-    const meetingOf = (l) => {
-      if (!l.appointment_date || l.appointment_type === "Phone Call") return null;
-      return { date: l.appointment_date, time: l.appointment_time };
-    };
-    const filtered = allLeads.map(l => {
-      const m = meetingOf(l);
-      return m ? { ...l, _mtgDate: m.date, _mtgTime: m.time || null } : null;
-    }).filter(l => {
-      if (!l) return false;
-      if (!(l.property_address || l.city)) return false;
-      if (excluded.includes(l.status)) return false;
+    // FINAL RULE: current physical meetings come ENTIRELY from the active
+    // Meeting-type Follow-Up — the Appointment is never a fallback, even
+    // when the lead has no active Follow-Up at all (see
+    // isCurrentPhysicalMeetingForDay() above).
+    const candidates = [];
+    for (const l of allLeads) {
+      if (excluded.includes(l.status)) continue;
+      if (!(l.property_address || l.city)) continue;
+      if (l.follow_up_date && isCurrentPhysicalMeetingForDay(l, l.follow_up_date)) {
+        candidates.push({ ...l, _mtgDate: l.follow_up_date, _mtgTime: l.follow_up_time || null });
+      }
+    }
+    const filtered = candidates.filter(l => {
       if (dateFilter === "today") return l._mtgDate === today;
       if (dateFilter === "tomorrow") return l._mtgDate === tomorrow;
       if (dateFilter === "week") return next7.includes(l._mtgDate);
@@ -522,7 +557,7 @@ export default function MobileDayView() {
                 <div className="w-7 h-7 border-4 border-slate-200 border-t-amber-600 rounded-full animate-spin" />
               </div>
             }>
-              <DailyMap />
+              <DailyMap date={mapDate} onDateChange={setMapDate} hideDatePicker={dateFilter !== "week"} ownerFilter={ownerFilter} />
             </Suspense>
           </MapPageErrorBoundary>
         </div>

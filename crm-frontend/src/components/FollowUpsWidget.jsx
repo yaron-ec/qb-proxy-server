@@ -84,46 +84,31 @@ function formatFollowUpDate(dateStr) {
   return new Date(yr, mo, dy).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-// 'HH:MM' / 'HH:MM:SS' -> 'HH:MM', for comparing times that may come from
-// different columns with slightly different Postgres TIME text formatting.
-// Known narrow edge case (documented, not fixed here — see CLAUDE.md's
-// "Dashboard Today's Work double-count" note): the backend's own kind match
-// is appt.kind === follow_up_type, where appt.kind is a DERIVED
-// classification (lib/booking/appointmentKind.js) that reads 'Phone Call'
-// only for a rare, pre-separation LEGACY unbuffered appointment row — every
-// current/normal appointment, whatever its appointment_type name (Meeting,
-// Site Visit, Consultation, ...), is 'Meeting'-kind. This frontend check has
-// no per-row buffering signal, so it treats ANY active appointment as
-// 'Meeting'-kind; a same-date/time/no-notes Meeting follow-up next to one of
-// those rare legacy rows could be suppressed here even though the backend
-// would call it DIVERGENT, not MIRROR. Those legacy rows are actively being
-// converted away by lib/booking/legacyPhoneCallConversion.js and shrink over
-// time; this is display-only and never loses data (Lead Detail always shows
-// both records).
-function hhmm(t) {
-  if (!t) return '';
-  const m = String(t).trim().match(/^(\d{1,2}):(\d{2})/);
-  return m ? `${m[1].padStart(2, '0')}:${m[2]}` : String(t);
-}
+// FINAL AUTHORITATIVE CURRENT-ACTION RULE (post-Muhammad-Khan/Jamey-Corey/
+// Mario-Ibanez production correction — supersedes an earlier "Follow-Up
+// supersedes a same-day Appointment" model, itself a correction of an even
+// earlier additive model): the Follow-Up / Next Update is the ONLY source
+// of CURRENT WORK for a lead. The Appointment is historical/reference
+// tracking data and is NEVER current work — not even when the lead has no
+// active Follow-Up at all (Mario Ibanez: his current work is whatever his
+// own Follow-Up says; none means none, Appointment or not). The Appointment
+// record itself is never altered or deleted and may still be shown as
+// reference info alongside the current Follow-Up (see LeadCard's "Appt: "
+// line below). This exact rule lives in lib/booking/currentAction.js
+// (backend, canonical) and crm-frontend/src/pages/MobileDayView.jsx
+// (isCurrentPhysicalMeetingForDay) — keep all three in sync; see
+// test/fixtures/currentActionCases.js for the shared drift-protection
+// fixture and FollowUpsWidget.currentActionParity.test.jsx.
 
-// A Follow-Up that exactly mirrors its own lead's active Appointment (same
-// date, same time, type 'Meeting' — a real Appointment is never a 'Phone
-// Call', so a follow-up can only mirror the appointment's one real kind —
-// and no notes) represents the SAME real-world action recorded twice, not a
-// second one. This is the frontend's DISPLAY-only counterpart of the
-// backend's own, already-production-proven MIRROR classification
-// (scripts/auditAppointmentFollowUp.js#classify/assess) — it never reads or
-// changes any stored data, only decides whether "Today's Work" counts one
-// obligation once instead of twice. A genuinely independent follow-up — any
-// different date, different time, a different type, or one carrying notes —
-// is NEVER affected and still shows as its own entry (the Jamey Corey shape:
-// an appointment on one day and an unrelated follow-up on another always
-// shows both, since the dates differ).
-function isFollowUpMirrorOfAppointment(l) {
-  return !!l.appointment_date && !!l.follow_up_date && !l.follow_up_notes
-    && l.follow_up_type === 'Meeting'
-    && l.appointment_date === l.follow_up_date
-    && hhmm(l.appointment_time) === hhmm(l.follow_up_time);
+// Minimal hoisted predicate mirroring the exact condition the `sections`
+// bucketing loop below uses to decide whether a lead has current work for a
+// given day (lib/booking/currentAction.js#isCurrentWorkForDay's frontend
+// shape, minus the shared isActiveFollowUpReminder helper, which isn't
+// available on the frontend). Exported alongside the default export purely
+// so FollowUpsWidget.currentActionParity.test.jsx can run the shared
+// canonical fixture against it without a full component render.
+export function isFollowUpCurrentForDay(lead, day) {
+  return !!lead && !!lead.follow_up_type && lead.follow_up_date === day && lead.follow_up_status !== 'completed';
 }
 
 function parseBudgetValue(budgetStr) {
@@ -191,10 +176,10 @@ export default function FollowUpsWidget({ leads: propLeads, allLeads: propAllLea
     const tomorrow = tomorrowInt();
     const in7days = futureDateInt(7);
 
-    // Two independent sources, bucketed separately:
-    //   • the APPOINTMENT (canonical appointments row → lead.appointment_*)
-    //   • the FOLLOW-UP (lead.follow_up_*), skipped once marked completed.
-    // A lead can legitimately appear once for each.
+    // FINAL RULE: current work comes ENTIRELY from the Follow-Up
+    // (lead.follow_up_*), skipped once marked completed. The Appointment is
+    // never bucketed here — it is historical/reference data only (still
+    // shown as reference info on the card, see LeadCard's "Appt: " line).
     const bucket = (l, dateStr, isMeeting, kind) => {
       const d = parseDateInt(dateStr);
       if (d === null) return;
@@ -204,16 +189,12 @@ export default function FollowUpsWidget({ leads: propLeads, allLeads: propAllLea
       else if (d > tomorrow && d <= in7days) (isMeeting ? thisWeekMeetings : thisWeekCalls).push(entry);
     };
     for (const l of activeLeads) {
-      if (l.appointment_date) bucket(l, l.appointment_date, l.appointment_type !== 'Phone Call', 'appointment');
-      // Skip the Follow-up entry when it's a proven mirror of this lead's own
-      // Appointment (same date/time/kind, no notes) — one real obligation,
-      // shown once. See isFollowUpMirrorOfAppointment() above.
-      if (l.follow_up_date && l.follow_up_status !== 'completed' && !isFollowUpMirrorOfAppointment(l)) {
+      if (isFollowUpCurrentForDay(l, l.follow_up_date)) {
         bucket(l, l.follow_up_date, l.follow_up_type === 'Meeting', 'follow_up');
       }
     }
 
-    const timeOf = (e) => (e.kind === 'appointment' ? e.lead.appointment_time : e.lead.follow_up_time) || '';
+    const timeOf = (e) => e.lead.follow_up_time || '';
     const sortByTime = (a, b) => timeOf(a).localeCompare(timeOf(b));
     return {
       todayMeetings: todayMeetings.sort(sortByTime),
@@ -484,9 +465,10 @@ function Group({ label, labelClass, leads, onComplete, completing, isOverdue, no
 
 function LeadCard({ lead, onComplete, completing, isOverdue }) {
   const navigate = useNavigate();
-  // An appointment entry shows the appointment; everything else shows the follow-up.
-  const isAppt = lead._sectionKind === 'appointment';
-  const entryType = isAppt ? lead.appointment_type : lead.follow_up_type;
+  // FINAL RULE: current work is always Follow-Up-sourced — the Appointment
+  // is never the entry itself, only optional reference info (see the
+  // "Appt: " line below).
+  const entryType = lead.follow_up_type;
   const isMeeting = entryType === 'Meeting';
 
   const accentColor = isOverdue ? 'border-l-red-400' : isMeeting ? 'border-l-purple-400' : 'border-l-green-400';
@@ -498,9 +480,9 @@ function LeadCard({ lead, onComplete, completing, isOverdue }) {
   const createdDays = daysAgoFromUTC(Date.UTC(
     ...createdDateStr.split('-').map((v, i) => i === 1 ? parseInt(v) - 1 : parseInt(v))
   ));
-  const displayDate = isAppt ? lead.appointment_date : (lead.follow_up_date || lead._sectionDate);
+  const displayDate = lead.follow_up_date || lead._sectionDate;
   const followUpLabel = formatFollowUpDate(displayDate);
-  const entryTime = isAppt ? lead.appointment_time : lead.follow_up_time;
+  const entryTime = lead.follow_up_time;
   const timeLabel = entryTime ? fmt12(entryTime) : '';
 
   const handleRowClick = () => {
@@ -519,7 +501,7 @@ function LeadCard({ lead, onComplete, completing, isOverdue }) {
             <span className="text-sm font-bold text-slate-900 group-hover:text-amber-600 transition-colors">{clientName}</span>
             {entryType && (
               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${typeColor}`}>
-                {typeIcon} {isAppt ? `Appointment · ${entryType}` : `Follow-up · ${entryType}`}
+                {typeIcon} {`Follow-up · ${entryType}`}
               </span>
             )}
           </div>
@@ -538,12 +520,10 @@ function LeadCard({ lead, onComplete, completing, isOverdue }) {
           <div onClick={e => e.stopPropagation()}>
             <ContactActions phone={lead.phone} email={lead.email} size="sm" />
           </div>
-          {!isAppt && (
-            <button onClick={(e) => onComplete(e, lead)} disabled={completing[lead.id]}
-              className="p-1.5 rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors disabled:opacity-40" title="Mark follow-up done">
-              <CheckCircle className="w-3 h-3" />
-            </button>
-          )}
+          <button onClick={(e) => onComplete(e, lead)} disabled={completing[lead.id]}
+            className="p-1.5 rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors disabled:opacity-40" title="Mark follow-up done">
+            <CheckCircle className="w-3 h-3" />
+          </button>
           <div className="w-px h-4 bg-slate-200 mx-0.5" />
           <button onClick={handleRowClick}
             className="p-1.5 rounded-md bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" title="Open Lead Details">
@@ -577,7 +557,7 @@ function LeadCard({ lead, onComplete, completing, isOverdue }) {
             <span>{followUpLabel}{timeLabel ? ` · ${timeLabel}` : ''}</span>
           </span>
         )}
-        {lead.appointment_date && !isAppt && (
+        {lead.appointment_date && (
           <span className="flex items-center gap-1 text-slate-500">
             <span className="text-slate-400">📆</span>
             <span>Appt: {lead.appointment_date}{lead.appointment_time ? ` ${fmt12(lead.appointment_time)}` : ''}</span>

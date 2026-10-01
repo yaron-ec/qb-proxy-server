@@ -71,6 +71,9 @@ function makeClient() {
       if (/^INSERT INTO booking_idempotency/i.test(s)) return { rows: [] };
       if (/^SELECT \* FROM leads WHERE id = \$1/i.test(s)) return { rows: [{ id: params[0] }] };
       if (/^SELECT \* FROM appointments WHERE id = \$1/i.test(s)) return { rows: [{ id: params[0] }] };
+      // Meeting Follow-Ups as an additional write-path conflict source
+      // (PERMANENT RULE) — none in this fixture.
+      if (/^SELECT l\.id, l\.follow_up_date/i.test(s)) return { rows: [] };
       throw new Error('mock client: unrecognized query: ' + s);
     },
     release: () => {},
