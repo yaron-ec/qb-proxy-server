@@ -1,16 +1,22 @@
 {
-  "_comment": "EC Construction Group installation data for scripts/marketing/applySourceMappings.js (report-only unless APPLY=1). Business decisions 2026-10: people are lead providers, never channels; Yair is a lead provider (not a CRM user) with channel Referral. Channels for Sharon and Ethan are not decided yet, so they stay 'unknown' (provider preserved) rather than guessed. Yelp, Repeat customer and Website are intentionally not mapped: Website leads are classified from their recorded touches, and the others await a decision. leads.source is never rewritten.",
+  "_status": "PROPOSED — NOT APPLIED. Do not run with APPLY=1 until the owner approves this table. Production source values are listed (with counts) by GET /api/v1/system/attribution-integrity → raw_sources after deploy; add any value found there before approval.",
+  "_rules": "People are lead providers, never marketing channels. A provider is not a CRM user record. Unknown is preferred over a guess. leads.source is never rewritten; Website leads are classified from their recorded touches, not from this table.",
   "providers": [
-    { "name": "Yair", "kind": "partner", "notes": "Lead provider. Not a CRM user." },
-    { "name": "Sharon", "kind": "partner", "notes": "Lead provider. Channel to be confirmed." },
-    { "name": "Ethan", "kind": "other", "notes": "Lead provider. Channel to be confirmed." }
+    { "name": "Yair", "kind": "partner", "notes": "Lead provider. Not a CRM user (crm-frontend/src/pages/LeadCapture.jsx)." },
+    { "name": "Sharon", "kind": "partner", "notes": "Lead provider (source-list value). Role/channel not evidenced in code — to be confirmed." },
+    { "name": "Ethan", "kind": "other", "notes": "Source label naming Ethan Magen, a CRM sales rep (owner lists). Kept as the person who sourced the lead, not as a channel and not linked to the user record." }
   ],
   "mappings": [
-    { "raw_source": "Yair", "channel": "referral", "provider": "Yair" },
+    { "raw_source": "Yair", "channel": "referral", "provider": "Yair", "notes": "Business decision 2026-10: channel Referral, provider Yair." },
     { "raw_source": "Sharon", "channel": "unknown", "provider": "Sharon", "notes": "Provider preserved; channel not decided." },
-    { "raw_source": "Ethan", "channel": "unknown", "provider": "Ethan", "notes": "Provider preserved; channel not decided." },
-    { "raw_source": "Referral", "channel": "referral" },
-    { "raw_source": "Instagram / Facebook", "channel": "meta" },
-    { "raw_source": "Other", "channel": "other" }
+    { "raw_source": "Ethan", "channel": "unknown", "provider": "Ethan", "notes": "Rep-sourced lead; how the rep found it is not recorded." },
+    { "raw_source": "Referral", "channel": "referral", "notes": "Staff-recorded referral." },
+    { "raw_source": "Instagram / Facebook", "channel": "meta", "notes": "Meta Lead Ads webhook and staff selection; organic vs paid not distinguishable." },
+    { "raw_source": "Yelp", "channel": "referral", "notes": "Third-party directory/review site (same treatment as an external referring site). Needs approval." },
+    { "raw_source": "Repeat customer", "channel": "other", "notes": "Existing customer — no marketing acquisition channel." },
+    { "raw_source": "Google Maps / reviews", "channel": "google_business_profile", "notes": "Older source-list value naming Maps/reviews (Business Profile surfaces). Needs approval." },
+    { "raw_source": "Google Search", "channel": "unknown", "notes": "Older source-list value; cannot separate Google Ads, organic and Business Profile." },
+    { "raw_source": "YouTube", "channel": "other", "notes": "Older source-list value; no YouTube channel in the taxonomy; organic vs paid unknown." },
+    { "raw_source": "Other", "channel": "other", "notes": "Known but not one of the channels." }
   ]
 }

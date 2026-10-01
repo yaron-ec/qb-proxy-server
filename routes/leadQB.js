@@ -405,13 +405,9 @@ router.post('/by-external/:externalRef/sync-estimates', requireAdminManager, asy
       }
     }
 
-    // 4. Update lead handoff_estimate_status if awaiting_qb
-    if (lead.handoff_estimate_status === 'awaiting_qb' && (created > 0 || updated > 0)) {
-      await query(
-        'UPDATE leads SET handoff_estimate_status = $1, updated_at = NOW() WHERE id = $2',
-        ['synced', lead.id]
-      ).catch(() => {});
-    }
+    // (Removed: a Base44-era "handoff_estimate_status awaiting_qb → synced"
+    // update. leads has no such column and nothing ever sets 'awaiting_qb', so
+    // it could never run. The lead's estimates are handoff_estimates rows.)
 
     console.log(`[lead-qb] sync-estimates: customer=${qbCustomerId} fetched=${estimates.length} created=${created} updated=${updated}`);
 

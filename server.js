@@ -2036,11 +2036,6 @@ app.post('/handoff/import-estimate', requireProxySecret, async (req, res) => {
 
 const SANDBOX = process.env.QB_SANDBOX === 'true';
 
-function toDateStr(v) {
-  if (!v) return undefined;
-  try { return new Date(isNaN(Number(v)) ? v : Number(v)).toISOString().split('T')[0]; } catch { return undefined; }
-}
-
 // Fetch ALL QB estimates — same query as proxy GET /estimates?since=1970-01-01
 // (WHERE MetaData.LastUpdatedTime > '1970-01-01...', paginated).
 async function fetchAllQbEstimates() {
@@ -2151,17 +2146,16 @@ async function runQbEstimateSync() {
             author: 'QB Direct Sync',
             source: 'manual',
           }).catch(() => {});
-          if (matchedLead.handoff_estimate_status === 'awaiting_qb') {
-            await rda.update('Lead', matchedLead.id, { handoff_estimate_status: 'synced' }).catch(() => {});
-          }
         }
 
-        const leadUpdate = {};
-        if (qbEst.TxnDate && !matchedLead.appointment_date) leadUpdate.appointment_date = toDateStr(qbEst.TxnDate);
-        if (qbEst.TxnDate && !matchedLead.follow_up_date) leadUpdate.follow_up_date = toDateStr(qbEst.TxnDate);
-        if (Object.keys(leadUpdate).length > 0) {
-          await rda.update('Lead', matchedLead.id, leadUpdate).catch(() => {});
-        }
+        // (Removed two Base44-era lead writes that could never succeed:
+        //  - handoff_estimate_status 'awaiting_qb' → 'synced': no such column,
+        //    and nothing ever sets 'awaiting_qb';
+        //  - copying the QB estimate date into appointment_date/follow_up_date:
+        //    leads has no appointment_date, so Postgres rejected the whole
+        //    UPDATE (follow_up_date included). It must not be "fixed" either —
+        //    an Appointment is only ever an appointments row written by
+        //    bookingService, and the Follow-Up is independent of estimates.)
 
       } else {
         stats.unmatched++;

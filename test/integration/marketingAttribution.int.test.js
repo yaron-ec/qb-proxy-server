@@ -547,10 +547,11 @@ test('N1. legacy raw sources map to channel + provider through data; leads.sourc
   const r = await admin('POST', '/api/v1/leads', { first_name: 'Prov', last_name: `${RUN}n1`, phone: phone(), source: 'Yair', assigned_rep: 'Yaron Drilevich' });
   assert.strictEqual(r.status, 201, JSON.stringify(r.body));
   const id = r.body.lead ? r.body.lead.id : r.body.id;
-  const u = await admin('POST', '/api/v1/leads', { first_name: 'Unm', last_name: `${RUN}n1u`, phone: phone(), source: 'Yelp', assigned_rep: 'Yaron Drilevich' });
+  const u = await admin('POST', '/api/v1/leads', { first_name: 'Unm', last_name: `${RUN}n1u`, phone: phone(), source: 'Unmapped Label', assigned_rep: 'Yaron Drilevich' });
   const uid = u.body.lead ? u.body.lead.id : u.body.id;
   // The integration database persists between runs: start from "nothing mapped".
-  await db.query(`DELETE FROM lead_source_mappings WHERE raw_source_key IN ('yair','sharon','ethan','referral','instagram / facebook','other')`);
+  const fileKeys = JSON.parse(require('fs').readFileSync(path.join(ROOT, 'docs/marketing/ec-source-mappings.json'), 'utf8')).mappings.map((x) => x.raw_source.trim().toLowerCase());
+  await db.query('DELETE FROM lead_source_mappings WHERE raw_source_key = ANY($1)', [fileKeys]);
   assert.strictEqual((await attribution(id)).normalized_channel, 'unknown');
   const data = mappings.loadFile(path.join(ROOT, 'docs/marketing/ec-source-mappings.json'));
   assert.deepStrictEqual(data.errors, []);
@@ -598,6 +599,7 @@ test('I1. read-only integrity endpoint: aggregates only (no PII / click ids), re
   assert.strictEqual(r.status, 200, JSON.stringify(r.body));
   assert.deepStrictEqual(r.body.schema.legacy_signnow_lead_columns, { signed_contract_date: false, signed_contract_document_id: false, sold_date: false, sold_by_source: false });
   assert.deepStrictEqual(r.body.schema.legacy_merge_lead_columns, { duplicate_merged: false, last_merge_date: false, merge_count: false });
+  assert.deepStrictEqual(r.body.schema.legacy_qb_handoff_lead_columns, { qb_last_error: false, handoff_estimate_status: false, appointment_date: false, handoff_project_id: false, handoff_project_number: false });
   assert.ok(Object.values(r.body.schema.attribution_columns).every(Boolean));
   assert.ok(r.body.attribution.touches > 0);
   assert.ok(typeof r.body.signnow_sold.main_contracts_signed === 'number');

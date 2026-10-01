@@ -534,8 +534,17 @@ Three things are kept apart and must stay apart:
   Writers canonicalize; `serializeLead` serves canonical spelling for rows
   stored before the fix (`'Appointment Scheduled'` → `'Appointment scheduled'`);
   stored values are not rewritten.
-- `test/leadsColumnWrites.test.js` fails if code writes a `leads` column no
-  migration defines (how the SignNow-Sold and merge defects were hidden).
+- `test/leadsColumnWrites.test.js` fails if ANY backend writer targets a
+  `leads` column no migration defines — literal SQL, every reviewed dynamic
+  SQL builder (`DYNAMIC_SITES`; a new one fails until reviewed) and every
+  `rda.update/create('Lead', …)` payload. No exceptions are allow-listed. This
+  is how the SignNow-Sold, merge, QB sync-error (`qb_last_error`) and Base44-era
+  Handoff/QB writes (`handoff_estimate_status`, `appointment_date`,
+  `handoff_project_*`) were hidden: each failed in Postgres inside a swallowed
+  catch. QB sync failures now set the canonical `qb_last_sync_result='error'`;
+  the dead Handoff/QB lead writes were removed (a lead's Handoff/QB estimates are
+  `handoff_estimates` rows; never copy an estimate date into
+  appointment/follow-up fields); `/handoff/sync-projects` is report-only.
 - No customer data is sent to Google from here. Read-only aggregate check:
   `GET /api/v1/system/attribution-integrity` (System Health auth).
 

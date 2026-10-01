@@ -4,7 +4,7 @@
  *
  *   POST /handoff/sync-estimates-for-lead   Fetch + match estimates for one lead
  *   POST /handoff/sync-all                   System-wide estimate reconciliation
- *   POST /handoff/sync-projects              Fetch + match projects to leads
+ *   POST /handoff/sync-projects              Fetch + match projects to leads (report-only)
  *   POST /handoff/sync-contacts             Fetch + match contacts to leads
  *   POST /handoff/auth/status                Check API key + verify
  *   POST /handoff/auth/store-key              Store hnd_ API key
@@ -172,10 +172,9 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
         }
       }
 
-      // 6. Update lead handoff_estimate_status if awaiting_qb
-      if (lead.handoff_estimate_status === 'awaiting_qb') {
-        await rda.update('Lead', lead.id, { handoff_estimate_status: 'synced' }).catch(function () {});
-      }
+      // 6. (Removed: Base44-era handoff_estimate_status 'awaiting_qb' → 'synced'
+      // update — no such leads column, and nothing ever sets 'awaiting_qb'.
+      // The estimates above are the canonical record of the sync.)
 
       // 7. Update sync cursor
       try {
@@ -362,7 +361,13 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
       }
 
       const leads = await rda.list('Lead', '-created_date', 5000, 0);
-      const stats = { fetched: projects.length, matched: 0, updated: 0, unmatched: 0 };
+      // REPORT-ONLY. This endpoint used to write handoff_project_id /
+      // handoff_project_number onto the matched lead; leads has neither column,
+      // so every write failed (swallowed) while stats.updated still counted it.
+      // A lead's Handoff linkage is its handoff_estimates rows (lead_id); no
+      // new lead columns are added. The match result is returned for review.
+      const stats = { fetched: projects.length, matched: 0, unmatched: 0, report_only: true };
+      const matches = [];
 
       for (const proj of projects) {
         let matchedLead = null;
@@ -375,23 +380,16 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
 
         if (matchedLead) {
           stats.matched++;
-          // Update lead with Handoff project info (idempotent — only updates if different)
-          const updates = {};
-          if (proj.id && matchedLead.handoff_project_id !== proj.id) updates.handoff_project_id = proj.id;
-          if (proj.number && matchedLead.handoff_project_number !== proj.number) updates.handoff_project_number = proj.number;
-          if (Object.keys(updates).length > 0) {
-            await rda.update('Lead', matchedLead.id, updates).catch(function () {});
-            stats.updated++;
-          }
+          matches.push({ project_id: proj.id || null, project_number: proj.number || null, lead_id: matchedLead.id });
         } else {
           stats.unmatched++;
         }
       }
 
-      console.log('[handoff] sync-projects: fetched=' + stats.fetched +
-        ' matched=' + stats.matched + ' updated=' + stats.updated + ' unmatched=' + stats.unmatched);
+      console.log('[handoff] sync-projects (report-only): fetched=' + stats.fetched +
+        ' matched=' + stats.matched + ' unmatched=' + stats.unmatched);
 
-      return res.json({ success: true, stats: stats });
+      return res.json({ success: true, stats: stats, matches: matches });
     } catch (e) {
       console.error('[handoff] sync-projects error:', e.message);
       return res.status(500).json({ success: false, error: e.message });
