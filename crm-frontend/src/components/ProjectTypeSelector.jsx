@@ -1,13 +1,28 @@
 import { useState, useEffect } from "react";
 import * as railwaySettings from "@/api/railway/settings";
+import { EC_PROJECT_TYPES } from "@/lib/projectTypes";
 import { X, Loader2 } from "lucide-react";
 
 export default function ProjectTypeSelector({ value, onSave, label = "Project Type" }) {
   const [showModal, setShowModal] = useState(false);
-  const [projectTypes, setProjectTypes] = useState([]);
+  // Default to the canonical EC_PROJECT_TYPES list (lib/projectTypes.js) —
+  // the same pattern LeadCapture.jsx/Settings.jsx/LeadDetailModern.jsx use —
+  // so the modal always has options to show. GET /api/v1/settings/app_lists
+  // (below) is admin/manager-only (routes/settings.js#requireAdminOrManager);
+  // a sales_rep editing their own deal's Project Type would get a 403 there,
+  // and the setting may also simply never have been saved. Either way this
+  // is a non-fatal, optional override — never the only source, which is what
+  // previously left this component's list (and thus the modal body) empty.
+  const [projectTypes, setProjectTypes] = useState(EC_PROJECT_TYPES);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [saving, setSaving] = useState(false);
+
+  const parseValue = (v) => {
+    if (!v) return [];
+    return Array.isArray(v) ? v : String(v).split(",").map(x => x.trim()).filter(Boolean);
+  };
 
   useEffect(() => {
     loadProjectTypes();
@@ -15,23 +30,26 @@ export default function ProjectTypeSelector({ value, onSave, label = "Project Ty
 
   useEffect(() => {
     // Parse initial value (can be comma-separated string or array)
-    if (value) {
-      const types = Array.isArray(value) 
-        ? value 
-        : String(value).split(",").map(v => v.trim()).filter(v => v);
-      setSelectedTypes(types);
-    }
+    setSelectedTypes(parseValue(value));
   }, [value]);
 
   const loadProjectTypes = async () => {
     setLoading(true);
+    setLoadError(false);
     try {
       const settings = await railwaySettings.get("app_lists");
-      if (settings && settings.value?.projectTypes) {
+      // Only override the canonical default when the live setting actually
+      // has a non-empty list — an empty/missing value must never blank out
+      // the options the user already saw from EC_PROJECT_TYPES.
+      if (settings && Array.isArray(settings.value?.projectTypes) && settings.value.projectTypes.length > 0) {
         setProjectTypes(settings.value.projectTypes);
       }
     } catch (e) {
+      // Non-fatal — the canonical EC_PROJECT_TYPES default (already in
+      // state) remains fully usable. Common cause: 403 for a non-admin/
+      // manager role (see comment above the projectTypes state).
       console.error("Error loading project types:", e);
+      setLoadError(true);
     }
     setLoading(false);
   };
@@ -42,11 +60,27 @@ export default function ProjectTypeSelector({ value, onSave, label = "Project Ty
     );
   };
 
+  // Discards any unsaved checkbox changes by resetting to the last saved
+  // `value` before closing — so a cancelled edit never leaks into the next
+  // time the modal is opened.
+  const handleClose = () => {
+    setSelectedTypes(parseValue(value));
+    setShowModal(false);
+  };
+
   const handleSave = async () => {
     setSaving(true);
-    await onSave(selectedTypes);
-    setSaving(false);
-    setShowModal(false);
+    try {
+      await onSave(selectedTypes);
+      setShowModal(false);
+    } catch (e) {
+      // Keep the modal open on failure — never close as if the save
+      // succeeded. The caller (e.g. DealDetail.jsx's updateField) is
+      // responsible for surfacing the actual error message.
+      console.error("Error saving project type:", e);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const displayValue = Array.isArray(value) 
@@ -76,29 +110,38 @@ export default function ProjectTypeSelector({ value, onSave, label = "Project Ty
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowModal(false)}>
-          <div 
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={handleClose}>
+          <div
             className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md mx-4"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-slate-900">Select {label}s</h3>
-              <button 
-                onClick={() => setShowModal(false)}
+              <button
+                onClick={handleClose}
                 className="p-1 hover:bg-slate-100 rounded transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-5 h-5 text-amber-600 animate-spin" />
+            {projectTypes.length === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-2 py-8 text-center">
+                {loading ? (
+                  <Loader2 className="w-5 h-5 text-amber-600 animate-spin" />
+                ) : (
+                  <p className="text-sm text-slate-400">No project types configured.</p>
+                )}
               </div>
             ) : (
               <div className="space-y-2 max-h-80 overflow-y-auto mb-4">
+                {loadError && (
+                  <p className="text-xs text-slate-400 px-1 pb-1">
+                    Showing the default list — couldn't load custom settings.
+                  </p>
+                )}
                 {projectTypes.map(type => (
-                  <label 
+                  <label
                     key={type}
                     className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors"
                   >
@@ -116,7 +159,7 @@ export default function ProjectTypeSelector({ value, onSave, label = "Project Ty
 
             <div className="flex gap-2">
               <button
-                onClick={() => setShowModal(false)}
+                onClick={handleClose}
                 className="flex-1 px-4 py-2 text-sm font-semibold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
               >
                 Cancel

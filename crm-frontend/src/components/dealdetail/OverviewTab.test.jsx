@@ -10,8 +10,9 @@
  * fact, not something a user can silently overwrite).
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor, within, fireEvent } from '@testing-library/react';
 import OverviewTab from './OverviewTab';
+import { EC_PROJECT_TYPES } from '@/lib/projectTypes';
 
 const getTimeline = vi.fn();
 vi.mock('@/api/railway/dealTimeline', () => ({
@@ -19,8 +20,9 @@ vi.mock('@/api/railway/dealTimeline', () => ({
 }));
 vi.mock('@/api/railway/deals', () => ({ update: vi.fn() }));
 vi.mock('@/api/railway/leads', () => ({ update: vi.fn() }));
+const getSetting = vi.fn().mockResolvedValue({ app_lists: { project_types: [] } });
 vi.mock('@/api/railway/settings', () => ({
-  get: vi.fn().mockResolvedValue({ app_lists: { project_types: [] } }),
+  get: (...args) => getSetting(...args),
   list: vi.fn().mockResolvedValue({ items: [] }),
 }));
 
@@ -81,5 +83,38 @@ describe('OverviewTab — page width (production review: narrow column left most
     await waitFor(() => expect(screen.getByText('CLIENT')).toBeInTheDocument());
     const grid = screen.getByText('CLIENT').closest('.card-premium').parentElement;
     expect(grid.className).toContain('lg:grid-cols-[minmax(280px,380px)_1fr]');
+  });
+});
+
+describe('OverviewTab — Project Type editor (production defect: modal opened with an empty body)', () => {
+  beforeEach(() => { getSetting.mockClear(); });
+
+  it('REGRESSION: clicking Project Type opens a modal populated with the full canonical EC_PROJECT_TYPES list, with the deal\'s saved type pre-selected', async () => {
+    getTimeline.mockResolvedValue({ events: [] });
+    render(<OverviewTab deal={baseDeal({ project_type: 'Kitchen Remodel' })} lead={lead} updateField={noop} setDeal={noop} setLead={noop} saving={null} />);
+    await waitFor(() => expect(screen.getByText('CLIENT')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByText('Project Type'));
+    await waitFor(() => expect(screen.getByRole('checkbox', { name: 'Kitchen Remodel' })).toBeChecked());
+    // The full canonical vocabulary is present, not an empty body.
+    for (const type of EC_PROJECT_TYPES) expect(screen.getByRole('checkbox', { name: type })).toBeInTheDocument();
+  });
+
+  it('REGRESSION: saving a new Project Type calls updateField("project_type", ...) — the SAME existing Deal field, never a new record', async () => {
+    getTimeline.mockResolvedValue({ events: [] });
+    const updateField = vi.fn().mockResolvedValue(undefined);
+    render(<OverviewTab deal={baseDeal({ project_type: 'Roofing' })} lead={lead} updateField={updateField} setDeal={noop} setLead={noop} saving={null} />);
+    await waitFor(() => expect(screen.getByText('CLIENT')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByText('Project Type'));
+    await waitFor(() => expect(screen.getByRole('checkbox', { name: 'Roofing' })).toBeChecked());
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Kitchen Remodel' }));
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(updateField).toHaveBeenCalledWith('project_type', 'Roofing, Kitchen Remodel'));
+    // updateField (DealDetail.jsx) only ever calls railwayDeals.update()/
+    // railwayLeads.update() for this field (confirmed by inspection) — this
+    // component never calls a create endpoint of its own.
+    expect(updateField).toHaveBeenCalledTimes(1);
   });
 });

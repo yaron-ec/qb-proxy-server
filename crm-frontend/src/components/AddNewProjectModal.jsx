@@ -3,6 +3,7 @@ import * as railwaySettings from "@/api/railway/settings";
 import * as railwayDeals from "@/api/railway/deals";
 import { useNavigate } from "react-router-dom";
 import { X, Loader2 } from "lucide-react";
+import { EC_PROJECT_TYPES } from "@/lib/projectTypes";
 
 // A field label matching the standard pattern used across the CRM (see
 // components/financials/*.jsx's inline label pattern) — this modal was the
@@ -14,20 +15,12 @@ function FieldLabel({ children, className = "" }) {
 
 const OWNERS = ["Yaron Drilevich", "Ethan Magen", "Michelle"];
 
-const DEFAULT_JOB_TYPES = [
-  "Roofing",
-  "Kitchen remodel",
-  "Bathroom remodel",
-  "ADU / garage conversion",
-  "Addition",
-  "Landscaping / Hardscaping",
-  "Pool",
-  "Flooring",
-  "Painting",
-  "Windows",
-  "Doors",
-  "Other"
-];
+// Canonical source (lib/projectTypes.js) — this used to be its own hardcoded
+// list, diverging from EC_PROJECT_TYPES in both casing and membership (e.g.
+// "Kitchen remodel" vs "Kitchen Remodel", "Doors" not a canonical type at
+// all). Using EC_PROJECT_TYPES here keeps the vocabulary identical to every
+// other Project Type editor in the CRM.
+const DEFAULT_JOB_TYPES = EC_PROJECT_TYPES;
 
 const getTodayDate = () => {
   const today = new Date();
