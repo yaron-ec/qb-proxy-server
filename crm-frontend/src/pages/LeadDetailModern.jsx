@@ -919,7 +919,20 @@ export function EditableField({ label, value, onSave, type = "text", options = [
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const rawValue = (value === "—" || value === null || value === undefined) ? "" : String(value);
-  const parseMulti = (v) => (v && v !== "—" ? String(v).split(",").map(x => x.trim()).filter(Boolean) : []);
+  // Maps a stored token to its canonical casing from `options`, case-
+  // insensitively (e.g. a legacy "ADU / garage conversion" stored value must
+  // match the canonical "ADU / Garage Conversion" checkbox). Without this, a
+  // case/formatting difference between a stored value and the canonical
+  // option it represents means the checkbox never shows as selected, AND
+  // toggling that same checkbox later ADDS a second, differently-cased entry
+  // instead of removing the existing one — silently duplicating the same
+  // real-world type under two spellings. Falls back to the raw token when no
+  // canonical equivalent exists in the current options list.
+  const canonicalizeMulti = (raw) => {
+    const normalized = options.map(normalizeOptionLabel).filter(Boolean);
+    return normalized.find(o => o.toLowerCase() === raw.toLowerCase()) || raw;
+  };
+  const parseMulti = (v) => (v && v !== "—" ? String(v).split(",").map(x => x.trim()).filter(Boolean).map(canonicalizeMulti) : []);
   const [editVal, setEditVal] = useState(rawValue);
   const [selectedMulti, setSelectedMulti] = useState(() => type === "multiselect" ? parseMulti(value) : []);
 
