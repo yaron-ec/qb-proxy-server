@@ -123,6 +123,20 @@ test('1. fresh company installation from an empty DB: bootstrap succeeds, create
   assert.strictEqual(leadRows[0].n, 0, 'zero leads in a fresh installation — no EC customer data');
   const { rows: ownerRows } = await db.query('SELECT count(*)::int AS n FROM owners');
   assert.strictEqual(ownerRows[0].n, 0, 'zero owners in a fresh installation — no EC rep data');
+
+  // REGRESSION: db/migrations/2026-36-restore-lead-sources.sql previously
+  // unconditionally force-wrote EC's own named lead sources ("Sharon",
+  // "Yair", "Ethan") into app_settings.app_lists on EVERY database that
+  // replays the full migration chain, including this fresh one — guarded
+  // (on `owners` having at least one row) specifically so this can never
+  // happen to a new installation again.
+  const { rows: appListsRows } = await db.query(`SELECT value FROM app_settings WHERE key = 'app_lists'`);
+  if (appListsRows[0]) {
+    const sources = appListsRows[0].value?.sources || [];
+    for (const ecOnlyName of ['Sharon', 'Yair', 'Ethan']) {
+      assert.ok(!sources.includes(ecOnlyName), `fresh installation's lead sources must never include EC's own named individual "${ecOnlyName}"`);
+    }
+  }
 });
 
 

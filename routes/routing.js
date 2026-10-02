@@ -41,8 +41,17 @@ const requireAdmin = requireRole('admin');
 
 // ── Config: owner starting locations ────────────────────────────────────────
 
-// Default starting locations. Yaron = Woodland Hills (EC Construction office).
-// Other owners must be configured via PUT /owner-config.
+// PRODUCTIZATION: this is EC's own bootstrap data, not a universal product
+// default — a fresh installation has nobody named "Yaron Drilevich" and
+// this map correctly resolves to nothing for them. buildOwnerRoute() below
+// already degrades gracefully when an owner has no configured starting
+// location: it simply skips the travel-time/required-departure calculation
+// for that owner's FIRST appointment of the day (every subsequent leg still
+// computes normally from the previous appointment's address) — it never
+// errors or fabricates a location. Every owner, EC's included, should be
+// configured via PUT /owner-config (Settings UI) rather than relying on
+// this map; it exists only so EC's own pre-Settings-UI behavior didn't
+// regress when this config surface was added.
 const DEFAULT_OWNER_STARTS = {
   'Yaron Drilevich': {
     name: 'Woodland Hills Office',

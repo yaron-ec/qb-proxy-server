@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { fmt12 } from "@/pages/DailyMap";
 import { formatPhone, toTitleCase } from "@/lib/formatters";
-import { OWNER_COLORS } from "@/pages/DailyMap";
+import { getOwnerColor } from "@/lib/ownerColors";
 
 // Same contract as MapView: contactOwners defaults to [] and appointments
 // to [] so an omitted/undefined collection renders an empty list instead
@@ -38,7 +38,7 @@ export default function AppointmentList({ appointments = [], selectedLead, onSel
 
       {appointments.map((appt, idx) => {
         const isSelected = selectedLead === appt.id;
-        const colorCfg = appt.colorConfig || OWNER_COLORS[appt.assigned_rep] || OWNER_COLORS["Unassigned"];
+        const colorCfg = appt.colorConfig || getOwnerColor(appt.assigned_rep);
         const hasRoute = !!appt.requiredDeparture;
         const hasConflict = !!appt.conflict;
         const hasNoStart = !!appt.hasNoStartConfig;

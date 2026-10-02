@@ -7,7 +7,14 @@ import { formatPhone, toTitleCase } from "@/lib/formatters";
 import MapView from "@/components/dailymap/MapView";
 import AppointmentList from "@/components/dailymap/AppointmentList";
 import MapFilters from "@/components/dailymap/MapFilters";
+import { getOwnerColor } from "@/lib/ownerColors";
 
+// PRODUCTIZATION: EC's own known email-alias list (a sales_rep user whose
+// login email differs from their stored full_name) — see
+// crm-frontend/src/lib/ownerColors.js's header comment for why this class
+// of hardcoded EC roster data is safe to leave as-is: any non-matching
+// email (every user at any other installation) correctly falls back to
+// the real `user.full_name` wherever this map is consulted.
 const USER_OWNER_MAP = {
   'yaron@ecconstructiongroup.com': 'Yaron Drilevich',
   'ethan@ecconstructiongroup.com': 'Ethan Magen',
@@ -17,17 +24,15 @@ const USER_OWNER_MAP = {
   'karen@ecconstructiongroup.com': 'Karen',
 };
 
-const OWNER_COLORS = {
-  "Yaron Drilevich": { bg: "#3B82F6", text: "white", label: "Yaron" },
-  "Ethan Magen":     { bg: "#10B981", text: "white", label: "Ethan" },
-  "Micky Gad":       { bg: "#F59E0B", text: "white", label: "Micky" },
-  "Matt":            { bg: "#8B5CF6", text: "white", label: "Matt" },
-  "Karen":           { bg: "#EC4899", text: "white", label: "Karen" },
-  "Michelle Ecenski":{ bg: "#F97316", text: "white", label: "Michelle" },
-  "Unassigned":      { bg: "#6B7280", text: "white", label: "Unassigned" },
-};
-
-export { OWNER_COLORS };
+// PRODUCTIZATION: color resolution moved to lib/ownerColors.js#getOwnerColor,
+// which keeps EC's own hand-picked colors for these names (cosmetic nicety,
+// no behavior change for EC) but — unlike this file's own previous inline
+// OWNER_COLORS object — generates an equally distinct color for ANY other
+// rep name instead of flattening every one of a new installation's real
+// reps to the same gray "Unassigned". Every consumer
+// (components/dailymap/AppointmentList.jsx, pages/MobileDayView.jsx) now
+// imports getOwnerColor directly instead of this file's old OWNER_COLORS
+// object, which has been removed.
 
 function getTodayLocal() {
   const d = new Date();
@@ -118,7 +123,7 @@ export default function DailyMap({ date: controlledDate, onDateChange, hideDateP
 
       const appts = (data.appointments || []).map(a => ({
         ...a,
-        colorConfig: OWNER_COLORS[a.assigned_rep] || OWNER_COLORS["Unassigned"],
+        colorConfig: getOwnerColor(a.assigned_rep),
         fullAddress: a.verifiedAddress || a.normalizedAddress || `${a.property_address || ''}, ${a.city || ''}, CA`,
       }));
 

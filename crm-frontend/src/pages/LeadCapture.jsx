@@ -9,13 +9,32 @@ import CaptureSlotGrid from "@/components/CaptureSlotGrid";
 
 // Fallback defaults — imported from single source of truth.
 // Canonical Lead Sources match app_settings (key='app_lists') value.sources.
-// Yair is a Lead Provider only — NOT a CRM user/owner/admin.
+// PRODUCTIZATION: generic, universal categories — no named individuals.
+// Previously included "Sharon"/"Yair"/"Ethan", real EC referral
+// partners/staff, as hardcoded canonical defaults on this PUBLIC capture
+// form; a fresh installation would have silently inherited their names.
+// Now matches pages/LeadDetailModern.jsx's DEFAULT_LEAD_SOURCES exactly
+// (previously a pre-existing divergence between the two, now resolved).
+// EC's own real sources list (including Sharon/Yair/Ethan) already lives
+// in EC's own production app_settings row, unaffected by this change.
 const DEFAULT_PROJECT_TYPES = EC_PROJECT_TYPES;
 const DEFAULT_SOURCES = [
-  "Sharon", "Yair", "Yelp", "Instagram / Facebook",
-  "Referral", "Repeat customer", "Ethan", "Website", "Other",
+  "Website", "Google Search", "Google Maps / reviews", "Referral", "Social Media",
+  "Yelp", "Repeat customer", "Other",
 ];
+// DEFAULT_OWNERS: no generic default exists for "who are our sales reps".
+// This PUBLIC, unauthenticated form deliberately does not fetch the live
+// owners/contact-owners list (unlike the authenticated admin Settings UI —
+// exposing a full staff directory on an anonymous public endpoint is a
+// separate product decision, not made here). Left as EC's own bootstrap
+// data with this known limitation flagged rather than guessed at: a new
+// installation must replace this list (and the assigned_rep default below)
+// with its own via its own deployment configuration until a live-fetch
+// design for this field is deliberately decided.
 const DEFAULT_OWNERS = ["Ethan Magen", "Micky Gad", "Yaron Drilevich"];
+// Fallback only if this installation hasn't configured a default owner yet
+// (or the public app-lists fetch fails) — matches AppointmentSlotPicker.jsx.
+const FALLBACK_OWNER_NAME = "Yaron Drilevich";
 
 function fmt12(t) {
   if (!t) return t;
@@ -66,6 +85,12 @@ export default function LeadCapture() {
   const [projectTypes, setProjectTypes] = useState(DEFAULT_PROJECT_TYPES);
   const [sources, setSources] = useState(DEFAULT_SOURCES);
   const [owners, setOwners] = useState(DEFAULT_OWNERS);
+  // The single shared calendar this form's availability picker books
+  // against (see fetchCaptureAvailability calls below) — resolved from
+  // this installation's own company_settings.default_owner_name.
+  // FALLBACK_OWNER_NAME only applies before the fetch below resolves, or if
+  // it fails (matches AppointmentSlotPicker.jsx's identical pattern).
+  const [calendarOwnerName, setCalendarOwnerName] = useState(FALLBACK_OWNER_NAME);
 
   // Fetch canonical Lead Sources + Project Types from app_settings (key='app_lists')
   // on mount. Falls back to DEFAULT_* if the public endpoint is unavailable.
@@ -76,6 +101,7 @@ export default function LeadCapture() {
         if (cancelled) return;
         if (data?.leadSources?.length) setSources(data.leadSources);
         if (data?.projectTypes?.length) setProjectTypes(data.projectTypes);
+        if (data?.defaultOwnerName) setCalendarOwnerName(data.defaultOwnerName);
       })
       .catch(() => { /* fallback to DEFAULT_* — non-critical */ });
     return () => { cancelled = true; };
@@ -87,10 +113,13 @@ export default function LeadCapture() {
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [slotsError, setSlotsError] = useState(null);
 
-  // Fetch Yaron's blocked slots from the Railway availability endpoint whenever
-  // a date is selected. Availability is always shown for Yaron Drilevich per the
-  // lead-entry flow. The Railway availabilityService applies the 1hr-before +
-  // duration + 1hr-after buffer rule and merges overlapping windows.
+  // Fetch this installation's single shared calendar's (calendarOwnerName,
+  // resolved above from company_settings.default_owner_name) blocked slots
+  // from the Railway availability endpoint whenever a date is selected —
+  // the lead-entry flow always shows that one calendar, regardless of which
+  // rep this lead is being assigned to. The Railway availabilityService
+  // applies the 1hr-before + duration + 1hr-after buffer rule and merges
+  // overlapping windows.
   useEffect(() => {
     if (!form.appointment_date) {
       setBlockedSlots([]);
@@ -100,7 +129,7 @@ export default function LeadCapture() {
     let cancelled = false;
     setSlotsLoading(true);
     setSlotsError(null);
-    fetchCaptureAvailability({ owner: 'Yaron Drilevich', date: form.appointment_date })
+    fetchCaptureAvailability({ owner: calendarOwnerName, date: form.appointment_date })
       .then(data => {
         if (cancelled) return;
         setBlockedSlots(data?.blocked_slots || []);
@@ -290,7 +319,7 @@ export default function LeadCapture() {
       if (isConflict) {
         setForm(p => ({ ...p, appointment_time: "" }));
         if (form.appointment_date) {
-          fetchCaptureAvailability({ owner: 'Yaron Drilevich', date: form.appointment_date })
+          fetchCaptureAvailability({ owner: calendarOwnerName, date: form.appointment_date })
             .then(d => setBlockedSlots(d?.blocked_slots || []))
             .catch(() => {});
         }
@@ -469,6 +498,7 @@ export default function LeadCapture() {
                   error={slotsError}
                   canOverride={canOverride}
                   overrideSelected={overrideActive}
+                  ownerName={calendarOwnerName.split(/\s+/)[0]}
                 />
                 {overrideActive && (
                   <div className="flex items-start gap-2 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 text-[11px] text-amber-800 font-medium">
@@ -481,7 +511,7 @@ export default function LeadCapture() {
             )}
             {form.appointment_date && !slotsLoading && !slotsError && blockedSlots.length > 0 && (
               <p className="text-[11px] text-slate-400">
-                {blockedSlots.length} time slot{blockedSlots.length !== 1 ? 's' : ''} unavailable for Yaron Drilevich on this date.
+                {blockedSlots.length} time slot{blockedSlots.length !== 1 ? 's' : ''} unavailable for {calendarOwnerName} on this date.
               </p>
             )}
           </div>

@@ -27,6 +27,7 @@ import * as railwayCompanySettings from '@/api/railway/companySettings';
 
 // Fallback only if this installation hasn't configured a default owner yet.
 const FALLBACK_OWNER_EMAIL = 'yaron@ecconstructiongroup.com';
+const FALLBACK_OWNER_NAME = 'Yaron';
 
 // Default 30-minute slots from 8:30 AM to 6:30 PM (matches the backend's
 // product-default SLOTS). PRODUCTIZATION PHASE 2: the backend's availability
@@ -53,12 +54,17 @@ export default function AppointmentSlotPicker({ date, selectedTime, onSelectTime
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [ownerEmail, setOwnerEmail] = useState(FALLBACK_OWNER_EMAIL);
+  const [ownerName, setOwnerName] = useState(FALLBACK_OWNER_NAME);
 
   useEffect(() => {
     let cancelled = false;
     railwayCompanySettings.get()
-      .then((cfg) => { if (!cancelled && cfg?.default_owner_email) setOwnerEmail(cfg.default_owner_email); })
-      .catch(() => { /* keep FALLBACK_OWNER_EMAIL */ });
+      .then((cfg) => {
+        if (cancelled) return;
+        if (cfg?.default_owner_email) setOwnerEmail(cfg.default_owner_email);
+        if (cfg?.default_owner_name) setOwnerName(cfg.default_owner_name.split(/\s+/)[0]);
+      })
+      .catch(() => { /* keep FALLBACK_OWNER_EMAIL / FALLBACK_OWNER_NAME */ });
     return () => { cancelled = true; };
   }, []);
 
@@ -135,7 +141,7 @@ export default function AppointmentSlotPicker({ date, selectedTime, onSelectTime
     return (
       <div className="text-center py-6 text-sm text-slate-400">
         <Clock className="w-6 h-6 text-slate-300 mx-auto mb-2" />
-        Select a date to view Yaron's availability
+        Select a date to view {ownerName}'s availability
       </div>
     );
   }
@@ -144,7 +150,7 @@ export default function AppointmentSlotPicker({ date, selectedTime, onSelectTime
     return (
       <div className="text-center py-6">
         <Loader2 className="w-5 h-5 text-amber-500 animate-spin mx-auto mb-2" />
-        <p className="text-xs text-slate-500">Loading Yaron's availability for {date}…</p>
+        <p className="text-xs text-slate-500">Loading {ownerName}'s availability for {date}…</p>
       </div>
     );
   }
@@ -180,7 +186,7 @@ export default function AppointmentSlotPicker({ date, selectedTime, onSelectTime
     <div className="space-y-3">
       {/* Summary bar */}
       <div className="flex items-center justify-between text-[11px] text-slate-500 px-1">
-        <span className="font-semibold text-slate-600">Yaron's Schedule</span>
+        <span className="font-semibold text-slate-600">{ownerName}'s Schedule</span>
         <span>{availableCount} of {slots.length} slots available</span>
       </div>
 

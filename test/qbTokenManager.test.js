@@ -295,7 +295,13 @@ test('no second QuickBooks auth path: no raw Bearer QuickBooks fetch and no refr
   const root = path.join(__dirname, '..');
   const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap(e => {
     const f = path.join(d, e.name);
-    if (e.isDirectory()) return ['node_modules', 'test', 'crm-frontend', 'migration-baseline', '.git'].includes(e.name) ? [] : walk(f);
+    // .claude/worktrees holds full repo copies for isolated subagent runs
+    // (Agent tool isolation: "worktree") — without this exclusion, a
+    // background agent running concurrently with this test suite makes this
+    // scan see duplicate (and possibly stale, since a worktree can lag HEAD)
+    // copies of every backend file, causing spurious failures unrelated to
+    // the actual working tree's code.
+    if (e.isDirectory()) return ['node_modules', 'test', 'crm-frontend', 'migration-baseline', '.git', '.claude'].includes(e.name) ? [] : walk(f);
     return f.endsWith('.js') ? [f] : [];
   });
   const offenders = [];
