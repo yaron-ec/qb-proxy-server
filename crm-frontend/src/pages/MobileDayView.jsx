@@ -4,7 +4,8 @@ import * as railwayLeads from "@/api/railway/leads";
 import { Link } from "react-router-dom";
 import { MapPin, Clock, Phone, Mail, MessageSquare, Navigation, Map as MapIcon, List, ChevronDown, ChevronUp, User, RefreshCw, Calendar, AlertTriangle } from "lucide-react";
 import { formatPhone, toTitleCase } from "@/lib/formatters";
-import { fmt12, OWNER_COLORS } from "@/pages/DailyMap";
+import { fmt12 } from "@/pages/DailyMap";
+import { getOwnerColor } from "@/lib/ownerColors";
 
 // Lazy-load the canonical Daily Map page (real routing: traffic-aware travel
 // time, required departure, distance, arrive-10-minutes-early, per-owner
@@ -197,7 +198,7 @@ function QuickActions({ appt }) {
 }
 
 function AppointmentCard({ appt, idx, isSelected, onSelect, ownerColor, isNext }) {
-  const color = ownerColor || OWNER_COLORS["Unassigned"];
+  const color = ownerColor || getOwnerColor(null);
   const address = [appt.property_address, appt.city].filter(Boolean).join(", ");
 
   return (
@@ -400,10 +401,9 @@ export default function MobileDayView() {
     // (Nominatim) for data nothing reads.
     const withAddress = sorted.map((lead) => {
       const addrParts = [lead.property_address, lead.city, "CA"].filter(Boolean);
-      const ownerKey = lead.assigned_rep || "Unassigned";
       return {
         ...lead,
-        colorConfig: OWNER_COLORS[ownerKey] || OWNER_COLORS["Unassigned"],
+        colorConfig: getOwnerColor(lead.assigned_rep),
         fullAddress: addrParts.join(", "),
       };
     });
@@ -509,7 +509,7 @@ export default function MobileDayView() {
               All Reps
             </button>
             {contactOwners.map(owner => {
-              const cfg = OWNER_COLORS[owner];
+              const cfg = getOwnerColor(owner);
               return (
                 <button
                   key={owner}

@@ -38,8 +38,18 @@
  *     "enabled_modules": { "quickbooks": false, "gmail": true, ... },
  *     "admin_name": "Jordan Admin",
  *     "admin_email": "jordan@acme.example",
- *     "admin_password": "set-a-real-password-here"
+ *     "admin_password": "set-a-real-password-here",
+ *     "project_types": ["Kitchen Remodel", "Bathroom Remodel", "Roofing", "Other"],
+ *     "lead_sources": ["Website", "Referral", "Google Search", "Other"],
+ *     "statuses": ["New", "Appointment scheduled", "Sold", "Lost"],
+ *     "contact_owners": ["Jordan Admin"]
  *   }
+ *
+ * project_types/lead_sources/statuses/contact_owners are optional and have
+ * NO env-var form (arrays, not single values). Omitted entirely, bootstrap
+ * writes no app_settings('app_lists') row at all — the frontend's own
+ * generic, universal fallback lists apply until an admin saves Settings.
+ * Never overwrites an existing app_lists row on a repeat bootstrap run.
  *
  * Equivalent environment variables (used only for keys company.json omits):
  *   COMPANY_NAME, COMPANY_LEGAL_NAME, COMPANY_DBA, COMPANY_EMAIL,
@@ -90,6 +100,17 @@ function loadConfig() {
     admin_name: fromFile.admin_name ?? env.BOOTSTRAP_ADMIN_NAME ?? null,
     admin_email: fromFile.admin_email ?? env.BOOTSTRAP_ADMIN_EMAIL ?? null,
     admin_password: fromFile.admin_password ?? env.BOOTSTRAP_ADMIN_PASSWORD ?? null,
+    // Optional, company.json-only (no env-var form — these are arrays, not
+    // single values). project_types/lead_sources/statuses/contact_owners:
+    // this installation's own real lists. Omitted entirely means bootstrap
+    // writes no app_settings('app_lists') row at all, and the frontend's
+    // own generic, universal fallback constants apply until an admin saves
+    // Settings for the first time (see lib/companyConfig.js-adjacent
+    // productization notes in crm-frontend/src/pages/Settings.jsx).
+    project_types: Array.isArray(fromFile.project_types) ? fromFile.project_types : null,
+    lead_sources: Array.isArray(fromFile.lead_sources) ? fromFile.lead_sources : null,
+    statuses: Array.isArray(fromFile.statuses) ? fromFile.statuses : null,
+    contact_owners: Array.isArray(fromFile.contact_owners) ? fromFile.contact_owners : null,
   };
 }
 
@@ -212,6 +233,40 @@ async function ensureCompanySettings(db, cfg) {
   return { created: true, row: rows[0] };
 }
 
+// Seeds app_settings('app_lists') — project types, lead sources, statuses,
+// contact owners — ONLY from explicit company.json values, and ONLY if no
+// app_lists row exists yet (never overwrites real admin-saved settings on a
+// repeat bootstrap run). Writing nothing here is a valid, intentional
+// outcome: the frontend's own generic fallback constants apply until an
+// admin configures these in Settings. This directly closes the gap found
+// in the productization audit where a fresh installation had no supported
+// way to seed its OWN lists at install time, and (separately, fixed in
+// migration 2026-36's own guard) previously could have silently inherited
+// EC's own named lead sources via the migration chain instead.
+async function ensureAppLists(db, cfg) {
+  const hasAny = cfg.project_types || cfg.lead_sources || cfg.statuses || cfg.contact_owners;
+  if (!hasAny) return { created: false, reason: 'no project_types/lead_sources/statuses/contact_owners provided — frontend defaults apply until Settings is saved' };
+
+  const { rows: existing } = await db.query(`SELECT value FROM app_settings WHERE key = 'app_lists'`);
+  if (existing[0]) {
+    return { created: false, reason: 'app_lists already exists — never overwritten by bootstrap' };
+  }
+
+  const value = {};
+  if (cfg.project_types) value.projectTypes = cfg.project_types;
+  if (cfg.lead_sources) value.sources = cfg.lead_sources;
+  if (cfg.statuses) value.statuses = cfg.statuses;
+  if (cfg.contact_owners) value.contactOwners = cfg.contact_owners;
+
+  await db.query(
+    `INSERT INTO app_settings (key, value, type, updated_at)
+     VALUES ('app_lists', $1::jsonb, 'json', NOW())
+     ON CONFLICT (key) DO NOTHING`,
+    [JSON.stringify(value)]
+  );
+  return { created: true, keys: Object.keys(value) };
+}
+
 async function ensureFirstAdmin(db, cfg) {
   const { rows: anyAdmins } = await db.query(`SELECT id, email FROM users WHERE role = 'admin' LIMIT 1`);
   if (anyAdmins[0]) {
@@ -276,6 +331,9 @@ async function main() {
       reason: adminResult.reason || (adminResult.created ? 'created' : 'already existed'),
     };
 
+    const appListsResult = await ensureAppLists(db, cfg);
+    report.steps.app_lists = appListsResult;
+
     report.steps.integrations = integrationEnvStatus();
 
     const { rows: migCount } = await db.query('SELECT count(*)::int AS n FROM schema_migrations');
@@ -299,4 +357,4 @@ if (require.main === module) {
   main().catch((e) => { console.error('[bootstrap] FAILED:', e.message); process.exit(1); });
 }
 
-module.exports = { loadConfig, validateRequiredEnv, integrationEnvStatus, ensureCompanySettings, ensureFirstAdmin };
+module.exports = { loadConfig, validateRequiredEnv, integrationEnvStatus, ensureCompanySettings, ensureFirstAdmin, ensureAppLists };

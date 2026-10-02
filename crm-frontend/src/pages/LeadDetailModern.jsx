@@ -45,13 +45,13 @@ const DEFAULT_PROJECT_TYPES = EC_PROJECT_TYPES;
 // Same default list pages/Settings.jsx's Lead Sources tab (the admin config
 // surface for this value) already pre-populates — reused here, not invented,
 // so this field has a real, non-empty default instead of starting at `[]`.
-// (pages/LeadCapture.jsx's public capture form has its own separate, already
-// slightly different default list for the same concept — a pre-existing
-// divergence between the public form and the admin-configured list, flagged
-// here for a future product decision; not resolved in this change.)
+// PRODUCTIZATION: now also matches pages/LeadCapture.jsx's public capture
+// form exactly (previously a pre-existing divergence between the two,
+// AND both lists included "Sharon", a real EC referral partner, as a
+// hardcoded canonical default — fixed to generic, universal categories).
 const DEFAULT_LEAD_SOURCES = [
-  "Website", "Google Search", "Google Maps / reviews", "Referral", "Instagram / Facebook",
-  "YouTube", "Repeat customer", "Sharon", "Other",
+  "Website", "Google Search", "Google Maps / reviews", "Referral", "Social Media",
+  "Yelp", "Repeat customer", "Other",
 ];
 
 // Production defect: a single uncaught render exception anywhere in this

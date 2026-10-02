@@ -150,6 +150,15 @@ test('repMatchCandidates: email + full_name + derived', () => {
   return c.includes('yaron@ecconstructiongroup.com') && c.includes('yaron drilevich');
 });
 
+// PRODUCTIZATION REGRESSION: the "derived" candidate used to hardcode
+// '@ecconstructiongroup.com' regardless of the calling user's own domain,
+// so it was silently useless for any other installation. It must now be
+// derived from the user's OWN email domain.
+test('repMatchCandidates: derived candidate uses the CALLING USER\'s own email domain, not a hardcoded EC domain', () => {
+  const c = m.repMatchCandidates({ email: 'jordan@acme.example', full_name: 'Jordan Admin' });
+  return c.includes('jordan@acme.example') && !c.some(x => x.includes('ecconstructiongroup.com'));
+});
+
 // ── Migration resolution (Railway-native) ────────────────────────────────────
 test('planDealMigration: A — legacy lead id resolves → migrated, lead_id = Railway UUID', () => {
   const b44 = { id: 'b44deal-001', lead_id: 'b44lead-joann', name: 'Joann', amount: 4724 };

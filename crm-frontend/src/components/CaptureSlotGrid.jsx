@@ -39,7 +39,7 @@ function fmt12(t) {
 
 export default function CaptureSlotGrid({
   date, selectedTime, onSelectTime, blockedSlots, loading, error, onRetry,
-  canOverride = false, overrideSelected = false, slots,
+  canOverride = false, overrideSelected = false, slots, ownerName = "Yaron",
 }) {
   const effectiveSlots = Array.isArray(slots) && slots.length ? slots : DEFAULT_SLOTS;
   const morning = effectiveSlots.filter((s) => parseInt(s.split(":")[0], 10) < 12);
@@ -160,7 +160,7 @@ export default function CaptureSlotGrid({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between text-[11px] text-slate-500 px-1">
-        <span className="font-semibold text-slate-600">Yaron's Availability</span>
+        <span className="font-semibold text-slate-600">{ownerName}'s Availability</span>
         <span>{availableCount} of {effectiveSlots.length} open</span>
       </div>
 

@@ -1,5 +1,3 @@
-import { OWNER_COLORS } from "@/pages/DailyMap";
-
 export default function MapFilters({
   ownerFilter, setOwnerFilter,
   cityFilter, setCityFilter,

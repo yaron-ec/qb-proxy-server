@@ -44,11 +44,26 @@ const DEFAULT_STATUSES = [
   "Appointment scheduled", "Answered, no appointment set", "No answer", "Proposal Sent", "No show", "DNQ", "Sold", "Lost"
 ];
 const DEFAULT_PROJECT_TYPES = EC_PROJECT_TYPES;
+// PRODUCTIZATION: generic, universal lead-source categories — no named
+// individuals. This list previously included "Sharon", a real EC referral
+// partner, as a hardcoded canonical default; a fresh installation would
+// have silently inherited her name as one of its own "lead source" options
+// before ever saving real settings. EC's own real sources list (including
+// Sharon/Yair/Ethan as referral-partner entries) already lives in EC's own
+// production app_settings row, unaffected by this change.
 const DEFAULT_SOURCES = [
-  "Website", "Google Search", "Google Maps / reviews", "Referral", "Instagram / Facebook",
-  "YouTube", "Repeat customer", "Sharon", "Other"
+  "Website", "Google Search", "Google Maps / reviews", "Referral", "Social Media",
+  "Yelp", "Repeat customer", "Other"
 ];
-const DEFAULT_CONTACT_OWNERS = ["Ethan Magen", "Micky Gad", "Yaron Drilevich"];
+// PRODUCTIZATION: no generic default exists for "who are our sales reps" —
+// unlike project types/lead sources, there is no universal placeholder
+// roster. Previously hardcoded EC's own staff names here, which a fresh
+// installation would see pre-populated in this editor before ever adding
+// its own users/owners. Empty is the honest default: Settings.jsx already
+// fetches the real saved list on mount and only falls back to this
+// constant before that resolves or if the fetch fails (see
+// SettingsLoadWarning above, which already surfaces that failure visibly).
+const DEFAULT_CONTACT_OWNERS = [];
 
 const NAV_SECTIONS = [
   {

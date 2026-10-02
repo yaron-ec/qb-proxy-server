@@ -2359,6 +2359,10 @@ app.listen(PORT, async () => {
     } else {
       cronLib.schedule('*/15 * * * *', async () => {
         const t = new Date().toISOString();
+        if (!(await require('./lib/companyConfig').isModuleEnabled('quickbooks'))) {
+          console.log(`[qb-cron] tick ${t} — skipped, quickbooks module disabled for this installation`);
+          return;
+        }
         console.log(`[qb-cron] tick ${t}`);
         try {
           const r = await runQbEstimateSync();

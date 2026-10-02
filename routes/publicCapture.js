@@ -75,9 +75,16 @@ router.get('/app-lists', appListsLimiter, async (req, res) => {
   try {
     const r = await query("SELECT value FROM app_settings WHERE key = 'app_lists'");
     const appLists = (r.rows[0] && r.rows[0].value) || {};
+    // defaultOwnerName: which single calendar this form's availability picker
+    // books against (see crm-frontend/src/pages/LeadCapture.jsx — previously
+    // hardcoded 'Yaron Drilevich' here regardless of installation). Not
+    // sensitive — it is the same name a booked appointment would already
+    // show externally — so safe on this public, unauthenticated endpoint.
+    const defaultOwnerName = (await require('../lib/companyConfig').getCompanyConfig()).default_owner_name || null;
     res.json({
       projectTypes: appLists.projectTypes || [],
       leadSources: appLists.sources || [],
+      defaultOwnerName,
     });
   } catch (e) {
     console.error('[publicCapture:app-lists] error:', e.message);
@@ -99,8 +106,17 @@ router.get('/availability', availLimiter, async (req, res) => {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return res.status(400).json({ error: 'invalid_date', message: 'date must be YYYY-MM-DD' });
     }
-    const ownerEmail = resolveOwnerEmail(owner);
-    if (!ownerEmail || !isValidOwnerEmail(ownerEmail)) {
+    // Resolve against THIS installation's own email domain/timezone — same
+    // pattern as the POST handler below. Found in the productization audit:
+    // this route previously defaulted to EC's domain and a hardcoded
+    // America/Los_Angeles timezone regardless of installation, so a
+    // non-EC company's rep email (e.g. john@acme.example) would never
+    // match and every public availability check 400'd with invalid_owner.
+    const companyConfig = require('../lib/companyConfig');
+    const ownerDomain = (await companyConfig.getCompanyEmailDomain()) || undefined;
+    const timezone = await companyConfig.getTimezone();
+    const ownerEmail = resolveOwnerEmail(owner, ownerDomain);
+    if (!ownerEmail || !isValidOwnerEmail(ownerEmail, ownerDomain)) {
       return res.status(400).json({ error: 'invalid_owner', message: 'owner not recognized' });
     }
     const r = await query('SELECT id FROM owners WHERE lower(email) = lower($1) AND is_active = true', [ownerEmail]);
@@ -108,7 +124,7 @@ router.get('/availability', availLimiter, async (req, res) => {
     // Always run availability (Postgres + Google). A missing owner row means no
     // Postgres appointments, but Google Calendar is still read for the date.
     const result = await getAvailability({
-      owner_id, date, timezone: 'America/Los_Angeles', duration_minutes: duration,
+      owner_id, date, timezone, duration_minutes: duration,
     });
     res.json({
       date, timezone: result.timezone, duration_minutes: result.duration_minutes,

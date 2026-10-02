@@ -398,10 +398,16 @@ test('K. A legacy Phone Call row never blocks, never gets an event re-created, a
   // Reversible: report-only changes nothing; APPLY=1 restores exactly.
   const script = path.join(__dirname, '../../scripts/revertLegacyPhoneCallConversion.js');
   const env = { ...process.env, DATABASE_URL: DB_URL, APPOINTMENT_ID: legacy.id };
-  const dry = JSON.parse(spawnSync(process.execPath, [script], { env, encoding: 'utf8' }).stdout);
+  // installationIdentity's gate needs the ACTUAL identity of whatever shares
+  // this test database (other integration test files may have already
+  // bootstrapped a company_settings row with a generated name) — never a
+  // fixed guess.
+  const installId = (await rows('SELECT installation_id, company_name FROM company_settings ORDER BY created_at ASC LIMIT 1'))[0];
+  const confirmFlag = `--confirm-installation=${installId ? (installId.installation_id || installId.company_name) : 'unconfigured-test-db'}`;
+  const dry = JSON.parse(spawnSync(process.execPath, [script, confirmFlag], { env, encoding: 'utf8' }).stdout);
   assert.deepStrictEqual([dry.mode, dry.reverted], ['REPORT-ONLY', 1]);
   assert.strictEqual((await rows('SELECT status FROM appointments WHERE id = $1', [legacy.id]))[0].status, 'cancelled');
-  const applied = JSON.parse(spawnSync(process.execPath, [script], { env: { ...env, APPLY: '1' }, encoding: 'utf8' }).stdout);
+  const applied = JSON.parse(spawnSync(process.execPath, [script, confirmFlag], { env: { ...env, APPLY: '1' }, encoding: 'utf8' }).stdout);
   assert.strictEqual(applied.reverted, 1);
   assert.strictEqual((await rows('SELECT status FROM appointments WHERE id = $1', [legacy.id]))[0].status, 'scheduled');
   const restored = (await rows('SELECT * FROM leads WHERE id = $1', [id]))[0];
