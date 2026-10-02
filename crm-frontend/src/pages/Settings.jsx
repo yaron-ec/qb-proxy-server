@@ -25,6 +25,21 @@ import OwnerDirectoryTab from "../components/OwnerDirectoryTab";
 import ReminderEngineStatus from "../components/ReminderEngineStatus";
 import CrmAuditDashboard from "../components/CrmAuditDashboard";
 
+// Shown on the Statuses/Project Types/Sources/Contact Owners editors when
+// their backing app_lists fetch failed — the lists shown are the
+// hardcoded canonical defaults, NOT necessarily what's actually saved, so
+// adding/removing an item here and saving could silently overwrite a real
+// saved list. Never hidden/silent — the previous behavior.
+function SettingsLoadWarning({ loadError }) {
+  if (!loadError) return null;
+  return (
+    <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 text-xs text-amber-800">
+      <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+      <span>Couldn't load your saved list ({loadError}) — showing defaults instead. Reload the page before making changes, or you may overwrite your real saved settings.</span>
+    </div>
+  );
+}
+
 const DEFAULT_STATUSES = [
   "Appointment scheduled", "Answered, no appointment set", "No answer", "Proposal Sent", "No show", "DNQ", "Sold", "Lost"
 ];
@@ -123,6 +138,13 @@ export default function Settings() {
   const [newContactOwner, setNewContactOwner] = useState("");
   const [settingsId, setSettingsId] = useState(null);
   const [syncSubTab, setSyncSubTab] = useState("hubspot");
+  // When the app_lists fetch fails (network error, or a non-admin role that
+  // can't read it), the state vars above silently stay at their canonical
+  // DEFAULT_* values — which looks identical to "no custom list was ever
+  // saved". Saving from that state would then overwrite a REAL saved list
+  // with just the hardcoded defaults. Tracked separately so the editors can
+  // warn before that happens, instead of silently risking data loss.
+  const [listsLoadError, setListsLoadError] = useState(null);
 
   useEffect(() => {
     railwaySettings.get("app_lists").then(s => {
@@ -133,7 +155,7 @@ export default function Settings() {
         if (s.value?.sources) setSources(s.value.sources);
         if (s.value?.contactOwners) setContactOwners(s.value.contactOwners);
       }
-    }).catch(() => {});
+    }).catch((e) => setListsLoadError(e?.message || 'Failed to load saved settings.'));
   }, []);
 
   if (!userRoleLoaded) return null;
@@ -370,10 +392,10 @@ export default function Settings() {
           {activeTab === "quickbooks" && <QuickBooksMainTab />}
           {activeTab === "properties" && <PropertiesTab />}
 
-          {activeTab === "statuses" && <StatusesTab statuses={statuses} newStatus={newStatus} setNewStatus={setNewStatus} addStatus={addStatus} removeStatus={removeStatus} readOnly={isReadOnly} />}
-          {activeTab === "projectTypes" && <ProjectTypesTab projectTypes={projectTypes} newProjectType={newProjectType} setNewProjectType={setNewProjectType} addProjectType={addProjectType} removeProjectType={removeProjectType} readOnly={isReadOnly} />}
-          {activeTab === "sources" && <SourcesTab sources={sources} newSource={newSource} setNewSource={setNewSource} addSource={addSource} removeSource={removeSource} setSources={(updated) => { setSources(updated); saveListSettings(statuses, projectTypes, updated); }} readOnly={isReadOnly} />}
-          {activeTab === "contactOwners" && <ContactOwnersTab contactOwners={contactOwners} newContactOwner={newContactOwner} setNewContactOwner={setNewContactOwner} addContactOwner={addContactOwner} removeContactOwner={removeContactOwner} readOnly={isReadOnly} />}
+          {activeTab === "statuses" && <StatusesTab statuses={statuses} newStatus={newStatus} setNewStatus={setNewStatus} addStatus={addStatus} removeStatus={removeStatus} readOnly={isReadOnly} loadError={listsLoadError} />}
+          {activeTab === "projectTypes" && <ProjectTypesTab projectTypes={projectTypes} newProjectType={newProjectType} setNewProjectType={setNewProjectType} addProjectType={addProjectType} removeProjectType={removeProjectType} readOnly={isReadOnly} loadError={listsLoadError} />}
+          {activeTab === "sources" && <SourcesTab sources={sources} newSource={newSource} setNewSource={setNewSource} addSource={addSource} removeSource={removeSource} setSources={(updated) => { setSources(updated); saveListSettings(statuses, projectTypes, updated); }} readOnly={isReadOnly} loadError={listsLoadError} />}
+          {activeTab === "contactOwners" && <ContactOwnersTab contactOwners={contactOwners} newContactOwner={newContactOwner} setNewContactOwner={setNewContactOwner} addContactOwner={addContactOwner} removeContactOwner={removeContactOwner} readOnly={isReadOnly} loadError={listsLoadError} />}
           {activeTab === "ownerDirectory" && <OwnerDirectoryTab readOnly={isReadOnly} />}
           {activeTab === "qualification" && <LeadQualificationTab />}
           {activeTab === "email" && <EmailSettingsTab />}
@@ -389,9 +411,10 @@ export default function Settings() {
   );
 }
 
-function StatusesTab({ statuses, newStatus, setNewStatus, addStatus, removeStatus, readOnly }) {
+function StatusesTab({ statuses, newStatus, setNewStatus, addStatus, removeStatus, readOnly, loadError }) {
   return (
     <div className="max-w-3xl">
+      <SettingsLoadWarning loadError={loadError} />
       {!readOnly && (
         <div className="bg-white rounded-lg border border-slate-200 p-6 mb-5">
           <h3 className="typography-card-title mb-4">Add new status</h3>
@@ -422,10 +445,11 @@ function StatusesTab({ statuses, newStatus, setNewStatus, addStatus, removeStatu
   );
 }
 
-function ProjectTypesTab({ projectTypes, newProjectType, setNewProjectType, addProjectType, removeProjectType, readOnly }) {
+function ProjectTypesTab({ projectTypes, newProjectType, setNewProjectType, addProjectType, removeProjectType, readOnly, loadError }) {
   const sorted = [...projectTypes].sort((a, b) => a.localeCompare(b));
   return (
     <div className="max-w-4xl">
+      <SettingsLoadWarning loadError={loadError} />
       {!readOnly && (
         <div className="bg-white rounded-lg border border-slate-200 p-6 mb-5">
           <h3 className="typography-card-title mb-3">Add new project type</h3>
@@ -456,7 +480,7 @@ function ProjectTypesTab({ projectTypes, newProjectType, setNewProjectType, addP
   );
 }
 
-function SourcesTab({ sources, newSource, setNewSource, addSource, removeSource, setSources, readOnly }) {
+function SourcesTab({ sources, newSource, setNewSource, addSource, removeSource, setSources, readOnly, loadError }) {
   const [dragIndex, setDragIndex] = useState(null);
   const [overIndex, setOverIndex] = useState(null);
 
@@ -475,6 +499,7 @@ function SourcesTab({ sources, newSource, setNewSource, addSource, removeSource,
 
   return (
     <div className="max-w-3xl">
+      <SettingsLoadWarning loadError={loadError} />
       {!readOnly && (
         <div className="bg-white rounded-lg border border-slate-200 p-6 mb-5">
           <h3 className="typography-card-title mb-4">Add new lead source</h3>
@@ -534,11 +559,17 @@ function IntegrationsRedirect() {
   );
 }
 
-function ContactOwnersTab({ contactOwners, newContactOwner, setNewContactOwner, addContactOwner, removeContactOwner, readOnly }) {
+function ContactOwnersTab({ contactOwners, newContactOwner, setNewContactOwner, addContactOwner, removeContactOwner, readOnly, loadError }) {
   const [ownerEmails, setOwnerEmails] = useState({});
   const [editingOwner, setEditingOwner] = useState(null);
   const [editEmail, setEditEmail] = useState("");
   const [settingsId, setSettingsId] = useState(null);
+  // A failed owner_emails fetch previously left `ownerEmails` at `{}`
+  // silently. saveOwnerEmail spreads `ownerEmails` into its upsert payload —
+  // so editing ONE owner's email while this fetch had actually failed would
+  // save `{}` plus just that one owner, wiping every OTHER owner's
+  // already-saved custom email. Tracked so the editor can warn first.
+  const [emailsLoadError, setEmailsLoadError] = useState(null);
 
   useEffect(() => {
     railwaySettings.get("owner_emails").then(s => {
@@ -546,21 +577,23 @@ function ContactOwnersTab({ contactOwners, newContactOwner, setNewContactOwner, 
         setSettingsId("owner_emails");
         setOwnerEmails(s.value || {});
       }
-    }).catch(() => {});
+    }).catch((e) => setEmailsLoadError(e?.message || 'Failed to load saved owner emails.'));
   }, []);
 
   const saveOwnerEmail = async (owner, email) => {
     const updated = { ...ownerEmails, [owner]: email };
     setOwnerEmails(updated);
-    
+
     await railwaySettings.upsert("owner_emails", updated, "text");
-    
+
     setEditingOwner(null);
     setEditEmail("");
   };
 
   return (
     <div className="max-w-3xl space-y-6">
+      <SettingsLoadWarning loadError={loadError} />
+      <SettingsLoadWarning loadError={emailsLoadError} />
       {!readOnly && (
         <div className="bg-white rounded-lg border border-slate-200 p-6">
           <h3 className="typography-card-title mb-4">Add contact owner</h3>

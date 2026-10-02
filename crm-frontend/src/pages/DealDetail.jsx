@@ -44,15 +44,26 @@ export default function DealDetail() {
   const [invoices, setInvoices] = useState([]);
   const [activeTab, setActiveTab] = useState("overview");
   const [loadError, setLoadError] = useState(null);
+  // Distinguishes "this deal genuinely has no lead_id" from "it has a
+  // lead_id but fetching that lead failed/was denied" — e.g. a cross-model
+  // authorization divergence where lib/dealModel.js#canAccessDeal grants
+  // this deal (candidate/created_by match) but routes/leads.js's
+  // resolveOwnerScope denies the linked lead itself. Both previously
+  // collapsed into the same `lead: null` via a bare `.catch(() => null)`,
+  // showing the same "No lead linked" message for a genuine non-link as for
+  // a masked authorization failure.
+  const [leadLoadError, setLeadLoadError] = useState(false);
 
   // Refresh deal + lead data after QB actions
   const refreshLead = async () => {
     try {
       const dealRes = await railwayDeals.get(id);
       const d = dealRes?.deal || dealRes;
-      const leadRes = d.lead_id ? await railwayLeads.get(d.lead_id).catch(() => null) : null;
+      let leadFailed = false;
+      const leadRes = d.lead_id ? await railwayLeads.get(d.lead_id).catch(() => { leadFailed = true; return null; }) : null;
       const leadData = leadRes?.lead || null;
       if (leadData) setLead(leadData);
+      setLeadLoadError(!!d.lead_id && leadFailed);
       if (d) setDeal(d);
     } catch { /* non-critical */ }
   };
@@ -63,8 +74,10 @@ export default function DealDetail() {
       try {
         const dealRes = await railwayDeals.get(id);
         const d = dealRes?.deal || dealRes;
-        const leadRes = d.lead_id ? await railwayLeads.get(d.lead_id).catch(() => null) : null;
+        let leadFailed = false;
+        const leadRes = d.lead_id ? await railwayLeads.get(d.lead_id).catch(() => { leadFailed = true; return null; }) : null;
         const leadData = leadRes?.lead || null;
+        setLeadLoadError(!!d.lead_id && leadFailed);
         let invoices = [];
         if (d.lead_id) {
           try {
@@ -232,7 +245,15 @@ export default function DealDetail() {
       )}
       <div className="flex flex-col h-full bg-slate-50 overflow-hidden">
         <DealHeader deal={deal} lead={lead} onAddProject={() => setShowAddProject(true)} onDeleteDeal={handleDeleteDeal} />
-        {!lead && (
+        {!lead && leadLoadError && (
+          <div className="bg-rose-50 border-b border-rose-200 px-4 py-2 flex items-center gap-2 flex-shrink-0">
+            <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+            <p className="text-xs font-semibold text-rose-800">
+              Couldn't load this deal's linked customer — you may not have access to it. Deal fields, financials, and pipeline stages remain editable.
+            </p>
+          </div>
+        )}
+        {!lead && !leadLoadError && (
           <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 flex items-center gap-2 flex-shrink-0">
             <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
             <p className="text-xs font-semibold text-amber-800">

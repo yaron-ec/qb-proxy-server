@@ -1,0 +1,42 @@
+-- =====================================================================
+-- 2026-49-leads-handoff-project-columns.sql
+--
+-- Adds the three Handoff<->Lead linkage columns the application code has
+-- been reading AND writing since before this migration existed, but which
+-- were never actually created on `leads` (found in the system-wide
+-- stability audit):
+--
+--   - handoff_estimate_status  (e.g. 'awaiting_qb' / 'synced')
+--   - handoff_project_id
+--   - handoff_project_number
+--
+-- ROOT CAUSE THIS FIXES: routes/handoffSync.js's POST /sync-projects reads
+-- `matchedLead.handoff_project_id`/`handoff_project_number` (always
+-- undefined, since the columns didn't exist) and so always decided the
+-- Handoff project info had "changed", issuing an UPDATE on every single
+-- matched lead on every sync run. That UPDATE always failed (column does
+-- not exist) and was silently swallowed by a bare `.catch(() => {})` —
+-- so the Handoff project id/number was NEVER actually persisted, while
+-- `stats.updated` was incremented as if it had been. The frontend
+-- (crm-frontend/src/components/HandoffEstimatesPanel.jsx,
+-- crm-frontend/src/pages/LeadsModern.jsx) already reads these three
+-- fields for real UI (the "awaiting QuickBooks" banner and the "Handoff"
+-- source badge) — this was live, consumed functionality that has simply
+-- never worked, not dead/vestigial code to remove.
+--
+-- handoff_estimate_status is also read (never written to 'awaiting_qb'
+-- anywhere in the current codebase, so that specific transition is
+-- presently unreachable) by routes/handoffSync.js, routes/leadQB.js and
+-- server.js — adding the column makes those reads/writes well-formed
+-- instead of erroring, and leaves the "who sets awaiting_qb" question
+-- open for separate, deliberate product work (not this fix's scope).
+--
+-- Idempotent (IF NOT EXISTS). Safe to re-run. All nullable — NULL means
+-- "no Handoff project linkage/status recorded", matching how every call
+-- site already treats a missing value.
+-- Applied via: node db/migrate.js
+-- =====================================================================
+
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS handoff_estimate_status TEXT;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS handoff_project_id TEXT;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS handoff_project_number TEXT;

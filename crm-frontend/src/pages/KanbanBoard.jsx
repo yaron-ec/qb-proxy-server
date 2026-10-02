@@ -29,6 +29,7 @@ export default function KanbanBoard() {
   const navigate = useNavigate();
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [ownerFilter, setOwnerFilter] = useState("all");
   const [contactOwners, setContactOwners] = useState([]);
   const [userRole, setUserRole] = useState(null);
@@ -70,8 +71,12 @@ export default function KanbanBoard() {
         l.first_name && !l.first_name.toLowerCase().includes("unknown")
       );
       setLeads(all);
-    } catch {
-      setLeads([]);
+      setError(null);
+    } catch (e) {
+      // Previously silently set leads to [] here, rendering a "0 leads in
+      // every column" board that looks identical to a genuinely empty
+      // pipeline instead of surfacing the real fetch failure.
+      setError(e.message || "Could not load the pipeline");
     } finally {
       setLoading(false);
     }
@@ -125,6 +130,22 @@ export default function KanbanBoard() {
   if (loading) return (
     <div className="flex items-center justify-center h-full bg-slate-50">
       <div className="w-8 h-8 border-4 border-slate-200 border-t-amber-600 rounded-full animate-spin" />
+    </div>
+  );
+
+  if (error) return (
+    <div className="flex flex-col items-center justify-center h-full gap-4 p-8 text-center bg-slate-50">
+      <AlertCircle className="w-8 h-8 text-red-400" />
+      <div>
+        <p className="text-sm font-semibold text-slate-700">Could not load the pipeline</p>
+        <p className="text-xs text-slate-400 mt-1">{error}</p>
+      </div>
+      <button
+        onClick={loadLeads}
+        className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold rounded-lg transition-colors"
+      >
+        <RefreshCw className="w-4 h-4" /> Retry
+      </button>
     </div>
   );
 

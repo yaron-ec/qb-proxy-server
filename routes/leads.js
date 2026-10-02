@@ -1500,6 +1500,35 @@ router.put('/:id', requireAuth, async (req, res) => {
       } catch (e) { console.warn('[leads] contacts outbox re-enqueue failed (non-fatal):', e.message); }
     }
 
+    // Post-commit: if the owner actually changed and this lead has an active
+    // Appointment, repoint it onto the new owner through the canonical
+    // bookingService.updateAppointment path (conflict-checked, logs an
+    // owner_changed appointment_event, and refreshes the Google Calendar
+    // event's attendee — same mechanism PATCH /appointments/:id uses).
+    // Found in the system-wide stability audit: this route previously only
+    // ever updated leads.owner_id, leaving the appointment's own owner_id
+    // (and its Google Calendar attendee) pointed at the PREVIOUS owner —
+    // so the new owner's availability grid never blocked that slot
+    // (double-booking risk) and never received the calendar invite, while
+    // the old owner kept getting reminders/calendar presence for a lead no
+    // longer theirs. Never writes to `appointments` directly (see
+    // CLAUDE.md's "never insert into appointments anywhere else").
+    if (String(oldLead.owner_id) !== String(fullRow.owner_id)) {
+      try {
+        const activeAppt = await fetchActiveAppointment(fullRow.id);
+        if (activeAppt && String(activeAppt.owner_id) !== String(fullRow.owner_id)) {
+          await bookingService.updateAppointment(activeAppt.id, { owner_id: fullRow.owner_id }, req.user?.email);
+        }
+      } catch (e) {
+        // Non-fatal: the lead's owner change already committed. A conflict
+        // on the new owner's calendar (or any other booking error) is
+        // surfaced here only as a log line, never as a failure of the lead
+        // edit itself — matching every other best-effort post-commit step
+        // in this route.
+        console.warn('[leads] appointment owner re-sync failed (non-fatal):', e.message);
+      }
+    }
+
     const appt = await fetchActiveAppointment(fullRow.id);
     res.json({ lead: serializeLead(fullRow, appt) });
   } catch (e) {

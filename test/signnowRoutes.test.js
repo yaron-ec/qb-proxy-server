@@ -203,6 +203,34 @@ function testWebhookRoute() {
   assert(webhookSource.includes('Contract signed'), 'webhook activity says "Contract signed"');
 }
 
+// ── Test: webhook only writes to real `leads` columns ───────────────────────
+// Regression for a production defect found in the system-wide stability
+// audit: the "mark lead Sold" UPDATE wrote to signed_contract_date,
+// signed_contract_document_id, sold_date, and sold_by_source — NONE of
+// which exist on the `leads` table (sold_date exists only on `deals`; the
+// other three exist nowhere in db/migrations/*.sql). Every signature threw
+// a Postgres "column does not exist" error, silently caught by the route's
+// outer try/catch (which returns 200 processed:false to stop SignNow
+// retries) — so the lead was NEVER actually marked Sold, the Deal was never
+// created by cronJobs' sync-deals-from-leads, and the "Contract Signed"
+// staff email notification never sent, on every single contract signature.
+function testWebhookOnlyWritesRealColumns() {
+  console.log('\n── Webhook Only Writes Real `leads` Columns ──');
+  const fs = require('fs');
+  const path = require('path');
+  const webhookSource = fs.readFileSync(path.join(__dirname, '../routes/signnowWebhook.js'), 'utf8');
+
+  // Check only the actual UPDATE statement (not explanatory comments, which
+  // legitimately name these columns to document why they're no longer used).
+  const updateMatch = webhookSource.match(/UPDATE leads SET[^;]*;/);
+  assert(!!updateMatch, 'found the "mark lead Sold" UPDATE leads statement');
+  const updateSql = updateMatch ? updateMatch[0] : '';
+  for (const col of ['signed_contract_date', 'signed_contract_document_id', 'sold_by_source', 'sold_date']) {
+    assert(!updateSql.includes(col), `REGRESSION: the UPDATE leads statement no longer writes to nonexistent leads.${col}`);
+  }
+  assert(updateSql.includes("status = 'Sold'") && updateSql.includes('updated_at = NOW()'), 'webhook marks the lead Sold using only real leads columns (status, updated_at)');
+}
+
 // ── Test: no Base44 dependency ───────────────────────────────────────────────
 function testNoBase44Dependency() {
   console.log('\n── Zero Base44 Dependency ──');
@@ -245,6 +273,7 @@ testConnectValidation();
 testDisconnectLogic();
 testStatusLogic();
 testWebhookRoute();
+testWebhookOnlyWritesRealColumns();
 testNoBase44Dependency();
 
 console.log('\n===========================');

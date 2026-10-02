@@ -42,6 +42,17 @@ import ErrorBoundary from "../components/ErrorBoundary";
 
 const STATUSES = ["New", "Appointment scheduled", "Answered, no appointment set", "No answer", "Proposal Sent", "No show", "DNQ", "Sold", "Lost"];
 const DEFAULT_PROJECT_TYPES = EC_PROJECT_TYPES;
+// Same default list pages/Settings.jsx's Lead Sources tab (the admin config
+// surface for this value) already pre-populates — reused here, not invented,
+// so this field has a real, non-empty default instead of starting at `[]`.
+// (pages/LeadCapture.jsx's public capture form has its own separate, already
+// slightly different default list for the same concept — a pre-existing
+// divergence between the public form and the admin-configured list, flagged
+// here for a future product decision; not resolved in this change.)
+const DEFAULT_LEAD_SOURCES = [
+  "Website", "Google Search", "Google Maps / reviews", "Referral", "Instagram / Facebook",
+  "YouTube", "Repeat customer", "Sharon", "Other",
+];
 
 // Production defect: a single uncaught render exception anywhere in this
 // large, many-widget page (e.g. a mutation handler setting state a child
@@ -93,7 +104,7 @@ function LeadDetailModernInner() {
   const [saving, setSaving] = useState(false);
   const [projectTypes, setProjectTypes] = useState(DEFAULT_PROJECT_TYPES);
   const [contactOwners, setContactOwners] = useState([]);
-  const [leadSources, setLeadSources] = useState([]);
+  const [leadSources, setLeadSources] = useState(DEFAULT_LEAD_SOURCES);
   const [activeTab, setActiveTab] = useState("all");
   const [qbSectionExpanded, setQbSectionExpanded] = useState(false);
   const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
@@ -131,7 +142,16 @@ function LeadDetailModernInner() {
         // editor with zero options to render. Only override the canonical
         // default when the server actually sent a non-empty list.
         if (Array.isArray(data.projectTypes) && data.projectTypes.length > 0) pTypes = data.projectTypes;
-        if (data.leadSources) lSources = data.leadSources;
+        // Same bug class as projectTypes above, found in the system-wide audit:
+        // routes/leads.js's /detail composite always returns
+        // `leadSources: appLists.sources || []` — a real, empty array
+        // whenever the app_settings 'app_lists' row has no sources saved.
+        // The bare truthy check below previously accepted that empty array
+        // as a valid override, but leadSources state had NO canonical default
+        // at all (it started at `[]`), so the "Source" dropdown had zero
+        // options to pick from. Now defaults to DEFAULT_LEAD_SOURCES and only
+        // overrides when the server actually sent a non-empty list.
+        if (Array.isArray(data.leadSources) && data.leadSources.length > 0) lSources = data.leadSources;
 
         setLead(leadData);
         setActivities(acts || []);

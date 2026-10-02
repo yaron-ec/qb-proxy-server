@@ -5,17 +5,25 @@ import {
 } from "recharts";
 import { format, subMonths, startOfMonth, parseISO, isAfter } from "date-fns";
 
+// Matches the app's real status vocabulary (pages/LeadDetailModern.jsx's
+// STATUSES / pages/Reports.jsx's own STATUS_COLORS) — this map previously
+// used stale/invented status names ("Contacted", "Qualified", "Estimate
+// Sent", "Close won", "Closed Lost", "Unqualified") that never match a real
+// lead.status value, so every actual status except "New"/"Appointment
+// scheduled"/"Answered, no appointment set"/"Proposal Sent" silently fell
+// back to the same gray (#94a3b8), making the "Leads by Status" chart look
+// far less differentiated than Reports.jsx's equivalent chart for the same
+// data.
 const STATUS_COLORS = {
   "New": "#3b82f6",
-  "Contacted": "#8b5cf6",
-  "Answered, no appointment set": "#6b7280",
   "Appointment scheduled": "#10b981",
-  "Qualified": "#06b6d4",
-  "Estimate Sent": "#f59e0b",
+  "Answered, no appointment set": "#6b7280",
+  "No answer": "#94a3b8",
   "Proposal Sent": "#f97316",
-  "Close won": "#22c55e",
-  "Closed Lost": "#ef4444",
-  "Unqualified": "#9ca3af",
+  "No show": "#f59e0b",
+  "Sold": "#22c55e",
+  "Lost": "#ef4444",
+  "DNQ": "#9ca3af",
 };
 
 const SOURCE_COLORS = ["#D4A017", "#3b82f6", "#10b981", "#f97316", "#8b5cf6", "#ef4444", "#06b6d4"];

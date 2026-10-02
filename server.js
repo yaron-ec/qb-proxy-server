@@ -2150,7 +2150,8 @@ async function runQbEstimateSync() {
             source: 'manual',
           }).catch(() => {});
           if (matchedLead.handoff_estimate_status === 'awaiting_qb') {
-            await rda.update('Lead', matchedLead.id, { handoff_estimate_status: 'synced' }).catch(() => {});
+            await rda.update('Lead', matchedLead.id, { handoff_estimate_status: 'synced' })
+              .catch((e) => console.warn('[qb-sync] failed to flip handoff_estimate_status for lead ' + matchedLead.id + ':', e.message));
           }
         }
 
