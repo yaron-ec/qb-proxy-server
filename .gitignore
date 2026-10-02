@@ -19,6 +19,15 @@ dist/
 # never real production credentials, but never appropriate to commit either).
 .integration-credentials.dev.json
 
+# Company Provisioning System (scripts/install/provisionCompany.js) —
+# per-installation config can contain a real admin_password, and its
+# generated output (env manifests, suggested secrets, installation reports)
+# must never be committed. See docs/INSTALL_NEW_COMPANY.md's
+# "Secret-handling model".
+scripts/install/companies/
+*.company.json
+provisioning-output/
+
 # Legacy one-time local QB token file (server.js migrates this to Postgres
 # on startup and deletes it — should never exist in a fresh checkout, but
 # ignore it defensively in case a local dev run creates one).

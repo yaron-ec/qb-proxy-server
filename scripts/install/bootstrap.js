@@ -21,12 +21,26 @@
  *   node scripts/install/bootstrap.js --config=./company.json
  *   # or, with no --config, every value below is read from env vars
  *
+ * PRODUCTIZATION — Company Provisioning System: this module is the DB-side
+ * engine, invoked directly by scripts/install/provisionCompany.js (the
+ * supported end-to-end operator entry point — see
+ * docs/INSTALL_NEW_COMPANY.md). It can still be run standalone for a
+ * minimal/manual flow, but a new installation should normally go through
+ * `npm run provision-company` instead, which validates the FULL
+ * scripts/install/companyConfigContract.js contract (infra URLs, module
+ * secret/OAuth status, callback URLs) before calling into these functions.
+ *
  * company.json shape (all top-level keys optional except company_name and
- * admin_email/admin_password for a genuinely fresh install):
+ * admin_email/admin_password for a genuinely fresh install) — the
+ * authoritative field list with types/validation is
+ * scripts/install/companyConfigContract.js#FIELD_SPECS; this is a
+ * representative example, not the full contract:
  *   {
  *     "company_name": "Acme Remodeling",
  *     "legal_name": "Acme Remodeling LLC",
  *     "dba": null,
+ *     "company_slug": "acme-remodeling",
+ *     "currency": "USD",
  *     "company_email": "hello@acme.example",
  *     "company_phone": "(555) 555-0100",
  *     "company_website": "https://acme.example",
@@ -42,20 +56,23 @@
  *     "project_types": ["Kitchen Remodel", "Bathroom Remodel", "Roofing", "Other"],
  *     "lead_sources": ["Website", "Referral", "Google Search", "Other"],
  *     "statuses": ["New", "Appointment scheduled", "Sold", "Lost"],
- *     "contact_owners": ["Jordan Admin"]
+ *     "contact_owners": ["Jordan Admin"],
+ *     "default_owner_starting_location": "123 Main St, Acme City, ST 00000"
  *   }
  *
- * project_types/lead_sources/statuses/contact_owners are optional and have
- * NO env-var form (arrays, not single values). Omitted entirely, bootstrap
- * writes no app_settings('app_lists') row at all — the frontend's own
- * generic, universal fallback lists apply until an admin saves Settings.
- * Never overwrites an existing app_lists row on a repeat bootstrap run.
+ * project_types/lead_sources/statuses/contact_owners/
+ * default_owner_starting_location are optional and have NO env-var form
+ * (arrays or a single free-text address, not simple scalars). Omitted
+ * entirely, bootstrap writes no app_settings row for them at all — the
+ * product's own generic fallbacks apply until an admin configures these in
+ * Settings / the Daily Map owner-config screen. Never overwrites an
+ * existing row on a repeat bootstrap run.
  *
  * Equivalent environment variables (used only for keys company.json omits):
- *   COMPANY_NAME, COMPANY_LEGAL_NAME, COMPANY_DBA, COMPANY_EMAIL,
- *   COMPANY_PHONE, COMPANY_WEBSITE, COMPANY_TIMEZONE, COMPANY_LOCALE,
- *   APPOINTMENT_TRAVEL_BUFFER_MINUTES, BOOTSTRAP_ADMIN_NAME,
- *   BOOTSTRAP_ADMIN_EMAIL, BOOTSTRAP_ADMIN_PASSWORD
+ *   COMPANY_NAME, COMPANY_LEGAL_NAME, COMPANY_DBA, COMPANY_SLUG,
+ *   COMPANY_CURRENCY, COMPANY_EMAIL, COMPANY_PHONE, COMPANY_WEBSITE,
+ *   COMPANY_TIMEZONE, COMPANY_LOCALE, APPOINTMENT_TRAVEL_BUFFER_MINUTES,
+ *   BOOTSTRAP_ADMIN_NAME, BOOTSTRAP_ADMIN_EMAIL, BOOTSTRAP_ADMIN_PASSWORD
  *
  * Exit code: 0 on success (including "already bootstrapped, nothing to do");
  * 1 on any validation/connectivity failure. Prints a JSON install report to
@@ -84,6 +101,8 @@ function loadConfig() {
     company_name: fromFile.company_name ?? env.COMPANY_NAME ?? null,
     legal_name: fromFile.legal_name ?? env.COMPANY_LEGAL_NAME ?? null,
     dba: fromFile.dba ?? env.COMPANY_DBA ?? null,
+    company_slug: fromFile.company_slug ?? env.COMPANY_SLUG ?? null,
+    currency: fromFile.currency ?? env.COMPANY_CURRENCY ?? null,
     company_email: fromFile.company_email ?? env.COMPANY_EMAIL ?? null,
     company_phone: fromFile.company_phone ?? env.COMPANY_PHONE ?? null,
     company_website: fromFile.company_website ?? env.COMPANY_WEBSITE ?? null,
@@ -111,6 +130,9 @@ function loadConfig() {
     lead_sources: Array.isArray(fromFile.lead_sources) ? fromFile.lead_sources : null,
     statuses: Array.isArray(fromFile.statuses) ? fromFile.statuses : null,
     contact_owners: Array.isArray(fromFile.contact_owners) ? fromFile.contact_owners : null,
+    // Optional, company.json-only. Seeds app_settings('owner_starting_locations')
+    // for this installation's default owner — see ensureOwnerStartingLocation().
+    default_owner_starting_location: fromFile.default_owner_starting_location ?? null,
   };
 }
 
@@ -118,16 +140,15 @@ function loadConfig() {
 // integration is required — see docs/INTEGRATIONS_SETUP.md) ────────────────
 const REQUIRED_ENV = ['DATABASE_URL', 'RAILWAY_JWT_SECRET', 'ENCRYPTION_KEY'];
 // Optional-but-recommended: presence is reported, absence never fails bootstrap.
-const OPTIONAL_INTEGRATION_ENV = {
-  quickbooks: ['QB_CLIENT_ID', 'QB_CLIENT_SECRET', 'QB_REDIRECT_URI'],
-  gmail: ['GMAIL_CLIENT_ID', 'GMAIL_CLIENT_SECRET'],
-  google_calendar: ['GOOGLE_SERVICE_ACCOUNT_EMAIL', 'GOOGLE_SERVICE_ACCOUNT_KEY'],
-  signnow: ['SIGNNOW_CLIENT_ID', 'SIGNNOW_CLIENT_SECRET'],
-  handoff: ['HANDOFF_API_KEY'],
-  meta: ['META_APP_SECRET'],
-  sms: ['TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN'],
-  website_intake: ['WEBSITE_LEAD_WEBHOOK_SECRET'],
-};
+// Derived from companyConfigContract.js's MODULES — the ONE source of truth
+// for which env vars each module needs (previously a second, independently
+// hand-maintained copy here had drifted: it was missing google_contacts
+// entirely and used an incomplete gmail/signnow list — see
+// docs/CONFIGURATION_REFERENCE.md).
+const { MODULES: CONTRACT_MODULES } = require('./companyConfigContract');
+const OPTIONAL_INTEGRATION_ENV = Object.fromEntries(
+  Object.entries(CONTRACT_MODULES).map(([key, mod]) => [key, mod.secretEnvVars])
+);
 
 function validateRequiredEnv() {
   const missing = REQUIRED_ENV.filter((k) => !process.env[k]);
@@ -168,6 +189,8 @@ async function ensureCompanySettings(db, cfg) {
     ['admin_name', cfg.admin_name], ['admin_email', cfg.admin_email],
   ];
   for (const [col, val] of optional) if (val != null) { cols.push(col); vals.push(val); }
+  if (cfg.company_slug) { cols.push('company_slug'); vals.push(cfg.company_slug); }
+  if (cfg.currency) { cols.push('currency'); vals.push(cfg.currency); }
   if (cfg.timezone) { cols.push('timezone'); vals.push(cfg.timezone); }
   if (cfg.locale) { cols.push('locale'); vals.push(cfg.locale); }
   if (Number.isFinite(cfg.appointment_travel_buffer_minutes)) { cols.push('appointment_travel_buffer_minutes'); vals.push(cfg.appointment_travel_buffer_minutes); }
@@ -267,6 +290,36 @@ async function ensureAppLists(db, cfg) {
   return { created: true, keys: Object.keys(value) };
 }
 
+// Seeds app_settings('owner_starting_locations') with a single entry for
+// this installation's default owner (routes/routing.js's Daily Map/routing
+// engine reads this via getRawOwnerStarts() — see PR #15's fix removing the
+// EC-default-merge from every API-facing read/write of this key). Optional:
+// omitted entirely means the routing engine has no starting point for any
+// owner until an admin sets one via PUT /api/v1/routing/owner-config.
+// Idempotent the same way ensureAppLists is: never overwrites an existing
+// row, never touches an owner key that already exists in it.
+async function ensureOwnerStartingLocation(db, cfg) {
+  if (!cfg.default_owner_starting_location) {
+    return { created: false, reason: 'no default_owner_starting_location provided — routing engine has no starting point until set via the admin UI' };
+  }
+  const ownerName = cfg.default_owner_name || cfg.admin_name || 'Admin';
+  const { rows: existing } = await db.query(`SELECT value FROM app_settings WHERE key = 'owner_starting_locations'`);
+  if (existing[0]) {
+    if (existing[0].value && Object.prototype.hasOwnProperty.call(existing[0].value, ownerName)) {
+      return { created: false, reason: `owner_starting_locations already has an entry for "${ownerName}" — never overwritten by bootstrap` };
+    }
+    const merged = { ...existing[0].value, [ownerName]: cfg.default_owner_starting_location };
+    await db.query(`UPDATE app_settings SET value = $1::jsonb, updated_at = NOW() WHERE key = 'owner_starting_locations'`, [JSON.stringify(merged)]);
+    return { created: true, owner: ownerName, merged_into_existing: true };
+  }
+  await db.query(
+    `INSERT INTO app_settings (key, value, type, updated_at) VALUES ('owner_starting_locations', $1::jsonb, 'json', NOW())
+     ON CONFLICT (key) DO NOTHING`,
+    [JSON.stringify({ [ownerName]: cfg.default_owner_starting_location })]
+  );
+  return { created: true, owner: ownerName, merged_into_existing: false };
+}
+
 async function ensureFirstAdmin(db, cfg) {
   const { rows: anyAdmins } = await db.query(`SELECT id, email FROM users WHERE role = 'admin' LIMIT 1`);
   if (anyAdmins[0]) {
@@ -334,6 +387,9 @@ async function main() {
     const appListsResult = await ensureAppLists(db, cfg);
     report.steps.app_lists = appListsResult;
 
+    const ownerStartResult = await ensureOwnerStartingLocation(db, cfg);
+    report.steps.owner_starting_location = ownerStartResult;
+
     report.steps.integrations = integrationEnvStatus();
 
     const { rows: migCount } = await db.query('SELECT count(*)::int AS n FROM schema_migrations');
@@ -357,4 +413,4 @@ if (require.main === module) {
   main().catch((e) => { console.error('[bootstrap] FAILED:', e.message); process.exit(1); });
 }
 
-module.exports = { loadConfig, validateRequiredEnv, integrationEnvStatus, ensureCompanySettings, ensureFirstAdmin, ensureAppLists };
+module.exports = { loadConfig, validateRequiredEnv, integrationEnvStatus, ensureCompanySettings, ensureFirstAdmin, ensureAppLists, ensureOwnerStartingLocation, OPTIONAL_INTEGRATION_ENV, REQUIRED_ENV };

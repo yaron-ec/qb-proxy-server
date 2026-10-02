@@ -66,3 +66,14 @@ test('requireInstallationConfirmation: an unbootstrapped database (no row) has n
   const id = await requireInstallationConfirmation(['--confirm-installation=whatever-the-operator-types'], { log: () => {} });
   assert.strictEqual(id.configured, false);
 });
+
+test('identify(): a database with no company_settings TABLE at all (migrations not yet run — e.g. provisionCompany.js\'s pre-migration confirmation check) is treated the same as "no row", not an error', async () => {
+  queryImpl = async () => { const e = new Error('relation "company_settings" does not exist'); e.code = '42P01'; throw e; };
+  const id = await identify();
+  assert.deepStrictEqual(id, { installationId: null, companyName: null, configured: false });
+});
+
+test('identify(): a genuine connectivity/other DB error still throws, never silently treated as unconfigured', async () => {
+  queryImpl = async () => { throw new Error('connection refused'); };
+  await assert.rejects(() => identify(), /connection refused/);
+});
