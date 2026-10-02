@@ -17,13 +17,20 @@
  * 'ambiguous' records changed nothing and have nothing to revert.
  *
  * REPORT-ONLY by default. APPLY=1 to write. APPOINTMENT_ID=<uuid> to limit.
+ * APPLY=1 also requires --confirm-installation=<installation_id|company_name>
+ * (lib/installationIdentity.js) — under the productized single-tenant-per-
+ * deployment model, every company has its own database, so this prevents a
+ * copy-pasted command or a stale DATABASE_URL from applying this write
+ * against the wrong installation.
  * Env: DATABASE_URL.
  */
 const { pool } = require('../db/client');
 const { laDateTime } = require('../lib/booking/legacyPhoneCallConversion');
+const { requireInstallationConfirmation } = require('../lib/installationIdentity');
 
 async function main() {
   const apply = process.env.APPLY === '1';
+  if (apply) await requireInstallationConfirmation(process.argv.slice(2));
   const only = process.env.APPOINTMENT_ID || null;
   const recs = (await pool.query(
     `SELECT * FROM legacy_phone_call_conversions

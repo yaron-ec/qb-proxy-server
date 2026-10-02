@@ -32,11 +32,17 @@
  * The calendar_outbox worker processes the enqueued rows on its own
  * schedule; this script never calls the Google API directly.
  *
- * READ-ONLY by default. Pass APPLY=1 (env) to enqueue repairs.
+ * READ-ONLY by default. Pass APPLY=1 (env) to enqueue repairs. APPLY=1 also
+ * requires --confirm-installation=<installation_id|company_name>
+ * (lib/installationIdentity.js) — under the productized single-tenant-per-
+ * deployment model, every company has its own database, so this prevents a
+ * copy-pasted command or a stale DATABASE_URL from applying this repair
+ * against the wrong installation.
  * Environment: DATABASE_URL.
  */
 const { pool, query } = require('../db/client');
 const calendarOutbox = require('./../lib/booking/calendarOutbox');
+const { requireInstallationConfirmation } = require('../lib/installationIdentity');
 
 async function findAffected() {
   // Canonical Phone Call shape: lower(busy_range) = start_at (no buffer) —
@@ -59,6 +65,7 @@ async function findAffected() {
 
 async function main() {
   const apply = process.env.APPLY === '1';
+  if (apply) await requireInstallationConfirmation(process.argv.slice(2));
   console.log('=== PHONE CALL CALENDAR ARTIFACT AUDIT ===');
   console.log('Mode: ' + (apply ? 'APPLY (enqueues repairs via the canonical outbox path)' : 'DRY-RUN (read-only)'));
   console.log('');
