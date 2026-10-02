@@ -59,12 +59,35 @@ const DEFAULT_OWNER_STARTS = {
   },
 };
 
+// INTERNAL use only (buildOwnerRoute's own travel-time computation) — merges
+// in EC's own DEFAULT_OWNER_STARTS as a convenience fallback. Never expose
+// this merged result directly via an API response or persist it to
+// app_settings: see getRawOwnerStarts() below for that.
 async function getOwnerStarts() {
   try {
     const { rows } = await query("SELECT value FROM app_settings WHERE key = 'owner_starting_locations'");
     if (rows[0]?.value) return { ...DEFAULT_OWNER_STARTS, ...rows[0].value };
   } catch (e) { /* table may not exist yet */ }
   return DEFAULT_OWNER_STARTS;
+}
+
+// PRODUCTIZATION: the actual saved config only — never merged with EC's
+// DEFAULT_OWNER_STARTS. Found in the productization audit: GET/PUT
+// /owner-config previously always merged in ("Yaron Drilevich": Woodland
+// Hills Office), so (a) every company's admin saw EC's own office address
+// in their owner-config API response regardless of installation, and (b)
+// PUT persisted that EC entry into THEIR OWN app_settings row on every
+// save (a real data leak, not just a display one). GET/PUT now use this
+// function; only the internal routing calculation (buildOwnerRoute, via
+// getOwnerStarts above) still benefits from the EC fallback, which is
+// harmless there since it's never surfaced to a company that has no owner
+// actually named "Yaron Drilevich".
+async function getRawOwnerStarts() {
+  try {
+    const { rows } = await query("SELECT value FROM app_settings WHERE key = 'owner_starting_locations'");
+    if (rows[0]?.value) return rows[0].value;
+  } catch (e) { /* table may not exist yet */ }
+  return {};
 }
 
 // ── Database: lead_geocodes cache table ──────────────────────────────────────
@@ -332,7 +355,7 @@ router.get('/daily-schedule', async (req, res) => {
     const leads = fuRows.map(r => ({ ...r, follow_up_date: date, is_meeting_followup: true }));
 
     if (leads.length === 0) {
-      return res.json({ appointments: [], schedule: [], owner_config: await getOwnerStarts() });
+      return res.json({ appointments: [], schedule: [], owner_config: await getRawOwnerStarts() });
     }
 
     // Get owner starting locations
@@ -519,7 +542,12 @@ router.get('/daily-schedule', async (req, res) => {
     res.json({
       appointments: schedule,
       schedule,
-      owner_config: ownerStarts,
+      // The API response exposes only the actually-saved config (never
+      // merged with EC's own DEFAULT_OWNER_STARTS) — ownerStarts above is
+      // the internal, EC-fallback-merged version buildOwnerRoute() used for
+      // its own travel-time calculation and must stay that way, but it is
+      // never the right thing to show a company in their own API output.
+      owner_config: await getRawOwnerStarts(),
       google_maps_configured: gmaps.isConfigured(),
     });
   } catch (e) {
@@ -759,7 +787,7 @@ router.post('/reconcile-addresses', requireAdmin, async (req, res) => {
 
 router.get('/owner-config', async (req, res) => {
   try {
-    const starts = await getOwnerStarts();
+    const starts = await getRawOwnerStarts();
     res.json({ owner_starts: starts });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -775,16 +803,15 @@ router.put('/owner-config', requireAdmin, async (req, res) => {
       return res.status(400).json({ error: 'owner_starts object required' });
     }
 
-    // Merge with defaults (don't allow removing defaults)
-    const merged = { ...DEFAULT_OWNER_STARTS, ...owner_starts };
-
+    // Saved and returned EXACTLY as the admin provided — never merged with
+    // EC's own DEFAULT_OWNER_STARTS (see getRawOwnerStarts()'s comment).
     await query(
       `INSERT INTO app_settings (key, value, type) VALUES ('owner_starting_locations', $1, 'json')
        ON CONFLICT (key) DO UPDATE SET value = $1, type = 'json'`,
-      [JSON.stringify(merged)]
+      [JSON.stringify(owner_starts)]
     );
 
-    res.json({ owner_starts: merged });
+    res.json({ owner_starts });
   } catch (e) {
     console.error('[routing] owner-config update error:', e.message);
     res.status(500).json({ error: e.message });

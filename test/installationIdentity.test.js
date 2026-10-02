@@ -60,3 +60,9 @@ test('requireInstallationConfirmation: an unbootstrapped database (no row) can s
   queryImpl = async () => ({ rows: [] });
   await assert.rejects(() => requireInstallationConfirmation([], { log: () => {} }), /Refusing to proceed/);
 });
+
+test('requireInstallationConfirmation: an unbootstrapped database (no row) has no identity to match, so ANY explicit non-empty flag confirms it', async () => {
+  queryImpl = async () => ({ rows: [] });
+  const id = await requireInstallationConfirmation(['--confirm-installation=whatever-the-operator-types'], { log: () => {} });
+  assert.strictEqual(id.configured, false);
+});

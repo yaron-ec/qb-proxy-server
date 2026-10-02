@@ -1081,9 +1081,24 @@ router.post('/', requireAuth, async (req, res) => {
     // with verified Street/City/State/ZIP + lat/lng from the start — not raw
     // customer-entered fields. This is the PERMANENT ingestion rule: every
     // new lead enters the CRM with a canonical address.
+    //
+    // ensureAddressColumns() must run UNCONDITIONALLY, before the INSERT
+    // below — not just when body.property_address is present. The INSERT's
+    // column list always includes verified_property_address/property_lat/
+    // property_lng/google_place_id/property_geocode_status/
+    // original_property_address/original_city, and these 7 columns are
+    // never created by any migration (see lib/addressPipeline.js's own
+    // header comment) — only by this lazy, catalog-checked call. On a
+    // freshly-migrated database, the FIRST lead ever created without an
+    // address previously 500'd with "column does not exist", since this
+    // call was skipped entirely when there was no address to process.
+    // EC's own long-lived production database already has these physical
+    // columns (added the first time any lead WITH an address was ever
+    // created, which happened long ago), so this defect was invisible
+    // there — it only ever manifested for a brand-new installation.
+    await ensureAddressColumns();
     let addrFields = null;
     if (body.property_address) {
-      await ensureAddressColumns();
       try {
         const addressResult = await processAddress({
           street: body.property_address,
