@@ -19,9 +19,21 @@ export default function ProjectTypeSelector({ value, onSave, label = "Project Ty
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [saving, setSaving] = useState(false);
 
+  // Maps a stored token to its canonical casing from the current options list,
+  // case-insensitively (e.g. a legacy "ADU / garage conversion" stored value
+  // must match the canonical "ADU / Garage Conversion" checkbox). Without
+  // this, a case/formatting difference between a stored value and the
+  // canonical option it represents means the checkbox never shows as
+  // selected, AND toggling that same checkbox later ADDS a second,
+  // differently-cased entry instead of removing the existing one — silently
+  // duplicating the same real-world type under two spellings. Falls back to
+  // the raw token when no canonical equivalent exists in the current list.
+  const canonicalize = (raw) => projectTypes.find(o => o.toLowerCase() === raw.toLowerCase()) || raw;
+
   const parseValue = (v) => {
     if (!v) return [];
-    return Array.isArray(v) ? v : String(v).split(",").map(x => x.trim()).filter(Boolean);
+    const tokens = Array.isArray(v) ? v : String(v).split(",").map(x => x.trim()).filter(Boolean);
+    return tokens.map(canonicalize);
   };
 
   useEffect(() => {
@@ -29,9 +41,12 @@ export default function ProjectTypeSelector({ value, onSave, label = "Project Ty
   }, []);
 
   useEffect(() => {
-    // Parse initial value (can be comma-separated string or array)
+    // Parse initial value (can be comma-separated string or array). Also
+    // re-runs when `projectTypes` resolves from its live-settings fetch, so
+    // canonicalization is always matched against the final options list, not
+    // just the initial EC_PROJECT_TYPES default.
     setSelectedTypes(parseValue(value));
-  }, [value]);
+  }, [value, projectTypes]);
 
   const loadProjectTypes = async () => {
     setLoading(true);

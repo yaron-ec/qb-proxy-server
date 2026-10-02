@@ -166,3 +166,97 @@ describe('EditableField (multiselect) — the exact Job Type production repro', 
     expect(screen.queryAllByRole('checkbox').length).toBe(0);
   });
 });
+
+describe('EditableField (multiselect) — REGRESSION: case/format normalization and exact-replacement Save semantics', () => {
+  it('source-guard: canonicalizeMulti case-insensitively maps a stored token to its canonical option casing', () => {
+    expect(src).toMatch(/const canonicalizeMulti = \(raw\) => \{/);
+    expect(src).toMatch(/o\.toLowerCase\(\) === raw\.toLowerCase\(\)/);
+  });
+
+  // Exact production case: stored "ADU / garage conversion, Fence" (lowercase
+  // "garage conversion") must preselect the canonical "ADU / Garage
+  // Conversion" checkbox — not leave it unchecked merely because the stored
+  // casing differs.
+  it('a legacy-cased stored value preselects its canonical-cased checkbox equivalent', () => {
+    render(
+      <EditableField value="ADU / garage conversion, Fence" onSave={vi.fn()} type="multiselect" options={EC_PROJECT_TYPES} editable>
+        <span>ADU / garage conversion, Fence</span>
+      </EditableField>
+    );
+    fireEvent.click(screen.getByText('ADU / garage conversion, Fence'));
+    expect(screen.getByRole('checkbox', { name: 'ADU / Garage Conversion' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Fence' })).toBeChecked();
+  });
+
+  it('REGRESSION (exact case from the bug report): unchecking the canonical checkbox for a legacy-cased stored value and saving REPLACES the persisted value with exactly the remaining checked set — never a union/append of old + new', async () => {
+    const onSave = vi.fn().mockResolvedValue();
+    render(
+      <EditableField value="ADU / garage conversion, Fence" onSave={onSave} type="multiselect" options={EC_PROJECT_TYPES} editable>
+        <span>ADU / garage conversion, Fence</span>
+      </EditableField>
+    );
+    fireEvent.click(screen.getByText('ADU / garage conversion, Fence'));
+    await waitFor(() => expect(screen.getByRole('checkbox', { name: 'ADU / Garage Conversion' })).toBeChecked());
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'ADU / Garage Conversion' })); // uncheck
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith('Fence'));
+    await waitFor(() => expect(screen.queryByText('Save')).not.toBeInTheDocument());
+
+    // Reopening (same instance, exits then re-enters edit mode — the trigger
+    // text here is the static `children` passed by the test, not re-derived
+    // from `value`; a real caller's children re-render from the freshly
+    // updated `lead.project_type` after save, which the next test covers via
+    // a prop-driven remount) shows exactly the checked set just saved:
+    // selectedMulti itself was never reset by a successful save, so it still
+    // correctly holds only ['Fence'] — ADU unchecked, Fence checked.
+    fireEvent.click(screen.getByText('ADU / garage conversion, Fence'));
+    expect(screen.getByRole('checkbox', { name: 'Fence' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'ADU / Garage Conversion' })).not.toBeChecked();
+  });
+
+  it('REGRESSION (reload after the fix): a fresh mount with the newly-persisted canonical value shows exactly Fence checked, ADU unchecked', () => {
+    render(
+      <EditableField value="Fence" onSave={vi.fn()} type="multiselect" options={EC_PROJECT_TYPES} editable>
+        <span>Fence</span>
+      </EditableField>
+    );
+    fireEvent.click(screen.getByText('Fence'));
+    expect(screen.getByRole('checkbox', { name: 'Fence' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'ADU / Garage Conversion' })).not.toBeChecked();
+  });
+
+  it('toggling a legacy-cased checkbox off then back on never produces a duplicate (one canonical-cased entry, not two casings of the same type)', async () => {
+    const onSave = vi.fn().mockResolvedValue();
+    render(
+      <EditableField value="adu / garage conversion" onSave={onSave} type="multiselect" options={EC_PROJECT_TYPES} editable>
+        <span>adu / garage conversion</span>
+      </EditableField>
+    );
+    fireEvent.click(screen.getByText('adu / garage conversion'));
+    await waitFor(() => expect(screen.getByRole('checkbox', { name: 'ADU / Garage Conversion' })).toBeChecked());
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'ADU / Garage Conversion' })); // uncheck
+    fireEvent.click(screen.getByRole('checkbox', { name: 'ADU / Garage Conversion' })); // re-check
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith('ADU / Garage Conversion')); // exactly one entry
+  });
+
+  it('adding a new selection alongside an existing legacy-cased one saves exactly both, canonically cased — never a 3rd, differently-cased duplicate', async () => {
+    const onSave = vi.fn().mockResolvedValue();
+    render(
+      <EditableField value="ADU / garage conversion" onSave={onSave} type="multiselect" options={EC_PROJECT_TYPES} editable>
+        <span>ADU / garage conversion</span>
+      </EditableField>
+    );
+    fireEvent.click(screen.getByText('ADU / garage conversion'));
+    await waitFor(() => expect(screen.getByRole('checkbox', { name: 'ADU / Garage Conversion' })).toBeChecked());
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Fence' })); // add
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith('ADU / Garage Conversion, Fence'));
+  });
+});

@@ -192,3 +192,62 @@ describe('ProjectTypeSelector — Save error handling (must not silently succeed
     await waitFor(() => expect(screen.queryByText('Saving...')).toBeNull());
   });
 });
+
+describe('ProjectTypeSelector — REGRESSION: case/format normalization and exact-replacement Save semantics', () => {
+  // Exact production case: stored legacy/display value "ADU / garage
+  // conversion, Fence" (lowercase "garage conversion") must preselect the
+  // canonical "ADU / Garage Conversion" checkbox — not leave it unchecked
+  // merely because the stored casing differs.
+  it('a legacy-cased stored value preselects its canonical-cased checkbox equivalent', async () => {
+    getSetting.mockResolvedValue({ key: 'app_lists', value: {} });
+    render(<ProjectTypeSelector value="ADU / garage conversion, Fence" onSave={vi.fn()} />);
+    openModal();
+    await waitFor(() => expect(screen.getByRole('checkbox', { name: 'ADU / Garage Conversion' })).toBeChecked());
+    expect(screen.getByRole('checkbox', { name: 'Fence' })).toBeChecked();
+  });
+
+  it('REGRESSION (exact case from the bug report): unchecking the canonical checkbox for a legacy-cased stored value and saving REPLACES the persisted value with exactly the remaining checked set — never a union/append of old + new', async () => {
+    getSetting.mockResolvedValue({ key: 'app_lists', value: {} });
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(<ProjectTypeSelector value="ADU / garage conversion, Fence" onSave={onSave} />);
+    openModal();
+    await waitFor(() => expect(screen.getByRole('checkbox', { name: 'ADU / Garage Conversion' })).toBeChecked());
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'ADU / Garage Conversion' })); // uncheck
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith(['Fence']));
+
+    // Reopening shows exactly the new persisted state: ADU unchecked, Fence checked.
+    openModal();
+    await waitFor(() => expect(screen.getByRole('checkbox', { name: 'Fence' })).toBeChecked());
+    expect(screen.getByRole('checkbox', { name: 'ADU / Garage Conversion' })).not.toBeChecked();
+  });
+
+  it('toggling a legacy-cased checkbox off then back on never produces a duplicate (one canonical-cased entry, not two casings of the same type)', async () => {
+    getSetting.mockResolvedValue({ key: 'app_lists', value: {} });
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(<ProjectTypeSelector value="adu / garage conversion" onSave={onSave} />);
+    openModal();
+    await waitFor(() => expect(screen.getByRole('checkbox', { name: 'ADU / Garage Conversion' })).toBeChecked());
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'ADU / Garage Conversion' })); // uncheck
+    fireEvent.click(screen.getByRole('checkbox', { name: 'ADU / Garage Conversion' })); // re-check
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith(['ADU / Garage Conversion'])); // exactly one entry
+  });
+
+  it('adding a new selection alongside an existing legacy-cased one saves exactly both, canonically cased — never a 3rd, differently-cased duplicate', async () => {
+    getSetting.mockResolvedValue({ key: 'app_lists', value: {} });
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(<ProjectTypeSelector value="ADU / garage conversion" onSave={onSave} />);
+    openModal();
+    await waitFor(() => expect(screen.getByRole('checkbox', { name: 'ADU / Garage Conversion' })).toBeChecked());
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Fence' })); // add
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith(['ADU / Garage Conversion', 'Fence']));
+  });
+});
