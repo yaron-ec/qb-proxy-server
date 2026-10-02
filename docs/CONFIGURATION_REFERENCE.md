@@ -56,14 +56,22 @@ authenticated read) or directly at bootstrap via
 
 `quickbooks`, `gmail`, `google_calendar`, `google_contacts`, `signnow`,
 `handoff`, `meta`, `sms`, `website_intake`. See `docs/INTEGRATIONS_SETUP.md`
-for what each gates. Enforced today via `lib/moduleGate.js#requireModuleEnabled()`,
-wired into `routes/signnow.js` (all routes except `/status`) and
-`routes/handoffEstimates.js` — a disabled module's routes return `404
-module_disabled`, never a missing-secret error. **Not yet wired into**:
-QuickBooks routes, Google Calendar/Contacts sync, the Meta/SignNow webhook
-receivers, or any worker (reminder worker, calendar-outbox worker) — a
-real, tracked gap; `isModuleEnabled()` is readable everywhere but only
-these two routers actually gate on it so far.
+for what each gates. Enforced via `lib/moduleGate.js#requireModuleEnabled()`
+(a disabled module's routes return `404 module_disabled`, never a
+missing-secret error) on `routes/signnow.js`, `routes/handoffEstimates.js`,
+`routes/handoffSync.js`, `routes/qbInboundSync.js`, `routes/leadQB.js`, and
+`routes/metaWebhook.js`. Google Calendar/Contacts sync has no single HTTP
+entry point to gate — instead, the enqueue/write paths check
+`companyConfig.isModuleEnabled()` directly: `lib/booking/calendarOutbox.js`
+(both `enqueueCreate`/`enqueueUpdate`, `google_calendar`),
+`lib/googleContactsOutbox.js#enqueueContactSync` (`google_contacts`), and
+`scripts/calendarOutboxWorker.js` itself (checks both flags once per run
+and skips the corresponding queue entirely when disabled) — so a company
+that never turns on Google Calendar never attempts a Google API call from
+either the request path or the worker. A disabled `google_calendar` does
+NOT fail availability lookups themselves (`lib/booking/availabilityService.js`
+degrades to DB-only conflict checking — see
+`test/integration/moduleGateWiring.int.test.js`).
 
 ## Environment variables (Railway secrets — never in `company_settings`, never in git)
 
@@ -115,24 +123,51 @@ admin-protection. Still deferred, real and tracked:
   tooling explicitly scoped to EC (Category C — see
   `docs/SECURITY_MODEL.md`), test fixtures (Category D), or low-traffic
   code paths not yet converted for lack of time, not because they're
-  considered safe to leave. Two specific, live (if low-risk) examples found
-  during this pass: `routes/routing.js#DEFAULT_OWNER_STARTS` hardcodes EC's
-  office address as the default driving-route starting point for a rep named
-  exactly "Yaron Drilevich" (harmless for any other installation — the key
-  simply never matches, and real values are configured per-owner via
-  `PUT /owner-config`); `crm-frontend/src/components/AppointmentSlotPicker.jsx`
-  hardcodes `AVAILABILITY_OWNER_EMAIL = 'yaron@ecconstructiongroup.com'`
-  (EC's product decision that "Yaron's calendar is the availability calendar
-  that must be shown" — a second installation needs this made configurable,
-  ideally from `default_owner_email`, as a deliberate UI decision, not a
-  silent side effect of a config-plumbing pass).
-- Module enforcement (`lib/moduleGate.js`) on Google Calendar/Contacts sync
-  and both background workers (reminder worker, calendar-outbox worker) —
-  deliberately NOT extended here: unlike SignNow/Handoff/QuickBooks/Meta's
-  single dedicated routers, Google Calendar is embedded throughout the
-  booking write path itself, and the workers are the exact processes
-  CLAUDE.md flags as never-safe-to-experiment-on (a duplicate execution can
-  double-send/double-process). Needs its own careful pass.
+  considered safe to leave. A later productization pass closed the two
+  highest-traffic examples that were previously listed here as live gaps:
+  `routes/routing.js#DEFAULT_OWNER_STARTS` is now used ONLY internally by
+  `buildOwnerRoute()`'s own travel-time estimate (a harmless, documented
+  graceful-degradation fallback — never matches a non-EC rep name); the
+  actual `GET`/`PUT /owner-config` and `GET /daily-schedule` API responses
+  now go through `getRawOwnerStarts()`, which never merges in or exposes
+  EC's address to another installation (this fix also closed a real bug:
+  `PUT /owner-config` previously persisted the merged EC-default object
+  into the company's own `app_settings` row on first save).
+  `crm-frontend/src/components/AppointmentSlotPicker.jsx`'s
+  `FALLBACK_OWNER_EMAIL`/`FALLBACK_OWNER_NAME` (formerly
+  `AVAILABILITY_OWNER_EMAIL`, hardcoded) are now genuinely last-resort —
+  the component fetches `default_owner_email`/`default_owner_name` from
+  `GET /api/v1/company-settings` on mount and only falls back to the EC
+  literal if that call fails. The same pattern (fetch once, fall back to a
+  literal only on error) was applied to the public lead-capture page's
+  shared availability widget: `LeadCapture.jsx` fetches `GET
+  /api/public/capture/app-lists`'s new `defaultOwnerName` field and passes
+  it down as a prop to `CaptureSlotGrid.jsx` (which itself stays a pure,
+  prop-driven component with no fetch of its own, keeping `"Yaron"` only
+  as its prop default).
+  `LeadCapture.jsx`'s `DEFAULT_OWNERS` list and its form's
+  `assigned_rep: 'Yaron Drilevich'` default remain hardcoded and
+  deliberately deferred — that endpoint is public/unauthenticated, so
+  exposing a company's real staff roster there (instead of a single
+  generic default name) is a product decision about what an anonymous
+  visitor should see, not a mechanical config-plumbing fix.
+- Module enforcement (`lib/moduleGate.js`) now also covers QuickBooks
+  (`routes/qbInboundSync.js`, `routes/leadQB.js`), the Meta webhook
+  receiver (`routes/metaWebhook.js`), and `routes/handoffSync.js`, on top
+  of SignNow/Handoff/estimates from Phase 2. Google Calendar/Contacts sync
+  has no single router to gate (it's embedded in the booking write path
+  itself), so it's enforced at each actual write/enqueue site instead —
+  see "Module keys" above for the exact list — and
+  `scripts/calendarOutboxWorker.js` checks both flags once per run and
+  skips the corresponding queue entirely when a company hasn't enabled
+  that integration, rather than attempting (and failing) a Google API call
+  with no credentials. A disabled `google_calendar` was initially found to
+  also break availability lookups entirely (500/503 instead of a DB-only
+  fallback) — fixed; see `test/integration/moduleGateWiring.int.test.js`.
+  There is no `enabled_modules` key for the reminder worker itself — it has
+  always been controlled independently via `REMINDER_DRY_RUN` (see
+  CLAUDE.md's "Reminders" rule); whether to add a real module flag for it
+  is still open and untouched by this pass.
 - `locale` is read only by the reminder-email date format
   (`lib/reminderTime.js#formatDate`) — the highest-volume customer-facing
   date surface — not yet by the frontend's own date formatting
@@ -141,3 +176,51 @@ admin-protection. Still deferred, real and tracked:
 - A handful of internal, display-only `AT TIME ZONE 'America/Los_Angeles'`
   SQL literals in `routes/cronJobs.js`'s own logging remain — they affect a
   log line's readability, never a stored value or customer-facing behavior.
+
+## Lead/Deal dropdown lists (`app_settings` key `app_lists`)
+
+Project types, lead sources, lead statuses, and the "contact owner"
+dropdown shown across Leads/Deals are read from `app_settings` (key
+`app_lists`, a single jsonb value with `projectTypes`/`sources`/
+`statuses`/`contactOwners` arrays) via `routes/settings.js` (authenticated
+admin/manager CRUD) and `routes/publicCapture.js`'s public `GET
+/app-lists` (a narrower `projectTypes`/`leadSources`/`defaultOwnerName`
+subset, safe to expose with no auth). `scripts/install/bootstrap.js` can
+seed this row at install time from `company.json`'s
+`project_types`/`lead_sources`/`statuses`/`contact_owners` arrays (see
+`docs/NEW_COMPANY_INSTALL.md`) — optional, no env-var form, and never
+overwritten on a repeat bootstrap run. Omitted entirely, the frontend's
+own generic constants apply (`crm-frontend/src/pages/Settings.jsx`'s
+`DEFAULT_SOURCES`/`DEFAULT_CONTACT_OWNERS`, `LeadCapture.jsx`'s
+`DEFAULT_SOURCES`, `LeadDetailModern.jsx`'s `DEFAULT_LEAD_SOURCES`) until
+an admin saves Settings for the first time — these were previously found
+to include three real EC staff first names (Sharon, Yair, Ethan) as
+"universal" lead-source defaults; fixed to a generic list
+(`crm-frontend/src/lib/noRealNamesInDefaults.test.jsx` guards against this
+recurring).
+A separate migration-level version of the same leak (`db/migrations/
+2026-36-restore-lead-sources.sql` unconditionally restoring EC's own named
+lead sources) is now guarded to run only when the `owners` table is
+already non-empty — i.e. only on an upgrade of EC's own pre-existing
+database, never on a fresh installation.
+
+## Destructive maintenance scripts (`lib/installationIdentity.js`)
+
+Under the productized single-tenant-per-deployment model, a script
+written/tested against one company's database must not run destructively
+against a different installation by accident (a copy-pasted command, a
+stale `DATABASE_URL` left in a shell). Any script that writes under an
+`APPLY=1`-style flag should call
+`requireInstallationConfirmation(process.argv.slice(2))` before proceeding
+(see `lib/installationIdentity.js`'s own header comment for the exact
+usage) — it requires `--confirm-installation=<installation_id|company_name>`
+matching the connected database, throwing otherwise. An unbootstrapped
+database (no `company_settings` row at all — nothing yet to protect) has
+no identity to match against, so any explicit non-empty value satisfies
+the gate there; it still forces a deliberate, non-silent opt-in rather
+than skipping the check entirely. Currently gated:
+`scripts/auditAppointmentFollowUp.js` (its own pre-existing
+`--confirm-host` equivalent), `scripts/revertLegacyPhoneCallConversion.js`,
+and `scripts/auditPhoneCallCalendarArtifacts.js`. See
+`test/destructiveScriptsInstallationGate.test.js` and
+`test/installationIdentity.test.js`.

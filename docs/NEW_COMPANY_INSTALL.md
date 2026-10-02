@@ -61,7 +61,12 @@ admin's password):
   "enabled_modules": { "quickbooks": false, "gmail": true, "google_calendar": true, "sms": true, "website_intake": true },
   "admin_name": "Jordan Admin",
   "admin_email": "jordan@acme.example",
-  "admin_password": "a real, unique, strong password"
+  "admin_password": "a real, unique, strong password",
+  "default_owner_name": "Jordan Admin",
+  "project_types": ["Kitchen Remodel", "Bathroom Remodel", "Roofing", "Solar", "Other"],
+  "lead_sources": ["Website", "Google Search", "Referral", "Social Media", "Other"],
+  "statuses": ["New", "Appointment scheduled", "Sold", "Lost"],
+  "contact_owners": ["Jordan Admin"]
 }
 ```
 
@@ -70,6 +75,21 @@ you omit fall back to `lib/companyConfig.js#PRODUCT_DEFAULTS` (generic
 defaults, never EC's data). `enabled_modules` keys not listed default to
 `false` — a brand-new install starts with every optional integration OFF
 unless you explicitly turn it on.
+
+`project_types`/`lead_sources`/`statuses`/`contact_owners` seed this
+installation's own Lead/Deal dropdown lists (`app_settings` key
+`app_lists`) at bootstrap time — they have no environment-variable form
+(they're arrays, not single values) and are each independently optional.
+Omit all four and the CRM falls back to its generic, universal default
+lists (`crm-frontend/src/pages/Settings.jsx`'s `DEFAULT_SOURCES`, etc. —
+no real person's name, no EC-specific category) until an admin edits and
+saves Settings for the first time. `default_owner_name` is the name shown
+on the public lead-capture page's shared-calendar availability widget
+(falls back to `admin_name` if omitted) — it is never a per-lead owner
+assignment, just that one page's display text. Like `company_settings`
+itself, bootstrap never overwrites an existing `app_lists` row on a repeat
+run — these are first-run-only seeds, not something bootstrap keeps in
+sync with later admin edits.
 
 Bootstrap is **idempotent** — running it again (e.g. as part of every
 deploy) never creates a duplicate company row or a duplicate admin. It
