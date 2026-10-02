@@ -8,16 +8,26 @@ const VALID_ROLES = ["admin", "manager", "sales_rep", "office"];
 export default function OwnerDirectoryTab({ readOnly } = {}) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
 
-  useEffect(() => {
+  const loadUsers = () => {
+    setLoading(true);
+    setLoadError(null);
     apiCall('/api/v1/users', { method: 'GET' }).then(data => {
       setUsers(data.items || data || []);
       setLoading(false);
     }).catch(err => {
+      // Previously left `users` at its initial `[]` on ANY failure (including
+      // a 403 for a role that can't read /api/v1/users), which rendered the
+      // exact same "No users found" message as a genuinely empty directory
+      // — indistinguishable from the real thing. Track the failure instead.
       console.error('[OwnerDirectory] Error loading users:', err);
+      setLoadError(err?.message || 'Failed to load users.');
       setLoading(false);
     });
-  }, []);
+  };
+
+  useEffect(() => { loadUsers(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Build directory from Users table
   const directory = users.map(u => {
@@ -73,6 +83,13 @@ export default function OwnerDirectoryTab({ readOnly } = {}) {
         {loading ? (
           <div className="flex items-center justify-center py-12 text-slate-400 gap-2">
             <Loader2 className="w-5 h-5 animate-spin" /> Loading users...
+          </div>
+        ) : loadError ? (
+          <div className="p-8 text-center text-sm">
+            <p className="text-red-600 font-semibold mb-2">Couldn't load users: {loadError}</p>
+            <button onClick={loadUsers} className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 hover:text-amber-800">
+              <RefreshCw className="w-3.5 h-3.5" /> Retry
+            </button>
           </div>
         ) : directory.length === 0 ? (
           <div className="p-8 text-center text-slate-400 text-sm">
@@ -168,6 +185,7 @@ export default function OwnerDirectoryTab({ readOnly } = {}) {
 function ReplyToContactDirectory({ readOnly }) {
   const [owners, setOwners] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [draftEmail, setDraftEmail] = useState("");
   const [draftName, setDraftName] = useState("");
@@ -184,12 +202,17 @@ function ReplyToContactDirectory({ readOnly }) {
 
   const load = () => {
     setLoading(true);
+    setLoadError(null);
     const call = readOnly ? railwayOwners.list() : railwayOwners.listAll();
     call.then(data => {
       setOwners(data.items || []);
       setLoading(false);
     }).catch(err => {
+      // Same bug class as the Users table above: a failure/denial previously
+      // left `owners` at `[]`, rendering the identical "No active owners
+      // found" message a genuinely empty directory would show.
       console.error('[ReplyToContactDirectory] Error loading owners:', err);
+      setLoadError(err?.message || 'Failed to load owners.');
       setLoading(false);
     });
   };
@@ -286,6 +309,13 @@ function ReplyToContactDirectory({ readOnly }) {
       {loading ? (
         <div className="flex items-center justify-center py-8 text-slate-400 gap-2">
           <Loader2 className="w-5 h-5 animate-spin" /> Loading owners...
+        </div>
+      ) : loadError ? (
+        <div className="p-8 text-center text-sm">
+          <p className="text-red-600 font-semibold mb-2">Couldn't load owners: {loadError}</p>
+          <button onClick={load} className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 hover:text-amber-800">
+            <RefreshCw className="w-3.5 h-3.5" /> Retry
+          </button>
         </div>
       ) : owners.length === 0 ? (
         <div className="p-8 text-center text-slate-400 text-sm">No active owners found.</div>

@@ -1,11 +1,11 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import * as railwayLeads from "@/api/railway/leads";
 import * as railwayDeals from "@/api/railway/deals";
 import { Link } from "react-router-dom";
 import LeadCharts from "../components/dashboard/LeadCharts";
 import FollowUpsWidget from "../components/FollowUpsWidget";
-import { Search, ChevronDown, ChevronUp, MapPin, TrendingUp, Calendar } from "lucide-react";
+import { Search, ChevronDown, ChevronUp, MapPin, TrendingUp, Calendar, AlertCircle, RefreshCw } from "lucide-react";
 import { buildRegionAnalytics } from "@/lib/leadRegionAnalytics";
 import { CARD, CARD_PADDED, INPUT, SPINNER, MUTED, statusBadgeClass } from "@/lib/design-system";
 import { toTitleCase } from "@/lib/formatters";
@@ -23,6 +23,14 @@ export default function Dashboard() {
   const [leads, setLeads] = useState([]);
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  // True when the deals fetch failed or was denied (e.g. the `office` role,
+  // which lib/dealModel.js#resolveDealScope intentionally denies all
+  // deal/financial access — deals carry financial data). Distinguishes a
+  // real "$0 sold this month" from "we couldn't get this number" so
+  // FollowUpsWidget never shows a fabricated zero for a role that was
+  // actually denied/failed the request.
+  const [dealsUnavailable, setDealsUnavailable] = useState(false);
   const [regionData, setRegionData] = useState(null);
   const [debugInfo, setDebugInfo] = useState(null);
   const [search, setSearch] = useState("");
@@ -34,47 +42,59 @@ export default function Dashboard() {
   const { user: currentUser } = useAuth();
   const [dateRange, setDateRange] = useState('next7');
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        // Load via Railway API — no Base44 SDK, no credits
-        const [leadsRes, dealsRes] = await Promise.all([
-          railwayLeads.list({ sort: '-updated_date', limit: 2000 }),
-          railwayDeals.list({ sort: '-sold_date', limit: 2000 }).catch(() => ({ items: [] })),
-        ]);
-        const allLeads = leadsRes.items || [];
-        const allDeals = dealsRes.items || [];
-        const filtered = allLeads.filter(lead =>
-          !lead.first_name?.toLowerCase().includes('unknown') &&
-          !lead.last_name?.toLowerCase().includes('unknown')
-        );
+  const loadData = useCallback(async () => {
+    try {
+      // Load via Railway API — no Base44 SDK, no credits. The deals fetch is
+      // caught separately from the leads fetch: a deals failure/denial (e.g.
+      // `office` role, intentionally denied — see dealsUnavailable above)
+      // must never silently fail the whole dashboard load, but it also must
+      // be tracked explicitly rather than folded into an indistinguishable
+      // empty array.
+      let dealsFailed = false;
+      const [leadsRes, dealsRes] = await Promise.all([
+        railwayLeads.list({ sort: '-updated_date', limit: 2000 }),
+        railwayDeals.list({ sort: '-sold_date', limit: 2000 }).catch(() => {
+          dealsFailed = true;
+          return { items: [] };
+        }),
+      ]);
+      const allLeads = leadsRes.items || [];
+      const allDeals = dealsRes.items || [];
+      const filtered = allLeads.filter(lead =>
+        !lead.first_name?.toLowerCase().includes('unknown') &&
+        !lead.last_name?.toLowerCase().includes('unknown')
+      );
 
-        setLeads(filtered);
-        setDeals(allDeals);
+      setLeads(filtered);
+      setDeals(allDeals);
+      setDealsUnavailable(dealsFailed);
+      setError(null);
 
-        // Only show region analytics for admin/manager
-        if (currentUser?.role === 'admin' || currentUser?.role === 'manager') {
-          const analyticsResult = await buildRegionAnalytics();
-          setRegionData(analyticsResult.data);
-          setDebugInfo(analyticsResult.debug);
-          const years = Object.keys(analyticsResult.data).sort().reverse();
-          if (years.length > 0) setSelectedYear(years[0]);
-        }
-
-        setLoading(false);
-      } catch (e) {
-        console.error('[Dashboard] Error loading data:', e);
-        setLoading(false);
+      // Only show region analytics for admin/manager
+      if (currentUser?.role === 'admin' || currentUser?.role === 'manager') {
+        const analyticsResult = await buildRegionAnalytics();
+        setRegionData(analyticsResult.data);
+        setDebugInfo(analyticsResult.debug);
+        const years = Object.keys(analyticsResult.data).sort().reverse();
+        if (years.length > 0) setSelectedYear(years[0]);
       }
-    };
 
+      setLoading(false);
+    } catch (e) {
+      console.error('[Dashboard] Error loading data:', e);
+      setError(e.message || 'Could not load the dashboard');
+      setLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.role]);
+
+  useEffect(() => {
     loadData();
 
     // Polling refresh every 60s (replaces Base44 realtime subscription)
     const pollTimer = setInterval(loadData, 60000);
     return () => clearInterval(pollTimer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadData]);
 
   const filtered = useMemo(() => {
     return leads.filter(l => {
@@ -133,6 +153,28 @@ export default function Dashboard() {
     );
   }
 
+  // The lead fetch itself failed (not merely the deals fetch, which degrades
+  // gracefully via dealsUnavailable above) — show a visible, actionable
+  // error instead of silently rendering an empty-looking dashboard that's
+  // indistinguishable from "zero leads".
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-4 p-8 text-center">
+        <AlertCircle className="w-8 h-8 text-red-400" />
+        <div>
+          <p className="text-sm font-semibold text-slate-700">Could not load the dashboard</p>
+          <p className="text-xs text-slate-400 mt-1">{error}</p>
+        </div>
+        <button
+          onClick={() => { setLoading(true); loadData(); }}
+          className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold rounded-lg transition-colors"
+        >
+          <RefreshCw className="w-4 h-4" /> Retry
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-full bg-background">
       <div className="max-w-[1600px] mx-auto px-6 py-8 space-y-6">
@@ -177,6 +219,7 @@ export default function Dashboard() {
         allLeads={leads}
         deals={deals}
         dateRangeMode={DATE_RANGE_OPTIONS.find(o => o.value === dateRange)}
+        dealsUnavailable={dealsUnavailable}
       />
 
       {/* Team & Regional Performance — secondary, analytical information.

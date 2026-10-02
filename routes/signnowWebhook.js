@@ -15,9 +15,8 @@
  *   2. Download & save signed PDF to R2
  *   3. Create lead_attachment record
  *   4. Update Lead status → Sold
- *   5. Save signed_contract_date, sold_date, sold_by_source
- *   6. Add activity log entry
- *   7. Send email notifications to Yaron, Michelle, and lead owner
+ *   5. Add activity log entry
+ *   6. Send email notifications to Yaron, Michelle, and lead owner
  *
  * Idempotent: skips if document already marked as signed.
  */
@@ -209,11 +208,21 @@ router.post('/', express.json(), async (req, res) => {
       const lead = leadRes.rows[0];
 
       if (lead && lead.status !== 'Sold') {
+        // signed_contract_date / signed_contract_document_id / sold_date /
+        // sold_by_source do NOT exist on `leads` (confirmed against
+        // db/migrations/*.sql — sold_date exists only on `deals`, the other
+        // three exist nowhere). Writing them here threw a Postgres "column
+        // does not exist" error on EVERY signature, caught by this route's
+        // outer try/catch and reported as a non-fatal `processed: false` —
+        // which silently skipped the status flip below it, so the lead was
+        // NEVER actually marked Sold, routes/cronJobs.js's
+        // sync-deals-from-leads never created a Deal for it, and the email
+        // notification below never ran. The per-document signed date/id are
+        // already captured on `signnow_documents` (updated above); the only
+        // real side effect this flow needs on `leads` is the status flip.
         await query(
-          `UPDATE leads SET status = 'Sold', signed_contract_date = $1,
-           signed_contract_document_id = $2, sold_date = $1, sold_by_source = 'SignNow',
-           updated_at = NOW() WHERE id = $3`,
-          [signedAt, docId, docRecord.lead_id]
+          `UPDATE leads SET status = 'Sold', updated_at = NOW() WHERE id = $1`,
+          [docRecord.lead_id]
         );
         console.log(`[signnow-webhook] Lead ${docRecord.lead_id} marked as Sold`);
 

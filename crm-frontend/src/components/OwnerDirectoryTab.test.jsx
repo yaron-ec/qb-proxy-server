@@ -174,3 +174,28 @@ describe('Reply-To Contact Directory — read-only (non-admin)', () => {
     expect(screen.queryByText('Status')).toBeNull();
   });
 });
+
+describe('REGRESSION: a failed/denied fetch is never shown as a false "empty" state', () => {
+  it('Users table: shows a load-error message (not "No users found") when /api/v1/users fails/403s', async () => {
+    apiCall.mockRejectedValue(new Error('Forbidden'));
+    listAll.mockResolvedValue({ items: [] });
+    render(<OwnerDirectoryTab />);
+    await waitFor(() => expect(screen.getByText(/Couldn't load users/)).toBeTruthy());
+    expect(screen.queryByText('No users found. Add users in the Users tab first.')).toBeNull();
+  });
+
+  it('Users table: still shows the genuine "No users found" empty state when the fetch succeeds with zero users', async () => {
+    apiCall.mockResolvedValue({ items: [] });
+    listAll.mockResolvedValue({ items: [] });
+    render(<OwnerDirectoryTab />);
+    await waitFor(() => expect(screen.getByText('No users found. Add users in the Users tab first.')).toBeTruthy());
+  });
+
+  it('Reply-To Contact Directory: shows a load-error message (not "No active owners found") when the owners fetch fails', async () => {
+    apiCall.mockResolvedValue({ items: [] });
+    listAll.mockRejectedValue(new Error('Forbidden'));
+    render(<OwnerDirectoryTab />);
+    await waitFor(() => expect(screen.getByText(/Couldn't load owners/)).toBeTruthy());
+    expect(screen.queryByText('No active owners found.')).toBeNull();
+  });
+});

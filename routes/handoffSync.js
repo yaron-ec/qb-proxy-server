@@ -20,6 +20,22 @@
 'use strict';
 
 const { query } = require('../db/client');
+const { requireModuleEnabled } = require('../lib/moduleGate');
+
+// Every route below gates on the 'handoff' module EXCEPT /handoff/auth/status
+// (mirrors routes/signnow.js's own /status carve-out) — the Settings UI must
+// be able to show connection state even while the module is toggled off, so
+// an admin can see what they're (re)enabling. Previously this whole file had
+// NO module gate at all (confirmed against every sibling integration route —
+// routes/handoffEstimates.js, routes/signnow.js, routes/leadQB.js all gate
+// on their own module), so every Handoff endpoint stayed fully live —
+// callable, and able to hit the external Handoff API and write to
+// handoff_estimates/leads — even for an installation with
+// enabled_modules.handoff = false.
+function gate(req, res, next) {
+  if (req.path === '/handoff/auth/status') return next();
+  return requireModuleEnabled('handoff')(req, res, next);
+}
 
 const HANDOFF_REST_BASE = process.env.HANDOFF_REST_BASE_URL || 'https://api.handoff.ai/core/api/v1/integrations';
 
@@ -68,7 +84,7 @@ function classifyHandoffError(e) {
 module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda, handoffClient) {
 
   // ── POST /handoff/sync-estimates-for-lead ──────────────────────────────
-  app.post('/handoff/sync-estimates-for-lead', requireProxySecret, async (req, res) => {
+  app.post('/handoff/sync-estimates-for-lead', requireProxySecret, gate, async (req, res) => {
     if (!rda.isConfigured()) {
       return res.status(503).json({ success: false, error: 'DATABASE_URL not configured on Railway' });
     }
@@ -174,7 +190,8 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
 
       // 6. Update lead handoff_estimate_status if awaiting_qb
       if (lead.handoff_estimate_status === 'awaiting_qb') {
-        await rda.update('Lead', lead.id, { handoff_estimate_status: 'synced' }).catch(function () {});
+        await rda.update('Lead', lead.id, { handoff_estimate_status: 'synced' })
+          .catch(function (e) { console.warn('[handoff] failed to flip handoff_estimate_status for lead ' + lead.id + ':', e.message); });
       }
 
       // 7. Update sync cursor
@@ -207,7 +224,7 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
   });
 
   // ── POST /handoff/sync-all ─────────────────────────────────────────────
-  app.post('/handoff/sync-all', requireProxySecret, async (req, res) => {
+  app.post('/handoff/sync-all', requireProxySecret, gate, async (req, res) => {
     if (!rda.isConfigured()) {
       return res.status(503).json({ success: false, error: 'DATABASE_URL not configured on Railway' });
     }
@@ -339,7 +356,7 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
   });
 
   // ── POST /handoff/sync-projects ─────────────────────────────────────────
-  app.post('/handoff/sync-projects', requireProxySecret, async (req, res) => {
+  app.post('/handoff/sync-projects', requireProxySecret, gate, async (req, res) => {
     if (!rda.isConfigured()) {
       return res.status(503).json({ success: false, error: 'DATABASE_URL not configured on Railway' });
     }
@@ -380,8 +397,13 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
           if (proj.id && matchedLead.handoff_project_id !== proj.id) updates.handoff_project_id = proj.id;
           if (proj.number && matchedLead.handoff_project_number !== proj.number) updates.handoff_project_number = proj.number;
           if (Object.keys(updates).length > 0) {
-            await rda.update('Lead', matchedLead.id, updates).catch(function () {});
-            stats.updated++;
+            // stats.updated now only counts a write that actually succeeded —
+            // previously incremented unconditionally even when the update
+            // (silently) failed, inflating the reported count.
+            await rda.update('Lead', matchedLead.id, updates).then(
+              function () { stats.updated++; },
+              function (e) { console.warn('[handoff] failed to update Handoff project info for lead ' + matchedLead.id + ':', e.message); }
+            );
           }
         } else {
           stats.unmatched++;
@@ -399,7 +421,7 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
   });
 
   // ── POST /handoff/sync-contacts ─────────────────────────────────────────
-  app.post('/handoff/sync-contacts', requireProxySecret, async (req, res) => {
+  app.post('/handoff/sync-contacts', requireProxySecret, gate, async (req, res) => {
     if (!rda.isConfigured()) {
       return res.status(503).json({ success: false, error: 'DATABASE_URL not configured on Railway' });
     }
@@ -454,7 +476,7 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
   //   2. Whether the key is valid (via GET /estimates?limit=1)
   //   3. REST base URL configuration
   // Returns a structured diagnostic report — no key values exposed.
-  app.post('/handoff/auth/diagnose', requireProxySecret, async (req, res) => {
+  app.post('/handoff/auth/diagnose', requireProxySecret, gate, async (req, res) => {
     const report = {
       rest_base_url: HANDOFF_REST_BASE,
       key_source: null,
@@ -520,7 +542,7 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
   });
 
   // POST /handoff/auth/status
-  app.post('/handoff/auth/status', requireProxySecret, async (req, res) => {
+  app.post('/handoff/auth/status', requireProxySecret, gate, async (req, res) => {
     try {
       const record = await getSetting('handoff_api_key');
       let apiKey = null;
@@ -567,7 +589,7 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
   // POST /handoff/auth/store-key
   // Body: { api_key: string, skip_verify?: boolean }
   // Stores the hnd_ API key. Never returns the key in the response.
-  app.post('/handoff/auth/store-key', requireProxySecret, async (req, res) => {
+  app.post('/handoff/auth/store-key', requireProxySecret, gate, async (req, res) => {
     const { api_key, skip_verify } = req.body || {};
     if (!api_key || !api_key.trim()) {
       return res.status(400).json({ error: 'api_key required' });
@@ -598,7 +620,7 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
   });
 
   // POST /handoff/auth/disconnect
-  app.post('/handoff/auth/disconnect', requireProxySecret, async (req, res) => {
+  app.post('/handoff/auth/disconnect', requireProxySecret, gate, async (req, res) => {
     try {
       await deleteSetting('handoff_api_key');
       return res.json({ success: true });

@@ -410,7 +410,7 @@ router.post('/by-external/:externalRef/sync-estimates', requireAdminManager, asy
       await query(
         'UPDATE leads SET handoff_estimate_status = $1, updated_at = NOW() WHERE id = $2',
         ['synced', lead.id]
-      ).catch(() => {});
+      ).catch((e) => console.warn('[lead-qb] failed to flip handoff_estimate_status for lead ' + lead.id + ':', e.message));
     }
 
     console.log(`[lead-qb] sync-estimates: customer=${qbCustomerId} fetched=${estimates.length} created=${created} updated=${updated}`);

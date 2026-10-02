@@ -142,7 +142,7 @@ const DATE_FILTER_OPTIONS = [
 
 // ── Main Component ─────────────────────────────────────────────────────────
 
-export default function FollowUpsWidget({ leads: propLeads, allLeads: propAllLeads, deals: propDeals, dateRangeMode }) {
+export default function FollowUpsWidget({ leads: propLeads, allLeads: propAllLeads, deals: propDeals, dateRangeMode, dealsUnavailable = false }) {
   const [completing, setCompleting] = useState({});
   const [leads, setLeads] = useState(propLeads || []);
   const [allLeads, setAllLeads] = useState(propAllLeads || propLeads || []);
@@ -301,12 +301,26 @@ export default function FollowUpsWidget({ leads: propLeads, allLeads: propAllLea
         <SummaryCard icon={<Users className="w-4 h-4 text-blue-500" />} label="Active Leads" value={allLeads.filter(isActiveSalesLead).length} color="blue" />
         <SummaryCard icon={<Calendar className="w-4 h-4 text-indigo-500" />} label="Appointments Scheduled" value={stats.apptScheduled} color="indigo" />
         <SummaryCard icon={<TrendingUp className="w-4 h-4 text-purple-500" />} label="Estimates Sent" value={stats.estimateSent} color="slate" />
-        <SummaryCard icon={<CheckCircle className="w-4 h-4 text-emerald-500" />} label="Sold This Month" value={stats.soldThisMonth} color="emerald" />
+        {/* dealsUnavailable: the deals fetch failed or was denied (e.g. the
+            `office` role, which lib/dealModel.js#resolveDealScope denies all
+            deal/financial access by design — deals carry financial data).
+            Previously a failed/denied fetch silently became an empty deals
+            array, and these two cards showed a real-looking "0"/"$0" that
+            was indistinguishable from an honest zero. Show a clear
+            "not available" state instead — never show a fabricated number. */}
+        <SummaryCard
+          icon={<CheckCircle className="w-4 h-4 text-emerald-500" />}
+          label="Sold This Month"
+          value={dealsUnavailable ? "—" : stats.soldThisMonth}
+          color="emerald"
+          title={dealsUnavailable ? "Not available for your role" : undefined}
+        />
         <SummaryCard
           icon={<DollarSign className="w-4 h-4 text-emerald-600" />}
           label="Revenue This Month"
-          value={formatDashboardCurrency(stats.revenueThisMonth)}
+          value={dealsUnavailable ? "—" : formatDashboardCurrency(stats.revenueThisMonth)}
           color="emerald"
+          title={dealsUnavailable ? "Not available for your role" : undefined}
         />
         {totalOlderOverdue > 0 && (
           <button onClick={() => setOlderExpanded(true)} className="text-left">
@@ -582,16 +596,20 @@ function LeadCard({ lead, onComplete, completing, isOverdue }) {
 
 // ── Summary Card ───────────────────────────────────────────────────────────
 
-function SummaryCard({ icon, label, value, color }) {
+function SummaryCard({ icon, label, value, color, title }) {
   // A metric that's genuinely zero shouldn't compete visually with one that
   // has real data — de-emphasized (muted, not colored), never hidden.
+  // "—" (unavailable, see dealsUnavailable above) gets the same muted
+  // treatment as zero, but is a distinct, honest value — never conflated
+  // with an actual 0/$0.
+  const isUnavailable = value === '—';
   const isZero = value === 0 || value === '0' || value === '$0';
-  const cls = isZero ? 'bg-slate-50 border-slate-200 text-slate-400' : (colorMap[color] || colorMap.slate);
+  const cls = (isZero || isUnavailable) ? 'bg-slate-50 border-slate-200 text-slate-400' : (colorMap[color] || colorMap.slate);
   return (
-    <div className={`rounded-xl border px-4 py-3 flex items-center gap-3 ${cls}`}>
-      <div className={`flex-shrink-0 ${isZero ? 'opacity-40' : ''}`}>{icon}</div>
+    <div className={`rounded-xl border px-4 py-3 flex items-center gap-3 ${cls}`} title={title}>
+      <div className={`flex-shrink-0 ${(isZero || isUnavailable) ? 'opacity-40' : ''}`}>{icon}</div>
       <div className="min-w-0">
-        <div className={`text-lg font-black leading-tight tabular-nums ${isZero ? 'text-slate-400' : ''}`}>{value}</div>
+        <div className={`text-lg font-black leading-tight tabular-nums ${(isZero || isUnavailable) ? 'text-slate-400' : ''}`}>{value}</div>
         <div className="text-[11px] font-medium opacity-80 leading-tight">{label}</div>
       </div>
     </div>

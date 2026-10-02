@@ -11,7 +11,8 @@ import {
   BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from "recharts";
-import { formatDashboardCurrency } from "@/lib/dashboardMetrics";
+import { formatDashboardCurrency, computeDealMetrics } from "@/lib/dashboardMetrics";
+import { isActiveSalesLead } from "@/lib/activeLeadFilter";
 
 const STATUS_COLORS = {
   "New": "#3b82f6",
@@ -108,16 +109,25 @@ export default function Reports() {
         ownerBreakdown[owner].statuses[st] = (ownerBreakdown[owner].statuses[st] || 0) + 1;
       }
 
-      // Sales metrics
-      const now = new Date();
-      const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      let soldThisMonth = 0, revenueThisMonth = 0, totalSold = 0, totalRevenue = 0;
+      // Sales metrics — soldThisMonth/revenueThisMonth/totalSold/totalRevenue/
+      // avgDealSize come from the shared lib/dashboardMetrics.js#computeDealMetrics,
+      // the same canonical, America/Los_Angeles-month-boundary-aware helper
+      // Deals.jsx and FollowUpsWidget/Dashboard already use. This file previously
+      // computed its own version inline using the browser's LOCAL timezone and no
+      // upper month bound, which could drift from Dashboard/Deals' numbers near a
+      // month boundary. totalSold is computeDealMetrics' `totalDeals` field,
+      // renamed here to keep the existing `sales.totalSold` field name the
+      // render code below already depends on.
+      const dealMetrics = computeDealMetrics(deals);
+      const { soldThisMonth, revenueThisMonth, totalRevenue, avgDealSize } = dealMetrics;
+      const totalSold = dealMetrics.totalDeals;
+
+      // Per-rep / per-project-type breakdowns have no equivalent in the shared
+      // helper (it only computes aggregate totals) — kept as their own loop.
       const salesByRep = {};
       const projectTypesSold = {};
       for (const d of deals) {
         const amt = d.contract_amount || d.amount || 0;
-        totalSold++;
-        totalRevenue += amt;
         const rep = d.assigned_rep || 'Unassigned';
         if (!salesByRep[rep]) salesByRep[rep] = { count: 0, revenue: 0 };
         salesByRep[rep].count++;
@@ -125,19 +135,23 @@ export default function Reports() {
         const lead = leadMap.get(d.lead_id) || {};
         const pt = d.project_type || lead.project_type || '';
         if (pt) projectTypesSold[pt] = (projectTypesSold[pt] || 0) + 1;
-        if (d.sold_date) {
-          const dateStr = String(d.sold_date).includes('T') ? d.sold_date : d.sold_date + 'T00:00:00';
-          const sd = new Date(dateStr);
-          if (sd >= thisMonth) { soldThisMonth++; revenueThisMonth += amt; }
-        }
       }
 
       setData({
-        summary: { total: leads.length, active: leads.filter(l => !['DNQ', 'Lost'].includes(l.status)).length, statusCounts },
+        summary: {
+          total: leads.length,
+          // Shared lib/activeLeadFilter.js#isActiveSalesLead — same definition
+          // Dashboard/FollowUpsWidget/LeadsModern use. Previously this was a
+          // narrower inline check (`!['DNQ','Lost'].includes(status)`) that
+          // double-counted Sold (and any other inactive legacy status) leads
+          // as "active", drifting from the rest of the app's Active count.
+          active: leads.filter(isActiveSalesLead).length,
+          statusCounts,
+        },
         ownerBreakdown,
         sales: {
           soldThisMonth, revenueThisMonth, totalSold, totalRevenue,
-          avgDealSize: totalSold > 0 ? totalRevenue / totalSold : 0,
+          avgDealSize,
           salesByRep,
         },
         sources,
