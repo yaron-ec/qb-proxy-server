@@ -68,22 +68,6 @@
           "deploy": {
             "startCommand": "node scripts/calendarOutboxWorker.js"
           }
-        },
-        {
-          "id": "production-watchdog",
-          "name": "Production Watchdog",
-          "source": ".",
-          "dockerfilePath": "Dockerfile",
-          "watchPaths": [
-            "productionWatchdog.js",
-            "lib/monitoring/**",
-            "db/**",
-            "package.json",
-            "package-lock.json"
-          ],
-          "deploy": {
-            "startCommand": "node productionWatchdog.js"
-          }
         }
       ]
     }
@@ -95,14 +79,14 @@
       "qb-proxy-server": "Main API server (Dockerfile). Serves all /api/v1/* routes + QB proxy.",
       "reminder-worker": "Background reminder worker (Dockerfile.worker, CMD: node reminderWorker.js). Processes appointment reminders via Gmail.",
       "calendar-outbox-worker": "Calendar sync worker (Dockerfile.worker, CMD: node scripts/calendarOutboxWorker.js). Syncs appointments to Google Calendar.",
-      "production-watchdog": "Monitoring service (Dockerfile, CMD: node productionWatchdog.js). Health-checks all services and dispatches alerts.",
-      "crm-frontend": "Frontend (separate project ec-crm-frontend). Served by nginx, no backend."
+      "crm-frontend": "Frontend (separate project/service, crm-frontend/Dockerfile). Served by nginx, no backend."
     },
     "railway_service_name_mapping": {
-      "insightful-encouragement": "Likely reminder-worker or calendar-outbox-worker (auto-generated Railway name)",
-      "artistic-determination": "Likely calendar-outbox-worker or reminder-worker (auto-generated Railway name)",
-      "noble-illumination": "Likely production-watchdog (auto-generated Railway name)",
-      "adaptable-cooperation": "Purpose not conclusively determined — DO NOT DELETE until verified. May be a projection-outbox-worker or a legacy service."
+      "_verified": "The mapping below is MANUALLY VERIFIED against live production (see CLAUDE.md's 'Production topology' table) — supersedes any guess in this file. This file's own id fields (qb-proxy-server/reminder-worker/calendar-outbox-worker) are stable deploy-config identifiers; Railway's own auto-generated display names for the same services are what appear in the dashboard/this mapping.",
+      "qb-proxy-server": "Backend API (same name in both places)",
+      "insightful-encouragement": "Frontend CRM SPA (crm-frontend) — NOT a backend worker",
+      "artistic-determination": "reminder-worker (reminderWorker.js)",
+      "noble-illumination": "calendar-outbox-worker (scripts/calendarOutboxWorker.js)"
     },
     "action_required": "Operator must configure watch paths in Railway dashboard: Settings → each service → Watch Paths. Use the watchPaths from this file."
   }

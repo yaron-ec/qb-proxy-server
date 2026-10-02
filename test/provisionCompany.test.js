@@ -69,6 +69,12 @@ test('buildOnboardingChecklist: empty enabled_modules produces an empty checklis
   assert.deepStrictEqual(checklist, []);
 });
 
+test('writeArtifacts: also writes a RAILWAY_DEPLOYMENT_PLAN.md artifact', () => {
+  const dir = tmpDir();
+  prov.writeArtifacts(dir, { company_name: 'Acme', enabled_modules: {} }, [], {});
+  assert.ok(fs.existsSync(path.join(dir, 'RAILWAY_DEPLOYMENT_PLAN.md')));
+});
+
 test('writeArtifacts: env manifest includes a generated secret value when provided, and a placeholder comment when not', () => {
   const dir = tmpDir();
   const cfg = { company_name: 'Acme', frontend_url: 'https://crm.acme.example' };
@@ -106,6 +112,28 @@ test('writeArtifacts: produces valid separation between multiple module sections
   prov.writeArtifacts(dir, { company_name: 'Acme' }, checklist, {});
   const md = fs.readFileSync(path.join(dir, 'ONBOARDING_CHECKLIST.md'), 'utf8');
   assert.match(md, /Google Calendar[\s\S]*?\n\n## Google Contacts/, 'expected a blank line between the two module sections');
+});
+
+test('buildDomainChecklistItem: returns null when no custom_domain is configured', () => {
+  assert.strictEqual(prov.buildDomainChecklistItem({}), null);
+});
+
+test('buildDomainChecklistItem: returns DNS instructions naming the configured domain when custom_domain is set', () => {
+  const item = prov.buildDomainChecklistItem({ custom_domain: 'crm.acme.example' });
+  assert.ok(item);
+  assert.strictEqual(item.domain, 'crm.acme.example');
+  assert.strictEqual(item.requires_human_authorization, true);
+  assert.match(item.instructions, /crm\.acme\.example/);
+  assert.match(item.instructions, /CNAME/);
+});
+
+test('writeArtifacts: includes the custom domain checklist item in both the env manifest and the onboarding checklist when configured', () => {
+  const dir = tmpDir();
+  prov.writeArtifacts(dir, { company_name: 'Acme', custom_domain: 'crm.acme.example', enabled_modules: {} }, [], {});
+  const manifest = fs.readFileSync(path.join(dir, 'env.manifest.txt'), 'utf8');
+  const md = fs.readFileSync(path.join(dir, 'ONBOARDING_CHECKLIST.md'), 'utf8');
+  assert.match(manifest, /crm\.acme\.example/);
+  assert.match(md, /Custom domain: crm\.acme\.example/);
 });
 
 test('defaultOutDir: derives a filesystem-safe directory name from company_slug', () => {
