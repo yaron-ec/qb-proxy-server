@@ -2164,10 +2164,13 @@ async function runQbEstimateSync() {
           stats.imported++;
           leads.push(matchedLead);
           const amtStr = totalAmt > 0 ? ` — $${Number(totalAmt).toLocaleString('en-US', { minimumFractionDigits: 0 })}` : '';
+          // activities has no 'timestamp' column (only created_at, which
+          // already defaults to NOW()) — this silently failed on every QB
+          // estimate sync, same root cause as lib/crmRepository.js's
+          // REMINDER_SENT activity bug fixed in the DB/schema writer audit.
           await rda.create('Activity', {
             lead_id: matchedLead.id,
             type: 'note',
-            timestamp: new Date().toISOString(),
             content: `📋 QB estimate #${qbNumber}${amtStr} synced automatically. Status: ${status}.`,
             author: 'QB Direct Sync',
             source: 'manual',

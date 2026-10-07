@@ -190,9 +190,46 @@ function findUpdates(content) {
   return results;
 }
 
+// lib/railwayDataAccess.js#create(entity, fields) builds its INSERT from
+// Object.keys(fields) at runtime — a different indirection than a literal
+// SQL string, invisible to findInserts() above, but the exact same defect
+// class: a bad field name (e.g. 'timestamp' on activities, found 3 times
+// in this codebase — lib/crmRepository.js, routes/handoffSync.js,
+// server.js — none of which have a timestamp column, only created_at)
+// silently fails every call. Parse rda.create('Entity', { ...fields }) call
+// sites and check their top-level keys the same way.
+const RDA_ENTITY_TABLE_MAP = {
+  Lead: 'leads', HandoffEstimate: 'handoff_estimates', Activity: 'activities',
+  SyncCursor: 'sync_cursors', Invoice: 'invoices', CompanySettings: 'company_settings',
+  Task: 'tasks', Deal: 'deals',
+};
+
+function findRdaCreates(content) {
+  const results = [];
+  const re = /rda\.create\(\s*['"](\w+)['"]\s*,\s*\{/g;
+  let m;
+  while ((m = re.exec(content))) {
+    const entity = m[1];
+    const table = RDA_ENTITY_TABLE_MAP[entity];
+    if (!table) continue;
+    let depth = 1, i = m.index + m[0].length, start = i;
+    for (; i < content.length && depth > 0; i++) {
+      if (content[i] === '{') depth++;
+      else if (content[i] === '}') depth--;
+    }
+    const body = content.slice(start, i - 1);
+    const keyRe = /(?:^|[{,])\s*(\w+)\s*:/g;
+    const cols = [];
+    let km;
+    while ((km = keyRe.exec(body))) cols.push(km[1].toLowerCase());
+    results.push({ table, cols, index: m.index });
+  }
+  return results;
+}
+
 function scan(schema) {
   const issues = [];
-  const files = execSync(`grep -rlE "INSERT INTO|UPDATE " --include="*.js" routes lib scripts server.js db`, { cwd: ROOT, maxBuffer: 50 * 1024 * 1024 })
+  const files = execSync(`grep -rlE "INSERT INTO|UPDATE |rda\\.create\\(" --include="*.js" routes lib scripts server.js db`, { cwd: ROOT, maxBuffer: 50 * 1024 * 1024 })
     .toString().trim().split('\n').filter(Boolean);
 
   for (const f of files) {
@@ -218,6 +255,12 @@ function scan(schema) {
       const unknown = cols.filter((c) => !schema[table].has(c));
       if (dupes.length) issues.push({ type: 'DUP_UPDATE_COLUMN', file: f, line: lineOf(index), table, cols: dupes });
       if (unknown.length) issues.push({ type: 'UNKNOWN_UPDATE_COLUMN', file: f, line: lineOf(index), table, cols: unknown });
+    }
+    for (const { table, cols, index } of findRdaCreates(content)) {
+      if (!schema[table]) continue;
+      if (cols.some(isDynamicNoise)) continue;
+      const unknown = cols.filter((c) => !schema[table].has(c));
+      if (unknown.length) issues.push({ type: 'UNKNOWN_RDA_CREATE_FIELD', file: f, line: lineOf(index), table, cols: unknown });
     }
   }
   return issues;

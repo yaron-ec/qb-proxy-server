@@ -177,10 +177,13 @@ module.exports = function registerHandoffSyncRoutes(app, requireProxySecret, rda
           const amtStr = est.total > 0
             ? ' (' + Number(est.total).toLocaleString('en-US', { minimumFractionDigits: 2 }) + ')'
             : '';
+          // activities has no 'timestamp' column (only created_at, which
+          // already defaults to NOW()) — this silently failed on every new
+          // Handoff estimate sync, same root cause as lib/crmRepository.js's
+          // REMINDER_SENT activity bug fixed in the DB/schema writer audit.
           await rda.create('Activity', {
             lead_id: lead.id,
             type: 'note',
-            timestamp: new Date().toISOString(),
             content: 'Handoff estimate ' + (est.name || '#' + est.id) + amtStr + ' synced. Status: ' + (est.state || 'DRAFT'),
             author: 'Handoff Sync',
             source: 'manual',
