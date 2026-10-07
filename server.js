@@ -1338,6 +1338,8 @@ app.use('/api/v1/deals', require('./routes/dealFinancials'));
 // Deal Activity — chronological project-history timeline (derived, read-only)
 app.use('/api/v1/deals', require('./routes/dealTimeline'));
 app.use('/api/v1/sale-invoices', require('./routes/saleInvoices'));
+// Generic per-user notification category preferences (admin-managed)
+app.use('/api/v1/notification-preferences', require('./routes/notificationPreferences'));
 // Internal single-send primitive (X-Proxy-Secret guarded) — the one server-side
 // entry point to EmailService. The reminder/notification paths will be migrated
 // to call this in a later phase; until then production sending is unchanged.
