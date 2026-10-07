@@ -274,7 +274,7 @@ export default function DealDetail() {
           {activeTab === "financials" && (
             <FinancialsTab deal={deal} lead={lead} invoices={invoices} setDeal={setDeal} setLead={setLead} refreshLead={refreshLead} />
           )}
-          {activeTab === "documents" && <DocumentsTab lead={lead} setLead={setLead} />}
+          {activeTab === "documents" && <DocumentsTab lead={lead} setLead={setLead} deal={deal} />}
           {activeTab === "project" && <ProjectTab deal={deal} lead={lead} updateField={updateField} setLead={setLead} saving={saving} />}
           {activeTab === "activity" && <ActivityTab deal={deal} />}
         </div>

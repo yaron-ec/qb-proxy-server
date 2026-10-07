@@ -5,6 +5,7 @@ import { apiCall } from "@/api/railway/client";
 import { useToast } from "@/components/ui/use-toast";
 import { FileSignature, Link as LinkIcon, Unlink, Loader2, CheckCircle, Eye, EyeOff, RefreshCw, AlertTriangle, Save } from "lucide-react";
 import { RAILWAY_API_URL } from "@/lib/apiConfig";
+import SignNowFieldMappingPanel from "./SignNowFieldMappingPanel";
 
 export default function SignNowSettingsTab() {
   const { toast } = useToast();
@@ -361,6 +362,15 @@ export default function SignNowSettingsTab() {
             </div>
           )}
         </div>
+      )}
+
+      {/* CRM Field Mapping (completion pass) — configure once the EC HIC
+          template is selected above, so the same template_id is used. */}
+      {status?.connected && selectedEhicId && (
+        <SignNowFieldMappingPanel
+          templateId={selectedEhicId}
+          templateName={templates.find((t) => t.id === selectedEhicId)?.name}
+        />
       )}
 
       {/* Webhook Setup */}

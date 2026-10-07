@@ -9,6 +9,9 @@
  *   downloadSignedPdf(docId)                -> Blob (PDF)
  *   deleteDocument(docId)                   -> { success }
  *   listTemplates()                          -> { templates }
+ *   getCrmSources()                          -> { sources }
+ *   getFieldMappings(templateId)             -> { template_id, mappings, live_fields, live_fields_error }
+ *   setFieldMappings(templateId, mappings)   -> { template_id, mappings }
  */
 
 import { apiCall } from './client';
@@ -49,4 +52,16 @@ export async function downloadSignedPdf(docId) {
 
 export function listTemplates() {
   return apiCall(`/api/v1/signnow/templates`, { method: 'GET' });
+}
+
+export function getCrmSources() {
+  return apiCall(`/api/v1/signnow/crm-sources`, { method: 'GET' });
+}
+
+export function getFieldMappings(templateId) {
+  return apiCall(`/api/v1/signnow/field-mappings/${encodeURIComponent(templateId)}`, { method: 'GET' });
+}
+
+export function setFieldMappings(templateId, mappings) {
+  return apiCall(`/api/v1/signnow/field-mappings/${encodeURIComponent(templateId)}`, { method: 'PUT', body: { mappings } });
 }

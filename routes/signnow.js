@@ -22,6 +22,7 @@ const { requireAuth, requireRole } = require('../lib/rbac');
 const { query } = require('../db/client');
 const { resolveLeadByIdentifier } = require('../lib/leadResolver');
 const signnowClient = require('../lib/signnowClient');
+const fieldMapping = require('../lib/signnowFieldMapping');
 const { requireModuleEnabled } = require('../lib/moduleGate');
 
 const router = express.Router();
@@ -228,6 +229,58 @@ router.get('/templates', async (req, res) => {
   }
 });
 
+// ── GET /crm-sources — list CRM fields available for template mapping ──────
+router.get('/crm-sources', requireAdminManager, async (req, res) => {
+  res.json({ sources: fieldMapping.listCrmSources() });
+});
+
+// ── GET /field-mappings/:templateId — current mapping config for a template,
+//    PLUS (best-effort) the document's live field names, read from the most
+//    recently prepared document that used this template — so the admin UI
+//    can show real field names to map against without guessing. If no
+//    document has been prepared from this template yet, live_fields is empty
+//    and the admin can still save mappings once field names are known (e.g.
+//    from the SignNow template editor itself).
+router.get('/field-mappings/:templateId', requireAdminManager, async (req, res) => {
+  try {
+    const { templateId } = req.params;
+    const mappings = await fieldMapping.getMappingsForTemplate(templateId);
+
+    let liveFields = [];
+    let liveFieldsError = null;
+    try {
+      const recent = await query(
+        `SELECT document_id FROM signnow_documents WHERE template_id = $1 ORDER BY created_at DESC LIMIT 1`,
+        [templateId]
+      );
+      if (recent.rows[0]?.document_id) {
+        const live = await signnowClient.getDocumentFields(recent.rows[0].document_id);
+        liveFields = live.fields;
+      }
+    } catch (e) {
+      liveFieldsError = e.code === 'SIGNNOW_NOT_CONFIGURED' ? 'signnow_not_configured' : e.message;
+    }
+
+    res.json({ template_id: templateId, mappings, live_fields: liveFields, live_fields_error: liveFieldsError });
+  } catch (e) {
+    console.error('[signnow] get field-mappings error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── PUT /field-mappings/:templateId — replace a template's mapping config ──
+// Body: { mappings: [{ signnow_field_name, field_label, crm_source, required }] }
+router.put('/field-mappings/:templateId', requireAdminManager, async (req, res) => {
+  try {
+    const { templateId } = req.params;
+    const { mappings } = req.body || {};
+    const saved = await fieldMapping.setMappingsForTemplate(templateId, mappings);
+    res.json({ template_id: templateId, mappings: saved });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
 // ── GET /by-external/:externalRef — list documents for a lead ──────────────
 router.get('/by-external/:externalRef', async (req, res) => {
   try {
@@ -335,12 +388,37 @@ router.post('/by-external/:externalRef/upload', requireAdminManager, async (req,
 router.post('/by-external/:externalRef/prepare', requireAdminManager, async (req, res) => {
   try {
     const { externalRef } = req.params;
-    const { template_id, template_name, document_name, signers, send_invite } = req.body || {};
+    const { template_id, template_name, document_name, signers, send_invite, deal_id } = req.body || {};
 
     const lead = await resolveLeadByIdentifier(externalRef);
     if (!lead) return res.status(404).json({ error: 'not_found' });
 
     if (!template_id) return res.status(400).json({ error: 'template_id required' });
+
+    // Optional Deal context (e.g. for a contract/project-amount field) — only
+    // ever the CALLER'S OWN lead's deal, never an arbitrary deal_id, so this
+    // can never pull another customer's project amount into this contract.
+    let deal = null;
+    if (deal_id) {
+      const dealRes = await query('SELECT * FROM deals WHERE id = $1 AND lead_id = $2', [deal_id, lead.id]);
+      deal = dealRes.rows[0] || null;
+    }
+
+    // CRM STABILITY PHASE (Section A2/A4): pre-flight validation against this
+    // template's configured field mappings, BEFORE any SignNow API call —
+    // "the CRM must identify exactly what is missing BEFORE creating a
+    // malformed contract." A template with no mappings configured yet has
+    // nothing to validate (this is purely additive; existing templates keep
+    // working exactly as before until an admin configures mappings for them).
+    const mappings = await fieldMapping.getMappingsForTemplate(template_id);
+    const { missing, resolved } = fieldMapping.resolveMappingValues(mappings, { lead, deal });
+    if (missing.length > 0) {
+      return res.status(422).json({
+        error: 'missing_required_fields',
+        message: `Cannot prepare ${template_name || 'contract'}: ${missing.map((m) => `${m.field_label} is missing`).join('. ')}.`,
+        missing,
+      });
+    }
 
     // Idempotency: check for existing non-terminal document from this template
     const existing = await query(
@@ -367,9 +445,37 @@ router.post('/by-external/:externalRef/prepare', requireAdminManager, async (req
     // The original template is NEVER modified — only copied.
     let docId = null;
     let inviteSent = false;
+    let prefilledCount = 0;
+    let prefillWarning = null;
     try {
       const docResult = await signnowClient.createDocumentFromTemplate(template_id, finalDocName);
       docId = docResult.id;
+
+      // CRM STABILITY PHASE (Section A4/A5): populate the copy's TEXT fields
+      // from CRM data via the configured mapping, BEFORE any invite is sent
+      // (this runs regardless of send_invite — populating fields is never
+      // the same action as sending, and never implies it). Must read the
+      // COPY's own fields/roles here, never the template's — SignNow assigns
+      // a copy its own field/role IDs, distinct from the template's. This is
+      // entirely best-effort: a prefill failure never blocks document
+      // creation or /prepare's success — the user can still fill the
+      // document manually exactly as before this feature existed.
+      if (resolved.length > 0) {
+        try {
+          const live = await signnowClient.getDocumentFields(docId);
+          const liveNames = new Set(live.fields.map((f) => f.name));
+          const toPrefill = resolved
+            .filter((r) => r.value && liveNames.has(r.signnow_field_name))
+            .map((r) => ({ field_name: r.signnow_field_name, prefilled_text: r.value }));
+          if (toPrefill.length > 0) {
+            await signnowClient.prefillTexts(docId, toPrefill);
+            prefilledCount = toPrefill.length;
+          }
+        } catch (prefillErr) {
+          console.warn('[signnow] prepare: prefill-texts failed (non-fatal):', prefillErr.message);
+          prefillWarning = prefillErr.message;
+        }
+      }
 
       // Send field invite ONLY when explicitly requested — never implied by
       // creation. Defaults to false: preparing a contract must never auto-send
@@ -425,6 +531,8 @@ router.post('/by-external/:externalRef/prepare', requireAdminManager, async (req
         signers: ins.rows[0].signers,
         created_at: ins.rows[0].created_at,
       },
+      prefilled_fields: prefilledCount,
+      prefill_warning: prefillWarning,
     });
   } catch (e) {
     console.error('[signnow] prepare error:', e.message);

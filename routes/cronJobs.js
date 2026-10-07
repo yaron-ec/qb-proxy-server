@@ -25,6 +25,7 @@ const { query } = require('../db/client');
 const emailService = require('../lib/emailService');
 const templates = require('../lib/emailTemplates');
 const notificationRecipients = require('../lib/notificationRecipients');
+const notificationPreferences = require('../lib/notificationPreferences');
 const companyConfig = require('../lib/companyConfig');
 
 const router = express.Router();
@@ -257,7 +258,10 @@ router.post('/notify-status-change', async (req, res) => {
 
     const result = await emailService.send({
       to: lead.email,
-      cc: await notificationRecipients.getAllStaffRecipients(),
+      cc: await notificationPreferences.filterRecipientsForCategory(
+        await notificationRecipients.getAllStaffRecipients(),
+        notificationPreferences.CATEGORIES.STATUS_CHANGE
+      ),
       subject: `Project Status Update — ${await notificationRecipients.getSenderName()}`,
       htmlBody: html,
       idempotencyKey: `status-change:${lead.id}:${new_status}`,
@@ -302,7 +306,10 @@ router.post('/send-project-status-email', async (req, res) => {
 
     const result = await emailService.send({
       to: lead.email,
-      cc: await notificationRecipients.getAllStaffRecipients(),
+      cc: await notificationPreferences.filterRecipientsForCategory(
+        await notificationRecipients.getAllStaffRecipients(),
+        notificationPreferences.CATEGORIES.STATUS_CHANGE
+      ),
       subject: `Project Status: ${project_status || 'Update'} — ${companyName}`,
       htmlBody: html,
       idempotencyKey: `project-status:${lead.id}:${project_status || 'update'}`,
