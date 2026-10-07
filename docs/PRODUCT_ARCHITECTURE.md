@@ -133,5 +133,5 @@ hasn't been configured yet. See `docs/CONFIGURATION_REFERENCE.md`.
   a fast follow, not a foundational blocker).
 - Automatic Railway provisioning of a brand-new project/service via API
   (no Railway API token/CLI is available to build or test this from a
-  sandboxed session — see `docs/NEW_COMPANY_INSTALL.md` for the documented
+  sandboxed session — see `docs/INSTALL_NEW_COMPANY.md` for the documented
   manual/semi-automated procedure instead).

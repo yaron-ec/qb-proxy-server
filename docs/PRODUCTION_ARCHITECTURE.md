@@ -18,22 +18,24 @@ QuickBooks → Webhook → Railway/GitHub (qb-proxy-server) → Railway Postgres
                     CRM Frontend (crm-frontend/)
 ```
 
-### Railway Services (5 — approved topology)
+### Railway Services (5 — manually verified topology; supersedes railway.json's own guesses if they ever disagree — see CLAUDE.md's "Production topology" table)
 
 1. **qb-proxy-server** — Main CRM API server (Express.js, Node.js)
    - Serves all /api/v1/* authenticated endpoints
    - Serves /api/public/capture/* public endpoints
    - Runs node-cron for QB inbound reconciliation (every 15 min)
    - Runs node-cron for QB estimate sync
-2. **insightful-encouragement** — Worker service
-3. **artistic-determination** — Worker service
-4. **noble-illumination** — Worker service
+2. **insightful-encouragement** — Frontend CRM SPA (crm-frontend/) — NOT a worker
+3. **artistic-determination** — Reminder worker (reminderWorker.js)
+4. **noble-illumination** — Calendar / Google Contacts outbox worker (scripts/calendarOutboxWorker.js)
 5. **Postgres** — Railway-managed PostgreSQL database
+
+There is no `production-watchdog` service in live production — `productionWatchdog.js` exists in this repo but is not a deployed Railway service today; `railway.json` previously listed one as a 5th backend-side service, which was incorrect and has been removed from that file.
 
 ### Frontend
 
 - **crm-frontend/** — Standalone Vite + React build (zero Base44)
-- Published at: https://crm-ec-construction-group.base44.app
+- Published at: https://crm.ecconstructiongroup.com (served by the `insightful-encouragement` Railway service above)
 - Build mode: `vite build --mode exit` (loads .env.exit)
 - No @base44/vite-plugin, no @base44/sdk, no Base44 stubs
 
@@ -89,17 +91,14 @@ app_settings
   value.sources (camelCase)
 ```
 
-### Canonical Values
-
-1. Sharon
-2. Yair
-3. Yelp
-4. Instagram / Facebook
-5. Referral
-6. Repeat customer
-7. Ethan
-8. Website
-9. Other
+The list itself is EC's own live, admin-editable configuration data, not a
+structural product constant — do not hardcode it anywhere, and do not treat
+a past snapshot of it (including an older version of this section) as
+authoritative. Read the live `app_settings` row (or Settings → Lead Sources
+in the admin UI) for EC's actual current values; a productized installation
+seeds its own list via `scripts/install/provisionCompany.js`'s
+`lead_sources` config field (see docs/INSTALL_NEW_COMPANY.md) and will have
+an entirely different list.
 
 ### Identity Rule
 

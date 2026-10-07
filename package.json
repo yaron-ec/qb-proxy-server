@@ -17,7 +17,8 @@
     "email:test:phase1": "node testEmailOnce.js",
     "reminders:test:single": "node testSingleReminderLive.js",
     "gmail:oauth:test": "node --test test/gmailOAuth.test.js",
-    "test:integration": "node --test --test-concurrency=1 test/integration/*.int.test.js"
+    "test:integration": "node --test --test-concurrency=1 test/integration/*.int.test.js",
+    "provision-company": "node scripts/install/provisionCompany.js"
   },
   "dependencies": {
     "express": "^4.18.2",

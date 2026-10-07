@@ -49,6 +49,8 @@ function serializeSettings(row) {
     // NULL/default means "use the product default", never a broken installation.
     legal_name: row.legal_name || null,
     dba: row.dba || null,
+    company_slug: row.company_slug || null,
+    currency: row.currency || 'USD',
     favicon_url: row.favicon_url || null,
     brand_primary_color: row.brand_primary_color || null,
     timezone: row.timezone,
@@ -76,7 +78,7 @@ const FIELDS = [
   'company_address', 'company_city', 'company_state', 'company_zip',
   'admin_name', 'admin_email', 'company_website', 'crm_activity_notifications_enabled',
   'company_region',
-  'legal_name', 'dba', 'favicon_url', 'brand_primary_color',
+  'legal_name', 'dba', 'company_slug', 'currency', 'favicon_url', 'brand_primary_color',
   'timezone', 'locale', 'business_hours', 'appointment_travel_buffer_minutes', 'enabled_modules',
   'notification_recipients', 'email_from_name', 'default_owner_email', 'default_owner_name',
   'protected_admin_emails',

@@ -83,7 +83,7 @@ installation may ever be seeded from an EC backup, in whole or in part —
 this is an absolute rule (see the productization request's "do not copy EC
 customer/lead/project data into another company's database"). A fresh
 installation is always created via `scripts/install/bootstrap.js` against
-an empty database (see `docs/NEW_COMPANY_INSTALL.md`), never by restoring
+an empty database (see `docs/INSTALL_NEW_COMPANY.md`), never by restoring
 or cloning EC's data and then attempting to "clean it out" afterward.
 
 ## What is NOT covered / not yet verified
