@@ -4,6 +4,7 @@
  *   listDocuments(externalRef)              -> { documents }
  *   uploadDocument(externalRef, data)        -> { document }
  *   prepareFromTemplate(externalRef, data)  -> { document, message }
+ *   sendDocument(docId)                      -> { success, document }
  *   getDocumentStatus(docId)                -> { document }
  *   downloadSignedPdf(docId)                -> Blob (PDF)
  *   deleteDocument(docId)                   -> { success }
@@ -27,6 +28,10 @@ export function prepareFromTemplate(externalRef, data) {
 
 export function getDocumentStatus(docId) {
   return apiCall(`/api/v1/signnow/documents/${encodeURIComponent(docId)}/status`, { method: 'GET' });
+}
+
+export function sendDocument(docId) {
+  return apiCall(`/api/v1/signnow/documents/${encodeURIComponent(docId)}/send`, { method: 'POST' });
 }
 
 export function deleteDocument(docId) {

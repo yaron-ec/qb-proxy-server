@@ -31,6 +31,7 @@ export default function SignNowPanel({ lead, onLeadUpdate }) {
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
   const [showUpload, setShowUpload] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(null);
+  const [sendingDocId, setSendingDocId] = useState(null);
   const { toast } = useToast();
   const refreshTimer = useRef(null);
 
@@ -113,10 +114,14 @@ export default function SignNowPanel({ lead, onLeadUpdate }) {
       const template = templates.find(t => t.id === selectedTemplateId);
       const customerName = `${lead.first_name || ''} ${lead.last_name || ''}`.trim();
 
+      // NEVER auto-send: prepare only. The user reviews the draft (e.g. via
+      // "Open in SignNow" to complete any remaining fields) and explicitly
+      // clicks "Send for Signature" below when ready — automation removes
+      // duplicate data entry, not the user's final control over sending.
       const result = await railwaySignnow.prepareFromTemplate(lead.id, {
         template_id: selectedTemplateId,
         template_name: template?.name || 'Contract',
-        send_invite: true,
+        send_invite: false,
       });
 
       if (result.error === 'duplicate') {
@@ -128,9 +133,9 @@ export default function SignNowPanel({ lead, onLeadUpdate }) {
         });
       } else {
         toast({
-          title: 'Contract created from template',
-          description: `\"${result.document?.document_name || customerName}\" created and sent for signature.`,
-          duration: 4000,
+          title: 'Contract prepared',
+          description: `\"${result.document?.document_name || customerName}\" created. Review it, then click Send for Signature when ready.`,
+          duration: 5000,
         });
       }
 
@@ -164,7 +169,7 @@ export default function SignNowPanel({ lead, onLeadUpdate }) {
         signers,
       });
 
-      toast({ title: 'Document uploaded', description: 'PDF uploaded and sent for signing', duration: 3000 });
+      toast({ title: 'Document uploaded', description: 'PDF uploaded. Click Send for Signature when ready.', duration: 4000 });
       await loadDocuments();
       setShowUpload(false);
     } catch (e) {
@@ -183,6 +188,19 @@ export default function SignNowPanel({ lead, onLeadUpdate }) {
       await loadDocuments();
     } catch (e) {
       toast({ title: 'Delete failed', description: e.message, variant: 'destructive' });
+    }
+  };
+
+  const handleSendDocument = async (docId) => {
+    setSendingDocId(docId);
+    try {
+      await railwaySignnow.sendDocument(docId);
+      toast({ title: 'Sent for signature', duration: 3000 });
+      await loadDocuments();
+    } catch (e) {
+      toast({ title: 'Failed to send', description: e.message, variant: 'destructive', duration: 5000 });
+    } finally {
+      setSendingDocId(null);
     }
   };
 
@@ -285,12 +303,12 @@ export default function SignNowPanel({ lead, onLeadUpdate }) {
 
             {selectedTemplateId && lead?.email && (
               <p className="text-[10px] text-slate-500">
-                Will be sent to: <span className="font-semibold">{lead.email}</span>
+                Signer will be: <span className="font-semibold">{lead.email}</span> — you'll review and send it yourself below.
               </p>
             )}
             {selectedTemplateId && !lead?.email && (
               <p className="text-[10px] text-amber-600 font-semibold">
-                ⚠ No email on this lead — add an email before sending
+                ⚠ No email on this lead — add an email before preparing
               </p>
             )}
 
@@ -299,8 +317,8 @@ export default function SignNowPanel({ lead, onLeadUpdate }) {
               disabled={!selectedTemplateId || preparing || !lead?.email}
               className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50 rounded-lg transition-colors"
             >
-              {preparing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-              {preparing ? 'Creating...' : 'Create & Send for Signature'}
+              {preparing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+              {preparing ? 'Preparing...' : 'Prepare Contract'}
             </button>
           </>
         )}
@@ -363,6 +381,16 @@ export default function SignNowPanel({ lead, onLeadUpdate }) {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 mt-1.5">
+                  {doc.status === 'pending' && (
+                    <button
+                      onClick={() => handleSendDocument(doc.document_id)}
+                      disabled={sendingDocId === doc.document_id}
+                      className="text-[10px] text-amber-700 hover:text-amber-800 font-bold flex items-center gap-1 disabled:opacity-50"
+                    >
+                      {sendingDocId === doc.document_id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                      Send for Signature
+                    </button>
+                  )}
                   <button
                     onClick={() => handleRefreshStatus(doc.document_id)}
                     className="text-[10px] text-slate-500 hover:text-amber-600 font-semibold flex items-center gap-1"

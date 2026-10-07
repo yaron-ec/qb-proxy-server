@@ -270,7 +270,7 @@ router.post('/by-external/:externalRef/upload', requireAdminManager, async (req,
     const lead = await resolveLeadByIdentifier(externalRef);
     if (!lead) return res.status(404).json({ error: 'not_found' });
 
-    const { file_url, document_name, signers } = req.body || {};
+    const { file_url, document_name, signers, send_invite } = req.body || {};
     if (!file_url) return res.status(400).json({ error: 'file_url required (upload the PDF first via /api/v1/lead-attachments)' });
 
     // Fetch the PDF from the file URL
@@ -281,10 +281,11 @@ router.post('/by-external/:externalRef/upload', requireAdminManager, async (req,
     // Upload to SignNow
     const doc = await signnowClient.uploadDocument(pdfBuffer, document_name || `Contract - ${lead.first_name} ${lead.last_name}`);
 
-    // Send field invite if signers provided (POST /document/{docId}/invite)
+    // Send field invite ONLY when explicitly requested (POST /document/{docId}/invite)
+    // — never implied by upload itself. Defaults to false: never auto-send.
     let inviteSent = false;
     const signerList = signers || (lead.email ? [{ email: lead.email, name: `${lead.first_name} ${lead.last_name}`, role: 'Signer 1' }] : []);
-    if (signerList.length > 0 && doc.id) {
+    if (send_invite === true && signerList.length > 0 && doc.id) {
       try {
         const userInfo = await signnowClient.getUserInfo().catch(() => null);
         const fromEmail = userInfo?.email || '';
@@ -370,8 +371,10 @@ router.post('/by-external/:externalRef/prepare', requireAdminManager, async (req
       const docResult = await signnowClient.createDocumentFromTemplate(template_id, finalDocName);
       docId = docResult.id;
 
-      // Send field invite (default: true) to the lead's email
-      const shouldSend = send_invite !== false;
+      // Send field invite ONLY when explicitly requested — never implied by
+      // creation. Defaults to false: preparing a contract must never auto-send
+      // it (see POST /documents/:docId/send, the explicit, separate action).
+      const shouldSend = send_invite === true;
       const signerList = signers || (lead.email ? [{ email: lead.email, name: customerName, role: 'Signer 1' }] : []);
       if (shouldSend && signerList.length > 0 && docId) {
         const userInfo = await signnowClient.getUserInfo().catch(() => null);
@@ -425,6 +428,65 @@ router.post('/by-external/:externalRef/prepare', requireAdminManager, async (req
     });
   } catch (e) {
     console.error('[signnow] prepare error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── POST /documents/:docId/send — send a PREPARED (pending) document ───────
+// The explicit, separate "final review + send" action. prepare/upload create
+// a document WITHOUT sending when send_invite is false — this is the only
+// way a pending document actually gets emailed to the signer. Never implied
+// by creation: automation eliminates duplicate data entry, not the user's
+// final control over when a contract actually goes out.
+router.post('/documents/:docId/send', requireAdminManager, async (req, res) => {
+  try {
+    const { docId } = req.params;
+    const dbRes = await query('SELECT * FROM signnow_documents WHERE document_id = $1', [docId]);
+    const doc = dbRes.rows[0];
+    if (!doc) return res.status(404).json({ error: 'not_found' });
+    if (doc.status !== 'pending') {
+      return res.status(409).json({ error: 'already_sent', message: `This document is already "${doc.status}" — it can only be sent while pending.` });
+    }
+
+    const signerList = Array.isArray(doc.signers) && doc.signers.length > 0 ? doc.signers : null;
+    if (!signerList) return res.status(400).json({ error: 'no_signers', message: 'This document has no signer on file.' });
+
+    const userInfo = await signnowClient.getUserInfo().catch(() => null);
+    const fromEmail = userInfo?.email || '';
+    if (!fromEmail) return res.status(502).json({ error: 'Could not determine the SignNow account email to send from.' });
+
+    await signnowClient.sendInvite(docId, signerList, fromEmail);
+
+    const upd = await query(
+      `UPDATE signnow_documents SET status = 'sent', updated_at = NOW() WHERE document_id = $1 RETURNING *`,
+      [docId]
+    );
+
+    try {
+      await query(
+        `INSERT INTO activities (lead_id, type, content, author, source, created_at)
+         VALUES ($1, 'note', $2, $3, 'manual', NOW())`,
+        [doc.lead_id, `📤 SignNow contract "${doc.document_name}" sent for signature.`, req.user.email]
+      );
+    } catch (actErr) {
+      console.warn('[signnow] send activity log failed:', actErr.message);
+    }
+
+    res.json({
+      success: true,
+      document: {
+        id: upd.rows[0].id,
+        document_id: docId,
+        document_name: upd.rows[0].document_name,
+        status: upd.rows[0].status,
+        signers: upd.rows[0].signers,
+      },
+    });
+  } catch (e) {
+    if (e.code === 'SIGNNOW_NOT_CONFIGURED') {
+      return res.status(501).json({ error: 'signnow_not_configured', message: e.message });
+    }
+    console.error('[signnow] send error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
