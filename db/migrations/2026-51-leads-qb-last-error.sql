@@ -1,0 +1,24 @@
+-- =====================================================================
+-- 2026-51-leads-qb-last-error.sql — Add leads.qb_last_error
+--
+-- lib/qbInboundSync.js#syncCustomerFinancials's catch branch writes
+--   UPDATE leads SET qb_last_sync_at = NOW(), qb_last_sync_result = 'error',
+--                     qb_last_error = $2, updated_at = NOW() ...
+-- but migration 2026-23 deliberately did NOT add qb_last_error (documented
+-- there as a read-only legacy field with near-zero data). That write has
+-- been failing with "column qb_last_error does not exist" on every QB sync
+-- error since — silently, because the UPDATE is wrapped in try/catch {}.
+-- Because all four columns are set in one statement, the invalid column
+-- name fails the WHOLE update, so qb_last_sync_at/qb_last_sync_result are
+-- also never recorded on a failed sync, leaving stale "success" state.
+--
+-- This is a live, intentional write path (not dead/legacy code) with a
+-- real frontend consumer: crm-frontend/src/components/InvoiceCreationFlow.jsx
+-- reads back qb_last_sync_result === 'error' && qb_last_error to surface the
+-- actual QB sync failure reason to the user during invoice creation. The
+-- column belongs in the schema; the write path's intent was always correct.
+--
+-- Startup-safe: additive column only, ADD COLUMN IF NOT EXISTS.
+-- =====================================================================
+
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS qb_last_error TEXT;

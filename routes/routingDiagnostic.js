@@ -8,7 +8,8 @@
 
 const express = require('express');
 const gmaps = require('../lib/googleMapsClient');
-const { query, ensureColumns } = require('../db/client');
+const { query } = require('../db/client');
+const addressPipeline = require('../lib/addressPipeline');
 
 const router = express.Router();
 
@@ -57,14 +58,8 @@ router.get('/daily-diagnostic', async (req, res) => {
     const date = req.query.date || new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
     const owner = req.query.owner;
 
-    // Ensure geocode columns exist on leads table
-    await ensureColumns('leads', [
-      ['verified_property_address', "TEXT"],
-      ['property_lat', "DOUBLE PRECISION"],
-      ['property_lng', "DOUBLE PRECISION"],
-      ['property_geocode_status', "TEXT DEFAULT 'pending'"],
-      ['state', "TEXT"],
-    ]);
+    // Ensure geocode columns exist on leads table (memoized)
+    await addressPipeline.ensureAddressColumns();
 
     // Query the CANONICAL appointments table (source of truth).
     // Filter by appointment status (not lead status) — Lost/Sold leads with
@@ -174,16 +169,8 @@ router.post('/reconcile-addresses', async (req, res) => {
       });
     }
 
-    // Ensure all columns exist (including state + original_* audit columns)
-    await ensureColumns('leads', [
-      ['verified_property_address', "TEXT"],
-      ['property_lat', "DOUBLE PRECISION"],
-      ['property_lng', "DOUBLE PRECISION"],
-      ['property_geocode_status', "TEXT DEFAULT 'pending'"],
-      ['state', "TEXT"],
-      ['original_property_address', "TEXT"],
-      ['original_city', "TEXT"],
-    ]);
+    // Ensure all columns exist (memoized — see lib/addressPipeline.js)
+    await addressPipeline.ensureAddressColumns();
 
     // If lead_id is provided, process ONLY that lead (targeted reconciliation).
     // Otherwise, fetch all leads that haven't been reconciled yet.
@@ -297,11 +284,7 @@ router.post('/reconcile-addresses', async (req, res) => {
 // GET /reconcile-status — check which leads have been reconciled and which need review
 router.get('/reconcile-status', async (req, res) => {
   try {
-    await ensureColumns('leads', [
-      ['state', "TEXT"],
-      ['property_geocode_status', "TEXT DEFAULT 'pending'"],
-      ['verified_property_address', "TEXT"],
-    ]);
+    await addressPipeline.ensureAddressColumns();
 
     const { rows } = await query(`
       SELECT property_geocode_status, COUNT(*) as count
@@ -357,15 +340,9 @@ router.post('/backfill-geocodes', async (req, res) => {
       });
     }
 
-    // Ensure columns exist
-    await ensureColumns('leads', [
-      ['verified_property_address', "TEXT"],
-      ['property_lat', "DOUBLE PRECISION"],
-      ['property_lng', "DOUBLE PRECISION"],
-      ['property_geocode_status', "TEXT DEFAULT 'pending'"],
-    ]);
-    await query('CREATE TABLE IF NOT EXISTS lead_geocodes (lead_id TEXT PRIMARY KEY, address_hash TEXT NOT NULL, normalized_address TEXT, verified_address TEXT, latitude DOUBLE PRECISION, longitude DOUBLE PRECISION, google_place_id TEXT, geocode_status TEXT DEFAULT \'pending\', geocoded_at TIMESTAMPTZ, updated_at TIMESTAMPTZ DEFAULT NOW())');
-    await ensureColumns('lead_geocodes', [['verified_address', "TEXT"]]);
+    // Ensure columns/table exist (memoized — see lib/addressPipeline.js)
+    await addressPipeline.ensureAddressColumns();
+    await addressPipeline.ensureGeocodeTable();
 
     // Clear ALL stale geocode errors so they get re-geocoded with the fixed normalization
     await query(`DELETE FROM lead_geocodes WHERE geocode_status != 'ok'`);
