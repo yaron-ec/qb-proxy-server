@@ -176,6 +176,38 @@ admin-protection. Still deferred, real and tracked:
 - A handful of internal, display-only `AT TIME ZONE 'America/Los_Angeles'`
   SQL literals in `routes/cronJobs.js`'s own logging remain — they affect a
   log line's readability, never a stored value or customer-facing behavior.
+- **Company Provisioning System audit (Phase F) found and fixed one real,
+  higher-severity defect**: `crm-frontend/src/lib/apiConfig.js` fell back to
+  EC's own live production Railway API URL
+  (`https://qb-proxy-server-production.up.railway.app`) whenever none of
+  `VITE_RAILWAY_API_URL`/`VITE_QB_PROXY_URL`/`VITE_RAILWAY_CAPTURE_URL` were
+  set at build time — a misconfigured Company #4 frontend build would have
+  silently sent/received data against EC's own backend instead of failing
+  visibly. Fixed to fall back to `null`, which makes the already-existing
+  `isApiConfigured()` check (`lib/AuthContext.jsx`'s "not configured" error
+  path) actually able to return `false` — EC's own build is unaffected
+  since `crm-frontend/.env.exit` always sets the var explicitly. See
+  `crm-frontend/src/lib/apiConfig.test.jsx`. The fully-dead (zero importers)
+  `crm-frontend/src/lib/emailDesignSystem.js`, a near-duplicate of
+  `crmEmailTemplates.js`'s own color/CSS constants with the same EC-literal
+  pattern, was removed outright rather than fixed, since nothing referenced
+  it.
+- **A lower-severity, already-documented instance of the same fallback
+  pattern remains, deliberately not changed in this pass**:
+  `crm-frontend/src/lib/crmEmailTemplates.js`'s `EC_COMPANY` object and
+  `emailTransport.js#getCompanyBranding()`'s `.catch(() => ({ ...EC_COMPANY,
+  ... }))` fall back to EC's literal name/phone/domain/website only when a
+  `GET /company-settings` call fails at email-send time (every normal path
+  resolves and passes through the installation's real branding first) —
+  already carries its own "PRODUCTIZATION PHASE 2... falls back to EC's
+  exact historical values on fetch failure" comment. Unlike `apiConfig.js`
+  (which silently used the EC fallback on ANY missing build-time env var,
+  the common case for a new install), this only surfaces on a transient API
+  failure for an installation that hasn't yet configured its own branding —
+  a real but narrow edge case, tracked here rather than fixed blindly
+  without a product decision on what a transactional email should show when
+  branding is genuinely unavailable (blank fields vs. a generic placeholder
+  vs. this EC fallback).
 
 ## Lead/Deal dropdown lists (`app_settings` key `app_lists`)
 
