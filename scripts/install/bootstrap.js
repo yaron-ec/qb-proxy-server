@@ -4,7 +4,7 @@
  * scripts/install/bootstrap.js — idempotent installation bootstrap for a
  * NEW company/installation of this CRM product
  * (PRODUCTIZATION FOUNDATION — see docs/PRODUCT_ARCHITECTURE.md and
- * docs/NEW_COMPANY_INSTALL.md).
+ * docs/INSTALL_NEW_COMPANY.md).
  *
  * Runs entirely against DATABASE_URL from the environment. Never talks to
  * any other installation's database, never reads/writes EC-specific data,

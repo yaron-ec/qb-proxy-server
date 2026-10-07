@@ -220,7 +220,7 @@ admin/manager CRUD) and `routes/publicCapture.js`'s public `GET
 subset, safe to expose with no auth). `scripts/install/bootstrap.js` can
 seed this row at install time from `company.json`'s
 `project_types`/`lead_sources`/`statuses`/`contact_owners` arrays (see
-`docs/NEW_COMPANY_INSTALL.md`) — optional, no env-var form, and never
+`docs/INSTALL_NEW_COMPANY.md`) — optional, no env-var form, and never
 overwritten on a repeat bootstrap run. Omitted entirely, the frontend's
 own generic constants apply (`crm-frontend/src/pages/Settings.jsx`'s
 `DEFAULT_SOURCES`/`DEFAULT_CONTACT_OWNERS`, `LeadCapture.jsx`'s

@@ -36,7 +36,7 @@ entirely, independent of whether those gaps are ever fixed.
 (non-zero exit, no partial install) if `DATABASE_URL`, `RAILWAY_JWT_SECRET`,
 or `ENCRYPTION_KEY` is missing — a new installation cannot come up without
 its own copies of the always-required secrets. There is no code-level way
-to force-generate these; `docs/NEW_COMPANY_INSTALL.md` instructs generating
+to force-generate these; `docs/INSTALL_NEW_COMPANY.md` instructs generating
 each with `openssl rand -hex 32` and explicitly says never to copy an EC
 value.
 
@@ -64,7 +64,7 @@ not blocking productization.
 `scripts/install/bootstrap.js#ensureFirstAdmin` is check-then-insert: it
 queries for an existing user with the configured admin email before ever
 inserting, so re-running bootstrap (e.g. on every deploy, as
-`docs/NEW_COMPANY_INSTALL.md` suggests) never creates a duplicate admin or
+`docs/INSTALL_NEW_COMPANY.md` suggests) never creates a duplicate admin or
 resets an existing admin's password. The admin password from
 `company.json` is hashed (`lib/authService.js#createUser` → `hashPassword`,
 scrypt) before it ever reaches the database — `company.json` itself is
