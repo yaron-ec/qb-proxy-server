@@ -92,21 +92,34 @@ test('invalid id shape -> 400; a well-formed but nonexistent id -> 404', { skip 
 });
 
 test('reports the real canonical Follow-Up + real Appointment, and classifies a different-dated pair as DIV_OTHER (never would_auto_apply)', { skip }, async () => {
+  // A fixed, non-unique assigned_rep ("Diagnostic Owner") booked the SAME
+  // owner/day/time slot on every run, and this test's qbproxy_test database
+  // persists across runs (shared with every other *.int.test.js file) — so
+  // a second run on the same calendar day collided with the first run's own
+  // leftover appointment (409 slot_conflict), unrelated to any real defect.
+  // Stamped per-run, matching the convention used elsewhere in this suite.
+  const repStamp = `Diagnostic Owner ${Date.now()}`;
   const create = await api('POST', '/api/public/capture', {
     first_name: 'Divergent', last_name: `Lead${Date.now()}`, phone: `${400000000 + Math.floor(Math.random() * 90000000)}`,
-    project_type: 'Bathroom', source: 'Referral', assigned_rep: 'Diagnostic Owner',
+    project_type: 'Bathroom', source: 'Referral', assigned_rep: repStamp,
   }, null);
   const leadId = create.body.lead.id;
 
-  // Book a real Appointment on one date...
-  const apptDay = new Date(Date.now() + 300 * 86400000).toISOString().slice(0, 10);
+  // Book a real Appointment on one date... A fixed day offset (previously
+  // "300 days out") collides across repeated runs on the same calendar day
+  // when this lead's unrecognized assigned_rep resolves to a null owner_id
+  // (the conflict check is scoped by owner, and multiple null-owner
+  // appointments at the same slot collide regardless of which lead/run
+  // created them) — randomize the offset so it can never collide.
+  const dayOffset = 300 + Math.floor(Math.random() * 2000);
+  const apptDay = new Date(Date.now() + dayOffset * 86400000).toISOString().slice(0, 10);
   const apptRes = await api('PUT', `/api/v1/leads/${leadId}/appointment`, { appointment_date: apptDay, appointment_time: '18:00', appointment_type: 'Meeting' }, adminToken);
   assert.strictEqual(apptRes.status, 200, JSON.stringify(apptRes.body));
 
   // ...and set an independent Follow-Up on a LATER, different date — exactly
   // the shape reported for a real production lead (Appointment Sep 29,
   // Follow-Up Oct 1).
-  const followUpDay = new Date(Date.now() + 302 * 86400000).toISOString().slice(0, 10);
+  const followUpDay = new Date(Date.now() + (dayOffset + 2) * 86400000).toISOString().slice(0, 10);
   const fuRes = await api('PUT', `/api/v1/leads/${leadId}/follow-up`, { follow_up_date: followUpDay, follow_up_time: '12:00', follow_up_type: 'Meeting', follow_up_status: 'pending' }, adminToken);
   assert.strictEqual(fuRes.status, 200, JSON.stringify(fuRes.body));
 

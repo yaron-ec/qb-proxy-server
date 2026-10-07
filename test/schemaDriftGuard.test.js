@@ -16,15 +16,24 @@
  *
  * Auditing the live request/worker tree (lib/, routes/, server.js,
  * reminderWorker.js — NOT scripts/, which are offline operator tooling, not
- * a request/worker path) found FOUR pre-existing files that already violate
- * this rule, predating (or missed by) whatever earlier pass established it:
- * server.js (integration_credentials self-repair on startup),
- * routes/routing.js and routes/routingDiagnostic.js (both create
- * lead_geocodes), and lib/googleContactsOutbox.js (creates
- * google_contacts_outbox). None of these are productization defects — they
- * predate this pass and are out of scope for a CRM-productization effort to
- * silently redesign (a genuine fix means moving each to a migration, which
- * touches live startup/worker behavior and needs its own dedicated pass).
+ * a request/worker path) originally found FOUR pre-existing files that
+ * already violated this rule: server.js (integration_credentials
+ * self-repair on startup), routes/routing.js and routes/routingDiagnostic.js
+ * (both ran raw CREATE TABLE/CREATE INDEX for lead_geocodes on every
+ * request — unmemoized), and lib/googleContactsOutbox.js (creates
+ * google_contacts_outbox).
+ *
+ * routes/routing.js and routes/routingDiagnostic.js were fixed in the
+ * CRM STABILITY PHASE DB/schema-writer audit: the lead_geocodes table now
+ * has its own migration (db/migrations/2026-53-lead-geocodes-table.sql) and
+ * both routes delegate to lib/addressPipeline.js's memoized
+ * ensureGeocodeTable()/ensureAddressColumns() helpers instead of running
+ * DDL inline per-request. KNOWN_OFFENDERS shrunk accordingly, per this
+ * test's own instruction below.
+ *
+ * server.js and lib/googleContactsOutbox.js remain known, tracked,
+ * out-of-scope debt — fixing them needs its own dedicated pass (each
+ * touches live startup/worker behavior).
  *
  * This guard does NOT re-litigate that existing debt — it freezes the
  * CURRENT set of offending files as a known baseline and fails only if a
@@ -42,8 +51,6 @@ const ROOT = path.resolve(__dirname, '..');
 // Pre-existing, tracked, out-of-scope-for-this-pass offenders (see header).
 const KNOWN_OFFENDERS = new Set([
   'server.js',
-  'routes/routing.js',
-  'routes/routingDiagnostic.js',
   'lib/googleContactsOutbox.js',
 ]);
 

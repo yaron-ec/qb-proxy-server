@@ -255,7 +255,11 @@ router.post('/', express.json(), async (req, res) => {
           recipients.add(lead.assigned_rep);
         }
 
-        const recipientList = Array.from(recipients).filter(Boolean);
+        const notificationPreferences = require('../lib/notificationPreferences');
+        const recipientList = await notificationPreferences.filterRecipientsForCategory(
+          Array.from(recipients).filter(Boolean),
+          notificationPreferences.CATEGORIES.CONTRACT_SIGNED
+        );
 
         // Send via Railway EmailService
         try {

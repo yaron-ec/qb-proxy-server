@@ -34,7 +34,9 @@ function serializeAttachment(row) {
     file_name: row.file_name,
     file_url: row.file_url,
     file_type: row.file_type,
-    file_size: row.file_size,
+    // file_size is BIGINT — node-pg returns it as a string; cast like the
+    // other numeric columns below so API consumers always get a number.
+    file_size: row.file_size === null || row.file_size === undefined ? null : Number(row.file_size),
     storage_key: row.storage_key,
     uploaded_by: row.uploaded_by,
     uploaded_at: row.uploaded_at,
@@ -49,7 +51,16 @@ function serializeAttachment(row) {
   };
 }
 
-const FIELDS = ['lead_id', 'deal_id', 'attachment_kind', 'file_name', 'file_url', 'file_type', 'file_size', 'storage_key', 'uploaded_by', 'qb_invoice_id', 'qb_invoice_number', 'invoice_amount', 'invoice_date', 'due_date', 'balance_due'];
+// 'uploaded_by' is NEVER in this list — it is always server-authoritative
+// (derived from req.user.email, see POST below), never client-settable.
+// It was previously included here too, which (a) let POST's hardcoded
+// `cols`/`vals` prefix collide with this FIELDS loop whenever the request
+// body included an uploaded_by field — the frontend's upload flow
+// (crm-frontend/src/components/AttachmentsPanel.jsx) always sends one,
+// so EVERY real upload hit Postgres's "column uploaded_by specified more
+// than once" error — and (b) let PUT silently overwrite who actually
+// uploaded a file with any client-supplied string.
+const FIELDS = ['lead_id', 'deal_id', 'attachment_kind', 'file_name', 'file_url', 'file_type', 'file_size', 'storage_key', 'qb_invoice_id', 'qb_invoice_number', 'invoice_amount', 'invoice_date', 'due_date', 'balance_due'];
 
 router.get('/', async (req, res) => {
   try {

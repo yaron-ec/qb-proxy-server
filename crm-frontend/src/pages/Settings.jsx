@@ -4,7 +4,7 @@ import * as railwaySettings from "@/api/railway/settings";
 import { EC_PROJECT_TYPES } from "@/lib/projectTypes";
 import {
   ArrowLeft, Plus, X, GripVertical, Building2, Users, RefreshCw,
-  Database, Tag, Wrench, MapPin, UserCheck, Mail, ChevronDown, Menu, FileSignature, Link2, CheckCircle, AlertCircle, Clock, Trash2, DollarSign, LogOut, ClipboardList
+  Database, Tag, Wrench, MapPin, UserCheck, Mail, ChevronDown, Menu, FileSignature, Link2, CheckCircle, AlertCircle, Clock, Trash2, DollarSign, LogOut, ClipboardList, Bell
 } from "lucide-react";
 import SignNowSettingsTab from "../components/SignNowSettingsTab";
 import CaptureLinkTab from "../components/CaptureLinkTab";
@@ -23,6 +23,7 @@ import HandoffConfigTab from "../components/HandoffConfigTab";
 import LeadQualificationTab from "../components/LeadQualificationTab";
 import OwnerDirectoryTab from "../components/OwnerDirectoryTab";
 import ReminderEngineStatus from "../components/ReminderEngineStatus";
+import NotificationPreferencesTab from "../components/NotificationPreferencesTab";
 import CrmAuditDashboard from "../components/CrmAuditDashboard";
 
 // Shown on the Statuses/Project Types/Sources/Contact Owners editors when
@@ -99,6 +100,7 @@ const NAV_SECTIONS = [
     group: "Notifications",
     items: [
       { id: "email", label: "Email Settings", icon: Mail },
+      { id: "notification-preferences", label: "Notification Preferences", icon: Bell },
       { id: "reminders", label: "Appointment Reminders", icon: Clock },
     ]
   },
@@ -414,6 +416,8 @@ export default function Settings() {
           {activeTab === "ownerDirectory" && <OwnerDirectoryTab readOnly={isReadOnly} />}
           {activeTab === "qualification" && <LeadQualificationTab />}
           {activeTab === "email" && <EmailSettingsTab />}
+          {activeTab === "notification-preferences" && !isReadOnly && <NotificationPreferencesTab readOnly={isReadOnly} />}
+          {activeTab === "notification-preferences" && isReadOnly && <div className="text-sm text-slate-400 p-4">Notification preference management is restricted to administrators.</div>}
           {activeTab === "reminders" && <ReminderEngineStatus />}
           {activeTab === "signnow" && <SignNowSettingsTab />}
           {activeTab === "capturelink" && <CaptureLinkTab />}

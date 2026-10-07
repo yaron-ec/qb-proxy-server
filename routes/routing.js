@@ -31,8 +31,9 @@
 
 const express = require('express');
 const { requireAuth, requireRole } = require('../lib/rbac');
-const { query, ensureColumns } = require('../db/client');
+const { query } = require('../db/client');
 const gmaps = require('../lib/googleMapsClient');
+const addressPipeline = require('../lib/addressPipeline');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -90,55 +91,18 @@ async function getRawOwnerStarts() {
   return {};
 }
 
-// ── Database: lead_geocodes cache table ──────────────────────────────────────
+// ── Database: lead_geocodes cache table + leads geocode columns ─────────────
+// Both delegate to lib/addressPipeline.js's memoized helpers (run their DDL
+// at most once per process) rather than running table-creation/column DDL on
+// every request — this used to be unmemoized here, violating the "no DDL at
+// runtime" rule (CLAUDE.md) on every hit to daily-schedule/backfill-geocodes.
 
 async function ensureGeocodeTable() {
-  try {
-    await query(`
-      CREATE TABLE IF NOT EXISTS lead_geocodes (
-        lead_id TEXT PRIMARY KEY,
-        address_hash TEXT NOT NULL,
-        normalized_address TEXT,
-        verified_address TEXT,
-        latitude DOUBLE PRECISION,
-        longitude DOUBLE PRECISION,
-        google_place_id TEXT,
-        geocode_status TEXT DEFAULT 'pending',
-        geocoded_at TIMESTAMPTZ,
-        updated_at TIMESTAMPTZ DEFAULT NOW()
-      )
-    `);
-    await query('CREATE INDEX IF NOT EXISTS idx_lead_geocodes_hash ON lead_geocodes (address_hash)');
-    // Add verified_address column to existing tables
-    await ensureColumns('lead_geocodes', [['verified_address', "TEXT"]]);
-  } catch (e) {
-    console.warn('[routing] lead_geocodes table creation deferred:', e.message);
-  }
+  await addressPipeline.ensureGeocodeTable();
 }
 
-// Add geocode columns to the leads table so the verified address, coordinates,
-// and verification status are persisted alongside the raw customer-entered
-// property_address (which is preserved unchanged for audit).
 async function ensureLeadsGeocodeColumns() {
-  try {
-    await ensureColumns('leads', [
-      ['verified_property_address', "TEXT"],
-      ['property_lat', "DOUBLE PRECISION"],
-      ['property_lng', "DOUBLE PRECISION"],
-      ['property_geocode_status', "TEXT DEFAULT 'pending'"],
-    ]);
-    // Add state column — the leads table was created without it, but the CRM
-    // ContactInfoEditor displays it. Address reconciliation populates it from
-    // Google's verified address_components.
-    await ensureColumns('leads', [['state', "TEXT"]]);
-    // Preserve the original raw address for audit/history before reconciliation overwrites it
-    await ensureColumns('leads', [
-      ['original_property_address', "TEXT"],
-      ['original_city', "TEXT"],
-    ]);
-  } catch (e) {
-    console.warn('[routing] leads geocode columns creation deferred:', e.message);
-  }
+  await addressPipeline.ensureAddressColumns();
 }
 
 // Persist the Google-verified address, coordinates, and status to the leads
