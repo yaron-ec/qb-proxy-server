@@ -1079,7 +1079,30 @@ app.post('/qb/lead-status', requireProxySecret, async (req, res) => {
 });
 
 app.post('/qb/sync-lead', requireProxySecret, async (req, res) => {
-  // Creates or updates a QB customer from lead data, creates invoice if amount provided
+  // Creates or updates a QB customer from lead data. Despite its name/this
+  // endpoint's former comment, it has NEVER created an invoice or estimate —
+  // it only ever reads req.body.lead and does customer find-or-create.
+  // crm-frontend's InvoiceCreationFlow.jsx and QuickBooksSyncTab.jsx both
+  // call this same endpoint with action: 'sync_invoice'/'sync_estimate' and
+  // a dealId/projectId/estimateId, expecting invoice/estimate creation — that
+  // action was silently ignored here, so every "Create Invoice in
+  // QuickBooks" click fell through to this generic customer-sync logic and
+  // returned a misleading {success:true}, which crm-frontend then reported
+  // as "Unexpected response from QuickBooks" (InvoiceCreationFlow.jsx) or a
+  // confusing "lead required in body" (QuickBooksSyncTab.jsx, which sends
+  // {action, leadId} instead of {lead}). No QB Invoice Line/ItemRef
+  // construction exists anywhere in this codebase (only the inbound
+  // read/cache direction — lib/qbInboundSync.js — was ever built), so
+  // fabricating one here would risk writing an incorrect financial document
+  // structure to a real QuickBooks account the first time this is enabled.
+  // Fail loudly and honestly instead of silently no-op'ing as success.
+  if (req.body.action === 'sync_invoice' || req.body.action === 'sync_estimate') {
+    const what = req.body.action === 'sync_invoice' ? 'invoice' : 'estimate';
+    return res.status(501).json({
+      error: `QuickBooks ${what} creation from the CRM is not yet implemented on the backend. Please create this ${what} directly in QuickBooks.`,
+      code: 'not_implemented',
+    });
+  }
   const { lead } = req.body;
   if (!lead) return res.status(400).json({ error: 'lead required in body' });
   try {
