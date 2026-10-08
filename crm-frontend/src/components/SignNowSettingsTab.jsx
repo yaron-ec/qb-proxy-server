@@ -180,6 +180,11 @@ export default function SignNowSettingsTab() {
                   {status.auth_method === 'api_key' && (
                     <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">API Key</span>
                   )}
+                  {status.environment === 'sandbox' && (
+                    <span className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-semibold" title="This API key belongs to SignNow's Sandbox/Eval environment — documents created here are only visible at app-eval.signnow.com, never app.signnow.com. Use a Production app's API key for real customer contracts.">
+                      ⚠ Sandbox/Eval
+                    </span>
+                  )}
                 </div>
                 <div className="text-sm text-slate-600 mt-0.5">{status.name || status.username}</div>
                 {status.email && <div className="text-xs text-slate-400">{status.email}</div>}

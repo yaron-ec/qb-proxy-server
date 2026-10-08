@@ -32,6 +32,7 @@ export default function SignNowPanel({ lead, onLeadUpdate, deal }) {
   const [showUpload, setShowUpload] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(null);
   const [sendingDocId, setSendingDocId] = useState(null);
+  const [openingDocId, setOpeningDocId] = useState(null);
   const { toast } = useToast();
   const refreshTimer = useRef(null);
 
@@ -233,6 +234,32 @@ export default function SignNowPanel({ lead, onLeadUpdate, deal }) {
     }
   };
 
+  // Production defect fixed: this used to be a plain <a href> straight to a
+  // hardcoded `https://app.signnow.com/document/{docId}` — which 404s for
+  // ANY document created under non-production (Eval/Sandbox) SignNow
+  // credentials, since that's a completely separate account/environment
+  // from the production web app. The backend now verifies the document
+  // actually exists via a real SignNow API call (using THIS account's own
+  // credentials) before ever handing back a URL, and uses SignNow's
+  // official embedded-editor link for a not-yet-sent document — no
+  // separate SignNow browser login required, and no stale/wrong-host 404s.
+  const handleOpenInSignNow = async (docId) => {
+    setOpeningDocId(docId);
+    try {
+      const { url } = await railwaySignnow.getOpenLink(docId);
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (e) {
+      toast({
+        title: 'Could not open this document',
+        description: e.data?.message || e.message || 'SignNow could not verify this document.',
+        variant: 'destructive',
+        duration: 7000,
+      });
+    } finally {
+      setOpeningDocId(null);
+    }
+  };
+
   const handleDownloadPdf = async (docId) => {
     setDownloadingPdf(docId);
     try {
@@ -416,14 +443,14 @@ export default function SignNowPanel({ lead, onLeadUpdate, deal }) {
                   >
                     <RefreshCw className="w-3 h-3" /> Refresh
                   </button>
-                  <a
-                    href={`https://app.signnow.com/document/${doc.document_id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[10px] text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1"
+                  <button
+                    onClick={() => handleOpenInSignNow(doc.document_id)}
+                    disabled={openingDocId === doc.document_id}
+                    className="text-[10px] text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 disabled:opacity-50"
                   >
-                    <ExternalLink className="w-3 h-3" /> Open in SignNow
-                  </a>
+                    {openingDocId === doc.document_id ? <Loader2 className="w-3 h-3 animate-spin" /> : <ExternalLink className="w-3 h-3" />}
+                    Open in SignNow
+                  </button>
                   {(doc.status === 'signed' || doc.status === 'completed') && (
                     <button
                       onClick={() => handleDownloadPdf(doc.document_id)}
