@@ -93,6 +93,18 @@ function IntegrationCard({ moduleKey, data }) {
             Last lead received {fmt(data.recency.last_lead_received_at)} · {data.recency.total_leads_received ?? 0} total
           </HelperText>
         )}
+        {data.sync_evidence && (
+          <HelperText>
+            Sync: {data.sync_evidence.pending_count ?? 0} pending/retrying
+            {data.sync_evidence.dead_count > 0 ? ` · ${data.sync_evidence.dead_count} permanently failed` : ""}
+            {" "}· last synced {fmt(data.sync_evidence.last_synced_at)}
+          </HelperText>
+        )}
+        {data.end_to_end && (
+          <div className={`text-xs rounded-md px-2.5 py-2 leading-snug ${data.end_to_end.verified ? "text-emerald-700 bg-emerald-50" : "text-slate-600 bg-slate-50"}`}>
+            {data.end_to_end.verified ? "✓ " : ""}{data.end_to_end.message}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

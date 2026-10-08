@@ -27,6 +27,7 @@
 
 const express = require('express');
 const { requireAuth } = require('../lib/rbac');
+const { requireModuleEnabled } = require('../lib/moduleGate');
 const { query } = require('../db/client');
 const { checkLeadScope } = require('../lib/recordAccess');
 const gmail = require('../lib/gmailSender');
@@ -34,6 +35,10 @@ const { classifyDirection, messageInvolvesLead, externalRefFor, hasAttachment } 
 
 const router = express.Router();
 router.use(requireAuth);
+// CRM STABILITY PHASE final audit: gated on enabled_modules.gmail — see
+// routes/gmail.js's header for the same reasoning (read-only feature, never
+// the email-sending transport).
+router.use(requireModuleEnabled('gmail'));
 
 const COMPANY_EMAIL = process.env.GMAIL_FROM_ADDRESS || 'yaron@ecconstructiongroup.com';
 const MAX_MESSAGES = 50;

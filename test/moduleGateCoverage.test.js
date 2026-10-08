@@ -55,6 +55,11 @@ test('every dedicated optional-integration router gates on its own module key', 
     ['routes/leadQB.js', 'quickbooks'],
     ['routes/qbInboundSync.js', 'quickbooks'],
     ['routes/metaWebhook.js', 'meta'],
+    // CRM STABILITY PHASE final audit: closed the gmail/website_intake
+    // enforcement gaps found by lib/systemHealthChecks.js's own audit.
+    ['routes/gmail.js', 'gmail'],
+    ['routes/leadEmails.js', 'gmail'],
+    ['routes/websiteLeads.js', 'website_intake'],
   ];
   for (const [file, key] of expectations) {
     const src = readFile(file);
@@ -64,4 +69,20 @@ test('every dedicated optional-integration router gates on its own module key', 
       `${file} must call requireModuleEnabled('${key}')`
     );
   }
+});
+
+test('lib/reminderAlerts.js\'s Twilio critical-alert channel is NEVER gated on enabled_modules.sms (by design, not an oversight)', () => {
+  // CRM STABILITY PHASE final audit: `sms` has zero isModuleEnabled
+  // consumers today, and this is the one deliberate, permanent exception —
+  // not a gap awaiting a fix. This module's entire purpose is to be the
+  // last-resort alert path when something else is already broken ("Does NOT
+  // depend on Gmail OAuth — a dead refresh token cannot silence these
+  // alerts" — see the file's own header). Gating it on the SAME
+  // company_settings/DB read that might itself be struggling during a real
+  // outage would add a single point of failure to the one channel that
+  // explicitly exists to have none. This test fails loudly if a future
+  // change "fixes" this gap without re-reading that reasoning.
+  const src = readFile('lib/reminderAlerts.js');
+  assert.ok(!/companyConfig|isModuleEnabled|requireModuleEnabled/.test(src),
+    'lib/reminderAlerts.js must stay independent of company_settings/module gating — see this test\'s own comment before adding one');
 });
