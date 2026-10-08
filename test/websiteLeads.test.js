@@ -19,7 +19,7 @@ class BookingError extends Error {
 
 function fakeWorld({ secret = SECRET, bookingMode = 'create', failBooking = false } = {}) {
   const db = { leads: new Map(), receipts: new Map(), activities: [], seq: 0 };
-  const calls = { booking: [], alerts: 0, contacts: 0, deleted: [] };
+  const calls = { booking: [], alerts: 0, contacts: 0, deleted: [], rejections: [] };
   const newLead = (fields) => {
     const id = `00000000-0000-4000-8000-${String(++db.seq).padStart(12, '0')}`;
     const row = { id, status: 'New', sms_consent: null, ...fields };
@@ -30,6 +30,7 @@ function fakeWorld({ secret = SECRET, bookingMode = 'create', failBooking = fals
 
   async function query(sql, p = []) {
     const s = sql.replace(/\s+/g, ' ').trim();
+    if (s.startsWith('INSERT INTO website_lead_intake_rejections')) { calls.rejections.push(p[0]); return { rows: [] }; }
     if (s.startsWith('INSERT INTO website_lead_receipts')) {
       if (db.receipts.has(p[0])) return { rows: [] };
       db.receipts.set(p[0], { external_ref: p[0], is_test: p[1], lead_id: null, action: null, completed_at: null, received_at: new Date() });
@@ -126,7 +127,8 @@ const websiteLead = (over = {}) => ({
 });
 
 test('fails closed without the secret configured; rejects a wrong secret; status leaks nothing', async () => {
-  await withServer(fakeWorld({ secret: '' }).app, async (base) => {
+  const notConfigured = fakeWorld({ secret: '' });
+  await withServer(notConfigured.app, async (base) => {
     assert.strictEqual((await post(base, websiteLead())).status, 503);
     assert.deepStrictEqual(await (await fetch(base)).json(), { service: 'website-leads', configured: false, capabilities: ['test-evidence'] });
   });
@@ -137,6 +139,12 @@ test('fails closed without the secret configured; rejects a wrong secret; status
     assert.deepStrictEqual(await (await fetch(base)).json(), { service: 'website-leads', configured: true, capabilities: ['test-evidence'] });
   });
   assert.strictEqual(w.calls.booking.length, 0, 'nothing written without a valid secret');
+  // CRM PRODUCTION reliability audit: a rejected attempt is never invisible
+  // — it must leave a trace (reason only, never the secret/payload) so a
+  // future secret mismatch is distinguishable from "nothing ever tried."
+  await new Promise((r) => setImmediate(r));
+  assert.deepStrictEqual(notConfigured.calls.rejections, ['not_configured']);
+  assert.deepStrictEqual(w.calls.rejections, ['unauthorized', 'unauthorized']);
 });
 
 test('new website lead: normalized fields, SMS consent, note, internal alert, contacts sync', async () => {

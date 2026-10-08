@@ -105,6 +105,14 @@ function IntegrationCard({ moduleKey, data }) {
             {data.end_to_end.verified ? "✓ " : ""}{data.end_to_end.message}
           </div>
         )}
+        {data.delivery_failures && data.delivery_failures.total > 0 && (
+          <div className="text-xs rounded-md px-2.5 py-2 leading-snug text-amber-700 bg-amber-50">
+            {data.delivery_failures.recent_24h > 0
+              ? `${data.delivery_failures.recent_24h} rejected deliveries in the last 24h`
+              : `${data.delivery_failures.total} rejected deliveries total`}
+            {" "}(bad secret or disabled) — last {fmt(data.delivery_failures.last_rejected_at)}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
