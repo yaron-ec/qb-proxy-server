@@ -1,20 +1,21 @@
 /* eslint-disable no-undef */
 /**
- * systemInfo.test.js — GET /api/v1/system/info (Phase J/H productization).
+ * systemInfo.test.js — GET /api/v1/system/info (CRM STABILITY PHASE,
+ * System Health UI-consistency + real-integration-audit pass).
  *
- * Covers:
+ * Route wiring is tested here with lib/systemHealthChecks's own
+ * getIntegrationHealth() stubbed out — the per-integration evidence logic
+ * (credential_present, live_check branches, deriveState) is covered in
+ * depth by test/systemHealthChecks.test.js (unit) and
+ * test/integration/systemInfo.int.test.js (real Postgres). This file only
+ * proves the ROUTE correctly:
  *   1. Requires auth (401 with no bearer token).
  *   2. Requires admin role (403 for a non-admin token).
- *   3. Admin token gets a 200 with the documented response shape.
- *   4. integration_credentials rows are correctly mapped by the REAL
- *      (provider, credential_type) pairs each integration actually writes
- *      (provider='intuit'/credential_type='quickbooks' for QuickBooks,
- *      provider='google'/credential_type='gmail' for Gmail) — not by
- *      module key, which was the bug caught before this route shipped.
- *   5. A module with no integration_credentials row at all (handoff — env
- *      or app_settings only) falls back to env-presence state.
- *   6. No secret value (encrypted_payload, raw env var value) ever appears
- *      in the response.
+ *   3. Returns a 200 with installation/schema/version info preserved.
+ *   4. Plumbs ?verify=1 through to getIntegrationHealth({ verify: true })
+ *      and sets the top-level `verified` flag accordingly.
+ *   5. Rate-limits the ?verify=1 path specifically (10/min).
+ *   6. Never leaks a secret value.
  *
  * Run: node --test test/systemInfo.test.js
  */
@@ -22,63 +23,27 @@
 
 process.env.RAILWAY_JWT_SECRET = 'test-jwt-secret-at-least-32-chars-long!!';
 
-const { test, describe, before, after } = require('node:test');
+const { test, describe } = require('node:test');
 const assert = require('node:assert');
 const http = require('http');
 const express = require('express');
 
 const { issueAccessToken } = require('../lib/authService');
 
-// ── Mock db/client BEFORE requiring the route ───────────────────────────────
-const credRows = [
-  {
-    provider: 'intuit', credential_type: 'quickbooks',
-    status: 'connected', expires_at: null,
-    last_error_at: null, last_error_message: null,
-    refreshed_at: new Date().toISOString(), last_used_at: new Date().toISOString(),
-  },
-  {
-    provider: 'google', credential_type: 'gmail',
-    status: 'connected', expires_at: new Date(Date.now() - 60000).toISOString(), // expired
-    last_error_at: null, last_error_message: null,
-    refreshed_at: null, last_used_at: new Date().toISOString(),
-  },
-];
-
-// Mutable so a later test can flip a module off without needing to swap
-// the query function reference itself — lib/companyConfig.js destructures
-// `query` from db/client at require time (a one-time copy, not a live
-// binding), so reassigning require('../db/client').query afterwards would
-// silently not affect it. Reading a shared outer variable inside the SAME
-// mockQuery function (already captured by companyConfig.js) works instead.
-let enabledModulesOverride = null;
-const ALL_MODULES_ENABLED = {
-  quickbooks: true, gmail: true, google_calendar: true, google_contacts: true,
-  signnow: true, handoff: true, meta: true, sms: true, website_intake: true,
-};
-
-function mockQuery(sql) {
-  if (/FROM schema_migrations/i.test(sql)) {
-    return Promise.resolve({ rows: [{ n: 44, last_applied_at: new Date().toISOString() }] });
-  }
-  if (/FROM integration_credentials/i.test(sql)) {
-    return Promise.resolve({ rows: credRows });
-  }
-  if (/FROM company_settings/i.test(sql)) {
-    return Promise.resolve({
-      rows: [{
-        timezone: 'America/Los_Angeles',
-        enabled_modules: enabledModulesOverride || ALL_MODULES_ENABLED,
-      }],
-    });
-  }
-  return Promise.resolve({ rows: [] });
-}
-
+// ── Mock db/client (schema_migrations only) + installationIdentity BEFORE
+// requiring the route. ───────────────────────────────────────────────────
 const dbClientPath = require.resolve('../db/client');
 require.cache[dbClientPath] = {
   id: dbClientPath, filename: dbClientPath, loaded: true,
-  exports: { query: mockQuery, pool: {} },
+  exports: {
+    query: async (sql) => {
+      if (/FROM schema_migrations/i.test(sql)) {
+        return { rows: [{ n: 44, last_applied_at: new Date().toISOString() }] };
+      }
+      throw new Error('unexpected query in systemInfo.test.js mock: ' + sql);
+    },
+    pool: {},
+  },
 };
 
 const installIdentityPath = require.resolve('../lib/installationIdentity');
@@ -90,20 +55,27 @@ require.cache[installIdentityPath] = {
   },
 };
 
-const bootstrapPath = require.resolve('../scripts/install/bootstrap');
-require.cache[bootstrapPath] = {
-  id: bootstrapPath, filename: bootstrapPath, loaded: true,
+// ── Mock lib/systemHealthChecks — the route's only integration-health
+// dependency after the rewrite. Records the `verify` flag it was called
+// with so tests can assert the route actually plumbs ?verify=1 through. ──
+let lastVerifyCall = null;
+let healthFixture = {
+  quickbooks: {
+    module_enabled: true, flag_enforced: true, state: 'CONNECTED',
+    credential_source: 'database', missing_env: [], supports_live_check: true,
+    live_check: null, recency: null,
+  },
+  meta: {
+    module_enabled: false, flag_enforced: true, state: 'DISABLED',
+    credential_source: 'none', missing_env: ['META_APP_SECRET'], supports_live_check: false,
+    live_check: null, recency: null,
+  },
+};
+const systemHealthChecksPath = require.resolve('../lib/systemHealthChecks');
+require.cache[systemHealthChecksPath] = {
+  id: systemHealthChecksPath, filename: systemHealthChecksPath, loaded: true,
   exports: {
-    integrationEnvStatus: () => ({
-      quickbooks: { configured: true, present: ['QB_CLIENT_ID', 'QB_CLIENT_SECRET', 'QB_REDIRECT_URI'], missing: [] },
-      gmail: { configured: true, present: ['GMAIL_CLIENT_ID', 'GMAIL_CLIENT_SECRET'], missing: [] },
-      google_calendar: { configured: false, present: [], missing: ['GOOGLE_SERVICE_ACCOUNT_EMAIL', 'GOOGLE_SERVICE_ACCOUNT_KEY'] },
-      signnow: { configured: false, present: [], missing: ['SIGNNOW_CLIENT_ID', 'SIGNNOW_CLIENT_SECRET'] },
-      handoff: { configured: true, present: ['HANDOFF_API_KEY'], missing: [] },
-      meta: { configured: false, present: [], missing: ['META_APP_SECRET'] },
-      sms: { configured: false, present: [], missing: ['TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN'] },
-      website_intake: { configured: true, present: ['WEBSITE_LEAD_WEBHOOK_SECRET'], missing: [] },
-    }),
+    getIntegrationHealth: async ({ verify }) => { lastVerifyCall = verify; return healthFixture; },
   },
 };
 
@@ -144,7 +116,7 @@ describe('GET /api/v1/system/info', () => {
     });
   });
 
-  test('returns 200 with the documented shape for an admin token', async () => {
+  test('returns 200 with the documented shape for an admin token, preserving installation/schema/version info', async () => {
     await withServer(async (base) => {
       const res = await fetch(`${base}/api/v1/system/info`, { headers: { Authorization: `Bearer ${adminToken}` } });
       assert.strictEqual(res.status, 200);
@@ -156,40 +128,35 @@ describe('GET /api/v1/system/info', () => {
       assert.strictEqual(body.schema.migrations_applied, 44);
       assert.ok(body.generated_at);
       assert.ok(body.integrations);
+      assert.ok('build_commit' in body, 'response must include build_commit, even if null when git is unavailable');
     });
   });
 
-  test('maps QuickBooks (provider=intuit/credential_type=quickbooks) to CONNECTED', async () => {
+  test('passes through getIntegrationHealth\'s result verbatim, per-module', async () => {
     await withServer(async (base) => {
       const res = await fetch(`${base}/api/v1/system/info`, { headers: { Authorization: `Bearer ${adminToken}` } });
       const body = await res.json();
-      assert.strictEqual(body.integrations.quickbooks.connection.state, 'CONNECTED');
+      assert.strictEqual(body.integrations.quickbooks.state, 'CONNECTED');
+      assert.strictEqual(body.integrations.meta.state, 'DISABLED');
+      assert.deepStrictEqual(body.integrations.meta.missing_env, ['META_APP_SECRET']);
     });
   });
 
-  test('maps Gmail (provider=google/credential_type=gmail, expired) to RECONNECT_REQUIRED', async () => {
+  test('default GET (no ?verify=1) calls getIntegrationHealth with verify:false and sets verified:false', async () => {
     await withServer(async (base) => {
       const res = await fetch(`${base}/api/v1/system/info`, { headers: { Authorization: `Bearer ${adminToken}` } });
       const body = await res.json();
-      assert.strictEqual(body.integrations.gmail.connection.state, 'RECONNECT_REQUIRED');
+      assert.strictEqual(lastVerifyCall, false);
+      assert.strictEqual(body.verified, false);
     });
   });
 
-  test('a module with no integration_credentials row (handoff) falls back to env-presence CONFIGURED', async () => {
+  test('?verify=1 calls getIntegrationHealth with verify:true and sets verified:true', async () => {
     await withServer(async (base) => {
-      const res = await fetch(`${base}/api/v1/system/info`, { headers: { Authorization: `Bearer ${adminToken}` } });
+      const res = await fetch(`${base}/api/v1/system/info?verify=1`, { headers: { Authorization: `Bearer ${adminToken}` } });
       const body = await res.json();
-      assert.strictEqual(body.integrations.handoff.env_configured, true);
-      assert.strictEqual(body.integrations.handoff.connection.state, 'CONFIGURED');
-    });
-  });
-
-  test('an unconfigured module with no row reports NOT_CONFIGURED', async () => {
-    await withServer(async (base) => {
-      const res = await fetch(`${base}/api/v1/system/info`, { headers: { Authorization: `Bearer ${adminToken}` } });
-      const body = await res.json();
-      assert.strictEqual(body.integrations.meta.env_configured, false);
-      assert.strictEqual(body.integrations.meta.connection.state, 'NOT_CONFIGURED');
+      assert.strictEqual(lastVerifyCall, true);
+      assert.strictEqual(body.verified, true);
     });
   });
 
@@ -201,40 +168,20 @@ describe('GET /api/v1/system/info', () => {
       assert.ok(!raw.includes('test-jwt-secret'));
     });
   });
-
-  test('includes a build_commit field (PRODUCTIZATION PHASE 2, Section 9)', async () => {
-    await withServer(async (base) => {
-      const res = await fetch(`${base}/api/v1/system/info`, { headers: { Authorization: `Bearer ${adminToken}` } });
-      const body = await res.json();
-      assert.ok('build_commit' in body, 'response must include build_commit, even if null when git is unavailable');
-    });
-  });
-
-  test('every integration reports module_enabled', async () => {
-    await withServer(async (base) => {
-      const res = await fetch(`${base}/api/v1/system/info`, { headers: { Authorization: `Bearer ${adminToken}` } });
-      const body = await res.json();
-      for (const mod of Object.keys(body.integrations)) {
-        assert.strictEqual(body.integrations[mod].module_enabled, true, `${mod} should report module_enabled true in this fixture (all modules on)`);
-      }
-    });
-  });
 });
 
-describe('GET /api/v1/system/info — a disabled module reports DISABLED, not an env/connection state', () => {
-  test('quickbooks disabled: connection.state is DISABLED even with a CONNECTED credential row', async () => {
-    enabledModulesOverride = { ...ALL_MODULES_ENABLED, quickbooks: false };
-    require('../lib/companyConfig').invalidate();
-    try {
-      await withServer(async (base) => {
-        const res = await fetch(`${base}/api/v1/system/info`, { headers: { Authorization: `Bearer ${adminToken}` } });
-        const body = await res.json();
-        assert.strictEqual(body.integrations.quickbooks.module_enabled, false);
-        assert.strictEqual(body.integrations.quickbooks.connection.state, 'DISABLED');
-      });
-    } finally {
-      enabledModulesOverride = null;
-      require('../lib/companyConfig').invalidate();
-    }
+describe('GET /api/v1/system/info?verify=1 — rate limited (live outbound calls)', () => {
+  test('the 11th ?verify=1 request within the window is rate-limited (429); the plain path is unaffected', async () => {
+    await withServer(async (base) => {
+      let saw429 = false;
+      for (let i = 0; i < 12; i++) {
+        const res = await fetch(`${base}/api/v1/system/info?verify=1`, { headers: { Authorization: `Bearer ${adminToken}` } });
+        if (res.status === 429) { saw429 = true; break; }
+      }
+      assert.ok(saw429, 'expected a 429 within 12 rapid ?verify=1 requests');
+
+      const plain = await fetch(`${base}/api/v1/system/info`, { headers: { Authorization: `Bearer ${adminToken}` } });
+      assert.strictEqual(plain.status, 200, 'the non-verify path must remain unaffected by the verify-path limiter being exhausted');
+    });
   });
 });

@@ -37,83 +37,12 @@ const requireAdminManager = requireRole('admin', 'manager');
 router.use((req, res, next) => (req.path === '/status' ? next() : requireModuleEnabled('signnow')(req, res, next)));
 
 // ── GET /status — SignNow connection status ──────────────────────────────────
+// Logic lives in lib/signnowClient.js#checkConnection() (extracted during the
+// System Health audit so GET /api/v1/system/info reuses the exact same
+// check instead of a second, divergent implementation).
 router.get('/status', async (req, res) => {
   try {
-    const authMethod = signnowClient.getAuthMethod();
-
-    // API Key mode — verify the API Key works by calling a SignNow endpoint
-    if (authMethod === 'api_key') {
-      try {
-        const userData = await signnowClient.verifyApiKey();
-        // The ACTUAL detected environment (API Key auth auto-probes both
-        // api.signnow.com and api-eval.signnow.com and may land on a
-        // different one than SIGNNOW_ENVIRONMENT claims) — surfaced so an
-        // admin can catch an Eval/Sandbox key misconfiguration before it
-        // causes a "document not found" surprise later (the exact
-        // production defect this was added to help prevent/diagnose).
-        const effectiveBase = await signnowClient.getEffectiveApiBase().catch(() => null);
-        const environment = effectiveBase === 'https://api-eval.signnow.com' ? 'sandbox' : 'production';
-        return res.json({
-          connected: true,
-          auth_method: 'api_key',
-          name: userData.full_name || userData.first_name || 'API Key',
-          email: userData.email || null,
-          environment,
-        });
-      } catch (e) {
-        return res.json({
-          connected: false,
-          auth_method: 'api_key',
-          error: e.code === 'SIGNNOW_AUTH_FAILED' ? 'auth_failed' : 'error',
-          message: e.message,
-          signnow_error_code: e.signnowErrorCode || null,
-        });
-      }
-    }
-
-    // Password grant mode — check for stored credentials
-    const credentialStore = require('../lib/integrationCredentialStore');
-    const SIGNNOW_ENV = process.env.SIGNNOW_ENVIRONMENT || 'production';
-
-    let dbCred = null;
-    try {
-      dbCred = await credentialStore.loadActiveCredential({
-        provider: 'signnow',
-        credentialType: 'password',
-        environment: SIGNNOW_ENV,
-      });
-    } catch (e) { /* store may not be configured */ }
-
-    const hasDbCreds = !!(dbCred && dbCred.payload && dbCred.payload.username);
-    const hasEnvCreds = !!(process.env.SIGNNOW_USERNAME && process.env.SIGNNOW_PASSWORD);
-
-    if (!hasDbCreds && !hasEnvCreds) {
-      return res.json({ connected: false, auth_method: 'password_grant' });
-    }
-
-    // Verify the connection by attempting to get an access token
-    try {
-      await signnowClient.getAccessToken();
-      const username = hasDbCreds ? dbCred.payload.username : process.env.SIGNNOW_USERNAME;
-      res.json({
-        connected: true,
-        auth_method: 'password_grant',
-        name: username,
-        email: username.includes('@') ? username : null,
-        username,
-      });
-    } catch (e) {
-      if (e.code === 'SIGNNOW_NOT_CONFIGURED') {
-        return res.json({ connected: false, auth_method: 'password_grant' });
-      }
-      res.json({
-        connected: false,
-        auth_method: 'password_grant',
-        error: e.code === 'SIGNNOW_NOT_APP_OWNER' ? 'not_app_owner' : 'auth_failed',
-        message: e.message,
-        signnow_error_code: e.signnowErrorCode || null,
-      });
-    }
+    res.json(await signnowClient.checkConnection());
   } catch (e) {
     console.error('[signnow] status error:', e.message);
     res.status(500).json({ error: e.message });

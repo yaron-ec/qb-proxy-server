@@ -1,135 +1,216 @@
 import { useState, useEffect } from "react";
 import * as railwaySystemInfo from "@/api/railway/systemInfo";
 import { useAuth } from "@/lib/AuthContext";
-import { Activity, CheckCircle2, AlertTriangle, XCircle, Circle, RefreshCw } from "lucide-react";
+import { CheckCircle2, AlertTriangle, XCircle, Circle, RefreshCw, Zap } from "lucide-react";
+import { Card, CardHeader, CardContent } from "@/components/DesignSystem/Card";
+import { PageTitle, PageSubtitle, SectionTitle, HelperText } from "@/components/DesignSystem/SectionHeader";
+import { Button } from "@/components/DesignSystem/Button";
+import { StatusBadge } from "@/components/DesignSystem/Badge";
+import { Alert } from "@/components/DesignSystem/Alert";
 
 /**
  * SystemHealth — Admin-only System Health page (PRODUCTIZATION PHASE 2,
- * Section 8), backed by GET /api/v1/system/info. Never renders a secret
- * value — the endpoint itself never returns one.
+ * Section 8; redesigned + real-integration-audit pass), backed by
+ * GET /api/v1/system/info. Never renders a secret value — the endpoint
+ * itself never returns one, only credential presence, generic status
+ * metadata, and missing-env-var NAMES.
+ *
+ * Two distinct refreshes:
+ *   - "Refresh" — fast, local, credential-presence-only (no outbound calls).
+ *   - "Run Live Checks" (?verify=1) — genuine read-only connectivity checks
+ *     against each configured integration. Slower, rate-limited server-side.
  */
 
-const STATE_STYLE = {
-  CONNECTED:           { icon: CheckCircle2, cls: "text-emerald-600 bg-emerald-50 border-emerald-200", label: "Connected" },
-  CONFIGURED:          { icon: Circle,       cls: "text-blue-600 bg-blue-50 border-blue-200",         label: "Configured" },
-  NOT_CONFIGURED:      { icon: Circle,       cls: "text-slate-400 bg-slate-50 border-slate-200",       label: "Not Configured" },
-  DISABLED:            { icon: Circle,       cls: "text-slate-400 bg-slate-50 border-slate-200",       label: "Disabled" },
-  RECONNECT_REQUIRED:  { icon: AlertTriangle,cls: "text-amber-600 bg-amber-50 border-amber-200",       label: "Reconnect Required" },
-  ERROR:               { icon: XCircle,      cls: "text-red-600 bg-red-50 border-red-200",             label: "Error" },
+const STATE_CONFIG = {
+  CONNECTED:      { icon: CheckCircle2, variant: "success", label: "Connected" },
+  DEGRADED:       { icon: AlertTriangle, variant: "warning", label: "Degraded" },
+  DISCONNECTED:   { icon: XCircle,      variant: "error",   label: "Disconnected" },
+  CONFIGURED:     { icon: Circle,       variant: "info",    label: "Configured" },
+  NOT_CONFIGURED: { icon: Circle,       variant: "default", label: "Not Configured" },
+  DISABLED:       { icon: Circle,       variant: "draft",   label: "Disabled" },
 };
 
 function StateBadge({ state }) {
-  const s = STATE_STYLE[state] || STATE_STYLE.NOT_CONFIGURED;
+  const s = STATE_CONFIG[state] || STATE_CONFIG.NOT_CONFIGURED;
   const Icon = s.icon;
   return (
-    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${s.cls}`}>
-      <Icon className="w-3.5 h-3.5" />
+    <StatusBadge variant={s.variant} className="gap-1">
+      <Icon className="w-3 h-3" />
       {s.label}
-    </span>
+    </StatusBadge>
   );
 }
 
 const MODULE_LABELS = {
   quickbooks: "QuickBooks", gmail: "Gmail", google_calendar: "Google Calendar",
   google_contacts: "Google Contacts", signnow: "SignNow", handoff: "Handoff",
-  meta: "Meta / Facebook Lead Ads", sms: "SMS (Twilio)", website_intake: "Website Lead Intake",
+  meta: "Meta / Facebook Lead Ads", sms: "Twilio (SMS)", website_intake: "Website Lead Intake",
 };
+
+const MODULE_ORDER = [
+  "quickbooks", "gmail", "google_calendar", "google_contacts",
+  "signnow", "handoff", "meta", "sms", "website_intake",
+];
+
+function fmt(ts) {
+  return ts ? new Date(ts).toLocaleString() : "—";
+}
+
+function IntegrationCard({ moduleKey, data }) {
+  const label = MODULE_LABELS[moduleKey] || moduleKey;
+  const lc = data.live_check;
+
+  return (
+    <Card>
+      <CardHeader className="flex items-center justify-between">
+        <span className="text-sm font-semibold text-slate-800">{label}</span>
+        <StateBadge state={data.state} />
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {!data.module_enabled && data.flag_enforced && (
+          <HelperText>Not enabled for this installation (Company Settings).</HelperText>
+        )}
+        {!data.module_enabled && !data.flag_enforced && (
+          <HelperText>Disabled in Company Settings, but this toggle has no effect yet for this integration — state below reflects actual credential/connection evidence.</HelperText>
+        )}
+        {data.missing_env && data.missing_env.length > 0 && (
+          <HelperText>Missing: {data.missing_env.join(", ")}</HelperText>
+        )}
+        {data.credential_source && data.credential_source !== "none" && (
+          <HelperText>Credential source: {data.credential_source.replace(/_/g, " ")}</HelperText>
+        )}
+        {lc && (
+          <div className="text-xs text-slate-600 bg-slate-50 rounded-md px-2.5 py-2 leading-snug">
+            {lc.message}
+            <div className="text-[10px] text-slate-400 mt-1">Checked {fmt(lc.checked_at)}</div>
+          </div>
+        )}
+        {!lc && data.state === "CONFIGURED" && !data.supports_live_check && (
+          <HelperText>Live connectivity check is not available for this integration — install-specific impersonation/account setup is required.</HelperText>
+        )}
+        {data.recency && (
+          <HelperText>
+            Last lead received {fmt(data.recency.last_lead_received_at)} · {data.recency.total_leads_received ?? 0} total
+          </HelperText>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function SystemHealth() {
   const { user } = useAuth();
   const [info, setInfo] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [verifying, setVerifying] = useState(false);
 
-  const load = () => {
-    setLoading(true);
+  const load = (verify = false) => {
+    (verify ? setVerifying : setLoading)(true);
     setError(null);
-    railwaySystemInfo.get()
+    railwaySystemInfo.get({ verify })
       .then((res) => setInfo(res))
       .catch((e) => setError(e?.message || "Failed to load system info"))
-      .finally(() => setLoading(false));
+      .finally(() => (verify ? setVerifying : setLoading)(false));
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(false); }, []);
 
   if (user && user.role !== "admin") {
     return (
-      <div className="p-8 max-w-2xl mx-auto text-center">
-        <h1 className="text-xl font-bold text-slate-800 mb-2">System Health</h1>
-        <p className="text-slate-500">This page is available to admins only.</p>
+      <div className="min-h-full bg-background">
+        <div className="max-w-2xl mx-auto px-6 py-16 text-center">
+          <PageTitle>System Health</PageTitle>
+          <p className="text-slate-500 mt-2">This page is available to admins only.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Activity className="w-5 h-5 text-slate-500" />
-          <h1 className="text-xl font-bold text-slate-800">System Health</h1>
+    <div className="min-h-full bg-background" style={{ paddingTop: 'max(env(safe-area-inset-top), 1.5rem)' }}>
+      <div className="max-w-[1600px] mx-auto px-6 py-8 space-y-10">
+
+        {/* Header */}
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <PageTitle>System Health</PageTitle>
+            <PageSubtitle>
+              {info?.installation?.company_name ? `${info.installation.company_name} · ` : ""}
+              Installation status and per-integration connectivity
+            </PageSubtitle>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => load(false)} disabled={loading || verifying}>
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => load(true)} disabled={loading || verifying}>
+              <Zap className={`w-3.5 h-3.5 ${verifying ? "animate-pulse" : ""}`} />
+              {verifying ? "Running Live Checks…" : "Run Live Checks"}
+            </Button>
+          </div>
         </div>
-        <button
-          onClick={load}
-          disabled={loading}
-          className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </button>
+
+        {error && <Alert variant="error" title="Failed to load System Health">{error}</Alert>}
+
+        {info && (
+          <>
+            {/* Installation */}
+            <section className="space-y-3">
+              <SectionTitle>Installation</SectionTitle>
+              <Card>
+                <CardContent>
+                  <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-3 text-sm">
+                    <div>
+                      <dt className="text-slate-500 text-xs">Company</dt>
+                      <dd className="text-slate-800 font-medium">{info.installation?.company_name || "—"}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500 text-xs">Installation ID</dt>
+                      <dd className="text-slate-800 font-mono text-xs">{info.installation?.installation_id || "—"}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500 text-xs">Product version</dt>
+                      <dd className="text-slate-800">{info.product_version || "—"}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500 text-xs">Build commit</dt>
+                      <dd className="text-slate-800 font-mono text-xs">{info.build_commit ? info.build_commit.slice(0, 12) : "unknown"}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500 text-xs">Migrations applied</dt>
+                      <dd className="text-slate-800">{info.schema?.migrations_applied ?? "—"}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500 text-xs">Last migration</dt>
+                      <dd className="text-slate-800">{fmt(info.schema?.last_migration_applied_at)}</dd>
+                    </div>
+                  </dl>
+                </CardContent>
+              </Card>
+            </section>
+
+            {/* Integrations */}
+            <section className="space-y-3">
+              <SectionTitle>Integrations</SectionTitle>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {MODULE_ORDER
+                  .filter((key) => info.integrations?.[key])
+                  .map((key) => (
+                    <IntegrationCard key={key} moduleKey={key} data={info.integrations[key]} />
+                  ))}
+              </div>
+            </section>
+
+            <p className="text-xs text-slate-400 text-center">
+              Generated {fmt(info.generated_at)}
+              {info.verified ? " · live connectivity checks included" : " · credential-presence only (click “Run Live Checks” to verify)"}
+              {" "}— no secret values are ever shown here.
+            </p>
+          </>
+        )}
       </div>
-
-      {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm px-4 py-3">{error}</div>
-      )}
-
-      {info && (
-        <>
-          {/* Installation identity */}
-          <section className="bg-white rounded-xl border border-slate-200 p-5">
-            <h2 className="text-sm font-bold text-slate-700 mb-3">Installation</h2>
-            <dl className="grid grid-cols-2 gap-y-2 text-sm">
-              <dt className="text-slate-500">Company</dt>
-              <dd className="text-slate-800 font-medium">{info.installation?.company_name || "—"}</dd>
-              <dt className="text-slate-500">Installation ID</dt>
-              <dd className="text-slate-800 font-mono text-xs">{info.installation?.installation_id || "—"}</dd>
-              <dt className="text-slate-500">Product version</dt>
-              <dd className="text-slate-800">{info.product_version || "—"}</dd>
-              <dt className="text-slate-500">Build commit</dt>
-              <dd className="text-slate-800 font-mono text-xs">{info.build_commit ? info.build_commit.slice(0, 12) : "unknown"}</dd>
-              <dt className="text-slate-500">Migrations applied</dt>
-              <dd className="text-slate-800">{info.schema?.migrations_applied ?? "—"}</dd>
-              <dt className="text-slate-500">Last migration</dt>
-              <dd className="text-slate-800">{info.schema?.last_migration_applied_at ? new Date(info.schema.last_migration_applied_at).toLocaleString() : "—"}</dd>
-            </dl>
-          </section>
-
-          {/* Integrations */}
-          <section className="bg-white rounded-xl border border-slate-200 p-5">
-            <h2 className="text-sm font-bold text-slate-700 mb-3">Integrations</h2>
-            <div className="divide-y divide-slate-100">
-              {Object.entries(info.integrations || {}).map(([key, val]) => (
-                <div key={key} className="flex items-center justify-between py-2.5">
-                  <div>
-                    <div className="text-sm font-medium text-slate-800">{MODULE_LABELS[key] || key}</div>
-                    {!val.module_enabled ? (
-                      <div className="text-xs text-slate-400">Not enabled for this installation</div>
-                    ) : !val.env_configured ? (
-                      <div className="text-xs text-slate-400">Missing: {(val.missing_env || []).join(", ") || "—"}</div>
-                    ) : val.connection?.last_used_at ? (
-                      <div className="text-xs text-slate-400">Last used {new Date(val.connection.last_used_at).toLocaleString()}</div>
-                    ) : null}
-                  </div>
-                  <StateBadge state={val.connection?.state} />
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <p className="text-xs text-slate-400 text-center">
-            Generated {info.generated_at ? new Date(info.generated_at).toLocaleString() : "—"} — no secret values are ever shown here.
-          </p>
-        </>
-      )}
     </div>
   );
 }
