@@ -6,6 +6,7 @@
  *   prepareFromTemplate(externalRef, data)  -> { document, message }
  *   sendDocument(docId)                      -> { success, document }
  *   getDocumentStatus(docId)                -> { document }
+ *   getOpenLink(docId)                       -> { url, mode: 'editor'|'view' }
  *   downloadSignedPdf(docId)                -> Blob (PDF)
  *   deleteDocument(docId)                   -> { success }
  *   listTemplates()                          -> { templates }
@@ -31,6 +32,10 @@ export function prepareFromTemplate(externalRef, data) {
 
 export function getDocumentStatus(docId) {
   return apiCall(`/api/v1/signnow/documents/${encodeURIComponent(docId)}/status`, { method: 'GET' });
+}
+
+export function getOpenLink(docId) {
+  return apiCall(`/api/v1/signnow/documents/${encodeURIComponent(docId)}/open-link`, { method: 'GET' });
 }
 
 export function sendDocument(docId) {

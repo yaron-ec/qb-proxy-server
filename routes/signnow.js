@@ -45,11 +45,20 @@ router.get('/status', async (req, res) => {
     if (authMethod === 'api_key') {
       try {
         const userData = await signnowClient.verifyApiKey();
+        // The ACTUAL detected environment (API Key auth auto-probes both
+        // api.signnow.com and api-eval.signnow.com and may land on a
+        // different one than SIGNNOW_ENVIRONMENT claims) — surfaced so an
+        // admin can catch an Eval/Sandbox key misconfiguration before it
+        // causes a "document not found" surprise later (the exact
+        // production defect this was added to help prevent/diagnose).
+        const effectiveBase = await signnowClient.getEffectiveApiBase().catch(() => null);
+        const environment = effectiveBase === 'https://api-eval.signnow.com' ? 'sandbox' : 'production';
         return res.json({
           connected: true,
           auth_method: 'api_key',
           name: userData.full_name || userData.first_name || 'API Key',
           email: userData.email || null,
+          environment,
         });
       } catch (e) {
         return res.json({
@@ -652,6 +661,70 @@ router.get('/documents/:docId/status', async (req, res) => {
     });
   } catch (e) {
     console.error('[signnow] status error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── GET /documents/:docId/open-link — a VERIFIED, account-correct link to
+//    open this document in SignNow ───────────────────────────────────────────
+// Production defect fixed here: the frontend used to hand-construct
+// `https://app.signnow.com/document/{docId}` directly and link straight to
+// it — a hardcoded PRODUCTION web-app host. SignNow runs two entirely
+// separate environments (api.signnow.com/app.signnow.com for production,
+// api-eval.signnow.com/app-eval.signnow.com for sandbox/eval); a document
+// created under Eval credentials genuinely does not exist at
+// app.signnow.com and 404s there even though it is completely valid. This
+// route never hands back a link without first proving (via a real,
+// authenticated call against THIS account's actual API base) that the
+// document still exists and is visible to these credentials — any failure
+// is reported as a clear, specific error instead of becoming another dead
+// link the user clicks into.
+router.get('/documents/:docId/open-link', async (req, res) => {
+  try {
+    const { docId } = req.params;
+    const dbRes = await query('SELECT * FROM signnow_documents WHERE document_id = $1', [docId]);
+    if (!dbRes.rows[0]) return res.status(404).json({ error: 'not_found', message: 'No record of this document in the CRM.' });
+
+    let liveDoc;
+    try {
+      liveDoc = await signnowClient.getDocumentStatus(docId);
+    } catch (e) {
+      if (e.code === 'SIGNNOW_NOT_CONFIGURED') {
+        return res.status(501).json({ error: 'signnow_not_configured', message: e.message });
+      }
+      if (e.code === 'SIGNNOW_DOCUMENT_NOT_FOUND') {
+        return res.status(404).json({
+          error: 'signnow_document_not_found',
+          message: 'This document could not be found in SignNow. It may have been deleted directly in SignNow, created under different credentials than are now configured, or the stored document ID is invalid.',
+        });
+      }
+      console.error('[signnow] open-link: live lookup failed:', e.message);
+      return res.status(502).json({ error: 'signnow_lookup_failed', message: 'Could not verify this document with SignNow right now. Please try again.' });
+    }
+
+    // Pre-send editor link (POST /v2/documents/{id}/embedded-editor) only
+    // works when the document has NOT been sent for signing or signed —
+    // check the SAME live signal getDocumentStatus's own status derivation
+    // uses, not just our locally-cached status column (which can drift).
+    const invites = liveDoc.field_invites || [];
+    const notYetSent = invites.length === 0 && (liveDoc.signatures || []).length === 0;
+
+    if (notYetSent) {
+      try {
+        const url = await signnowClient.getEmbeddedEditorLink(docId);
+        return res.json({ url, mode: 'editor' });
+      } catch (e) {
+        console.warn('[signnow] open-link: embedded-editor failed, falling back to web link:', e.message);
+        // Fall through to the plain, environment-corrected web link below —
+        // still strictly better than the old hardcoded-host behavior, and
+        // the document's existence was already proven above.
+      }
+    }
+
+    const webBase = await signnowClient.getWebAppBase();
+    res.json({ url: `${webBase}/document/${docId}`, mode: 'view' });
+  } catch (e) {
+    console.error('[signnow] open-link error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
