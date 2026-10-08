@@ -454,6 +454,35 @@ test('checkWebsiteIntake: end_to_end.verified is false for a stale receipt outsi
   });
 });
 
+test('checkWebsiteIntake: delivery_failures reports rejected-attempt evidence independent of recency', async () => {
+  // CRM PRODUCTION reliability audit: a rejection (bad/rotated secret,
+  // module disabled) never reaches website_lead_receipts, so without this
+  // field "0 total received" is indistinguishable from "the website has
+  // been trying and failing the whole time." Two queries now run — recency
+  // (website_lead_receipts) then rejections (website_lead_intake_rejections)
+  // — distinguished here by table name so each returns its own real shape.
+  queryImpl = async (sql) => {
+    if (/website_lead_receipts/.test(sql)) return { rows: [{ last_at: null, total: 0 }] };
+    if (/website_lead_intake_rejections/.test(sql)) return { rows: [{ recent_24h: 3, total: 11, last_at: '2026-01-02T00:00:00Z' }] };
+    throw new Error('unexpected query: ' + sql);
+  };
+  await withEnv({ WEBSITE_LEAD_WEBHOOK_SECRET: 'secret' }, async () => {
+    const result = await checkWebsiteIntake({ verify: false });
+    assert.deepStrictEqual(result.delivery_failures, { recent_24h: 3, total: 11, last_rejected_at: '2026-01-02T00:00:00Z' });
+  });
+});
+
+test('checkWebsiteIntake: delivery_failures is zeroed, never crashes, when the rejections query fails', async () => {
+  queryImpl = async (sql) => {
+    if (/website_lead_receipts/.test(sql)) return { rows: [{ last_at: null, total: 0 }] };
+    throw new Error('db hiccup');
+  };
+  await withEnv({ WEBSITE_LEAD_WEBHOOK_SECRET: 'secret' }, async () => {
+    const result = await checkWebsiteIntake({ verify: false });
+    assert.strictEqual(result.delivery_failures, null);
+  });
+});
+
 // ── getIntegrationHealth: combinator-level guarantees ─────────────────────
 test('checkQuickBooks: a failing credential lookup degrades gracefully to NOT_CONFIGURED, never a crash', async () => {
   // loadPersistedTokens throwing is caught by checkQuickBooks's OWN internal

@@ -60,10 +60,22 @@ function createWebsiteLeadsRouter(deps) {
 
   const router = express.Router();
 
+  // Best-effort, non-blocking: records that a delivery was REJECTED (never
+  // succeeded, never customer data) — see
+  // db/migrations/2026-58-website-lead-intake-rejections.sql's own header.
+  // website_lead_receipts only ever gets a row AFTER this check passes, so
+  // without this a rejected attempt left literally no trace anywhere,
+  // making "0 total received" indistinguishable from "nothing ever tried."
+  function recordRejection(reason) {
+    query('INSERT INTO website_lead_intake_rejections (reason) VALUES ($1)', [reason]).catch((e) => {
+      log.warn('[website-leads] rejection logging failed (non-fatal):', e.message);
+    });
+  }
+
   function requireSecret(req, res, next) {
     const secret = getSecret();
-    if (!secret) return res.status(503).json({ error: 'not_configured', message: 'Website lead intake is not configured.' });
-    if (!secretMatches(req.headers['x-webhook-secret'], secret)) return res.status(401).json({ error: 'unauthorized' });
+    if (!secret) { recordRejection('not_configured'); return res.status(503).json({ error: 'not_configured', message: 'Website lead intake is not configured.' }); }
+    if (!secretMatches(req.headers['x-webhook-secret'], secret)) { recordRejection('unauthorized'); return res.status(401).json({ error: 'unauthorized' }); }
     next();
   }
 

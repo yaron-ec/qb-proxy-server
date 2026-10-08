@@ -26,12 +26,21 @@ if (DB_URL) {
   process.env.DATABASE_URL = DB_URL;
   if (!process.env.DATABASE_SSL) process.env.DATABASE_SSL = 'false';
   process.env.RAILWAY_JWT_SECRET = process.env.RAILWAY_JWT_SECRET || 'int-test-secret-int-test-secret-0123456789';
+  process.env.WEBSITE_LEAD_WEBHOOK_SECRET = process.env.WEBSITE_LEAD_WEBHOOK_SECRET || 'int-test-website-secret';
 }
 
 let base, server, db, companyConfig, adminToken;
 const RUN = 'selfheal-' + Date.now();
 let insertedCompanySettingsId = null;
 const outboxIds = [];
+// File-wide floor rather than per-test tracking: routes/websiteLeads.js's
+// POST route rejects several OTHER tests in this same file too (e.g. "gate
+// passes (falls through to the real secret check)" posts with no secret at
+// all), each now also recording a row via recordRejection(). A floor
+// captured once before any test runs, cleaned up once after all of them,
+// correctly sweeps every row this file's tests create regardless of which
+// one created it.
+let rejectionsFloorId = 0;
 let receiptRef = null;
 
 async function api(method, url, token, headers) {
@@ -72,11 +81,13 @@ test.before(async () => {
 
   await new Promise((r) => { server = app.listen(0, '127.0.0.1', r); });
   base = `http://127.0.0.1:${server.address().port}`;
+  rejectionsFloorId = (await db.query(`SELECT COALESCE(MAX(id), 0)::bigint AS n FROM website_lead_intake_rejections`)).rows[0].n;
 });
 
 test.after(async () => {
   if (skip) return;
   if (outboxIds.length) await db.query('DELETE FROM google_contacts_outbox WHERE id = ANY($1::uuid[])', [outboxIds]);
+  await db.query('DELETE FROM website_lead_intake_rejections WHERE id > $1', [rejectionsFloorId]);
   if (receiptRef) await db.query('DELETE FROM website_lead_receipts WHERE external_ref = $1', [receiptRef]);
   if (insertedCompanySettingsId) await db.query('DELETE FROM company_settings WHERE id = $1', [insertedCompanySettingsId]);
   companyConfig.invalidate();
@@ -156,4 +167,24 @@ test('lib/monitoring/healthProbes.js#checkWebsiteIntakeSilence: runs against the
   const result = await checkWebsiteIntakeSilence({ id: 'website-intake', maxSilenceMs: 24 * 60 * 60 * 1000 });
   assert.strictEqual(typeof result.healthy, 'boolean');
   assert.ok(result.details.total >= 1, 'counts at least the row this test just inserted');
+});
+
+test('website lead intake: a real rejected delivery (wrong secret) is recorded and surfaced via delivery_failures', { skip }, async () => {
+  // CRM PRODUCTION reliability audit (website lead intake investigation):
+  // the real root-cause gap this closes — a rejected attempt (rotated/
+  // mismatched secret) previously left NO trace anywhere, making it
+  // indistinguishable from "the website never attempted a delivery."
+  await setModule('website_intake', true);
+  const maxIdBefore = (await db.query(`SELECT COALESCE(MAX(id), 0)::bigint AS n FROM website_lead_intake_rejections`)).rows[0].n;
+  const r = await api('POST', '/api/v1/website-leads', null, { 'x-webhook-secret': 'definitely-the-wrong-secret' });
+  assert.strictEqual(r.status, 401);
+  // recordRejection() is fire-and-forget — give its INSERT a tick to land.
+  await new Promise((resolve) => setImmediate(resolve));
+  const newRows = await db.query(`SELECT id, reason FROM website_lead_intake_rejections WHERE id > $1`, [maxIdBefore]);
+  assert.strictEqual(newRows.rows.length, 1, 'exactly one rejection row recorded for the one rejected request');
+  assert.strictEqual(newRows.rows[0].reason, 'unauthorized');
+
+  const { checkWebsiteIntake } = require(path.join(ROOT, 'lib/systemHealthChecks'));
+  const health = await checkWebsiteIntake({ verify: false });
+  assert.ok(health.delivery_failures.total >= 1);
 });
