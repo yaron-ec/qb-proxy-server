@@ -31,15 +31,22 @@
  * DDL inline per-request. KNOWN_OFFENDERS shrunk accordingly, per this
  * test's own instruction below.
  *
- * server.js and lib/googleContactsOutbox.js remain known, tracked,
- * out-of-scope debt — fixing them needs its own dedicated pass (each
- * touches live startup/worker behavior).
+ * server.js and lib/googleContactsOutbox.js were fixed in the CRM
+ * STABILITY PHASE completion pass (Section D): both qb_sync_jobs and
+ * integration_credentials (server.js) were already fully covered by real
+ * migrations (2026-34, 2026-07) — their startup DDL blocks were pure
+ * redundancy and were deleted outright, not moved. google_contacts_outbox
+ * got its own new migration (2026-57); ensureContactsOutbox() is kept as
+ * an exported no-op so its existing callers (the calendar-outbox worker,
+ * two integration tests) don't need to change. KNOWN_OFFENDERS is now
+ * empty — see this test's own self-check below, which fails loudly if that
+ * ever stops being true.
  *
- * This guard does NOT re-litigate that existing debt — it freezes the
- * CURRENT set of offending files as a known baseline and fails only if a
- * NEW file starts running raw DDL outside db/client.js#ensureColumns, so
- * the debt can shrink but never silently grows during future work
- * (productization or otherwise).
+ * This guard does NOT re-litigate fixed debt — it freezes the CURRENT set
+ * of offending files as a known baseline and fails only if a NEW file
+ * starts running raw DDL outside db/client.js#ensureColumns, so the debt
+ * can shrink but never silently grows during future work (productization
+ * or otherwise).
  */
 const { test } = require('node:test');
 const assert = require('assert');
@@ -48,11 +55,11 @@ const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
 
-// Pre-existing, tracked, out-of-scope-for-this-pass offenders (see header).
-const KNOWN_OFFENDERS = new Set([
-  'server.js',
-  'lib/googleContactsOutbox.js',
-]);
+// Pre-existing offenders — all fixed as of the CRM STABILITY PHASE
+// completion pass (see header). Empty, not removed: the test below asserts
+// every entry here still needs its own test-case proof, so a NEW offender
+// added here without that proof is still caught by normal code review.
+const KNOWN_OFFENDERS = new Set([]);
 
 const DDL_PATTERN = /\b(CREATE|ALTER|DROP)\s+(TABLE|INDEX)\b/i;
 
