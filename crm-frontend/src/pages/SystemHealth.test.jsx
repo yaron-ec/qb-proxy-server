@@ -3,7 +3,8 @@
  * System Health UI-consistency + real-integration-audit pass). Proves:
  * admin sees data, non-admin sees an access message (never the data),
  * a disabled module never renders as Disconnected/Degraded, a module whose
- * flag has no real enforcement (gmail/sms/website_intake) is never silently
+ * flag has no real enforcement (sms — a deliberate, permanent exception,
+ * see lib/systemHealthChecks.js's MODULE_FLAG_ENFORCED) is never silently
  * reported as Disabled from the flag alone, "Run Live Checks" triggers the
  * ?verify=1 path distinctly from the default fast refresh, and no secret
  * value ever appears in the rendered output.
@@ -48,7 +49,7 @@ function fixture(overrides = {}) {
         module_enabled: false, flag_enforced: true, state: 'DISABLED',
         credential_source: 'none', missing_env: ['META_APP_SECRET'], supports_live_check: false, live_check: null,
       }),
-      gmail: integration({
+      sms: integration({
         module_enabled: false, flag_enforced: false, state: 'NOT_CONFIGURED',
         credential_source: 'none', missing_env: [], supports_live_check: true, live_check: null,
       }),
@@ -88,9 +89,10 @@ describe('SystemHealth', () => {
   });
 
   it('a module with an unenforced flag is never reported Disabled from the flag alone', async () => {
-    // gmail: module_enabled=false but flag_enforced=false (known, documented
-    // enforcement gap) — real state must come from credential evidence
-    // (NOT_CONFIGURED here), never a fabricated DISABLED.
+    // sms: module_enabled=false but flag_enforced=false (deliberate,
+    // permanent exception — lib/reminderAlerts.js's Twilio critical-alert
+    // channel is never gated by design) — real state must come from
+    // credential evidence (NOT_CONFIGURED here), never a fabricated DISABLED.
     get.mockResolvedValue(fixture());
     render(<SystemHealth />);
     await waitFor(() => expect(screen.getByText('Not Configured')).toBeTruthy());
@@ -112,8 +114,8 @@ describe('SystemHealth', () => {
     get.mockResolvedValue(fixture({
       integrations: {
         website_intake: integration({
-          module_enabled: false, flag_enforced: false, state: 'NOT_CONFIGURED',
-          credential_source: 'none', missing_env: ['WEBSITE_LEAD_WEBHOOK_SECRET'], supports_live_check: false, live_check: null,
+          module_enabled: true, flag_enforced: true, state: 'CONFIGURED',
+          credential_source: 'webhook_secret', missing_env: [], supports_live_check: false, live_check: null,
           recency: { last_lead_received_at: '2026-01-01T00:00:00Z', total_leads_received: 7 },
         }),
       },

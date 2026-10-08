@@ -243,6 +243,31 @@ test('checkGoogleContacts: GOOGLE_CONTACTS_SUB set + verify:true -> attempts a l
   } finally { restore(); global.fetch = origFetch; }
 });
 
+test('checkGoogleContacts: sync_evidence reports outbox backlog/dead-letter/last-synced independent of credential state', async () => {
+  queryImpl = async (sql) => {
+    assert.match(sql, /google_contacts_outbox/);
+    return { rows: [{ pending: '3', dead: '1', last_synced_at: '2026-01-01T00:00:00Z' }] };
+  };
+  await withEnv({ GOOGLE_SERVICE_ACCOUNT_KEY: undefined, GOOGLE_CONTACTS_SUB: undefined }, async () => {
+    delete process.env.GOOGLE_SERVICE_ACCOUNT_KEY; delete process.env.GOOGLE_CONTACTS_SUB;
+    // Even with NO credential at all (service account key missing), real
+    // outbox history is still genuine evidence and must still be reported.
+    const result = await checkGoogleContacts({ verify: false });
+    assert.strictEqual(result.credential_present, false);
+    assert.deepStrictEqual(result.sync_evidence, { pending_count: 3, dead_count: 1, last_synced_at: '2026-01-01T00:00:00Z' });
+  });
+});
+
+test('checkGoogleContacts: sync_evidence never crashes the check when the outbox query fails', async () => {
+  queryImpl = async () => { throw new Error('db hiccup'); };
+  await withEnv({ GOOGLE_SERVICE_ACCOUNT_KEY: '{"fake":true}', GOOGLE_CONTACTS_SUB: undefined }, async () => {
+    delete process.env.GOOGLE_CONTACTS_SUB;
+    const result = await checkGoogleContacts({ verify: false });
+    assert.strictEqual(result.credential_present, true);
+    assert.strictEqual(result.sync_evidence, null);
+  });
+});
+
 // ── SignNow ─────────────────────────────────────────────────────────────
 test('checkSignNow: getAuthMethod "none" -> NOT_CONFIGURED shape', async () => {
   const restore = stub('../lib/signnowClient', { getAuthMethod: () => 'none' });
@@ -398,6 +423,34 @@ test('checkWebsiteIntake: configured -> reports recency from website_lead_receip
     const result = await checkWebsiteIntake({ verify: true });
     assert.strictEqual(result.credential_present, true);
     assert.strictEqual(result.recency.total_leads_received, 0);
+  });
+});
+
+test('checkWebsiteIntake: end_to_end.verified is false and honest when nothing has ever been received', async () => {
+  queryImpl = async () => ({ rows: [{ last_at: null, total: 0 }] });
+  await withEnv({ WEBSITE_LEAD_WEBHOOK_SECRET: 'secret' }, async () => {
+    const result = await checkWebsiteIntake({ verify: false });
+    assert.strictEqual(result.end_to_end.verified, false);
+    assert.match(result.end_to_end.message, /ever been received/);
+    assert.match(result.end_to_end.manual_check, /test-flagged payload/);
+  });
+});
+
+test('checkWebsiteIntake: end_to_end.verified is true for a recent real receipt (within the proof window)', async () => {
+  queryImpl = async () => ({ rows: [{ last_at: new Date().toISOString(), total: 7 }] });
+  await withEnv({ WEBSITE_LEAD_WEBHOOK_SECRET: 'secret' }, async () => {
+    const result = await checkWebsiteIntake({ verify: false });
+    assert.strictEqual(result.end_to_end.verified, true);
+    assert.match(result.end_to_end.message, /full pipeline/);
+  });
+});
+
+test('checkWebsiteIntake: end_to_end.verified is false for a stale receipt outside the proof window', async () => {
+  queryImpl = async () => ({ rows: [{ last_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), total: 7 }] });
+  await withEnv({ WEBSITE_LEAD_WEBHOOK_SECRET: 'secret' }, async () => {
+    const result = await checkWebsiteIntake({ verify: false });
+    assert.strictEqual(result.end_to_end.verified, false);
+    assert.match(result.end_to_end.message, /unconfirmed/);
   });
 });
 

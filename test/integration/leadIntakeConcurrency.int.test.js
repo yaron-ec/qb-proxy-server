@@ -131,7 +131,13 @@ test.before(async () => {
   const { issueAccessToken } = require(path.join(ROOT, 'lib/authService'));
   // PRODUCTIZATION: these tests assert real calendar_outbox/google_contacts_outbox
   // rows get enqueued for every new lead — see ensureGoogleModulesEnabled.js.
-  googleModulesState = await require('./ensureGoogleModulesEnabled').ensureGoogleModulesEnabled(db);
+  // website_intake is also required now that routes/websiteLeads.js's
+  // POST/DELETE-test routes are module-gated (CRM PRODUCTION final
+  // reliability audit) — this file's C1/C2/C4 submit real website-lead
+  // deliveries over HTTP.
+  googleModulesState = await require('./ensureGoogleModulesEnabled').ensureGoogleModulesEnabled(
+    db, ['google_calendar', 'google_contacts', 'website_intake']
+  );
   require(path.join(ROOT, 'lib/companyConfig')).invalidate();
   await db.query(`INSERT INTO owners (email, display_name) VALUES ('yaron@ecconstructiongroup.com', 'Yaron Drilevich') ON CONFLICT DO NOTHING`);
   // Created by the calendar/contacts outbox worker at its startup in production.

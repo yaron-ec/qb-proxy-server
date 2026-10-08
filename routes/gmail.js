@@ -25,10 +25,19 @@
 
 const express = require('express');
 const { requireAuth, requireRole } = require('../lib/rbac');
+const { requireModuleEnabled } = require('../lib/moduleGate');
 const gmail = require('../lib/gmailSender');
 
 const router = express.Router();
 router.use(requireAuth, requireRole('admin'));
+// CRM STABILITY PHASE final audit: gated on enabled_modules.gmail — a
+// company not using the Gmail admin mailbox-read/diagnostic UI gets a clean
+// 404, never a confusing credential error. This does NOT gate Gmail-based
+// EMAIL SENDING (routes/emails.js, the reminder worker) — Gmail is this
+// CRM's sole email transport today, so treating "gmail disabled" as "stop
+// sending all customer/staff email" is a product decision requiring
+// explicit sign-off, not a side-effect of this structural audit fix.
+router.use(requireModuleEnabled('gmail'));
 
 async function gmailFetch(token, path, { query } = {}) {
   const url = new URL(`https://gmail.googleapis.com/gmail/v1/users/me/${path}`);

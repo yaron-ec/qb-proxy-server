@@ -39,6 +39,7 @@
 const express = require('express');
 const { secretMatches, isTestLead, externalRefFor, mapWebsiteLead, EXTERNAL_REF_RE } = require('../lib/websiteLeadIntake');
 const { rateLimit } = require('../lib/rateLimit');
+const { requireModuleEnabled } = require('../lib/moduleGate');
 
 const STALE_CLAIM_SECONDS = 120;
 
@@ -69,6 +70,13 @@ function createWebsiteLeadsRouter(deps) {
   router.get('/', (req, res) => {
     res.json({ service: 'website-leads', configured: !!getSecret(), capabilities: ['test-evidence'] });
   });
+
+  // CRM STABILITY PHASE final audit: gated on enabled_modules.website_intake
+  // — mirrors routes/metaWebhook.js's exact pattern (GET status/handshake
+  // stays reachable regardless; only the actual intake/cleanup writes are
+  // gated). A disabled module still 404s module_disabled, never masquerading
+  // as the existing fail-closed 503 (not_configured) for a missing secret.
+  router.use((req, res, next) => (req.method === 'GET' ? next() : requireModuleEnabled('website_intake')(req, res, next)));
 
   // Claim the idempotency reference. Returns { claimed: true } or the stored
   // receipt of an earlier delivery.
