@@ -175,15 +175,22 @@ function testDisconnectLogic() {
 }
 
 // ── Test: status route checks both DB and env ────────────────────────────────
+// This logic was extracted from routes/signnow.js into
+// lib/signnowClient.js#checkConnection() (System Health audit) so
+// GET /api/v1/system/info can reuse the exact same check instead of a
+// second, divergent implementation — routes/signnow.js's /status is now a
+// thin wrapper around it, so these source-text checks moved with the logic.
 function testStatusLogic() {
   console.log('\n── Status Logic ──');
   const fs = require('fs');
   const path = require('path');
-  const source = fs.readFileSync(path.join(__dirname, '../routes/signnow.js'), 'utf8');
+  const routeSource = fs.readFileSync(path.join(__dirname, '../routes/signnow.js'), 'utf8');
+  const clientSource = fs.readFileSync(path.join(__dirname, '../lib/signnowClient.js'), 'utf8');
 
-  assert(source.includes('loadActiveCredential'), 'status route checks credential store (database)');
-  assert(source.includes('SIGNNOW_USERNAME'), 'status route checks env vars as fallback');
-  assert(source.includes('connected: false'), 'status route returns connected: false when no credentials');
+  assert(routeSource.includes('checkConnection'), 'status route delegates to signnowClient.checkConnection()');
+  assert(clientSource.includes('loadActiveCredential'), 'checkConnection checks credential store (database)');
+  assert(clientSource.includes('SIGNNOW_USERNAME'), 'checkConnection checks env vars as fallback');
+  assert(clientSource.includes('connected: false'), 'checkConnection returns connected: false when no credentials');
 }
 
 // ── Test: webhook route exists and handles completion ───────────────────────
