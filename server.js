@@ -1337,6 +1337,9 @@ app.use('/api/v1/deals', require('./routes/deals')); // CRUD (mounted first: /:i
 app.use('/api/v1/deals', require('./routes/dealFinancials'));
 // Deal Activity — chronological project-history timeline (derived, read-only)
 app.use('/api/v1/deals', require('./routes/dealTimeline'));
+// Real QB Estimate/Invoice creation from a Deal (CRM STABILITY PHASE completion pass)
+app.use('/api/v1/deals', require('./routes/dealQbSync'));
+app.use('/api/v1/qb', require('./routes/qbInvoicing'));
 app.use('/api/v1/sale-invoices', require('./routes/saleInvoices'));
 // Generic per-user notification category preferences (admin-managed)
 app.use('/api/v1/notification-preferences', require('./routes/notificationPreferences'));
