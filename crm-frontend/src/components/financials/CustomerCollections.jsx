@@ -4,6 +4,7 @@ import * as railwayLeads from "@/api/railway/leads";
 import { EditableKPIChip, KPIChip } from "@/components/DesignSystem";
 import DealPaymentPanel from "@/components/DealPaymentPanel";
 import QBStatusPanel from "@/components/QBStatusPanel";
+import DealQbActions from "./DealQbActions";
 import { AlertTriangle } from "lucide-react";
 
 /**
@@ -87,7 +88,10 @@ export function PaymentScheduleSection({ deal, lead, invoices, saleInvoices, wat
 
       {lead?.id && (
         <div>
-          <p className="typography-section-header mb-2">QUICKBOOKS</p>
+          <div className="flex items-center justify-between mb-2">
+            <p className="typography-section-header">QUICKBOOKS</p>
+            <DealQbActions deal={deal} onSynced={refreshLead} />
+          </div>
           <div className="card-premium p-4">
             <QBStatusPanel lead={{ ...lead, status: "Sold" }} onLeadUpdated={refreshLead} />
           </div>

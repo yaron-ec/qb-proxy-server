@@ -10,6 +10,7 @@ import { useSync } from "@/lib/syncContext";
 import { useToast } from "@/components/ui/use-toast";
 import { SyncSection, SyncSectionHeader, SyncInfoNotice, SyncStatRow, SyncBtn, StatusPill } from "./SyncCard";
 import QBEnvironmentSelector from "./QBEnvironmentSelector";
+import QbInvoiceConfigPanel from "./QbInvoiceConfigPanel";
 
 export default function QuickBooksSyncTab() {
   const { addJob, startJob, completeJob, failJob, isRunning } = useSync();
@@ -314,6 +315,10 @@ export default function QuickBooksSyncTab() {
               <li>• <strong className="text-slate-700">Projects → Invoices</strong> — creates QB invoices from project contract values</li>
             </ul>
           </SyncInfoNotice>
+
+          {/* CRM STABILITY PHASE completion pass: the one admin-set default
+              Item real Estimate/Invoice creation from a Deal uses. */}
+          <QbInvoiceConfigPanel />
 
           {/* Bulk sync */}
           <SyncSection>

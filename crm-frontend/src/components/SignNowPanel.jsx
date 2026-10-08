@@ -19,7 +19,7 @@ import {
   Send, FileText
 } from "lucide-react";
 
-export default function SignNowPanel({ lead, onLeadUpdate }) {
+export default function SignNowPanel({ lead, onLeadUpdate, deal }) {
   const [documents, setDocuments] = useState([]);
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -121,33 +121,52 @@ export default function SignNowPanel({ lead, onLeadUpdate }) {
       const result = await railwaySignnow.prepareFromTemplate(lead.id, {
         template_id: selectedTemplateId,
         template_name: template?.name || 'Contract',
+        deal_id: deal?.id || undefined,
         send_invite: false,
       });
 
-      if (result.error === 'duplicate') {
+      // apiCall throws on any non-2xx response (see api/railway/client.js
+      // #parse), so a 409 (duplicate) or 422 (missing_required_fields) never
+      // reaches here as a resolved `result` — only a real 2xx success does.
+      const prefillNote = result.prefilled_fields > 0 ? ` ${result.prefilled_fields} field(s) auto-filled from CRM data.` : '';
+      toast({
+        title: 'Contract prepared',
+        description: `\"${result.document?.document_name || customerName}\" created.${prefillNote} Review it, then click Send for Signature when ready.`,
+        duration: 5000,
+      });
+
+      setSelectedTemplateId("");
+      await loadDocuments();
+    } catch (e) {
+      // apiCall's #parse attaches the parsed error body as e.data (see
+      // api/railway/client.js) — use its structured `error`/`message` when
+      // available instead of the generic Error#message (which would just
+      // be the raw error code, e.g. "duplicate").
+      if (e.data?.error === 'duplicate') {
         toast({
           title: 'Contract already exists',
           description: 'A pending contract from this template already exists for this lead.',
           variant: 'destructive',
           duration: 5000,
         });
+      } else if (e.data?.error === 'missing_required_fields') {
+        // CRM STABILITY PHASE completion pass: the CRM identifies exactly
+        // what's missing BEFORE a malformed contract is ever created — the
+        // user never finds this out only after opening SignNow.
+        toast({
+          title: 'Cannot prepare contract',
+          description: e.data.message,
+          variant: 'destructive',
+          duration: 8000,
+        });
       } else {
         toast({
-          title: 'Contract prepared',
-          description: `\"${result.document?.document_name || customerName}\" created. Review it, then click Send for Signature when ready.`,
+          title: 'Failed to create contract',
+          description: e.data?.message || e.message || 'SignNow template error',
+          variant: 'destructive',
           duration: 5000,
         });
       }
-
-      setSelectedTemplateId("");
-      await loadDocuments();
-    } catch (e) {
-      toast({
-        title: 'Failed to create contract',
-        description: e.message || 'SignNow template error',
-        variant: 'destructive',
-        duration: 5000,
-      });
     } finally {
       setPreparing(false);
     }

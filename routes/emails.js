@@ -21,12 +21,22 @@ const templates = require('../lib/emailTemplates');
 const data = require('../lib/dataAccessRailway');
 const { canAccessLead } = require('../lib/authorization');
 const notificationRecipients = require('../lib/notificationRecipients');
+const notificationPreferences = require('../lib/notificationPreferences');
 
 const router = express.Router();
 
 // Internal-only recipients for /emails/test — this installation's configured
 // staff notification recipients (PRODUCTIZATION PHASE 2: was a hardcoded
 // michelle@/yaron@ allowlist).
+//
+// NOTE on notification-preference scope (CRM STABILITY PHASE, completion
+// pass): isInternal() and /emails/test below are a manually-triggered,
+// admin-only diagnostic (confirming the Gmail sender works) — not a
+// business notification about a lead/deal event, so they are deliberately
+// NOT run through notificationPreferences.filterRecipientsForCategory.
+// Narrowing is for automatic staff broadcasts about CRM events; an admin
+// explicitly asking the system to email a specific address to prove email
+// works is not one of those.
 async function isInternal(email) {
   if (!email) return false;
   const staff = await notificationRecipients.getAllStaffRecipients();
@@ -149,8 +159,14 @@ router.post('/leads/:id/remind', requireAuth, async (req, res) => {
     const baseKey = `manual:${lead.id}:${apptDate}:${apptTime}`;
     const results = { staff: [], customer: null };
 
-    // Staff reminder → rep + this installation's configured staff recipients
-    const staffRecipients = Array.from(new Set([ownerEmail, ...(await notificationRecipients.getAllStaffRecipients())].filter(Boolean)));
+    // Staff reminder → rep + this installation's configured staff recipients,
+    // narrowed by each recipient's own APPOINTMENT preference (ownerEmail is
+    // the lead's own rep, not a broadcast recipient, so it is never filtered).
+    const staffBroadcast = await notificationPreferences.filterRecipientsForCategory(
+      await notificationRecipients.getAllStaffRecipients(),
+      notificationPreferences.CATEGORIES.APPOINTMENT
+    );
+    const staffRecipients = Array.from(new Set([ownerEmail, ...staffBroadcast].filter(Boolean)));
     const staffHtml = templates.manualStaffReminderEmail({
       ownerName, clientName, clientPhone: lead.phone || 'N/A', clientEmail: lead.email || 'N/A',
       date: apptDate, time: apptTime, address, projectType: lead.project_type || '', notes: lead.notes || '',
@@ -169,7 +185,11 @@ router.post('/leads/:id/remind', requireAuth, async (req, res) => {
     } else if (lead.email) {
       const custHtml = templates.manualCustomerReminderEmail({ firstName: lead.first_name || 'there', date: apptDate, time: apptTime, address, projectType: lead.project_type || '', ownerName, company: { name: companyName } });
       try {
-        const r = await emailService.send({ to: lead.email, cc: await notificationRecipients.getAllStaffRecipients(), replyTo: ownerEmail, subject: `Appointment Reminder — ${companyName}`, htmlBody: custHtml, idempotencyKey: `${baseKey}:customer`, role: 'customer' });
+        const customerCc = await notificationPreferences.filterRecipientsForCategory(
+          await notificationRecipients.getAllStaffRecipients(),
+          notificationPreferences.CATEGORIES.APPOINTMENT
+        );
+        const r = await emailService.send({ to: lead.email, cc: customerCc, replyTo: ownerEmail, subject: `Appointment Reminder — ${companyName}`, htmlBody: custHtml, idempotencyKey: `${baseKey}:customer`, role: 'customer' });
         results.customer = { email: lead.email, ...r };
       } catch (e) { results.customer = { email: lead.email, ok: false, error: e.message }; }
     } else {
