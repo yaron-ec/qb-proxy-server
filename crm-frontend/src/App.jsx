@@ -40,6 +40,8 @@ import Reports from './pages/Reports';
 import MobileDayView from './pages/MobileDayView';
 import KanbanBoard from './pages/KanbanBoard';
 import ErrorBoundary from './components/ErrorBoundary';
+import AcceptInvite from './pages/AcceptInvite';
+import PlatformCompanies from './pages/PlatformCompanies';
 
 // Page content wrapper — renders children directly.
 // The previous AnimatePresence mode="wait" wrapper caused detail pages to
@@ -73,12 +75,17 @@ const AuthenticatedApp = () => {
   const location = useLocation();
 
   // Public routes — skip auth checks entirely
-  const isPublicRoute = ['/capture', '/login'].includes(window.location.pathname);
+  const isPublicRoute = ['/capture', '/login', '/accept-invite'].includes(window.location.pathname);
   if (isPublicRoute) {
     return (
       <Routes>
         <Route path="/capture" element={<LeadCapture />} />
         <Route path="/login" element={<Login />} />
+        {/* Account activation (PRODUCTIZATION — multi-company onboarding
+            workflow): reached from an invite email, by definition before
+            the visitor has ever signed in — must stay public/unauthenticated,
+            same as /login. */}
+        <Route path="/accept-invite" element={<AcceptInvite />} />
       </Routes>
     );
   }
@@ -151,6 +158,12 @@ const AuthenticatedApp = () => {
         <Route path="/settings" element={<PageContentWrapper><Settings /></PageContentWrapper>} />
         <Route path="/system-health" element={<PageContentWrapper><SystemHealth /></PageContentWrapper>} />
         <Route path="/integrations" element={<PageContentWrapper><Integrations /></PageContentWrapper>} />
+        {/* Platform-admin-only — see lib/rbac.js#requirePlatformAdmin and
+            PlatformCompanies.jsx's own client-side gate (the server check is
+            the real boundary; this route renders for anyone authenticated,
+            same as every other route here, and the page itself shows nothing
+            to a non-platform-admin). */}
+        <Route path="/platform/companies" element={<PageContentWrapper><PlatformCompanies /></PageContentWrapper>} />
       </Route>
       <Route path="/qb-callback" element={<QBCallback />} />
       <Route path="/my-diag" element={<MyDiag />} />

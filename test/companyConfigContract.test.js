@@ -27,16 +27,28 @@ test('validateConfig: a minimal valid config passes with no errors', () => {
   assert.strictEqual(r.ok, true, JSON.stringify(r.errors));
 });
 
-test('validateConfig: missing company_name, admin_email, admin_password, frontend_url, backend_url, company_slug all reported', () => {
+test('validateConfig: missing company_name, admin_email, frontend_url, backend_url, company_slug all reported', () => {
   const r = contract.validateConfig({});
   assert.strictEqual(r.ok, false);
   const fields = r.errors.map((e) => e.field);
-  for (const required of ['company_name', 'company_slug', 'admin_email', 'admin_password', 'frontend_url', 'backend_url']) {
+  for (const required of ['company_name', 'company_slug', 'admin_email', 'frontend_url', 'backend_url']) {
     assert.ok(fields.includes(required), `expected a missing-field error for "${required}", got: ${fields.join(', ')}`);
   }
 });
 
-test('validateConfig: admin_password shorter than 12 chars fails', () => {
+// admin_password is OPTIONAL (PRODUCTIZATION — Company Provisioning System,
+// multi-company onboarding workflow): omitting it is the PREFERRED path —
+// bootstrap.js#ensureFirstAdmin creates a pending (no-password) admin and
+// emails an invite instead of requiring the operator to invent/transmit a
+// password — "never email passwords".
+test('validateConfig: admin_password omitted entirely is valid (pending-admin/invite path)', () => {
+  const cfg = validConfig();
+  delete cfg.admin_password;
+  const r = contract.validateConfig(cfg);
+  assert.strictEqual(r.ok, true, JSON.stringify(r.errors));
+});
+
+test('validateConfig: admin_password shorter than 12 chars fails IF provided', () => {
   const r = contract.validateConfig(validConfig({ admin_password: 'short' }));
   assert.strictEqual(r.ok, false);
   assert.ok(r.errors.some((e) => e.field === 'admin_password'));

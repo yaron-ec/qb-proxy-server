@@ -178,7 +178,14 @@ const FIELD_SPECS = [
   // Initial administrator
   { key: 'admin_name', section: 'admin', required: false, type: 'string' },
   { key: 'admin_email', section: 'admin', required: true, type: 'email' },
-  { key: 'admin_password', section: 'admin', required: true, type: 'password', secret: true, description: 'Never committed anywhere — see "Secret-handling model". Minimum 12 characters.' },
+  // Optional (PRODUCTIZATION — Company Provisioning System, multi-company
+  // onboarding workflow): omitted entirely means bootstrap.js creates a
+  // PENDING admin (no password) with a single-use expiring invite token
+  // instead, and the owner sets their own password via
+  // POST /api/v1/auth/accept-invite — "never email passwords". A CLI
+  // operator who still wants the old immediate-password behavior may still
+  // provide one.
+  { key: 'admin_password', section: 'admin', required: false, type: 'password', secret: true, description: 'Never committed anywhere — see "Secret-handling model". Minimum 12 characters. Omit to create a pending admin invited via email instead (preferred).' },
 
   // Business configuration
   { key: 'appointment_travel_buffer_minutes', section: 'business', required: false, type: 'integer', default: 60 },

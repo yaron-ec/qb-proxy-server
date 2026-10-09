@@ -1258,6 +1258,9 @@ app.use('/api/v1/signnow-webhook', require('./routes/signnowWebhook'));
 app.use('/api/v1/owners', require('./routes/owners'));
 // Railway-native user management (admin-only: list, update role/status, delete)
 app.use('/api/v1/users', require('./routes/users'));
+// Company Management — platform-admin-only multi-company provisioning/onboarding
+// control plane (PRODUCTIZATION — see routes/platformCompanies.js header).
+app.use('/api/v1/platform/companies', require('./routes/platformCompanies'));
 // Daily Appointment Routing — traffic-aware Google Routes API + geocoding + departure times
 app.use('/api/v1/routing', require('./routes/routing'));
 // Diagnostic endpoint (X-Proxy-Secret, no JWT) for verifying geocoding pipeline

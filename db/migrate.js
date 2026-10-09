@@ -34,13 +34,21 @@ const db = require('./client');
 // from a fixed string.
 const ADVISORY_LOCK_KEY = db.MIGRATION_LOCK_KEY; // 'MIGR' as int32 (shared with db/client.js ensureSchema)
 
-async function runMigrations() {
-  const client = await db.pool.connect();
-  try {
-    // 1. Acquire advisory lock — serializes concurrent migration runs
-    await client.query(`SELECT pg_advisory_lock($1)`, [ADVISORY_LOCK_KEY]);
-    console.log('[migrate] advisory lock acquired');
+// Runs the full migration chain against an EXPLICIT client/pool (anything
+// with an async `.query(text, params)`), under the same advisory lock
+// convention as this file's own default run. Extracted so
+// lib/platformProvisioning.js can run this exact, unmodified logic against
+// a brand-new company's own, separate database (an ad-hoc pool connected to
+// ITS OWN DATABASE_URL, never this process's global `db.pool`) — never a
+// second, divergent copy of the migration loop. The CLI entry point below
+// calls this with the global pool's own client, so its behavior is
+// byte-identical to before this function was extracted.
+async function runMigrationsOn(client) {
+  // 1. Acquire advisory lock — serializes concurrent migration runs
+  await client.query(`SELECT pg_advisory_lock($1)`, [ADVISORY_LOCK_KEY]);
+  console.log('[migrate] advisory lock acquired');
 
+  try {
     // 2. Ensure base schema (db/schema.sql) — on THIS client, which holds the
     //    migration lock. Skipped when its recorded checksum already matches, so
     //    an unchanged schema.sql takes no table locks against live traffic.
@@ -86,6 +94,7 @@ async function runMigrations() {
     }
 
     console.log(`[migrate] done — ${applied} applied, ${skipped} skipped (${files.length} total)`);
+    return { applied, skipped, total: files.length };
   } finally {
     // Release advisory lock — always, even on error
     try {
@@ -94,14 +103,26 @@ async function runMigrations() {
     } catch (e) {
       // Best-effort — process exit will release anyway
     }
+  }
+}
+
+async function runMigrations() {
+  const client = await db.pool.connect();
+  try {
+    await runMigrationsOn(client);
+  } finally {
     client.release();
   }
 }
 
-runMigrations()
-  .then(() => db.pool.end())
-  .then(() => process.exit(0))
-  .catch((e) => {
-    console.error('[migrate] FAILED:', e.message);
-    db.pool.end().finally(() => process.exit(1));
-  });
+if (require.main === module) {
+  runMigrations()
+    .then(() => db.pool.end())
+    .then(() => process.exit(0))
+    .catch((e) => {
+      console.error('[migrate] FAILED:', e.message);
+      db.pool.end().finally(() => process.exit(1));
+    });
+}
+
+module.exports = { runMigrations, runMigrationsOn };
