@@ -43,6 +43,7 @@ function stub(modPath, exportsObj) {
 delete require.cache[require.resolve('../lib/monitoring/healthProbes')];
 const {
   checkGoogleContactsOutboxHealth, checkGmailIntegrationHealth, checkWebsiteIntakeSilence,
+  checkWebsiteIntakeRejections,
 } = require('../lib/monitoring/healthProbes');
 
 // ── Google Contacts outbox backlog ──────────────────────────────────────
@@ -144,4 +145,45 @@ test('checkWebsiteIntakeSilence: enabled, last receipt older than maxSilenceMs -
   const result = await checkWebsiteIntakeSilence({ id: 'website-intake', maxSilenceMs: 60 * 60 * 1000 });
   assert.strictEqual(result.healthy, false);
   assert.match(result.error, /WEBSITE_LEAD_WEBHOOK_SECRET/);
+});
+
+// ── Website Intake rejected-delivery burst ──────────────────────────────
+test('checkWebsiteIntakeRejections: module disabled -> healthy (skip)', async () => {
+  enabledModulesImpl = { website_intake: false };
+  const result = await checkWebsiteIntakeRejections({ id: 'website-intake-rejections', windowMs: 3600000, threshold: 3 });
+  assert.strictEqual(result.healthy, true);
+  assert.strictEqual(result.details.moduleEnabled, false);
+});
+
+test('checkWebsiteIntakeRejections: below threshold -> healthy', async () => {
+  enabledModulesImpl = { website_intake: true };
+  queryImpl = async () => ({ rows: [{ n: 2, last_at: new Date().toISOString() }] });
+  const result = await checkWebsiteIntakeRejections({ id: 'website-intake-rejections', windowMs: 3600000, threshold: 3 });
+  assert.strictEqual(result.healthy, true);
+  assert.strictEqual(result.details.count, 2);
+});
+
+test('checkWebsiteIntakeRejections: zero rejections -> healthy', async () => {
+  enabledModulesImpl = { website_intake: true };
+  queryImpl = async () => ({ rows: [{ n: 0, last_at: null }] });
+  const result = await checkWebsiteIntakeRejections({ id: 'website-intake-rejections', windowMs: 3600000, threshold: 3 });
+  assert.strictEqual(result.healthy, true);
+  assert.strictEqual(result.details.count, 0);
+});
+
+test('checkWebsiteIntakeRejections: at/above threshold -> unhealthy, names the secret', async () => {
+  enabledModulesImpl = { website_intake: true };
+  queryImpl = async () => ({ rows: [{ n: 5, last_at: new Date().toISOString() }] });
+  const result = await checkWebsiteIntakeRejections({ id: 'website-intake-rejections', windowMs: 3600000, threshold: 3 });
+  assert.strictEqual(result.healthy, false);
+  assert.match(result.error, /WEBSITE_LEAD_WEBHOOK_SECRET/);
+  assert.match(result.error, /credential/);
+});
+
+test('checkWebsiteIntakeRejections: a query failure never crashes, reports unhealthy with the error', async () => {
+  enabledModulesImpl = { website_intake: true };
+  queryImpl = async () => { throw new Error('db down'); };
+  const result = await checkWebsiteIntakeRejections({ id: 'website-intake-rejections', windowMs: 3600000, threshold: 3 });
+  assert.strictEqual(result.healthy, false);
+  assert.match(result.error, /db down/);
 });

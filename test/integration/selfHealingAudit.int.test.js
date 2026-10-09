@@ -188,3 +188,22 @@ test('website lead intake: a real rejected delivery (wrong secret) is recorded a
   const health = await checkWebsiteIntake({ verify: false });
   assert.ok(health.delivery_failures.total >= 1);
 });
+
+test('lib/monitoring/healthProbes.js#checkWebsiteIntakeRejections: a sustained burst of real rejections trips the probe', { skip }, async () => {
+  // Closes the self-healing/watchdog side of the same gap as the test above:
+  // the admin System Health card is useful on a page visit, but the
+  // automated 3-minute watchdog (productionWatchdog.js) needs its own signal
+  // to alert without anyone looking. Threshold here is deliberately low so
+  // this test's own handful of rejections (plus any other test in this file)
+  // reliably trips it without waiting on real production volume.
+  await setModule('website_intake', true);
+  const { checkWebsiteIntakeRejections } = require(path.join(ROOT, 'lib/monitoring/healthProbes'));
+  for (let i = 0; i < 3; i++) {
+    await api('POST', '/api/v1/website-leads', null, { 'x-webhook-secret': 'definitely-the-wrong-secret' });
+  }
+  await new Promise((resolve) => setImmediate(resolve));
+  const result = await checkWebsiteIntakeRejections({ id: 'website-intake-rejections', windowMs: 60 * 60 * 1000, threshold: 3 });
+  assert.strictEqual(result.healthy, false);
+  assert.ok(result.details.count >= 3);
+  assert.match(result.error, /WEBSITE_LEAD_WEBHOOK_SECRET/);
+});
