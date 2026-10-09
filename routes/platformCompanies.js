@@ -15,19 +15,29 @@
  *   GET    /                         -> list every company this installation has provisioned
  *   GET    /:id                      -> one company's full record (secrets redacted)
  *   GET    /:id/probe                -> live read-only status probe of the target DB
- *   POST   /:id/infrastructure       -> supply the manually-created Railway DB/URLs; runs full provisioning + sends the owner invite
+ *   POST   /:id/infrastructure       -> MANUAL fallback: supply the manually-created Railway DB/URLs; runs full provisioning + sends the owner invite
+ *   POST   /:id/estimate             -> AUTOMATED path step 1: compute (never create) the Railway services + cost estimate for this company
+ *   POST   /:id/provision            -> AUTOMATED path step 2: creates real Railway infrastructure — requires confirm_cost_usd to echo the stored estimate
  *   POST   /:id/resend-invite        -> regenerate + resend the owner's invite link
  *   POST   /:id/suspend              -> disable every user on the target company's own database
  *   POST   /:id/activate             -> re-enable them
  *
- * Deliberately NEVER creates Railway infrastructure itself (no Railway API
- * token is assumed/required) — see docs/INSTALL_NEW_COMPANY.md's own
- * "What's automated vs. what's manual" table and
- * scripts/install/railwayPlan.js's header: creating billable cloud
- * infrastructure always requires its own explicit, in-the-moment human
- * decision. This API automates everything AROUND that one manual step
- * (validation, database schema/seed, invite email, ongoing lifecycle
- * management) so the human step is the ONLY one left.
+ * TWO provisioning paths now coexist:
+ *   - MANUAL (/infrastructure): the original PR #24 flow. Always available,
+ *     needs no Railway credential of any kind. The admin creates the
+ *     Railway project/Postgres/services by hand (docs/INSTALL_NEW_COMPANY.md
+ *     Step 2) and pastes the resulting connection details here.
+ *   - AUTOMATED (/estimate + /provision): creates the Railway project,
+ *     Postgres, services, variables, domains, deploys, and verifies health,
+ *     fully automatically — see lib/platformInfraProvisioning.js. Gated on
+ *     RAILWAY_API_TOKEN being configured on THIS installation (a one-time,
+ *     human, Railway-dashboard action — see docs/INSTALL_NEW_COMPANY.md's
+ *     "Automated infrastructure" section); falls back to a clear 501 if not
+ *     configured, never a silent no-op. Real Railway resources are never
+ *     created by /estimate (pure computation) — only /provision creates
+ *     anything, and only once the admin has echoed back the exact estimate
+ *     it computed, satisfying "never create billable infrastructure without
+ *     explicit cost approval".
  */
 'use strict';
 
@@ -62,6 +72,44 @@ function redact(row) {
   if (!row) return row;
   const { database_url_encrypted, ...rest } = row; // eslint-disable-line no-unused-vars
   return { ...rest, has_infrastructure: !!database_url_encrypted };
+}
+
+// The raw invite token must NEVER appear in an HTTP response, a log line,
+// or any company's own database (see this feature's own "never expose
+// tokens in the frontend, logs, or company databases" requirement) — it is
+// only ever used, in-process, to build the invite email/fallback link via
+// sendOwnerInvite() above. Both /infrastructure and /provision return the
+// underlying provisioning report for the admin UI's own status display;
+// this strips the one sensitive field out of it first.
+function redactProvisioningReport(report) {
+  if (!report || !report.first_admin) return report;
+  const { invite_token, ...restAdmin } = report.first_admin; // eslint-disable-line no-unused-vars
+  return { ...report, first_admin: restAdmin };
+}
+
+// Shared by /infrastructure, /provision and /resend-invite — one
+// implementation of "build the invite email + send it + report the
+// fallback link on failure", never three slightly-different copies.
+async function sendOwnerInvite(row, { frontendUrl, inviteToken, idempotencyKey }) {
+  if (!inviteToken) return { emailSent: false, inviteUrl: null };
+  const inviteUrl = `${(frontendUrl || '').replace(/\/$/, '')}/accept-invite?token=${encodeURIComponent(inviteToken)}`;
+  let emailSent = false;
+  try {
+    const { inviteEmail } = require('../lib/emailTemplates');
+    const html = inviteEmail({ recipientName: row.owner_name || null, companyName: row.company_name, inviteUrl, expiresInDays: 7, isOwnerInvite: true });
+    const emailService = require('../lib/emailService');
+    const result = await emailService.send({
+      to: row.owner_email,
+      subject: `Your ${row.company_name} CRM is ready`,
+      htmlBody: html,
+      idempotencyKey,
+      fromName: `${row.company_name} CRM`,
+    });
+    emailSent = !!result?.ok;
+  } catch (e) {
+    console.warn('[platform-companies] owner invite email failed (non-fatal):', e.message);
+  }
+  return { emailSent, inviteUrl: emailSent ? null : inviteUrl };
 }
 
 // ── POST / — create a draft company (step 1-3 of the onboarding flow) ──────
@@ -125,6 +173,152 @@ router.get('/:id/probe', async (req, res) => {
     res.json({ probe });
   } catch (e) {
     console.error('[platform-companies] probe error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── POST /:id/estimate — AUTOMATED path step 1: pure computation, creates
+// NOTHING. Figures out which Railway services this company needs (reuses
+// scripts/install/railwayPlan.js, never a second copy) and an approximate
+// monthly cost range, and stores both on the row so /provision can later
+// require the admin to echo the exact number back — the explicit
+// cost-approval gate. Safe to call repeatedly (e.g. after enabled_modules
+// changes) — it always just recomputes and overwrites the stored estimate,
+// never touches Railway or the target database. ──────────────────────────
+router.post('/:id/estimate', async (req, res) => {
+  try {
+    const row = await loadCompanyOr404(req, res);
+    if (!row) return;
+    const contract = require('../scripts/install/companyConfigContract');
+    const cfg = {
+      company_name: row.company_name,
+      company_slug: row.company_slug,
+      admin_email: row.owner_email,
+      admin_name: row.owner_name || null,
+      default_owner_email: row.owner_email,
+      default_owner_name: row.owner_name || null,
+      // Same "every optional integration OFF at first boot" default the
+      // manual path uses — an automated company starts equally clean.
+      enabled_modules: Object.fromEntries(contract.MODULE_KEYS.map((k) => [k, false])),
+    };
+    const { estimateInfrastructure } = require('../lib/platformInfraProvisioning');
+    const estimate = estimateInfrastructure(cfg);
+    await query(
+      `UPDATE platform_companies SET
+         cost_estimate_monthly_usd = $1,
+         cost_estimate_breakdown = $2::jsonb,
+         config_json = $3::jsonb,
+         contract_version = $4,
+         status = CASE WHEN status = 'draft' THEN 'awaiting_infrastructure' ELSE status END,
+         updated_at = NOW()
+       WHERE id = $5`,
+      [estimate.estimated_monthly_usd_high, JSON.stringify(estimate), JSON.stringify(cfg), contract.CONTRACT_VERSION, row.id]
+    );
+    const { isConfigured } = require('../lib/platformRailway');
+    res.json({ estimate, railway_automation_available: isConfigured() });
+  } catch (e) {
+    console.error('[platform-companies] estimate error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+const JSONB_COLUMNS = new Set(['provisioning_state', 'railway_service_ids', 'cost_estimate_breakdown']);
+
+// ── POST /:id/provision — AUTOMATED path step 2: creates REAL, billable
+// Railway infrastructure. Requires /estimate to have already run on this
+// company AND confirm_cost_usd to exactly echo the estimate it stored —
+// this is the explicit, auditable "I approve this cost" gate; there is no
+// way to reach this far without it. Resumable: calling this again after a
+// failure picks up from whichever step provisioning_state last recorded,
+// never re-creating a Railway resource that already exists. ──────────────
+router.post('/:id/provision', async (req, res) => {
+  try {
+    const row = await loadCompanyOr404(req, res);
+    if (!row) return;
+
+    const railway = require('../lib/platformRailway');
+    if (!railway.isConfigured()) {
+      return res.status(501).json({
+        error: 'railway_automation_not_configured',
+        message: 'RAILWAY_API_TOKEN is not set on this installation — automated provisioning is unavailable. Use "Mark Infrastructure Ready" (manual) instead, or configure RAILWAY_API_TOKEN to enable automation (see docs/INSTALL_NEW_COMPANY.md).',
+      });
+    }
+    if (row.cost_estimate_monthly_usd == null) {
+      return res.status(409).json({ error: 'no_estimate', message: 'Call POST /:id/estimate first.' });
+    }
+    const { confirm_cost_usd } = req.body || {};
+    const estimateUsd = Number(row.cost_estimate_monthly_usd);
+    if (typeof confirm_cost_usd !== 'number' || Math.abs(confirm_cost_usd - estimateUsd) > 0.01) {
+      return res.status(400).json({
+        error: 'cost_not_confirmed',
+        message: `confirm_cost_usd must exactly echo the stored estimate ($${estimateUsd}/mo) to proceed.`,
+        estimate_usd: estimateUsd,
+      });
+    }
+    if (!row.config_json || !Object.keys(row.config_json).length) {
+      return res.status(409).json({ error: 'no_config', message: 'Call POST /:id/estimate first (it also stores the config this step provisions from).' });
+    }
+
+    await query(
+      `UPDATE platform_companies SET
+         status = 'provisioning',
+         cost_confirmed_at = COALESCE(cost_confirmed_at, NOW()),
+         cost_confirmed_by = COALESCE(cost_confirmed_by, $1),
+         updated_at = NOW()
+       WHERE id = $2`,
+      [req.user.sub, row.id]
+    );
+
+    const onProgress = async (step, patch) => {
+      const sets = [];
+      const vals = [];
+      let idx = 1;
+      for (const [k, v] of Object.entries(patch)) {
+        if (JSONB_COLUMNS.has(k)) { sets.push(`${k} = $${idx++}::jsonb`); vals.push(JSON.stringify(v)); }
+        else { sets.push(`${k} = $${idx++}`); vals.push(v); }
+      }
+      if (!sets.length) return;
+      sets.push('updated_at = NOW()');
+      vals.push(row.id);
+      await query(`UPDATE platform_companies SET ${sets.join(', ')} WHERE id = $${idx}`, vals);
+    };
+
+    const { provisionInfrastructure } = require('../lib/platformInfraProvisioning');
+    let result;
+    try {
+      result = await provisionInfrastructure(row, row.config_json, onProgress);
+    } catch (e) {
+      await query(`UPDATE platform_companies SET status = 'provisioning_failed', last_error = $1, updated_at = NOW() WHERE id = $2`, [e.message, row.id]);
+      console.error('[platform-companies] automated provisioning error:', e.message);
+      return res.status(502).json({ error: 'provisioning_failed', message: e.message, retryable: true });
+    }
+
+    await query(`UPDATE platform_companies SET status = 'ready_to_invite', provisioned_at = NOW(), updated_at = NOW() WHERE id = $1`, [row.id]);
+
+    // dbReport (and its invite_token) is only populated when the 'database'
+    // step actually ran in THIS call — on a call that resumed past an
+    // already-completed database step, get a fresh invite token the exact
+    // same way "Resend Invite" already does, rather than a second code path.
+    let inviteToken = result.dbReport?.first_admin?.invite_token || null;
+    if (!inviteToken) {
+      const { regenerateInviteOnTarget } = require('../lib/platformProvisioning');
+      const r = await regenerateInviteOnTarget({ databaseUrl: result.databaseUrl, email: row.owner_email });
+      inviteToken = r?.rawToken || null;
+    }
+
+    const { emailSent, inviteUrl } = await sendOwnerInvite(row, {
+      frontendUrl: result.frontendUrl,
+      inviteToken,
+      idempotencyKey: inviteToken ? `platform-invite-auto-${row.id}-${inviteToken.slice(0, 16)}` : undefined,
+    });
+    if (emailSent) {
+      await query(`UPDATE platform_companies SET status = 'invited', invited_at = NOW(), updated_at = NOW() WHERE id = $1`, [row.id]);
+    }
+
+    const { rows: finalRows } = await query('SELECT * FROM platform_companies WHERE id = $1', [row.id]);
+    res.json({ company: redact(finalRows[0]), provisioning: redactProvisioningReport(result.dbReport), email_sent: emailSent, invite_url: emailSent ? undefined : inviteUrl });
+  } catch (e) {
+    console.error('[platform-companies] provision error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
@@ -200,38 +394,17 @@ router.post('/:id/infrastructure', async (req, res) => {
     );
 
     // Send the owner's invite — best-effort; the admin can always resend.
-    let emailSent = false;
-    let inviteUrl = null;
-    if (report.first_admin.invite_token) {
-      inviteUrl = `${frontend_url.replace(/\/$/, '')}/accept-invite?token=${encodeURIComponent(report.first_admin.invite_token)}`;
-      try {
-        const { inviteEmail } = require('../lib/emailTemplates');
-        const html = inviteEmail({
-          recipientName: row.owner_name || null,
-          companyName: row.company_name,
-          inviteUrl,
-          expiresInDays: 7,
-          isOwnerInvite: true,
-        });
-        const emailService = require('../lib/emailService');
-        const result = await emailService.send({
-          to: row.owner_email,
-          subject: `Your ${row.company_name} CRM is ready`,
-          htmlBody: html,
-          idempotencyKey: `platform-invite-${row.id}-${report.first_admin.invite_token.slice(0, 16)}`,
-          fromName: `${row.company_name} CRM`,
-        });
-        emailSent = !!result?.ok;
-      } catch (e) {
-        console.warn('[platform-companies] owner invite email failed (non-fatal):', e.message);
-      }
-    }
+    const { emailSent, inviteUrl } = await sendOwnerInvite(row, {
+      frontendUrl: frontend_url,
+      inviteToken: report.first_admin.invite_token,
+      idempotencyKey: report.first_admin.invite_token ? `platform-invite-${row.id}-${report.first_admin.invite_token.slice(0, 16)}` : undefined,
+    });
     if (emailSent) {
       await query(`UPDATE platform_companies SET status = 'invited', invited_at = NOW(), updated_at = NOW() WHERE id = $1`, [row.id]);
     }
 
     const { rows: finalRows } = await query('SELECT * FROM platform_companies WHERE id = $1', [row.id]);
-    res.json({ company: redact(finalRows[0]), provisioning: report, email_sent: emailSent, invite_url: emailSent ? undefined : inviteUrl });
+    res.json({ company: redact(finalRows[0]), provisioning: redactProvisioningReport(report), email_sent: emailSent, invite_url: emailSent ? undefined : inviteUrl });
   } catch (e) {
     console.error('[platform-companies] infrastructure error:', e.message);
     res.status(500).json({ error: e.message });
@@ -251,23 +424,11 @@ router.post('/:id/resend-invite', async (req, res) => {
     const result = await regenerateInviteOnTarget({ databaseUrl: database_url, email: row.owner_email });
     if (!result) return res.status(409).json({ error: 'owner_already_activated', message: 'This company\'s owner has already set a password — nothing to resend.' });
 
-    const inviteUrl = `${(row.frontend_url || '').replace(/\/$/, '')}/accept-invite?token=${encodeURIComponent(result.rawToken)}`;
-    let emailSent = false;
-    try {
-      const { inviteEmail } = require('../lib/emailTemplates');
-      const html = inviteEmail({ recipientName: row.owner_name || null, companyName: row.company_name, inviteUrl, expiresInDays: 7, isOwnerInvite: true });
-      const emailService = require('../lib/emailService');
-      const sendResult = await emailService.send({
-        to: row.owner_email,
-        subject: `Your ${row.company_name} CRM is ready`,
-        htmlBody: html,
-        idempotencyKey: `platform-invite-resend-${row.id}-${result.rawToken.slice(0, 16)}`,
-        fromName: `${row.company_name} CRM`,
-      });
-      emailSent = !!sendResult?.ok;
-    } catch (e) {
-      console.warn('[platform-companies] resend-invite email failed (non-fatal):', e.message);
-    }
+    const { emailSent, inviteUrl } = await sendOwnerInvite(row, {
+      frontendUrl: row.frontend_url,
+      inviteToken: result.rawToken,
+      idempotencyKey: `platform-invite-resend-${row.id}-${result.rawToken.slice(0, 16)}`,
+    });
     res.json({ ok: true, email_sent: emailSent, invite_url: emailSent ? undefined : inviteUrl });
   } catch (e) {
     console.error('[platform-companies] resend-invite error:', e.message);

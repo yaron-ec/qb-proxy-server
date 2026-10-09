@@ -1261,6 +1261,10 @@ app.use('/api/v1/users', require('./routes/users'));
 // Company Management — platform-admin-only multi-company provisioning/onboarding
 // control plane (PRODUCTIZATION — see routes/platformCompanies.js header).
 app.use('/api/v1/platform/companies', require('./routes/platformCompanies'));
+// Centrally managed release / staged rollout / rollback across every
+// provisioned company (PRODUCTIZATION — see routes/platformReleases.js
+// header). Same platform-admin-only gate.
+app.use('/api/v1/platform/releases', require('./routes/platformReleases'));
 // Daily Appointment Routing — traffic-aware Google Routes API + geocoding + departure times
 app.use('/api/v1/routing', require('./routes/routing'));
 // Diagnostic endpoint (X-Proxy-Secret, no JWT) for verifying geocoding pipeline
