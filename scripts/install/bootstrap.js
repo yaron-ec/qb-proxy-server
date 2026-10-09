@@ -320,24 +320,56 @@ async function ensureOwnerStartingLocation(db, cfg) {
   return { created: true, owner: ownerName, merged_into_existing: false };
 }
 
+// INVITE_TTL_DAYS kept in sync with lib/authService.js's own constant — this
+// script runs standalone (no dependency on lib/authService to avoid an
+// awkward scripts/install -> lib cross-import for one constant), but the
+// token/hash SHAPE it writes (invite_token_hash/invite_expires_at) is the
+// exact same column pair lib/authService.js#acceptInvite reads, so a
+// password-less admin created here activates through the identical
+// POST /api/v1/auth/accept-invite flow as an invited employee.
+const PENDING_INVITE_TTL_DAYS = 7;
+
 async function ensureFirstAdmin(db, cfg) {
   const { rows: anyAdmins } = await db.query(`SELECT id, email FROM users WHERE role = 'admin' LIMIT 1`);
   if (anyAdmins[0]) {
     return { created: false, user: anyAdmins[0] };
   }
-  if (!cfg.admin_email || !cfg.admin_password) {
-    return { created: false, user: null, reason: 'no admin exists yet and admin_email/admin_password were not provided — create one via POST /api/v1/auth/register-first-admin or the API once deployed' };
+  if (!cfg.admin_email) {
+    return { created: false, user: null, reason: 'no admin exists yet and admin_email was not provided — create one via POST /api/v1/auth/register-first-admin or the API once deployed' };
   }
-  const { hashPassword } = require('../../lib/crypto');
-  const hash = hashPassword(cfg.admin_password);
-  const { rows } = await db.query(
-    `INSERT INTO users (email, full_name, role, password_hash, status)
-     VALUES (lower($1), $2, 'admin', $3, 'active')
-     ON CONFLICT (lower(email)) DO NOTHING
-     RETURNING id, email, full_name, role`,
-    [cfg.admin_email, cfg.admin_name || null, hash]
-  );
-  if (rows[0]) return { created: true, user: rows[0] };
+  const { hashPassword, randomToken, sha256Hex } = require('../../lib/crypto');
+
+  // admin_password is now OPTIONAL (PRODUCTIZATION — Company Provisioning
+  // System, multi-company onboarding workflow): the platform's own
+  // Company Management flow never invents/transmits a password for the
+  // owner — it creates a PENDING admin (no password, a single-use expiring
+  // invite token) and emails the owner a link to set their own password.
+  // A CLI operator who still passes admin_password gets the exact prior
+  // behavior (immediate, password-active admin) — fully backward compatible.
+  let inviteToken = null;
+  let rows;
+  if (cfg.admin_password) {
+    const hash = hashPassword(cfg.admin_password);
+    ({ rows } = await db.query(
+      `INSERT INTO users (email, full_name, role, password_hash, status)
+       VALUES (lower($1), $2, 'admin', $3, 'active')
+       ON CONFLICT (lower(email)) DO NOTHING
+       RETURNING id, email, full_name, role`,
+      [cfg.admin_email, cfg.admin_name || null, hash]
+    ));
+  } else {
+    inviteToken = randomToken(32);
+    const tokenHash = sha256Hex(inviteToken);
+    const expiresAt = new Date(Date.now() + PENDING_INVITE_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString();
+    ({ rows } = await db.query(
+      `INSERT INTO users (email, full_name, role, status, invite_token_hash, invite_expires_at)
+       VALUES (lower($1), $2, 'admin', 'active', $3, $4)
+       ON CONFLICT (lower(email)) DO NOTHING
+       RETURNING id, email, full_name, role`,
+      [cfg.admin_email, cfg.admin_name || null, tokenHash, expiresAt]
+    ));
+  }
+  if (rows[0]) return { created: true, user: rows[0], inviteToken };
   // A concurrent bootstrap (or a non-admin user with this email already
   // existed) — re-read rather than silently claiming success.
   const { rows: reread } = await db.query('SELECT id, email, full_name, role FROM users WHERE lower(email) = lower($1)', [cfg.admin_email]);
@@ -382,6 +414,14 @@ async function main() {
       created: adminResult.created,
       email: adminResult.user?.email || null,
       reason: adminResult.reason || (adminResult.created ? 'created' : 'already existed'),
+      // Only present when this run created a PENDING admin (no
+      // admin_password in cfg) — the one time this raw token ever exists;
+      // only its hash is persisted. The CLI operator is responsible for
+      // relaying this into an invite link themselves if running bootstrap.js
+      // standalone; the platform Company Management flow
+      // (lib/platformProvisioning.js) consumes this same field to send the
+      // branded invite email automatically instead.
+      invite_token: adminResult.inviteToken || undefined,
     };
 
     const appListsResult = await ensureAppLists(db, cfg);

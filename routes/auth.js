@@ -131,7 +131,118 @@ router.get('/me', require('../lib/rbac').requireAuth, async (req, res) => {
   try {
     const user = await auth.getUserById(req.user.sub);
     if (!user) return res.status(404).json({ error: 'user not found' });
-    res.json({ user: auth.publicUser(user) });
+    // is_platform_admin: lets the frontend show/hide the Company Management
+    // nav item without a failed round-trip — same check
+    // lib/rbac.js#requirePlatformAdmin enforces server-side on every
+    // platform route, so this flag is advisory-only for the UI, never a
+    // security boundary on its own.
+    let isPlatformAdmin = false;
+    if (user.role === 'admin') {
+      try {
+        const protectedEmails = await require('../lib/notificationRecipients').getProtectedAdminEmails();
+        isPlatformAdmin = protectedEmails.has(String(user.email || '').toLowerCase());
+      } catch (e) { /* best-effort — default false */ }
+    }
+    res.json({ user: { ...auth.publicUser(user), is_platform_admin: isPlatformAdmin } });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── Invite a user (admin-only) — PRODUCTIZATION: Company Provisioning
+// System, multi-company onboarding workflow ──────────────────────────────
+//   POST /invite  { email, role? }  -> { ok, email, status }
+//
+// Creates a PENDING user (no password) and emails them a single-use,
+// expiring link to verify their email and set their own password — never
+// emails a password. Matches the existing crm-frontend/src/components/
+// UsersTab.jsx UI exactly (it already calls this endpoint; it previously
+// 404'd because this route did not exist). `role` accepts the same values
+// routes/users.js does; the frontend immediately follows up with
+// PUT /api/v1/users/:id for the real role when inviting with a custom role
+// (UsersTab.jsx's own documented pattern) — accepted directly here too, so
+// a non-UI caller can set the real role in one call.
+router.post('/invite', require('../lib/rbac').requireAuth, require('../lib/rbac').requireRole('admin'), async (req, res) => {
+  try {
+    const { email, role, full_name } = req.body || {};
+    if (!email) return res.status(400).json({ error: 'email required' });
+    if (role && !['admin', 'manager', 'sales_rep', 'office', 'user'].includes(role)) {
+      return res.status(400).json({ error: 'invalid role' });
+    }
+    let created;
+    try {
+      created = await auth.createPendingUser({ email, full_name, role });
+    } catch (e) {
+      if (e.code === 'already_active') return res.status(409).json({ error: e.message });
+      throw e;
+    }
+
+    // Send the invite email — best-effort, NEVER fails the invite itself.
+    // A brand-new company (or one that hasn't connected Gmail yet) must
+    // still be able to invite its first employees; the admin can always
+    // relay the link manually if sending fails.
+    let emailSent = false;
+    let inviteUrl = null;
+    try {
+      const companyConfig = require('../lib/companyConfig');
+      const cfg = await companyConfig.getCompanyConfig();
+      const frontendUrl = (process.env.CRM_PUBLIC_URL || '').replace(/\/$/, '');
+      inviteUrl = `${frontendUrl}/accept-invite?token=${encodeURIComponent(created.rawToken)}`;
+      const { inviteEmail } = require('../lib/emailTemplates');
+      const html = inviteEmail({
+        recipientName: full_name || null,
+        companyName: cfg.company_name || 'your company',
+        inviteUrl,
+        expiresInDays: require('../lib/authService').INVITE_TTL_DAYS,
+        isOwnerInvite: false,
+      });
+      const emailService = require('../lib/emailService');
+      const result = await emailService.send({
+        to: email,
+        subject: `You're invited to ${cfg.company_name || 'the CRM'}`,
+        htmlBody: html,
+        idempotencyKey: `invite-${created.user.id}-${created.rawToken.slice(0, 16)}`,
+        fromName: cfg.company_name ? `${cfg.company_name} CRM` : undefined,
+      });
+      emailSent = !!result?.ok;
+    } catch (e) {
+      console.warn('[auth] invite email failed (non-fatal):', e.message);
+    }
+
+    res.status(201).json({
+      ok: true,
+      email: created.user.email,
+      status: 'pending',
+      email_sent: emailSent,
+      // Only ever returned to the inviting ADMIN (never emailed in plaintext
+      // elsewhere) — lets the UI show a copyable fallback link when sending
+      // fails (e.g. Gmail not yet connected for this installation).
+      invite_url: emailSent ? undefined : inviteUrl,
+    });
+  } catch (e) {
+    console.error('[auth] invite error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── Accept an invite (public, unauthenticated by definition) ────────────
+//   POST /accept-invite  { token, password }  -> { access, refresh, user }
+//
+// Verifies the single-use, expiring invite token and sets the new
+// password, then signs the user in immediately (same session shape as
+// POST /login) — the natural next step after activating. Works identically
+// for a brand-new company's first owner (invited via the platform Company
+// Management page) and an employee invited via POST /invite above — both
+// are just a `users` row with no password and an invite token.
+router.post('/accept-invite', async (req, res) => {
+  try {
+    const { token, password } = req.body || {};
+    if (!token || !password) return res.status(400).json({ error: 'token and password required' });
+    if (String(password).length < 8) return res.status(400).json({ error: 'password must be at least 8 characters' });
+    const user = await auth.acceptInvite(token, password);
+    if (!user) return res.status(400).json({ error: 'invalid_or_expired_token' });
+    const session = await auth.issueSession(user);
+    res.json(session);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

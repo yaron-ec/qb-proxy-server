@@ -39,14 +39,22 @@ function ensureOwnerNameColumn() {
 ensureOwnerNameColumn();
 
 // Map a DB row to the frontend-expected user object.
+// user_status: 'pending' means invited-but-not-yet-activated (no password,
+// no Google SSO link yet — authService#authenticatePassword already refuses
+// a null password_hash, so this is a real, not just cosmetic, state) —
+// crm-frontend/src/components/UsersTab.jsx already has UI for this exact
+// status (STATUS_CONFIG.pending, amber badge), wired up only now that
+// POST /api/v1/auth/invite actually creates this state (PRODUCTIZATION —
+// Company Provisioning System, multi-company onboarding workflow).
 function mapUser(r) {
+  const pending = !r.has_password && !r.has_google_sso && r.status !== 'disabled';
   return {
     id: r.id,
     email: r.email,
     primaryBusinessEmail: r.email,
     full_name: r.full_name,
     role: r.role,
-    user_status: r.status === 'disabled' ? 'deactivated' : 'active',
+    user_status: r.status === 'disabled' ? 'deactivated' : (pending ? 'pending' : 'active'),
     owner_name: r.owner_name || null,
     has_google_sso: r.has_google_sso,
     has_password: r.has_password,

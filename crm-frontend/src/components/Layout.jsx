@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import React from "react";
 import {
   Users, BarChart2,
-  Settings, ChevronLeft, ChevronRight, LogOut, TrendingUp, FileBarChart, Kanban, CalendarDays, Activity
+  Settings, ChevronLeft, ChevronRight, LogOut, TrendingUp, FileBarChart, Kanban, CalendarDays, Activity, Building2
 } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -46,6 +46,15 @@ const NAV_ITEMS = [
   // new, first-of-its-kind role-gated nav mechanism in this pass.
   { path: "/system-health", label: "System Health",   icon: Activity },
 ];
+
+// Platform-admin-only (PRODUCTIZATION — multi-company onboarding workflow).
+// Deliberately filtered by user.is_platform_admin below rather than added
+// to NAV_ITEMS directly — unlike every item above (shown to everyone
+// regardless of role, see the comment above NAV_ITEMS), showing a "Company
+// Management" link to every user of every company it would always 403 for
+// is a genuine UX/security-perception problem a non-filtered nav can't
+// avoid, so this one first-of-its-kind role-gated nav entry is justified.
+const PLATFORM_NAV_ITEM = { path: "/platform/companies", label: "Company Management", icon: Building2 };
 
 function NavItem({ path, label, icon: Icon, active, collapsed }) {
   const [tooltipPos, setTooltipPos] = useState(null);
@@ -296,6 +305,10 @@ function LayoutComponent() {
           {NAV_ITEMS.map(({ path, label, icon: Icon }) => (
             <NavItem key={path} path={path} label={label} icon={Icon} active={isActive(path)} collapsed={collapsed} />
           ))}
+          {currentUser?.is_platform_admin && (
+            <NavItem path={PLATFORM_NAV_ITEM.path} label={PLATFORM_NAV_ITEM.label} icon={PLATFORM_NAV_ITEM.icon}
+              active={isActive(PLATFORM_NAV_ITEM.path)} collapsed={collapsed} />
+          )}
         </nav>
 
         {/* Footer */}
