@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { apiCall } from "@/api/railway/client";
 import { useAuth } from "@/lib/AuthContext";
-import { Plus, RefreshCw, Loader2, Server, Mail, PauseCircle, PlayCircle, X } from "lucide-react";
+import { Plus, RefreshCw, Loader2, Server, Mail, PauseCircle, PlayCircle, X, Zap, DollarSign } from "lucide-react";
 import { Card, CardContent } from "@/components/DesignSystem/Card";
 import { PageTitle, PageSubtitle, SectionTitle, HelperText } from "@/components/DesignSystem/SectionHeader";
 import { Button } from "@/components/DesignSystem/Button";
@@ -28,6 +28,7 @@ const STATUS_CONFIG = {
   draft:                   { label: "Draft", variant: "default" },
   awaiting_infrastructure: { label: "Awaiting Infrastructure", variant: "warning" },
   provisioning:            { label: "Provisioning…", variant: "info" },
+  provisioning_failed:     { label: "Provisioning Failed", variant: "error" },
   ready_to_invite:         { label: "Ready to Invite", variant: "info" },
   invited:                 { label: "Invited", variant: "success" },
   activated:               { label: "Activated", variant: "success" },
@@ -174,9 +175,89 @@ function InfrastructureModal({ company, onClose, onDone }) {
   );
 }
 
+function AutoProvisionModal({ company, onClose, onDone }) {
+  const [estimate, setEstimate] = useState(null);
+  const [railwayAvailable, setRailwayAvailable] = useState(null);
+  const [loadingEstimate, setLoadingEstimate] = useState(true);
+  const [provisioning, setProvisioning] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    apiCall(`/api/v1/platform/companies/${company.id}/estimate`, { method: "POST" })
+      .then((res) => {
+        if (cancelled) return;
+        setEstimate(res.estimate);
+        setRailwayAvailable(res.railway_automation_available);
+      })
+      .catch((e) => !cancelled && setError(e?.message || "Failed to compute estimate"))
+      .finally(() => !cancelled && setLoadingEstimate(false));
+    return () => { cancelled = true; };
+  }, [company.id]);
+
+  const confirmAndProvision = async () => {
+    setProvisioning(true);
+    setError("");
+    try {
+      const res = await apiCall(`/api/v1/platform/companies/${company.id}/provision`, {
+        method: "POST",
+        body: { confirm_cost_usd: estimate.estimated_monthly_usd_high },
+      });
+      onDone(res);
+      onClose();
+    } catch (err) {
+      setError(err?.message || "Automated provisioning failed — safe to retry, it resumes from where it left off");
+    } finally {
+      setProvisioning(false);
+    }
+  };
+
+  return (
+    <Modal title={`Provision Automatically — ${company.company_name}`} onClose={onClose}>
+      {loadingEstimate && <div className="flex items-center gap-2 text-sm text-slate-500"><Loader2 className="w-4 h-4 animate-spin" /> Computing estimate…</div>}
+      {!loadingEstimate && railwayAvailable === false && (
+        <Alert variant="warning" title="Automated provisioning not available">
+          RAILWAY_API_TOKEN is not configured on this installation. Use "Mark Infrastructure Ready" instead, or ask an operator to configure RAILWAY_API_TOKEN to enable this.
+        </Alert>
+      )}
+      {!loadingEstimate && estimate && (
+        <>
+          <div className="space-y-2">
+            {estimate.services.map((s) => (
+              <div key={s.id} className="flex items-center justify-between text-xs text-slate-600 border-b border-slate-100 pb-1.5">
+                <span>{s.role}{s.optional ? " (optional)" : ""}</span>
+                <span className="font-mono">${s.low_usd}–${s.high_usd}/mo</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center justify-between pt-2">
+            <span className="text-sm font-semibold text-slate-800 flex items-center gap-1.5"><DollarSign className="w-4 h-4" /> Estimated total</span>
+            <span className="text-sm font-bold text-slate-900">${estimate.estimated_monthly_usd_low}–${estimate.estimated_monthly_usd_high}/mo</span>
+          </div>
+          <HelperText>{estimate.basis}</HelperText>
+          <HelperText>
+            Clicking Confirm creates a real, billable Railway project + Postgres + services for this company, deploys the shared codebase to it, runs migrations, and emails the owner's activation link. This is safe to retry if it fails partway — it resumes rather than re-creating anything.
+          </HelperText>
+        </>
+      )}
+      {error && <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</div>}
+      <div className="flex justify-end gap-2">
+        <button type="button" onClick={onClose} className="border border-slate-200 px-4 h-8 text-xs font-semibold text-slate-600 rounded-lg hover:bg-slate-50 transition-colors">Cancel</button>
+        {railwayAvailable !== false && (
+          <Button size="sm" disabled={loadingEstimate || provisioning || !estimate} onClick={confirmAndProvision}>
+            {provisioning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
+            {provisioning ? "Provisioning… (may take a few minutes)" : `Confirm $${estimate?.estimated_monthly_usd_high ?? "…"}/mo & Provision`}
+          </Button>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
 function CompanyRow({ company, onChanged }) {
   const [busy, setBusy] = useState(false);
   const [showInfra, setShowInfra] = useState(false);
+  const [showAutoProvision, setShowAutoProvision] = useState(false);
   const [notice, setNotice] = useState(null);
 
   const resendInvite = async () => {
@@ -218,19 +299,29 @@ function CompanyRow({ company, onChanged }) {
           <StatusPill status={company.status} />
         </div>
         {company.backend_url && <div className="text-xs text-slate-500">{company.backend_url}</div>}
+        {company.last_error && company.status === "provisioning_failed" && (
+          <div className="text-xs rounded-md px-2.5 py-2 bg-red-50 text-red-700 break-all">{company.last_error}</div>
+        )}
         {notice && <div className="text-xs rounded-md px-2.5 py-2 bg-slate-50 text-slate-600 break-all">{notice}</div>}
         <div className="flex flex-wrap gap-2 pt-1">
-          {!company.has_infrastructure && (
-            <Button size="sm" variant="secondary" onClick={() => setShowInfra(true)}>
-              <Server className="w-3.5 h-3.5" /> Mark Infrastructure Ready
-            </Button>
+          {["draft", "awaiting_infrastructure", "provisioning_failed"].includes(company.status) && (
+            <>
+              <Button size="sm" onClick={() => setShowAutoProvision(true)}>
+                <Zap className="w-3.5 h-3.5" /> {company.status === "provisioning_failed" ? "Retry Automated Provisioning" : "Provision Automatically"}
+              </Button>
+              {!company.has_infrastructure && (
+                <Button size="sm" variant="secondary" onClick={() => setShowInfra(true)}>
+                  <Server className="w-3.5 h-3.5" /> Mark Infrastructure Ready (Manual)
+                </Button>
+              )}
+            </>
           )}
-          {company.has_infrastructure && company.status !== "suspended" && (
+          {company.has_infrastructure && !["provisioning", "suspended"].includes(company.status) && (
             <Button size="sm" variant="outline" disabled={busy} onClick={resendInvite}>
               <Mail className="w-3.5 h-3.5" /> Resend Invite
             </Button>
           )}
-          {company.has_infrastructure && (
+          {company.has_infrastructure && company.status !== "provisioning" && (
             <Button size="sm" variant="outline" disabled={busy} onClick={toggleSuspend}>
               {company.status === "suspended" ? <PlayCircle className="w-3.5 h-3.5" /> : <PauseCircle className="w-3.5 h-3.5" />}
               {company.status === "suspended" ? "Activate" : "Suspend"}
@@ -240,6 +331,12 @@ function CompanyRow({ company, onChanged }) {
       </CardContent>
       {showInfra && (
         <InfrastructureModal company={company} onClose={() => setShowInfra(false)} onDone={(res) => {
+          setNotice(res.email_sent ? "Owner invited." : `Invite link (copy manually — email not sent): ${res.invite_url}`);
+          onChanged();
+        }} />
+      )}
+      {showAutoProvision && (
+        <AutoProvisionModal company={company} onClose={() => setShowAutoProvision(false)} onDone={(res) => {
           setNotice(res.email_sent ? "Owner invited." : `Invite link (copy manually — email not sent): ${res.invite_url}`);
           onChanged();
         }} />

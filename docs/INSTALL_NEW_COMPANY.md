@@ -28,11 +28,67 @@ running the provisioner twice to prove it never duplicates data.
 | Database migrations, company settings, first admin, dropdown lists, owner starting location | **Fully automated** — one command |
 | Figuring out which Railway services you need and why | **Fully automated** — generates `RAILWAY_DEPLOYMENT_PLAN.md` |
 | Computing the exact OAuth/webhook callback URLs each integration needs | **Fully automated** — generates `ONBOARDING_CHECKLIST.md` |
-| Creating the actual Railway project/services/database | **Manual** — Railway has no safe, documented way to script this from this repository without your own account token; see `scripts/install/railwayPlan.js`'s header comment |
+| Creating the actual Railway project/services/database | **Automated, optional** — if `RAILWAY_API_TOKEN` and `PLATFORM_GITHUB_REPO` are configured on this installation (see "Automated infrastructure" below), the Company Management page's "Provision Automatically" button does this end-to-end. Otherwise (the original default): **Manual** — Railway has no safe, documented way to script this without your own account token; see `scripts/install/railwayPlan.js`'s header comment, and "Mark Infrastructure Ready" on that same page still works exactly as before. |
 | Setting secrets in Railway's environment variables UI | **Manual** — generated as a reviewable manifest, never auto-applied |
 | DNS records for a custom domain | **Manual** — instructions generated, you create the record with your own registrar |
 | OAuth app registration / consent (Google, QuickBooks, SignNow, Meta) | **Manual** — inherently requires a human with access to that provider's console |
 | Connecting each integration after first login | **Manual** — one click in the CRM's own Integrations page per module |
+
+## Automated infrastructure (optional) — fully automated provisioning via the Company Management page
+
+By default, this repository treats creating billable Railway infrastructure
+as a manual, in-the-moment human decision (see the table above and
+`scripts/install/railwayPlan.js`'s header) — community reports of Railway's
+own public API describe real reliability issues with programmatic service
+creation, and creating billable cloud resources deserves its own explicit
+go-ahead regardless. If an operator decides the convenience is worth it,
+full automation is available, gated behind two one-time, platform-level
+environment variables set on **this installation's own** Railway deployment
+(never on a customer company's):
+
+- `RAILWAY_API_TOKEN` — a Railway **Account** or **Team** API token,
+  generated once by a human in the Railway dashboard (Account Settings →
+  Tokens). Railway has no API to create this token for you — it must be a
+  deliberate, logged-in action by whoever owns the Railway account/team.
+  Scope it to the minimum Railway supports (a dedicated token, not a
+  personal one you use for anything else) — see
+  `lib/platformRailway.js`'s header for exactly what it's used for and
+  what it never does (it is never logged, never returned by any API
+  response, never written to any company's own database).
+- `PLATFORM_GITHUB_REPO` — `"owner/repo"` of THIS shared repository (e.g.
+  `yaron-ec/qb-proxy-server`). Every company's Railway services are
+  connected to this SAME repo (never a per-company fork) on their own
+  `deploy/<company_slug>` branch — see "Update/upgrade procedure" below for
+  why.
+
+With both set, the Company Management page's "Provision Automatically"
+button appears alongside the existing manual "Mark Infrastructure Ready"
+flow (which keeps working unconditionally, with or without these two
+variables). It is a two-step, explicitly-gated flow:
+
+1. **Estimate** (`POST /:id/estimate`) — pure computation, creates nothing,
+   returns an approximate monthly cost range from Railway's published
+   per-resource rates.
+2. **Provision** (`POST /:id/provision`) — requires the exact estimate
+   number echoed back (`confirm_cost_usd`) before creating anything real.
+   This is the explicit cost-approval gate — there is no way to create
+   billable infrastructure through this page without first seeing, and
+   then re-confirming, its cost estimate.
+
+Provisioning is resumable: if it fails partway (Railway's own API or a
+transient network issue), clicking the same button again picks up from
+whichever step `platform_companies.provisioning_state` last recorded —
+never re-creating a resource, never double-billing. See
+`lib/platformInfraProvisioning.js`'s header for the exact step order.
+
+**Verification status**: every Railway GraphQL mutation this uses is built
+from Railway's documented schema and third-party reports of its actual
+behavior — it has not been exercised against a real Railway account in
+this codebase's own test environment (no outbound network access, no
+token). Run one supervised dry run against a disposable Railway project
+with a real token before trusting this for a real customer; see the PR
+that shipped this feature for the exact list of what that dry run should
+check.
 
 ## Prerequisites
 
@@ -263,10 +319,23 @@ Sign in at the frontend URL with the admin email/password from
 Every installation runs the same canonical codebase from its own Railway
 deployment, pointed at its own branch/commit. See `docs/UPGRADE_RUNBOOK.md`
 for the full versioning and migration-compatibility model; in short:
-- A push to the branch a company's Railway services track triggers their
-  own redeploy (per their own configured watch paths from Step 2) — there
-  is no separate "propagate to customers" step; it's the same deploy
-  pipeline as any other code change.
+- A **manually** (Step 2) provisioned company's Railway services track
+  whatever branch you pointed them at in the Railway dashboard — if that's
+  `main`, a push to it redeploys them immediately, the same as before this
+  feature existed. This is unchanged.
+- An **automated-path** (`/provision`) company's services instead track
+  their own `deploy/<company_slug>` branch in this same shared repo — a
+  push to `main` moves nothing for it by itself. A platform admin
+  advances it explicitly via `POST /api/v1/platform/releases` (record a
+  release — defaults to whatever commit THIS server is itself currently
+  running, i.e. "roll out what's already reached EC's own production")
+  then `POST /api/v1/platform/releases/:id/rollout`, which moves each
+  eligible company's branch forward in small batches, verifying `/health`
+  between batches, and **automatically rolls back and halts** on the first
+  company that doesn't come back healthy — see `lib/platformRelease.js`'s
+  header for the full mechanism. A single company can also be rolled back
+  on its own via `POST /api/v1/platform/releases/company/:id/rollback`.
+  This never runs on its own — only an explicit admin action starts it.
 - `db/migrate.js` runs automatically on every API service startup and is
   always a safe no-op against an up-to-date database — migrations in this
   repo are additive-only by convention (see `docs/UPGRADE_RUNBOOK.md`),
