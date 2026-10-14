@@ -28,7 +28,7 @@ running the provisioner twice to prove it never duplicates data.
 | Database migrations, company settings, first admin, dropdown lists, owner starting location | **Fully automated** — one command |
 | Figuring out which Railway services you need and why | **Fully automated** — generates `RAILWAY_DEPLOYMENT_PLAN.md` |
 | Computing the exact OAuth/webhook callback URLs each integration needs | **Fully automated** — generates `ONBOARDING_CHECKLIST.md` |
-| Creating the actual Railway project/services/database | **Automated, optional** — if `RAILWAY_API_TOKEN` and `PLATFORM_GITHUB_REPO` are configured on this installation (see "Automated infrastructure" below), the Company Management page's "Provision Automatically" button does this end-to-end. Otherwise (the original default): **Manual** — Railway has no safe, documented way to script this without your own account token; see `scripts/install/railwayPlan.js`'s header comment, and "Mark Infrastructure Ready" on that same page still works exactly as before. |
+| Creating the actual Railway project/services/database | **Automated, optional** — if `RAILWAY_API_TOKEN`, `PLATFORM_GITHUB_REPO`, and `PLATFORM_GITHUB_TOKEN` are configured on this installation (see "Automated infrastructure" below), the Company Management page's "Provision Automatically" button does this end-to-end. Otherwise (the original default): **Manual** — Railway has no safe, documented way to script this without your own account token; see `scripts/install/railwayPlan.js`'s header comment, and "Mark Infrastructure Ready" on that same page still works exactly as before. |
 | Setting secrets in Railway's environment variables UI | **Manual** — generated as a reviewable manifest, never auto-applied |
 | DNS records for a custom domain | **Manual** — instructions generated, you create the record with your own registrar |
 | OAuth app registration / consent (Google, QuickBooks, SignNow, Meta) | **Manual** — inherently requires a human with access to that provider's console |
@@ -42,9 +42,14 @@ as a manual, in-the-moment human decision (see the table above and
 own public API describe real reliability issues with programmatic service
 creation, and creating billable cloud resources deserves its own explicit
 go-ahead regardless. If an operator decides the convenience is worth it,
-full automation is available, gated behind two one-time, platform-level
-environment variables set on **this installation's own** Railway deployment
-(never on a customer company's):
+full automation is available, gated behind three one-time, platform-level
+environment variables set on **this installation's own** Railway
+deployment's backend API service (on EC's production project
+`devoted-courtesy`, that is the `qb-proxy-server` service specifically —
+routes/platformCompanies.js and routes/platformReleases.js are both
+mounted in `server.js`, the same Express app that serves every other
+`/api/v1/*` route; there is no separate service for this feature) — never
+on a customer company's own deployment:
 
 - `RAILWAY_API_TOKEN` — a Railway **Account** or **Team** API token,
   generated once by a human in the Railway dashboard (Account Settings →
@@ -60,11 +65,26 @@ environment variables set on **this installation's own** Railway deployment
   connected to this SAME repo (never a per-company fork) on their own
   `deploy/<company_slug>` branch — see "Update/upgrade procedure" below for
   why.
+- `PLATFORM_GITHUB_TOKEN` — a dedicated GitHub token (a fine-grained
+  personal access token, or a GitHub App installation token) with
+  **Contents: read and write** on this one repository only, generated once
+  by a human in GitHub's own settings. This is a REAL, separate credential
+  from whatever GitHub access a development session used to build this
+  feature — the deployed `qb-proxy-server` container is a plain
+  `node:20-alpine` image (see the repo's own `Dockerfile`) with no `gh`
+  CLI, no `git` binary, and no ambient GitHub credential of any kind. The
+  release pipeline (`lib/platformRelease.js`) therefore talks to the
+  GitHub REST API directly over `fetch`, authenticated by this token —
+  never a shelled-out CLI. Without it, the automated infrastructure
+  provisioning flow (which also creates each company's initial deploy
+  branch) and the release/rollout/rollback endpoints all fail with a
+  clear "PLATFORM_GITHUB_TOKEN not set" error rather than silently doing
+  nothing or crashing on a missing binary.
 
-With both set, the Company Management page's "Provision Automatically"
-button appears alongside the existing manual "Mark Infrastructure Ready"
-flow (which keeps working unconditionally, with or without these two
-variables). It is a two-step, explicitly-gated flow:
+With all three set, the Company Management page's "Provision
+Automatically" button appears alongside the existing manual "Mark
+Infrastructure Ready" flow (which keeps working unconditionally, with or
+without these three variables). It is a two-step, explicitly-gated flow:
 
 1. **Estimate** (`POST /:id/estimate`) — pure computation, creates nothing,
    returns an approximate monthly cost range from Railway's published
@@ -85,10 +105,59 @@ never re-creating a resource, never double-billing. See
 from Railway's documented schema and third-party reports of its actual
 behavior — it has not been exercised against a real Railway account in
 this codebase's own test environment (no outbound network access, no
-token). Run one supervised dry run against a disposable Railway project
-with a real token before trusting this for a real customer; see the PR
-that shipped this feature for the exact list of what that dry run should
-check.
+token). Run the supervised dry run below against a disposable Railway
+project with a real token before trusting this for a real customer.
+
+### Supervised dry run (do this once, before the first real customer)
+
+This exercises the full automated path exactly once, with a throwaway
+company, so a human watches every step and nothing billable happens
+without having seen and confirmed its cost first. **Do not run this
+unattended.**
+
+1. **Set the three env vars** on the `qb-proxy-server` service (EC's
+   production project, `devoted-courtesy`) — `RAILWAY_API_TOKEN`,
+   `PLATFORM_GITHUB_REPO`, `PLATFORM_GITHUB_TOKEN` — and redeploy that one
+   service so it picks them up. This does not touch the frontend service,
+   any worker, or the database.
+2. In the Company Management page, click **Add Company**. Use an obviously
+   throwaway name (e.g. "ZZZ Dry Run Delete Me") and an email address you
+   control that has never been used for a real customer.
+3. Click **Provision Automatically**. Read the cost estimate it shows —
+   confirm it looks like a single light-usage company (roughly $17–38/mo
+   per the breakdown in this PR's own description), not something
+   unexpectedly large.
+4. Click **Confirm & Provision**. Watch it run. If it fails partway, click
+   it again — this is the resumability proof: confirm in the Railway
+   dashboard that retrying did NOT create a second project/service/database
+   for the same company (there is exactly one of each).
+5. Once it reports success, **in the Railway dashboard** (not just this
+   app's own report) confirm: a new project exists, with a Postgres
+   service, an API service, and a frontend service, each connected to this
+   same repo on a `deploy/zzz-dry-run-delete-me`-style branch (NOT `main`)
+   — and that EC's own `devoted-courtesy` project is completely unchanged
+   (same 5 services, same `main` branch, no new project nested inside it).
+6. Visit the generated frontend URL. Confirm it loads a genuinely empty
+   CRM login page — no EC data visible anywhere, obviously, since it's a
+   brand-new database.
+7. Check the throwaway email inbox for the owner invite. **Do not activate
+   it** unless you also intend to verify the login flow — if you do,
+   confirm the activated account sees zero leads/deals/customers.
+8. **Clean up**: delete the throwaway Railway project from the Railway
+   dashboard (this is a real, manual, deliberate deletion — not something
+   this codebase ever automates) and delete the `deploy/zzz-dry-run-delete-me`
+   branch from this repo (`git push origin --delete deploy/zzz-dry-run-delete-me`,
+   or via the GitHub UI). The `platform_companies` row for it can be left as
+   historical record or deleted directly from the database — there is
+   currently no "delete company" button in the UI (suspend is the closest
+   built-in action, and suspending a throwaway company before deleting its
+   Railway project is a reasonable extra safety step).
+
+If every step above checks out, the automated path is proven safe to use
+for a real first customer. If anything in steps 4–6 doesn't match, stop
+and investigate before inviting a real owner — the manual "Mark
+Infrastructure Ready" flow remains fully available as a fallback
+regardless.
 
 ## Prerequisites
 
