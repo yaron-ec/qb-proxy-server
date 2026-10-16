@@ -144,14 +144,13 @@ function openNavigation(address) {
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
+// Requires a real street address — never just the bare "CA" fallback.
+function navigableAddress(appt) {
+  return appt.property_address ? [appt.property_address, appt.city, "CA"].filter(Boolean).join(", ") : "";
+}
+
 function QuickActions({ appt }) {
-  // Real street address only — the trailing "CA" literal below is a display
-  // fallback for AppointmentCard's own address line, not a valid navigation
-  // destination on its own, so the Navigate action requires a genuine
-  // property_address rather than treating "CA" alone as present.
-  const address = appt.property_address
-    ? [appt.property_address, appt.city, "CA"].filter(Boolean).join(", ")
-    : "";
+  const address = navigableAddress(appt);
   return (
     <div className="grid grid-cols-4 gap-2 mt-3 pt-3 border-t border-slate-100">
       {appt.phone && (
