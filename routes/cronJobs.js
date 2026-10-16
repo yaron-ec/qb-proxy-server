@@ -208,12 +208,21 @@ router.post('/notify-crm-activity', async (req, res) => {
       crmUrl,
     });
 
-    const { to: staffTo, cc: staffCc } = await notificationRecipients.getRecipients();
-    if (!staffTo[0]) return res.json({ ok: false, skipped: 'no_recipient_configured', leadId: lead.id, job: 'notify-crm-activity' });
+    // Narrowed by the ACTIVITY category, matching the canonical
+    // lib/crmActivityNotifier.js pipeline this endpoint mirrors — so a staff
+    // member who opted out of generic activity emails never receives this
+    // either (activity_type is caller-supplied free text, not one of
+    // lib/crmActivityNotifier.js's own typed actions, so there is no more
+    // specific category to map it to here).
+    const staffRecipients = await notificationPreferences.filterRecipientsForCategory(
+      await notificationRecipients.getAllStaffRecipients(),
+      notificationPreferences.CATEGORIES.ACTIVITY
+    );
+    if (!staffRecipients[0]) return res.json({ ok: false, skipped: 'no_recipient_configured', leadId: lead.id, job: 'notify-crm-activity' });
 
     const result = await emailService.send({
-      to: staffTo[0],
-      cc: [...staffTo.slice(1), ...staffCc],
+      to: staffRecipients[0],
+      cc: staffRecipients.slice(1),
       subject: `CRM Activity: ${leadName} — ${activity_type || 'Update'}`,
       htmlBody: html,
       idempotencyKey: `crm-activity:${lead.id}:${Date.now()}`,

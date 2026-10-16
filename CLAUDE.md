@@ -384,9 +384,34 @@ about topology, this file wins; go correct `railway.json` and
   so touching a boundary is allowed (14:00 books, 13:59 does not). The
   availability grid and the write-path conflict check apply the same rule —
   `test/integration/appointmentBufferBoundary.int.test.js` compares them slot
-  by slot. A Phone Call FOLLOW-UP keeps its reminder emails (owner, Michelle
-  and the customer — decided, keep) but never blocks, buffers or travels
-  (`test/integration/phoneCallFollowUp.int.test.js`).
+  by slot. A Phone Call FOLLOW-UP keeps its reminder emails (owner, this
+  installation's configured staff recipients narrowed by the REMINDER
+  notification-preference category, and the customer — decided, keep) but
+  never blocks, buffers or travels (`test/integration/phoneCallFollowUp.int.test.js`).
+  **Michelle single-category policy (superseded the old "Michelle always
+  copied" behavior this bullet used to describe):** EC's
+  michelle@ecconstructiongroup.com is now restricted to exactly ONE
+  CRM-generated email category — a genuinely new lead — across every
+  notification pathway (`lib/notificationPreferences.js#CATEGORIES`,
+  seeded by `db/migrations/2026-62-michelle-single-category-notifications.sql`).
+  She remains in `company_settings.notification_recipients` (so she is still
+  a NEW_LEAD recipient and still a valid "staff recipient" candidate
+  everywhere that category applies), but every other category — appointment,
+  follow_up, reminder, overdue, estimate, invoice_payment, contract_signed,
+  sold, system_failure, status_change, lead_update, activity, deal — is
+  explicitly disabled for her. This is notification-only DATA, never a
+  permissions/role change. `lib/crmActivityNotifier.js#ACTION_CATEGORIES`
+  maps every admin-activity action to a category;
+  `lib/phoneCallReminders.js`, `lib/actionRouter.js` (reschedule-request
+  recipient) and `routes/cronJobs.js`'s `/notify-crm-activity` were the
+  staff-broadcast call sites that still used an unfiltered recipient
+  resolver (`getPrimaryRecipient()`/`getRecipients()`) when this policy was
+  added — now all narrowed via
+  `notificationPreferences.filterRecipientsForCategory()`, same as every
+  other staff broadcast (`test/notificationPreferenceCoverage.test.js`'s
+  structural guard only catches `getAllStaffRecipients()` callers, not
+  these two unfiltered-resolver shapes — review a new staff-facing email by
+  hand for the same gap, not just by running that guard).
 - **A Phone Call is never an appointment.** Only a real Appointment / Site
   Visit is an `appointments` row. `bookingService` refuses a Phone Call
   (`422 phone_call_is_follow_up`, incl. rescheduling a legacy unbuffered Phone

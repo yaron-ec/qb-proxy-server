@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Phone, ExternalLink, MessageSquare, Navigation, Clock, AlertTriangle, RefreshCw } from "lucide-react";
 import { fmt12 } from "@/pages/DailyMap";
 import { formatPhone, toTitleCase } from "@/lib/formatters";
+import { getAppleMapsDirectionsUrl } from "@/lib/appleMapsDirections";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
@@ -264,9 +265,14 @@ function LeafletMap({ appointments = [], selectedLead, onSelectLead, onReassign,
                       <MessageSquare className="w-3 h-3" /> SMS
                     </a>
                   )}
-                  {appt.fullAddress && (
+                  {/* fullAddress always falls back to a "<blank>, <blank>, CA" literal
+                      (see DailyMap.jsx) when neither a verified nor a raw street
+                      address exists — require one of those real signals too, so a
+                      lead with no actual address data never offers a Navigate link
+                      to that fallback literal. */}
+                  {(appt.verifiedAddress || appt.normalizedAddress || appt.property_address) && getAppleMapsDirectionsUrl(appt.fullAddress) && (
                     <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(appt.fullAddress)}`}
+                      href={getAppleMapsDirectionsUrl(appt.fullAddress)}
                       target="_blank" rel="noreferrer"
                       className="flex items-center justify-center gap-1 text-xs font-semibold bg-slate-50 text-slate-700 border border-slate-200 px-2 py-2 rounded col-span-2"
                     >

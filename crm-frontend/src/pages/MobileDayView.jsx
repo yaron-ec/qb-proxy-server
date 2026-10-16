@@ -6,6 +6,7 @@ import { MapPin, Clock, Phone, Mail, MessageSquare, Navigation, Map as MapIcon, 
 import { formatPhone, toTitleCase } from "@/lib/formatters";
 import { fmt12 } from "@/pages/DailyMap";
 import { getOwnerColor } from "@/lib/ownerColors";
+import { getAppleMapsDirectionsUrl } from "@/lib/appleMapsDirections";
 
 // Lazy-load the canonical Daily Map page (real routing: traffic-aware travel
 // time, required departure, distance, arrive-10-minutes-early, per-owner
@@ -138,18 +139,19 @@ const DATE_FILTERS = [
 ];
 
 function openNavigation(address) {
-  const encoded = encodeURIComponent(address);
-  // On iOS, prefer Apple Maps; on Android/others, Google Maps
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  if (isIOS) {
-    window.open(`maps://maps.apple.com/?q=${encoded}`, "_blank");
-  } else {
-    window.open(`https://www.google.com/maps/search/?api=1&query=${encoded}`, "_blank");
-  }
+  const url = getAppleMapsDirectionsUrl(address);
+  if (!url) return;
+  window.open(url, "_blank", "noopener,noreferrer");
 }
 
 function QuickActions({ appt }) {
-  const address = [appt.property_address, appt.city, "CA"].filter(Boolean).join(", ");
+  // Real street address only — the trailing "CA" literal below is a display
+  // fallback for AppointmentCard's own address line, not a valid navigation
+  // destination on its own, so the Navigate action requires a genuine
+  // property_address rather than treating "CA" alone as present.
+  const address = appt.property_address
+    ? [appt.property_address, appt.city, "CA"].filter(Boolean).join(", ")
+    : "";
   return (
     <div className="grid grid-cols-4 gap-2 mt-3 pt-3 border-t border-slate-100">
       {appt.phone && (
