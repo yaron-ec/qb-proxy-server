@@ -34,6 +34,7 @@ const { lockLeadIdentity } = require('../lib/booking/leadResolution');
 const { serializeAppointment, fetchActiveAppointmentsForLeads } = require('../lib/booking/appointmentView');
 const { isPhoneCallAppointment } = require('../lib/booking/appointmentKind');
 const { normalizeFollowUp, FOLLOW_UP_FIELDS } = require('../lib/followUp');
+const { isEnteringClosedLost } = require('../lib/leadStatus');
 const router = express.Router();
 
 // ── Lead field diff helper ──────────────────────────────────────────────────
@@ -133,6 +134,75 @@ async function cancelAppointmentsForLeadDelete(client, leadId) {
       console.warn('[leads] calendar outbox cancel failed (non-blocking):', e.message);
     }
   }
+}
+
+// ── Closed Lost transition: stop future reminders, cancel active appointments ──
+// Fires ONLY on the actual edge — oldStatus !== 'Closed Lost' && newStatus ===
+// 'Closed Lost' (lib/leadStatus.js#isEnteringClosedLost) — from every write
+// path that can set leads.status (PUT /:id, PUT /by-external/:externalRef).
+// Never fires again on a later edit that merely leaves an already-Closed-Lost
+// lead's status unchanged, and never auto-restores anything on reopen (a
+// status change AWAY FROM Closed Lost does nothing here — the cancelled
+// appointment and cleared follow-up stay exactly as they are; the user must
+// explicitly reschedule).
+//
+// The appointment cancellation (cancelActiveAppointmentsForClosedLost) must
+// run AFTER the lead-update transaction commits: bookingService.cancelAppointment
+// manages its own transaction (appointment row + appointment_events audit row +
+// the durable calendar_outbox cancel enqueue, all atomic with each other), so
+// it cannot be nested inside the caller's transaction. The follow-up clear
+// (below, inline in each route) DOES run inside that same transaction, since
+// it's a plain column write with no external dependency.
+//
+// Never treats "start time is in the past" as "completed" — only an
+// appointment whose OWN status is still 'scheduled'/'confirmed' (i.e. never
+// resolved) is cancelled; 'completed'/'no_show'/'cancelled'/'rescheduled'
+// appointments are left exactly as they are (CLAUDE.md: check the actual
+// appointment status, never infer completion from a past start time).
+async function cancelActiveAppointmentsForClosedLost(leadId, actor) {
+  const { rows } = await query(
+    `SELECT id FROM appointments WHERE lead_id = $1 AND status IN ('scheduled', 'confirmed')`,
+    [leadId]
+  );
+  const cancelled = [];
+  const failures = [];
+  for (const row of rows) {
+    try {
+      await bookingService.cancelAppointment(row.id, actor, { onWrite: (client) => projectReminders(client, leadId) });
+      cancelled.push(row.id);
+    } catch (e) {
+      // Already resolved concurrently — e.g. a replayed/duplicate Closed Lost
+      // transition racing this one, or a human cancelled it in the same
+      // instant. Not a failure: the end state (no active appointment) is
+      // exactly what we want either way.
+      if (e && e.code === 'not_cancellable') continue;
+      console.error('[leads] closed-lost appointment cancel failed:', row.id, e && e.message);
+      failures.push({ id: row.id, error: (e && e.message) || String(e) });
+    }
+  }
+  return { cancelled, failures };
+}
+
+// Best-effort audit-trail note (never blocks the response — matches every
+// other post-commit side effect in this file). `source` is constrained to
+// the activities table's existing CHECK ('hubspot'|'gmail'|'calendar'|
+// 'manual') — 'manual' is reused here since there is no 'system' value; the
+// content text makes clear this was an automatic consequence of the status
+// change, not a human-authored note.
+async function logClosedLostTransition(leadId, actor, apptResult) {
+  try {
+    const parts = ['future reminders and follow-ups stopped'];
+    if (apptResult.cancelled.length) {
+      parts.push(`${apptResult.cancelled.length} active appointment(s) cancelled (Google Calendar event removal queued)`);
+    }
+    if (apptResult.failures.length) {
+      parts.push(`${apptResult.failures.length} appointment(s) FAILED to cancel — needs manual review`);
+    }
+    await query(
+      `INSERT INTO activities (lead_id, type, content, author, source) VALUES ($1, 'note', $2, $3, 'manual')`,
+      [leadId, `Lead marked Closed Lost: ${parts.join('; ')}.`, actor || null]
+    );
+  } catch (e) { console.warn('[leads] closed-lost activity note failed (non-fatal):', e.message); }
 }
 
 // ── Owner-scope resolution ───────────────────────────────────────────────────
@@ -318,6 +388,14 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
 
     const body = req.body || {};
 
+    // Resolved early (moved up from its original position just before the SQL
+    // builder) so enteringClosedLost can be computed before the CRM_FIELDS
+    // loop below — needs the lead's CURRENT status, not just its existence.
+    const { whereSql: upsertWhere, params: upsertParams } = leadIdWhere(externalRef);
+    const existingById = await query(`SELECT id, external_ref, status FROM leads WHERE ${upsertWhere} LIMIT 1`, upsertParams);
+    const enteringClosedLost = body.status !== undefined
+      && isEnteringClosedLost(existingById.rows[0] ? existingById.rows[0].status : null, body.status);
+
     // Build cleaned contact fields (only allow known contact fields)
     const cleaned = {};
     for (const f of CONTACT_FIELDS) {
@@ -413,6 +491,9 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
     }
     // CRM fields (from body, pass through)
     for (const col of CRM_FIELDS) {
+      // Closed Lost forces the follow-up to clear (below) — never let a
+      // value the caller sent in the SAME request win over that.
+      if (enteringClosedLost && FOLLOW_UP_FIELDS.includes(col)) continue;
       if (body[col] !== undefined) {
         let val = body[col];
         // Handle boolean fields
@@ -425,6 +506,13 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
         }
         allFields[col] = val;
       }
+    }
+    // Closed Lost: force-clear the whole follow-up (date/time/type/notes/
+    // status) — follow_up_notes/follow_up_status aren't in CRM_FIELDS at all,
+    // so this is the only place that clears them on this route.
+    if (enteringClosedLost) {
+      const fu = normalizeFollowUp({}).value;
+      for (const col of FOLLOW_UP_FIELDS) allFields[col] = fu[col];
     }
     // Handle assigned_rep → owner_id mapping (look up by display name)
     // owner_id is NOT NULL in the DB — never set it to null/empty. If the
@@ -470,8 +558,8 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
     // exists with that id, UPDATE by id instead of upserting. The upsert's
     // ON CONFLICT (external_ref) would INSERT a duplicate row for Railway-native
     // leads (external_ref = NULL) when called with their Railway UUID.
-    const { whereSql: upsertWhere, params: upsertParams } = leadIdWhere(externalRef);
-    const existingById = await query(`SELECT id, external_ref FROM leads WHERE ${upsertWhere} LIMIT 1`, upsertParams);
+    // (existingById/upsertWhere/upsertParams were resolved earlier, above, so
+    // enteringClosedLost could be computed before the CRM_FIELDS loop.)
     const isRailwayNativeUpdate = existingById.rows[0] && UUID_RE.test(String(externalRef)) && existingById.rows[0].id === externalRef;
 
     let sql, params;
@@ -554,7 +642,19 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
       } catch (e) { console.warn('[leads] contacts outbox enqueue failed (non-fatal):', e.message); }
     }
 
+    // Post-commit: Closed Lost — cancel any active appointment (CRM + durable
+    // Google Calendar outbox cancel) now that the status change + follow-up
+    // clear have committed. Mirrors PUT /:id's identical step.
+    let closedLostApptResult = null;
+    if (enteringClosedLost) {
+      closedLostApptResult = await cancelActiveAppointmentsForClosedLost(fullRow.id, req.user?.email);
+      await logClosedLostTransition(fullRow.id, req.user?.email, closedLostApptResult);
+    }
+
     const appt = await fetchActiveAppointment(fullRow.id);
+    if (closedLostApptResult && closedLostApptResult.failures.length) {
+      return res.json({ lead: serializeLead(fullRow, appt), closed_lost_appointment_cancel_failures: closedLostApptResult.failures });
+    }
     res.json({ lead: serializeLead(fullRow, appt) });
   } catch (e) {
     console.error('[leads] put-by-external error:', e.message);
@@ -1330,6 +1430,10 @@ router.put('/:id', requireAuth, async (req, res) => {
     const oldLead = leadR.rows[0];
 
     const body = req.body || {};
+    // Entering Closed Lost (the actual edge, not merely staying there) forces
+    // the follow-up to clear in this SAME statement — see
+    // cancelActiveAppointmentsForClosedLost below for the appointment side.
+    const enteringClosedLost = body.status !== undefined && isEnteringClosedLost(oldLead.status, body.status);
     const updates = [];
     const params = [];
     let p = 1;
@@ -1412,6 +1516,10 @@ router.put('/:id', requireAuth, async (req, res) => {
 
     // ── CRM fields ──────────────────────────────────────────────────────
     for (const col of UPDATABLE_FIELDS) {
+      // Closed Lost forces the follow-up to clear (below) — never let a
+      // value the caller sent in the SAME request (e.g. a stale form that
+      // also submitted a follow-up date) win over that.
+      if (enteringClosedLost && FOLLOW_UP_FIELDS.includes(col)) continue;
       if (body[col] !== undefined) {
         let val = body[col];
         // Handle boolean fields
@@ -1424,6 +1532,19 @@ router.put('/:id', requireAuth, async (req, res) => {
         } else {
           params.push(val);
         }
+        updates.push(`${col} = $${p}`);
+        p++;
+      }
+    }
+
+    // ── Closed Lost: force-clear the whole follow-up (date/time/type/notes/
+    // status) in this SAME statement — follow_up_notes and follow_up_status
+    // aren't in UPDATABLE_FIELDS at all (only PUT /:id/follow-up normally
+    // touches them), so this is the only place that clears them here.
+    if (enteringClosedLost) {
+      const fu = normalizeFollowUp({}).value;
+      for (const col of FOLLOW_UP_FIELDS) {
+        params.push(fu[col]);
         updates.push(`${col} = $${p}`);
         p++;
       }
@@ -1501,6 +1622,16 @@ router.put('/:id', requireAuth, async (req, res) => {
       sendLeadNotification(action, fullRow, changes, req.user?.email);
     }
 
+    // Post-commit: Closed Lost — cancel any active appointment (CRM + durable
+    // Google Calendar outbox cancel) now that the status change + follow-up
+    // clear have committed. See cancelActiveAppointmentsForClosedLost's own
+    // comment for why this cannot run inside the transaction above.
+    let closedLostApptResult = null;
+    if (enteringClosedLost) {
+      closedLostApptResult = await cancelActiveAppointmentsForClosedLost(fullRow.id, req.user?.email);
+      await logClosedLostTransition(fullRow.id, req.user?.email, closedLostApptResult);
+    }
+
     // Post-commit: re-enqueue Google Contacts sync when contact-relevant
     // fields changed (first/last name, phone, email, address) — a Lead
     // was previously only ever synced ONCE at creation; editing it after
@@ -1545,6 +1676,12 @@ router.put('/:id', requireAuth, async (req, res) => {
     }
 
     const appt = await fetchActiveAppointment(fullRow.id);
+    // Surface a detectable error state rather than silently claiming success
+    // when an appointment failed to cancel (the lead's status change itself
+    // always succeeds — this is reported alongside it, never instead of it).
+    if (closedLostApptResult && closedLostApptResult.failures.length) {
+      return res.json({ lead: serializeLead(fullRow, appt), closed_lost_appointment_cancel_failures: closedLostApptResult.failures });
+    }
     res.json({ lead: serializeLead(fullRow, appt) });
   } catch (e) {
     console.error('[leads] put error:', e.message);

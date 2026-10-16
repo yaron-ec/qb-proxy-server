@@ -479,6 +479,58 @@ about topology, this file wins; go correct `railway.json` and
   for a QuickBooks invoice, and a mapping is NEVER reassigned once created
   (`ON CONFLICT DO NOTHING`). Never resolve invoice ownership by amount,
   customer, or date.
+- **Closed Lost transition (PERMANENT RULE, production bug fix)**: the
+  moment a lead's status changes TO `'Closed Lost'` (the actual edge, never
+  re-fired on a later edit that merely leaves it there —
+  `lib/leadStatus.js#isEnteringClosedLost`), from EVERY write path that can
+  set `leads.status` (`routes/leads.js`'s `PUT /:id` and
+  `PUT /by-external/:externalRef` — the only two; verified no other route
+  writes this column), two things happen atomically with the status write
+  itself: (1) the lead's follow-up is force-cleared (same `normalizeFollowUp({})`
+  semantics as `PUT /:id/follow-up`'s own clear, including the two fields —
+  `follow_up_notes`/`follow_up_status` — that aren't even in
+  `UPDATABLE_FIELDS`/`CRM_FIELDS`), overriding anything the SAME request body
+  tried to set; (2) post-commit (cannot run inside that transaction —
+  `bookingService.cancelAppointment` owns its own transaction, audit row and
+  durable Google Calendar outbox enqueue), every appointment still
+  `'scheduled'`/`'confirmed'` for that lead — regardless of whether its start
+  time is in the past (CLAUDE.md's own appointment-status rule: never infer
+  "completed" from a past start time, only the row's own status decides) —
+  is cancelled through the canonical `bookingService.cancelAppointment`,
+  never a second/raw cancellation path. A genuinely `'completed'`/`'no_show'`/
+  `'cancelled'`/`'rescheduled'` appointment is NEVER touched — no version
+  bump, no calendar call, preserved exactly as history. Clearing the
+  follow-up + cancelling the appointment together empty `reminder_leads`'s
+  projection (`lib/reminderProjection.js#syncLeadToReminders`'s own
+  `hasDates` check), which is the SAME table BOTH `lib/reminderEngine.js`
+  (appointment reminders) and `lib/phoneCallReminders.js` (phone-call
+  reminders) read via `lib/crmRepository.js#listEligibleLeads` — so this one
+  mechanism silences every reminder engine with no per-engine special-casing,
+  and `lib/booking/followUpReminders.js`'s own desired-state reconciliation
+  (already covers "follow-up cleared" as one of its four removal triggers)
+  removes the non-blocking follow-up calendar event with no code change of
+  its own. Defense-in-depth beyond the primary fix (for leads that were
+  ALREADY Closed Lost before this shipped, or any future projection-sync
+  bug): `lib/crmRepository.js#listEligibleLeadsPostgresProd` LEFT JOINs back
+  to `leads` and excludes `status = 'Closed Lost'` directly (fails OPEN —
+  keeps the row — when the join can't resolve a lead, same "never silently
+  drop a real notification" philosophy as `lib/notificationPreferences.js`);
+  `lib/booking/calendarOutbox.js#reconcileSyncedAppointments`'s
+  `isLostDnq` guard (previously only `'Lost'`/`'DNQ'`) now also excludes
+  `'Closed Lost'`, so a missing Google event is never recreated for one;
+  `routes/cronJobs.js`'s `/notify-status-change` and
+  `/send-project-status-email` (unused by any in-repo caller today, but a
+  documented automation entry point) both read the lead's CURRENT
+  `leads.status` fresh and skip sending if it is `'Closed Lost'`, never
+  trusting a caller-supplied `old_status`/`new_status` param instead.
+  Reopening a Closed-Lost lead (status changes AWAY from it) is
+  deliberately a no-op here — it NEVER auto-restores the cancelled
+  appointment or the cleared follow-up; only an explicit new
+  reschedule/follow-up afterward resumes normal reminder projection. Real-
+  Postgres coverage (all 8 required scenarios, including a genuine
+  already-firing reminder proven silenced, and a simulated Google API
+  failure proven left in the retry-eligible `'failed'` state rather than
+  falsely marked synced): `test/integration/closedLostTransition.int.test.js`.
 - **Reminders**: default to dry-run (`REMINDER_DRY_RUN` must be explicitly
   `'false'` to send real customer-facing email); the HTTP trigger route
   force-overrides to dry-run regardless of query params as a second safety
