@@ -479,11 +479,13 @@ about topology, this file wins; go correct `railway.json` and
   for a QuickBooks invoice, and a mapping is NEVER reassigned once created
   (`ON CONFLICT DO NOTHING`). Never resolve invoice ownership by amount,
   customer, or date.
-- **Closed Lost transition (PERMANENT RULE, production bug fix)**: the
-  moment a lead's status changes TO `'Closed Lost'` (the actual edge, never
-  re-fired on a later edit that merely leaves it there —
-  `lib/leadStatus.js#isEnteringClosedLost`), from EVERY write path that can
-  set `leads.status` (`routes/leads.js`'s `PUT /:id` and
+- **Terminal-lost transition (PERMANENT RULE, production bug fix,
+  generalized after a second production bug)**: the moment a lead's status
+  changes TO any value in `lib/leadStatus.js#TERMINAL_LOST_STATUSES` (the
+  actual edge, never re-fired on a later edit that merely leaves it there,
+  and never re-fired when moving BETWEEN two terminal-lost statuses —
+  `lib/leadStatus.js#isEnteringTerminalLostStatus`), from EVERY write path
+  that can set `leads.status` (`routes/leads.js`'s `PUT /:id` and
   `PUT /by-external/:externalRef` — the only two; verified no other route
   writes this column), two things happen atomically with the status write
   itself: (1) the lead's follow-up is force-cleared (same `normalizeFollowUp({})`
@@ -510,27 +512,86 @@ about topology, this file wins; go correct `railway.json` and
   (already covers "follow-up cleared" as one of its four removal triggers)
   removes the non-blocking follow-up calendar event with no code change of
   its own. Defense-in-depth beyond the primary fix (for leads that were
-  ALREADY Closed Lost before this shipped, or any future projection-sync
+  ALREADY terminal-lost before this shipped, or any future projection-sync
   bug): `lib/crmRepository.js#listEligibleLeadsPostgresProd` LEFT JOINs back
-  to `leads` and excludes `status = 'Closed Lost'` directly (fails OPEN —
-  keeps the row — when the join can't resolve a lead, same "never silently
-  drop a real notification" philosophy as `lib/notificationPreferences.js`);
-  `lib/booking/calendarOutbox.js#reconcileSyncedAppointments`'s
-  `isLostDnq` guard (previously only `'Lost'`/`'DNQ'`) now also excludes
-  `'Closed Lost'`, so a missing Google event is never recreated for one;
-  `routes/cronJobs.js`'s `/notify-status-change` and
-  `/send-project-status-email` (unused by any in-repo caller today, but a
-  documented automation entry point) both read the lead's CURRENT
-  `leads.status` fresh and skip sending if it is `'Closed Lost'`, never
-  trusting a caller-supplied `old_status`/`new_status` param instead.
-  Reopening a Closed-Lost lead (status changes AWAY from it) is
-  deliberately a no-op here — it NEVER auto-restores the cancelled
-  appointment or the cleared follow-up; only an explicit new
-  reschedule/follow-up afterward resumes normal reminder projection. Real-
-  Postgres coverage (all 8 required scenarios, including a genuine
-  already-firing reminder proven silenced, and a simulated Google API
+  to `leads` and excludes every `TERMINAL_LOST_STATUSES` value directly
+  (fails OPEN — keeps the row — when the join can't resolve a lead, same
+  "never silently drop a real notification" philosophy as
+  `lib/notificationPreferences.js`);
+  `lib/booking/calendarOutbox.js#reconcileSyncedAppointments`'s `isLostDnq`
+  guard now imports `isTerminalLostStatus` from the same shared module
+  (rather than hardcoding its own separate status list), so a missing
+  Google event is never recreated for any terminal-lost lead; `routes/
+  cronJobs.js`'s `/notify-status-change` and `/send-project-status-email`
+  (unused by any in-repo caller today, but a documented automation entry
+  point) both read the lead's CURRENT `leads.status` fresh and skip sending
+  if `isTerminalLostStatus(lead.status)`, never trusting a caller-supplied
+  `old_status`/`new_status` param instead. Reopening a terminal-lost lead
+  (status changes AWAY from every value in the set) is deliberately a no-op
+  here — it NEVER auto-restores the cancelled appointment or the cleared
+  follow-up; only an explicit new reschedule/follow-up afterward resumes
+  normal reminder projection.
+
+  **Root-cause correction (production bug, lead "Rita Wilcher")**: this
+  rule originally (first shipped version) matched ONLY the literal string
+  `'Closed Lost'`. That literal is unreachable through any live, current UI
+  status control — it is absent from
+  `crm-frontend/src/lib/design-system.js#STATUS_STYLES` (that file's own
+  header calls it "the one canonical source" for status values),
+  `LeadDetailModern.jsx`'s `STATUSES` dropdown, and `KanbanBoard.jsx`'s
+  `STATUS_COLUMNS`. The status a user actually sets when a lead is dead is
+  `'Lost'` — so the original fix never fired for the overwhelmingly common
+  real-world case, which is exactly what happened to lead Rita Wilcher: her
+  appointment was cancelled before the scheduled meeting and her lead was
+  marked `'Lost'`, but the CRM calendar still showed the meeting and its
+  Driving/Travel Time blocks, and the appointment card still offered
+  Done/Reschedule, because none of this rule's logic had run. Fixed by
+  generalizing `lib/leadStatus.js` from a single literal to
+  `TERMINAL_LOST_STATUSES = ['Lost', 'Closed Lost', 'DNQ', 'Cancelled']`
+  (matching pre-existing precedent already present elsewhere in this
+  codebase treating these as equivalent: `MobileDayView.jsx`'s
+  `excluded`/`excludedForOverdue` arrays, `LeadBreakdown.jsx`'s
+  `'closed-lost'` bucket listing both `'Lost'` and `'Closed Lost'`,
+  `scripts/reconcileGoogleContactsLive.js`'s exclusion list). Deliberately
+  excludes `'Sold'`/`'Won'` (positive outcomes — a post-sale appointment can
+  be legitimate), `'Duplicate'` (owned by the separate lead-merge subsystem),
+  and `'Archived'`/`'Closed'` (not confirmed reachable via any live UI
+  control today — tracked as an open item, not guessed into the set). The
+  deprecated `isEnteringClosedLost`/`CLOSED_LOST_STATUS` names are kept as
+  backward-compatible aliases (now backed by the generalized set) so no
+  caller silently keeps missing the common case.
+
+  **Historical backfill**: leads that were already in a terminal-lost status
+  before this rule existed (or before it was generalized beyond the single
+  `'Closed Lost'` literal) may still carry a stale active appointment and/or
+  a stale follow-up that no live write path will ever revisit on its own.
+  `scripts/remediateTerminalLostLeadAppointments.js` is the report-first
+  (`--apply --confirm-host=<host>` to write), idempotent, re-runnable
+  catch-up: it finds every lead whose current status is in
+  `TERMINAL_LOST_STATUSES` that still has an active appointment and/or a set
+  follow-up (an unconditional bug per this rule — never an ambiguous judgment
+  call the way `scripts/auditAppointmentFollowUp.js`'s DIV_OTHER class is),
+  and remediates each one through the exact same mechanism as the live
+  transition handler (force-clear the follow-up + `syncLeadToReminders` in
+  one transaction, then cancel every still-active appointment through
+  `bookingService.cancelAppointment`, then one audit note). It has been
+  unit/integration-tested against a disposable local Postgres but has NOT
+  been run against the real production database from this environment (no
+  production `DATABASE_URL`/network access here) — running it (report-only
+  first, then `--apply` if warranted) against production is an operator
+  action, not something this environment can execute.
+
+  Real-Postgres coverage: `test/integration/closedLostTransition.int.test.js`
+  (all 8 original scenarios for the literal `'Closed Lost'`, including a
+  genuine already-firing reminder proven silenced and a simulated Google API
   failure proven left in the retry-eligible `'failed'` state rather than
-  falsely marked synced): `test/integration/closedLostTransition.int.test.js`.
+  falsely marked synced, PLUS 3 added scenarios proving the generalized fix
+  fires for the real-world `'Lost'` status, for `'DNQ'`/`'Cancelled'`, and
+  that moving BETWEEN two terminal-lost statuses is not a fresh re-entry);
+  `test/integration/remediateTerminalLostLeadAppointments.int.test.js` (the
+  backfill script's report-only/`--apply`/idempotent-re-run behavior,
+  including proof that a `'Sold'` lead and an already-`'completed'`
+  appointment are never touched).
 - **Reminders**: default to dry-run (`REMINDER_DRY_RUN` must be explicitly
   `'false'` to send real customer-facing email); the HTTP trigger route
   force-overrides to dry-run regardless of query params as a second safety

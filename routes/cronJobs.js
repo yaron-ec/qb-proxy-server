@@ -27,6 +27,7 @@ const templates = require('../lib/emailTemplates');
 const notificationRecipients = require('../lib/notificationRecipients');
 const notificationPreferences = require('../lib/notificationPreferences');
 const companyConfig = require('../lib/companyConfig');
+const { isTerminalLostStatus } = require('../lib/leadStatus');
 
 const router = express.Router();
 
@@ -254,10 +255,12 @@ router.post('/notify-status-change', async (req, res) => {
     if (!lead) return res.status(404).json({ error: 'lead not found' });
     if (!lead.email) return res.json({ ok: true, skipped: 'no customer email', job: 'notify-status-change' });
     if (lead.customer_reminders_disabled) return res.json({ ok: true, skipped: 'customer opted out', job: 'notify-status-change' });
-    // A Closed Lost lead never gets another customer-facing email, regardless
-    // of what old_status/new_status the caller passed — the lead's own
-    // CURRENT status (just fetched above) is the only thing trusted here.
-    if (lead.status === 'Closed Lost') return res.json({ ok: true, skipped: 'lead_closed_lost', job: 'notify-status-change' });
+    // A lead in any terminal-lost status ('Lost', 'Closed Lost', 'DNQ',
+    // 'Cancelled' — lib/leadStatus.js#TERMINAL_LOST_STATUSES) never gets
+    // another customer-facing email, regardless of what old_status/new_status
+    // the caller passed — the lead's own CURRENT status (just fetched above)
+    // is the only thing trusted here.
+    if (isTerminalLostStatus(lead.status)) return res.json({ ok: true, skipped: 'lead_closed_lost', job: 'notify-status-change' });
 
     const clientName = `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || 'Customer';
     const crmUrl = process.env.CRM_PUBLIC_URL || 'https://crm.ecconstructiongroup.com';
@@ -305,7 +308,7 @@ router.post('/send-project-status-email', async (req, res) => {
     const lead = rows[0];
     if (!lead) return res.status(404).json({ error: 'lead not found' });
     if (!lead.email) return res.json({ ok: true, skipped: 'no customer email', job: 'send-project-status-email' });
-    if (lead.status === 'Closed Lost') return res.json({ ok: true, skipped: 'lead_closed_lost', job: 'send-project-status-email' });
+    if (isTerminalLostStatus(lead.status)) return res.json({ ok: true, skipped: 'lead_closed_lost', job: 'send-project-status-email' });
 
     const companyName = await notificationRecipients.getSenderName();
     const firstName = lead.first_name || 'there';

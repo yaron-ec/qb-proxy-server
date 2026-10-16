@@ -376,3 +376,75 @@ test('8. Reopening a Closed Lost lead never auto-restores the cancelled appointm
   const rl2 = await reminderLeadOf(lead);
   assert.strictEqual(rl2.appointment_date, day2, 'an explicitly rescheduled appointment resumes normal reminder projection');
 });
+
+// ── Generalized terminal-lost-status coverage (production bug: lead "Rita
+// Wilcher" was marked 'Lost', not the literal 'Closed Lost' this file's
+// original 8 scenarios exercised — 'Lost' is the real, live-UI-reachable
+// status; 'Closed Lost' turned out to be unreachable through any current
+// dropdown. lib/leadStatus.js was generalized to a TERMINAL_LOST_STATUSES
+// set so every equivalent "lead is dead" status gets the same treatment.) ──
+
+test("9. The real-world 'Lost' status (not just the literal 'Closed Lost') triggers the identical cancellation — regression for production bug (lead \"Rita Wilcher\")", { skip }, async () => {
+  const lead = await createLead({});
+  const day = pickDay();
+  const appt = await bookAppointment(lead.id, day, '14:00', 'Meeting');
+  assert.strictEqual(appt.status, 'scheduled');
+
+  const r = await setStatus(lead.id, 'Lost');
+  assert.strictEqual(r.status, 200, JSON.stringify(r.body));
+  assert.strictEqual(r.body.lead.appointment, null, 'the active appointment is gone from the response');
+
+  const [cancelled] = await apptsOf(lead.id);
+  assert.strictEqual(cancelled.status, 'cancelled', 'CRM appointment row is cancelled for the real-world "Lost" status, exactly as for "Closed Lost"');
+
+  await drain();
+  assert.strictEqual(google.events.get(cancelled.google_event_id).status, 'cancelled', 'the Google Calendar event (and its Driving/Travel Time block, if any) is actually removed');
+
+  const rl = await reminderLeadOf(lead);
+  assert.strictEqual(rl.follow_up_date, null);
+  assert.strictEqual(rl.appointment_date, null, 'reminder_leads projection cleared for "Lost", same as "Closed Lost"');
+
+  const acts = await activitiesOf(lead.id);
+  assert.ok(acts.some(a => /Lost/.test(a.content) && /cancelled/.test(a.content)), 'audit trail note recorded');
+
+  const crmRepository = require('../../lib/crmRepository');
+  const eligible = await crmRepository.listEligibleLeads();
+  assert.ok(!eligible.some(l => l.id === (lead.external_ref || lead.id)), 'crmRepository safety-net excludes a "Lost" lead too, not just "Closed Lost"');
+});
+
+test("10. 'DNQ' and 'Cancelled' (the remaining TERMINAL_LOST_STATUSES values) also cancel the active appointment", { skip }, async () => {
+  for (const status of ['DNQ', 'Cancelled']) {
+    const lead = await createLead({});
+    const day = pickDay();
+    await bookAppointment(lead.id, day, '09:30', 'Meeting');
+
+    const r = await setStatus(lead.id, status);
+    assert.strictEqual(r.status, 200, JSON.stringify(r.body));
+
+    const [row] = await apptsOf(lead.id);
+    assert.strictEqual(row.status, 'cancelled', `appointment is cancelled when status becomes '${status}'`);
+    await drain();
+    assert.strictEqual(google.events.get(row.google_event_id).status, 'cancelled', `Google Calendar event removed for '${status}'`);
+  }
+});
+
+test("11. Moving BETWEEN two terminal-lost statuses (e.g. 'Lost' -> 'DNQ') is not a fresh re-entry — no duplicate audit note, no second cancel attempt", { skip }, async () => {
+  const lead = await createLead({});
+  const day = pickDay();
+  await bookAppointment(lead.id, day, '12:00', 'Meeting');
+
+  const r1 = await setStatus(lead.id, 'Lost');
+  assert.strictEqual(r1.status, 200, JSON.stringify(r1.body));
+  const actsAfterFirst = await activitiesOf(lead.id);
+  const [cancelledRow] = await apptsOf(lead.id);
+  assert.strictEqual(cancelledRow.status, 'cancelled');
+
+  const r2 = await setStatus(lead.id, 'DNQ');
+  assert.strictEqual(r2.status, 200, JSON.stringify(r2.body));
+  const actsAfterSecond = await activitiesOf(lead.id);
+  assert.strictEqual(actsAfterSecond.length, actsAfterFirst.length, 'no second terminal-lost audit note when moving between two terminal statuses');
+
+  const [rowAfter] = await apptsOf(lead.id);
+  assert.strictEqual(rowAfter.status, 'cancelled');
+  assert.strictEqual(rowAfter.version, cancelledRow.version, 'no second cancel attempt — the already-cancelled row is untouched');
+});
