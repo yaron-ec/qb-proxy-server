@@ -7,6 +7,7 @@ import {
 import { fmt12 } from "@/pages/DailyMap";
 import { formatPhone, toTitleCase } from "@/lib/formatters";
 import { getOwnerColor } from "@/lib/ownerColors";
+import { getAppleMapsDirectionsUrlFromCoords } from "@/lib/appleMapsDirections";
 
 // Same contract as MapView: contactOwners defaults to [] and appointments
 // to [] so an omitted/undefined collection renders an empty list instead
@@ -137,9 +138,9 @@ export default function AppointmentList({ appointments = [], selectedLead, onSel
                   >
                     <ExternalLink className="w-3 h-3" /> Open Lead
                   </Link>
-                  {appt.coords && (
+                  {appt.coords && getAppleMapsDirectionsUrlFromCoords(appt.coords.lat, appt.coords.lng) && (
                     <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${appt.coords.lat},${appt.coords.lng}`}
+                      href={getAppleMapsDirectionsUrlFromCoords(appt.coords.lat, appt.coords.lng)}
                       target="_blank" rel="noreferrer"
                       className="flex items-center justify-center gap-1 text-xs font-semibold text-blue-600 border border-blue-200 py-1.5 px-2.5 rounded-lg hover:bg-blue-50 transition-colors"
                       onClick={e => e.stopPropagation()}

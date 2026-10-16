@@ -8,7 +8,13 @@
  *
  * Business rule (decided — do not change):
  *   REMINDER: a Phone Call follow-up sends its existing reminder emails (owner +
- *             Michelle + the customer) via lib/phoneCallReminders.js.
+ *             this installation's configured staff recipients, narrowed by the
+ *             REMINDER notification-preference category + the customer) via
+ *             lib/phoneCallReminders.js. EC's own michelle@ecconstructiongroup.com
+ *             has opted out of REMINDER (db/migrations/2026-62-michelle-single-
+ *             category-notifications.sql — she receives only new-lead emails),
+ *             so she is NOT among the staff recipients here even though she is
+ *             still in company_settings.notification_recipients; Yaron is.
  *   CALENDAR: it is NOT an appointment — no blocking window, no 1h-before or
  *             1h-after buffer, no Driving/Travel Time, no Google Calendar event,
  *             and a real Appointment can be booked at exactly the same time.
@@ -155,7 +161,7 @@ test('P1. Phone Call follow-up: customer reminder email still sent, calendar nev
   assert.strictEqual(customer.length, 1, 'customer Phone Call reminder email sent');
   assert.match(customer[0].subject, /^Phone Call Reminder in 1 hour — EC Construction Group$/);
   assert.ok(mine.some(m => m.to === 'yaron@ecconstructiongroup.com'), 'owner reminder');
-  assert.ok(mine.some(m => m.to === 'michelle@ecconstructiongroup.com'), 'Michelle copied');
+  assert.ok(!mine.some(m => m.to === 'michelle@ecconstructiongroup.com'), 'Michelle (opted out of REMINDER) must NOT be copied on a phone-call reminder');
   const claim = (await db.query(`SELECT status FROM reminder_claims WHERE reminder_key LIKE $1`, [`phone_reminder:%:1h:${call.date}`])).rows;
   assert.ok(claim.some(c => c.status === 'sent'));
 
