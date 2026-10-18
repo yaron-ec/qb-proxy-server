@@ -45,6 +45,21 @@ const EXCEPTIONS = new Set([
   // are the two ends of the mechanism this guard checks, not a call site.
   'lib/notificationRecipients.js',
   'lib/notificationPreferences.js',
+  // lib/booking/calendarOutbox.js and lib/booking/followUpReminders.js call
+  // getAllStaffRecipients() to build a Google Calendar event's ATTENDEE
+  // list, never an email recipient list — this guard exists to catch an
+  // unfiltered EMAIL broadcast, which this is not. A production incident
+  // (Michelle's appointments silently disappearing from her Google
+  // Calendar) was caused by exactly this file previously also calling
+  // filterRecipientsForCategory() here, conflating "should this person get
+  // an email about this appointment" with "should this person be invited
+  // to the underlying calendar event" — see calendarOutbox.js's own header
+  // "PERMANENT RULE" for the full root-cause note. Calendar attendee
+  // membership must NEVER be filtered by an email notification preference,
+  // so these two files are a deliberate, permanent exception, not a gap to
+  // close.
+  'lib/booking/calendarOutbox.js',
+  'lib/booking/followUpReminders.js',
 ]);
 
 function walk(rel, out) {
