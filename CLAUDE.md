@@ -457,6 +457,50 @@ about topology, this file wins; go correct `railway.json` and
   confirmed to fail against the pre-fix code before verifying the fix makes
   it pass) and `test/integration/auditCalendarAttendeeOmissions.int.test.js`
   (the restoration tool's report-only/`--apply`/idempotent-re-run behavior).
+
+  **IMPORTANT LIMITATION of the DB-only audit mode (found when a production
+  run reported `omission_count=0` while the incident was still visibly
+  ongoing)**: the default mode of `scripts/auditCalendarAttendeeOmissions.js`
+  only inspects `calendar_outbox.payload` — the request body WE most
+  recently wrote to OUR OWN DATABASE. A clean result proves only that the
+  last row we wrote for every active appointment lists every staff member;
+  it does NOT prove that row was ever actually delivered to Google (the
+  outbox row's own `status` could still be `'pending'`/`'failed'`/`'dead'` —
+  the default mode never surfaces this), nor that Google's live event
+  currently reflects it — our write and Google's resulting state can
+  diverge. **`--verify-live`** (new) closes this gap: for every active
+  appointment with a `google_event_id`, it calls the live Google Calendar
+  API (`googleCalendarClient.getEvent` — the same function
+  `reconcileSyncedAppointments` already uses) and compares Google's ACTUAL
+  CURRENT attendees against every configured staff recipient, independent
+  of what our database claims was sent — distinguishing three outcomes per
+  appointment: `attendee_missing` (event exists, live attendees really are
+  short a staff member), `event_missing` (the event no longer exists on
+  Google at all — a different, more serious class of problem), and
+  `check_failed` (the live API call itself failed — never conflated with a
+  real omission, same "API failure is not proof of deletion" philosophy as
+  `reconcileSyncedAppointments`). Read-only — calls only `getEvent` (a GET),
+  never create/update/cancel — so it needs no `--confirm-host`. Separately,
+  a genuine, documented, NOT-yet-addressed risk found while investigating
+  this: `lib/booking/googleCalendarClient.js#updateEvent` (used for every
+  `update_main`/`update_travel` outbox action, including this restoration
+  tool's own `--apply` corrective update) never passes Google's
+  `sendUpdates` parameter at all, unlike `createOrUpdateEvent`'s explicit
+  `sendUpdates=all` support on first creation — a plausible, code-confirmed
+  reason a corrective re-add of a previously-removed attendee might not
+  properly (re)notify/resurface the event for them. Deliberately NOT fixed
+  in the same pass: doing so for every routine `update_main` (not just a
+  one-time correction) would also make the CUSTOMER — also an attendee on
+  every main event — receive a notification email on every single ordinary
+  appointment edit, a real customer-facing behavior change requiring its
+  own explicit product decision, not a silent side effect of a staff-
+  visibility bug fix. Real-Postgres coverage:
+  `test/integration/auditCalendarAttendeeOmissionsLiveVerify.int.test.js`
+  (all three outcomes, and proof it never calls a write method on the fake
+  Google client) and a CLI-wiring test in
+  `auditCalendarAttendeeOmissions.int.test.js` (confirms `--verify-live`
+  degrades to `check_failed` per row rather than crashing when Google
+  credentials are unavailable).
 - **A Phone Call is never an appointment.** Only a real Appointment / Site
   Visit is an `appointments` row. `bookingService` refuses a Phone Call
   (`422 phone_call_is_follow_up`, incl. rescheduling a legacy unbuffered Phone

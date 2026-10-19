@@ -183,3 +183,21 @@ test('idempotent re-run: after a successful --apply, running again finds nothing
   const second = runScript(['--apply', `--confirm-host=${host()}`]);
   assert.ok(!second.records.some((r) => r.appointment_id === appt.id), 'second run finds nothing — no duplicate corrective update');
 });
+
+test('--verify-live is wired through the CLI and never crashes the run when it cannot reach Google (reports check_failed per row instead)', { skip }, async () => {
+  // No GOOGLE_SERVICE_ACCOUNT_KEY in this test environment — getAccessToken()
+  // throws for every row. verifyLiveAttendees must catch that per-appointment,
+  // not let it blow up the whole script (same "API failure is not proof of
+  // anything" discipline as reconcileSyncedAppointments).
+  const leadId = await lead(`verify-live-cli-${RUN}`);
+  await apptWithOmittedAttendee(leadId);
+
+  const report = runScript(['--verify-live', '--limit=3']);
+  assert.ok(report.live_verification, 'the live_verification section is present');
+  assert.ok(report.live_verification.checked >= 1, 'at least one active appointment was examined');
+  assert.ok(report.live_verification.records.length >= 1, 'credential-less Google calls surface as reported rows, not a crash');
+  for (const rec of report.live_verification.records) {
+    assert.ok(['attendee_missing', 'event_missing', 'check_failed'].includes(rec.live_status));
+    assert.strictEqual(rec.live_status, 'check_failed', 'no GOOGLE_SERVICE_ACCOUNT_KEY in this environment — every row must fail the live call, never a false omission');
+  }
+});
