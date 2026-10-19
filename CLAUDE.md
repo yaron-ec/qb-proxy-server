@@ -501,6 +501,49 @@ about topology, this file wins; go correct `railway.json` and
   `auditCalendarAttendeeOmissions.int.test.js` (confirms `--verify-live`
   degrades to `check_failed` per row rather than crashing when Google
   credentials are unavailable).
+
+  **Historical forensics tool (production run showed `--verify-live`
+  omission_count=0, but the incident was not considered resolved on that
+  basis alone)**: a clean `--verify-live` result only covers CURRENTLY
+  ACTIVE appointments — by design, since only an active appointment is
+  something a corrective `--apply` could still fix. It says nothing about
+  appointments that are now completed, cancelled, rescheduled/superseded,
+  or that never got a `google_event_id` at all during the incident window,
+  nor does it distinguish a legitimate terminal-lost cancellation from one
+  needing review. `scripts/auditCalendarIncidentHistory.js` fills this
+  gap — **pure read-only, no `--apply` flag exists in this script at all**
+  (it issues no SQL besides `SELECT` and calls no Google API at all, so it
+  cannot send an invitation, cancel, or update anything):
+  `node scripts/auditCalendarIncidentHistory.js [--since=2026-10-16] [--until=2026-10-20] [--limit=500] [--json]`.
+  Reports: (1) `coverage` — the TRUE total count of currently-active
+  appointments (synced vs. never-synced), so a prior `--verify-live` run's
+  own `--limit` can be checked against the real total rather than assumed
+  sufficient; (2) every appointment created OR updated in the window,
+  classified as `active` / `completed` / `no_show` / `rescheduled_superseded`
+  / `cancelled_terminal_lost` (a cancellation whose lead's status is in
+  `TERMINAL_LOST_STATUSES` AND has a matching "Lead marked `<status>`"
+  activity note near the same time — note `bookingService.cancelAppointment`'s
+  `actor` is always a human email either way, for the terminal-lost
+  auto-cancel included — see `routes/leads.js`'s `cancelActiveAppointmentsForTerminalLost`
+  call sites — so `actor` alone can never distinguish a legitimate
+  automated cancellation from a manual one; the activity note is the one
+  reliable signal) or `cancelled_needs_review` (cancelled without that
+  signature — not necessarily a bug, just not explained by the terminal-
+  lost automation, so a human should read its attached
+  `appointment_events` trail); (3) `attendee_history` — for every window
+  appointment that ever had a `google_event_id`, replays its FULL
+  `calendar_outbox` `create_main`/`update_main` payload history in order
+  and flags, per configured staff recipient, a genuine mid-flight
+  attendee removal (present in an earlier payload, absent from a later
+  one, before any cancellation) with the exact timestamp — explicitly
+  never conflated with a full event cancellation, which is its own,
+  separate classification above, not an "attendee removal"; (4)
+  `without_google_event_id` — appointments that never synced to Google at
+  all, a different gap class entirely. Real-Postgres coverage:
+  `test/integration/auditCalendarIncidentHistory.int.test.js` (all five
+  classification/analysis shapes against real Postgres fixtures) plus pure
+  unit tests for the classification/analysis functions in
+  `test/auditCalendarIncidentHistory.test.js`.
 - **A Phone Call is never an appointment.** Only a real Appointment / Site
   Visit is an `appointments` row. `bookingService` refuses a Phone Call
   (`422 phone_call_is_follow_up`, incl. rescheduling a legacy unbuffered Phone
