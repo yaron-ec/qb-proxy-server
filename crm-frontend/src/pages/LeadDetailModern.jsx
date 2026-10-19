@@ -34,6 +34,7 @@ import SignNowPanel from "../components/SignNowPanel";
 import CalendarSyncPanel from "../components/CalendarSyncPanel";
 import GoogleContactSyncPanel from "../components/GoogleContactSyncPanel";
 import AppointmentReminderPanel from "../components/AppointmentReminderPanel";
+import SmsPanel from "../components/SmsPanel";
 import EstimateSyncButton from "../components/EstimateSyncButton";
 import ProposalPanel from "../components/ProposalPanel";
 import RightSidebarAccordion from "../components/RightSidebarAccordion";
@@ -435,6 +436,9 @@ function LeadDetailModernInner() {
             </div>
             {/* Compact integration actions row */}
             <MobileIntegrationActions lead={lead} onLeadUpdate={setLeadSafe} />
+            <div className="bg-white rounded-xl border border-slate-100 shadow-sm">
+              <SmsPanel lead={lead} />
+            </div>
             {/* Admin: calendar sync error alert + repair */}
             {lead.google_calendar_sync_status === 'error' && (
               <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
@@ -476,6 +480,7 @@ function LeadDetailModernInner() {
           <div className="border-t border-slate-100">
             <AppointmentReminderPanel lead={lead} />
           </div>
+          <SmsPanel lead={lead} />
           {currentUser?.role === 'admin' && (
             <div className="border-t border-slate-100 p-3">
               <AdminCalendarRepairButton />
