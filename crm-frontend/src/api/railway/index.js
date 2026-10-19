@@ -35,3 +35,4 @@ export * as emails from './emails';
 export * as gmailOAuth from './gmailOAuth';
 export * as systemInfo from './systemInfo';
 export * as qb from './qb';
+export * as sms from './sms';

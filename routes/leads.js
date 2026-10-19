@@ -2006,3 +2006,7 @@ module.exports = router;
 // delete sequence as DELETE /:id).
 module.exports.cleanupLeadTextRefs = cleanupLeadTextRefs;
 module.exports.cancelAppointmentsForLeadDelete = cancelAppointmentsForLeadDelete;
+// Shared with routes/sms.js — the ONE real DB-level lead ownership filter
+// (see CLAUDE.md's "Ownership/authorization" note: reuse one of the three
+// existing implementations, never invent a fourth).
+module.exports.resolveOwnerScope = resolveOwnerScope;

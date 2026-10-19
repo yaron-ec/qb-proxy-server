@@ -1201,6 +1201,7 @@ app.use('/api/reminders', require('./lib/leadIngestRouter'));
 // Public, JWT-authenticated API surface (no PROXY_SECRET, no Gmail tokens in browser).
 app.use('/api/v1/auth', require('./routes/auth'));
 app.use('/api/v1', require('./routes/emails'));
+app.use('/api/v1', require('./routes/sms').router);
 app.use('/api/v1', require('./routes/bookings'));
 app.use('/api/v1/gmail', require('./routes/gmail'));
 // Admin-authenticated bridge to reconnect Gmail from Settings (no PROXY_SECRET/Railway access needed)
@@ -1255,6 +1256,7 @@ app.use('/api/v1/meta-webhook', require('./routes/metaWebhook'));
 // Public website (Netlify) lead delivery — shared-secret auth, fails closed.
 app.use('/api/v1/website-leads', require('./routes/websiteLeads').defaultRouter());
 app.use('/api/v1/signnow-webhook', require('./routes/signnowWebhook'));
+app.use('/api/v1/sms-webhook', require('./routes/sms').webhookRouter);
 app.use('/api/v1/owners', require('./routes/owners'));
 // Railway-native user management (admin-only: list, update role/status, delete)
 app.use('/api/v1/users', require('./routes/users'));

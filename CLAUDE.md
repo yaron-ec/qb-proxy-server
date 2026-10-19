@@ -304,6 +304,7 @@ about topology, this file wins; go correct `railway.json` and
 | Handoff | Static API key | `app_settings.handoff_api_key` or env var | Env-var gated |
 | Website leads (ecconstructiongroup.com, Netlify) | Shared secret `x-webhook-secret` = `WEBSITE_LEAD_WEBHOOK_SECRET` (**fails closed** — 503 if unset) → `routes/websiteLeads.js` | `leads` (+ `sms_consent*` columns), `website_lead_receipts` (idempotency) | Env-var gated; website side needs `CRM_WEBHOOK_URL` + the same value as `WEBHOOK_SECRET` |
 | Meta/Facebook Lead Ads | Webhook + `META_APP_SECRET` HMAC (**fails open** if unset — verify this env var is actually set in production before relying on it) | N/A | Env-var gated |
+| Twilio SMS (two-way, customer-facing) | `TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN` + `TWILIO_MESSAGING_SERVICE_SID` (A2P, preferred) or `TWILIO_FROM` (bare number) — the SAME env vars `lib/reminderAlerts.js`'s internal staff-alert SMS and `lib/systemHealthChecks.js#checkTwilio`'s health probe already used before this | `sms_messages` (two-way log), `sms_opt_outs` (phone-level STOP/START registry) | Env-var gated (`sms` module in `enabled_modules` — pre-existing key, previously unused by any customer-facing route) |
 
 ## Important business invariants
 
@@ -761,6 +762,95 @@ about topology, this file wins; go correct `railway.json` and
   sees everything read-only; `sales_rep` is scoped via `routes/leads.js`'s
   `resolveOwnerScope` (FK join to `owners`, resolved from the caller's JWT
   email) — a rep with no matching `owners` row fails closed.
+- **Twilio SMS messaging (two-way, customer-facing)**: `lib/smsClient.js`
+  (raw Twilio REST, no SDK dependency, mirrors the fetch-based style already
+  established by `lib/reminderAlerts.js`'s internal-alert SMS and
+  `lib/systemHealthChecks.js#checkTwilio`'s health probe — the only two
+  Twilio call sites that existed before this) + `lib/smsService.js` (the ONE
+  place that decides whether a message is allowed to go out, matches an
+  inbound message to a lead, and persists the two-way log) +
+  `routes/sms.js` (`POST`/`GET /api/v1/leads/:id/sms`, `POST
+  /api/v1/sms-webhook/{inbound,status}`). Reuses existing conventions rather
+  than inventing new ones:
+  - **Ownership/visibility**: `routes/sms.js` reuses `routes/leads.js`'s
+    `resolveOwnerScope` (now exported for this purpose) — SMS
+    send/visibility follows the exact same admin/manager/office/sales_rep
+    rules as the lead itself, never a separate SMS-specific permission
+    model.
+  - **Module gate**: both the authenticated and webhook routes are gated on
+    `enabled_modules.sms` (`lib/moduleGate.js`) — a pre-existing key in
+    `company_settings`'s defaults that no customer-facing route read before
+    this; a disabled installation's SMS routes 404 `module_disabled`, same
+    as `meta`/`website_intake`.
+  - **Consent (this phase, transactional-only)**: every outbound message
+    built here — a Lead Detail compose, a future appointment/follow-up SMS
+    — is transactional/service messaging, gated on the SAME
+    `leads.sms_consent` column migration `2026-43-website-lead-intake.sql`
+    already added. No new marketing-consent column exists yet; a genuine
+    marketing-SMS capability needs its own consent column + disclosure
+    copy, a deliberate future product decision, not built here. A lead's
+    phone number existing is never treated as consent — `sms_consent` must
+    be exactly `true`.
+  - **Opt-out (STOP/START/HELP)**: `sms_opt_outs` is keyed by PHONE NUMBER,
+    never by lead — a STOP is honored for that number forever, independent
+    of which lead (if any) it is ever matched to, and is checked
+    unconditionally before consent on every outbound send (an opted-out
+    number is never messaged regardless of consent). Keyword detection
+    (`lib/smsService.js#detectKeyword`) matches Twilio's own documented
+    keyword lists (STOP/STOPALL/UNSUBSCRIBE/CANCEL/END/QUIT,
+    START/YES/UNSTOP, HELP/INFO) on the WHOLE trimmed message only, never a
+    substring — "please stop texting me" is an ordinary message, not a
+    keyword. The webhook replies with TwiML identifying the company by name
+    for STOP/START/HELP (never for an ordinary message — empty TwiML, no
+    auto-reply) rather than firing a second outbound API call. This is one,
+    independent layer — it never assumes Twilio's own Advanced Opt-Out
+    (if enabled on the Messaging Service) is configured, and doesn't
+    conflict with it either way.
+  - **Phone matching**: inbound numbers are matched against `leads.phone`
+    using `lib/captureValidation.js#normalizePhone` (bare last-10-digits) —
+    the SAME tolerant comparison the public-capture/booking intake path
+    already uses (see the phone-matching split documented under "Database
+    safety" above: the admin path is exact `+1XXXXXXXXXX`, the
+    capture-style path is bare-last-10). An inbound webhook is exactly the
+    capture-style case (an external, unauthenticated number with no
+    formatting guarantee), so that is the one reused here — never a third
+    implementation. Zero or multiple matching leads is never resolved by
+    guessing: zero → `lead_id` NULL; multiple → `lead_id` NULL,
+    `ambiguous_match=true`, `candidate_lead_ids` populated for manual
+    review — the message is still stored either way, never silently
+    dropped.
+  - **Quiet hours**: outbound sends are blocked outside 8:00–21:00 (the
+    installation's configured timezone, `companyConfig.getTimezone()`,
+    default `America/Los_Angeles`; window configurable via
+    `SMS_QUIET_HOURS_START`/`SMS_QUIET_HOURS_END`). Applies to the outbound
+    send path only — inbound keyword processing (STOP/START/HELP) always
+    runs regardless of time.
+  - **Idempotency/retries**: inbound messages are deduplicated on Twilio's
+    `MessageSid` (`sms_messages.twilio_sid` UNIQUE) — a redelivered webhook
+    never creates a second row or double-processes a keyword. Outbound
+    sends get one bounded immediate retry on a transport failure (network/
+    config error), never a retry loop; a genuine Twilio-side rejection
+    (4xx) is recorded as `failed` and surfaced to the rep, not retried
+    silently. Delivery status (`sent`/`delivered`/`failed`/`undelivered`)
+    is updated via `POST /api/v1/sms-webhook/status` keyed on the same
+    `twilio_sid` — a callback for an unrecognized sid is a no-op, never an
+    error (an out-of-order/duplicate callback is not a problem).
+  - **Webhook signature verification**: `lib/smsClient.js#verifyTwilioSignature`
+    implements Twilio's documented `X-Twilio-Signature` algorithm
+    (HMAC-SHA1 over the exact webhook URL + sorted POST params). Skips
+    verification (returns true) when `TWILIO_AUTH_TOKEN` is unset, matching
+    `routes/metaWebhook.js#verifyMetaSignature`'s existing "not configured →
+    skip" convention.
+  - **Not yet verified from this environment** (no outbound network access,
+    no Railway/Twilio Console access): whether `TWILIO_ACCOUNT_SID`/
+    `TWILIO_AUTH_TOKEN`/a sender identifier are actually set in Railway
+    production, whether the approved A2P Campaign is associated with the
+    right Messaging Service/sender number in the Twilio Console, and
+    whether a real send/receive round-trip succeeds end-to-end against a
+    live number. Do not treat production SMS as operational until all
+    three are confirmed. Real-Postgres coverage (fake Twilio client, no
+    live network call): `test/integration/sms.int.test.js`; pure unit
+    coverage: `test/smsService.test.js`, `test/smsClient.test.js`.
 - **Base44 is retired from the production path.** Known, now-fixed
   exceptions found and corrected in this session: `lib/reminderEmails.js`
   and `lib/reminderPages.js` previously hardcoded a live
