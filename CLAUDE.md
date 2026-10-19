@@ -544,6 +544,34 @@ about topology, this file wins; go correct `railway.json` and
   classification/analysis shapes against real Postgres fixtures) plus pure
   unit tests for the classification/analysis functions in
   `test/auditCalendarIncidentHistory.test.js`.
+
+  **Unsynced-active breakdown (production run showed `total_active=879`,
+  `total_active_synced=574`, `total_active_unsynced=305`)**: that single
+  number cannot say whether the 305 are expected, historical debt, or an
+  active ongoing failure — `scripts/auditUnsyncedActiveAppointments.js`
+  (pure read-only, no `--apply`, only `SELECT`, never calls the Google
+  Calendar API) classifies every currently-active appointment with no
+  `google_event_id` into: `legacy_phone_call` (by design — a legacy
+  unbuffered Phone Call row never gets a main event at all, per
+  `enqueueCreate`/`enqueueUpdate`'s own early-return — not a sync gap of any
+  kind); or, for a real Meeting/Site-Visit, `never_enqueued` (zero
+  `calendar_outbox` create_main/update_main rows ever — most likely created
+  while `google_calendar` was disabled, or predating the outbox system),
+  `queued_not_yet_processed` (`calendar_sync_status` still `pending`/
+  `processing` with outbox history — expected to be near-zero on anything
+  more than a few minutes old), `retrying` / `failed` (a genuine, currently
+  or permanently failing sync — ACTIONABLE), or `synced_anomaly`
+  (`calendar_sync_status='synced'` with a still-NULL `google_event_id` —
+  should be impossible; never folded into a normal bucket if found). Also
+  reports an `created_at` age-bucket distribution of the unsynced set and
+  `outbox_status_counts_global` (every `calendar_outbox` row by status,
+  across the whole table) — the worker-processing visibility
+  `auditCalendarIncidentHistory.js` does not surface at all.
+  `node scripts/auditUnsyncedActiveAppointments.js [--limit=2000] [--json]`.
+  Real-Postgres coverage: `test/integration/auditUnsyncedActiveAppointments.int.test.js`
+  (every classification bucket, including the should-be-impossible
+  `synced_anomaly` case) plus pure unit tests in
+  `test/auditUnsyncedActiveAppointments.test.js`.
 - **A Phone Call is never an appointment.** Only a real Appointment / Site
   Visit is an `appointments` row. `bookingService` refuses a Phone Call
   (`422 phone_call_is_follow_up`, incl. rescheduling a legacy unbuffered Phone
