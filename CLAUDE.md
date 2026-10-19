@@ -412,6 +412,51 @@ about topology, this file wins; go correct `railway.json` and
   structural guard only catches `getAllStaffRecipients()` callers, not
   these two unfiltered-resolver shapes — review a new staff-facing email by
   hand for the same gap, not just by running that guard).
+- **Google Calendar attendee membership is NEVER gated by an email
+  notification preference (PERMANENT RULE, production incident fix)**:
+  Michelle reported appointments previously visible on her Google Calendar
+  — including ones expected that day — had disappeared. Root cause:
+  `lib/booking/calendarOutbox.js`'s `enqueueCreate`/`enqueueUpdate` (real
+  Appointments) and `lib/booking/followUpReminders.js`'s Meeting
+  follow-up representation both computed the Google Calendar event's staff
+  attendee list via `notificationPreferences.filterRecipientsForCategory(...,
+  CATEGORIES.APPOINTMENT / CATEGORIES.FOLLOW_UP)` — the SAME mechanism that
+  decides whether a staff member receives a CRM-generated EMAIL. This was
+  dormant (every staff member had every category enabled) until the
+  Michelle single-category policy above correctly disabled her
+  `appointment`/`follow_up` EMAIL categories, at which point it ALSO
+  silently dropped her from the Google Calendar invite's attendee list for
+  every appointment/meeting-follow-up created or updated afterward —
+  removing an attendee from an updated Google event removes the event from
+  their calendar entirely, and a newly created event simply never reached
+  her. Fixed by decoupling the two concerns completely: calendar attendee
+  membership is now ALWAYS `lib/notificationRecipients.js#getAllStaffRecipients()`
+  UNFILTERED, in both files — `notificationPreferences` governs EMAILS
+  only (every genuine staff-broadcast email call site —
+  `lib/crmActivityNotifier.js`, `lib/actionRouter.js`, `lib/reminderEngine.js`,
+  `lib/reminderNotifications.js`, `routes/emails.js`,
+  `lib/phoneCallReminders.js` — is untouched by this fix and still
+  correctly filters). `test/notificationPreferenceCoverage.test.js`'s
+  structural guard (every `getAllStaffRecipients()` caller must also call
+  `filterRecipientsForCategory()` in the same file) now carries an explicit,
+  documented exception for these two files — they build a calendar
+  ATTENDEE list, never an email recipient list, so the guard's premise does
+  not apply to them. A one-time, report-first/`--apply`-gated restoration
+  tool, `scripts/auditCalendarAttendeeOmissions.js`, finds any active
+  appointment whose most-recently-sent Google Calendar payload is missing a
+  currently-configured staff recipient (generalized beyond Michelle — it
+  checks every configured staff recipient, since the same bug could have
+  silently affected anyone whose category was ever disabled while it
+  existed) and, only with `--apply`, re-enqueues a corrective `update_main`
+  through the exact same (now-fixed) canonical path, re-inviting the
+  previously-omitted staff member to the existing event — never
+  cancels/recreates/deletes anything, and never touches a
+  completed/cancelled/no_show/rescheduled appointment. Real-Postgres
+  coverage: `test/integration/calendarAttendeesIgnoreEmailPreferences.int.test.js`
+  (proves the live create/update/meeting-follow-up paths are now immune —
+  confirmed to fail against the pre-fix code before verifying the fix makes
+  it pass) and `test/integration/auditCalendarAttendeeOmissions.int.test.js`
+  (the restoration tool's report-only/`--apply`/idempotent-re-run behavior).
 - **A Phone Call is never an appointment.** Only a real Appointment / Site
   Visit is an `appointments` row. `bookingService` refuses a Phone Call
   (`422 phone_call_is_follow_up`, incl. rescheduling a legacy unbuffered Phone
