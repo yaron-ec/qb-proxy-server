@@ -36,8 +36,17 @@ router.use((req, res, next) => (req.method === 'GET' ? next() : requireModuleEna
 const META_VERIFY_TOKEN = process.env.META_VERIFY_TOKEN || process.env.FACEBOOK_VERIFY_TOKEN || '';
 const META_APP_SECRET = process.env.META_APP_SECRET || process.env.FACEBOOK_APP_SECRET || '';
 
+// Fails CLOSED: with META_APP_SECRET unset, this returns false and the POST
+// handler below rejects with 503 (distinct from a 401 signature mismatch),
+// the same fail-closed convention as routes/websiteLeads.js#requireSecret.
+// PRODUCTION SECURITY FIX: this previously returned true when unconfigured
+// ("skip verification"), silently ACCEPTING any unsigned payload — anyone
+// who discovered the webhook URL could POST fabricated leadgen events
+// (creating fake leads / triggering bookings) with no secret at all, for as
+// long as META_APP_SECRET was ever unset in production. Flagged in
+// CLAUDE.md's Integration map ("fails open if unset") prior to this fix.
 function verifyMetaSignature(req) {
-  if (!META_APP_SECRET) return true; // not configured → skip verification
+  if (!META_APP_SECRET) return false;
   const signature = req.headers['x-hub-signature-256'] || '';
   if (!signature || !signature.startsWith('sha256=')) return false;
   const expected = crypto.createHmac('sha256', META_APP_SECRET).update(req.rawBody || '').digest('hex');
@@ -68,6 +77,10 @@ router.get('/', (req, res) => {
 // POST — Process leadgen events
 router.post('/', express.raw({ type: '*/*', verify: (req, res, buf) => { req.rawBody = buf; } }), async (req, res) => {
   try {
+    if (!META_APP_SECRET) {
+      console.warn('[meta-webhook] META_APP_SECRET not configured — rejecting (fail-closed)');
+      return res.status(503).json({ error: 'not_configured', message: 'Meta webhook is not configured.' });
+    }
     if (!verifyMetaSignature(req)) {
       console.warn('[meta-webhook] Signature verification failed');
       return res.status(401).json({ error: 'signature_verification_failed' });
@@ -322,3 +335,6 @@ router.post('/', express.raw({ type: '*/*', verify: (req, res, buf) => { req.raw
 });
 
 module.exports = router;
+// Exported for direct unit testing of the fail-closed signature behavior
+// (test/metaWebhookFailClosed.test.js) without needing a live HTTP server.
+module.exports.verifyMetaSignature = verifyMetaSignature;
