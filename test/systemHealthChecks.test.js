@@ -40,9 +40,9 @@ require.cache[companyConfigPath] = {
 
 delete require.cache[require.resolve('../lib/systemHealthChecks')];
 const {
-  deriveState, getIntegrationHealth,
+  deriveState, getIntegrationHealth, MODULE_FLAG_ENFORCED,
   checkQuickBooks, checkGmail, checkGoogleCalendar, checkGoogleContacts,
-  checkSignNow, checkHandoff, checkTwilio, checkMeta, checkWebsiteIntake,
+  checkSignNow, checkHandoff, checkHandoffEstimatesSync, checkTwilio, checkMeta, checkWebsiteIntake,
 } = require('../lib/systemHealthChecks');
 
 // Helper: stub a lazily-`require()`d module (one required inside a function
@@ -481,6 +481,56 @@ test('checkWebsiteIntake: delivery_failures is zeroed, never crashes, when the r
     const result = await checkWebsiteIntake({ verify: false });
     assert.strictEqual(result.delivery_failures, null);
   });
+});
+
+// ── Handoff Estimates via QuickBooks (SEPARATE from checkHandoff above) ──
+// October 2026 Handoff audit: the production workflow is Handoff ->
+// QuickBooks -> CRM (no direct Handoff API key, none intended). This check
+// must report THAT pipeline's own evidence, completely independent of the
+// unused Direct Handoff API credential checkHandoff reports on.
+test('checkHandoffEstimatesSync: no sync_cursors row and zero handoff_estimates -> NOT_CONFIGURED shape', async () => {
+  queryImpl = async () => ({ rows: [] });
+  const result = await checkHandoffEstimatesSync({ verify: false });
+  assert.strictEqual(result.credential_present, false);
+  assert.strictEqual(result.live_check, null);
+});
+
+test('checkHandoffEstimatesSync: a recent successful cron run -> healthy live_check with match/unmatch counts', async () => {
+  queryImpl = async (sql) => {
+    if (/sync_cursors/.test(sql)) return { rows: [{ last_successful_sync_at: new Date().toISOString(), last_sync_summary: { imported: 2 } }] };
+    if (/handoff_estimates/.test(sql)) return { rows: [{ total: 10, matched: 8, unmatched: 2, last_synced_at: new Date().toISOString() }] };
+    throw new Error('unexpected query: ' + sql);
+  };
+  const result = await checkHandoffEstimatesSync({ verify: false });
+  assert.strictEqual(result.credential_present, true);
+  assert.strictEqual(result.live_check.ok, true);
+  assert.strictEqual(result.live_check.degraded, false);
+  assert.match(result.live_check.message, /completed/);
+  assert.deepStrictEqual(result.recency, { total_estimates: 10, matched: 8, unmatched: 2, last_synced_at: result.recency.last_synced_at });
+});
+
+test('checkHandoffEstimatesSync: last successful sync over an hour ago -> degraded (cron may not be running)', async () => {
+  const staleAt = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+  queryImpl = async (sql) => {
+    if (/sync_cursors/.test(sql)) return { rows: [{ last_successful_sync_at: staleAt, last_sync_summary: null }] };
+    if (/handoff_estimates/.test(sql)) return { rows: [{ total: 5, matched: 5, unmatched: 0, last_synced_at: staleAt }] };
+    throw new Error('unexpected query: ' + sql);
+  };
+  const result = await checkHandoffEstimatesSync({ verify: false });
+  assert.strictEqual(result.credential_present, true);
+  assert.strictEqual(result.live_check.ok, false);
+  assert.strictEqual(result.live_check.degraded, true);
+  assert.match(result.live_check.message, /over an hour ago/);
+});
+
+test('checkHandoffEstimatesSync: queries failing entirely degrades gracefully, never crashes', async () => {
+  queryImpl = async () => { throw new Error('db hiccup'); };
+  const result = await checkHandoffEstimatesSync({ verify: false });
+  assert.strictEqual(result.credential_present, false);
+});
+
+test('checkHandoffEstimatesSync: MODULE_FLAG_ENFORCED is false — never forced to DISABLED (no company_settings toggle of its own)', () => {
+  assert.strictEqual(MODULE_FLAG_ENFORCED.handoff_estimates_sync, false);
 });
 
 // ── getIntegrationHealth: combinator-level guarantees ─────────────────────

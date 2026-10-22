@@ -2046,9 +2046,16 @@ async function runQbEstimateSync() {
   stats.fetched = qbEstimates.length;
   console.log(`[qb-sync] Estimates fetched: ${stats.found}`);
 
+  // NOTE: the matching/dedup below only sees what's loaded here. A hard cap
+  // smaller than the real table size silently (a) makes older leads
+  // permanently unmatchable against new QB estimates, and (b) once
+  // existingEstimates ages an older row out of this window, that row is
+  // no longer found by the dedup check below — the next tick re-INSERTs it
+  // as a duplicate HandoffEstimate rather than updating it. The limit here
+  // must stay comfortably above the real row counts for both tables.
   const [leads, existingEstimates] = await Promise.all([
-    rda.list('Lead', '-created_date', 2000, 0),
-    rda.list('HandoffEstimate', '-created_date', 1000, 0),
+    rda.list('Lead', '-created_date', 50000, 0),
+    rda.list('HandoffEstimate', '-created_date', 50000, 0),
   ]);
   console.log(`[qb-sync] Loaded ${leads.length} leads, ${existingEstimates.length} existing estimates`);
 
