@@ -910,6 +910,122 @@ cases, not evidence they need rework:
   and verified in this session. **Always re-run this exact command after
   any `.jsx` edit.**
 
+## Handoff → QuickBooks → CRM estimate sync (production architecture, confirmed October 2026)
+
+EC Construction Group does **not** have a Handoff API key and is **not**
+pursuing a direct Handoff API connection — `lib/handoffClient.js`'s
+`getApiKey()`/`checkHandoff()` correctly report Not Configured for that,
+and this is expected, not a defect. The real, actively-used pipeline is
+**Handoff → QuickBooks → CRM**: Handoff pushes its own estimates directly
+into QuickBooks (visible in QB as `CustomerRef`/`DocNumber` values prefixed
+`HNDF-PRJ-...`/`HNDF-EST-...`), and this CRM discovers and ingests them
+independently:
+- **`server.js`'s QB Estimate Sync cron** (`runQbEstimateSync`, every 15
+  minutes, unconditional unless `QB_SYNC_CRON_ENABLED=false`) fetches every
+  QB `Estimate`, matches each to a CRM lead via `lib/qbMatch.js`, and
+  upserts into `handoff_estimates` with `sync_source = 'QuickBooks'`. A
+  companion cron tick (`runQbEstimatePdfSync`) fetches each matched
+  estimate's PDF (bounded retry, 5 attempts). Progress is recorded in
+  `sync_cursors` (`integration = 'quickbooks_estimates'`).
+- **`routes/leadQB.js`'s `POST /by-external/:externalRef/sync-estimates`**
+  is the lead-scoped manual equivalent (admin/manager only) — same matching
+  engine, same `handoff_estimates` target, includes sub-customer and
+  full-QB-estimate-scan fallbacks. Verified (`test/estimateSyncRestoration.test.js`):
+  has zero dependency on the Handoff API/`HANDOFF_API_KEY`.
+- **`routes/handoffEstimates.js`** (`/api/v1/handoff-estimates`) is pure
+  CRUD over the `handoff_estimates` table the above two populate — it has
+  no sync logic of its own.
+- **Existing admin UI already surfaces this pipeline's real state** without
+  needing DB/log access: `EstimateSyncDiagnostics.jsx` (per-estimate
+  Handoff→QB→CRM status, match method) and `UnmatchedEstimatesPanel.jsx`
+  (manual lead-linking for anything the automatic matcher couldn't
+  resolve), both on the Integrations page.
+
+**Two confirmed defects found and fixed in this pass (October 2026 audit),
+both in the matching/dedup logic above, neither related to the unused
+direct Handoff API:**
+
+1. **`lib/qbMatch.js#findMatchingLead` — ambiguous phone+name / email+name
+   matches silently guessed `hits[0]`.** Priority 1 (phone + partial name)
+   and Priority 2 (email + partial name) picked the first lead in
+   `-created_date` order when more than one lead shared the same phone (or
+   email) AND partially matched the same name fragment — e.g. two
+   independently-created leads for the same household, or an unmerged
+   duplicate — rather than declining to guess the way Priority 0 (the
+   authoritative `qb_customer_id` mapping) already correctly does. A real
+   QuickBooks estimate could silently attach to the wrong lead with no
+   record anything was ambiguous. Fixed: an ambiguous Priority 1/2 result
+   now falls through to the next, different-signal priority (it is a
+   heuristic, not authoritative, so unlike Priority 0 it should keep trying
+   other signals rather than failing the whole lookup closed). Regression
+   coverage: `test/qbMatch.test.js`.
+2. **`server.js#runQbEstimateSync` loaded its matching/dedup sets through a
+   hard `rda.list(..., limit, 0)` cap** — 2000 leads, 1000 existing
+   `handoff_estimates` rows, both ordered newest-first. Past either cap,
+   the oldest rows silently drop out of memory for that run: a lead past
+   the 2000 cutoff can never be matched against a new QB estimate, and a
+   `handoff_estimates` row past the 1000 cutoff is no longer found by the
+   `existingEstimates.find(qb_estimate_id)` de-dup check, so the next tick
+   re-inserts it as a **duplicate row** instead of updating it — directly
+   contradicting this function's own documented idempotency invariant.
+   Current production row counts were not checked from this environment
+   (no DB access), so whether this has already manifested is unconfirmed —
+   but the caps were unconditional and scale only one direction. **Follow-up
+   pass (same audit, second review before merge)**: the `leads` cap was kept
+   (raised to 50000 — it feeds `qbMatch.js`'s in-memory fuzzy matching
+   engine, which genuinely needs a candidate set, not a single lookup; 50000
+   is far beyond any realistic row count for this one-company-per-deployment
+   install), but the `existingEstimates` dedup was changed from a bulk
+   `rda.list` preload to a direct, indexed per-estimate query
+   (`rda.filter('HandoffEstimate', { qb_estimate_id })`, backed by the
+   existing `idx_handoff_estimates_qb_id` index) — this removes the cap
+   dependency for duplicate prevention entirely; it is correct regardless of
+   how large `handoff_estimates` ever grows. A pre-existing duplicate (>1
+   row already sharing a `qb_estimate_id`, from before this fix) is now
+   surfaced via a warning log rather than silently resolved either way.
+   Regression coverage (source-level, since exercising the live cron needs a
+   real QB connection): `test/qbEstimateSyncCapacity.test.js`.
+3. **`runQbEstimateSync` had no re-entrancy guard.** A run overlapping
+   itself (slower than the 15-minute cron interval, or racing a manually
+   triggered `POST /sync/qb-estimates` job) could have two concurrent passes
+   both see the same QB estimate as "not yet in `handoff_estimates`" and
+   both `INSERT` — a duplicate. Fixed with the same `_syncing`-style
+   boolean guard already used in `lib/qbInboundSync.js`
+   (`_estimateSyncRunning`); an overlapping call returns
+   `{ skipped: true, reason: 'already_in_progress' }` instead of racing.
+4. **The automatic matcher silently overwrote human-confirmed manual
+   matches.** Every automatic re-match write (both the "matched" and
+   "unmatched" branches) unconditionally overwrote `lead_id`/`match_status`/
+   `match_method` on any existing row whenever QuickBooks'
+   `MetaData.LastUpdatedTime` advanced — including a row a human had just
+   corrected via `UnmatchedEstimatesPanel.jsx`'s "Save & Link"
+   (`match_method: 'manual'`). The next time Handoff touched that estimate
+   in QuickBooks (e.g. an amount or status change), the cron would silently
+   revert the human's correction — potentially re-attaching the estimate to
+   a *different* lead, or back to unmatched, with no trace. Fixed: a new
+   `isManuallyMatched(existing)` guard (`server.js`) is checked FIRST, before
+   `qbMatch.findMatchingLead` is even called — a manually-matched row only
+   has its non-matching business fields (amount/status/date/etc.) refreshed;
+   `lead_id`/`match_status`/`match_method` are left exactly as the human set
+   them, for as long as that row stays manually matched. Regression
+   coverage: `test/qbEstimateSyncManualMatch.test.js` (pure unit, the
+   extracted guard function) + `test/qbEstimateSyncCapacity.test.js`
+   (source-level proof it runs before automatic re-matching).
+
+**System Health now distinguishes the two Handoff-adjacent things that were
+previously conflated under one "Handoff" card**
+(`lib/systemHealthChecks.js#checkHandoffEstimatesSync`,
+`crm-frontend/src/pages/SystemHealth.jsx`): "Handoff (Direct API)" —
+unchanged, correctly Not Configured — and new "Handoff Estimates (via
+QuickBooks)", which reports the sync pipeline's own real evidence
+(`sync_cursors.quickbooks_estimates.last_successful_sync_at`,
+`handoff_estimates` matched/unmatched counts) completely independent of the
+unused Handoff API credential. Flagged stale if the last successful cron
+run was over an hour ago (the cron runs every 15 minutes). No new
+`company_settings.enabled_modules` key was added — it rides on no toggle of
+its own (`MODULE_FLAG_ENFORCED.handoff_estimates_sync = false`, same
+precedent as `sms`), so it is never forced to DISABLED.
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`

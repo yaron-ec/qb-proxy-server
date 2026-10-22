@@ -43,13 +43,14 @@ function StateBadge({ state }) {
 
 const MODULE_LABELS = {
   quickbooks: "QuickBooks", gmail: "Gmail", google_calendar: "Google Calendar",
-  google_contacts: "Google Contacts", signnow: "SignNow", handoff: "Handoff",
+  google_contacts: "Google Contacts", signnow: "SignNow", handoff: "Handoff (Direct API)",
+  handoff_estimates_sync: "Handoff Estimates (via QuickBooks)",
   meta: "Meta / Facebook Lead Ads", sms: "Twilio (SMS)", website_intake: "Website Lead Intake",
 };
 
 const MODULE_ORDER = [
   "quickbooks", "gmail", "google_calendar", "google_contacts",
-  "signnow", "handoff", "meta", "sms", "website_intake",
+  "signnow", "handoff", "handoff_estimates_sync", "meta", "sms", "website_intake",
 ];
 
 function fmt(ts) {
@@ -88,7 +89,12 @@ function IntegrationCard({ moduleKey, data }) {
         {!lc && data.state === "CONFIGURED" && !data.supports_live_check && (
           <HelperText>Live connectivity check is not available for this integration — install-specific impersonation/account setup is required.</HelperText>
         )}
-        {data.recency && (
+        {data.recency && moduleKey === "handoff_estimates_sync" && (
+          <HelperText>
+            {data.recency.total_estimates ?? 0} estimates synced · {data.recency.matched ?? 0} matched to a lead · {data.recency.unmatched ?? 0} unmatched
+          </HelperText>
+        )}
+        {data.recency && moduleKey !== "handoff_estimates_sync" && (
           <HelperText>
             Last lead received {fmt(data.recency.last_lead_received_at)} · {data.recency.total_leads_received ?? 0} total
           </HelperText>

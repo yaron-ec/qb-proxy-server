@@ -2035,22 +2035,56 @@ async function fetchQbCustomer(customerId, cache) {
   return cache[customerId];
 }
 
+// A human-confirmed match (UnmatchedEstimatesPanel.jsx's "Save & Link") is
+// authoritative. Pulled out as a one-line, independently-testable guard —
+// see test/qbEstimateSyncManualMatch.test.js.
+function isManuallyMatched(existing) {
+  return !!existing && existing.match_method === 'manual';
+}
+
+// Re-entrancy guard — same pattern as lib/qbInboundSync.js's own `_syncing`
+// flag. Without this, a run that happens to take longer than the 15-minute
+// cron interval (or overlaps with a manually-triggered /sync/qb-estimates
+// job) could race a second concurrent run: both see the same QB estimate as
+// "not yet in handoff_estimates" and both INSERT, creating a duplicate.
+let _estimateSyncRunning = false;
+
 // Full estimate sync — replicate syncEstimatesFromQBDirect sync mode exactly.
 async function runQbEstimateSync() {
   if (!rda.isConfigured()) throw new Error('DATABASE_URL not configured on Railway');
+  if (_estimateSyncRunning) {
+    console.log('[qb-sync] runQbEstimateSync already in progress — skipping overlapping run');
+    return { ok: true, skipped: true, reason: 'already_in_progress' };
+  }
+  _estimateSyncRunning = true;
+  try {
+    return await runQbEstimateSyncInner();
+  } finally {
+    _estimateSyncRunning = false;
+  }
+}
 
-  const stats = { found: 0, fetched: 0, imported: 0, updated: 0, matched: 0, unmatched: 0, skipped: 0, unchanged: 0, failed: 0, errors: [] };
+async function runQbEstimateSyncInner() {
+  const stats = { found: 0, fetched: 0, imported: 0, updated: 0, matched: 0, unmatched: 0, skipped: 0, unchanged: 0, manual_preserved: 0, failed: 0, errors: [] };
 
   const qbEstimates = await fetchAllQbEstimates();
   stats.found = qbEstimates.length;
   stats.fetched = qbEstimates.length;
   console.log(`[qb-sync] Estimates fetched: ${stats.found}`);
 
-  const [leads, existingEstimates] = await Promise.all([
-    rda.list('Lead', '-created_date', 2000, 0),
-    rda.list('HandoffEstimate', '-created_date', 1000, 0),
-  ]);
-  console.log(`[qb-sync] Loaded ${leads.length} leads, ${existingEstimates.length} existing estimates`);
+  // Only `leads` is bulk-preloaded — the matching engine (qbMatch.js) is a
+  // pure in-memory fuzzy matcher (phone/email/name heuristics) that genuinely
+  // needs the full candidate set to run its priority chain against; it isn't
+  // a single indexed lookup. 50000 is comfortably above any realistic lead
+  // count for a single-company installation (see CLAUDE.md's "Multi-company
+  // direction" — one deployment per company, never shared-DB multi-tenancy),
+  // but still a hard cap, so a growth warning is logged well before it could
+  // ever start silently dropping older leads from matching again.
+  const leads = await rda.list('Lead', '-created_date', 50000, 0);
+  if (leads.length > 40000) {
+    console.warn(`[qb-sync] leads table has grown to ${leads.length} rows — approaching the 50000 in-memory matching cap. Raise it or move qbMatch to indexed per-estimate queries before it silently starts excluding older leads.`);
+  }
+  console.log(`[qb-sync] Loaded ${leads.length} leads`);
 
   const customerCache = {};
 
@@ -2072,8 +2106,21 @@ async function runQbEstimateSync() {
         name: customerRefName,
       };
 
-      const existing = existingEstimates.find(e => e.qb_estimate_id === qbId);
-      const matchedLead = qbMatch.findMatchingLead(qbCustomer, leads);
+      // Dedup via a direct, indexed per-estimate query (idx_handoff_estimates_qb_id)
+      // instead of an in-memory bulk-loaded list — correct at ANY table size,
+      // never dependent on a row-count cap. A pre-existing duplicate (more
+      // than one row for the same qb_estimate_id, from before this fix) is
+      // surfaced via a warning and the most recently created row is used,
+      // rather than silently picking one — fixing the duplicate itself is a
+      // separate, deliberate remediation decision, not a side effect of this
+      // sync tick.
+      const existingRows = await rda.filter('HandoffEstimate', { qb_estimate_id: qbId });
+      if (existingRows.length > 1) {
+        console.warn(`[qb-sync] ${existingRows.length} handoff_estimates rows already share qb_estimate_id=${qbId} — pre-existing duplicate, not created by this tick. Using the most recent.`);
+      }
+      const existing = existingRows.length
+        ? existingRows.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0]
+        : null;
 
       const sharedBase = {
         qb_estimate_id: qbId,
@@ -2091,6 +2138,25 @@ async function runQbEstimateSync() {
 
       const qbUpdatedAt = qbEst.MetaData?.LastUpdatedTime;
       const isNewer = !existing?.last_synced_at || !qbUpdatedAt || new Date(qbUpdatedAt) > new Date(existing.last_synced_at);
+
+      // A human already confirmed this estimate's lead via
+      // UnmatchedEstimatesPanel.jsx ("Save & Link") — never let automatic
+      // re-matching on a later QB-side update (Handoff changing the amount/
+      // status) silently move it to a different lead or relabel it back to
+      // 'qb_direct'. Only the non-matching business fields (amount/status/
+      // date/etc.) are refreshed; lead_id/match_status/match_method are left
+      // exactly as the human set them.
+      if (isManuallyMatched(existing)) {
+        if (!isNewer) {
+          stats.unchanged++;
+        } else {
+          await rda.update('HandoffEstimate', existing.id, { ...sharedBase });
+          stats.manual_preserved++;
+        }
+        continue;
+      }
+
+      const matchedLead = qbMatch.findMatchingLead(qbCustomer, leads);
 
       if (matchedLead) {
         stats.matched++;
@@ -2157,7 +2223,7 @@ async function runQbEstimateSync() {
   // Save cursor (mirrors saveCursor('quickbooks_estimates', ...))
   try {
     const rows = await rda.filter('SyncCursor', { integration: 'quickbooks_estimates' });
-    const summary = { fetched: stats.fetched, imported: stats.imported, updated: stats.updated, skipped: stats.skipped, unchanged: stats.unchanged, failed: stats.failed };
+    const summary = { fetched: stats.fetched, imported: stats.imported, updated: stats.updated, skipped: stats.skipped, unchanged: stats.unchanged, manual_preserved: stats.manual_preserved, failed: stats.failed };
     if (rows[0]) await rda.update('SyncCursor', rows[0].id, { last_successful_sync_at: new Date().toISOString(), last_sync_summary: summary });
     else await rda.create('SyncCursor', { integration: 'quickbooks_estimates', last_successful_sync_at: new Date().toISOString(), last_sync_summary: summary });
   } catch (e) {
