@@ -127,6 +127,39 @@ webhookRouter.post('/inbound', async (req, res) => {
 
     const result = await smsService.handleInboundMessage({ messageSid: MessageSid, from: From, to: To, body: Body || '' });
 
+    // Rep notification + mandatory Yaron forward — ONLY for a genuinely new,
+    // ordinary (non-keyword) message. A redelivered webhook (result.duplicate)
+    // or a STOP/START/HELP keyword never re-fires these (keyword messages are
+    // already fully handled by the TwiML auto-reply + opt-out recording
+    // above/below — forwarding "STOP" as if it were a customer inquiry would
+    // be noise, not signal). AWAITED (not fire-and-forget): Twilio tolerates
+    // several seconds of webhook latency, and awaiting here is what makes
+    // "one notification per unique inbound message" and "no duplicate
+    // forwarding on retry" an actual guarantee rather than a race — a
+    // redelivered webhook must see result.duplicate=true only AFTER the
+    // first delivery's side effects have actually run, and a response sent
+    // before they complete would let two near-simultaneous deliveries both
+    // read "not yet duplicate" and both notify/forward. Failures inside are
+    // still fully non-fatal to the TwiML response (each catches its own
+    // errors; see lib/smsReplyNotify.js).
+    if (!result.duplicate && !result.keyword) {
+      const smsReplyNotify = require('../lib/smsReplyNotify');
+      const crmPublicUrl = process.env.CRM_PUBLIC_URL || '';
+      let repName = null, customerName = null;
+      if (result.match && result.match.leadId) {
+        await smsReplyNotify.notifyAssignedRep({ leadId: result.match.leadId, body: Body || '', messageSid: MessageSid, crmPublicUrl }).catch(() => {});
+        const row = await smsReplyNotify.resolveLeadAndOwner(result.match.leadId).catch(() => null);
+        if (row) {
+          repName = row.owner_name || null;
+          customerName = `${row.first_name || ''} ${row.last_name || ''}`.trim() || null;
+        }
+      } else {
+        await smsReplyNotify.notifyUnmatchedForReview({ body: Body || '', messageSid: MessageSid, fromNumber: From, ambiguous: !!(result.match && result.match.ambiguous), candidateLeadIds: result.match && result.match.candidateIds }).catch(() => {});
+      }
+      // Mandatory per spec, regardless of which rep (if any) owns the lead.
+      await smsReplyNotify.forwardToYaronBestEffort({ customerName, repName, body: Body || '' }).catch(() => {});
+    }
+
     if (result.keyword === 'STOP') {
       const name = await companyName();
       return res.type('text/xml').send(twiml(`${name}: You have been unsubscribed and will not receive further SMS messages. Reply START to resubscribe.`));

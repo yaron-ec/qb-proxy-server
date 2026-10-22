@@ -326,6 +326,114 @@ about topology, this file wins; go correct `railway.json` and
 | Meta/Facebook Lead Ads | Webhook + `META_APP_SECRET` HMAC (**fails CLOSED (503) if unset** — fixed during the Oct 2026 Railway-incident security pass; previously failed open, silently accepting unsigned payloads. Regression coverage: `test/metaWebhookFailClosed.test.js`) | N/A | Env-var gated |
 | Twilio SMS (two-way, customer-facing) | `TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN` + `TWILIO_MESSAGING_SERVICE_SID` (A2P, preferred) or `TWILIO_FROM` (bare number) — the SAME env vars `lib/reminderAlerts.js`'s internal staff-alert SMS and `lib/systemHealthChecks.js#checkTwilio`'s health probe already used before this | `sms_messages` (two-way log), `sms_opt_outs` (phone-level STOP/START registry) | Env-var gated (`sms` module in `enabled_modules` — pre-existing key, previously unused by any customer-facing route) |
 
+## Automated appointment SMS (confirmation + 12h/2h reminders, two-way replies)
+
+Built October 2026, NOT YET ACTIVATED in production — see the activation
+gates below. Wording is the business owner's own exact given text (not
+Claude-authored) — see `lib/smsTemplates.js`'s header for the one-time
+approval record.
+
+- **Templates**: `lib/smsTemplates.js` is the ONE place the three message
+  bodies live (`bookingConfirmation`, `reminder12h`, `reminder2h`). Never
+  duplicate wording at a call site.
+- **Booking confirmation**: `lib/booking/bookingService.js#createBooking`
+  fires it as a post-commit, fire-and-forget best-effort call (never inside
+  the transaction — never holds a DB transaction across the Twilio network
+  call) exactly once per genuine new booking (`idempotent: false &&
+  appointment` — inherits createBooking's own idempotency_key mechanism, so
+  a replayed booking request never double-sends). Covers every booking path
+  uniformly (admin, public capture, Meta webhook) since they all funnel
+  through this one function.
+- **12h/2h reminders**: added to the EXISTING email reminder engine
+  (`lib/reminderEngine.js`), reusing its proven Postgres claim/lease
+  primitives — but under a DISTINCT claim-key namespace
+  (`smsReminderKey`, `sms-reminder:...` vs email's `reminder:...`) so the
+  two channels' outcomes are fully independent (an email failure never
+  blocks the SMS and vice versa). Deliberately NOT a "catch-up" the way
+  email's `isCatchUp` is: a short-notice booking that skips past a window's
+  target time simply never gets that SMS (no stale "in 12 hours" message
+  sent late) — only the booking confirmation above is unconditional. The
+  30-minute window stays email/staff-only; SMS is 12h/2h, customer-only,
+  per the given spec.
+- **Two ACTIVATION GATES, intentionally separate from each other**:
+  1. `enabled_modules.sms` (`lib/moduleGate.js`) — the PRE-EXISTING flag
+     that already gates the manual Lead Detail compose panel. May already
+     be `true` in production.
+  2. `SMS_AUTOMATED_REMINDERS_ENABLED` (env var, default unset/false) — a
+     SEPARATE, NEW kill switch checked independently in
+     `bookingService.js`, `reminderEngine.js`, AND `lib/smsReplyNotify.js`.
+     This exists specifically so deploying this code can never itself start
+     automated customer sends just because `sms` was already on for manual
+     messaging — an operator must take a deliberate second step
+     (`SMS_AUTOMATED_REMINDERS_ENABLED=true`) before ANY automated
+     confirmation/reminder/reply-notification goes out. Mirrors
+     `REMINDER_DRY_RUN`'s existing safe-by-default precedent.
+  Both gates must be true for anything new here to send.
+- **Two-way replies**: reuses the EXISTING inbound webhook
+  (`routes/sms.js`, `lib/smsService.js#handleInboundMessage`) completely
+  unchanged for matching/consent/opt-out/dedup. Two NEW side effects fire
+  on an ordinary (non-keyword), non-duplicate inbound reply, AWAITED before
+  the TwiML response (not fire-and-forget — Twilio tolerates a few seconds
+  of webhook latency, and awaiting is what makes "one notification per
+  message, no duplicate on retry" an actual guarantee rather than a race):
+  - `lib/smsReplyNotify.js#notifyAssignedRep` — emails the lead's REAL
+    owner, resolved via the `owners` FK (`leads.owner_id` → `owners.email`/
+    `display_name`), never the heuristic firstname@domain reconstruction
+    used elsewhere for display-only purposes — a rep's name/email in this
+    notification must never be guessed. No owner assigned → no-op, never
+    invents a recipient.
+  - Zero or ambiguous lead match → `notifyUnmatchedForReview` instead,
+    routed through the EXISTING `notificationPreferences` `ACTIVITY`
+    category (so Michelle's single-category policy correctly excludes her
+    via the same mechanism as every other staff broadcast — no new
+    category/migration needed).
+  - `forwardToYaronBestEffort` — **MANDATORY per the given spec, but
+    HARD-GATED behind its own `SMS_REPLY_FORWARD_TO` env var with NO
+    hardcoded default destination anywhere.** SAFETY FINDING: this codebase
+    already hardcodes `(310) 310-4108` in several places
+    (`lib/reminderEngine.js`, `lib/actionRouter.js`,
+    `lib/phoneCallReminders.js`, `lib/reminderPages.js`) as EC's PUBLISHED
+    OFFICE PHONE NUMBER shown to customers — this is NOT, by itself,
+    evidence it is Yaron's own SMS-capable phone, nor that it differs from
+    whatever `TWILIO_FROM`/Messaging-Service sender is configured. Before
+    ever setting `SMS_REPLY_FORWARD_TO`, confirm directly with Yaron: (a) it
+    is SMS-capable, (b) it is NOT the outbound customer-SMS sender number,
+    (c) he can actually receive texts there today. A built-in LOOP GUARD
+    refuses to forward (logs `destination_equals_sender`, never sends) if
+    the configured destination normalizes to the same number as
+    `TWILIO_FROM` — but when sending via `TWILIO_MESSAGING_SERVICE_SID`
+    (a pooled sender), the actual sending number can't be checked this way;
+    this is logged as an unverifiable case, not silently assumed safe.
+- **Quiet hours — NOT bypassed automatically, by design.** All three
+  automated messages go through the SAME `smsService.sendSms` consent/
+  opt-out/quiet-hours gate as the manual panel, with no special-case
+  exemption. KNOWN OPEN QUESTION (flagged, not resolved, pending explicit
+  product decision): an appointment whose 12h or 2h reminder target falls
+  outside the configured quiet-hours window (e.g. a 2h-before reminder for
+  a 7am appointment, targeting ~5am) is currently just SKIPPED — the
+  customer gets no reminder for that window at all, and (deliberately) it
+  is never sent late with stale wording once the ~25-minute eligibility
+  window closes. A "defer and send at the next allowed time, with
+  non-stale wording" policy was considered but NOT implemented — it needs
+  explicit sign-off before building, not a silent default either way.
+- **Known, accepted limitation inherited from the email engine's own claim
+  design (not introduced by this work)**: the claim key is keyed by
+  `appointment_date` only, not time. A same-day reschedule to a different
+  time AFTER a reminder for that date already fired will not get a fresh
+  reminder for the new time — the claim is already `'sent'` and is never
+  re-claimed. A reschedule to a DIFFERENT DATE is unaffected (fresh claim
+  key, fresh windows). This is a pre-existing characteristic of
+  `lib/reminderEngine.js`'s claim design, shared identically by email.
+- Cancellation / Closed Lost / terminal-lost: no new code needed — SMS
+  windows are computed from the SAME `leads` array
+  (`crmRepository.listEligibleLeads()`) the email engine already filters
+  per the Terminal-lost transition rule above; a lead absent from that
+  array gets neither channel.
+- Regression coverage: `test/smsTemplates.test.js`,
+  `test/bookingSmsConfirmation.test.js`, `test/reminderEngineSms.test.js`,
+  `test/smsReplyNotify.test.js` (unit); real-Postgres:
+  `test/integration/smsReplyNotifications.int.test.js`.
+
 ## Important business invariants
 
 - **Appointments**: no-double-booking is enforced by
