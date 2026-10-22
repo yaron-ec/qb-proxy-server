@@ -222,6 +222,26 @@ about topology, this file wins; go correct `railway.json` and
 
 ## Database safety
 
+- **`ENCRYPTION_KEY` rotation (added during the October 2026 Railway
+  security-disclosure response)**: `lib/integrationCredentialStore.js`
+  (the encrypted store behind every QuickBooks/Gmail/SignNow/Handoff OAuth
+  credential) supports a second key version — `ENCRYPTION_KEY_V2` — without
+  touching the original `ENCRYPTION_KEY`. `CURRENT_KEY_VERSION` (which
+  version NEW writes use) is driven by `ACTIVE_ENCRYPTION_KEY_VERSION`
+  (default `1` — unset means zero behavior change). **Never remove or
+  change the original `ENCRYPTION_KEY` while any `integration_credentials`
+  row's `key_version` is still `1`** — doing so makes that row permanently
+  undecryptable. `scripts/rotateEncryptionKey.js` is the report-first
+  (`--apply --confirm-host=<host>` to write) migration tool: it decrypts
+  each row under its own stored `key_version`, re-encrypts under the
+  target version, verifies the round-trip BEFORE writing, and is
+  idempotent (a row already at the target version is skipped). See that
+  script's own header for the full 7-step coordinated rotation procedure
+  (add `ENCRYPTION_KEY_V2` → deploy → migrate rows → verify zero remain on
+  the old version → only then flip `ACTIVE_ENCRYPTION_KEY_VERSION=2` →
+  only then is the old `ENCRYPTION_KEY` safe to retire). Real-Postgres
+  coverage: `test/integration/rotateEncryptionKey.int.test.js`; pure unit
+  coverage: `test/encryptionKeyRotation.test.js`.
 - Never run a destructive script (`DELETE`, `TRUNCATE`, bulk `UPDATE`)
   against production without confirming `DATABASE_URL` first — several
   scripts (e.g. `db/importLeads.js`) have no built-in environment guard.
@@ -303,7 +323,7 @@ about topology, this file wins; go correct `railway.json` and
 | SignNow | API key (primary) or OAuth2 password grant (fallback) | `integration_credentials` | Env-var gated |
 | Handoff | Static API key | `app_settings.handoff_api_key` or env var | Env-var gated |
 | Website leads (ecconstructiongroup.com, Netlify) | Shared secret `x-webhook-secret` = `WEBSITE_LEAD_WEBHOOK_SECRET` (**fails closed** — 503 if unset) → `routes/websiteLeads.js` | `leads` (+ `sms_consent*` columns), `website_lead_receipts` (idempotency) | Env-var gated; website side needs `CRM_WEBHOOK_URL` + the same value as `WEBHOOK_SECRET` |
-| Meta/Facebook Lead Ads | Webhook + `META_APP_SECRET` HMAC (**fails open** if unset — verify this env var is actually set in production before relying on it) | N/A | Env-var gated |
+| Meta/Facebook Lead Ads | Webhook + `META_APP_SECRET` HMAC (**fails CLOSED (503) if unset** — fixed during the Oct 2026 Railway-incident security pass; previously failed open, silently accepting unsigned payloads. Regression coverage: `test/metaWebhookFailClosed.test.js`) | N/A | Env-var gated |
 | Twilio SMS (two-way, customer-facing) | `TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN` + `TWILIO_MESSAGING_SERVICE_SID` (A2P, preferred) or `TWILIO_FROM` (bare number) — the SAME env vars `lib/reminderAlerts.js`'s internal staff-alert SMS and `lib/systemHealthChecks.js#checkTwilio`'s health probe already used before this | `sms_messages` (two-way log), `sms_opt_outs` (phone-level STOP/START registry) | Env-var gated (`sms` module in `enabled_modules` — pre-existing key, previously unused by any customer-facing route) |
 
 ## Important business invariants
