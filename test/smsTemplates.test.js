@@ -60,6 +60,25 @@ test('company name/website are configurable (multi-company readiness) but defaul
   assert.doesNotMatch(m, /EC Construction Group/);
 });
 
+// ── Quiet-hours deferral policy (approved October 2026) ────────────────────
+test('reminder2h: normal (non-deferred) send keeps the exact approved relative wording', () => {
+  const m = t.reminder2h({ firstName: 'Sarah', appt });
+  assert.match(m, /is in 2 hours, at 2:00 PM/);
+});
+
+test('reminder2h: deferred send drops the relative "in 2 hours" claim (would be misleading) for an absolute time instead', () => {
+  const m = t.reminder2h({ firstName: 'Sarah', appt, deferred: true });
+  assert.doesNotMatch(m, /in 2 hours/);
+  assert.match(m, /is today at 2:00 PM/);
+  assert.match(m, /Reply STOP to opt out\.$/);
+});
+
+test('reminder12h: wording is identical whether deferred or not — it is already absolute (date + time), never a relative claim', () => {
+  const normal = t.reminder12h({ firstName: 'Sarah', appt });
+  const deferred = t.reminder12h({ firstName: 'Sarah', appt, deferred: true });
+  assert.strictEqual(normal, deferred);
+});
+
 test('DST boundary: a wall-clock time just after a DST transition renders the correct local date/time (no UTC-shift bug)', () => {
   // 2026-11-01 is when PDT -> PST transitions in America/Los_Angeles.
   // The template layer only formats an already-local date/time string — this

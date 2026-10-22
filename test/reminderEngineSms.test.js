@@ -106,6 +106,30 @@ test('sendWindowSms: 2h window uses the 2h template, not the 12h one', async () 
   } finally { restoreCfg(); restoreSms(); delete process.env.SMS_AUTOMATED_REMINDERS_ENABLED; }
 });
 
+test('sendWindowSms: deferred:true passes through to the 2h template (non-misleading wording) and tags sentBy for traceability', async () => {
+  process.env.SMS_AUTOMATED_REMINDERS_ENABLED = 'true';
+  const restoreCfg = stub('../lib/companyConfig', { isModuleEnabled: async () => true, getCompanyConfig: async () => ({}) });
+  let sentWith = null;
+  const restoreSms = stub('../lib/smsService', { sendSms: async (args) => { sentWith = args; return {}; }, SmsError: class extends Error {} });
+  try {
+    await sendWindowSms({ id: 'lead-1', first_name: 'Sarah' }, { key: '2h', isCatchUp: false }, { date: '2026-10-29', time: '14:00' }, { deferred: true });
+    assert.match(sentWith.body, /is today at 2:00 PM/);
+    assert.doesNotMatch(sentWith.body, /in 2 hours/);
+    assert.match(sentWith.sentBy, /_deferred$/);
+  } finally { restoreCfg(); restoreSms(); delete process.env.SMS_AUTOMATED_REMINDERS_ENABLED; }
+});
+
+test('sendWindowSms: deferred:true on the 12h window is a wording no-op (already absolute)', async () => {
+  process.env.SMS_AUTOMATED_REMINDERS_ENABLED = 'true';
+  const restoreCfg = stub('../lib/companyConfig', { isModuleEnabled: async () => true, getCompanyConfig: async () => ({}) });
+  let sentWith = null;
+  const restoreSms = stub('../lib/smsService', { sendSms: async (args) => { sentWith = args; return {}; }, SmsError: class extends Error {} });
+  try {
+    await sendWindowSms({ id: 'lead-1', first_name: 'Sarah' }, { key: '12h', isCatchUp: false }, { date: '2026-10-29', time: '14:00' }, { deferred: true });
+    assert.match(sentWith.body, /Reminder: Your .* appointment is on/);
+  } finally { restoreCfg(); restoreSms(); delete process.env.SMS_AUTOMATED_REMINDERS_ENABLED; }
+});
+
 test('sendWindowSms: a rejected send (SmsError — e.g. quiet hours, opt-out, no consent) is a non-fatal skip, never thrown', async () => {
   process.env.SMS_AUTOMATED_REMINDERS_ENABLED = 'true';
   class SmsError extends Error { constructor(code, msg) { super(msg); this.code = code; } }

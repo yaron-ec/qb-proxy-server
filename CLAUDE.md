@@ -404,18 +404,31 @@ approval record.
     `TWILIO_FROM` — but when sending via `TWILIO_MESSAGING_SERVICE_SID`
     (a pooled sender), the actual sending number can't be checked this way;
     this is logged as an unverifiable case, not silently assumed safe.
-- **Quiet hours — NOT bypassed automatically, by design.** All three
-  automated messages go through the SAME `smsService.sendSms` consent/
-  opt-out/quiet-hours gate as the manual panel, with no special-case
-  exemption. KNOWN OPEN QUESTION (flagged, not resolved, pending explicit
-  product decision): an appointment whose 12h or 2h reminder target falls
-  outside the configured quiet-hours window (e.g. a 2h-before reminder for
-  a 7am appointment, targeting ~5am) is currently just SKIPPED — the
-  customer gets no reminder for that window at all, and (deliberately) it
-  is never sent late with stale wording once the ~25-minute eligibility
-  window closes. A "defer and send at the next allowed time, with
-  non-stale wording" policy was considered but NOT implemented — it needs
-  explicit sign-off before building, not a silent default either way.
+- **Quiet hours — NOT bypassed, ever; a blocked reminder is DEFERRED and
+  retried, never dropped and never sent stale (approved October 2026).**
+  All three automated messages go through the SAME `smsService.sendSms`
+  consent/opt-out/quiet-hours gate as the manual panel — no special-case
+  bypass. For the 12h/2h reminders specifically, a `quiet_hours` rejection
+  is RETRYABLE, not terminal (`lib/reminderEngine.js`'s SMS claim loop uses
+  `markFailed` with a 15-minute backoff, reusing the SAME Postgres claim/
+  lease primitives the email engine already proved — never a new
+  mechanism): the loop re-checks quiet hours on every subsequent run, right
+  up until the appointment itself starts. Eligibility for SMS is
+  DELIBERATELY WIDER than email's narrow ~25-minute match window — "target
+  time has passed AND the appointment hasn't started yet" — specifically
+  so a quiet-hours retry has somewhere to land. The moment the appointment
+  starts, any claim still stuck retrying is explicitly closed out
+  (`markSkippedNoRecipient`, logged "no compliant sending window remained")
+  — never retried past that point, never silently stuck forever.
+  Non-stale wording: 12h's message is already absolute (date + time), so a
+  deferred send needs no wording change. 2h's normal wording ("in 2 hours")
+  would become misleading once sent late — a deferred 2h send uses a
+  separate, absolute-time variant (`lib/smsTemplates.js#reminder2h`'s
+  `deferred: true` path — "is today at {time}") instead, mirroring the
+  email engine's own proven `isCatchUp` non-stale-wording pattern. Never
+  sends a second reminder for the same window once one succeeds (the claim
+  mechanism's own dedup, unchanged) and never retries once the appointment
+  has started.
 - **Known, accepted limitation inherited from the email engine's own claim
   design (not introduced by this work)**: the claim key is keyed by
   `appointment_date` only, not time. A same-day reschedule to a different
@@ -431,7 +444,12 @@ approval record.
   array gets neither channel.
 - Regression coverage: `test/smsTemplates.test.js`,
   `test/bookingSmsConfirmation.test.js`, `test/reminderEngineSms.test.js`,
-  `test/smsReplyNotify.test.js` (unit); real-Postgres:
+  `test/smsReplyNotify.test.js`,
+  `test/reminderEngineQuietHoursDeferral.test.js` (quiet-hours retry-vs-
+  terminal branching, source-level — the loop is entangled with a live
+  Gmail token refresh and can't be driven standalone; the claim primitives
+  it reuses are the same ones the pre-existing email reminder suite already
+  exercises against real Postgres) (unit); real-Postgres:
   `test/integration/smsReplyNotifications.int.test.js`.
 
 ## Important business invariants
