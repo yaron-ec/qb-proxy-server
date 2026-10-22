@@ -970,11 +970,47 @@ direct Handoff API:**
    contradicting this function's own documented idempotency invariant.
    Current production row counts were not checked from this environment
    (no DB access), so whether this has already manifested is unconfirmed —
-   but the caps were unconditional and scale only one direction. Fixed by
-   raising both to 50000 (comfortably above any realistic table size for
-   this installation). Regression coverage (source-level, since exercising
-   the live cron needs a real QB connection):
-   `test/qbEstimateSyncCapacity.test.js`.
+   but the caps were unconditional and scale only one direction. **Follow-up
+   pass (same audit, second review before merge)**: the `leads` cap was kept
+   (raised to 50000 — it feeds `qbMatch.js`'s in-memory fuzzy matching
+   engine, which genuinely needs a candidate set, not a single lookup; 50000
+   is far beyond any realistic row count for this one-company-per-deployment
+   install), but the `existingEstimates` dedup was changed from a bulk
+   `rda.list` preload to a direct, indexed per-estimate query
+   (`rda.filter('HandoffEstimate', { qb_estimate_id })`, backed by the
+   existing `idx_handoff_estimates_qb_id` index) — this removes the cap
+   dependency for duplicate prevention entirely; it is correct regardless of
+   how large `handoff_estimates` ever grows. A pre-existing duplicate (>1
+   row already sharing a `qb_estimate_id`, from before this fix) is now
+   surfaced via a warning log rather than silently resolved either way.
+   Regression coverage (source-level, since exercising the live cron needs a
+   real QB connection): `test/qbEstimateSyncCapacity.test.js`.
+3. **`runQbEstimateSync` had no re-entrancy guard.** A run overlapping
+   itself (slower than the 15-minute cron interval, or racing a manually
+   triggered `POST /sync/qb-estimates` job) could have two concurrent passes
+   both see the same QB estimate as "not yet in `handoff_estimates`" and
+   both `INSERT` — a duplicate. Fixed with the same `_syncing`-style
+   boolean guard already used in `lib/qbInboundSync.js`
+   (`_estimateSyncRunning`); an overlapping call returns
+   `{ skipped: true, reason: 'already_in_progress' }` instead of racing.
+4. **The automatic matcher silently overwrote human-confirmed manual
+   matches.** Every automatic re-match write (both the "matched" and
+   "unmatched" branches) unconditionally overwrote `lead_id`/`match_status`/
+   `match_method` on any existing row whenever QuickBooks'
+   `MetaData.LastUpdatedTime` advanced — including a row a human had just
+   corrected via `UnmatchedEstimatesPanel.jsx`'s "Save & Link"
+   (`match_method: 'manual'`). The next time Handoff touched that estimate
+   in QuickBooks (e.g. an amount or status change), the cron would silently
+   revert the human's correction — potentially re-attaching the estimate to
+   a *different* lead, or back to unmatched, with no trace. Fixed: a new
+   `isManuallyMatched(existing)` guard (`server.js`) is checked FIRST, before
+   `qbMatch.findMatchingLead` is even called — a manually-matched row only
+   has its non-matching business fields (amount/status/date/etc.) refreshed;
+   `lead_id`/`match_status`/`match_method` are left exactly as the human set
+   them, for as long as that row stays manually matched. Regression
+   coverage: `test/qbEstimateSyncManualMatch.test.js` (pure unit, the
+   extracted guard function) + `test/qbEstimateSyncCapacity.test.js`
+   (source-level proof it runs before automatic re-matching).
 
 **System Health now distinguishes the two Handoff-adjacent things that were
 previously conflated under one "Handoff" card**

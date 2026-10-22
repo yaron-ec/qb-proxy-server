@@ -3,22 +3,32 @@
 
 /**
  * qbEstimateSyncCapacity.test.js — the QB Estimate Sync cron's
- * runQbEstimateSync() (server.js) loads its matching set (`leads`) and its
- * de-dup set (`existingEstimates`) via rda.list(entity, sort, limit, 0) —
- * a hard SQL LIMIT, not a true "fetch all."
+ * runQbEstimateSync() (server.js) loads its matching set (`leads`) and
+ * checks its de-dup set (existing handoff_estimates rows).
  *
- * Found during the October 2026 Handoff→QuickBooks→CRM estimate-sync audit:
- * these were previously capped at 2000 leads / 1000 existing estimates.
- * Once either table grows past its cap, rows past the cutoff (ordered
- * -created_date, so the OLDEST rows) silently drop out of both:
- *   - a lead past the 2000 cutoff can never be matched against a new QB
- *     estimate (qbMatch.findMatchingLead never even sees it), and
- *   - a handoff_estimates row past the 1000 cutoff is no longer found by
- *     the existingEstimates.find(qb_estimate_id) de-dup check, so the next
- *     cron tick re-inserts it as a DUPLICATE row instead of updating it —
- *     directly contradicting this same function's own documented
- *     invariant ("Idempotency: runQbEstimateSync uses qb_estimate_id to
- *     prevent duplicate HandoffEstimate records").
+ * Found during the October 2026 Handoff→QuickBooks→CRM estimate-sync audit
+ * (two passes):
+ *
+ * Pass 1: both sets were loaded via a hard rda.list(entity, sort, limit, 0)
+ * SQL LIMIT — 2000 leads, 1000 existing estimates. Past either cap, the
+ * OLDEST rows (ordered -created_date) silently dropped out: an older lead
+ * became permanently unmatchable, and an aged-out handoff_estimates row was
+ * no longer found by the in-memory de-dup check, so the next tick
+ * re-inserted it as a DUPLICATE — contradicting the function's own
+ * documented idempotency invariant. The `leads` cap was raised to 50000
+ * (see test below) — it genuinely needs an in-memory candidate set for
+ * qbMatch.js's fuzzy phone/email/name heuristics, not a single indexed
+ * lookup, and 50000 is comfortably above any realistic row count for a
+ * single-company installation (CLAUDE.md's "Multi-company direction": one
+ * deployment per company, never shared-DB multi-tenancy at larger scale).
+ *
+ * Pass 2 (this file's main addition): the de-dup check itself was changed
+ * from the capped in-memory `existingEstimates.find(...)` to a direct,
+ * indexed per-estimate query (`rda.filter('HandoffEstimate', { qb_estimate_id })`,
+ * backed by the existing idx_handoff_estimates_qb_id index) — this removes
+ * ANY row-count dependency for duplicate prevention: it is correct
+ * regardless of how large handoff_estimates ever grows, never a cap to
+ * raise again later.
  *
  * This is a source-level regression test (matching this repo's existing
  * convention for server.js cron logic, e.g. test/moduleGateCoverage.test.js)
@@ -33,26 +43,52 @@ const path = require('path');
 
 const SOURCE = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
 
-function findRdaListCall(entity) {
-  const re = new RegExp(`rda\\.list\\(\\s*'${entity}'\\s*,\\s*'-created_date'\\s*,\\s*(\\d+)\\s*,\\s*0\\s*\\)`);
-  const m = SOURCE.match(re);
-  assert.ok(m, `expected to find an rda.list('${entity}', '-created_date', <limit>, 0) call in server.js`);
-  return parseInt(m[1], 10);
-}
-
 test('runQbEstimateSync loads leads with a limit comfortably above the legacy 2000-row cap', () => {
-  const limit = findRdaListCall('Lead');
+  const m = SOURCE.match(/rda\.list\(\s*'Lead'\s*,\s*'-created_date'\s*,\s*(\d+)\s*,\s*0\s*\)/);
+  assert.ok(m, "expected to find an rda.list('Lead', '-created_date', <limit>, 0) call in server.js");
+  const limit = parseInt(m[1], 10);
   assert.ok(limit >= 10000, `Lead limit (${limit}) must stay well above any realistic leads table size — the old 2000 cap silently excluded older leads from QB estimate matching`);
 });
 
-test('runQbEstimateSync loads existing HandoffEstimate rows with a limit comfortably above the legacy 1000-row cap', () => {
-  const limit = findRdaListCall('HandoffEstimate');
-  assert.ok(limit >= 10000, `HandoffEstimate limit (${limit}) must stay well above any realistic handoff_estimates table size — the old 1000 cap caused duplicate rows once exceeded (de-dup lookup silently missed aged-out rows)`);
+function runQbEstimateSyncInnerBody() {
+  const start = SOURCE.indexOf('async function runQbEstimateSyncInner()');
+  const end = SOURCE.indexOf('\n// Async job wrapper', start);
+  assert.ok(start !== -1 && end !== -1, 'expected to locate runQbEstimateSyncInner()\'s body in server.js');
+  return SOURCE.slice(start, end);
+}
+
+test('runQbEstimateSync no longer bulk-loads existing HandoffEstimate rows with a hard LIMIT', () => {
+  // The old `rda.list('HandoffEstimate', '-created_date', <cap>, 0)` bulk
+  // preload (inside the matching/dedup function) is gone — de-dup is now a
+  // per-estimate indexed query (next test), correct at any table size with
+  // no cap to outgrow. runQbEstimatePdfSync's own, unrelated, much smaller
+  // rda.list('HandoffEstimate', ..., 500, 0) (estimates still needing a PDF
+  // fetch — a naturally small/shrinking subset, not a dedup check) is a
+  // different function and out of scope here.
+  assert.doesNotMatch(runQbEstimateSyncInnerBody(), /rda\.list\(\s*'HandoffEstimate'/, 'HandoffEstimate should no longer be bulk-loaded via rda.list with a row cap inside the matching/dedup function');
 });
 
-test('both limits are loaded in the same Promise.all (no behavior change to the sync\'s concurrency/ordering, only the row cap)', () => {
-  const idx = SOURCE.indexOf("rda.list('Lead'");
-  const nearby = SOURCE.slice(Math.max(0, idx - 200), idx + 400);
-  assert.ok(nearby.includes('Promise.all'), 'expected the Lead and HandoffEstimate loads to remain inside the same Promise.all');
-  assert.ok(nearby.includes("rda.list('HandoffEstimate'"), 'expected the HandoffEstimate load to remain alongside the Lead load');
+test('runQbEstimateSync dedups existing estimates via an indexed per-qb_estimate_id query, not an in-memory array', () => {
+  assert.match(SOURCE, /rda\.filter\(\s*'HandoffEstimate'\s*,\s*\{\s*qb_estimate_id:\s*qbId\s*\}\s*\)/, 'expected a direct rda.filter(\'HandoffEstimate\', { qb_estimate_id: qbId }) lookup per estimate');
+});
+
+test('a pre-existing duplicate (>1 row sharing a qb_estimate_id) is surfaced with a warning, not silently resolved', () => {
+  assert.match(SOURCE, /existingRows\.length > 1/);
+  assert.match(SOURCE, /pre-existing duplicate, not created by this tick/);
+});
+
+test('runQbEstimateSync has a re-entrancy guard against overlapping runs (cron tick vs. manual job, or a slow-running tick)', () => {
+  assert.match(SOURCE, /_estimateSyncRunning/, 'expected a running-flag guard, same pattern as lib/qbInboundSync.js\'s _syncing flag');
+  assert.match(SOURCE, /already_in_progress/, 'expected an overlapping run to return a skipped/already_in_progress result rather than racing');
+});
+
+test('a manually-matched estimate (match_method === \'manual\') is never re-matched or relabeled by the automatic matcher', () => {
+  const idx = SOURCE.indexOf('isManuallyMatched(existing)');
+  assert.ok(idx !== -1, 'expected an isManuallyMatched(existing) guard');
+  // The guard must appear, and `continue`, BEFORE qbMatch.findMatchingLead is
+  // called for this iteration — i.e. automatic matching must never even run
+  // for an already-manually-confirmed row.
+  const matchCallIdx = SOURCE.indexOf('qbMatch.findMatchingLead(qbCustomer, leads)', idx);
+  const continueIdx = SOURCE.indexOf('continue;', idx);
+  assert.ok(continueIdx !== -1 && continueIdx < matchCallIdx, 'the manual-match guard must `continue` before automatic re-matching runs');
 });
