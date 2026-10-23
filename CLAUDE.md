@@ -355,20 +355,33 @@ approval record.
   sent late) — only the booking confirmation above is unconditional. The
   30-minute window stays email/staff-only; SMS is 12h/2h, customer-only,
   per the given spec.
-- **Two ACTIVATION GATES, intentionally separate from each other**:
+- **THREE ACTIVATION GATES, intentionally separate from each other**:
   1. `enabled_modules.sms` (`lib/moduleGate.js`) — the PRE-EXISTING flag
      that already gates the manual Lead Detail compose panel. May already
      be `true` in production.
   2. `SMS_AUTOMATED_REMINDERS_ENABLED` (env var, default unset/false) — a
-     SEPARATE, NEW kill switch checked independently in
-     `bookingService.js`, `reminderEngine.js`, AND `lib/smsReplyNotify.js`.
-     This exists specifically so deploying this code can never itself start
-     automated customer sends just because `sms` was already on for manual
-     messaging — an operator must take a deliberate second step
-     (`SMS_AUTOMATED_REMINDERS_ENABLED=true`) before ANY automated
-     confirmation/reminder/reply-notification goes out. Mirrors
-     `REMINDER_DRY_RUN`'s existing safe-by-default precedent.
-  Both gates must be true for anything new here to send.
+     SEPARATE, NEW kill switch checked independently in `bookingService.js`
+     AND `reminderEngine.js` — gates ONLY the booking-confirmation SMS and
+     the 12h/2h reminder SMS sends.
+  3. `SMS_REPLY_NOTIFICATIONS_ENABLED` (env var, default unset/false) — a
+     THIRD, independent kill switch checked in `lib/smsReplyNotify.js` only
+     — gates ONLY the two inbound-reply side effects (`notifyAssignedRep`/
+     `notifyUnmatchedForReview` and `forwardToYaronBestEffort`).
+  Gates 2 and 3 were originally the SAME switch; split apart (October 2026,
+  live-SMS end-to-end verification pass) because that coupling made it
+  impossible to live-test an inbound reply's rep-notify/Yaron-forward
+  behavior without simultaneously arming real confirmation/reminder sends
+  for every live upcoming appointment — exactly the accidental blast-radius
+  this gate philosophy exists to prevent. Each surface now has its own
+  explicit opt-in; turning one on never turns the other on
+  (`test/smsReplyNotify.test.js`'s two "decoupled gate" tests are the
+  permanent regression guard against re-coupling them). This exists
+  specifically so deploying this code can never itself start automated
+  customer sends just because `sms` was already on for manual messaging —
+  an operator must take a deliberate additional step per surface they want
+  active. Mirrors `REMINDER_DRY_RUN`'s existing safe-by-default precedent.
+  Gate 1 plus the relevant one of gate 2/3 must both be true for a given
+  surface to send.
 - **Two-way replies**: reuses the EXISTING inbound webhook
   (`routes/sms.js`, `lib/smsService.js#handleInboundMessage`) completely
   unchanged for matching/consent/opt-out/dedup. Two NEW side effects fire

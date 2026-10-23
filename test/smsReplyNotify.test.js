@@ -3,7 +3,11 @@
 
 /**
  * smsReplyNotify.test.js — rep notification + the mandatory Yaron SMS
- * forward on an inbound customer reply (lib/smsReplyNotify.js).
+ * forward on an inbound customer reply (lib/smsReplyNotify.js), gated on
+ * their OWN SMS_REPLY_NOTIFICATIONS_ENABLED switch — deliberately decoupled
+ * from SMS_AUTOMATED_REMINDERS_ENABLED (confirmation/reminder sends) so
+ * testing or enabling one can never silently arm the other; see the two
+ * "decoupled gate" tests below.
  *
  * The highest-stakes case here is the Yaron-forward loop guard: this
  * codebase already hardcodes "(310) 310-4108" in several customer-facing
@@ -33,15 +37,43 @@ function stub(modPath, exportsObj) {
   return () => { if (prev) require.cache[p] = prev; else delete require.cache[p]; };
 }
 
-test('automation disabled (SMS_AUTOMATED_REMINDERS_ENABLED unset) -> notifyAssignedRep is a no-op', async () => {
-  delete process.env.SMS_AUTOMATED_REMINDERS_ENABLED;
+test('reply notifications disabled (SMS_REPLY_NOTIFICATIONS_ENABLED unset) -> notifyAssignedRep is a no-op', async () => {
+  delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED;
   const res = await smsReplyNotify.notifyAssignedRep({ leadId: 'lead-1', body: 'hi', messageSid: 'SM1' });
   assert.strictEqual(res.sent, false);
-  assert.strictEqual(res.reason, 'automation_disabled');
+  assert.strictEqual(res.reason, 'reply_notifications_disabled');
+});
+
+test('decoupled gate: SMS_AUTOMATED_REMINDERS_ENABLED=true alone does NOT enable reply notifications (this is a SEPARATE switch — the two must never be coupled again)', async () => {
+  delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED;
+  process.env.SMS_AUTOMATED_REMINDERS_ENABLED = 'true';
+  try {
+    const rep = await smsReplyNotify.notifyAssignedRep({ leadId: 'lead-1', body: 'hi', messageSid: 'SM1' });
+    assert.strictEqual(rep.sent, false);
+    assert.strictEqual(rep.reason, 'reply_notifications_disabled');
+    process.env.SMS_REPLY_FORWARD_TO = '+13105551234';
+    const fwd = await smsReplyNotify.forwardToYaronBestEffort({ customerName: 'Sarah', repName: 'Mike', body: 'hi' });
+    assert.strictEqual(fwd.sent, false);
+    assert.strictEqual(fwd.reason, 'reply_notifications_disabled');
+  } finally {
+    delete process.env.SMS_AUTOMATED_REMINDERS_ENABLED;
+    delete process.env.SMS_REPLY_FORWARD_TO;
+  }
+});
+
+test('decoupled gate: SMS_REPLY_NOTIFICATIONS_ENABLED=true alone (reminders switch untouched) is sufficient to enable notifyAssignedRep', async () => {
+  delete process.env.SMS_AUTOMATED_REMINDERS_ENABLED;
+  process.env.SMS_REPLY_NOTIFICATIONS_ENABLED = 'true';
+  queryImpl = async () => ({ rows: [{ id: 'lead-1', first_name: 'Sarah', owner_email: 'mike@x.com', owner_name: 'Mike' }] });
+  const restore = stub('../lib/emailService', { send: async () => ({ gmailMessageId: 'g1' }) });
+  try {
+    const res = await smsReplyNotify.notifyAssignedRep({ leadId: 'lead-1', body: 'hi', messageSid: 'SM1' });
+    assert.strictEqual(res.sent, true);
+  } finally { restore(); delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED; }
 });
 
 test('notifyAssignedRep: resolves the REAL owner via the owners FK join, never a guessed email', async () => {
-  process.env.SMS_AUTOMATED_REMINDERS_ENABLED = 'true';
+  process.env.SMS_REPLY_NOTIFICATIONS_ENABLED = 'true';
   queryImpl = async (sql, params) => {
     assert.match(sql, /LEFT JOIN owners/);
     assert.strictEqual(params[0], 'lead-1');
@@ -57,21 +89,21 @@ test('notifyAssignedRep: resolves the REAL owner via the owners FK join, never a
     assert.strictEqual(sentTo, 'mike@ecconstructiongroup.com');
     assert.match(sentBody, /Sarah Martinez/);
     assert.match(sentBody, /Can we move to 3pm\?/);
-  } finally { restore(); delete process.env.SMS_AUTOMATED_REMINDERS_ENABLED; }
+  } finally { restore(); delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED; }
 });
 
 test('notifyAssignedRep: lead has no owner assigned -> no-op, never invents a recipient', async () => {
-  process.env.SMS_AUTOMATED_REMINDERS_ENABLED = 'true';
+  process.env.SMS_REPLY_NOTIFICATIONS_ENABLED = 'true';
   queryImpl = async () => ({ rows: [{ id: 'lead-1', first_name: 'Sarah', owner_email: null, owner_name: null }] });
   try {
     const res = await smsReplyNotify.notifyAssignedRep({ leadId: 'lead-1', body: 'hi', messageSid: 'SM1' });
     assert.strictEqual(res.sent, false);
     assert.strictEqual(res.reason, 'no_owner_assigned');
-  } finally { delete process.env.SMS_AUTOMATED_REMINDERS_ENABLED; }
+  } finally { delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED; }
 });
 
 test('notifyAssignedRep: idempotency key is derived from the Twilio MessageSid (a webhook retry reuses the same key)', async () => {
-  process.env.SMS_AUTOMATED_REMINDERS_ENABLED = 'true';
+  process.env.SMS_REPLY_NOTIFICATIONS_ENABLED = 'true';
   queryImpl = async () => ({ rows: [{ id: 'lead-1', first_name: 'Sarah', owner_email: 'mike@x.com', owner_name: 'Mike' }] });
   let capturedKey = null;
   const restore = stub('../lib/emailService', {
@@ -80,11 +112,11 @@ test('notifyAssignedRep: idempotency key is derived from the Twilio MessageSid (
   try {
     await smsReplyNotify.notifyAssignedRep({ leadId: 'lead-1', body: 'hi', messageSid: 'SM-UNIQUE-1' });
     assert.strictEqual(capturedKey, 'sms-inbound-notify-rep:SM-UNIQUE-1');
-  } finally { restore(); delete process.env.SMS_AUTOMATED_REMINDERS_ENABLED; }
+  } finally { restore(); delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED; }
 });
 
 test('notifyUnmatchedForReview: routed through the "activity" notification category (so Michelle\'s single-category policy correctly excludes her via the existing mechanism)', async () => {
-  process.env.SMS_AUTOMATED_REMINDERS_ENABLED = 'true';
+  process.env.SMS_REPLY_NOTIFICATIONS_ENABLED = 'true';
   let filteredCategory = null;
   const restoreRecipients = stub('../lib/notificationRecipients', {
     getAllStaffRecipients: async () => ['mike@x.com', 'michelle@x.com'],
@@ -102,21 +134,21 @@ test('notifyUnmatchedForReview: routed through the "activity" notification categ
     assert.strictEqual(filteredCategory, 'activity');
     assert.strictEqual(res.sent, true);
     assert.deepStrictEqual(sentTo, ['mike@x.com']);
-  } finally { restoreRecipients(); restorePrefs(); restoreEmail(); delete process.env.SMS_AUTOMATED_REMINDERS_ENABLED; }
+  } finally { restoreRecipients(); restorePrefs(); restoreEmail(); delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED; }
 });
 
 // ── Yaron forward: the mandatory, safety-critical piece ────────────────────
 test('forwardToYaronBestEffort: SMS_REPLY_FORWARD_TO unset -> refuses, never a hardcoded fallback destination', async () => {
-  process.env.SMS_AUTOMATED_REMINDERS_ENABLED = 'true';
+  process.env.SMS_REPLY_NOTIFICATIONS_ENABLED = 'true';
   delete process.env.SMS_REPLY_FORWARD_TO;
   const res = await smsReplyNotify.forwardToYaronBestEffort({ customerName: 'Sarah', repName: 'Mike', body: 'hi' });
   assert.strictEqual(res.sent, false);
   assert.strictEqual(res.reason, 'not_configured');
-  delete process.env.SMS_AUTOMATED_REMINDERS_ENABLED;
+  delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED;
 });
 
 test('forwardToYaronBestEffort: LOOP GUARD — refuses when the destination matches the outbound customer-SMS sender number', async () => {
-  process.env.SMS_AUTOMATED_REMINDERS_ENABLED = 'true';
+  process.env.SMS_REPLY_NOTIFICATIONS_ENABLED = 'true';
   process.env.SMS_REPLY_FORWARD_TO = '+13103104108';
   const restore = stub('../lib/smsClient', {
     getCredentials: () => ({ from: '+13103104108', messagingServiceSid: null }),
@@ -126,11 +158,11 @@ test('forwardToYaronBestEffort: LOOP GUARD — refuses when the destination matc
     const res = await smsReplyNotify.forwardToYaronBestEffort({ customerName: 'Sarah', repName: 'Mike', body: 'hi' });
     assert.strictEqual(res.sent, false);
     assert.strictEqual(res.reason, 'destination_equals_sender');
-  } finally { restore(); delete process.env.SMS_AUTOMATED_REMINDERS_ENABLED; delete process.env.SMS_REPLY_FORWARD_TO; }
+  } finally { restore(); delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED; delete process.env.SMS_REPLY_FORWARD_TO; }
 });
 
 test('forwardToYaronBestEffort: a genuinely different destination number sends successfully with the mandated message shape', async () => {
-  process.env.SMS_AUTOMATED_REMINDERS_ENABLED = 'true';
+  process.env.SMS_REPLY_NOTIFICATIONS_ENABLED = 'true';
   process.env.SMS_REPLY_FORWARD_TO = '+13105551234';
   let sentArgs = null;
   const restore = stub('../lib/smsClient', {
@@ -145,11 +177,11 @@ test('forwardToYaronBestEffort: a genuinely different destination number sends s
     assert.match(sentArgs.body, /Customer: Sarah Martinez/);
     assert.match(sentArgs.body, /Sales Rep: Mike/);
     assert.match(sentArgs.body, /Message: Can we move our appointment to 3 PM\?/);
-  } finally { restore(); delete process.env.SMS_AUTOMATED_REMINDERS_ENABLED; delete process.env.SMS_REPLY_FORWARD_TO; }
+  } finally { restore(); delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED; delete process.env.SMS_REPLY_FORWARD_TO; }
 });
 
 test('forwardToYaronBestEffort: unknown rep -> "Unassigned", never an invented name', async () => {
-  process.env.SMS_AUTOMATED_REMINDERS_ENABLED = 'true';
+  process.env.SMS_REPLY_NOTIFICATIONS_ENABLED = 'true';
   process.env.SMS_REPLY_FORWARD_TO = '+13105551234';
   let sentArgs = null;
   const restore = stub('../lib/smsClient', {
@@ -160,11 +192,11 @@ test('forwardToYaronBestEffort: unknown rep -> "Unassigned", never an invented n
     await smsReplyNotify.forwardToYaronBestEffort({ customerName: null, repName: null, body: 'hi' });
     assert.match(sentArgs.body, /Sales Rep: Unassigned/);
     assert.match(sentArgs.body, /Customer: Unknown/);
-  } finally { restore(); delete process.env.SMS_AUTOMATED_REMINDERS_ENABLED; delete process.env.SMS_REPLY_FORWARD_TO; }
+  } finally { restore(); delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED; delete process.env.SMS_REPLY_FORWARD_TO; }
 });
 
 test('forwardToYaronBestEffort: a Twilio-level rejection is reported, never thrown', async () => {
-  process.env.SMS_AUTOMATED_REMINDERS_ENABLED = 'true';
+  process.env.SMS_REPLY_NOTIFICATIONS_ENABLED = 'true';
   process.env.SMS_REPLY_FORWARD_TO = '+13105551234';
   const restore = stub('../lib/smsClient', {
     getCredentials: () => ({ from: '+13103104108', messagingServiceSid: null }),
@@ -174,5 +206,5 @@ test('forwardToYaronBestEffort: a Twilio-level rejection is reported, never thro
     const res = await smsReplyNotify.forwardToYaronBestEffort({ customerName: 'Sarah', repName: 'Mike', body: 'hi' });
     assert.strictEqual(res.sent, false);
     assert.strictEqual(res.reason, 'invalid number');
-  } finally { restore(); delete process.env.SMS_AUTOMATED_REMINDERS_ENABLED; delete process.env.SMS_REPLY_FORWARD_TO; }
+  } finally { restore(); delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED; delete process.env.SMS_REPLY_FORWARD_TO; }
 });

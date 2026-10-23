@@ -11,7 +11,7 @@
  * faked (no live network call). Skipped without TEST_DATABASE_URL.
  */
 process.env.RAILWAY_JWT_SECRET = process.env.RAILWAY_JWT_SECRET || 'sms-test-jwt-secret-at-least-32-characters-long';
-process.env.SMS_AUTOMATED_REMINDERS_ENABLED = 'true';
+process.env.SMS_REPLY_NOTIFICATIONS_ENABLED = 'true';
 process.env.SMS_REPLY_FORWARD_TO = '+13105559999'; // a DIFFERENT number from the fake sender below — must never equal it (loop guard)
 
 const test = require('node:test');
@@ -76,7 +76,7 @@ test.after(async () => {
   const { restoreGoogleModules } = require('./ensureGoogleModulesEnabled');
   await restoreGoogleModules(db, smsModuleState);
   require('../../lib/companyConfig').invalidate();
-  delete process.env.SMS_AUTOMATED_REMINDERS_ENABLED;
+  delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED;
   delete process.env.SMS_REPLY_FORWARD_TO;
   await db.pool.end();
 });
