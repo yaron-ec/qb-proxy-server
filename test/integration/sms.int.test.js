@@ -24,6 +24,20 @@ if (DB_URL) {
   if (!process.env.DATABASE_SSL) process.env.DATABASE_SSL = 'false';
 }
 
+// routes/sms.js's real POST handler has no `now` override (unlike the direct
+// smsService.sendSms() tests below) — it always uses the real wall clock, so
+// an HTTP-path send test is quiet-hours-flaky for ~11 real hours of every day
+// (reproduced: failed at 21:31 PDT, past the 21:00 cutoff). Pin Date to a
+// fixed mid-afternoon Pacific instant for exactly the HTTP tests that need a
+// send to succeed, via node:test's built-in Date mock — never a global env
+// override, which would also defeat the dedicated quiet-hours-rejection test
+// below.
+const BUSINESS_HOURS_MS = new Date('2099-06-15T20:00:00Z').getTime(); // ~1pm Pacific
+async function withBusinessHours(t, fn) {
+  t.mock.timers.enable({ apis: ['Date'], now: BUSINESS_HOURS_MS });
+  try { return await fn(); } finally { t.mock.timers.reset(); }
+}
+
 // Fake Twilio: sendMessage always "succeeds" with a deterministic incrementing
 // sid unless the test pre-arms a specific failure via fakeTwilio.nextResult.
 // The sid is RUN-scoped (never a bare "SM1", "SM2", ...): twilio_sid is UNIQUE
@@ -255,12 +269,14 @@ test('handleStatusCallback: a callback for an unknown sid is a no-op, never thro
 });
 
 // ── Route-level: ownership scoping + webhooks ───────────────────────────────
-test('POST /leads/:id/sms: admin can send to any lead', { skip }, async () => {
-  const leadId = await lead(`route-admin-${RUN}`, { smsConsent: true });
-  const adminToken = token('admin', 'admin@ecconstructiongroup.com');
-  const r = await api('POST', `/api/v1/leads/${leadId}/sms`, { body: 'Hi from admin' }, adminToken);
-  assert.strictEqual(r.status, 200, JSON.stringify(r.body));
-  assert.strictEqual(r.body.message.direction, 'outbound');
+test('POST /leads/:id/sms: admin can send to any lead', { skip }, async (t) => {
+  await withBusinessHours(t, async () => {
+    const leadId = await lead(`route-admin-${RUN}`, { smsConsent: true });
+    const adminToken = token('admin', 'admin@ecconstructiongroup.com');
+    const r = await api('POST', `/api/v1/leads/${leadId}/sms`, { body: 'Hi from admin' }, adminToken);
+    assert.strictEqual(r.status, 200, JSON.stringify(r.body));
+    assert.strictEqual(r.body.message.direction, 'outbound');
+  });
 });
 
 test('POST /leads/:id/sms: a sales_rep who does NOT own the lead is forbidden (ownership scoping reused from routes/leads.js)', { skip }, async () => {
@@ -283,13 +299,15 @@ test('POST /leads/:id/sms: a sales_rep who does NOT own the lead is forbidden (o
   assert.strictEqual(r.status, 403);
 });
 
-test('GET /leads/:id/sms: returns the conversation history for an authorized caller', { skip }, async () => {
-  const leadId = await lead(`history-${RUN}`, { smsConsent: true });
-  const adminToken = token('admin', 'admin@ecconstructiongroup.com');
-  await api('POST', `/api/v1/leads/${leadId}/sms`, { body: 'first message' }, adminToken);
-  const r = await api('GET', `/api/v1/leads/${leadId}/sms`, undefined, adminToken);
-  assert.strictEqual(r.status, 200);
-  assert.ok(r.body.items.some((m) => m.body === 'first message'));
+test('GET /leads/:id/sms: returns the conversation history for an authorized caller', { skip }, async (t) => {
+  await withBusinessHours(t, async () => {
+    const leadId = await lead(`history-${RUN}`, { smsConsent: true });
+    const adminToken = token('admin', 'admin@ecconstructiongroup.com');
+    await api('POST', `/api/v1/leads/${leadId}/sms`, { body: 'first message' }, adminToken);
+    const r = await api('GET', `/api/v1/leads/${leadId}/sms`, undefined, adminToken);
+    assert.strictEqual(r.status, 200);
+    assert.ok(r.body.items.some((m) => m.body === 'first message'));
+  });
 });
 
 test('POST /sms-webhook/inbound: a STOP reply returns TwiML identifying the company and opts the number out', { skip }, async () => {
