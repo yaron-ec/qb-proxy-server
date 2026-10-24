@@ -465,6 +465,108 @@ approval record.
   exercises against real Postgres) (unit); real-Postgres:
   `test/integration/smsReplyNotifications.int.test.js`.
 
+## CRM New Lead intake SMS consent (Philippines appointment-setting reps, October 2026)
+
+A representative-reported consent checkbox in the CRM New Lead intake form
+(`crm-frontend/src/pages/LeadCapture.jsx`, served at `/capture` — this is
+the SAME component used both for the truly public website embed AND, via
+`?returnToCRM=true` from the "New Lead" button in `LeadsModern.jsx`, as the
+authenticated internal New Lead form the Philippines appointment-setting
+team actually uses; "New Lead intake form" always means this one form, not
+a separate internal-only component), feeding the SAME `leads.sms_consent`
+gate the rest of the automated-SMS surface already checks — no second
+consent flag, no parallel mechanism.
+
+- **Checkbox**: "I confirmed with the customer that they agree to receive
+  SMS appointment confirmations, reminders, and appointment-related
+  messages from EC Construction Group." Unchecked by default. Rendered
+  ONLY when an appointment is actually being booked in that same
+  submission (inside the existing "Appointment / Site Visit" step, right
+  below the time slot picker) — a representative's rep script
+  (`crm-frontend/src/lib/smsConsentScript.js`, the ONE place this wording
+  lives) is shown above it covering company identity, purpose, frequency,
+  message/data-rates, and STOP/HELP, to be read to the customer before
+  checking the box. Leaving it unchecked still saves the lead and
+  appointment normally — it only withholds consent, same as before this
+  feature existed.
+- **Server-side mirror of "only with an appointment"**:
+  `lib/captureValidation.js#validateCapturePayload`'s `sms_consent_confirmed`
+  is forced `false` whenever `appointment_date`/`appointment_time` are
+  absent from that submission — a checked box on a lead-only capture (no
+  appointment this time) is explicitly ignored, never silently carried
+  over to some future appointment. A Phone Call "appointment" (rewritten to
+  the lead's Phone Call follow-up before this point — see "A Phone Call is
+  never an appointment" below) never carries consent through either, so
+  automated appointment SMS structurally can only ever apply to a genuine
+  in-person appointment — this was ALREADY true architecturally before this
+  feature (the booking-confirmation SMS only ever fires when
+  `bookingService.createBooking()` returns a real `appointment` row, and a
+  Phone Call never produces one), so no new "is this in-person" check was
+  needed to satisfy that requirement.
+- **Race-free persistence (the real design problem this feature solves)**:
+  `lib/smsConsentIntake.js#applyAppointmentSmsConsent` is called from INSIDE
+  `bookingService.createBooking()`'s open transaction, immediately before
+  `COMMIT` — never from a post-commit step. The booking-confirmation SMS
+  (`sendBookingConfirmationSmsBestEffort`) reads `sms_consent` off the
+  SAME already-committed lead row `createBooking()` returns; writing
+  consent any later (e.g. a follow-up `UPDATE` in `routes/publicCapture.js`
+  after `createBooking()` resolves, which is where the post-commit
+  "extra capture fields" update already lives) would race that read and
+  lose almost every time, defeating the entire feature for a brand-new
+  lead's first appointment. `routes/publicCapture.js` passes
+  `sms_consent_confirmed` + `sms_consent_recorded_by` (the validated
+  `owner_email`, resolved from `assigned_rep` the same way every other
+  identity on this public, unauthenticated endpoint already is — see
+  "Database safety" below for why no stronger identity exists on this
+  specific route today) straight through as `createBooking()` input fields.
+- **STOP opt-out is NEVER overridden, by intake OR by a later manual
+  change**: `lib/smsConsentIntake.js`'s `isPhoneOptedOut` guard (checked
+  against `sms_opt_outs`, the SAME phone-keyed, forever registry
+  `lib/smsService.js#sendSms` already enforces) runs before EVERY grant of
+  `sms_consent = true` — an opted-out number's consent request is declined,
+  with an `activities` audit note explaining why, never silently granted
+  and never silently dropped. Revoking consent is always allowed (it can
+  only reduce what gets sent) and never needs the opt-out check.
+- **Audit trail**: every consent grant/decline/revoke writes one
+  `activities` row (visible in Lead Detail's existing activity feed, no new
+  UI needed for this part) PLUS the structured columns
+  `leads.sms_consent_at` / `sms_consent_source` / `sms_consent_disclosure_version`
+  (all pre-existing, from `2026-43-website-lead-intake.sql`) and the one
+  new column, `leads.sms_consent_recorded_by`
+  (`2026-64-sms-consent-intake.sql`) — WHO reported or recorded it. Phone
+  intake's `sms_consent_source` is the literal string
+  `'phone call — Philippines intake representative'`.
+- **Visible in Lead Detail + a later authorized change**:
+  `routes/leads.js#serializeLead` was previously missing EVERY
+  `sms_consent*` field entirely — found while building this feature.
+  `crm-frontend/src/components/SmsPanel.jsx`'s existing "No SMS consent on
+  file" banner (and the compose box's `no_consent` rejection) were both
+  already correctly wired to `lead.sms_consent`, but since that field never
+  actually reached the frontend, the banner showed REGARDLESS of the real
+  stored value — a real, if narrow, display bug (sending was still
+  correctly gated server-side by `lib/smsService.js#sendSms`'s own fresh DB
+  read; only the Lead Detail DISPLAY was wrong). Fixed by adding
+  `sms_consent` / `sms_consent_at` / `sms_consent_source` /
+  `sms_consent_recorded_by` to the serializer. `SmsPanel.jsx` now also shows
+  those details when consent is on file and offers an authorized
+  grant/revoke action (`PUT /api/v1/leads/:id/sms-consent`, reusing the
+  SAME `resolveOwnerScope` ownership authorization as every other lead
+  write — never a separate permission model) that records
+  `sms_consent_recorded_by` as the AUTHENTICATED caller's own email (a
+  stronger identity signal than phone intake's self-reported
+  `assigned_rep`, since this route requires a real Railway JWT) plus an
+  optional free-text evidence note, going through the SAME opt-out guard on
+  grant. A 409 `recipient_opted_out` is returned rather than silently
+  succeeding or silently failing when the number has replied STOP.
+- Regression coverage: `test/smsConsentIntake.test.js` (the opt-out guard
+  and both call sites, fake queryFn, no DB), `test/captureValidation.unit.test.js`
+  (the "only with an appointment in this submission" rule, including the
+  Phone Call case); real-Postgres: `test/integration/smsAppointmentLifecycle.int.test.js`
+  (proves the pre-commit ordering actually prevents the race against the
+  real `createBooking()` path) and `test/integration/smsConsentIntake.int.test.js`
+  (the real HTTP `POST /api/public/capture` path end to end, and the full
+  `PUT /:id/sms-consent` grant/opt-out-refusal/revoke/visibility surface).
+
 ## Important business invariants
 
 - **Appointments**: no-double-booking is enforced by

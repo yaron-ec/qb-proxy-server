@@ -215,6 +215,13 @@ router.post('/', submitLimiter, async (req, res) => {
       override_actor,
       // B. Independent follow-up (or null). Never derived from the appointment.
       follow_up: c.follow_up,
+      // SMS appointment-intake consent — see lib/smsConsentIntake.js. Only
+      // ever true when this same submission booked a real appointment
+      // (lib/captureValidation.js already forces this false otherwise, and
+      // a Phone Call "appointment" is rewritten to a follow-up before this
+      // point, so it never carries consent through either).
+      sms_consent_confirmed: c.sms_consent_confirmed,
+      sms_consent_recorded_by: c.owner_email,
       // Reminder projection inside the booking transaction (customer
       // reminders are keyed to the canonical appointment row). Wrapped in a
       // SAVEPOINT: a projection failure is logged (POST

@@ -437,7 +437,7 @@ function LeadDetailModernInner() {
             {/* Compact integration actions row */}
             <MobileIntegrationActions lead={lead} onLeadUpdate={setLeadSafe} />
             <div className="bg-white rounded-xl border border-slate-100 shadow-sm">
-              <SmsPanel lead={lead} />
+              <SmsPanel lead={lead} onLeadUpdate={setLeadSafe} />
             </div>
             {/* Admin: calendar sync error alert + repair */}
             {lead.google_calendar_sync_status === 'error' && (
@@ -480,7 +480,7 @@ function LeadDetailModernInner() {
           <div className="border-t border-slate-100">
             <AppointmentReminderPanel lead={lead} />
           </div>
-          <SmsPanel lead={lead} />
+          <SmsPanel lead={lead} onLeadUpdate={setLeadSafe} />
           {currentUser?.role === 'admin' && (
             <div className="border-t border-slate-100 p-3">
               <AdminCalendarRepairButton />

@@ -4,8 +4,9 @@ import { EC_PROJECT_TYPES } from "@/lib/projectTypes";
 import { uploadFileToStorage } from "@/lib/fileUpload";
 import { fetchCaptureAvailability, submitCapture, fetchAppLists } from "@/lib/captureRailwayClient";
 import { useAuth } from "@/lib/AuthContext";
-import { CheckCircle, Upload, X, Phone, MapPin, Briefcase, AlertCircle, Loader2, ArrowLeft, Calendar, ShieldAlert, ListTodo } from "lucide-react";
+import { CheckCircle, Upload, X, Phone, MapPin, Briefcase, AlertCircle, Loader2, ArrowLeft, Calendar, ShieldAlert, ListTodo, MessageSquare } from "lucide-react";
 import CaptureSlotGrid from "@/components/CaptureSlotGrid";
+import { SMS_CONSENT_CHECKBOX_LABEL, SMS_CONSENT_REP_SCRIPT } from "@/lib/smsConsentScript";
 
 // Fallback defaults — imported from single source of truth.
 // Canonical Lead Sources match app_settings (key='app_lists') value.sources.
@@ -54,7 +55,7 @@ const emptyForm = () => ({
   project_type: [], start_timeframe: "", budget_range: "",
   message: "", source: "", referral_name: "",
   owner_occupied: false,
-  appointment_date: "", appointment_time: "",
+  appointment_date: "", appointment_time: "", sms_consent_confirmed: false,
   follow_up_date: "", follow_up_time: "", follow_up_type: "", follow_up_notes: "",
   assigned_rep: "Yaron Drilevich", estimated_value: "", notes: "",
   photo_urls: [],
@@ -163,6 +164,9 @@ export default function LeadCapture() {
     if (k === 'appointment_date') {
       setOverrideActive(false);
       setOverrideConfirm(null);
+      // Clearing the appointment makes the consent checkbox inapplicable
+      // (it must never silently carry over to a later, different booking).
+      if (!v) setForm(p => ({ ...p, [k]: v, sms_consent_confirmed: false }));
     }
   };
 
@@ -253,6 +257,7 @@ export default function LeadCapture() {
       appointment_date: form.appointment_date || null,
       appointment_time: form.appointment_date ? (form.appointment_time || null) : null,
       appointment_type: form.appointment_date ? "Meeting" : null,
+      sms_consent_confirmed: form.appointment_date ? !!form.sms_consent_confirmed : false,
       // B. Follow-up / next update (optional, independent of the appointment).
       follow_up_date: form.follow_up_date || null,
       follow_up_time: form.follow_up_date ? (form.follow_up_time || null) : null,
@@ -507,6 +512,27 @@ export default function LeadCapture() {
                   </div>
                 )}
                 {errors.appointment_time && <p className="text-xs text-red-600 mt-1">{errors.appointment_time}</p>}
+
+                {/* ── SMS appointment consent (phone-based intake) ──────── */}
+                <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <MessageSquare className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-[11px] font-semibold text-amber-900">Read this to the customer before checking the box:</p>
+                  </div>
+                  <p className="text-[11px] text-amber-800 italic leading-relaxed">{SMS_CONSENT_REP_SCRIPT}</p>
+                  <label className="flex items-start gap-2 cursor-pointer pt-1 border-t border-amber-200/70">
+                    <input
+                      type="checkbox"
+                      checked={form.sms_consent_confirmed}
+                      onChange={e => set("sms_consent_confirmed", e.target.checked)}
+                      className="w-4 h-4 rounded mt-0.5 flex-shrink-0"
+                    />
+                    <span className="text-[11px] font-medium text-amber-900">{SMS_CONSENT_CHECKBOX_LABEL}</span>
+                  </label>
+                  {!form.sms_consent_confirmed && (
+                    <p className="text-[10px] text-slate-500">Leave unchecked if the customer did not agree — the appointment still saves normally, but no appointment SMS will be sent.</p>
+                  )}
+                </div>
               </div>
             )}
             {form.appointment_date && !slotsLoading && !slotsError && blockedSlots.length > 0 && (
