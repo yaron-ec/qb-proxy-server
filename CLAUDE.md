@@ -567,6 +567,92 @@ consent flag, no parallel mechanism.
   (the real HTTP `POST /api/public/capture` path end to end, and the full
   `PUT /:id/sms-consent` grant/opt-out-refusal/revoke/visibility surface).
 
+## SMS as a first-class activity in Lead Detail (October 2026)
+
+Text Message is now a tab in the central activity composer
+(`crm-frontend/src/components/ActivityComposer.jsx`): Note | Call | Email |
+**Text Message** | Task | Meeting — matching the design and tab-switching
+behavior of the other five, but rendering
+`crm-frontend/src/components/SmsConversationPanel.jsx` instead of the
+generic "fill a form, click Save" pattern (SMS has its own inline
+compose/send, so the shared footer Save button is hidden for this tab
+only). This REPLACED a separate left-sidebar `SmsPanel.jsx`, now deleted —
+there is exactly one SMS UI in Lead Detail.
+
+- **No backend change was needed for this.** Every requirement here (STOP
+  opt-out, consent, quiet hours, delivery-status tracking, webhook dedup on
+  `twilio_sid`, rep notification + the mandatory Yaron forward with its loop
+  guard, the `SMS_AUTOMATED_REMINDERS_ENABLED` / `SMS_REPLY_NOTIFICATIONS_ENABLED`
+  gates) already existed from the prior SMS work (see "Automated appointment
+  SMS" above and "Twilio SMS messaging" below) — this pass is a frontend
+  integration of already-correct, already-tested backend behavior into one
+  consistent UI, not a new mechanism.
+- **Timeline merge, not a second storage mechanism**:
+  `crm-frontend/src/lib/smsActivityAdapter.js#smsMessageToActivity` reshapes
+  a raw `sms_messages` row (from the EXISTING `GET /api/v1/leads/:id/sms`)
+  into an activity-shaped object (`type: 'sms'`, id prefixed `sms-` so it
+  can never collide with or be mistaken for a real `activities.id`) for
+  display in the SAME chronological feed Notes/Calls/Emails/Tasks/Meetings
+  already render through. `pages/LeadDetailModern.jsx` fetches this
+  separately and merges it into the `activities` array by id — the EXACT
+  same pattern already used for Gmail correspondence (a `Map`-keyed merge,
+  not a naive concat) — and polls it every 15s so an inbound customer reply
+  or a delivery-status transition on an already-sent message appears
+  without a manual page refresh (this codebase has no push/websocket
+  channel to the frontend; polling is the smallest change that satisfies
+  that requirement without inventing new server infrastructure).
+  `sms_messages` stays the ONE source of truth — nothing here ever writes a
+  mirror row into `activities`. A **new "Text Messages" filter** was added
+  to the existing activity-filter-tab row, consistent with the other
+  filters. `ActivityCard` (in `LeadDetailModern.jsx`) renders the `sms`
+  type with its own label/color, a Sent/Received badge, a delivery-status
+  badge (queued/sent/delivered/failed/undelivered) for outbound messages,
+  the error message/code when one failed, the detected STOP/START/HELP
+  keyword when present, and the real sender/recipient identity via
+  `smsAuthorLabel` (a rep's email for a manual send,
+  `'system:booking_confirmation'` / `'system:reminder_12h'` /
+  `'system:reminder_2h'` (+ `_deferred`) rendered as a friendly "Automated —
+  ..." label, or "Customer" for an inbound reply) — **never editable or
+  deletable** through the generic activity edit/delete affordance (it is a
+  read-through of `sms_messages`, not a real `activities` row; `canEdit`
+  explicitly excludes `activity.type === 'sms'`).
+- **Consent status and the PR #40 control, now inside the Text Message
+  tab**: `SmsConversationPanel.jsx` shows the same consent banner (on file —
+  date/source/recorded-by — or missing, with an explanation) and the same
+  authorized grant/revoke control (`PUT /api/v1/leads/:id/sms-consent`) that
+  PR #40 built — moved here verbatim from the old sidebar panel, not
+  rebuilt. The STOP opt-out guard on granting consent is unchanged.
+- **The retry-status limitation that already existed is unchanged, not
+  newly introduced**: `sms_messages` has no retry-count column — an
+  outbound send gets one bounded immediate retry at send time (never
+  persisted as a counter), and the 12h/2h reminder's quiet-hours retry
+  happens at the `reminder_claims` table level, not per-message. What's
+  shown here (status + error_message/error_code) is everything the schema
+  actually records; "retry status" beyond that isn't a real, stored fact to
+  surface.
+- **Windows "Text" shortcut disambiguation** (`ContactActions.jsx`): the
+  existing `href="sms:"` button opens the DEVICE's own native messaging app
+  (iOS/Android Messages, or Windows' own "Text"/Phone Link handoff on
+  desktop) — a message sent that way is never logged, never consent/opt-
+  out-checked, and never appears anywhere in the CRM. Its tooltip now says
+  so explicitly and points at the Text Message tab for the real,
+  CRM-tracked alternative, so the two are never confused for the same
+  feature.
+- Regression coverage: `crm-frontend/src/lib/smsActivityAdapter.test.js`
+  (the pure transform/author-label logic), `crm-frontend/src/pages/
+  LeadDetailModern.smsActivity.test.jsx` (ActivityCard's sms rendering,
+  including the never-editable guarantee),
+  `crm-frontend/src/pages/LeadDetailModern.smsIntegration.test.jsx`
+  (source-level horizontal audit — the merge/poll/filter-tab wiring and the
+  sidebar panel's removal, matching this file's existing
+  `invalidIdFix.test.jsx` convention for a page this large),
+  `crm-frontend/src/components/ActivityComposer.sms.test.jsx` (the new tab
+  end to end: compose/send, the consent banner/control, tab ordering),
+  `crm-frontend/src/components/SmsConversationPanel.test.jsx` (the
+  conversation view in isolation), `crm-frontend/src/components/
+  ContactActions.test.jsx` (the disambiguating tooltip). No backend test
+  changes — no backend code changed.
+
 ## Important business invariants
 
 - **Appointments**: no-double-booking is enforced by
