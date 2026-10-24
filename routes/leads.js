@@ -321,6 +321,16 @@ function serializeLead(row, appointment = null) {
     google_contact_sync_status: row.google_contact_sync_status || null,
     google_contact_resource_name: row.google_contact_resource_name || null,
     google_contact_sync_error: row.google_contact_sync_error || null,
+    // SMS consent (canonical: leads.sms_consent* — the SAME one gate
+    // lib/smsService.js#sendSms checks for every outbound CRM-triggered SMS;
+    // was previously missing from this serializer entirely, so Lead Detail's
+    // SmsPanel.jsx always rendered "No SMS consent on file" regardless of the
+    // actual stored value — fixed here as part of the CRM New Lead intake
+    // consent checkbox feature).
+    sms_consent: row.sms_consent === true,
+    sms_consent_at: row.sms_consent_at || null,
+    sms_consent_source: row.sms_consent_source || null,
+    sms_consent_recorded_by: row.sms_consent_recorded_by || null,
   };
 }
 
@@ -1112,6 +1122,46 @@ router.put('/by-external/:externalRef/appointment', requireAuth, async (req, res
   } catch (e) {
     console.error('[leads] appointment update error:', e.message);
     res.status(500).json({ error: e.message });
+  }
+});
+
+// ── PUT /:id/sms-consent — authorized later change to SMS consent ──────────
+// Grants (with evidence) or revokes a lead's leads.sms_consent — the SAME
+// one gate lib/smsService.js checks for every outbound CRM-triggered SMS.
+// Reuses the SAME ownership authorization as every other lead write
+// (authorizeLeadWrite -> resolveOwnerScope), never a separate permission
+// model. Granting is refused (409) for a number that has opted out (STOP) —
+// lib/smsConsentIntake.js's isPhoneOptedOut guard — that is never silently
+// overridden by a manual edit any more than by intake. Revoking is always
+// allowed (it can only reduce what gets sent). Every change is written to
+// leads.sms_consent_recorded_by (the authenticated caller — stronger
+// evidence than the self-reported identity on the public intake endpoint)
+// and logged as an activities note for the audit trail Lead Detail reads.
+router.put('/:id/sms-consent', requireAuth, async (req, res) => {
+  try {
+    const leadRow = await authorizeLeadWrite(req, res);
+    if (!leadRow) return;
+    const body = req.body || {};
+    if (typeof body.confirmed !== 'boolean') {
+      return res.status(400).json({ error: 'validation_failed', message: 'confirmed (boolean) is required' });
+    }
+    const evidenceNote = body.evidence_note ? String(body.evidence_note).trim().slice(0, 2000) : null;
+    const actor = (req.user && req.user.email) || null;
+
+    const result = await require('../lib/smsConsentIntake').recordManualConsentChange(
+      query, leadRow.id, { confirmed: body.confirmed, actor, evidenceNote }
+    );
+    if (!result.applied && result.reason === 'opted_out') {
+      return res.status(409).json({
+        error: 'recipient_opted_out',
+        message: 'This phone number has opted out of SMS (replied STOP) and cannot be re-consented — ask the customer to reply START first, or opt-out status will continue to block sends regardless of consent.',
+      });
+    }
+    const out = await respondWithLead(res, leadRow.id, { sms_consent_applied: result.applied });
+    return res.json(out.body);
+  } catch (e) {
+    console.error('[leads] sms-consent update error:', e.message);
+    res.status(500).json({ error: 'sms_consent_update_failed', message: e.message });
   }
 });
 

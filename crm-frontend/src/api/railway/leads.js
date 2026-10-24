@@ -128,6 +128,16 @@ export function updateFollowUp(id, data, opts = {}) {
 }
 
 /**
+ * SMS consent — a later authorized change from Lead Detail (grant with
+ * evidence, or revoke). { confirmed: boolean, evidence_note?: string }.
+ * A 409 recipient_opted_out means the number has replied STOP and cannot be
+ * re-consented here — that is never silently overridden. Returns { lead, appointment }.
+ */
+export function updateSmsConsent(id, data, opts = {}) {
+  return apiCall(`/api/v1/leads/${encodeURIComponent(id)}/sms-consent`, { method: 'PUT', body: data, signal: opts.signal });
+}
+
+/**
  * Trigger Google Calendar sync for a lead via the native Railway calendarOutbox
  * system. Enqueues main + travel events (1hr buffer before/after) processed by
  * the calendar outbox worker. No Base44, no direct Google API calls from the

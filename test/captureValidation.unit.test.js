@@ -62,6 +62,25 @@ assert(badDate.ok === false, 'non-ISO date rejected');
 const noContact = validateCapturePayload({ ...good, email: '', phone: '' });
 assert(noContact.ok === false, 'phone-or-email required enforced');
 
+// ── SMS appointment consent (phone intake checkbox) ─────────────────────────
+const withConsent = validateCapturePayload({ ...good, sms_consent_confirmed: true });
+assert(withConsent.cleaned.sms_consent_confirmed === true, 'checked box + a real appointment -> true');
+
+const consentNoAppointment = validateCapturePayload({ ...good, appointment_date: '', appointment_time: '', sms_consent_confirmed: true });
+assert(consentNoAppointment.cleaned.sms_consent_confirmed === false, 'checked box with NO appointment in this submission -> ignored (false), never silently carried over');
+
+const consentUnchecked = validateCapturePayload({ ...good, sms_consent_confirmed: false });
+assert(consentUnchecked.cleaned.sms_consent_confirmed === false, 'unchecked box -> false');
+
+const consentDefault = validateCapturePayload({ ...good });
+assert(consentDefault.cleaned.sms_consent_confirmed === false, 'field omitted entirely -> false, never defaults to granted');
+
+// A Phone Call "appointment" is rewritten to a follow-up (never a real
+// appointments row) BEFORE the consent field is computed — consent must
+// never carry through to a Phone Call either.
+const phoneCallConsent = validateCapturePayload({ ...good, appointment_type: 'Phone Call', sms_consent_confirmed: true });
+assert(phoneCallConsent.cleaned.sms_consent_confirmed === false, 'checked box on a Phone Call "appointment" (-> follow-up, never an appointments row) -> ignored');
+
 // ── Idempotency key ─────────────────────────────────────────────────────────
 const k1 = computeIdempotencyKey({ owner_email: 'yaron@ecconstructiongroup.com', first_name: 'Jane', last_name: 'Smith', email: 'jane@example.com', phone: '3105551234', property_address: '123 Main', appointment_type_id: 'type-1', start_at: '2026-08-20T16:00:00Z' });
 const k2 = computeIdempotencyKey({ owner_email: 'YARON@ECConstructionGroup.com', first_name: 'Jane', last_name: 'Smith', email: 'JANE@example.com', phone: '3105551234', property_address: '123 Main', appointment_type_id: 'type-1', start_at: '2026-08-20T16:00:00Z' });

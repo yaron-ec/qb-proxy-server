@@ -222,3 +222,92 @@ test('SMS_AUTOMATED_REMINDERS_ENABLED unset -> a real booking never sends, confi
   await new Promise((r) => setTimeout(r, 300));
   assert.strictEqual(fakeTwilio.sent.length, sentBefore, 'deploying/merging this code must never itself start sending — the kill switch must be explicitly set true');
 });
+
+// ── New Lead intake SMS consent checkbox (CRM New Lead Intake: Appointment
+// SMS Consent) — proves the checkbox's consent is applied and committed in
+// the SAME transaction as the booking, BEFORE the post-commit confirmation
+// SMS reads it (lib/smsConsentIntake.js). Recording consent after commit
+// would race (and lose to) that read — this is the real bug this design
+// avoids, proven here against the actual createBooking() code path.
+test('sms_consent_confirmed on createBooking(): sets consent in the SAME request and the confirmation SMS actually fires (no race)', { skip }, async () => {
+  process.env.SMS_AUTOMATED_REMINDERS_ENABLED = 'true';
+  try {
+    const lead = await insertLead({ phone: uniquePhone(), smsConsent: false });
+    const sentBefore = fakeTwilio.sent.length;
+    const startAt = new Date(Date.now() + 7 * 86400000).toISOString();
+    const result = await createBooking({
+      idempotency_key: `lifecycle-consent-${RUN}-${lead.id}`,
+      lead_id: lead.id, owner_email: `${RUN}.owner@ecconstructiongroup.com`,
+      start_at: startAt, appointment_type_id: apptTypeId, actor: 'test',
+      sms_consent_confirmed: true, sms_consent_recorded_by: `${RUN}.owner@ecconstructiongroup.com`,
+    });
+    assert.strictEqual(result.idempotent, false);
+    assert.strictEqual(result.lead.sms_consent, true, 'the lead row returned to the post-commit SMS hook must already reflect the new consent');
+
+    const got = await waitFor(() => fakeTwilio.sent.length > sentBefore);
+    assert.ok(got, 'the confirmation SMS must actually fire off consent granted in this same request — this is the race the pre-commit design avoids');
+
+    const leadRow = (await db.query('SELECT * FROM leads WHERE id = $1', [lead.id])).rows[0];
+    assert.strictEqual(leadRow.sms_consent, true);
+    assert.strictEqual(leadRow.sms_consent_recorded_by, `${RUN}.owner@ecconstructiongroup.com`);
+    assert.match(leadRow.sms_consent_source, /Philippines intake representative/);
+    assert.ok(leadRow.sms_consent_at);
+
+    const note = (await db.query(
+      `SELECT * FROM activities WHERE lead_id = $1 AND content LIKE 'SMS consent confirmed%' ORDER BY created_at DESC LIMIT 1`,
+      [lead.id]
+    )).rows[0];
+    assert.ok(note, 'expected an activities audit-trail entry for the consent event');
+  } finally {
+    delete process.env.SMS_AUTOMATED_REMINDERS_ENABLED;
+  }
+});
+
+test('sms_consent_confirmed=false (box left unchecked): lead and appointment still save normally, no consent set, no SMS sent', { skip }, async () => {
+  process.env.SMS_AUTOMATED_REMINDERS_ENABLED = 'true';
+  try {
+    const lead = await insertLead({ phone: uniquePhone(), smsConsent: false });
+    const sentBefore = fakeTwilio.sent.length;
+    const startAt = new Date(Date.now() + 8 * 86400000).toISOString();
+    const result = await createBooking({
+      idempotency_key: `lifecycle-noconsentbox-${RUN}-${lead.id}`,
+      lead_id: lead.id, owner_email: `${RUN}.owner@ecconstructiongroup.com`,
+      start_at: startAt, appointment_type_id: apptTypeId, actor: 'test',
+      sms_consent_confirmed: false,
+    });
+    assert.strictEqual(result.idempotent, false);
+    assert.ok(result.appointment, 'the appointment must still be created normally when the box is unchecked');
+    await new Promise((r) => setTimeout(r, 300));
+    assert.strictEqual(fakeTwilio.sent.length, sentBefore, 'no consent granted -> no confirmation SMS');
+    const leadRow = (await db.query('SELECT sms_consent FROM leads WHERE id = $1', [lead.id])).rows[0];
+    assert.notStrictEqual(leadRow.sms_consent, true);
+  } finally {
+    delete process.env.SMS_AUTOMATED_REMINDERS_ENABLED;
+  }
+});
+
+test('sms_consent_confirmed=true for a number that already opted out (STOP): consent is NOT granted, confirmation SMS is NOT sent — the opt-out is never overridden', { skip }, async () => {
+  process.env.SMS_AUTOMATED_REMINDERS_ENABLED = 'true';
+  try {
+    const phone = uniquePhone();
+    await db.query(
+      `INSERT INTO sms_opt_outs (phone_number, opted_out, opted_out_at, last_keyword, source) VALUES ($1, true, NOW(), 'STOP', 'customer_reply')`,
+      [phone]
+    );
+    const lead = await insertLead({ phone, smsConsent: false });
+    const sentBefore = fakeTwilio.sent.length;
+    const startAt = new Date(Date.now() + 9 * 86400000).toISOString();
+    await createBooking({
+      idempotency_key: `lifecycle-optedout-${RUN}-${lead.id}`,
+      lead_id: lead.id, owner_email: `${RUN}.owner@ecconstructiongroup.com`,
+      start_at: startAt, appointment_type_id: apptTypeId, actor: 'test',
+      sms_consent_confirmed: true, sms_consent_recorded_by: `${RUN}.owner@ecconstructiongroup.com`,
+    });
+    await new Promise((r) => setTimeout(r, 300));
+    assert.strictEqual(fakeTwilio.sent.length, sentBefore, 'an opted-out number must never receive a confirmation SMS, consent checkbox notwithstanding');
+    const leadRow = (await db.query('SELECT sms_consent FROM leads WHERE id = $1', [lead.id])).rows[0];
+    assert.notStrictEqual(leadRow.sms_consent, true, 'consent must NOT be granted for an opted-out number even when the representative checked the box');
+  } finally {
+    delete process.env.SMS_AUTOMATED_REMINDERS_ENABLED;
+  }
+});
