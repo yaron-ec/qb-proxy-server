@@ -3,7 +3,8 @@ import { friendlyFnError } from "@/lib/fnError";
 import { EC_PROJECT_TYPES } from "@/lib/projectTypes";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import TruncatedTooltip from "@/components/TruncatedTooltip";
-import { leads as railwayLeads, activities as railwayActivities, leadEmails as railwayLeadEmails } from "@/api/railway";
+import { leads as railwayLeads, activities as railwayActivities, leadEmails as railwayLeadEmails, sms as railwaySms } from "@/api/railway";
+import { smsMessageToActivity } from "@/lib/smsActivityAdapter";
 import { useAuth } from "@/lib/AuthContext";
 import { statusBadgeClass } from "@/lib/design-system";
 import { parseFollowUpDate, getTodayLocal } from "@/lib/sortActiveLeads";
@@ -34,7 +35,6 @@ import SignNowPanel from "../components/SignNowPanel";
 import CalendarSyncPanel from "../components/CalendarSyncPanel";
 import GoogleContactSyncPanel from "../components/GoogleContactSyncPanel";
 import AppointmentReminderPanel from "../components/AppointmentReminderPanel";
-import SmsPanel from "../components/SmsPanel";
 import EstimateSyncButton from "../components/EstimateSyncButton";
 import ProposalPanel from "../components/ProposalPanel";
 import RightSidebarAccordion from "../components/RightSidebarAccordion";
@@ -220,6 +220,35 @@ function LeadDetailModernInner() {
       .catch(e => { if (!cancelled) setGmailStatus({ status: 'unavailable', error: e?.message || 'request failed' }); });
     return () => { cancelled = true; };
   }, [lead?.railway_id]);
+
+  // SMS conversation — fetched separately (sms_messages, routes/sms.js) and
+  // merged into the SAME `activities` array as a 'sms' entry
+  // (lib/smsActivityAdapter.js), the exact same pattern as the Gmail merge
+  // above: sms_messages stays the one source of truth, this never writes a
+  // mirror row anywhere. Polled (not just fetched once) so an inbound
+  // customer reply, or a delivery-status transition on an already-sent
+  // message, appears in the central timeline without a manual refresh —
+  // this codebase has no push/websocket channel to the frontend today.
+  useEffect(() => {
+    if (!lead?.id) return undefined;
+    let cancelled = false;
+    const load = () => {
+      railwaySms.getConversation(lead.id)
+        .then(res => {
+          if (cancelled) return;
+          const smsActivities = (res?.items || []).map(smsMessageToActivity);
+          setActivities(prev => {
+            const byId = new Map(prev.map(a => [a.id, a]));
+            for (const a of smsActivities) byId.set(a.id, a);
+            return Array.from(byId.values());
+          });
+        })
+        .catch(() => { /* SMS history failing to load is non-fatal for the rest of the timeline */ });
+    };
+    load();
+    const t = setInterval(load, 15000);
+    return () => { cancelled = true; clearInterval(t); };
+  }, [lead?.id]);
 
   // Refresh lead from DB — used by QB panel after actions so financial sections update
   const refreshLead = async () => {
@@ -412,7 +441,7 @@ function LeadDetailModernInner() {
       <div className="md:hidden flex-1 overflow-y-auto p-3 space-y-3" style={{ paddingBottom: 'max(3rem, env(safe-area-inset-bottom) + 1rem)' }}>
         {mobileSection === "activity" && (
           <>
-            <ActivityComposer lead={lead} onActivityCreated={handleActivityCreated} />
+            <ActivityComposer lead={lead} onActivityCreated={handleActivityCreated} onLeadUpdate={setLeadSafe} />
             <GmailStatusBanner gmailStatus={gmailStatus} />
             {filteredActivities.length === 0 ? (
               <div className="py-12 text-center">
@@ -436,9 +465,6 @@ function LeadDetailModernInner() {
             </div>
             {/* Compact integration actions row */}
             <MobileIntegrationActions lead={lead} onLeadUpdate={setLeadSafe} />
-            <div className="bg-white rounded-xl border border-slate-100 shadow-sm">
-              <SmsPanel lead={lead} onLeadUpdate={setLeadSafe} />
-            </div>
             {/* Admin: calendar sync error alert + repair */}
             {lead.google_calendar_sync_status === 'error' && (
               <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
@@ -480,7 +506,6 @@ function LeadDetailModernInner() {
           <div className="border-t border-slate-100">
             <AppointmentReminderPanel lead={lead} />
           </div>
-          <SmsPanel lead={lead} onLeadUpdate={setLeadSafe} />
           {currentUser?.role === 'admin' && (
             <div className="border-t border-slate-100 p-3">
               <AdminCalendarRepairButton />
@@ -497,7 +522,7 @@ function LeadDetailModernInner() {
 
           {/* Activity Composer */}
           <div className="mb-4">
-            <ActivityComposer lead={lead} onActivityCreated={handleActivityCreated} />
+            <ActivityComposer lead={lead} onActivityCreated={handleActivityCreated} onLeadUpdate={setLeadSafe} />
           </div>
 
           <GmailStatusBanner gmailStatus={gmailStatus} />
@@ -509,6 +534,7 @@ function LeadDetailModernInner() {
               { id: "note", label: "Notes" },
               { id: "call", label: "Calls" },
               { id: "email", label: "Emails" },
+              { id: "sms", label: "Text Messages" },
               { id: "task", label: "Tasks" },
               { id: "meeting", label: "Meetings" },
             ].map(tab => (
@@ -1450,15 +1476,22 @@ export function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
   const [saving, setSaving] = useState(false);
 
   const cfg = {
-    note:    { dot: "bg-blue-400",   label: "Note",    color: "text-blue-600"   },
-    call:    { dot: "bg-green-500",  label: "Call",    color: "text-green-700"  },
-    email:   { dot: "bg-amber-400",  label: "Email",   color: "text-amber-700"  },
-    task:    { dot: "bg-amber-400",  label: "Task",    color: "text-amber-600"  },
-    meeting: { dot: "bg-purple-400", label: "Meeting", color: "text-purple-700" },
+    note:    { dot: "bg-blue-400",   label: "Note",         color: "text-blue-600"   },
+    call:    { dot: "bg-green-500",  label: "Call",         color: "text-green-700"  },
+    email:   { dot: "bg-amber-400",  label: "Email",        color: "text-amber-700"  },
+    sms:     { dot: "bg-blue-600",   label: "Text Message", color: "text-blue-800"   },
+    task:    { dot: "bg-amber-400",  label: "Task",         color: "text-amber-600"  },
+    meeting: { dot: "bg-purple-400", label: "Meeting",      color: "text-purple-700" },
   }[activity.type] || { dot: "bg-slate-300", label: activity.type, color: "text-slate-500" };
 
   const callOutcome = activity.metadata?.call_outcome;
   const emailSubject = activity.metadata?.email_subject;
+
+  // SMS (lib/smsActivityAdapter.js — sms_messages merged into this feed,
+  // never a mirror activities row) carries its own direction/status/error
+  // metadata, distinct from Gmail's gmailMeta below.
+  const smsMeta = activity.type === "sms" ? activity.metadata : null;
+  const SMS_STATUS_LABEL = { queued: "Queued", sent: "Sent", delivered: "Delivered", failed: "Failed", undelivered: "Undelivered", received: "Received" };
 
   // Real Gmail correspondence (routes/leadEmails.js) carries direction/
   // participants/attachment/thread metadata the older manual-sync path
@@ -1479,8 +1512,11 @@ export function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
     (activity.content?.startsWith("System: ") && activity.content?.endsWith(" reminder sent")) ||
     activity.author === "System" || activity.author === "System-Test";
 
-  // Permission: admin can edit any; others can edit their own
-  const canEdit = !isSystemEntry && currentUser && (
+  // Permission: admin can edit any; others can edit their own. SMS entries
+  // are never editable/deletable here — they are a read-through of
+  // sms_messages (routes/sms.js), not an activities row at all; editing one
+  // would have nothing real to write to.
+  const canEdit = activity.type !== "sms" && !isSystemEntry && currentUser && (
     currentUser.role === "admin" ||
     currentUser.role === "manager" ||
     currentUser.full_name === activity.author ||
@@ -1543,6 +1579,22 @@ export function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
             )}
             {gmailMeta?.has_attachment && (
               <Paperclip className="w-3 h-3 text-slate-400" aria-label="Has attachment" />
+            )}
+            {smsMeta && (
+              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                smsMeta.direction === "outbound" ? "bg-slate-100 text-slate-600" : "bg-blue-100 text-blue-700"
+              }`}>
+                {smsMeta.direction === "outbound" ? "Sent" : "Received"}
+              </span>
+            )}
+            {smsMeta && smsMeta.direction === "outbound" && (
+              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                smsMeta.status === "delivered" ? "bg-emerald-100 text-emerald-700"
+                  : (smsMeta.status === "failed" || smsMeta.status === "undelivered") ? "bg-red-100 text-red-600"
+                  : "bg-slate-100 text-slate-500"
+              }`}>
+                {SMS_STATUS_LABEL[smsMeta.status] || smsMeta.status}
+              </span>
             )}
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -1620,6 +1672,13 @@ export function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
               </a>
             )}
           </div>
+        )}
+
+        {smsMeta && (smsMeta.status === "failed" || smsMeta.status === "undelivered") && smsMeta.error_message && (
+          <p className="text-[10px] text-red-500 mb-1">{smsMeta.error_message}{smsMeta.error_code ? ` (${smsMeta.error_code})` : ''}</p>
+        )}
+        {smsMeta?.keyword && (
+          <p className="text-[10px] text-slate-500 mb-1 font-semibold">Keyword: {smsMeta.keyword}</p>
         )}
 
         <div className="flex items-center gap-2 flex-wrap mt-1">

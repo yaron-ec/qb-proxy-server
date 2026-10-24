@@ -11,24 +11,30 @@
 import { useState, useEffect } from "react";
 import { activities as railwayActivities, leads as railwayLeads, tasks as railwayTasks, owners as railwayOwners, emails as railwayEmails } from "@/api/railway";
 import { useAuth } from "@/lib/AuthContext";
-import { AlertCircle, FileText, Phone, Mail, CheckSquare, Calendar } from "lucide-react";
+import { AlertCircle, FileText, Phone, Mail, MessageSquare, CheckSquare, Calendar } from "lucide-react";
 import AvailableTimePicker from "./AvailableTimePicker";
 import { EMAIL_TEMPLATES, renderTemplate } from "@/lib/emailTemplates";
 import * as railwayCompanySettings from "@/api/railway/companySettings";
+import SmsConversationPanel from "./SmsConversationPanel";
 
-// Standard: call=green, note=blue, email=amber, task=amber, meeting=purple
+// Standard: call=green, note=blue, email=amber, sms=blue (per
+// ContactActions.jsx's documented canonical SMS/Text color), task=amber,
+// meeting=purple. SMS shares the blue family with Note (distinguished by
+// label/position), the same way email/task already share amber.
 const ACTIVITY_TYPES = [
-  { id: "note",    label: "Note",    icon: "note",    iconColor: "text-blue-500",   iconBg: "bg-blue-50",   tabActiveColor: "text-blue-600",   tabActiveBorder: "border-blue-500"   },
-  { id: "call",    label: "Call",    icon: "call",    iconColor: "text-green-600",  iconBg: "bg-green-50",  tabActiveColor: "text-green-700",  tabActiveBorder: "border-green-500"  },
-  { id: "email",   label: "Email",   icon: "email",   iconColor: "text-amber-600",  iconBg: "bg-amber-50",  tabActiveColor: "text-amber-700",  tabActiveBorder: "border-amber-500"  },
-  { id: "task",    label: "Task",    icon: "task",    iconColor: "text-amber-500",  iconBg: "bg-amber-50",  tabActiveColor: "text-amber-600",  tabActiveBorder: "border-amber-500"  },
-  { id: "meeting", label: "Meeting", icon: "meeting", iconColor: "text-purple-600", iconBg: "bg-purple-50", tabActiveColor: "text-purple-700", tabActiveBorder: "border-purple-500" },
+  { id: "note",    label: "Note",         icon: "note",    iconColor: "text-blue-500",   iconBg: "bg-blue-50",   tabActiveColor: "text-blue-600",   tabActiveBorder: "border-blue-500"   },
+  { id: "call",    label: "Call",         icon: "call",    iconColor: "text-green-600",  iconBg: "bg-green-50",  tabActiveColor: "text-green-700",  tabActiveBorder: "border-green-500"  },
+  { id: "email",   label: "Email",        icon: "email",   iconColor: "text-amber-600",  iconBg: "bg-amber-50",  tabActiveColor: "text-amber-700",  tabActiveBorder: "border-amber-500"  },
+  { id: "sms",     label: "Text Message", icon: "sms",     iconColor: "text-blue-700",   iconBg: "bg-blue-50",   tabActiveColor: "text-blue-800",   tabActiveBorder: "border-blue-700"   },
+  { id: "task",    label: "Task",         icon: "task",    iconColor: "text-amber-500",  iconBg: "bg-amber-50",  tabActiveColor: "text-amber-600",  tabActiveBorder: "border-amber-500"  },
+  { id: "meeting", label: "Meeting",      icon: "meeting", iconColor: "text-purple-600", iconBg: "bg-purple-50", tabActiveColor: "text-purple-700", tabActiveBorder: "border-purple-500" },
 ];
 
 const TYPE_ICONS = {
   note:    <FileText className="w-3.5 h-3.5" />,
   call:    <Phone className="w-3.5 h-3.5" />,
   email:   <Mail className="w-3.5 h-3.5" />,
+  sms:     <MessageSquare className="w-3.5 h-3.5" />,
   task:    <CheckSquare className="w-3.5 h-3.5" />,
   meeting: <Calendar className="w-3.5 h-3.5" />,
 };
@@ -58,7 +64,7 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
-export default function ActivityComposer({ lead, onActivityCreated }) {
+export default function ActivityComposer({ lead, onActivityCreated, onLeadUpdate }) {
   const [activeType, setActiveType] = useState("note");
   const [content, setContent] = useState("");
   const [saving, setSaving] = useState(false);
@@ -367,7 +373,7 @@ export default function ActivityComposer({ lead, onActivityCreated }) {
   return (
     <div className="card-premium overflow-hidden">
       {/* Type Selector Tabs — full width, equal columns */}
-      <div className="grid grid-cols-5 bg-slate-50 border-b border-slate-200">
+      <div className="grid grid-cols-6 bg-slate-50 border-b border-slate-200">
         {ACTIVITY_TYPES.map((type) => {
           const isActive = activeType === type.id;
           return (
@@ -578,6 +584,18 @@ export default function ActivityComposer({ lead, onActivityCreated }) {
           </div>
         )}
 
+        {/* Text Message (SMS) — the full two-way conversation, consent status,
+            and its own inline compose/send; not the generic "fill a form,
+            click Save" pattern the other tabs use, so the standard footer
+            below is hidden for this tab (see its `activeType !== "sms"`
+            guard) and nothing here writes an `activities` row directly —
+            lib/smsService.js persists to sms_messages, and
+            pages/LeadDetailModern.jsx merges that into the SAME
+            chronological timeline for display (lib/smsActivityAdapter.js). */}
+        {activeType === "sms" && (
+          <SmsConversationPanel lead={lead} onLeadUpdate={onLeadUpdate} />
+        )}
+
         {/* Task Form */}
         {activeType === "task" && (
           <div className="space-y-3">
@@ -665,7 +683,9 @@ export default function ActivityComposer({ lead, onActivityCreated }) {
         )}
       </div>
 
-      {/* Footer */}
+      {/* Footer — not shown for Text Message, which has its own inline
+          compose/send inside SmsConversationPanel above. */}
+      {activeType !== "sms" && (
       <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 flex gap-2">
         <button
           onClick={handleSave}
@@ -685,6 +705,7 @@ export default function ActivityComposer({ lead, onActivityCreated }) {
           )}
         </button>
       </div>
+      )}
     </div>
   );
 }

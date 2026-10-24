@@ -91,10 +91,17 @@ export default function ContactActions({ phone, email, size = 'sm', labels = fal
               {(labels || size === 'lg') && <span>Call</span>}
             </a>
 
-            {/* SMS — plain <a href="sms:"> */}
+            {/* SMS — plain <a href="sms:">. This opens the DEVICE's own
+                native messaging app (iOS/Android Messages, or Windows'
+                "Text"/Phone Link handoff on desktop) — it is NOT the CRM's
+                Twilio-backed SMS feature (the "Text Message" tab in Lead
+                Detail's activity composer): a message sent this way is
+                never logged, never consent/opt-out-checked, and never
+                appears in the CRM's SMS history. The title below spells
+                that out so the two are never confused for the same thing. */}
             <a
               href={`sms:${dialable}`}
-              title={`Text ${formatPhone(phone)}`}
+              title={`Text ${formatPhone(phone)} via this device's own messaging app (not tracked in the CRM — use the Text Message tab in Lead Detail for that)`}
               onClick={e => e.stopPropagation()}
               className={`${btnBase} bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-400`}
             >
