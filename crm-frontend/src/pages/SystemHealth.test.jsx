@@ -124,6 +124,52 @@ describe('SystemHealth', () => {
     await waitFor(() => expect(screen.getByText(/7 total/)).toBeTruthy());
   });
 
+  it('October 2026 incident diagnostics: surfaces the SMS webhook base-URL source and flags the CRM_PUBLIC_URL fallback as a warning', async () => {
+    get.mockResolvedValue(fixture({
+      integrations: {
+        sms: integration({
+          module_enabled: true, flag_enforced: false, state: 'CONFIGURED',
+          credential_source: 'env', missing_env: [], supports_live_check: true, live_check: null,
+          recency: { last_lead_received_at: null, total_leads_received: 0 },
+          delivery_failures: { recent_24h: 3, total: 10, last_rejected_at: '2026-10-24T12:00:00Z' },
+          webhook_config: {
+            base_url_source: 'CRM_PUBLIC_URL_fallback',
+            inbound_webhook_url: 'https://crm.ecconstructiongroup.com/api/v1/sms-webhook/inbound',
+            status_webhook_url: 'https://crm.ecconstructiongroup.com/api/v1/sms-webhook/status',
+          },
+        }),
+      },
+    }));
+    render(<SystemHealth />);
+    await waitFor(() => expect(screen.getByText(/CRM_PUBLIC_URL \(fallback\)/)).toBeTruthy());
+    expect(screen.getByText(/Set TWILIO_WEBHOOK_BASE_URL/)).toBeTruthy();
+    expect(screen.getByText(/Last inbound SMS received/)).toBeTruthy();
+    expect(screen.getByText(/3 rejected deliveries in the last 24h/)).toBeTruthy();
+    expect(screen.getByText(/signature verification failed/)).toBeTruthy();
+  });
+
+  it('a correctly-configured SMS webhook base URL is shown without a warning', async () => {
+    get.mockResolvedValue(fixture({
+      integrations: {
+        sms: integration({
+          module_enabled: true, flag_enforced: false, state: 'CONFIGURED',
+          credential_source: 'env', missing_env: [], supports_live_check: true, live_check: null,
+          recency: { last_lead_received_at: '2026-10-24T12:00:00Z', total_leads_received: 5 },
+          delivery_failures: { recent_24h: 0, total: 0, last_rejected_at: null },
+          webhook_config: {
+            base_url_source: 'TWILIO_WEBHOOK_BASE_URL',
+            inbound_webhook_url: 'https://qb-proxy-server-production.up.railway.app/api/v1/sms-webhook/inbound',
+            status_webhook_url: 'https://qb-proxy-server-production.up.railway.app/api/v1/sms-webhook/status',
+          },
+        }),
+      },
+    }));
+    render(<SystemHealth />);
+    await waitFor(() => expect(screen.getByText('TWILIO_WEBHOOK_BASE_URL')).toBeTruthy());
+    expect(screen.queryByText(/Set TWILIO_WEBHOOK_BASE_URL/)).toBeFalsy();
+    expect(screen.queryByText(/rejected deliveries/)).toBeFalsy();
+  });
+
   it('never renders a secret-looking value', async () => {
     get.mockResolvedValue(fixture());
     const { container } = render(<SystemHealth />);

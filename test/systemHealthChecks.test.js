@@ -389,6 +389,70 @@ test('checkTwilio: verify:true + active account -> CONNECTED-shaped, uses a read
   } finally { global.fetch = origFetch; }
 });
 
+// ── checkTwilio's webhook_config / recency / delivery_failures — October
+// 2026 inbound-SMS incident diagnostics. Inbound-webhook evidence must be
+// reported even when outbound credentials are entirely missing (DB-only,
+// no outbound call), mirroring checkWebsiteIntake's established pattern.
+test('checkTwilio: webhook_config reports the dedicated TWILIO_WEBHOOK_BASE_URL (not the frontend-URL fallback) when set', async () => {
+  const restoreSmsService = stub('../lib/smsService', {
+    getInboundWebhookHealth: async () => ({
+      recency: { last_lead_received_at: '2026-10-24T12:00:00.000Z', total_leads_received: 3 },
+      delivery_failures: { recent_24h: 0, total: 0, last_rejected_at: null },
+    }),
+  });
+  try {
+    await withEnv({ TWILIO_ACCOUNT_SID: undefined, TWILIO_AUTH_TOKEN: undefined, TWILIO_FROM: undefined, TWILIO_WEBHOOK_BASE_URL: 'https://qb-proxy-server-production.up.railway.app' }, async () => {
+      delete process.env.TWILIO_ACCOUNT_SID; delete process.env.TWILIO_AUTH_TOKEN; delete process.env.TWILIO_FROM;
+      const result = await checkTwilio({ verify: false });
+      assert.strictEqual(result.webhook_config.base_url_source, 'TWILIO_WEBHOOK_BASE_URL');
+      assert.strictEqual(result.webhook_config.inbound_webhook_url, 'https://qb-proxy-server-production.up.railway.app/api/v1/sms-webhook/inbound');
+      assert.strictEqual(result.webhook_config.status_webhook_url, 'https://qb-proxy-server-production.up.railway.app/api/v1/sms-webhook/status');
+      assert.strictEqual(result.recency.total_leads_received, 3);
+      assert.strictEqual(result.delivery_failures.total, 0);
+    });
+  } finally {
+    restoreSmsService();
+    delete process.env.TWILIO_WEBHOOK_BASE_URL;
+  }
+});
+
+test('checkTwilio: webhook_config visibly flags the CRM_PUBLIC_URL fallback (the exact misconfiguration behind the October 2026 incident) rather than reporting it as correct', async () => {
+  const restoreSmsService = stub('../lib/smsService', {
+    getInboundWebhookHealth: async () => ({
+      recency: { last_lead_received_at: null, total_leads_received: 0 },
+      delivery_failures: { recent_24h: 2, total: 5, last_rejected_at: '2026-10-24T12:00:00.000Z' },
+    }),
+  });
+  try {
+    await withEnv({ TWILIO_ACCOUNT_SID: undefined, TWILIO_AUTH_TOKEN: undefined, TWILIO_FROM: undefined, TWILIO_WEBHOOK_BASE_URL: undefined, CRM_PUBLIC_URL: 'https://crm.ecconstructiongroup.com' }, async () => {
+      delete process.env.TWILIO_ACCOUNT_SID; delete process.env.TWILIO_AUTH_TOKEN; delete process.env.TWILIO_FROM; delete process.env.TWILIO_WEBHOOK_BASE_URL;
+      const result = await checkTwilio({ verify: false });
+      assert.strictEqual(result.webhook_config.base_url_source, 'CRM_PUBLIC_URL_fallback');
+      assert.strictEqual(result.webhook_config.inbound_webhook_url, 'https://crm.ecconstructiongroup.com/api/v1/sms-webhook/inbound');
+      assert.strictEqual(result.delivery_failures.total, 5, 'rejection evidence must surface even when inbound has never succeeded');
+      assert.strictEqual(result.recency.total_leads_received, 0);
+    });
+  } finally {
+    restoreSmsService();
+    delete process.env.CRM_PUBLIC_URL;
+  }
+});
+
+test('checkTwilio: a failing inbound-health lookup degrades gracefully (recency/delivery_failures null), never crashes the whole check', async () => {
+  const restoreSmsService = stub('../lib/smsService', {
+    getInboundWebhookHealth: async () => { throw new Error('db hiccup'); },
+  });
+  try {
+    await withEnv({ TWILIO_ACCOUNT_SID: undefined, TWILIO_AUTH_TOKEN: undefined, TWILIO_FROM: undefined }, async () => {
+      delete process.env.TWILIO_ACCOUNT_SID; delete process.env.TWILIO_AUTH_TOKEN; delete process.env.TWILIO_FROM;
+      const result = await checkTwilio({ verify: false });
+      assert.strictEqual(result.recency, null);
+      assert.strictEqual(result.delivery_failures, null);
+      assert.ok(result.webhook_config, 'webhook_config itself has no DB dependency and must still be reported');
+    });
+  } finally { restoreSmsService(); }
+});
+
 // ── Meta / Website Intake (inbound-webhook-only, DB recency signal) ──────
 test('checkMeta: missing META_APP_SECRET -> NOT_CONFIGURED, supports_live_check:false, no DB query attempted', async () => {
   queryImpl = async () => { throw new Error('must never query when not configured'); };
