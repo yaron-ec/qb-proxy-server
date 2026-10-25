@@ -1491,7 +1491,7 @@ export function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
   // never a mirror activities row) carries its own direction/status/error
   // metadata, distinct from Gmail's gmailMeta below.
   const smsMeta = activity.type === "sms" ? activity.metadata : null;
-  const SMS_STATUS_LABEL = { queued: "Queued", sent: "Sent", delivered: "Delivered", failed: "Failed", undelivered: "Undelivered", received: "Received" };
+  const SMS_STATUS_LABEL = { accepted: "Queued", queued: "Queued", sending: "Queued", sent: "Sent", delivered: "Delivered", failed: "Failed", undelivered: "Undelivered", canceled: "Canceled", receiving: "Received", received: "Received" };
 
   // Real Gmail correspondence (routes/leadEmails.js) carries direction/
   // participants/attachment/thread metadata the older manual-sync path
@@ -1590,7 +1590,7 @@ export function ActivityCard({ activity, currentUser, onUpdated, onDeleted }) {
             {smsMeta && smsMeta.direction === "outbound" && (
               <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
                 smsMeta.status === "delivered" ? "bg-emerald-100 text-emerald-700"
-                  : (smsMeta.status === "failed" || smsMeta.status === "undelivered") ? "bg-red-100 text-red-600"
+                  : (smsMeta.status === "failed" || smsMeta.status === "undelivered" || smsMeta.status === "canceled") ? "bg-red-100 text-red-600"
                   : "bg-slate-100 text-slate-500"
               }`}>
                 {SMS_STATUS_LABEL[smsMeta.status] || smsMeta.status}

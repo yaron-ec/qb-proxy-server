@@ -653,6 +653,86 @@ there is exactly one SMS UI in Lead Detail.
   ContactActions.test.jsx` (the disambiguating tooltip). No backend test
   changes — no backend code changed.
 
+## SMS `sms_messages_status_check` production incident (October 2026, fixed)
+
+A real manual SMS send from Lead Detail (test recipient: Michelle Roitman's
+existing test lead, SMS consent already on file — NOT a consent/quiet-hours
+issue) failed with:
+```
+new row for relation "sms_messages" violates check constraint
+"sms_messages_status_check"
+```
+**Root cause**: `2026-63-sms-messaging.sql`'s original
+`sms_messages_status_check` only allowed `('queued','sent','delivered',
+'failed','undelivered','received')`. `lib/smsClient.js#sendMessage` returns
+Twilio's own Message-create response `status` field verbatim
+(`status: data.status || 'queued'`), and `lib/smsService.js#handleStatusCallback`
+writes Twilio's StatusCallback `MessageStatus` verbatim too — the ONLY two
+write paths for this column (every outbound send — manual compose, booking
+confirmation, 12h/2h reminders — funnels through
+`smsService.sendSms`; every delivery-status update funnels through
+`handleStatusCallback`). This installation sends via
+`TWILIO_MESSAGING_SERVICE_SID` (A2P — CLAUDE.md's own documented preferred
+config), and Twilio's documented behavior for a Messaging-Service-originated
+send is that the initial response status is `'accepted'` (Twilio hasn't
+picked a Sender from the pool yet) rather than `'queued'` (the bare-From-number
+initial state) — followed by a `'sending'` StatusCallback as the message
+moves toward the carrier. Both are real, officially documented Twilio Message
+statuses, reproduced directly against a migrated disposable Postgres
+instance (both an `INSERT` with `status='accepted'` and an `UPDATE` to
+`status='sending'` raised exactly the reported error) — this was never a
+guess.
+
+**Fix** (`db/migrations/2026-65-sms-messages-status-check-widen.sql`,
+forward-only, additive, no data rewrite): widened the allow-list to the
+complete, audited set of statuses this integration can legitimately receive
+for plain, two-way, single-recipient SMS/MMS — `accepted, queued, sending,
+sent, delivered, undelivered, failed, canceled, receiving, received`.
+Deliberately excludes `'read'` (WhatsApp/channel read-receipts — structurally
+impossible for plain SMS), `'partially_delivered'` (multi-recipient broadcast
+only — this integration always sends to exactly one `To`), and `'scheduled'`
+(Twilio's Schedule Send feature — `smsClient.js` never sets `SendAt`).
+`lib/smsService.js#KNOWN_SMS_STATUSES` is the single source of truth mirrored
+by the migration's CHECK list — `test/integration/sms.int.test.js`'s drift
+guard queries the live `pg_constraint` definition and asserts it matches this
+constant exactly, so the two can never silently diverge again.
+
+**Defense in depth beyond the constraint** (`lib/smsService.js#normalizeSmsStatus`):
+a FUTURE Twilio status this integration hasn't seen (a new value Twilio adds)
+never hits the DB constraint again — `sendSms`'s INSERT falls back to
+`'queued'` and logs a warning; `handleStatusCallback`'s UPDATE leaves the
+row's existing status unchanged (no safe value to guess for an in-flight
+message) while still recording the error fields, and logs a warning. Neither
+path silently corrupts data; both are logged for investigation.
+
+**Error handling fix** (`routes/sms.js`): both `/leads/:id/sms` routes'
+catch-all blocks previously responded with `{ error: e.message }` for ANY
+unexpected failure — for a Postgres driver error, `e.message` IS the literal
+server-side message (this incident's own exact text). Never acceptable for a
+customer-facing-adjacent CRM UI. Fixed via `logAndRespondUnexpectedError()`:
+full detail (message, code, stack) goes to `console.error` only; the client
+gets one generic, actionable message (`error: 'unexpected_error'`). This
+exact raw-`e.message`-to-client pattern is known to still exist elsewhere in
+this codebase (`routes/mergeLeads.js`, `routes/saleInvoices.js`,
+`routes/companySettings.js`, `routes/invoices.js`, `routes/leadQB.js`, and
+others) — tracked, pre-existing technical debt, NOT fixed here (this pass is
+scoped to the SMS incident; a repo-wide error-handling pass is a separate,
+deliberate change). Frontend: `crm-frontend/src/components/
+SmsConversationPanel.jsx`'s `ERROR_LABELS` and `STATUS_BADGE` maps, and
+`LeadDetailModern.jsx`'s `SMS_STATUS_LABEL` map, were both missing the new
+statuses (and the new `unexpected_error` code) — updated so none of them
+render as unstyled/raw text.
+
+Regression coverage: `test/smsService.test.js` (pure unit —
+`KNOWN_SMS_STATUSES`/`normalizeSmsStatus`, including the deliberate
+exclusions); real-Postgres `test/integration/sms.int.test.js` — reproduces
+the exact failure (`status='accepted'` on send, `status='sending'` on a
+callback) against the real constraint BEFORE this migration is applied, and
+proves both succeed after; also proves the defense-in-depth fallback for an
+unrecognized status, the live-constraint-vs-code drift guard, and that
+`/leads/:id/sms`'s two routes never leak a raw Postgres error (a malformed-id
+DB error) to the response body.
+
 ## Important business invariants
 
 - **Appointments**: no-double-booking is enforced by

@@ -200,6 +200,55 @@ test('sendSms: rejects outside the configured quiet hours', { skip }, async () =
   );
 });
 
+// ── Production incident regression (October 2026): a real manual SMS send
+// failed with "new row for relation sms_messages violates check constraint
+// sms_messages_status_check" — reproduced directly against this same real
+// Postgres instance (not just asserted): Twilio's initial Message-create
+// response is 'accepted', not 'queued', when sending via a Messaging Service
+// (TWILIO_MESSAGING_SERVICE_SID — this installation's preferred/production
+// config per CLAUDE.md), and smsClient.js passes that status through
+// verbatim. Fixed by db/migrations/2026-65-sms-messages-status-check-widen.sql
+// widening the constraint. These tests prove the fix against the REAL
+// constraint, not a mock — before the migration, each of the next two tests
+// fails with exactly the reported Postgres error. ─────────────────────────
+test('sendSms: a Twilio response of status="accepted" (the real Messaging-Service initial state) is persisted, not rejected by the DB', { skip }, async () => {
+  const leadId = await lead(`accepted-${RUN}`, { smsConsent: true });
+  fakeTwilio.nextResult = { ok: true, sid: `SM-${RUN}-accepted`, status: 'accepted', errorCode: null, errorMessage: null };
+  const row = await smsService.sendSms({ leadId, body: 'Messaging Service accepted-state test', sentBy: 'rep@ecconstructiongroup.com', now: new Date('2099-06-15T18:00:00Z') });
+  assert.strictEqual(row.status, 'accepted');
+});
+
+test('handleStatusCallback: a Twilio callback of status="sending" (the real intermediate state before sent/delivered) is persisted, not rejected by the DB', { skip }, async () => {
+  const leadId = await lead(`sending-${RUN}`, { smsConsent: true });
+  const row = await smsService.sendSms({ leadId, body: 'sending-state callback test', sentBy: 'rep@ecconstructiongroup.com', now: new Date('2099-06-15T18:00:00Z') });
+  const updated = await smsService.handleStatusCallback({ messageSid: row.twilio_sid, status: 'sending' });
+  assert.strictEqual(updated.status, 'sending');
+});
+
+test('sendSms: an UNRECOGNIZED future Twilio status never hits the DB constraint — falls back to "queued" instead of crashing', { skip }, async () => {
+  const leadId = await lead(`unknownstatus-${RUN}`, { smsConsent: true });
+  fakeTwilio.nextResult = { ok: true, sid: `SM-${RUN}-unknown`, status: 'some_future_twilio_status', errorCode: null, errorMessage: null };
+  const row = await smsService.sendSms({ leadId, body: 'defense in depth test', sentBy: 'rep@ecconstructiongroup.com', now: new Date('2099-06-15T18:00:00Z') });
+  assert.strictEqual(row.status, 'queued', 'an unrecognized status must fall back to a safe, already-allowed value, never crash');
+});
+
+test('handleStatusCallback: an UNRECOGNIZED future Twilio status leaves the row\'s existing status unchanged (never guessed, never crashes) but still records the error fields', { skip }, async () => {
+  const leadId = await lead(`unknowncallback-${RUN}`, { smsConsent: true });
+  const row = await smsService.sendSms({ leadId, body: 'unknown callback status test', sentBy: 'rep@ecconstructiongroup.com', now: new Date('2099-06-15T18:00:00Z') });
+  const updated = await smsService.handleStatusCallback({ messageSid: row.twilio_sid, status: 'some_future_twilio_status', errorCode: '99999', errorMessage: 'unexpected' });
+  assert.strictEqual(updated.status, row.status, 'status must be left exactly as it was, not overwritten with an unrecognized value');
+  assert.strictEqual(updated.error_code, '99999', 'error fields must still update even when the status itself is left unchanged');
+});
+
+test('the live sms_messages_status_check constraint matches lib/smsService.js#KNOWN_SMS_STATUSES exactly — permanent drift guard between the migration and the code', { skip }, async () => {
+  const r = await db.query(
+    `SELECT pg_get_constraintdef(oid) AS def FROM pg_constraint WHERE conname = 'sms_messages_status_check'`
+  );
+  const def = r.rows[0].def;
+  const dbStatuses = new Set((def.match(/'([^']+)'/g) || []).map((s) => s.slice(1, -1)));
+  assert.deepStrictEqual(dbStatuses, smsService.KNOWN_SMS_STATUSES, 'db/migrations/2026-65-sms-messages-status-check-widen.sql and lib/smsService.js#KNOWN_SMS_STATUSES have drifted apart');
+});
+
 // ── handleInboundMessage ─────────────────────────────────────────────────────
 test('handleInboundMessage: a new message from a matched lead is stored and linked', { skip }, async () => {
   const phone = freshPhone();
@@ -332,6 +381,35 @@ test('POST /sms-webhook/inbound: an ordinary message gets an empty TwiML respons
   assert.strictEqual(r.status, 200);
   const xml = await r.text();
   assert.ok(!/<Message>/.test(xml), 'an ordinary reply must not trigger any auto-reply text');
+});
+
+// ── Error handling: never leak a raw Postgres error to the CRM UI ──────────
+// Production incident fix: routes/sms.js's catch blocks used to respond with
+// `{ error: e.message }` for any non-SmsError failure — e.message for a
+// Postgres driver error is the literal server-side message (e.g. this
+// incident's own "new row for relation sms_messages violates check
+// constraint sms_messages_status_check", or here, a malformed-UUID input
+// error). Full detail still goes to server logs (console.error); the client
+// now only ever sees a generic, actionable message.
+test('POST /leads/:id/sms: a genuine unexpected DB error (malformed id) never leaks the raw Postgres message to the response', { skip }, async (t) => {
+  await withBusinessHours(t, async () => {
+    const adminToken = token('admin', 'admin@ecconstructiongroup.com');
+    const r = await api('POST', `/api/v1/leads/not-a-valid-uuid/sms`, { body: 'hi' }, adminToken);
+    assert.strictEqual(r.status, 500);
+    assert.strictEqual(r.body.error, 'unexpected_error');
+    const serialized = JSON.stringify(r.body);
+    assert.ok(!/invalid input syntax/i.test(serialized), 'raw Postgres error text must never reach the response body');
+    assert.ok(!/relation|constraint|column/i.test(serialized), 'no raw SQL/schema vocabulary must ever reach the response body');
+  });
+});
+
+test('GET /leads/:id/sms: a genuine unexpected DB error (malformed id) never leaks the raw Postgres message to the response', { skip }, async () => {
+  const adminToken = token('admin', 'admin@ecconstructiongroup.com');
+  const r = await api('GET', `/api/v1/leads/not-a-valid-uuid/sms`, undefined, adminToken);
+  assert.strictEqual(r.status, 500);
+  assert.strictEqual(r.body.error, 'unexpected_error');
+  const serialized = JSON.stringify(r.body);
+  assert.ok(!/invalid input syntax/i.test(serialized), 'raw Postgres error text must never reach the response body');
 });
 
 test('POST /sms-webhook/status: updates delivery status and always returns 204', { skip }, async () => {

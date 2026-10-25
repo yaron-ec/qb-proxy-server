@@ -49,6 +49,20 @@ function twiml(message) {
   return `<?xml version="1.0" encoding="UTF-8"?><Response>${body}</Response>`;
 }
 
+/**
+ * A genuinely unexpected failure (DB error, etc. — never an smsService.SmsError,
+ * which already carries its own user-safe code/message) must never surface a
+ * raw driver/Postgres message to the CRM UI — e.g. the production incident
+ * where `new row for relation "sms_messages" violates check constraint
+ * "sms_messages_status_check"` reached the browser verbatim via `e.message`.
+ * Full detail (message, code, stack) goes to server logs only; the client
+ * gets one generic, actionable message.
+ */
+function logAndRespondUnexpectedError(e, res, context) {
+  console.error(`[sms] ${context} error:`, { message: e.message, code: e.code, stack: e.stack });
+  res.status(500).json({ error: 'unexpected_error', message: 'Something went wrong sending/loading this message. Please try again, or contact support if it keeps happening.' });
+}
+
 // ── POST /api/v1/leads/:id/sms — send ───────────────────────────────────────
 router.post('/leads/:id/sms', requireAuth, requireModuleEnabled('sms'), async (req, res) => {
   try {
@@ -78,8 +92,7 @@ router.post('/leads/:id/sms', requireAuth, requireModuleEnabled('sms'), async (r
       const status = { lead_not_found: 404, no_phone: 422, invalid_phone: 422, recipient_opted_out: 422, no_consent: 422, quiet_hours: 422, twilio_not_configured: 503 }[e.code] || 502;
       return res.status(status).json({ error: e.code, message: e.message, sms: e.messageRow || null });
     }
-    console.error('[sms] send error:', e.message);
-    res.status(500).json({ error: e.message });
+    logAndRespondUnexpectedError(e, res, 'send');
   }
 });
 
@@ -100,8 +113,7 @@ router.get('/leads/:id/sms', requireAuth, requireModuleEnabled('sms'), async (re
     const items = await smsService.getConversation(leadR.rows[0].id);
     res.json({ items });
   } catch (e) {
-    console.error('[sms] history error:', e.message);
-    res.status(500).json({ error: e.message });
+    logAndRespondUnexpectedError(e, res, 'history');
   }
 });
 
