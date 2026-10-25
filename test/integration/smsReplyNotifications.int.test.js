@@ -36,6 +36,15 @@ const fakeTwilio = {
   verifyTwilioSignature: () => true,
   missingConfig: () => [],
   getCredentials: () => ({ accountSid: 'ACtest', authToken: 'test', messagingServiceSid: null, from: '+15550001111' }),
+  // October 2026 incident fix moved webhookBaseUrl()/webhookBaseUrlSource()
+  // from routes/sms.js into lib/smsClient.js — this fake replaces the whole
+  // module, so it must supply both or routes/sms.js's inbound handler
+  // throws "webhookBaseUrl is not a function" before ever reaching
+  // handleInboundMessage (silently swallowed as an empty-TwiML 200,
+  // which is exactly why this broke two tests in this file with zero
+  // obvious connection to the change).
+  webhookBaseUrl: () => 'https://fake-backend.example.com',
+  webhookBaseUrlSource: () => 'TWILIO_WEBHOOK_BASE_URL',
 };
 
 const fakeEmail = { sent: [] };

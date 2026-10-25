@@ -94,10 +94,36 @@ function IntegrationCard({ moduleKey, data }) {
             {data.recency.total_estimates ?? 0} estimates synced · {data.recency.matched ?? 0} matched to a lead · {data.recency.unmatched ?? 0} unmatched
           </HelperText>
         )}
-        {data.recency && moduleKey !== "handoff_estimates_sync" && (
+        {data.recency && moduleKey === "sms" && (
+          <HelperText>
+            Last inbound SMS received {fmt(data.recency.last_lead_received_at)} · {data.recency.total_leads_received ?? 0} total
+          </HelperText>
+        )}
+        {data.recency && moduleKey !== "handoff_estimates_sync" && moduleKey !== "sms" && (
           <HelperText>
             Last lead received {fmt(data.recency.last_lead_received_at)} · {data.recency.total_leads_received ?? 0} total
           </HelperText>
+        )}
+        {moduleKey === "sms" && data.webhook_config && (
+          <div className="text-xs rounded-md px-2.5 py-2 leading-snug bg-slate-50 text-slate-600 space-y-1">
+            <div>
+              Base URL source:{" "}
+              <span className={data.webhook_config.base_url_source === "TWILIO_WEBHOOK_BASE_URL" ? "text-emerald-700 font-semibold" : "text-amber-700 font-semibold"}>
+                {data.webhook_config.base_url_source === "TWILIO_WEBHOOK_BASE_URL" ? "TWILIO_WEBHOOK_BASE_URL" : data.webhook_config.base_url_source === "CRM_PUBLIC_URL_fallback" ? "CRM_PUBLIC_URL (fallback)" : "unset"}
+              </span>
+            </div>
+            {data.webhook_config.base_url_source !== "TWILIO_WEBHOOK_BASE_URL" && (
+              <div className="text-amber-700">
+                Set TWILIO_WEBHOOK_BASE_URL to this backend service's own public URL — CRM_PUBLIC_URL is the frontend's URL and will not match Twilio's signature.
+              </div>
+            )}
+            {data.webhook_config.inbound_webhook_url && (
+              <div className="font-mono text-[10px] break-all">Inbound: {data.webhook_config.inbound_webhook_url}</div>
+            )}
+            {data.webhook_config.status_webhook_url && (
+              <div className="font-mono text-[10px] break-all">Status: {data.webhook_config.status_webhook_url}</div>
+            )}
+          </div>
         )}
         {data.sync_evidence && (
           <HelperText>
@@ -116,7 +142,7 @@ function IntegrationCard({ moduleKey, data }) {
             {data.delivery_failures.recent_24h > 0
               ? `${data.delivery_failures.recent_24h} rejected deliveries in the last 24h`
               : `${data.delivery_failures.total} rejected deliveries total`}
-            {" "}(bad secret or disabled) — last {fmt(data.delivery_failures.last_rejected_at)}
+            {" "}{moduleKey === "sms" ? "(signature verification failed — check the webhook base URL above)" : "(bad secret or disabled)"} — last {fmt(data.delivery_failures.last_rejected_at)}
           </div>
         )}
       </CardContent>

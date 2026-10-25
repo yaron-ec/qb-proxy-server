@@ -324,7 +324,7 @@ about topology, this file wins; go correct `railway.json` and
 | Handoff | Static API key | `app_settings.handoff_api_key` or env var | Env-var gated |
 | Website leads (ecconstructiongroup.com, Netlify) | Shared secret `x-webhook-secret` = `WEBSITE_LEAD_WEBHOOK_SECRET` (**fails closed** — 503 if unset) → `routes/websiteLeads.js` | `leads` (+ `sms_consent*` columns), `website_lead_receipts` (idempotency) | Env-var gated; website side needs `CRM_WEBHOOK_URL` + the same value as `WEBHOOK_SECRET` |
 | Meta/Facebook Lead Ads | Webhook + `META_APP_SECRET` HMAC (**fails CLOSED (503) if unset** — fixed during the Oct 2026 Railway-incident security pass; previously failed open, silently accepting unsigned payloads. Regression coverage: `test/metaWebhookFailClosed.test.js`) | N/A | Env-var gated |
-| Twilio SMS (two-way, customer-facing) | `TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN` + `TWILIO_MESSAGING_SERVICE_SID` (A2P, preferred) or `TWILIO_FROM` (bare number) — the SAME env vars `lib/reminderAlerts.js`'s internal staff-alert SMS and `lib/systemHealthChecks.js#checkTwilio`'s health probe already used before this | `sms_messages` (two-way log), `sms_opt_outs` (phone-level STOP/START registry) | Env-var gated (`sms` module in `enabled_modules` — pre-existing key, previously unused by any customer-facing route) |
+| Twilio SMS (two-way, customer-facing) | `TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN` + `TWILIO_MESSAGING_SERVICE_SID` (A2P, preferred) or `TWILIO_FROM` (bare number) — the SAME env vars `lib/reminderAlerts.js`'s internal staff-alert SMS and `lib/systemHealthChecks.js#checkTwilio`'s health probe already used before this — **PLUS `TWILIO_WEBHOOK_BASE_URL`** (the `qb-proxy-server` backend's own public URL — never `CRM_PUBLIC_URL`, the frontend's URL; see the October 2026 inbound-webhook incident below) for inbound signature verification and the outbound status-callback URL | `sms_messages` (two-way log), `sms_opt_outs` (phone-level STOP/START registry), `sms_webhook_rejections` (rejected-webhook diagnostics) | Env-var gated (`sms` module in `enabled_modules` — pre-existing key, previously unused by any customer-facing route) |
 
 ## Automated appointment SMS (confirmation + 12h/2h reminders, two-way replies)
 
@@ -732,6 +732,121 @@ proves both succeed after; also proves the defense-in-depth fallback for an
 unrecognized status, the live-constraint-vs-code drift guard, and that
 `/leads/:id/sms`'s two routes never leak a raw Postgres error (a malformed-id
 DB error) to the response body.
+
+## SMS inbound-webhook / status-callback production incident (October 2026, fixed)
+
+A real controlled test (outbound SMS from the Text Message tab to Michelle
+Roitman's test lead, `+13239611116`, successfully received) proved outbound
+sending works — but her reply ("Hi") to the Twilio sender (`+18185930874`)
+never appeared in the lead's conversation. Consent was already on file; this
+was never a consent/quiet-hours issue.
+
+**Root cause (confirmed via code audit, not guessed)**: `routes/sms.js`'s
+webhook-signature-verification URL (and the outbound `statusCallbackUrl` it
+supplies to Twilio on every send) was built from `CRM_PUBLIC_URL`. Every
+OTHER call site of `CRM_PUBLIC_URL` in this codebase —
+`lib/dataAccessRailway.js`, `lib/emailTemplates.js`, and conclusively
+`lib/platformInfraProvisioning.js`'s own provisioning step, which sets
+`CRM_PUBLIC_URL: frontendUrl` (never `backendUrl`) on the API service —
+establishes it as the **FRONTEND's** own public URL
+(`crm.ecconstructiongroup.com`), never the **backend**'s. Twilio signs its
+webhook requests (and is given the status-callback URL) against the
+BACKEND's real public URL — the only service actually running this Express
+app — so verifying against `CRM_PUBLIC_URL` computed a URL that could never
+match Twilio's real signature, unconditionally, for every single inbound
+message and every delivery-status callback, regardless of how Twilio
+Console was configured. Reproduced directly: a signature Twilio computes
+against the real backend URL never verifies against the frontend's URL, and
+does verify once computed against the correct one (see
+`test/smsClient.test.js`'s "the incident, reproduced" test). Notably,
+`lib/smsClient.js#verifyTwilioSignature`'s OWN prior header comment already
+named a `TWILIO_WEBHOOK_BASE_URL` env var as the intended source — it was
+simply never implemented; `routes/sms.js` read only `CRM_PUBLIC_URL`.
+
+**Fix**: `webhookBaseUrl()`/`webhookBaseUrlSource()` moved into
+`lib/smsClient.js` (the natural home given the above comment) and now read
+the dedicated `TWILIO_WEBHOOK_BASE_URL` env var FIRST — this MUST be set to
+the `qb-proxy-server` backend service's own public Railway domain (or custom
+domain), never the frontend's. `CRM_PUBLIC_URL` remains only as a
+last-resort fallback for graceful degradation (never worse than the
+pre-fix bug) — never silently relied upon; see the System Health addition
+below. **Operator action required**: set `TWILIO_WEBHOOK_BASE_URL` on the
+`qb-proxy-server` Railway service, then confirm in Twilio Console that the
+Messaging Service's "Incoming Messages" webhook URL (and, if a bare number
+is used instead, the phone number's own messaging webhook) is set to
+`<that backend URL>/api/v1/sms-webhook/inbound` — the exact, copy-pasteable
+value now shown in System Health (see below). This same fix resolves BOTH
+symptoms at once: inbound replies never processed, AND outbound
+delivery-status callbacks (pending/sent → delivered) never arriving, since
+both were broken by the identical URL mismatch.
+
+**New observability, closing a real gap** (this codebase had ZERO queryable
+evidence of a rejected webhook attempt before this — only a bare
+`console.warn` line, requiring raw Railway log access to ever notice):
+- `db/migrations/2026-66-sms-webhook-rejections.sql` — a new
+  `sms_webhook_rejections` table (mirrors
+  `2026-58-website-lead-intake-rejections.sql`'s established pattern for an
+  inbound-webhook-only integration) recording every signature-verification
+  failure on EITHER webhook route (`inbound` and `status`), with the EXACT
+  URL our server expected Twilio to have signed against — directly
+  comparable, character for character, to Twilio Console's configured
+  webhook URL — plus the request's `Host` header, whether an
+  `X-Twilio-Signature` header was present at all, and the best-effort
+  `MessageSid`/`From` extracted from the still-parseable form body (Twilio's
+  POST body parses fine even when the signature doesn't verify). Never the
+  computed/expected signature value itself, never the auth token.
+  `lib/smsService.js#recordWebhookRejection` is the write path, called from
+  both `routes/sms.js` webhook handlers right before the 401 response;
+  `lib/smsService.js#getInboundWebhookHealth` is the read path (inbound
+  recency + rejection counts).
+- `lib/systemHealthChecks.js#checkTwilio` now reports, independent of
+  outbound-send credential presence (DB-only, mirrors
+  `checkWebsiteIntake`'s established pattern): `recency` (last inbound SMS
+  ever received + total), `delivery_failures` (rejected attempts in the
+  last 24h / total / last rejected at), and a new `webhook_config` block —
+  `base_url_source` (`TWILIO_WEBHOOK_BASE_URL` | `CRM_PUBLIC_URL_fallback` |
+  `unset`) plus the exact `inbound_webhook_url`/`status_webhook_url` Twilio
+  Console should be configured with. `crm-frontend/src/pages/SystemHealth.jsx`
+  renders this: SMS-specific wording for recency/rejection (not the generic
+  "lead" wording used by other inbound-webhook integrations), and a visible
+  amber warning — "Set TWILIO_WEBHOOK_BASE_URL..." — whenever the fallback
+  is in effect, so this specific misconfiguration can never again hide
+  behind a "Connected"-looking card. URLs only, never a secret value.
+
+**Not verifiable from this environment** (no Railway or Twilio Console
+access here): whether `TWILIO_WEBHOOK_BASE_URL` has actually been set in
+production yet, and whether Twilio Console's Messaging Service inbound
+webhook URL is pointed at the backend's real domain. Checking System
+Health's new `webhook_config`/`delivery_failures` card after this deploys —
+and then having Michelle (or any test number) send one more real reply — is
+the live verification step an operator must perform; do not treat inbound
+SMS as fixed until that card confirms `TWILIO_WEBHOOK_BASE_URL` (not the
+fallback) and a `0`/clean `delivery_failures` count after the env var is set.
+`SMS_REPLY_NOTIFICATIONS_ENABLED`'s actual Railway runtime value is
+similarly unverifiable from here — the rep-notification/Yaron-forward CODE
+path is proven correct end-to-end once inbound processing itself succeeds
+(see Regression coverage below), but whether that switch is actually set to
+`'true'` in production is an operator fact, not a code fact.
+
+Regression coverage: `test/smsClient.test.js` (the incident reproduced at
+the signature-algorithm level: the real backend URL verifies, the frontend
+URL never does; `webhookBaseUrl`/`webhookBaseUrlSource` precedence and
+fallback-flagging); `test/systemHealthChecks.test.js` (`checkTwilio`'s new
+`webhook_config`/`recency`/`delivery_failures` fields, including graceful
+degradation on a DB failure); `crm-frontend/src/pages/SystemHealth.test.jsx`
+(the warning banner renders only when falling back, never when
+`TWILIO_WEBHOOK_BASE_URL` is correctly set); real-Postgres
+`test/integration/sms.int.test.js` (a signature failure on either webhook
+route is durably recorded with the exact expected URL and extracted
+MessageSid/From; a correctly-signed request never writes a rejection row;
+`getInboundWebhookHealth` reflects both). Found and fixed in the same pass:
+`test/integration/smsReplyNotifications.int.test.js`'s own fake Twilio
+client stub was missing the two relocated functions entirely, which made
+`routes/sms.js`'s inbound handler throw before ever reaching
+`handleInboundMessage` — silently swallowed as an empty-TwiML 200 — failing
+2 of that file's 4 tests with no obvious connection to this change; fixed by
+adding the two functions to that file's stub (the same stub shape
+`test/integration/sms.int.test.js` already needed).
 
 ## Important business invariants
 
@@ -1268,14 +1383,22 @@ DB error) to the response body.
     verification (returns true) when `TWILIO_AUTH_TOKEN` is unset, matching
     `routes/metaWebhook.js#verifyMetaSignature`'s existing "not configured →
     skip" convention.
-  - **Not yet verified from this environment** (no outbound network access,
-    no Railway/Twilio Console access): whether `TWILIO_ACCOUNT_SID`/
-    `TWILIO_AUTH_TOKEN`/a sender identifier are actually set in Railway
-    production, whether the approved A2P Campaign is associated with the
-    right Messaging Service/sender number in the Twilio Console, and
-    whether a real send/receive round-trip succeeds end-to-end against a
-    live number. Do not treat production SMS as operational until all
-    three are confirmed. Real-Postgres coverage (fake Twilio client, no
+  - **Updated October 2026 — a real live round-trip WAS performed**: a
+    controlled outbound send to Michelle Roitman's test lead succeeded, but
+    her reply never appeared — root-caused and fixed (see "SMS
+    inbound-webhook / status-callback production incident" above:
+    `routes/sms.js` was verifying Twilio's signature against `CRM_PUBLIC_URL`,
+    this codebase's established name for the FRONTEND's URL, never the
+    backend's). **Still not verifiable from this environment** (no Railway/
+    Twilio Console access here): whether `TWILIO_WEBHOOK_BASE_URL` has
+    actually been set on the `qb-proxy-server` service since this fix
+    deployed, and whether Twilio Console's Messaging Service inbound webhook
+    URL points at that same backend domain. System Health's `webhook_config`
+    card (added in that same fix) is the one place to confirm both without
+    needing either kind of access — do not treat inbound SMS/status
+    callbacks as operational until it shows `TWILIO_WEBHOOK_BASE_URL` (not
+    the `CRM_PUBLIC_URL_fallback`) and a clean `delivery_failures` count
+    after a fresh test reply. Real-Postgres coverage (fake Twilio client, no
     live network call): `test/integration/sms.int.test.js`; pure unit
     coverage: `test/smsService.test.js`, `test/smsClient.test.js`.
 - **Base44 is retired from the production path.** Known, now-fixed

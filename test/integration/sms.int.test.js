@@ -47,17 +47,30 @@ async function withBusinessHours(t, fn) {
 // `ON CONFLICT (twilio_sid) DO NOTHING RETURNING *` then silently returns no
 // row at all on that collision.
 const RUN_FOR_SID = `sms${Date.now().toString(36)}`;
+const FAKE_BACKEND_URL = 'https://fake-backend.example.com';
 const fakeTwilio = {
   sent: [],
   nextResult: null,
+  // Toggled by the webhook-rejection tests below to exercise routes/sms.js's
+  // rejection-recording path (the real HMAC algorithm itself is already
+  // proven correct/incorrect-by-URL at the unit level in test/smsClient.test.js
+  // — this suite only needs to prove routes/sms.js's WIRING around a
+  // pass/fail result, not re-derive the algorithm).
+  forceSignatureFailure: false,
   sendMessage: async ({ to, body }) => {
     fakeTwilio.sent.push({ to, body });
     if (fakeTwilio.nextResult) { const r = fakeTwilio.nextResult; fakeTwilio.nextResult = null; return r; }
     return { ok: true, sid: `SM-${RUN_FOR_SID}-${fakeTwilio.sent.length}`, status: 'queued', errorCode: null, errorMessage: null };
   },
-  verifyTwilioSignature: () => true, // webhook signature checked separately at the unit level (test/smsClient.test.js)
+  verifyTwilioSignature: () => !fakeTwilio.forceSignatureFailure,
   missingConfig: () => [],
   getCredentials: () => ({ accountSid: 'ACtest', authToken: 'test', messagingServiceSid: null, from: '+15550001111' }),
+  // October 2026 incident fix: routes/sms.js now calls smsClient.webhookBaseUrl()
+  // (moved out of routes/sms.js itself) — this fake must supply it, a fixed,
+  // obviously-fake BACKEND-looking URL (never the frontend's), matching the
+  // post-fix TWILIO_WEBHOOK_BASE_URL source.
+  webhookBaseUrl: () => FAKE_BACKEND_URL,
+  webhookBaseUrlSource: () => 'TWILIO_WEBHOOK_BASE_URL',
 };
 
 let db, smsService, ownerId, server, base, smsModuleState;
@@ -423,4 +436,72 @@ test('POST /sms-webhook/status: updates delivery status and always returns 204',
   assert.strictEqual(r.status, 204);
   const updated = (await db.query('SELECT status FROM sms_messages WHERE twilio_sid = $1', [row.twilio_sid])).rows[0];
   assert.strictEqual(updated.status, 'delivered');
+});
+
+// ── Inbound-webhook signature-rejection diagnostics (October 2026 incident:
+// a real inbound reply from Michelle Roitman's test lead never appeared in
+// the CRM because every inbound webhook silently 401'd — see
+// lib/smsClient.js#webhookBaseUrl's header). These prove routes/sms.js's
+// rejection-recording path: a signature failure is never just a bare log
+// line again — it's a durable, queryable row with the EXACT URL our server
+// expected, directly comparable against Twilio Console's configured
+// webhook URL. ──────────────────────────────────────────────────────────
+test('POST /sms-webhook/inbound: a signature failure is recorded in sms_webhook_rejections with the exact expected URL and the message\'s MessageSid/From (extracted even though the signature was rejected)', { skip }, async () => {
+  fakeTwilio.forceSignatureFailure = true;
+  try {
+    const r = await fetch(`${base}/api/v1/sms-webhook/inbound`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Twilio-Signature': 'bogus' },
+      body: new URLSearchParams({ MessageSid: `SM-rejecttest-${RUN}`, From: '+13239611116', To: '+18185930874', Body: 'Hi' }).toString(),
+    });
+    assert.strictEqual(r.status, 401);
+  } finally {
+    fakeTwilio.forceSignatureFailure = false;
+  }
+  const rej = (await db.query('SELECT * FROM sms_webhook_rejections WHERE message_sid = $1', [`SM-rejecttest-${RUN}`])).rows[0];
+  assert.ok(rej, 'expected a recorded rejection row');
+  assert.strictEqual(rej.path, 'inbound');
+  assert.strictEqual(rej.computed_url, `${FAKE_BACKEND_URL}/api/v1/sms-webhook/inbound`);
+  assert.strictEqual(rej.has_signature_header, true);
+  assert.strictEqual(rej.from_number, '+13239611116');
+});
+
+test('POST /sms-webhook/status: a signature failure is ALSO recorded, under path=\'status\'', { skip }, async () => {
+  fakeTwilio.forceSignatureFailure = true;
+  try {
+    const r = await fetch(`${base}/api/v1/sms-webhook/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ MessageSid: `SM-rejecttest-status-${RUN}`, MessageStatus: 'delivered' }).toString(),
+    });
+    assert.strictEqual(r.status, 401);
+  } finally {
+    fakeTwilio.forceSignatureFailure = false;
+  }
+  const rej = (await db.query('SELECT * FROM sms_webhook_rejections WHERE message_sid = $1', [`SM-rejecttest-status-${RUN}`])).rows[0];
+  assert.ok(rej, 'expected a recorded rejection row');
+  assert.strictEqual(rej.path, 'status');
+  assert.strictEqual(rej.computed_url, `${FAKE_BACKEND_URL}/api/v1/sms-webhook/status`);
+  assert.strictEqual(rej.has_signature_header, false, 'this request sent no X-Twilio-Signature header at all');
+});
+
+test('a correctly-signed inbound webhook never writes a rejection row (sanity: forceSignatureFailure actually gates this path, not something else)', { skip }, async () => {
+  const before = (await db.query(`SELECT COUNT(*)::int AS c FROM sms_webhook_rejections`)).rows[0].c;
+  const r = await fetch(`${base}/api/v1/sms-webhook/inbound`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ MessageSid: `SM-nofail-${RUN}`, From: freshPhone(), To: '+18185930874', Body: 'Hello' }).toString(),
+  });
+  assert.strictEqual(r.status, 200);
+  const after = (await db.query(`SELECT COUNT(*)::int AS c FROM sms_webhook_rejections`)).rows[0].c;
+  assert.strictEqual(after, before, 'a successfully-verified webhook must never add a rejection row');
+});
+
+test('smsService.getInboundWebhookHealth: reports inbound recency AND rejection counts independently of outbound-send credential presence', { skip }, async () => {
+  const health = await smsService.getInboundWebhookHealth();
+  assert.ok(health.recency);
+  assert.ok(health.recency.total_leads_received > 0, 'this suite has already received multiple real inbound messages by this point');
+  assert.ok(health.recency.last_lead_received_at, 'expected a timestamp, not null, given the above');
+  assert.ok(health.delivery_failures);
+  assert.ok(health.delivery_failures.total > 0, 'the rejection tests above should have added at least 2 rows');
 });

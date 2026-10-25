@@ -31,9 +31,11 @@ const router = express.Router();
 
 const MAX_BODY_LEN = 1600; // Twilio's own single-message-concatenation ceiling (10 segments of 160 GSM-7 chars)
 
-function webhookBaseUrl() {
-  return (process.env.CRM_PUBLIC_URL || '').replace(/\/$/, '');
-}
+// webhookBaseUrl() now lives in lib/smsClient.js — see its header comment
+// for the October 2026 production incident (CRM_PUBLIC_URL is the
+// FRONTEND's URL everywhere else in this codebase; the webhook/signature
+// URL needs the BACKEND's own URL instead, via TWILIO_WEBHOOK_BASE_URL).
+const webhookBaseUrl = smsClient.webhookBaseUrl;
 
 async function companyName() {
   try {
@@ -122,16 +124,27 @@ const webhookRouter = express.Router();
 webhookRouter.use(requireModuleEnabled('sms'));
 webhookRouter.use(express.urlencoded({ extended: false }));
 
+// Returns { ok, url } — `url` is always returned (even on failure) so a
+// rejection can be recorded with the EXACT URL our server expected Twilio to
+// have signed against (see lib/smsClient.js#webhookBaseUrl's header for the
+// October 2026 incident this directly diagnoses: that URL should be
+// byte-for-byte identical to the webhook URL configured in Twilio Console).
 function verifyRequest(req, path) {
   const url = `${webhookBaseUrl()}${path}`;
   const signature = req.headers['x-twilio-signature'];
-  return smsClient.verifyTwilioSignature(url, req.body || {}, signature);
+  return { ok: smsClient.verifyTwilioSignature(url, req.body || {}, signature), url };
 }
 
 webhookRouter.post('/inbound', async (req, res) => {
   try {
-    if (!verifyRequest(req, '/api/v1/sms-webhook/inbound')) {
-      console.warn('[sms-webhook] inbound signature verification failed');
+    const verification = verifyRequest(req, '/api/v1/sms-webhook/inbound');
+    if (!verification.ok) {
+      console.warn('[sms-webhook] inbound signature verification failed', { expected_url: verification.url, host_header: req.headers.host });
+      await smsService.recordWebhookRejection({
+        path: 'inbound', computedUrl: verification.url, hostHeader: req.headers.host,
+        hasSignatureHeader: !!req.headers['x-twilio-signature'],
+        messageSid: req.body && req.body.MessageSid, fromNumber: req.body && req.body.From,
+      });
       return res.status(401).send('signature_verification_failed');
     }
     const { MessageSid, From, To, Body } = req.body || {};
@@ -198,8 +211,14 @@ webhookRouter.post('/inbound', async (req, res) => {
 
 webhookRouter.post('/status', async (req, res) => {
   try {
-    if (!verifyRequest(req, '/api/v1/sms-webhook/status')) {
-      console.warn('[sms-webhook] status signature verification failed');
+    const verification = verifyRequest(req, '/api/v1/sms-webhook/status');
+    if (!verification.ok) {
+      console.warn('[sms-webhook] status signature verification failed', { expected_url: verification.url, host_header: req.headers.host });
+      await smsService.recordWebhookRejection({
+        path: 'status', computedUrl: verification.url, hostHeader: req.headers.host,
+        hasSignatureHeader: !!req.headers['x-twilio-signature'],
+        messageSid: req.body && req.body.MessageSid, fromNumber: null,
+      });
       return res.status(401).send('signature_verification_failed');
     }
     const { MessageSid, MessageStatus, ErrorCode, ErrorMessage } = req.body || {};
