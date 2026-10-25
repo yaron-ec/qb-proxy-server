@@ -3,7 +3,36 @@
 
 const test = require('node:test');
 const assert = require('node:assert');
-const { detectKeyword, isQuietHours, QUIET_HOURS_START, QUIET_HOURS_END } = require('../lib/smsService');
+const { detectKeyword, isQuietHours, QUIET_HOURS_START, QUIET_HOURS_END, KNOWN_SMS_STATUSES, normalizeSmsStatus } = require('../lib/smsService');
+
+// ── KNOWN_SMS_STATUSES / normalizeSmsStatus — production incident regression
+// (October 2026): a real manual SMS send failed with "new row for relation
+// sms_messages violates check constraint sms_messages_status_check" because
+// Twilio's real initial status for a Messaging-Service send is 'accepted',
+// not 'queued', and smsClient.js passes Twilio's status through verbatim.
+// See db/migrations/2026-65-sms-messages-status-check-widen.sql and
+// test/integration/sms.int.test.js (real-Postgres reproduction + proof of
+// fix) for the full story. These are the pure-function-level checks.
+test('KNOWN_SMS_STATUSES includes every real Twilio Message-resource status this installation can receive (plain two-way SMS, Messaging Service or bare From, no Schedule Send, no WhatsApp)', () => {
+  for (const s of ['accepted', 'queued', 'sending', 'sent', 'delivered', 'undelivered', 'failed', 'canceled', 'receiving', 'received']) {
+    assert.ok(KNOWN_SMS_STATUSES.has(s), `expected "${s}" to be a known status`);
+  }
+});
+
+test('KNOWN_SMS_STATUSES deliberately excludes statuses this integration cannot produce (WhatsApp read receipts, broadcast partial-delivery, Schedule Send) — not guessed in', () => {
+  for (const s of ['read', 'partially_delivered', 'scheduled']) {
+    assert.ok(!KNOWN_SMS_STATUSES.has(s), `"${s}" should not be allowed — this integration never uses that feature`);
+  }
+});
+
+test('normalizeSmsStatus: a known status passes through unchanged', () => {
+  assert.strictEqual(normalizeSmsStatus('accepted', 'queued'), 'accepted');
+  assert.strictEqual(normalizeSmsStatus('delivered', 'queued'), 'delivered');
+});
+
+test('normalizeSmsStatus: an unrecognized status falls back to the given safe value instead of being returned as-is', () => {
+  assert.strictEqual(normalizeSmsStatus('some_future_twilio_status', 'queued'), 'queued');
+});
 
 test('detectKeyword: recognizes every documented STOP-equivalent keyword, case-insensitively', () => {
   for (const kw of ['stop', 'STOP', 'StopAll', 'unsubscribe', 'Cancel', 'END', 'quit']) {

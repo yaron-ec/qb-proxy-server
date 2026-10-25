@@ -11,17 +11,25 @@ const ERROR_LABELS = {
   no_consent: 'This lead has not given SMS consent. Record consent above before sending.',
   quiet_hours: 'Outbound SMS is restricted during quiet hours. Try again later.',
   twilio_not_configured: 'SMS is not yet configured for this installation.',
+  unexpected_error: 'Something went wrong sending this message. Please try again, or contact support if it keeps happening.',
 };
 
-// Delivery-status badge — every outbound/inbound row gets one (not just
-// "failed", per the full status vocabulary: queued/sent/delivered/failed/
-// undelivered/received).
+// Delivery-status badge — every outbound/inbound row gets one, covering the
+// full Twilio status vocabulary this installation can receive (see
+// lib/smsService.js#KNOWN_SMS_STATUSES / db/migrations/
+// 2026-65-sms-messages-status-check-widen.sql): accepted/queued/sending are
+// all pre-delivery in-flight states shown identically to "Queued" — a rep
+// doesn't need to distinguish them, just that nothing has failed yet.
 const STATUS_BADGE = {
+  accepted: { label: 'Queued', cls: 'text-slate-400' },
   queued: { label: 'Queued', cls: 'text-slate-400' },
+  sending: { label: 'Queued', cls: 'text-slate-400' },
   sent: { label: 'Sent', cls: 'text-slate-400' },
   delivered: { label: 'Delivered', cls: 'text-emerald-600' },
   failed: { label: 'Failed', cls: 'text-red-500 font-semibold' },
   undelivered: { label: 'Undelivered', cls: 'text-red-500 font-semibold' },
+  canceled: { label: 'Canceled', cls: 'text-red-500 font-semibold' },
+  receiving: { label: 'Received', cls: 'text-slate-400' },
   received: { label: 'Received', cls: 'text-slate-400' },
 };
 
