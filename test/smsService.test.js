@@ -3,7 +3,30 @@
 
 const test = require('node:test');
 const assert = require('node:assert');
-const { detectKeyword, isQuietHours, QUIET_HOURS_START, QUIET_HOURS_END, KNOWN_SMS_STATUSES, normalizeSmsStatus } = require('../lib/smsService');
+const { detectKeyword, isQuietHours, QUIET_HOURS_START, QUIET_HOURS_END, KNOWN_SMS_STATUSES, normalizeSmsStatus, OUTBOUND_STATUS_RANK } = require('../lib/smsService');
+
+// ── OUTBOUND_STATUS_RANK — October 2026 production report: the out-of-order/
+// duplicate status-callback regression guard in handleStatusCallback (see
+// test/integration/sms.int.test.js for the real-Postgres behavioral proof;
+// these are the pure-data-shape checks).
+test('OUTBOUND_STATUS_RANK: every KNOWN_SMS_STATUSES outbound-reachable status has a rank (inbound-only receiving/received are exempt)', () => {
+  for (const s of KNOWN_SMS_STATUSES) {
+    if (s === 'received' || s === 'receiving') continue;
+    assert.strictEqual(typeof OUTBOUND_STATUS_RANK[s], 'number', `expected a rank for "${s}"`);
+  }
+});
+
+test('OUTBOUND_STATUS_RANK: the lifecycle progresses strictly forward up to "sent"', () => {
+  assert.ok(OUTBOUND_STATUS_RANK.accepted < OUTBOUND_STATUS_RANK.queued);
+  assert.ok(OUTBOUND_STATUS_RANK.queued < OUTBOUND_STATUS_RANK.sending);
+  assert.ok(OUTBOUND_STATUS_RANK.sending < OUTBOUND_STATUS_RANK.sent);
+  assert.ok(OUTBOUND_STATUS_RANK.sent < OUTBOUND_STATUS_RANK.delivered);
+});
+
+test('OUTBOUND_STATUS_RANK: every truly terminal status shares the same (highest) rank — none supersedes another', () => {
+  const terminalRanks = new Set(['delivered', 'undelivered', 'failed', 'canceled'].map((s) => OUTBOUND_STATUS_RANK[s]));
+  assert.strictEqual(terminalRanks.size, 1, 'delivered/undelivered/failed/canceled must all share one rank');
+});
 
 // ── KNOWN_SMS_STATUSES / normalizeSmsStatus — production incident regression
 // (October 2026): a real manual SMS send failed with "new row for relation

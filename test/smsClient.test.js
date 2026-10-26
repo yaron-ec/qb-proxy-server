@@ -137,3 +137,79 @@ test('the incident, reproduced: a signature Twilio computes against the real BAC
   assert.strictEqual(smsClient.verifyTwilioSignature(backendUrl, params, realTwilioSignature), true);
   delete process.env.TWILIO_AUTH_TOKEN;
 });
+
+// ── getMessageStatus — read-only Twilio Message-resource fetch, used by
+// scripts/reconcileSmsMessageStatus.js to recover a status-callback that was
+// never received (October 2026 production report: an outbound "test"
+// message stuck at Queued). Never calls a write endpoint.
+test('getMessageStatus: returns the live status/error fields on success', async () => {
+  process.env.TWILIO_ACCOUNT_SID = 'ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+  process.env.TWILIO_AUTH_TOKEN = 'test-auth-token';
+  process.env.TWILIO_FROM = '+15551234567';
+  delete require.cache[require.resolve('../lib/smsClient')];
+  const smsClient = require('../lib/smsClient');
+  const origFetch = global.fetch;
+  let calledUrl = null;
+  global.fetch = async (url) => { calledUrl = url; return { ok: true, status: 200, json: async () => ({ status: 'delivered', error_code: null, error_message: null }) }; };
+  try {
+    const result = await smsClient.getMessageStatus('SM123');
+    assert.strictEqual(result.ok, true);
+    assert.strictEqual(result.status, 'delivered');
+    assert.match(calledUrl, /\/Messages\/SM123\.json$/);
+  } finally {
+    global.fetch = origFetch;
+    delete process.env.TWILIO_ACCOUNT_SID; delete process.env.TWILIO_AUTH_TOKEN; delete process.env.TWILIO_FROM;
+  }
+});
+
+test('getMessageStatus: a Twilio-side HTTP failure is reported as ok:false, never throws', async () => {
+  process.env.TWILIO_ACCOUNT_SID = 'ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+  process.env.TWILIO_AUTH_TOKEN = 'test-auth-token';
+  process.env.TWILIO_FROM = '+15551234567';
+  delete require.cache[require.resolve('../lib/smsClient')];
+  const smsClient = require('../lib/smsClient');
+  const origFetch = global.fetch;
+  global.fetch = async () => ({ ok: false, status: 404 });
+  try {
+    const result = await smsClient.getMessageStatus('SM-does-not-exist');
+    assert.strictEqual(result.ok, false);
+    assert.strictEqual(result.reason, 'twilio_http_404');
+  } finally {
+    global.fetch = origFetch;
+    delete process.env.TWILIO_ACCOUNT_SID; delete process.env.TWILIO_AUTH_TOKEN; delete process.env.TWILIO_FROM;
+  }
+});
+
+test('getMessageStatus: never sends anything -- always a GET to the Messages resource, no body', async () => {
+  process.env.TWILIO_ACCOUNT_SID = 'ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+  process.env.TWILIO_AUTH_TOKEN = 'test-auth-token';
+  process.env.TWILIO_FROM = '+15551234567';
+  delete require.cache[require.resolve('../lib/smsClient')];
+  const smsClient = require('../lib/smsClient');
+  const origFetch = global.fetch;
+  let capturedInit = null;
+  global.fetch = async (url, init) => { capturedInit = init; return { ok: true, status: 200, json: async () => ({ status: 'sent' }) }; };
+  try {
+    await smsClient.getMessageStatus('SM123');
+    assert.strictEqual(capturedInit.method, undefined, 'a GET passes no explicit method (default)');
+    assert.strictEqual(capturedInit.body, undefined, 'a GET must never carry a body');
+  } finally {
+    global.fetch = origFetch;
+    delete process.env.TWILIO_ACCOUNT_SID; delete process.env.TWILIO_AUTH_TOKEN; delete process.env.TWILIO_FROM;
+  }
+});
+
+test('getMessageStatus: reports twilio_not_configured without ever calling fetch, when credentials are missing', async () => {
+  delete process.env.TWILIO_ACCOUNT_SID; delete process.env.TWILIO_AUTH_TOKEN; delete process.env.TWILIO_FROM; delete process.env.TWILIO_MESSAGING_SERVICE_SID;
+  delete require.cache[require.resolve('../lib/smsClient')];
+  const smsClient = require('../lib/smsClient');
+  const origFetch = global.fetch;
+  global.fetch = async () => { throw new Error('must never be called'); };
+  try {
+    const result = await smsClient.getMessageStatus('SM123');
+    assert.strictEqual(result.ok, false);
+    assert.match(result.reason, /twilio_not_configured/);
+  } finally {
+    global.fetch = origFetch;
+  }
+});

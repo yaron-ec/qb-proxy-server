@@ -848,6 +848,125 @@ client stub was missing the two relocated functions entirely, which made
 adding the two functions to that file's stub (the same stub shape
 `test/integration/sms.int.test.js` already needed).
 
+## SMS reply-notification visibility, out-of-order status callbacks, and a duplicate-notification race (October 2026, fixed)
+
+Following the previous incident's fix (inbound replies now actually reach
+the backend), a real production report surfaced two further symptoms on the
+SAME lead/thread, neither a consent/quiet-hours issue: (1) an inbound
+customer reply ("What?") was correctly stored and displayed as Received in
+the Text Message tab, but Yaron reported receiving no notification or SMS
+copy on his personal phone; (2) an earlier outbound message ("test") stayed
+displayed as Sent/Queued indefinitely, never progressing to Delivered.
+
+**Symptom 1 — Yaron notification — root cause is configuration, not code.**
+Per "Automated appointment SMS" above, an inbound reply's rep-notify and
+Yaron-forward side effects are independently gated by
+`SMS_REPLY_NOTIFICATIONS_ENABLED` (the rep's email via
+`notifyAssignedRep`/`notifyUnmatchedForReview`) and, inside that same gate,
+`SMS_REPLY_FORWARD_TO` (the mandatory-per-spec SMS copy to Yaron via
+`forwardToYaronBestEffort`) — there is no third, in-app notification
+mechanism anywhere in this codebase for an SMS reply. The code path itself
+was already built and tested in the prior SMS work; the absence of a
+notification means one or both env vars are not actually set to their
+"on" values in the live Railway environment, which this environment has no
+access to confirm or change. **New observability** (so an operator can
+check this without raw Railway env var access):
+`lib/systemHealthChecks.js#checkTwilio` now reports a `notification_config`
+block — `reply_notifications_enabled` (mirrors
+`smsReplyNotify.replyNotificationsEnabled()`) and `yaron_forward_configured`
+(whether `SMS_REPLY_FORWARD_TO` is set) — never the destination number
+itself. `crm-frontend/src/pages/SystemHealth.jsx` renders both as a plain
+Enabled/Disabled-with-reason line on the SMS card. Until that card shows
+both as Enabled, treat Yaron's notification as not yet armed in production,
+not as broken code.
+
+**Symptom 2 — stuck outbound status — most likely a casualty of the prior
+incident, now has a catch-up tool.** A message sent before the
+`TWILIO_WEBHOOK_BASE_URL` fix would have had its one and only status
+callback attempt rejected for a bad signature (per the prior incident) —
+and Twilio does not retry a rejected status callback indefinitely, so that
+row is permanently stuck at whatever status it was inserted with unless
+something reconciles it after the fact. **New tool**:
+`scripts/reconcileSmsMessageStatus.js` (report-first,
+`--apply --confirm-host=<host>` to write, mirrors the established
+`auditTravelArtifacts.js`-style convention) finds every outbound
+`sms_messages` row still in a non-terminal status
+(`accepted`/`queued`/`sending`/`sent` — `sent` is NOT Twilio-terminal, it
+can still become `delivered`/`undelivered`) older than a grace window
+(default 10 minutes, `--minutes=N`), calls Twilio's real Message resource
+(`lib/smsClient.js#getMessageStatus`, a new read-only GET — never sends
+anything) for each one's `twilio_sid`, and with `--apply` writes the real
+current status back via the SAME `normalizeSmsStatus`/known-status handling
+`handleStatusCallback` already uses, so a status Twilio has introduced
+since this code shipped still degrades safely rather than violating the
+DB check constraint. **Not run against production from this environment**
+(no `DATABASE_URL`/Twilio credential access here) — running this script
+(report-only first, then `--apply` if it confirms the "test" message is
+really stuck) against production is the remaining operator action for this
+symptom; the code path that will fix it once run is built and tested.
+
+**Two additional bugs found by code audit while investigating, both fixed
+proactively because they bear directly on the acceptance criteria ("no
+duplicate notifications", "status accurately reflects Twilio delivery")
+even though neither was the literal reported symptom:**
+
+1. **Out-of-order/duplicate status-callback regression**
+   (`lib/smsService.js#handleStatusCallback`): Twilio does not guarantee
+   callback delivery order, so a delayed earlier-stage callback (e.g. a
+   slow `sending` arriving after a `delivered` already landed) could
+   previously overwrite a message's status backward, making a genuinely
+   delivered message appear to regress to an earlier state. Fixed with
+   `OUTBOUND_STATUS_RANK` (accepted < queued < sending < sent <
+   {delivered,undelivered,failed,canceled}, the four terminal
+   outcomes sharing one rank, since none supersedes another): a callback
+   whose status ranks lower than the row's current status is logged and
+   ignored (`COALESCE` keeps the existing, more-advanced status); a
+   forward transition or a different terminal outcome is still applied
+   normally. `error_code`/`error_message` are still recorded from every
+   callback regardless, since those are diagnostic, not a status
+   regression.
+2. **Duplicate-notification race in inbound message insertion**
+   (`lib/smsService.js#handleInboundMessage`/`insertInboundMessage`): the
+   prior implementation's existence check (a SELECT by `twilio_sid`) and
+   insert (`INSERT ... ON CONFLICT (twilio_sid) DO NOTHING RETURNING *`)
+   were separate steps; under genuine concurrent delivery of the same
+   webhook (Twilio's own documented at-least-once retry behavior), both
+   requests could see "no existing row," both attempt the insert, and the
+   loser's `ON CONFLICT DO NOTHING RETURNING *` would correctly return no
+   row — but the code at the time didn't handle that outcome, risking the
+   loser treating it as a fresh message and double-firing
+   `notifyAssignedRep`/`forwardToYaronBestEffort`. Fixed by re-querying the
+   row by `twilio_sid` whenever the INSERT's `RETURNING` comes back empty,
+   and reporting `duplicate: true` with the winning row in that case —
+   `routes/sms.js`'s caller only fires the notification side effects when
+   `duplicate` is false, so the race can no longer double-notify. The
+   function was split into `handleInboundMessage` (existence check +
+   delegate) and exported `insertInboundMessage` (the insert path alone)
+   specifically so a test can plant a competing row directly and force the
+   `ON CONFLICT` branch deterministically — a real `Promise.all` race
+   proved too fast/reliable against local Postgres to trigger the specific
+   internal window on demand, so that version is kept only as a secondary
+   sanity check, not the primary regression proof.
+
+Regression coverage: `test/smsService.test.js` (`OUTBOUND_STATUS_RANK`
+shape/ordering, pure); `test/smsClient.test.js` (`getMessageStatus`
+success/failure/config-missing, pure, confirms it only ever GETs); `test/
+systemHealthChecks.test.js` (`notification_config`'s both-off/both-set/
+partial shapes, never leaking the destination number);
+`crm-frontend/src/pages/SystemHealth.test.jsx` (the new notification_config
+card, including the never-shows-the-number assertion); real-Postgres
+`test/integration/sms.int.test.js` (the out-of-order guard: a late
+earlier-status callback ignored, a genuine forward transition applied, a
+different terminal-status correction applied; the race fix: a row planted
+directly, then `insertInboundMessage` called against the same
+`twilio_sid`, proven to report `duplicate: true` with the pre-existing row
+and never create a second one — verified to fail without the fix and pass
+with it); `test/integration/reconcileSmsMessageStatus.int.test.js` (report
+mode, `--apply` with correct/incorrect `--confirm-host`, the grace-window
+and already-terminal exclusions, an unchanged-status report, a Twilio
+`check_failed` row, and proof the script never calls a Twilio write
+endpoint).
+
 ## Important business invariants
 
 - **Appointments**: no-double-booking is enforced by
