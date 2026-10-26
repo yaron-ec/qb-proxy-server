@@ -170,6 +170,52 @@ describe('SystemHealth', () => {
     expect(screen.queryByText(/rejected deliveries/)).toBeFalsy();
   });
 
+  it('October 2026 report: shows reply notifications and the Yaron SMS forward as disabled/not configured when both gates are off', async () => {
+    get.mockResolvedValue(fixture({
+      integrations: {
+        sms: integration({
+          module_enabled: true, flag_enforced: false, state: 'CONFIGURED',
+          credential_source: 'env', missing_env: [], supports_live_check: true, live_check: null,
+          recency: { last_lead_received_at: '2026-10-25T20:25:00Z', total_leads_received: 1 },
+          delivery_failures: { recent_24h: 0, total: 0, last_rejected_at: null },
+          webhook_config: {
+            base_url_source: 'TWILIO_WEBHOOK_BASE_URL',
+            inbound_webhook_url: 'https://qb-proxy-server-production.up.railway.app/api/v1/sms-webhook/inbound',
+            status_webhook_url: 'https://qb-proxy-server-production.up.railway.app/api/v1/sms-webhook/status',
+          },
+          notification_config: { reply_notifications_enabled: false, yaron_forward_configured: false },
+        }),
+      },
+    }));
+    render(<SystemHealth />);
+    await waitFor(() => expect(screen.getByText(/Disabled \(SMS_REPLY_NOTIFICATIONS_ENABLED\)/)).toBeTruthy());
+    expect(screen.getByText(/Not configured \(SMS_REPLY_FORWARD_TO unset\)/)).toBeTruthy();
+  });
+
+  it('shows reply notifications as Enabled and the Yaron forward as Enabled once both gates are set — never shows the destination number', async () => {
+    get.mockResolvedValue(fixture({
+      integrations: {
+        sms: integration({
+          module_enabled: true, flag_enforced: false, state: 'CONFIGURED',
+          credential_source: 'env', missing_env: [], supports_live_check: true, live_check: null,
+          recency: { last_lead_received_at: '2026-10-25T20:25:00Z', total_leads_received: 1 },
+          delivery_failures: { recent_24h: 0, total: 0, last_rejected_at: null },
+          webhook_config: {
+            base_url_source: 'TWILIO_WEBHOOK_BASE_URL',
+            inbound_webhook_url: 'https://qb-proxy-server-production.up.railway.app/api/v1/sms-webhook/inbound',
+            status_webhook_url: 'https://qb-proxy-server-production.up.railway.app/api/v1/sms-webhook/status',
+          },
+          notification_config: { reply_notifications_enabled: true, yaron_forward_configured: true },
+        }),
+      },
+    }));
+    const { container } = render(<SystemHealth />);
+    await waitFor(() => expect(screen.getByText('Acme Remodeling')).toBeTruthy());
+    const enabledBadges = screen.getAllByText('Enabled');
+    expect(enabledBadges.length).toBeGreaterThanOrEqual(2);
+    expect(container.innerHTML).not.toMatch(/\+1\d{10}/);
+  });
+
   it('never renders a secret-looking value', async () => {
     get.mockResolvedValue(fixture());
     const { container } = render(<SystemHealth />);

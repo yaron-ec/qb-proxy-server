@@ -307,6 +307,56 @@ test('handleInboundMessage: a redelivered webhook (same MessageSid) is idempoten
   assert.strictEqual(countAfterSecond, 1, 'a redelivered webhook must never create a second row');
 });
 
+// October 2026 production report acceptance criterion: "No duplicate
+// notifications." A genuinely CONCURRENT delivery of the same MessageSid
+// (not a sequential retry — those always see the row via handleInboundMessage's
+// leading SELECT) previously made the LOSING request ALSO report
+// duplicate:false, which would have fired the rep-notification email and the
+// Yaron SMS forward a second time for one customer message. Deterministic
+// proof: smsService.insertInboundMessage is the post-SELECT half of
+// handleInboundMessage (see its own comment — split out specifically so this
+// is testable without relying on fragile real-world concurrency timing,
+// which a Promise.all attempt against a fast local Postgres proved too
+// unreliable to trigger reliably in CI). Planting a competing row directly
+// deterministically reproduces "the SELECT found nothing, but something else
+// already won the INSERT by the time it ran."
+test('insertInboundMessage: when the ON CONFLICT DO NOTHING INSERT loses to a row that already exists (a genuinely concurrent delivery), duplicate:true is reported — never duplicate:false', { skip }, async () => {
+  const phone = freshPhone();
+  const sid = `SM-race-${RUN}`;
+  const leadId = await lead(`race-${RUN}`, { phone });
+  // Plant the "winner" row directly, simulating the other concurrent
+  // delivery's INSERT having already committed.
+  const planted = (await db.query(
+    `INSERT INTO sms_messages (lead_id, direction, from_number, to_number, body, twilio_sid, status, keyword)
+     VALUES ($1, 'inbound', $2, $3, $4, $5, 'received', NULL) RETURNING *`,
+    [leadId, `+1${phone}`, '+15550001111', 'concurrent delivery test', sid]
+  )).rows[0];
+
+  const result = await smsService.insertInboundMessage({ messageSid: sid, from: `+1${phone}`, to: '+15550001111', body: 'concurrent delivery test' });
+  assert.strictEqual(result.duplicate, true, 'losing the INSERT race must be reported as a duplicate, not a fresh message');
+  assert.strictEqual(result.row.id, planted.id, 'the loser still gets the real (winning) row back, for its own TwiML logic');
+
+  const count = (await db.query('SELECT count(*)::int AS c FROM sms_messages WHERE twilio_sid = $1', [sid])).rows[0].c;
+  assert.strictEqual(count, 1, 'still exactly one row');
+});
+
+// Best-effort real-world sanity check alongside the deterministic proof
+// above — genuinely parallel calls must still end up with exactly one
+// non-duplicate and one row, even if the precise internal race window
+// isn't guaranteed to be hit on every run.
+test('handleInboundMessage: two genuinely concurrent deliveries of the SAME MessageSid still converge on exactly one row, never two', { skip }, async () => {
+  const phone = freshPhone();
+  const sid = `SM-race2-${RUN}`;
+  const args = { messageSid: sid, from: `+1${phone}`, to: '+15550001111', body: 'concurrent delivery test 2' };
+  const [a, b] = await Promise.all([
+    smsService.handleInboundMessage(args),
+    smsService.handleInboundMessage(args),
+  ]);
+  assert.strictEqual(a.row.id, b.row.id, 'both calls must resolve to the SAME persisted row');
+  const count = (await db.query('SELECT count(*)::int AS c FROM sms_messages WHERE twilio_sid = $1', [sid])).rows[0].c;
+  assert.strictEqual(count, 1);
+});
+
 test('handleInboundMessage: an inbound message matching MULTIPLE leads is stored unmatched with candidates, never guessed', { skip }, async () => {
   const phone = freshPhone();
   const id1 = await lead(`ambig1-${RUN}`, { phone });
@@ -328,6 +378,34 @@ test('handleStatusCallback: updates the matching outbound row by twilio_sid', { 
 test('handleStatusCallback: a callback for an unknown sid is a no-op, never throws', { skip }, async () => {
   const result = await smsService.handleStatusCallback({ messageSid: 'SM-does-not-exist', status: 'failed' });
   assert.strictEqual(result, null);
+});
+
+// ── Out-of-order/duplicate status-callback regression guard (October 2026
+// production report: a reconciled message's status must never flicker
+// backward if a stale callback for an earlier state arrives late). ─────────
+test('handleStatusCallback: a late-arriving EARLIER status (e.g. "sent" after "delivered" was already recorded) is ignored — the row stays at its more-advanced status', { skip }, async () => {
+  const leadId = await lead(`outoforder-${RUN}`, { smsConsent: true });
+  const row = await smsService.sendSms({ leadId, body: 'out of order test', sentBy: 'rep@ecconstructiongroup.com', now: new Date('2099-06-15T18:00:00Z') });
+  await smsService.handleStatusCallback({ messageSid: row.twilio_sid, status: 'delivered' });
+  const stale = await smsService.handleStatusCallback({ messageSid: row.twilio_sid, status: 'sent' });
+  assert.strictEqual(stale.status, 'delivered', 'a late "sent" callback must never regress an already-"delivered" row');
+});
+
+test('handleStatusCallback: a genuine FORWARD transition (queued -> sending -> delivered) is always applied', { skip }, async () => {
+  const leadId = await lead(`forwardorder-${RUN}`, { smsConsent: true });
+  const row = await smsService.sendSms({ leadId, body: 'forward order test', sentBy: 'rep@ecconstructiongroup.com', now: new Date('2099-06-15T18:00:00Z') });
+  await smsService.handleStatusCallback({ messageSid: row.twilio_sid, status: 'sending' });
+  const delivered = await smsService.handleStatusCallback({ messageSid: row.twilio_sid, status: 'delivered' });
+  assert.strictEqual(delivered.status, 'delivered');
+});
+
+test('handleStatusCallback: a DIFFERENT terminal status (e.g. a late correction to "failed") is still applied, never blocked as a "regression"', { skip }, async () => {
+  const leadId = await lead(`terminalcorrection-${RUN}`, { smsConsent: true });
+  const row = await smsService.sendSms({ leadId, body: 'terminal correction test', sentBy: 'rep@ecconstructiongroup.com', now: new Date('2099-06-15T18:00:00Z') });
+  await smsService.handleStatusCallback({ messageSid: row.twilio_sid, status: 'sent' });
+  const corrected = await smsService.handleStatusCallback({ messageSid: row.twilio_sid, status: 'failed', errorCode: '30003', errorMessage: 'Unreachable' });
+  assert.strictEqual(corrected.status, 'failed');
+  assert.strictEqual(corrected.error_code, '30003');
 });
 
 // ── Route-level: ownership scoping + webhooks ───────────────────────────────
