@@ -128,15 +128,9 @@ function IntegrationCard({ moduleKey, data }) {
         {moduleKey === "sms" && data.notification_config && (
           <div className="text-xs rounded-md px-2.5 py-2 leading-snug bg-slate-50 text-slate-600 space-y-1">
             <div>
-              Reply notifications:{" "}
+              Reply email notifications:{" "}
               <span className={data.notification_config.reply_notifications_enabled ? "text-emerald-700 font-semibold" : "text-slate-500 font-semibold"}>
                 {data.notification_config.reply_notifications_enabled ? "Enabled" : "Disabled (SMS_REPLY_NOTIFICATIONS_ENABLED)"}
-              </span>
-            </div>
-            <div>
-              Yaron SMS forward:{" "}
-              <span className={data.notification_config.reply_notifications_enabled && data.notification_config.yaron_forward_configured ? "text-emerald-700 font-semibold" : "text-slate-500 font-semibold"}>
-                {!data.notification_config.yaron_forward_configured ? "Not configured (SMS_REPLY_FORWARD_TO unset)" : data.notification_config.reply_notifications_enabled ? "Enabled" : "Configured, but reply notifications are disabled"}
               </span>
             </div>
           </div>

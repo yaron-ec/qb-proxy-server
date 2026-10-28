@@ -170,7 +170,7 @@ describe('SystemHealth', () => {
     expect(screen.queryByText(/rejected deliveries/)).toBeFalsy();
   });
 
-  it('October 2026 report: shows reply notifications and the Yaron SMS forward as disabled/not configured when both gates are off', async () => {
+  it('October 2026 report, revised November 2026: shows reply EMAIL notifications as disabled when the gate is off — never a Yaron SMS forward line', async () => {
     get.mockResolvedValue(fixture({
       integrations: {
         sms: integration({
@@ -183,16 +183,17 @@ describe('SystemHealth', () => {
             inbound_webhook_url: 'https://qb-proxy-server-production.up.railway.app/api/v1/sms-webhook/inbound',
             status_webhook_url: 'https://qb-proxy-server-production.up.railway.app/api/v1/sms-webhook/status',
           },
-          notification_config: { reply_notifications_enabled: false, yaron_forward_configured: false },
+          notification_config: { reply_notifications_enabled: false },
         }),
       },
     }));
     render(<SystemHealth />);
     await waitFor(() => expect(screen.getByText(/Disabled \(SMS_REPLY_NOTIFICATIONS_ENABLED\)/)).toBeTruthy());
-    expect(screen.getByText(/Not configured \(SMS_REPLY_FORWARD_TO unset\)/)).toBeTruthy();
+    expect(screen.queryByText(/Yaron/i)).toBeFalsy();
+    expect(screen.queryByText(/SMS_REPLY_FORWARD_TO/)).toBeFalsy();
   });
 
-  it('shows reply notifications as Enabled and the Yaron forward as Enabled once both gates are set — never shows the destination number', async () => {
+  it('shows reply EMAIL notifications as Enabled once the gate is set — never shows a forward destination number', async () => {
     get.mockResolvedValue(fixture({
       integrations: {
         sms: integration({
@@ -205,14 +206,13 @@ describe('SystemHealth', () => {
             inbound_webhook_url: 'https://qb-proxy-server-production.up.railway.app/api/v1/sms-webhook/inbound',
             status_webhook_url: 'https://qb-proxy-server-production.up.railway.app/api/v1/sms-webhook/status',
           },
-          notification_config: { reply_notifications_enabled: true, yaron_forward_configured: true },
+          notification_config: { reply_notifications_enabled: true },
         }),
       },
     }));
     const { container } = render(<SystemHealth />);
     await waitFor(() => expect(screen.getByText('Acme Remodeling')).toBeTruthy());
-    const enabledBadges = screen.getAllByText('Enabled');
-    expect(enabledBadges.length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText('Enabled')).toBeTruthy();
     expect(container.innerHTML).not.toMatch(/\+1\d{10}/);
   });
 

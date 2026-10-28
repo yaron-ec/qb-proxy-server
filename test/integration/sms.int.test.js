@@ -311,8 +311,8 @@ test('handleInboundMessage: a redelivered webhook (same MessageSid) is idempoten
 // notifications." A genuinely CONCURRENT delivery of the same MessageSid
 // (not a sequential retry — those always see the row via handleInboundMessage's
 // leading SELECT) previously made the LOSING request ALSO report
-// duplicate:false, which would have fired the rep-notification email and the
-// Yaron SMS forward a second time for one customer message. Deterministic
+// duplicate:false, which would have fired the rep-notification email a
+// second time for one customer message. Deterministic
 // proof: smsService.insertInboundMessage is the post-SELECT half of
 // handleInboundMessage (see its own comment — split out specifically so this
 // is testable without relying on fragile real-world concurrency timing,
