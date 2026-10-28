@@ -2,21 +2,19 @@
 'use strict';
 
 /**
- * smsReplyNotify.test.js — rep notification + the mandatory Yaron SMS
- * forward on an inbound customer reply (lib/smsReplyNotify.js), gated on
- * their OWN SMS_REPLY_NOTIFICATIONS_ENABLED switch — deliberately decoupled
- * from SMS_AUTOMATED_REMINDERS_ENABLED (confirmation/reminder sends) so
- * testing or enabling one can never silently arm the other; see the two
- * "decoupled gate" tests below.
+ * smsReplyNotify.test.js — EMAIL notification on an inbound customer SMS
+ * reply (lib/smsReplyNotify.js: notifyAssignedRep / notifyUnmatchedForReview),
+ * gated on its OWN SMS_REPLY_NOTIFICATIONS_ENABLED switch — deliberately
+ * decoupled from SMS_AUTOMATED_REMINDERS_ENABLED (confirmation/reminder
+ * sends) so testing or enabling one can never silently arm the other; see
+ * the "decoupled gate" test below.
  *
- * The highest-stakes case here is the Yaron-forward loop guard: this
- * codebase already hardcodes "(310) 310-4108" in several customer-facing
- * email templates as EC's PUBLISHED OFFICE NUMBER (lib/reminderEngine.js,
- * lib/actionRouter.js, lib/phoneCallReminders.js) — NOT confirmed to be
- * Yaron's own SMS-capable phone, and NOT confirmed to differ from whatever
- * TWILIO_FROM is configured to in production. These tests prove the guard
- * actually refuses to forward when the configured destination matches the
- * outbound sender number, rather than assuming the operator got it right.
+ * November 2026 — the prior SMS-to-Yaron forward (forwardToYaronBestEffort)
+ * has been RETIRED per a revised notification-design decision: inbound
+ * replies now notify exclusively through the CRM's existing email
+ * notification infrastructure, never a second outbound Twilio SMS. Its
+ * tests (including the destination/sender loop guard) were removed along
+ * with the function itself in lib/smsReplyNotify.js.
  */
 const test = require('node:test');
 const assert = require('node:assert');
@@ -51,14 +49,13 @@ test('decoupled gate: SMS_AUTOMATED_REMINDERS_ENABLED=true alone does NOT enable
     const rep = await smsReplyNotify.notifyAssignedRep({ leadId: 'lead-1', body: 'hi', messageSid: 'SM1' });
     assert.strictEqual(rep.sent, false);
     assert.strictEqual(rep.reason, 'reply_notifications_disabled');
-    process.env.SMS_REPLY_FORWARD_TO = '+13105551234';
-    const fwd = await smsReplyNotify.forwardToYaronBestEffort({ customerName: 'Sarah', repName: 'Mike', body: 'hi' });
-    assert.strictEqual(fwd.sent, false);
-    assert.strictEqual(fwd.reason, 'reply_notifications_disabled');
   } finally {
     delete process.env.SMS_AUTOMATED_REMINDERS_ENABLED;
-    delete process.env.SMS_REPLY_FORWARD_TO;
   }
+});
+
+test('forwardToYaronBestEffort no longer exists — the SMS-to-Yaron forward is retired, never re-exported', () => {
+  assert.strictEqual(smsReplyNotify.forwardToYaronBestEffort, undefined);
 });
 
 test('decoupled gate: SMS_REPLY_NOTIFICATIONS_ENABLED=true alone (reminders switch untouched) is sufficient to enable notifyAssignedRep', async () => {
@@ -137,74 +134,3 @@ test('notifyUnmatchedForReview: routed through the "activity" notification categ
   } finally { restoreRecipients(); restorePrefs(); restoreEmail(); delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED; }
 });
 
-// ── Yaron forward: the mandatory, safety-critical piece ────────────────────
-test('forwardToYaronBestEffort: SMS_REPLY_FORWARD_TO unset -> refuses, never a hardcoded fallback destination', async () => {
-  process.env.SMS_REPLY_NOTIFICATIONS_ENABLED = 'true';
-  delete process.env.SMS_REPLY_FORWARD_TO;
-  const res = await smsReplyNotify.forwardToYaronBestEffort({ customerName: 'Sarah', repName: 'Mike', body: 'hi' });
-  assert.strictEqual(res.sent, false);
-  assert.strictEqual(res.reason, 'not_configured');
-  delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED;
-});
-
-test('forwardToYaronBestEffort: LOOP GUARD — refuses when the destination matches the outbound customer-SMS sender number', async () => {
-  process.env.SMS_REPLY_NOTIFICATIONS_ENABLED = 'true';
-  process.env.SMS_REPLY_FORWARD_TO = '+13103104108';
-  const restore = stub('../lib/smsClient', {
-    getCredentials: () => ({ from: '+13103104108', messagingServiceSid: null }),
-    sendMessage: async () => { throw new Error('must never be called — loop guard should refuse first'); },
-  });
-  try {
-    const res = await smsReplyNotify.forwardToYaronBestEffort({ customerName: 'Sarah', repName: 'Mike', body: 'hi' });
-    assert.strictEqual(res.sent, false);
-    assert.strictEqual(res.reason, 'destination_equals_sender');
-  } finally { restore(); delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED; delete process.env.SMS_REPLY_FORWARD_TO; }
-});
-
-test('forwardToYaronBestEffort: a genuinely different destination number sends successfully with the mandated message shape', async () => {
-  process.env.SMS_REPLY_NOTIFICATIONS_ENABLED = 'true';
-  process.env.SMS_REPLY_FORWARD_TO = '+13105551234';
-  let sentArgs = null;
-  const restore = stub('../lib/smsClient', {
-    getCredentials: () => ({ from: '+13103104108', messagingServiceSid: null }),
-    sendMessage: async (args) => { sentArgs = args; return { ok: true, sid: 'SM-forward-1' }; },
-  });
-  try {
-    const res = await smsReplyNotify.forwardToYaronBestEffort({ customerName: 'Sarah Martinez', repName: 'Mike', body: 'Can we move our appointment to 3 PM?' });
-    assert.strictEqual(res.sent, true);
-    assert.strictEqual(sentArgs.to, '+13105551234');
-    assert.match(sentArgs.body, /EC CRM — New Customer Reply/);
-    assert.match(sentArgs.body, /Customer: Sarah Martinez/);
-    assert.match(sentArgs.body, /Sales Rep: Mike/);
-    assert.match(sentArgs.body, /Message: Can we move our appointment to 3 PM\?/);
-  } finally { restore(); delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED; delete process.env.SMS_REPLY_FORWARD_TO; }
-});
-
-test('forwardToYaronBestEffort: unknown rep -> "Unassigned", never an invented name', async () => {
-  process.env.SMS_REPLY_NOTIFICATIONS_ENABLED = 'true';
-  process.env.SMS_REPLY_FORWARD_TO = '+13105551234';
-  let sentArgs = null;
-  const restore = stub('../lib/smsClient', {
-    getCredentials: () => ({ from: '+13103104108', messagingServiceSid: null }),
-    sendMessage: async (args) => { sentArgs = args; return { ok: true, sid: 'SM1' }; },
-  });
-  try {
-    await smsReplyNotify.forwardToYaronBestEffort({ customerName: null, repName: null, body: 'hi' });
-    assert.match(sentArgs.body, /Sales Rep: Unassigned/);
-    assert.match(sentArgs.body, /Customer: Unknown/);
-  } finally { restore(); delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED; delete process.env.SMS_REPLY_FORWARD_TO; }
-});
-
-test('forwardToYaronBestEffort: a Twilio-level rejection is reported, never thrown', async () => {
-  process.env.SMS_REPLY_NOTIFICATIONS_ENABLED = 'true';
-  process.env.SMS_REPLY_FORWARD_TO = '+13105551234';
-  const restore = stub('../lib/smsClient', {
-    getCredentials: () => ({ from: '+13103104108', messagingServiceSid: null }),
-    sendMessage: async () => ({ ok: false, errorMessage: 'invalid number' }),
-  });
-  try {
-    const res = await smsReplyNotify.forwardToYaronBestEffort({ customerName: 'Sarah', repName: 'Mike', body: 'hi' });
-    assert.strictEqual(res.sent, false);
-    assert.strictEqual(res.reason, 'invalid number');
-  } finally { restore(); delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED; delete process.env.SMS_REPLY_FORWARD_TO; }
-});

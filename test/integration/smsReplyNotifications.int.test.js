@@ -4,15 +4,20 @@
 /**
  * smsReplyNotifications.int.test.js — REAL-Postgres, end-to-end proof of the
  * October 2026 "two-way appointment SMS" inbound-reply side effects:
- * rep notification (real owner FK, never guessed), the mandatory Yaron SMS
- * forward (with its loop guard), ambiguous-match admin review routing, and
- * duplicate-webhook-delivery idempotency — all against the REAL
- * routes/sms.js webhook + lib/smsReplyNotify.js, with Twilio and Gmail both
- * faked (no live network call). Skipped without TEST_DATABASE_URL.
+ * rep EMAIL notification (real owner FK, never guessed), ambiguous-match
+ * staff-review email routing, and duplicate-webhook-delivery idempotency —
+ * all against the REAL routes/sms.js webhook + lib/smsReplyNotify.js, with
+ * Twilio and Gmail both faked (no live network call). Skipped without
+ * TEST_DATABASE_URL.
+ *
+ * November 2026 — the prior SMS-to-Yaron forward (forwardToYaronBestEffort/
+ * SMS_REPLY_FORWARD_TO) has been RETIRED per a revised notification-design
+ * decision: inbound replies now notify exclusively by email, never a second
+ * outbound Twilio SMS. This file's Yaron-forward assertions were removed
+ * along with the function itself.
  */
 process.env.RAILWAY_JWT_SECRET = process.env.RAILWAY_JWT_SECRET || 'sms-test-jwt-secret-at-least-32-characters-long';
 process.env.SMS_REPLY_NOTIFICATIONS_ENABLED = 'true';
-process.env.SMS_REPLY_FORWARD_TO = '+13105559999'; // a DIFFERENT number from the fake sender below — must never equal it (loop guard)
 
 const test = require('node:test');
 const assert = require('node:assert');
@@ -86,7 +91,6 @@ test.after(async () => {
   await restoreGoogleModules(db, smsModuleState);
   require('../../lib/companyConfig').invalidate();
   delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED;
-  delete process.env.SMS_REPLY_FORWARD_TO;
   await db.pool.end();
 });
 
@@ -111,11 +115,11 @@ async function postInbound({ sid, from, body }) {
   });
 }
 
-test('a uniquely-matched inbound reply notifies the real assigned rep AND forwards to Yaron, with real names (never invented)', { skip }, async () => {
+test('a uniquely-matched inbound reply notifies the real assigned rep by EMAIL, with real names (never invented) — never a Yaron SMS forward', { skip }, async () => {
   const phone = freshPhone();
   const leadId = await lead('Sarah', { phone });
   const emailCountBefore = fakeEmail.sent.length;
-  const forwardCountBefore = fakeTwilio.sent.length;
+  const smsSentBefore = fakeTwilio.sent.length;
 
   const r = await postInbound({ sid: `SM-${RUN}-1`, from: phone, body: 'Can we move our appointment to 3 PM?' });
   assert.strictEqual(r.status, 200);
@@ -127,39 +131,32 @@ test('a uniquely-matched inbound reply notifies the real assigned rep AND forwar
   assert.match(repEmails[0].htmlBody, /Sarah/);
   assert.match(repEmails[0].htmlBody, /Can we move our appointment to 3 PM\?/);
 
-  // Yaron forward.
-  const forwards = fakeTwilio.sent.slice(forwardCountBefore);
-  assert.strictEqual(forwards.length, 1, 'exactly one Yaron-forward SMS');
-  assert.strictEqual(forwards[0].to, '+13105559999');
-  assert.match(forwards[0].body, /Customer: Sarah/);
-  assert.match(forwards[0].body, /SMS Reply Test Owner/);
-  assert.match(forwards[0].body, /Message: Can we move our appointment to 3 PM\?/);
+  // The retired Yaron SMS forward must never fire.
+  assert.strictEqual(fakeTwilio.sent.length, smsSentBefore, 'no outbound SMS is ever sent as a reply notification');
 
   void leadId;
 });
 
-test('a redelivered webhook (same MessageSid) never double-notifies the rep or double-forwards to Yaron', { skip }, async () => {
+test('a redelivered webhook (same MessageSid) never double-notifies the rep by email', { skip }, async () => {
   const phone = freshPhone();
   await lead('Marcus', { phone });
   const sid = `SM-${RUN}-dup-1`;
 
   await postInbound({ sid, from: phone, body: 'Thanks!' });
   const emailCountAfterFirst = fakeEmail.sent.length;
-  const forwardCountAfterFirst = fakeTwilio.sent.length;
 
   // Twilio redelivers the identical webhook (network hiccup, no 200 seen).
   await postInbound({ sid, from: phone, body: 'Thanks!' });
 
   assert.strictEqual(fakeEmail.sent.length, emailCountAfterFirst, 'no second rep-notification email on redelivery');
-  assert.strictEqual(fakeTwilio.sent.length, forwardCountAfterFirst, 'no second Yaron forward on redelivery');
 });
 
-test('an ambiguous match (two leads share the number) routes to staff review, but Yaron forward still fires regardless of rep ownership', { skip }, async () => {
+test('an ambiguous match (two leads share the number) routes to staff review by email — never an SMS forward', { skip }, async () => {
   const phone = freshPhone();
   await lead('Dup1', { phone });
   await lead('Dup2', { phone });
   const emailCountBefore = fakeEmail.sent.length;
-  const forwardCountBefore = fakeTwilio.sent.length;
+  const smsSentBefore = fakeTwilio.sent.length;
 
   await postInbound({ sid: `SM-${RUN}-ambig-1`, from: phone, body: 'Hi, question about my quote' });
 
@@ -167,19 +164,15 @@ test('an ambiguous match (two leads share the number) routes to staff review, bu
   assert.ok(emails.length >= 1, 'at least one review notification sent');
   assert.match(emails[0].subject, /multiple matching leads/);
 
-  const forwards = fakeTwilio.sent.slice(forwardCountBefore);
-  assert.strictEqual(forwards.length, 1, 'Yaron forward still fires for an ambiguous match');
-  assert.match(forwards[0].body, /Sales Rep: Unassigned/);
+  assert.strictEqual(fakeTwilio.sent.length, smsSentBefore, 'no outbound SMS is ever sent as a reply notification');
 });
 
-test('a STOP keyword reply never triggers a rep notification or a Yaron forward (handled entirely by opt-out + TwiML)', { skip }, async () => {
+test('a STOP keyword reply never triggers a rep notification email (handled entirely by opt-out + TwiML)', { skip }, async () => {
   const phone = freshPhone();
   await lead('OptOut', { phone });
   const emailCountBefore = fakeEmail.sent.length;
-  const forwardCountBefore = fakeTwilio.sent.length;
 
   await postInbound({ sid: `SM-${RUN}-stop-1`, from: phone, body: 'STOP' });
 
   assert.strictEqual(fakeEmail.sent.length, emailCountBefore);
-  assert.strictEqual(fakeTwilio.sent.length, forwardCountBefore);
 });

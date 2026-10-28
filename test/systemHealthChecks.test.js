@@ -455,40 +455,41 @@ test('checkTwilio: a failing inbound-health lookup degrades gracefully (recency/
 
 // ── notification_config — October 2026 production report: an inbound SMS
 // reply was received and matched correctly, but neither the assigned rep nor
-// Yaron received a notification. Surfaces the TWO independent gates
-// (SMS_REPLY_NOTIFICATIONS_ENABLED, SMS_REPLY_FORWARD_TO) without ever
-// exposing the configured forward-to number itself.
-test('checkTwilio: notification_config reports both reply-notification gates as off by default, with no destination leaked', async () => {
+// Yaron received a notification. Surfaces SMS_REPLY_NOTIFICATIONS_ENABLED —
+// the one remaining gate; November 2026's revised notification design
+// retired the SMS-to-Yaron forward and its SMS_REPLY_FORWARD_TO gate
+// entirely, so notification_config no longer reports a forward-destination
+// field at all, and a stray SMS_REPLY_FORWARD_TO left in the environment
+// must never resurrect it.
+test('checkTwilio: notification_config reports the reply-notification gate as off by default', async () => {
   const restoreSmsService = stub('../lib/smsService', { getInboundWebhookHealth: async () => ({ recency: null, delivery_failures: null }) });
   try {
-    await withEnv({ TWILIO_ACCOUNT_SID: undefined, TWILIO_AUTH_TOKEN: undefined, TWILIO_FROM: undefined, SMS_REPLY_NOTIFICATIONS_ENABLED: undefined, SMS_REPLY_FORWARD_TO: undefined }, async () => {
+    await withEnv({ TWILIO_ACCOUNT_SID: undefined, TWILIO_AUTH_TOKEN: undefined, TWILIO_FROM: undefined, SMS_REPLY_NOTIFICATIONS_ENABLED: undefined }, async () => {
       delete process.env.TWILIO_ACCOUNT_SID; delete process.env.TWILIO_AUTH_TOKEN; delete process.env.TWILIO_FROM;
-      delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED; delete process.env.SMS_REPLY_FORWARD_TO;
+      delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED;
       const result = await checkTwilio({ verify: false });
       assert.strictEqual(result.notification_config.reply_notifications_enabled, false);
-      assert.strictEqual(result.notification_config.yaron_forward_configured, false);
+      assert.strictEqual(result.notification_config.yaron_forward_configured, undefined, 'the retired forward field must never reappear');
       assert.ok(!JSON.stringify(result).includes('+1'), 'never leak a configured phone number, even as a stray value');
     });
   } finally { restoreSmsService(); }
 });
 
-test('checkTwilio: notification_config reflects both gates once set, still never exposing the destination value', async () => {
+test('checkTwilio: notification_config reflects the gate once set', async () => {
   const restoreSmsService = stub('../lib/smsService', { getInboundWebhookHealth: async () => ({ recency: null, delivery_failures: null }) });
   try {
     await withEnv({
       TWILIO_ACCOUNT_SID: undefined, TWILIO_AUTH_TOKEN: undefined, TWILIO_FROM: undefined,
-      SMS_REPLY_NOTIFICATIONS_ENABLED: 'true', SMS_REPLY_FORWARD_TO: '+13105551234',
+      SMS_REPLY_NOTIFICATIONS_ENABLED: 'true',
     }, async () => {
       delete process.env.TWILIO_ACCOUNT_SID; delete process.env.TWILIO_AUTH_TOKEN; delete process.env.TWILIO_FROM;
       const result = await checkTwilio({ verify: false });
       assert.strictEqual(result.notification_config.reply_notifications_enabled, true);
-      assert.strictEqual(result.notification_config.yaron_forward_configured, true);
-      assert.ok(!JSON.stringify(result).includes('3105551234'), 'the configured destination number itself must never appear in the report');
     });
-  } finally { restoreSmsService(); delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED; delete process.env.SMS_REPLY_FORWARD_TO; }
+  } finally { restoreSmsService(); delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED; }
 });
 
-test('checkTwilio: notification_config distinguishes "forward configured but gate disabled" from "forward not configured at all"', async () => {
+test('checkTwilio: a stray SMS_REPLY_FORWARD_TO left in the environment is never read or reported — the retired feature cannot be revived by configuration alone', async () => {
   const restoreSmsService = stub('../lib/smsService', { getInboundWebhookHealth: async () => ({ recency: null, delivery_failures: null }) });
   try {
     await withEnv({
@@ -498,8 +499,8 @@ test('checkTwilio: notification_config distinguishes "forward configured but gat
       delete process.env.TWILIO_ACCOUNT_SID; delete process.env.TWILIO_AUTH_TOKEN; delete process.env.TWILIO_FROM;
       delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED;
       const result = await checkTwilio({ verify: false });
-      assert.strictEqual(result.notification_config.reply_notifications_enabled, false);
-      assert.strictEqual(result.notification_config.yaron_forward_configured, true, 'the number IS set, even though the gate is off');
+      assert.strictEqual(result.notification_config.yaron_forward_configured, undefined);
+      assert.ok(!JSON.stringify(result).includes('3105551234'), 'a stray forward-destination number must never appear in the report');
     });
   } finally { restoreSmsService(); delete process.env.SMS_REPLY_FORWARD_TO; }
 });

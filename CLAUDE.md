@@ -365,26 +365,25 @@ approval record.
      the 12h/2h reminder SMS sends.
   3. `SMS_REPLY_NOTIFICATIONS_ENABLED` (env var, default unset/false) — a
      THIRD, independent kill switch checked in `lib/smsReplyNotify.js` only
-     — gates ONLY the two inbound-reply side effects (`notifyAssignedRep`/
-     `notifyUnmatchedForReview` and `forwardToYaronBestEffort`).
+     — gates ONLY the inbound-reply EMAIL side effects (`notifyAssignedRep`/
+     `notifyUnmatchedForReview`).
   Gates 2 and 3 were originally the SAME switch; split apart (October 2026,
   live-SMS end-to-end verification pass) because that coupling made it
-  impossible to live-test an inbound reply's rep-notify/Yaron-forward
-  behavior without simultaneously arming real confirmation/reminder sends
-  for every live upcoming appointment — exactly the accidental blast-radius
-  this gate philosophy exists to prevent. Each surface now has its own
-  explicit opt-in; turning one on never turns the other on
-  (`test/smsReplyNotify.test.js`'s two "decoupled gate" tests are the
-  permanent regression guard against re-coupling them). This exists
-  specifically so deploying this code can never itself start automated
-  customer sends just because `sms` was already on for manual messaging —
-  an operator must take a deliberate additional step per surface they want
-  active. Mirrors `REMINDER_DRY_RUN`'s existing safe-by-default precedent.
-  Gate 1 plus the relevant one of gate 2/3 must both be true for a given
-  surface to send.
+  impossible to live-test an inbound reply's rep-notify behavior without
+  simultaneously arming real confirmation/reminder sends for every live
+  upcoming appointment — exactly the accidental blast-radius this gate
+  philosophy exists to prevent. Each surface now has its own explicit
+  opt-in; turning one on never turns the other on
+  (`test/smsReplyNotify.test.js`'s "decoupled gate" test is the permanent
+  regression guard against re-coupling them). This exists specifically so
+  deploying this code can never itself start automated customer sends just
+  because `sms` was already on for manual messaging — an operator must take
+  a deliberate additional step per surface they want active. Mirrors
+  `REMINDER_DRY_RUN`'s existing safe-by-default precedent. Gate 1 plus the
+  relevant one of gate 2/3 must both be true for a given surface to send.
 - **Two-way replies**: reuses the EXISTING inbound webhook
   (`routes/sms.js`, `lib/smsService.js#handleInboundMessage`) completely
-  unchanged for matching/consent/opt-out/dedup. Two NEW side effects fire
+  unchanged for matching/consent/opt-out/dedup. One EMAIL side effect fires
   on an ordinary (non-keyword), non-duplicate inbound reply, AWAITED before
   the TwiML response (not fire-and-forget — Twilio tolerates a few seconds
   of webhook latency, and awaiting is what makes "one notification per
@@ -399,24 +398,26 @@ approval record.
     routed through the EXISTING `notificationPreferences` `ACTIVITY`
     category (so Michelle's single-category policy correctly excludes her
     via the same mechanism as every other staff broadcast — no new
-    category/migration needed).
-  - `forwardToYaronBestEffort` — **MANDATORY per the given spec, but
-    HARD-GATED behind its own `SMS_REPLY_FORWARD_TO` env var with NO
-    hardcoded default destination anywhere.** SAFETY FINDING: this codebase
-    already hardcodes `(310) 310-4108` in several places
-    (`lib/reminderEngine.js`, `lib/actionRouter.js`,
-    `lib/phoneCallReminders.js`, `lib/reminderPages.js`) as EC's PUBLISHED
-    OFFICE PHONE NUMBER shown to customers — this is NOT, by itself,
-    evidence it is Yaron's own SMS-capable phone, nor that it differs from
-    whatever `TWILIO_FROM`/Messaging-Service sender is configured. Before
-    ever setting `SMS_REPLY_FORWARD_TO`, confirm directly with Yaron: (a) it
-    is SMS-capable, (b) it is NOT the outbound customer-SMS sender number,
-    (c) he can actually receive texts there today. A built-in LOOP GUARD
-    refuses to forward (logs `destination_equals_sender`, never sends) if
-    the configured destination normalizes to the same number as
-    `TWILIO_FROM` — but when sending via `TWILIO_MESSAGING_SERVICE_SID`
-    (a pooled sender), the actual sending number can't be checked this way;
-    this is logged as an unverifiable case, not silently assumed safe.
+    category/migration needed). This is also how Yaron is notified of an
+    unmatched/ambiguous reply when he is a configured staff recipient with
+    that category enabled — by email, like every other staff member, never
+    by a personal SMS copy.
+  - **RETIRED (November 2026, revised notification-design decision):** a
+    prior `forwardToYaronBestEffort` function forwarded every ordinary
+    inbound reply as a SEPARATE outbound Twilio SMS to a
+    `SMS_REPLY_FORWARD_TO`-configured destination, in addition to the email
+    above. This has been REMOVED (both the function and its call site in
+    `routes/sms.js`) — inbound-reply notifications now go exclusively
+    through the EMAIL path above, the same mechanism every other
+    lead-related CRM notification already uses. Yaron is notified like any
+    other staff member: by email, as the lead's assigned owner
+    (`notifyAssignedRep`) or via the staff `ACTIVITY` broadcast
+    (`notifyUnmatchedForReview`) — never via a second paid outbound SMS to
+    his personal phone. `SMS_REPLY_FORWARD_TO` must stay unset in
+    production; nothing in this codebase reads it anymore, and a stray
+    value left in the environment is provably never read (see
+    `test/systemHealthChecks.test.js`'s "stray `SMS_REPLY_FORWARD_TO`"
+    test).
 - **Quiet hours — NOT bypassed, ever; a blocked reminder is DEFERRED and
   retried, never dropped and never sent stale (approved October 2026).**
   All three automated messages go through the SAME `smsService.sendSms`
@@ -581,12 +582,15 @@ there is exactly one SMS UI in Lead Detail.
 
 - **No backend change was needed for this.** Every requirement here (STOP
   opt-out, consent, quiet hours, delivery-status tracking, webhook dedup on
-  `twilio_sid`, rep notification + the mandatory Yaron forward with its loop
-  guard, the `SMS_AUTOMATED_REMINDERS_ENABLED` / `SMS_REPLY_NOTIFICATIONS_ENABLED`
-  gates) already existed from the prior SMS work (see "Automated appointment
-  SMS" above and "Twilio SMS messaging" below) — this pass is a frontend
-  integration of already-correct, already-tested backend behavior into one
-  consistent UI, not a new mechanism.
+  `twilio_sid`, rep notification, the `SMS_AUTOMATED_REMINDERS_ENABLED` /
+  `SMS_REPLY_NOTIFICATIONS_ENABLED` gates) already existed from the prior
+  SMS work (see "Automated appointment SMS" above and "Twilio SMS
+  messaging" below) — this pass is a frontend integration of
+  already-correct, already-tested backend behavior into one consistent
+  UI, not a new mechanism. (Note: at the time this pass was written, rep
+  notification was accompanied by a now-retired SMS-to-Yaron forward — see
+  "SMS reply-notification visibility..." below for its October 2026
+  introduction and its November 2026 retirement.)
 - **Timeline merge, not a second storage mechanism**:
   `crm-frontend/src/lib/smsActivityAdapter.js#smsMessageToActivity` reshapes
   a raw `sms_messages` row (from the EXISTING `GET /api/v1/leads/:id/sms`)
@@ -850,6 +854,8 @@ adding the two functions to that file's stub (the same stub shape
 
 ## SMS reply-notification visibility, out-of-order status callbacks, and a duplicate-notification race (October 2026, fixed)
 
+**SUPERSEDED (November 2026) — read "SMS reply notifications: email-only, Yaron SMS forward retired" below first.** This section's `forwardToYaronBestEffort`/`SMS_REPLY_FORWARD_TO` design (Symptom 1 and bug #2 below) was removed entirely in a revised notification-design decision — inbound replies now notify exclusively by email. Kept here as the historical record of the out-of-order-callback fix and the `scripts/reconcileSmsMessageStatus.js` tool, both of which are unaffected and still current.
+
 Following the previous incident's fix (inbound replies now actually reach
 the backend), a real production report surfaced two further symptoms on the
 SAME lead/thread, neither a consent/quiet-hours issue: (1) an inbound
@@ -966,6 +972,63 @@ mode, `--apply` with correct/incorrect `--confirm-host`, the grace-window
 and already-terminal exclusions, an unchanged-status report, a Twilio
 `check_failed` row, and proof the script never calls a Twilio write
 endpoint).
+
+## SMS reply notifications: email-only, Yaron SMS forward retired (November 2026)
+
+Revised notification-design decision, superseding the `forwardToYaronBestEffort`/
+`SMS_REPLY_FORWARD_TO` mechanism introduced in "Automated appointment SMS"
+and "SMS reply-notification visibility..." above. The business decided
+inbound customer SMS replies should notify through the CRM's existing EMAIL
+notification infrastructure only — never a second, paid outbound Twilio SMS
+to Yaron's personal phone.
+
+- **What changed**: `lib/smsReplyNotify.js#forwardToYaronBestEffort` (and
+  its loop guard, its safety-note header, and its call site in
+  `routes/sms.js`'s inbound webhook handler) has been REMOVED entirely —
+  not merely left unconfigured. `notifyAssignedRep` (email to the lead's
+  real assigned owner, via the `owners` FK) and `notifyUnmatchedForReview`
+  (email to staff filtered through the EXISTING `notificationPreferences`
+  `ACTIVITY` category) are UNCHANGED — they were already the correct,
+  tested email path and needed no redesign.
+- **How Yaron is notified now**: exactly like any other staff member — by
+  email, as the lead's assigned owner (`notifyAssignedRep`) or via the
+  staff `ACTIVITY` broadcast for an unmatched/ambiguous reply
+  (`notifyUnmatchedForReview`, subject to his own notification preferences
+  like every other staff recipient) — never via a personal-phone SMS copy.
+- **Michelle's single-category policy is untouched by this change**: she
+  was already correctly excluded from `notifyUnmatchedForReview`'s
+  `ACTIVITY`-category broadcast (the SAME mechanism, unchanged — see
+  "Michelle single-category policy" under "Important business invariants"
+  below) and was never a target of the removed Yaron forward either. This
+  retirement adds no new Michelle-specific logic because none was needed.
+- **`SMS_REPLY_FORWARD_TO` must stay unset in production and is never
+  read again** — `lib/systemHealthChecks.js#checkTwilio`'s
+  `notification_config` block no longer has a `yaron_forward_configured`
+  field at all (not merely `false`); a stray value left in the Railway
+  environment is provably inert (see the "stray `SMS_REPLY_FORWARD_TO`"
+  test in `test/systemHealthChecks.test.js`) — the feature cannot be
+  silently revived by leaving old configuration in place. `SMS_REPLY_FORWARD_TO`
+  was never enabled by this change and is not being enabled now.
+  `SMS_REPLY_NOTIFICATIONS_ENABLED` is UNCHANGED and continues to gate the
+  email path exactly as before — this flag was audited (not assumed) before
+  this change and nothing about its meaning or call sites was altered.
+- **No automated customer-facing SMS behavior was touched**: the booking
+  confirmation and 12h/2h reminder SMS sends
+  (`SMS_AUTOMATED_REMINDERS_ENABLED`), outbound manual-compose SMS, consent,
+  opt-out, quiet hours, and the out-of-order status-callback guard / stuck-
+  message reconciliation tool from the section above are all unmodified.
+  `crm-frontend/src/pages/SystemHealth.jsx`'s SMS card now shows a single
+  "Reply email notifications: Enabled/Disabled" line (the "Yaron SMS
+  forward" line was removed, not merely hidden).
+- Regression coverage: `test/smsReplyNotify.test.js` (the function and its
+  export no longer exist; the remaining decoupled-gate test covers only the
+  email path now); `test/systemHealthChecks.test.js` + `crm-frontend/src/
+  pages/SystemHealth.test.jsx` (the retired field/line never reappears, a
+  stray `SMS_REPLY_FORWARD_TO` is never read or rendered); real-Postgres
+  `test/integration/smsReplyNotifications.int.test.js` (every inbound-reply
+  scenario — unique match, redelivered webhook, ambiguous match, STOP
+  keyword — proves email fires correctly and NO outbound SMS is ever sent
+  as a reply notification).
 
 ## Important business invariants
 
