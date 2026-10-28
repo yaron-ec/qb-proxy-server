@@ -8,6 +8,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, Mail } from 'lucide-react';
+import { sanitizeReturnTo } from '@/lib/safeReturnTo';
+
+// Production incident (November 2026): a user who followed a New Lead or
+// incoming-SMS email link while logged out was always dropped on the
+// dashboard after signing in, never back on the lead the link pointed at.
+// App.jsx now preserves the original destination as ?returnTo=<path> on the
+// way TO /login; this reads it back, re-validates it (never trust a query
+// string on faith — see lib/safeReturnTo.js's header), and uses it in place
+// of the hardcoded "/" on every successful sign-in path below (Google SSO,
+// email/password, and the "already signed in" redirect).
+function getReturnTo() {
+  try {
+    return sanitizeReturnTo(new URLSearchParams(window.location.search).get('returnTo')) || '/';
+  } catch { return '/'; }
+}
 
 /**
  * Native CRM login page — Railway-owned authentication.
@@ -34,32 +49,42 @@ export default function Login() {
   const [googleRedirecting, setGoogleRedirecting] = useState(false);
 
   // ── Handle Google OAuth callback tokens in URL hash ────────────────────
-  // After the Railway callback redirects here with #access=xxx&refresh=xxx,
-  // extract, store, and enter the CRM.
+  // After the Railway callback redirects here with #access=xxx&refresh=xxx
+  // (+ an optional &returnTo=<path> — see routes/auth.js's /google/callback,
+  // which carries it through Google's `state` param from the original
+  // /google?returnTo=... request below), extract, store, and enter the CRM
+  // at the originally-intended destination.
   useEffect(() => {
     const hash = window.location.hash;
     if (!hash || !hash.includes('access=')) return;
     const params = new URLSearchParams(hash.replace(/^#/, ''));
     const access = params.get('access');
     const refresh = params.get('refresh');
+    const returnTo = sanitizeReturnTo(params.get('returnTo')) || '/';
     if (access && refresh) {
       setTokens(access, refresh);
       // Clear the hash so tokens don't linger in the browser URL
       window.history.replaceState({}, document.title, window.location.pathname);
       // Re-run the auth state machine to load the Railway user
-      checkAppState().then(() => navigate('/', { replace: true }));
+      checkAppState().then(() => navigate(returnTo, { replace: true }));
     }
   }, []);
 
-  // Already authenticated (valid Railway session) → straight to the CRM.
-  if (isAuthenticated) return <Navigate to="/" replace />;
+  // Already authenticated (valid Railway session) → straight to the CRM,
+  // honoring ?returnTo=<path> if present (e.g. a still-valid session
+  // following a fresh email link straight back to /login?returnTo=...).
+  if (isAuthenticated) return <Navigate to={getReturnTo()} replace />;
 
   const onGoogleLogin = () => {
     setGoogleRedirecting(true);
     // Redirect to the Railway Google OAuth endpoint.
-    // Pass the frontend origin so the callback knows where to return.
+    // Pass the frontend origin so the callback knows where to return, plus
+    // the validated returnTo path (if any) so the user lands back on the
+    // lead they actually clicked through for, not the dashboard.
     const redirect = encodeURIComponent(window.location.origin);
-    window.location.href = `${RAILWAY_API_URL}/api/v1/auth/google?redirect=${redirect}`;
+    const returnTo = sanitizeReturnTo(new URLSearchParams(window.location.search).get('returnTo'));
+    const returnToParam = returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : '';
+    window.location.href = `${RAILWAY_API_URL}/api/v1/auth/google?redirect=${redirect}${returnToParam}`;
   };
 
   const onSubmit = async (e) => {
@@ -74,7 +99,7 @@ export default function Login() {
     try {
       await railwayApi.login(trimmedEmail, password);
       await checkAppState();
-      navigate('/', { replace: true });
+      navigate(getReturnTo(), { replace: true });
     } catch (err) {
       const msg = err?.message || 'Invalid email or password.';
       setError(/401|invalid credentials|email or password/i.test(msg)

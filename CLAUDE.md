@@ -1030,6 +1030,166 @@ to Yaron's personal phone.
   keyword — proves email fires correctly and NO outbound SMS is ever sent
   as a reply notification).
 
+## CRM email notification links: centralized, validated base URL (`lib/crmUrl.js`, November 2026, fixed)
+
+**Production incident**: a New Lead notification email's "Open Lead in CRM"
+button opened `http:///leads/774d31bd-1134-4319-8298-5810dbe196a5` on mobile
+when clicked — scheme present, host EMPTY. Google's own redirect
+interstitial correctly flagged it "invalid url".
+
+**Root cause**: `lib/captureAlerts.js#sendNewLeadAlert` (the New Lead email —
+every intake path funnels through it) built its lead link as
+`` `${crmPublicUrl || ''}/leads/${lead.id}` `` with **no fallback of its
+own**, and all three of its real callers —
+`routes/websiteLeads.js`, `routes/publicCapture.js`, `routes/metaWebhook.js`
+(×2 call sites) — passed `process.env.CRM_PUBLIC_URL || ''`. When
+`CRM_PUBLIC_URL` was unset in production, the email shipped a bare
+**relative** path (`/leads/<id>`, no scheme, no host) baked directly into
+its HTML. There is no "current page" inside an email to resolve a relative
+`href` against, so Gmail's own link-safety/redirect wrapper rendered
+exactly the reported symptom. The identical missing-fallback pattern
+existed in `routes/sms.js`'s inbound-SMS-reply notification path
+(`lib/smsReplyNotify.js#notifyAssignedRep`), degrading more gracefully (it
+omitted the link entirely rather than emit a broken one) but still shipping
+a notification with no way to open the lead at all — found while auditing
+every "any other email containing a link back to CRM" per the same
+investigation. Every OTHER CRM-link call site in this codebase had already
+independently reinvented the same
+`process.env.CRM_PUBLIC_URL || 'https://crm.ecconstructiongroup.com'`
+fallback — duplicated across 8+ files, each copy a chance to be missed
+exactly like `captureAlerts.js` was. A ninth, previously-undiscovered copy
+of the SAME missing-fallback bug was also found and fixed in the SAME pass,
+unprompted: `routes/auth.js`'s employee-invite email built its
+`/accept-invite?token=...` link from `process.env.CRM_PUBLIC_URL || ''`
+too — same defect class, same fix.
+
+**Fix**: `lib/crmUrl.js` is now the ONE validated source for every CRM-link
+call site. `getCrmBaseUrl()` ALWAYS returns a valid absolute `http(s)` URL
+with a real host — falling back to the known production CRM URL
+(`https://crm.ecconstructiongroup.com`) whenever `CRM_PUBLIC_URL` is unset,
+unparsable, missing a protocol/host, or points at a blocked host
+(`localhost`/`127.0.0.1`/`0.0.0.0`/`::1`, any `*.railway.internal`, any
+`base44.app`/`base44.com`) — logging a warning only for the invalid/blocked
+cases, never for the simply-unset case (`CRM_PUBLIC_URL` is documented as
+"Recommended," not "Required"). Deliberately does NOT block a
+`*.up.railway.app` domain — `lib/platformInfraProvisioning.js` legitimately
+sets a brand-new multi-company installation's real `frontend_url` to
+exactly that shape before a custom domain is attached (see "Multi-company
+direction" below), so that is a genuine working CRM origin, not a
+misconfiguration. `buildLeadUrl(leadId)` builds on top of it and returns
+`null` when `leadId` is missing — every caller must omit the link/button
+entirely in that case rather than ever emit a bare `/leads/` or
+`/leads/undefined`. `/leads/:id` was verified (not assumed) as the real
+frontend route — `crm-frontend/src/App.jsx` routes it to
+`LeadDetailModern`.
+
+Every call site that used to read `process.env.CRM_PUBLIC_URL` directly now
+delegates to this module: `lib/captureAlerts.js`, `lib/smsReplyNotify.js`,
+`lib/dataAccessRailway.js`, `lib/emailTemplates.js`, `lib/reminderEmails.js`,
+`lib/reminderPages.js`, `lib/actionRouter.js`, `lib/crmActivityNotifier.js`,
+`routes/cronJobs.js`, `lib/phoneCallReminders.js`, `lib/qbTokenManager.js`
+(the QuickBooks reconnect-required admin alert), and `routes/auth.js` (the
+employee-invite email AND the Google OAuth `redirect` default). The three
+broken New Lead call sites (`routes/websiteLeads.js`,
+`routes/publicCapture.js`, `routes/metaWebhook.js`) and `routes/sms.js`'s
+inbound-SMS-reply call site no longer pass a raw env-var string at all —
+`sendNewLeadAlert`'s and `notifyAssignedRep`'s second `crmPublicUrl`
+argument is now an accepted-but-ignored, documented-deprecated parameter
+(kept only so no caller needed its call signature changed), and the link is
+unconditionally built from `lib/crmUrl.js` inside the function itself.
+
+**Deliberately NOT touched**: `crm-frontend/src/lib/crmEmailTemplates.js`'s
+`manualStaffReminderHtml` (the browser-triggered "manual reminder" email,
+`crm-frontend/src/lib/emailTransport.js`'s Railway-flow path) builds its
+link from `window.location.origin` — this runs IN THE BROWSER, so the
+origin is always correct by construction (whoever is viewing the CRM to
+click "send manual reminder" is necessarily on the right host); there is no
+env-var fallback to get wrong, and it needed no fix. `routes/platformCompanies.js#sendOwnerInvite`
+(multi-company owner invites) intentionally uses each company's own
+per-row `frontend_url` from `platform_companies`, never the global
+`CRM_PUBLIC_URL` env var — a different, already-correct mechanism, not an
+instance of this bug. `lib/smsClient.js#webhookBaseUrl` reads
+`CRM_PUBLIC_URL` too, but only as a documented last-resort fallback for the
+Twilio webhook/status-callback BACKEND URL (a different purpose entirely —
+see "SMS inbound-webhook / status-callback production incident" above) —
+not a lead link, not touched here.
+
+**Known, NOT-fixed-in-this-pass issue found while reading this code**:
+`lib/qbTokenManager.js#notifyReconnectRequired` destructures
+`const { ALERT_RECIPIENTS } = require('./captureAlerts')` — but
+`lib/captureAlerts.js` does not (and, per its current `module.exports`,
+never did in its current form) export `ALERT_RECIPIENTS`. This makes
+`ALERT_RECIPIENTS` `undefined` in production, so the `for...of` over it
+throws and is silently swallowed by the function's own try/catch — the
+QuickBooks reconnect-required ADMIN alert email has likely never sent in
+production. Every test file that exercises code paths near this (`test/
+integration/company2FunctionalProof.int.test.js` and 10+ others) masks this
+by stubbing the whole `lib/captureAlerts` module with its own
+`ALERT_RECIPIENTS: []`, which is why it was never caught by the existing
+suite. This is a genuinely separate defect (an email never sending, not a
+malformed link) from everything else in this section — tracked here as a
+known issue, deliberately not fixed in this pass to keep this fix scoped to
+link generation.
+
+### Post-login redirect now preserves the intended lead (`lib/safeReturnTo.js`)
+
+A related gap found while auditing requirement coverage for this incident:
+a user who followed a New Lead or incoming-SMS email link while logged out
+was always dropped on the dashboard after signing in — `crm-frontend/src/
+App.jsx`'s `auth_required` branch discarded the original URL entirely
+(`<Navigate to="/login" replace />`), and every success path in
+`crm-frontend/src/pages/Login.jsx` (Google SSO, email/password, and the
+already-authenticated redirect) always navigated to `/` unconditionally.
+
+Fixed by threading a validated `returnTo` path through the whole flow:
+`App.jsx` now preserves the original `location.pathname + location.search`
+as `/login?returnTo=<path>`. `lib/safeReturnTo.js` (backend) and
+`crm-frontend/src/lib/safeReturnTo.js` (frontend, duplicated — separate
+packages, no shared module boundary) are the ONE validated gate a `returnTo`
+value must pass before ever being used as a redirect target — it must be a
+same-origin, app-internal path starting with exactly one `/` (never
+`//host/...` or `/\host/...`, both browser-recognized protocol-relative
+forms, and never an absolute URL or a disguised scheme like
+`/javascript:...`) — an open-redirect vector is the one thing this can
+never become, since a freshly-issued session's tokens travel with it.
+For the email/password path, `Login.jsx` reads `returnTo` straight back off
+`window.location.search` (same page, no navigation occurred). For Google
+SSO, which does a full off-site round trip through Google, the value is
+carried through `routes/auth.js`'s existing `state` parameter (the same
+CSRF-nonce mechanism that already carried the frontend origin) —
+`GET /google` accepts an optional `?returnTo=` query param, validates it,
+and embeds it in `state`; `GET /google/callback` decodes and re-validates it
+(defense in depth — `state` is attacker-visible/replayable, never trusted on
+faith alone) and appends it to the final `#access=...&refresh=...` hash
+redirect as `&returnTo=...`; `Login.jsx`'s existing hash-token handler reads
+it back and navigates there instead of always `/`.
+
+**Permissions are unaffected by design, not by new code**: preserving the
+destination never bypasses lead ownership or role restrictions — once
+signed in, `LeadDetailModern`'s data fetch still goes through the normal
+authenticated API, which still enforces `routes/leads.js#resolveOwnerScope`
+exactly as it does for any other navigation. A `returnTo` to a lead the
+signed-in user isn't authorized to see still gets that user the same 403/
+scoped-empty response the API would give for any other route to it — this
+needed verification, not new code.
+
+Regression coverage: `test/crmUrl.test.js` (`getCrmBaseUrl`/`buildLeadUrl`
+validation matrix — unset, empty, valid http/https, unparsable, blocked
+hosts including the exact `http://` bare-scheme shape, `*.up.railway.app`
+NOT blocked, missing leadId, URL-encoding); `test/captureAlerts.test.js`
+(NEW — this file had zero coverage before this incident; proves the New
+Lead email's link is always valid absolute HTTPS regardless of
+`CRM_PUBLIC_URL`, and that the deprecated `crmPublicUrl` argument is fully
+ignored); `test/smsReplyNotify.test.js` (the incoming-SMS reply email's
+link is always valid, never omitted); `test/safeReturnTo.test.js` +
+`crm-frontend/src/lib/safeReturnTo.test.js` (the open-redirect-rejection
+matrix on both sides). **Not verified live** (no Railway/Twilio/Google
+OAuth credential access in this environment): the actual rendered HTML of a
+real production email (Gmail-specific link mangling can only be confirmed
+by receiving one), and a full Google-SSO round trip exercising the new
+`returnTo` passthrough end to end — both require live production access an
+operator must perform.
+
 ## Important business invariants
 
 - **Appointments**: no-double-booking is enforced by

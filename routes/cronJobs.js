@@ -195,7 +195,7 @@ router.post('/notify-crm-activity', async (req, res) => {
 
     const leadName = `${lead.first_name || ''} ${lead.last_name || ''}`.trim();
     const repName = lead.owner_display_name || 'Unassigned';
-    const crmUrl = process.env.CRM_PUBLIC_URL || 'https://crm.ecconstructiongroup.com';
+    const crmUrl = require('../lib/crmUrl').getCrmBaseUrl();
 
     const html = templates.crmActivityEmail({
       title: activity_type || 'CRM Activity Update',
@@ -263,7 +263,7 @@ router.post('/notify-status-change', async (req, res) => {
     if (isTerminalLostStatus(lead.status)) return res.json({ ok: true, skipped: 'lead_closed_lost', job: 'notify-status-change' });
 
     const clientName = `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || 'Customer';
-    const crmUrl = process.env.CRM_PUBLIC_URL || 'https://crm.ecconstructiongroup.com';
+    const crmUrl = require('../lib/crmUrl').getCrmBaseUrl();
     const html = templates.statusChangeEmail({
       clientName,
       itemName: clientName,
@@ -318,7 +318,7 @@ router.post('/send-project-status-email', async (req, res) => {
       itemName: project_status || 'Project Update',
       oldStatus: 'Previous',
       newStatus: project_status || 'Update',
-      crmUrl: process.env.CRM_PUBLIC_URL || 'https://crm.ecconstructiongroup.com',
+      crmUrl: require('../lib/crmUrl').getCrmBaseUrl(),
     });
 
     const result = await emailService.send({

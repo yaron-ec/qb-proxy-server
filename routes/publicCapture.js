@@ -302,7 +302,7 @@ router.post('/', submitLimiter, async (req, res) => {
       //    Mirrors notifyYaronNewWebsiteLead: Yaron + Michelle. Never rolls back.
       try {
         const leadRow = (await query('SELECT * FROM leads WHERE id = $1', [leadId])).rows[0];
-        if (leadRow) await sendNewLeadAlert(leadRow, process.env.CRM_PUBLIC_URL || '');
+        if (leadRow) await sendNewLeadAlert(leadRow);
       } catch (e) { console.warn('[public-capture] new-lead alert failed (non-fatal):', e.message); }
     }
 
