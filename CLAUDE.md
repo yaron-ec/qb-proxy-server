@@ -1898,6 +1898,47 @@ run was over an hour ago (the cron runs every 15 minutes). No new
 its own (`MODULE_FLAG_ENFORCED.handoff_estimates_sync = false`, same
 precedent as `sms`), so it is never forced to DISABLED.
 
+**`crm-frontend/src/components/HandoffEstimatesPanel.jsx` previously had a
+SECOND, unrelated path back into the direct Handoff API (production
+incident, found and fixed in a later pass)**: alongside the correct
+"Sync from QuickBooks" button (`handleSync` → `syncQBEstimatesForLead` →
+`routes/leadQB.js`'s `sync-estimates`, per the pipeline above), this
+per-lead panel ALSO offered a second, visually near-identical "Sync from
+Handoff" icon (`handleHandoffSync` → `POST /handoff/sync-estimates-for-lead`,
+`routes/handoffSync.js` — the DIRECT Handoff REST integration). Clicking it
+always failed with `EXTERNAL BLOCKER — OFFICIAL HANDOFF API KEY REQUIRED...`
+(`routes/handoffSync.js#classifyHandoffError`'s `OFFICIAL_API_KEY_REQUIRED`
+message), since this installation has no Handoff API key and, per this
+section's own opening paragraph, is not pursuing one. That error rendering
+in the SAME panel as an unrelated, correct "No estimates yet" empty state
+(a lead whose QuickBooks-side match simply hadn't synced yet) read as one
+combined failure, even though the two had nothing to do with each other —
+the QB-based pipeline (cron + this panel's auto-sync + its remaining
+"Sync from QuickBooks" button) was never affected; the direct-Handoff
+button's own failure never touched the `handoff_estimates` table at all
+(`handoffClient.getApiKey()` throws before any `rda.create`/`rda.update`
+is ever reached), so no estimate data was ever at risk from this. Fixed by
+removing the "Sync from Handoff" button and its handler entirely from this
+panel — the backend route (`routes/handoffSync.js`) is untouched, since a
+future installation that genuinely configures a direct Handoff connection
+may still use it elsewhere; only this panel's dependency on it was removed.
+Confirms requirement: `enabled_modules.handoff` must in fact be `true` in
+this installation's production `company_settings` row for the reported
+`EXTERNAL BLOCKER` message to have been reachable at all — if it were
+`false`, `routes/handoffSync.js`'s own `gate()` (`requireModuleEnabled`)
+would have 404'd with `module_disabled` first, never reaching
+`classifyHandoffError`'s `OFFICIAL_API_KEY_REQUIRED` message. That module
+flag's actual current value was not independently verified against
+production from this environment (no Railway/DB access) — this is a
+code-level deduction from the exact error text reported, not a live check.
+Regression coverage: `crm-frontend/src/components/HandoffEstimatesPanel.test.jsx`
+(no "Sync from Handoff" control renders; auto-sync and the diagnose/sync
+buttons never call the direct Handoff API; the empty state never shows an
+`EXTERNAL BLOCKER`/`HANDOFF_API_KEY` message); the QB-only dependency of
+the sync-estimates write path itself was already covered by
+`test/estimateSyncRestoration.test.js`'s "no dependency on Handoff
+API/HANDOFF_API_KEY" test, unchanged by this fix.
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`

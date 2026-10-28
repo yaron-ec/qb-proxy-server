@@ -4,10 +4,28 @@
  * - Real-time subscription: banner when a new estimate arrives
  * - Correct empty state based on handoff_estimate_status
  * - QB is the production source of truth; no Handoff API tokens needed
+ *
+ * October 2026 production incident, fixed: this panel previously ALSO
+ * offered a "Sync from Handoff" button (handleHandoffSync, a separate
+ * purple icon next to the QB sync button) that called the DIRECT Handoff
+ * REST API (POST /handoff/sync-estimates-for-lead) — an integration this
+ * installation has no API key for and is not pursuing (see CLAUDE.md's
+ * "Handoff → QuickBooks → CRM estimate sync" section). Clicking it always
+ * failed with "EXTERNAL BLOCKER — OFFICIAL HANDOFF API KEY REQUIRED...",
+ * confusingly alongside the panel's unrelated, correct "No estimates yet"
+ * empty state for a lead whose QuickBooks sync simply hadn't matched
+ * anything yet. The two sync icons looked nearly identical (same RefreshCw
+ * icon, differing only by hover color and tooltip text), making it easy to
+ * trigger the broken Handoff path by mistake. Removed entirely — this
+ * panel's normal workflow (auto-sync + the remaining "Sync from
+ * QuickBooks" button) never depends on a Handoff API key. The backend
+ * route itself (routes/handoffSync.js) is untouched — it still exists for
+ * a future installation that genuinely configures a direct Handoff
+ * connection — only this panel's dependency on it was removed.
  */
 import { useState, useEffect, useRef } from "react";
 import { handoffEstimates as railwayHandoffEstimates } from "@/api/railway";
-import { syncQBEstimatesForLead, syncHandoffEstimatesForLead, diagnoseLeadEstimates, fetchEstimatePdf, normalizeIntegrationError } from "@/lib/railwayClient";
+import { syncQBEstimatesForLead, diagnoseLeadEstimates, fetchEstimatePdf, normalizeIntegrationError } from "@/lib/railwayClient";
 import {
   FileText, ExternalLink, RefreshCw, Loader2, CheckCircle, AlertTriangle, Clock,
   Download, ShieldCheck, Zap, Search, ChevronDown, ChevronRight, Bell
@@ -70,12 +88,12 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
 
   // load() derives canonicalLeadId from the lead closure — callers MUST NOT
   // pass an argument. Previously load(canonicalLeadId) took a parameter, but
-  // 4 of 5 call sites (handleSync, triggerAutoSync, handleHandoffSync,
-  // handleSavePdf) called load() with no argument, passing undefined as
-  // lead_id → backend returned { items: [], total: 0 } → "No estimates yet"
-  // even though the sync had just persisted the record. This was the
-  // Joel Jhonstone production defect: sync reported "0 new, 1 updated" but
-  // the panel showed "No estimates yet".
+  // most call sites (handleSync, triggerAutoSync, handleSavePdf) called
+  // load() with no argument, passing undefined as lead_id → backend
+  // returned { items: [], total: 0 } → "No estimates yet" even though the
+  // sync had just persisted the record. This was the Joel Jhonstone
+  // production defect: sync reported "0 new, 1 updated" but the panel
+  // showed "No estimates yet".
   const load = async () => {
     const canonicalLeadId = lead.railway_id || lead.id;
     if (!canonicalLeadId) {
@@ -166,27 +184,6 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
     }
   };
 
-  const handleHandoffSync = async () => {
-    setSyncing(true);
-    setSyncMsg(null);
-    setDiagData(null);
-    try {
-      // Handoff sync: fetches from the Handoff API (separate integration).
-      // May fail if Handoff API is WAF-blocked or not authenticated.
-      const data = await syncHandoffEstimatesForLead(lead.id);
-      if (data?.success) {
-        setSyncMsg({ type: 'success', text: data.message || 'Handoff sync complete' });
-        await load();
-      } else {
-        setSyncMsg({ type: 'info', text: data?.message || 'No Handoff estimates found for this lead.' });
-      }
-    } catch (e) {
-      setSyncMsg({ type: 'error', text: 'Handoff sync failed: ' + normalizeIntegrationError(e) });
-    } finally {
-      setSyncing(false);
-    }
-  };
-
   const handleDiagnose = async () => {
     setDiagnosing(true);
     setSyncMsg(null);
@@ -261,10 +258,6 @@ export default function HandoffEstimatesPanel({ lead, onLeadUpdate }) {
           <button onClick={handleDiagnose} disabled={diagnosing || syncing || autoSyncing}
             className="text-slate-300 hover:text-blue-500 transition-colors disabled:opacity-40 btn-compact" title="Diagnose QB match">
             {diagnosing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
-          </button>
-          <button onClick={handleHandoffSync} disabled={syncing || loading || autoSyncing}
-            className="text-slate-300 hover:text-purple-500 transition-colors disabled:opacity-40 btn-compact" title="Sync from Handoff">
-            {syncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
           </button>
           <button onClick={handleSync} disabled={syncing || loading || autoSyncing}
             className="text-slate-300 hover:text-blue-500 transition-colors disabled:opacity-40 btn-compact" title="Sync from QuickBooks">
