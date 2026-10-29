@@ -87,6 +87,39 @@ test('deriveState: CONNECTED / DEGRADED / DISCONNECTED map from live_check.ok/de
   assert.strictEqual(deriveState({ ...base, result: { credential_present: true, live_check: { ok: false, degraded: false } } }), 'DISCONNECTED');
 });
 
+// October 2026 production finding: deriveState() never actually reached its
+// own DEGRADED branch for an ok:false live_check — the exact shape every
+// `liveCheck(false, true, ...)` transient-failure call site in this file
+// produces (QuickBooks 429/5xx, a Calendar quota error, a bare network
+// exception in Gmail/SignNow/Handoff/Twilio's own catch block, even the
+// top-level "health check itself failed" catch-all). Every one of those fell
+// through to DISCONNECTED, so System Health showed "Disconnected" right next
+// to a message that explicitly said "likely transient" — this is the EXACT
+// case the previous test (deliberately) never covered.
+test('deriveState: ok:false + degraded:true (the actual shape of every transient-failure live_check in this file) -> DEGRADED, never DISCONNECTED', () => {
+  const base = { moduleEnabled: true, flagEnforced: true };
+  assert.strictEqual(deriveState({ ...base, result: { credential_present: true, live_check: { ok: false, degraded: true } } }), 'DEGRADED');
+});
+
+test('deriveState: the full pipeline — checkQuickBooks\'s real 429 output, run through deriveState, is DEGRADED (reproduces the reported incident end-to-end)', async () => {
+  const restoreStore = stub('../lib/qbTokenStore', {
+    loadPersistedTokens: async () => ({ access_token: 'x' }),
+    credentialStatus: async () => ({ status: 'active' }),
+  });
+  const restoreMgr = stub('../lib/qbTokenManager', {
+    verifyConnection: async () => ({ ok: false, status: 429, reconnectRequired: false }),
+  });
+  try {
+    const result = await checkQuickBooks({ verify: true });
+    assert.match(result.live_check.message, /429/);
+    assert.strictEqual(
+      deriveState({ moduleEnabled: true, flagEnforced: true, result }),
+      'DEGRADED',
+      'a successful token refresh followed by a rate-limited data call must never present as Disconnected'
+    );
+  } finally { restoreStore(); restoreMgr(); }
+});
+
 // ── QuickBooks ──────────────────────────────────────────────────────────
 test('checkQuickBooks: no persisted tokens -> NOT_CONFIGURED shape, never calls verifyConnection', async () => {
   const restore = stub('../lib/qbTokenStore', {
