@@ -2537,13 +2537,30 @@ app.listen(PORT, async () => {
             'x-worker-secret': workerSecret,
             'Content-Type': 'application/json',
           },
-          signal: AbortSignal.timeout(100000),
+          // Raised from 100s (October 2026): lib/qbInboundSync.js now paces
+          // ~200ms between customers and lib/qbTokenManager.js#qbApiRequest
+          // now bounded-retries a 429/5xx with backoff — both deliberate
+          // fixes for the "failed=100" rate-limit incident, but together
+          // they raise this call's worst-case duration (100 customers x up
+          // to 2 QB calls x up to ~2s backoff + pacing could approach a few
+          // minutes under a SUSTAINED rate-limit, not just an isolated
+          // blip). 280s stays comfortably under the 15-minute tick spacing
+          // so this can never still be running when the next tick fires.
+          signal: AbortSignal.timeout(280000),
         });
         const result = await response.json();
         if (result && result.skipped) {
           console.log('[qb-inbound-cron] skipped — ' + result.reason);
         } else {
           console.log('[qb-inbound-cron] reconcile ok — total=' + (result?.total ?? '?') + ' synced=' + (result?.synced ?? '?') + ' failed=' + (result?.failed ?? 0));
+          // Sanitized failure breakdown (HTTP status counts only — never a
+          // raw QB error body, customer id, or financial amount) — without
+          // this, a non-zero `failed` count had NO visible reason anywhere
+          // in the logs, even though lib/qbInboundSync.js already computed
+          // and returned it in the HTTP response body this cron discarded.
+          if (result?.failed > 0 && result?.failureSummary) {
+            console.warn('[qb-inbound-cron] failure breakdown: ' + JSON.stringify(result.failureSummary));
+          }
         }
       } catch (e) {
         console.error('[qb-inbound-cron] reconcile failed: ' + e.message);

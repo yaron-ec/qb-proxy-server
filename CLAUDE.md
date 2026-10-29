@@ -2088,6 +2088,130 @@ new proactive health probe layered on top of it.
     gate, correct require) is covered by
     `test/qbLegacyWriteRouteSecurity.test.js`'s source-level check.
 
+## QuickBooks rate-limit (429) production incident, System Health misclassification (October 2026 reliability audit, Phase 3)
+
+**Production report**: System Health showed QuickBooks's live-check message
+as `"QuickBooks API returned HTTP 429 — likely transient"` while
+simultaneously presenting the integration as **Disconnected**. Railway logs
+showed `[qb-token] access token refreshed` (the refresh itself succeeded)
+immediately followed by `[qb-inbound-cron] reconcile ok — total=100
+synced=0 failed=100`, repeating every 15 minutes.
+
+**Root cause #1 — `lib/qbTokenManager.js#qbApiRequest` had NO retry/backoff
+for a 429 or 5xx on an actual QuickBooks DATA call, only for a 401.** The
+QB Estimate Sync cron and the QB Inbound Reconciliation cron both fire on
+the identical `*/15 * * * *` schedule in the same process; the inbound
+reconciliation loop alone issues at least 2 sequential QB calls (Invoice
+query + Payment query, more if paginated) per mapped customer with ZERO
+pacing between them. At ~100 mapped customers that is 200+ rapid-sequential
+calls — enough to exceed Intuit's rate limit on its own, and the OVERLAPPING
+estimate-sync cron tick compounds it further. The token-refresh endpoint's
+OWN 3-attempt backoff (`REFRESH_ATTEMPTS`/`REFRESH_BACKOFF_MS` in
+`callIntuit`) is a completely separate HTTP endpoint (`/oauth2/v1/tokens/
+bearer`) and never covered this — confirmed by `test/qbTokenManager.test.js`'s
+own existing "transient Intuit 5xx/429" tests, which exercise only
+`getValidTokens` (the refresh path, `intuitResponse`/`intuitCalls`), never
+`qbApiRequest`'s data-call path (`apiResponse`/`apiCalls`) — that test gap is
+exactly what let this ship. Once Intuit's limit was hit mid-run, every
+subsequent call failed immediately with no retry, cascading into
+"failed=100" for the whole tick.
+
+**Fix**: `qbApiRequest` now bounded-retries a 429/5xx with backoff
+(`DATA_CALL_RETRY_ATTEMPTS = 3`, `DATA_CALL_BACKOFF_MS = [500, 1500]` —
+deliberately the SAME shape as the already-reviewed refresh-endpoint
+backoff, for consistency) — honoring a `Retry-After` header when Intuit
+sends one, capped at `DATA_CALL_MAX_RETRY_AFTER_MS = 5000` so a
+misbehaving/huge value can never stall a cron tick. This is the ONE shared
+path every QuickBooks data call goes through (`server.js` `qbFetch`, the PDF
+routes, `qbInboundSync.qbQuery`, `qbSyncTrigger`, `qbEstimateInvoice`), so
+the fix applies uniformly with no per-call-site duplication. The existing,
+independently-tested 401-refresh-and-retry-once behavior is completely
+unchanged — the two retry budgets (401 vs. 429/5xx) are tracked
+independently and never consume each other's slot.
+`lib/qbInboundSync.js#syncAllMappedCustomers` also now paces
+`INTER_CUSTOMER_PACING_MS = 200` between customers (never after the last
+one) — a small, additive mitigation that reduces how often the retry budget
+even needs to be spent, not a replacement for the retry fix.
+`server.js`'s qb-inbound-cron HTTP call timeout was raised from 100s to
+280s (comfortably under the 15-minute tick spacing) to accommodate the new
+worst-case duration (100 customers × up to 2 calls × up to ~2s backoff +
+pacing, under a SUSTAINED rate-limit) — without this, the cron's own HTTP
+call could itself time out before the (now more resilient) reconciliation
+finished, losing visibility entirely.
+
+**Root cause #2 — the per-customer failure reason was computed but never
+reached the logs.** `syncCustomerFinancials`'s per-customer `error`/now
+`error_status` (the attempted fix's new field — see below) WAS already
+returned in `syncAllMappedCustomers`'s `results` array and even forwarded
+in the cron route's HTTP response body — but `server.js`'s cron tick only
+ever destructured and logged the aggregate `total`/`synced`/`failed`
+counts, discarding `results` (and the body itself) immediately after each
+tick. An operator seeing "failed=100" in Railway logs had NO way to learn
+WHY without separately hitting System Health's `?verify=1` live-check path
+— a completely different code path that happened to also reveal it this
+time only because the SAME root rate-limit condition was still active when
+checked. **Fix**: `lib/qbInboundSync.js#qbQuery` now attaches `.status` to
+its thrown error (so a caller can classify a failure without parsing the
+error-message text, which is still truncated to 200 chars and never
+includes a token, customer PII, or a financial amount beyond what the
+200-char truncation already bounded); `syncAllMappedCustomers` returns a
+new `failureSummary` field — HTTP-status-keyed COUNTS only (e.g.
+`{status_429: 97, status_500: 3}`), never a raw body — and `server.js`'s
+cron tick now logs it (`console.warn`) whenever `failed > 0`.
+
+**Root cause #3 — `lib/systemHealthChecks.js#deriveState` never actually
+reached its own `DEGRADED` branch for a failed-but-transient live check.**
+The function's OWN doc comment already described `DEGRADED` as covering "a
+caveat (transient error...)", but the code's condition order
+(`result.live_check.ok && result.live_check.degraded`) required `ok` to be
+`true` — and a genuine transient FAILURE (what `liveCheck(false, true,
+...)` means — `ok: false` because the call genuinely failed, `degraded:
+true` specifically to flag that failure as non-fatal/transient) never
+satisfies that. A grep across every `liveCheck(...)` call in this file
+confirmed the scope of this: QuickBooks's 429/5xx case
+(`checkQuickBooks`), a Google Calendar quota error, a bare network/timeout
+exception caught in Gmail/SignNow/Handoff/Twilio's own catch blocks, and
+even the top-level "health check itself failed" catch-all in
+`getIntegrationHealth` ALL produce exactly this `ok:false, degraded:true`
+shape — and every one of them fell through to the final `DISCONNECTED`
+fallback, undetected, because the only existing direct test of
+`deriveState()` tested exactly 3 combinations (`{true,false}`,
+`{true,true}`, `{false,false}`) and never the 4th
+(`{false,true}`) — the ACTUAL shape nearly every transient-failure call
+site in this file produces. Fixed by checking `degraded` before requiring
+`ok`: `if (result.live_check.degraded) return 'DEGRADED';` now runs before
+the `DISCONNECTED` fallback, so a transient failure and a transient
+"succeeded with a caveat" (Handoff's own `liveCheck(true, true, ...)`
+warning case — the one pre-existing scenario that COULD already reach
+`DEGRADED`) land on the same, correct state. This fix is NOT
+QuickBooks-specific — it corrects System Health's reporting for every
+integration's transient-failure case, not just the one that was reported.
+
+**Verified (not claimed) production behavior vs. code-level conclusions**:
+everything above is a code-level root-cause analysis and fix, verified by
+reading the actual shipped source and by regression tests that reproduce
+the exact reported shapes (`test/qbTokenManager.test.js`'s new
+`qbApiRequest` data-call tests, `test/qbInboundSync.test.js`,
+`test/systemHealthChecks.test.js`'s new end-to-end
+`checkQuickBooks`-through-`deriveState` test). Whether the PRODUCTION
+QuickBooks connection is currently rate-limited right now, whether this
+fix actually resolves the live "failed=100" pattern once deployed, and
+Intuit's actual effective rate limit for this specific app/realm are **not
+verifiable from this environment** (no Railway/Intuit production access
+here) — confirming the fix worked live (System Health showing
+`CONNECTED`/`DEGRADED` instead of `DISCONNECTED` during a transient blip,
+and the next few `qb-inbound-cron` log lines showing `synced` counts
+recover) is the remaining operator verification step.
+
+Regression coverage: `test/qbTokenManager.test.js` (qbApiRequest's new
+429/5xx bounded retry, `Retry-After` honoring and capping, independent
+401-vs-transient retry budgets); `test/qbInboundSync.test.js` (pacing
+between customers, the sanitized `failureSummary`, the zero-failure and
+single-customer edge cases); `test/systemHealthChecks.test.js` (the
+missing `{ok:false, degraded:true}` -> `DEGRADED` case, and a full
+`checkQuickBooks`-through-`deriveState` pipeline test reproducing the
+exact reported incident shape end-to-end).
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`

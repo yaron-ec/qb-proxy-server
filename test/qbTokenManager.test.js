@@ -59,7 +59,7 @@ const depsInit = {
       // QuickBooks API call: record which access token was presented (never printed).
       apiCalls.push({ url: String(url), bearer: init.headers.Authorization.replace(/^Bearer /, '') });
       const r = apiResponse(apiCalls[apiCalls.length - 1]);
-      return { ok: r.status >= 200 && r.status < 300, status: r.status, text: async () => JSON.stringify(r.body) };
+      return { ok: r.status >= 200 && r.status < 300, status: r.status, headers: r.headers || null, text: async () => JSON.stringify(r.body) };
     }
     intuitCalls++;
     assert.match(String(init.body), /grant_type=refresh_token/);
@@ -201,6 +201,73 @@ test('simultaneous 401s from many callers → ONE refresh (single-flight + lock)
   const rs = await Promise.all(Array.from({ length: 5 }, () => mgr.qbApiRequest('production', API)));
   assert.ok(rs.every(r => r.res.status === 200));
   assert.strictEqual(intuitCalls, 1);
+});
+
+// ── qbApiRequest DATA-CALL transient retry (429/5xx) ────────────────────────
+// October 2026 production finding: lib/qbInboundSync.js's 100-customer
+// reconciliation loop reported "failed=100" — every QB data call (never the
+// token-refresh endpoint, which was fine) got a 429 with NO retry at all,
+// since qbApiRequest previously retried ONLY a 401. These tests exercise the
+// actual data-call path (apiResponse/apiCalls), never the Intuit token
+// endpoint (intuitResponse/intuitCalls) the tests above cover.
+test('qbApiRequest: a transient 429 on a DATA call is retried with backoff, succeeding on a later attempt', async () => {
+  persisted = { ...expired(), expires_at: new Date(Date.now() + 3600000).toISOString() };
+  let n = 0;
+  apiResponse = () => (++n < 3 ? { status: n === 1 ? 503 : 429 } : { status: 200, body: { CompanyInfo: { CompanyName: 'X' } } });
+  const r = await mgr.qbApiRequest('production', API);
+  assert.strictEqual(r.res.status, 200);
+  assert.strictEqual(apiCalls.length, 3);
+  assert.deepStrictEqual(sleeps, [500, 1500]);
+  assert.strictEqual(intuitCalls, 0, 'a data-call 429/5xx never touches the token-refresh endpoint');
+});
+
+test('qbApiRequest: a transient failure that persists is bounded at 3 attempts and returned as a failed (not thrown) response', async () => {
+  persisted = { ...expired(), expires_at: new Date(Date.now() + 3600000).toISOString() };
+  apiResponse = () => ({ status: 429 });
+  const r = await mgr.qbApiRequest('production', API);
+  assert.strictEqual(r.res.status, 429);
+  assert.strictEqual(apiCalls.length, 3, 'exactly 3 attempts, never more');
+  assert.deepStrictEqual(sleeps, [500, 1500]);
+  assert.strictEqual(store.revoked, 0, 'a data-call 429 never marks the credential revoked');
+  assert.strictEqual(store.used, 0, 'last_used_at is never recorded for a failed call');
+});
+
+test('qbApiRequest: a 429 with a Retry-After header honors that delay (capped) instead of the fixed backoff', async () => {
+  persisted = { ...expired(), expires_at: new Date(Date.now() + 3600000).toISOString() };
+  let n = 0;
+  const headerMap = new Map([['retry-after', '2']]);
+  apiResponse = () => (++n === 1
+    ? { status: 429, headers: { get: (k) => headerMap.get(k.toLowerCase()) || null } }
+    : { status: 200, body: {} });
+  const r = await mgr.qbApiRequest('production', API);
+  assert.strictEqual(r.res.status, 200);
+  assert.deepStrictEqual(sleeps, [2000], 'Retry-After: 2 (seconds) -> 2000ms, not the fixed 500ms default');
+});
+
+test('qbApiRequest: an oversized Retry-After is capped, never stalls a cron tick indefinitely', async () => {
+  persisted = { ...expired(), expires_at: new Date(Date.now() + 3600000).toISOString() };
+  let n = 0;
+  const headerMap = new Map([['retry-after', '600']]); // 10 minutes — must be capped
+  apiResponse = () => (++n === 1
+    ? { status: 429, headers: { get: (k) => headerMap.get(k.toLowerCase()) || null } }
+    : { status: 200, body: {} });
+  await mgr.qbApiRequest('production', API);
+  assert.deepStrictEqual(sleeps, [5000], 'capped at DATA_CALL_MAX_RETRY_AFTER_MS');
+});
+
+test('qbApiRequest: a 401 and a transient 429 use INDEPENDENT retry budgets — a 401-triggered refresh never consumes a transient-retry slot', async () => {
+  persisted = { ...expired(), expires_at: new Date(Date.now() + 3600000).toISOString() };
+  let calls = 0;
+  apiResponse = (c) => {
+    calls++;
+    if (c.bearer === 'old') return { status: 401 };
+    if (calls === 2) return { status: 429 }; // first call with the NEW token is rate-limited
+    return { status: 200, body: {} };
+  };
+  const r = await mgr.qbApiRequest('production', API);
+  assert.strictEqual(r.res.status, 200);
+  assert.strictEqual(apiCalls.length, 3, '401 (old token) -> refresh -> 429 (new token) -> retry -> 200');
+  assert.strictEqual(intuitCalls, 1, 'exactly one refresh, from the 401 — never from the 429');
 });
 
 test('transient Intuit 5xx/429 → bounded retry with backoff; success on a later attempt; never revoked', async () => {
