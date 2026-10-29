@@ -2212,6 +2212,188 @@ missing `{ok:false, degraded:true}` -> `DEGRADED` case, and a full
 `checkQuickBooks`-through-`deriveState` pipeline test reproducing the
 exact reported incident shape end-to-end).
 
+## QuickBooks sustained-429 circuit breaker + cross-process cron locking (October 2026 reliability audit, Phase 4)
+
+**Production incident, round 2**: after the Phase 3 fix above shipped,
+Railway logs continued to show `[qb-token] QuickBooks API 429 — transient,
+retry 1/2 (1000ms)` / `retry 2/2 (1000ms)` repeating almost every second,
+for extended periods. The per-call bounded retry (Phase 3) was working
+exactly as designed — it just had nothing above it to stop a **sustained**
+rate limit from being retried, call after call, for the full duration of a
+tick.
+
+**Root cause, confirmed by reading the actual loops, not guessed**: TWO
+scheduled jobs register on the IDENTICAL `*/15 * * * *` cron string in the
+same process (`server.js`'s QB Estimate Sync cron and QB Inbound
+Reconciliation cron, registered one after another) — both fire concurrently
+at every 15-minute boundary, stacking their QB call volume. Phase 3 only
+paced `lib/qbInboundSync.js#syncAllMappedCustomers`'s loop (200ms between
+customers); it never touched TWO OTHER unpaced loops that run on the exact
+same schedule: `server.js#runQbEstimateSyncInner`'s `fetchQbCustomer` calls
+(one QB customer fetch per estimate needing a not-yet-cached customer, zero
+pacing) and `runQbEstimatePdfSync`'s per-estimate PDF fetch loop (also zero
+pacing, up to 500 estimates per tick). Under a sustained limit, each
+unpaced call still fails, retries twice at ~1s each (honoring `Retry-After`,
+per Phase 3), then immediately moves to the next item — which 429s again —
+producing exactly the reported "almost every second" log pattern, and
+potentially helping to KEEP the rate-limit window from ever clearing by
+never backing off at the tick level, only at the per-call level.
+
+**Fix — four independent, coordinated pieces:**
+
+1. **Shared, cross-process circuit breaker** (`lib/qbRateLimitBreaker.js`,
+   NEW) — a classic closed/open/half-open state machine, state stored in
+   the pre-existing `app_settings` key-value table (`key='qb_rate_limit_breaker'`)
+   rather than in-process memory, so it is correct across multiple Railway
+   replicas/processes, not merely within one Node process:
+   - **CLOSED**: every call proceeds normally.
+   - **OPEN**: `FAILURE_THRESHOLD` (5) consecutive TERMINAL failures (i.e.
+     AFTER `qbApiRequest`'s own Phase 3 retry budget is already exhausted —
+     an isolated blip that the retry already recovered from never counts)
+     trips the breaker for a cooldown starting at `BASE_COOLDOWN_MS` (1
+     minute), doubling on each repeated reopen, capped at `MAX_COOLDOWN_MS`
+     (10 minutes), plus bounded jitter.
+   - **HALF_OPEN**: once the cooldown elapses, exactly ONE caller (the
+     first to win a conditional, atomic single-row UPDATE) is let through
+     as a trial; success closes the breaker completely, failure reopens it
+     with a longer cooldown. A trial that never reports back (a crash/hang)
+     self-recovers after `HALF_OPEN_TIMEOUT_MS` (30s) rather than deadlocking
+     every future call forever.
+   - Wired into `lib/qbTokenManager.js#qbApiRequest` (the one canonical
+     path every QuickBooks DATA call already goes through) as a gate
+     checked BEFORE any network call or token lookup — while open, it
+     returns a synthetic failure (`res.status = the string 'circuit_open'`,
+     never a number, so it can never be mistaken for a real Intuit HTTP
+     status in a log or `failureSummary`) with ZERO network traffic. This
+     protects every caller uniformly: inbound reconciliation, estimate
+     sync, PDF sync, the legacy proxy routes, `qbSyncTrigger`.
+   - Deliberately NEVER applied to the OAuth token-refresh endpoint
+     (`callIntuit`/`interpretRefresh` — a completely separate HTTP call) —
+     the breaker is about data-call rate limiting, never about whether a
+     token can be refreshed, per the explicit requirement that rate
+     limiting must never be confused with a revoked/expired credential.
+   - Fails OPEN on its own error (a transient `app_settings` read/write
+     hiccup never blocks a real QuickBooks call) — see the try/catch around
+     every `qbRateLimitBreaker` call in `qbTokenManager.js`.
+2. **Early-exit instead of grinding through the rest of a doomed loop** —
+   `lib/qbInboundSync.js#syncAllMappedCustomers`, `server.js#runQbEstimateSyncInner`,
+   and `server.js#runQbEstimatePdfSync` all now stop iterating the moment a
+   call reports the breaker is open (`circuitOpen`/`circuit_open` propagated
+   through `qbQuery`/`qbFetch`/`fetchQbCustomer`'s thrown errors), setting
+   `stopped_early: true` on the returned stats, rather than continuing
+   through dozens more already-doomed, breaker-blocked items. A PDF-fetch
+   skip specifically is NEVER recorded as a real failure (no `pdf_status:
+   'failed'`, no burned retry attempt) — it is a no-op skip, not a genuine
+   PDF-fetch error.
+3. **Previously-unpaced loops now paced** — `runQbEstimateSyncInner`'s
+   `fetchQbCustomer` loop and `runQbEstimatePdfSync`'s PDF loop each gained
+   a light ~150ms pace between items (never after the last one), matching
+   `qbInboundSync.js`'s existing 200ms convention — an additive mitigation
+   that reduces how often the breaker's retry budget needs to be spent at
+   all; the breaker itself is what actually stops a sustained condition.
+4. **Cross-process/replica-safe cron re-entrancy** — `lib/advisoryLock.js`
+   gained `tryWithAdvisoryLock` (namespace **1005** — see that file's own
+   namespace registry), a non-blocking `pg_try_advisory_lock`-based variant
+   of the existing `withAdvisoryLock`. This REPLACES the plain in-process
+   JS booleans both scheduled QB sync jobs previously used
+   (`lib/qbInboundSync.js`'s `_syncing`, `server.js`'s `_estimateSyncRunning`)
+   — a session-level Postgres advisory lock is held per CONNECTION, so two
+   different connections racing for the same key behave identically whether
+   they come from the same process or two separate Railway
+   replicas/processes, which a JS boolean never did. `qb-inbound-reconcile`
+   and `qb-estimate-sync` use independent keys under the same namespace —
+   they can still run concurrently with EACH OTHER (the shared breaker is
+   what prevents them from jointly overwhelming Intuit, not this lock); each
+   can simply no longer overlap with ANOTHER instance of itself.
+
+**Full data-call-path audit (done as a precondition for merging the Phase 4
+PR, not left to chance)**: every QuickBooks data call in this codebase was
+confirmed to funnel through the one canonical `qbTokenManager.qbApiRequest`
+— `server.js`'s `qbFetch`/`qbQuery`, `lib/qbInboundSync.js`'s `qbQuery`,
+`lib/qbSyncTrigger.js`, `lib/qbEstimateInvoice.js`, and every PDF route —
+which means the breaker gate protects ALL of them UNIVERSALLY, by
+construction, regardless of which specific loop calls it: once open, every
+call anywhere in the codebase becomes a free, zero-network-traffic
+synthetic failure. This audit found a fifth unpaced, breaker-blind loop
+that the first Phase 4 pass missed: `lib/qbSyncTrigger.js#runQbEstimateSyncAsync`
+(the webhook-triggered, near-real-time sync — bounded to estimates updated
+in the last 24h) had the SAME zero-pacing, no-circuit-detection customer-fetch
+loop as the three already fixed, plus its OWN separate in-process `_syncing`
+boolean. Fixed identically: paced (~150ms), stops early on a `circuitOpen`
+skip, and its re-entrancy guard was upgraded to the same cross-process
+`tryWithAdvisoryLock` (namespace 1005, key `qb-webhook-sync` — distinct from
+`qb-inbound-reconcile`/`qb-estimate-sync`, so it can still run alongside
+them). The remaining QB-calling loops in the codebase
+(`routes/leadQB.js`'s manual, admin-triggered, single-lead-scoped
+sync-estimates route — its sub-customer and full-QB-estimate-scan loops;
+`lib/qbEstimateInvoice.js`'s per-deal estimate/invoice creation) are
+single-call or naturally small-volume operations (the full-scan loop
+specifically pre-filters by name/email before ever calling the API for a
+candidate, "to avoid fetching customers for all 100+ estimates" per its own
+comment) — none of them iterate over the WHOLE installation's customers/
+estimates the way the four fixed loops do, and all of them are still
+unconditionally covered by the same universal breaker gate regardless.
+Conclusion: no QuickBooks data-call path in this codebase can generate
+real outbound request volume once the breaker is open — the four
+previously-unpaced bulk loops were a pacing/early-exit EFFICIENCY fix (fewer
+retries spent reaching that point), not the only thing standing between a
+sustained condition and continued hammering; the breaker itself is the
+actual safety net, and it is structurally universal.
+Regression coverage: `test/qbSyncTrigger.test.js` (the new pacing, the
+`circuit_open`-stops-the-loop-early test, and the cross-process lock —
+same fake-pool convention as `test/qbInboundSync.test.js`).
+
+**System Health now surfaces the breaker's own state**
+(`lib/systemHealthChecks.js#checkQuickBooks`): a new, always-present
+`circuit_breaker` field (`state`/`consecutive_failures`/`opens_count`/
+`cooldown_until` — never a request body, customer id, or amount) is
+returned regardless of `verify` (a cheap, read-only `app_settings` SELECT).
+When `verify=1` is requested WHILE the breaker is open and still cooling
+down, `checkQuickBooks` reports `DEGRADED` directly
+(`liveCheck(false, true, 'QuickBooks API rate-limited — circuit breaker
+open until ...')`) WITHOUT calling `qbTokenManager.verifyConnection()` at
+all — this avoids spending an admin's manual System Health check as yet
+another doomed call, and avoids consuming the breaker's one precious
+half-open trial slot on a page load rather than real production traffic.
+Once the cooldown has elapsed, `checkQuickBooks` proceeds to the real
+verify call as normal, which doubles as (and correctly reports the outcome
+of) the breaker's own recovery trial. **This never masks a genuinely
+revoked credential**: `qbTokenManager.verifyConnection`'s `reconnectRequired`
+case reports `degraded: false` (not `true`), which still falls through to
+`DISCONNECTED` under the Phase 3 `deriveState` fix — confirmed by a
+dedicated test asserting a revoked credential is never reported as
+`DEGRADED` even while the breaker is closed.
+
+**Not verifiable from this environment** (no Railway/Intuit production
+access here): whether this fix resolves the live "almost every second"
+log pattern once deployed, and whether this installation's QB proxy server
+actually runs more than one Railway replica (making the cross-process
+locking fix load-bearing in production today, rather than purely
+defense-in-depth for a future scale-out). Confirming System Health's new
+`circuit_breaker` field transitions `closed` → `open` → `half_open` →
+`closed` correctly during a real incident, and that the "almost every
+second" log pattern stops recurring, is the remaining operator
+verification step.
+
+Regression coverage: `test/qbRateLimitBreaker.test.js` (pure unit — the
+cooldown formula) + `test/integration/qbRateLimitBreaker.int.test.js`
+(real-Postgres — the full closed/open/half-open state machine, concurrent
+trial-slot exclusivity, doubled/capped cooldown growth, half-open
+self-recovery); `test/qbTokenManager.test.js` (the breaker gating wired
+into `qbApiRequest` — open skips the network call entirely, closed
+proceeds and reports success, a terminal failure reports exactly once
+(never per-attempt), an isolated retried blip never counts as a failure, a
+breaker-check error fails open); `test/qbInboundSync.test.js` (stops early
+on a mid-loop `circuit_open`, the cross-process lock skip);
+`test/advisoryLock.test.js` (`tryWithAdvisoryLock`'s acquire/skip/release/
+throw-still-releases behavior, independent keys never cross-coupling);
+`test/qbEstimateSyncCapacity.test.js` (the re-entrancy guard assertion
+updated from the old boolean to the new advisory lock);
+`test/systemHealthChecks.test.js` (breaker-open-cooling-down skips the live
+call and reports DEGRADED; an elapsed cooldown lets the trial call through;
+a revoked credential is never masked; `circuit_breaker` is surfaced even
+without `verify`; a breaker-read failure degrades gracefully).
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`

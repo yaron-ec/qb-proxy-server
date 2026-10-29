@@ -77,9 +77,17 @@ test('a pre-existing duplicate (>1 row sharing a qb_estimate_id) is surfaced wit
   assert.match(SOURCE, /pre-existing duplicate, not created by this tick/);
 });
 
-test('runQbEstimateSync has a re-entrancy guard against overlapping runs (cron tick vs. manual job, or a slow-running tick)', () => {
-  assert.match(SOURCE, /_estimateSyncRunning/, 'expected a running-flag guard, same pattern as lib/qbInboundSync.js\'s _syncing flag');
+test('runQbEstimateSync has a re-entrancy guard against overlapping runs (cron tick vs. manual job, a slow-running tick, OR a second Railway replica/process)', () => {
+  // October 2026, round 2: upgraded from a plain in-process `_estimateSyncRunning`
+  // boolean (which never protected against two replicas/processes racing
+  // the same database) to a cross-process Postgres advisory lock — see
+  // lib/advisoryLock.js's tryWithAdvisoryLock and its namespace registry.
+  assert.match(SOURCE, /tryWithAdvisoryLock\(saleDb\.pool,\s*QB_SYNC_LOCK_NAMESPACE,\s*QB_ESTIMATE_SYNC_LOCK_KEY/, 'expected runQbEstimateSync to take the cross-process advisory lock');
   assert.match(SOURCE, /already_in_progress/, 'expected an overlapping run to return a skipped/already_in_progress result rather than racing');
+  // The old boolean's name may still appear in prose comments (documenting
+  // what it was replaced with, per this codebase's own convention) — what
+  // must be gone is its declaration/assignment as an actual guard.
+  assert.doesNotMatch(SOURCE, /(?:let|var|const)\s+_estimateSyncRunning\s*=/, 'the old in-process-only boolean guard must be fully removed as a variable, not left alongside the new lock');
 });
 
 test('a manually-matched estimate (match_method === \'manual\') is never re-matched or relabeled by the automatic matcher', () => {

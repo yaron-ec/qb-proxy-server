@@ -226,7 +226,7 @@ const { ReconnectRequiredError } = qbTokens;
 // lib/qbRouteAuth.js header) and a generic advisory-lock helper — both
 // added during the October 2026 QuickBooks reliability audit.
 const { requireProxySecretOrRole } = require('./lib/qbRouteAuth');
-const { withAdvisoryLock } = require('./lib/advisoryLock');
+const { withAdvisoryLock, tryWithAdvisoryLock } = require('./lib/advisoryLock');
 
 // Idempotency/concurrency for the legacy QB proxy write routes below
 // (POST /customers, /estimates, /invoices, /invoices/:id/void,
@@ -238,6 +238,14 @@ const QB_LEGACY_WRITE_LOCK_NAMESPACE = 1004;
 function withQbWriteLock(key, fn) {
   return withAdvisoryLock(saleDb.pool, QB_LEGACY_WRITE_LOCK_NAMESPACE, key, fn);
 }
+
+// Cross-process/replica-safe cron re-entrancy (namespace 1005, shared with
+// lib/qbInboundSync.js's own 'qb-inbound-reconcile' key under the same
+// namespace — see that module's header for why a plain in-process boolean
+// was never enough). This key is for the Estimate Sync cron specifically.
+const QB_SYNC_LOCK_NAMESPACE = 1005;
+const QB_ESTIMATE_SYNC_LOCK_KEY = 'qb-estimate-sync';
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function getValidTokens() {
   const tokens = await qbTokens.getValidTokens(QB_ENVIRONMENT);
@@ -257,7 +265,13 @@ async function qbFetch(path, options = {}) {
     const detail = json?.Fault?.Error?.[0]?.Detail || json?.Fault?.Error?.[0]?.Message || text.slice(0, 300);
     // Record the error in the credential lifecycle (sanitized, no secrets)
     try { await tokenStore.markError(QB_ENVIRONMENT, realmId, `QB ${res.status}`); } catch (e) { /* best-effort */ }
-    throw Object.assign(new Error(`QB ${res.status}: ${detail}`), { status: res.status, qbError: json });
+    // circuitOpen flags a synthetic, no-network-call skip from the shared
+    // rate-limit breaker (lib/qbRateLimitBreaker.js) rather than a real
+    // Intuit response — callers that loop over many customers/estimates
+    // (fetchQbCustomer below, runQbEstimatePdfSync) use this to stop early
+    // instead of grinding through dozens more already-doomed, breaker-
+    // blocked calls.
+    throw Object.assign(new Error(`QB ${res.status}: ${detail}`), { status: res.status, qbError: json, circuitOpen: res.status === 'circuit_open' });
   }
   return json;
 }
@@ -2130,6 +2144,11 @@ async function fetchQbCustomer(customerId, cache) {
     const data = await qbFetch(`/customer/${customerId}?minorversion=65`);
     cache[customerId] = data.Customer || null;
   } catch (e) {
+    // A breaker-open skip is not an ordinary per-customer failure — let it
+    // propagate so the caller's loop (runQbEstimateSyncInner) stops early
+    // instead of caching this as "null" and moving on to hammer the next
+    // customer too, which would also be a doomed, breaker-blocked call.
+    if (e.circuitOpen) throw e;
     console.warn(`[qb-sync] Failed to fetch customer ${customerId}:`, e.message);
     cache[customerId] = null;
   }
@@ -2143,30 +2162,30 @@ function isManuallyMatched(existing) {
   return !!existing && existing.match_method === 'manual';
 }
 
-// Re-entrancy guard — same pattern as lib/qbInboundSync.js's own `_syncing`
-// flag. Without this, a run that happens to take longer than the 15-minute
-// cron interval (or overlaps with a manually-triggered /sync/qb-estimates
-// job) could race a second concurrent run: both see the same QB estimate as
-// "not yet in handoff_estimates" and both INSERT, creating a duplicate.
-let _estimateSyncRunning = false;
+// Re-entrancy guard (see runQbEstimateSync's QB_SYNC_LOCK_NAMESPACE advisory
+// lock below). Without this, a run that happens to take longer than the
+// 15-minute cron interval (or overlaps with a manually-triggered
+// /sync/qb-estimates job, or a second Railway replica/process) could race a
+// second concurrent run: both see the same QB estimate as "not yet in
+// handoff_estimates" and both INSERT, creating a duplicate.
 
 // Full estimate sync — replicate syncEstimatesFromQBDirect sync mode exactly.
 async function runQbEstimateSync() {
   if (!rda.isConfigured()) throw new Error('DATABASE_URL not configured on Railway');
-  if (_estimateSyncRunning) {
-    console.log('[qb-sync] runQbEstimateSync already in progress — skipping overlapping run');
+  // Cross-process/replica-safe (see QB_SYNC_LOCK_NAMESPACE's comment above)
+  // — replaces the plain in-process `_estimateSyncRunning` boolean, which
+  // never protected against two Railway replicas/processes racing the
+  // same database.
+  const lockResult = await tryWithAdvisoryLock(saleDb.pool, QB_SYNC_LOCK_NAMESPACE, QB_ESTIMATE_SYNC_LOCK_KEY, runQbEstimateSyncInner);
+  if (lockResult.skipped) {
+    console.log('[qb-sync] runQbEstimateSync already in progress (this or another process) — skipping overlapping run');
     return { ok: true, skipped: true, reason: 'already_in_progress' };
   }
-  _estimateSyncRunning = true;
-  try {
-    return await runQbEstimateSyncInner();
-  } finally {
-    _estimateSyncRunning = false;
-  }
+  return lockResult.result;
 }
 
 async function runQbEstimateSyncInner() {
-  const stats = { found: 0, fetched: 0, imported: 0, updated: 0, matched: 0, unmatched: 0, skipped: 0, unchanged: 0, manual_preserved: 0, failed: 0, errors: [] };
+  const stats = { found: 0, fetched: 0, imported: 0, updated: 0, matched: 0, unmatched: 0, skipped: 0, unchanged: 0, manual_preserved: 0, failed: 0, stopped_early: false, errors: [] };
 
   const qbEstimates = await fetchAllQbEstimates();
   stats.found = qbEstimates.length;
@@ -2189,7 +2208,19 @@ async function runQbEstimateSyncInner() {
 
   const customerCache = {};
 
-  for (const qbEst of qbEstimates) {
+  // October 2026 production incident, round 2: this loop (one QB customer
+  // fetch per estimate needing a NEW customerId, via fetchQbCustomer's own
+  // per-customerId cache) had ZERO pacing at all — unlike
+  // lib/qbInboundSync.js's 200ms inter-customer pacing — and ran on the
+  // IDENTICAL 15-minute schedule as that reconciliation cron, compounding
+  // the exact same sustained-429 condition. A light pace between estimates
+  // (never after the last one) reduces how often the shared circuit
+  // breaker's retry budget needs to be spent; the breaker itself (checked
+  // via fetchQbCustomer rethrowing a circuitOpen error) is what actually
+  // stops the loop once a sustained limit is detected.
+  const ESTIMATE_SYNC_PACING_MS = 150;
+  for (let idx = 0; idx < qbEstimates.length; idx++) {
+    const qbEst = qbEstimates[idx];
     try {
       const qbId = qbEst.Id;
       const qbNumber = qbEst.DocNumber;
@@ -2316,9 +2347,19 @@ async function runQbEstimateSyncInner() {
       }
 
     } catch (e) {
+      if (e.circuitOpen) {
+        // The shared rate-limit breaker (lib/qbRateLimitBreaker.js) has
+        // opened — every remaining estimate needing a new customer fetch
+        // would also be a synthetic, no-network skip. Stop the tick here;
+        // the next tick (or the breaker's own half-open trial) resumes.
+        console.warn(`[qb-sync] circuit breaker OPEN — stopping estimate sync early at ${idx + 1}/${qbEstimates.length}`);
+        stats.stopped_early = true;
+        break;
+      }
       console.error(`[qb-sync] Error on estimate ${qbEst.DocNumber}:`, e.message);
       stats.errors.push(`${qbEst.DocNumber}: ${e.message}`);
     }
+    if (idx < qbEstimates.length - 1) await sleep(ESTIMATE_SYNC_PACING_MS);
   }
 
   // Save cursor (mirrors saveCursor('quickbooks_estimates', ...))
@@ -2366,12 +2407,16 @@ async function runQbEstimatePdfSync() {
   const needsPdf = all.filter(e => e.qb_estimate_id && e.pdf_status !== 'ready' && (e.pdf_retry_count || 0) < 5);
   console.log(`[qb-pdf] ${needsPdf.length} estimates need PDF fetch`);
 
-  const results = { success: 0, failed: 0 };
+  const results = { success: 0, failed: 0, stopped_early: false };
   // Public base for the stored proxy PDF link. Set QB_PROXY_URL on the Railway
   // service to its own public URL (same value as the Base44 secret) for resolvable links.
   const proxyBaseUrl = process.env.QB_PROXY_URL || '';
+  // Same pacing/early-exit rationale as runQbEstimateSyncInner above — this
+  // loop also had zero pacing and ran on the identical 15-minute schedule.
+  const PDF_SYNC_PACING_MS = 150;
 
-  for (const estimate of needsPdf) {
+  for (let idx = 0; idx < needsPdf.length; idx++) {
+    const estimate = needsPdf[idx];
     const id = estimate.id;
     const qbId = estimate.qb_estimate_id;
     const qbNumber = estimate.qb_estimate_number;
@@ -2381,10 +2426,19 @@ async function runQbEstimatePdfSync() {
         (t) => `${QB_API_BASE}/${t.realm_id}/estimate/${qbId}/pdf?minorversion=65`,
         { headers: { Accept: 'application/pdf' }, raw: true });
       if (!pdfRes.ok) {
+        if (pdfRes.status === 'circuit_open') {
+          // A synthetic, no-network skip from the shared breaker — never a
+          // real PDF-fetch failure, so never mark pdf_status 'failed' or
+          // burn a retry attempt against it. Stop the whole tick here.
+          console.warn(`[qb-pdf] circuit breaker OPEN — stopping PDF sync early at ${idx + 1}/${needsPdf.length}`);
+          results.stopped_early = true;
+          break;
+        }
         const errText = await pdfRes.text().catch(() => '');
         console.warn(`[qb-pdf] PDF fetch failed (${pdfRes.status}) for ${qbNumber}: ${errText.slice(0, 150)}`);
         await rda.update('HandoffEstimate', id, { pdf_status: 'failed', pdf_retry_count: (estimate.pdf_retry_count || 0) + 1 });
         results.failed++;
+        if (idx < needsPdf.length - 1) await sleep(PDF_SYNC_PACING_MS);
         continue;
       }
       // Confirm a real PDF came back (consume bytes — UI uses the proxy link, not the bytes)
@@ -2404,6 +2458,7 @@ async function runQbEstimatePdfSync() {
       await rda.update('HandoffEstimate', id, { pdf_status: 'failed', pdf_retry_count: (estimate.pdf_retry_count || 0) + 1 }).catch(() => {});
       results.failed++;
     }
+    if (idx < needsPdf.length - 1) await sleep(PDF_SYNC_PACING_MS);
   }
 
   console.log(`[qb-pdf] done — success ${results.success} failed ${results.failed}`);
