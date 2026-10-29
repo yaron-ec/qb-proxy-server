@@ -9,7 +9,7 @@
  */
 const test = require('node:test');
 const assert = require('node:assert');
-const { withAdvisoryLock } = require('../lib/advisoryLock');
+const { withAdvisoryLock, tryWithAdvisoryLock } = require('../lib/advisoryLock');
 
 function fakePool() {
   const calls = [];
@@ -60,4 +60,69 @@ test('two different keys produce two independent lock/unlock call pairs (no cros
   await withAdvisoryLock(pool, 1004, 'customer:A', async () => {});
   await withAdvisoryLock(pool, 1004, 'customer:B', async () => {});
   assert.deepStrictEqual(calls.map((c) => c.params[1]), ['customer:A', 'customer:A', 'customer:B', 'customer:B']);
+});
+
+// ── tryWithAdvisoryLock — the non-blocking variant (October 2026, round 2:
+// cross-process/replica-safe cron re-entrancy — see lib/qbInboundSync.js
+// and server.js's runQbEstimateSync, which replaced a plain in-process
+// `_syncing`/`_estimateSyncRunning` boolean with this). ────────────────────
+function fakeSessionPool() {
+  // pg_try_advisory_lock is held per CONNECTION (session), not per process
+  // — this fake mirrors that: a "held" set simulates the server-side lock
+  // state shared across however many connect() calls come in.
+  const held = new Set();
+  const calls = [];
+  return {
+    held, calls,
+    connect: async () => ({
+      query: async (sql, params) => {
+        calls.push({ sql, params });
+        const key = `${params[0]}:${params[1]}`;
+        if (/pg_try_advisory_lock/.test(sql)) {
+          if (held.has(key)) return { rows: [{ locked: false }] };
+          held.add(key);
+          return { rows: [{ locked: true }] };
+        }
+        if (/pg_advisory_unlock/.test(sql)) { held.delete(key); return { rows: [] }; }
+        return { rows: [] };
+      },
+      release: () => {},
+    }),
+  };
+}
+
+test('tryWithAdvisoryLock: acquires, runs fn, releases, and returns { skipped: false, result }', async () => {
+  const pool = fakeSessionPool();
+  const r = await tryWithAdvisoryLock(pool, 1005, 'qb-estimate-sync', async () => 'done');
+  assert.deepStrictEqual(r, { skipped: false, result: 'done' });
+  assert.strictEqual(pool.held.size, 0, 'released after fn completes');
+});
+
+test('tryWithAdvisoryLock: a second concurrent attempt on the SAME key is skipped immediately, never waits', async () => {
+  const pool = fakeSessionPool();
+  let releaseFirst;
+  const first = tryWithAdvisoryLock(pool, 1005, 'qb-inbound-reconcile', () => new Promise((resolve) => { releaseFirst = resolve; }));
+  await new Promise((r) => setTimeout(r, 5)); // let the first call actually acquire
+  const second = await tryWithAdvisoryLock(pool, 1005, 'qb-inbound-reconcile', async () => 'should not run');
+  assert.deepStrictEqual(second, { skipped: true });
+  releaseFirst('first done');
+  const firstResult = await first;
+  assert.deepStrictEqual(firstResult, { skipped: false, result: 'first done' });
+});
+
+test('tryWithAdvisoryLock: different keys never block each other', async () => {
+  const pool = fakeSessionPool();
+  const [a, b] = await Promise.all([
+    tryWithAdvisoryLock(pool, 1005, 'qb-estimate-sync', async () => 'a'),
+    tryWithAdvisoryLock(pool, 1005, 'qb-inbound-reconcile', async () => 'b'),
+  ]);
+  assert.deepStrictEqual(a, { skipped: false, result: 'a' });
+  assert.deepStrictEqual(b, { skipped: false, result: 'b' });
+});
+
+test('tryWithAdvisoryLock: the lock is released even when fn() throws, so a later attempt can still acquire it', async () => {
+  const pool = fakeSessionPool();
+  await assert.rejects(tryWithAdvisoryLock(pool, 1005, 'qb-estimate-sync', async () => { throw new Error('boom'); }), /boom/);
+  const r = await tryWithAdvisoryLock(pool, 1005, 'qb-estimate-sync', async () => 'ok after throw');
+  assert.deepStrictEqual(r, { skipped: false, result: 'ok after throw' });
 });

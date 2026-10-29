@@ -191,6 +191,102 @@ test('checkQuickBooks: verify:true + non-ok, non-reconnect HTTP status -> DEGRAD
   } finally { restoreStore(); restoreMgr(); }
 });
 
+// ── Shared rate-limit circuit breaker visibility (October 2026, round 2) ──
+test('checkQuickBooks: breaker OPEN and still cooling down -> DEGRADED directly, verifyConnection never called (never spends the one trial on an admin click)', async () => {
+  const restoreStore = stub('../lib/qbTokenStore', {
+    loadPersistedTokens: async () => ({ access_token: 'x' }),
+    credentialStatus: async () => ({ status: 'active' }),
+  });
+  const cooldownUntil = new Date(Date.now() + 60000).toISOString();
+  const restoreBreaker = stub('../lib/qbRateLimitBreaker', {
+    getState: async () => ({ state: 'open', consecutive_failures: 5, opens_count: 1, cooldown_until: cooldownUntil }),
+  });
+  let verifyCalled = false;
+  const restoreMgr = stub('../lib/qbTokenManager', {
+    verifyConnection: async () => { verifyCalled = true; return { ok: true, reconnectRequired: false }; },
+  });
+  try {
+    const result = await checkQuickBooks({ verify: true });
+    assert.strictEqual(verifyCalled, false, 'the live call must be skipped entirely while cooling down');
+    assert.strictEqual(result.live_check.ok, false);
+    assert.strictEqual(result.live_check.degraded, true);
+    assert.match(result.live_check.message, /circuit breaker open/i);
+    assert.strictEqual(deriveState({ moduleEnabled: true, flagEnforced: true, result }), 'DEGRADED');
+    assert.strictEqual(result.circuit_breaker.state, 'open');
+  } finally { restoreStore(); restoreBreaker(); restoreMgr(); }
+});
+
+test('checkQuickBooks: breaker OPEN but the cooldown has already elapsed -> proceeds to the real verify call (doesn\'t block the recovery trial)', async () => {
+  const restoreStore = stub('../lib/qbTokenStore', {
+    loadPersistedTokens: async () => ({ access_token: 'x' }),
+    credentialStatus: async () => ({ status: 'active' }),
+  });
+  const restoreBreaker = stub('../lib/qbRateLimitBreaker', {
+    getState: async () => ({ state: 'open', consecutive_failures: 5, opens_count: 1, cooldown_until: new Date(Date.now() - 1000).toISOString() }),
+  });
+  let verifyCalled = false;
+  const restoreMgr = stub('../lib/qbTokenManager', {
+    verifyConnection: async () => { verifyCalled = true; return { ok: true, reconnectRequired: false }; },
+  });
+  try {
+    const result = await checkQuickBooks({ verify: true });
+    assert.strictEqual(verifyCalled, true, 'the elapsed cooldown must let the real (trial) call through');
+    assert.strictEqual(result.live_check.ok, true);
+  } finally { restoreStore(); restoreBreaker(); restoreMgr(); }
+});
+
+test('checkQuickBooks: a revoked credential is NEVER masked as DEGRADED by the breaker, even while closed', async () => {
+  const restoreStore = stub('../lib/qbTokenStore', {
+    loadPersistedTokens: async () => ({ access_token: 'x' }),
+    credentialStatus: async () => ({ status: 'revoked' }),
+  });
+  const restoreBreaker = stub('../lib/qbRateLimitBreaker', {
+    getState: async () => ({ state: 'closed', consecutive_failures: 0, opens_count: 0, cooldown_until: null }),
+  });
+  const restoreMgr = stub('../lib/qbTokenManager', {
+    verifyConnection: async () => ({ ok: false, reconnectRequired: true }),
+  });
+  try {
+    const result = await checkQuickBooks({ verify: true });
+    assert.strictEqual(result.live_check.ok, false);
+    assert.strictEqual(result.live_check.degraded, false, 'a genuine revocation must stay distinguishable from a transient/rate-limited state');
+    assert.strictEqual(deriveState({ moduleEnabled: true, flagEnforced: true, result }), 'DISCONNECTED');
+  } finally { restoreStore(); restoreBreaker(); restoreMgr(); }
+});
+
+test('checkQuickBooks: circuit_breaker is surfaced even when verify is false (cheap, read-only, no live call needed)', async () => {
+  const restoreStore = stub('../lib/qbTokenStore', {
+    loadPersistedTokens: async () => ({ access_token: 'x' }),
+    credentialStatus: async () => ({ status: 'active' }),
+  });
+  const restoreBreaker = stub('../lib/qbRateLimitBreaker', {
+    getState: async () => ({ state: 'closed', consecutive_failures: 2, opens_count: 0, cooldown_until: null }),
+  });
+  try {
+    const result = await checkQuickBooks({ verify: false });
+    assert.strictEqual(result.live_check, null);
+    assert.strictEqual(result.circuit_breaker.consecutive_failures, 2);
+  } finally { restoreStore(); restoreBreaker(); }
+});
+
+test('checkQuickBooks: a breaker read failure degrades gracefully (circuit_breaker: null), never crashes the whole health check', async () => {
+  const restoreStore = stub('../lib/qbTokenStore', {
+    loadPersistedTokens: async () => ({ access_token: 'x' }),
+    credentialStatus: async () => ({ status: 'active' }),
+  });
+  const restoreBreaker = stub('../lib/qbRateLimitBreaker', {
+    getState: async () => { throw new Error('breaker DB unreachable'); },
+  });
+  const restoreMgr = stub('../lib/qbTokenManager', {
+    verifyConnection: async () => ({ ok: true, reconnectRequired: false }),
+  });
+  try {
+    const result = await checkQuickBooks({ verify: true });
+    assert.strictEqual(result.circuit_breaker, null);
+    assert.strictEqual(result.live_check.ok, true, 'a breaker-read bug must never block the real verify call');
+  } finally { restoreStore(); restoreBreaker(); restoreMgr(); }
+});
+
 // ── Gmail ───────────────────────────────────────────────────────────────
 test('checkGmail: no refresh token -> NOT_CONFIGURED shape', async () => {
   const restore = stub('../lib/gmailCredentialStore', { loadGmailCredential: async () => null });

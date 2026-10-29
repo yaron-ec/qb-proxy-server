@@ -50,9 +50,17 @@ let apiResponse = () => ({ status: 200, body: { CompanyInfo: { CompanyName: 'X' 
 let notified = [];
 let sleeps = [];
 let intuitResponse = () => ({ ok: true, body: { access_token: `at-${intuitCalls}`, refresh_token: `rt-${intuitCalls}`, expires_in: 3600, x_refresh_token_expires_in: 8640000 } });
+// Fake circuit breaker — a real DB-backed breaker check would hit
+// lib/qbRateLimitBreaker.js's own Postgres row; stubbed here the same way
+// the rest of this harness stubs every other external dependency.
+let circuitGate = () => ({ allow: true });
+let circuitEvents = [];
 const depsInit = {
   pool: () => pool, clientId: () => 'id', clientSecret: () => 'secret',
   sleep: async (ms) => { sleeps.push(ms); },
+  circuitCheck: async () => circuitGate(),
+  circuitSuccess: async () => { circuitEvents.push('success'); },
+  circuitFail: async (status) => { circuitEvents.push({ fail: status }); },
   notifyReconnectRequired: async (env, realm, reason) => { notified.push({ env, realm, reason }); },
   fetch: async (url, init) => {
     if (!String(url).startsWith('https://oauth.platform.intuit.com/')) {
@@ -80,6 +88,8 @@ test.beforeEach(() => {
   store.saves = 0; store.revoked = 0; store.errors = 0; store.used = 0;
   intuitResponse = OK_INTUIT;
   apiResponse = () => ({ status: 200, body: { CompanyInfo: { CompanyName: 'X' } } });
+  circuitGate = () => ({ allow: true });
+  circuitEvents = [];
 });
 const API = (t) => `https://quickbooks.api.intuit.com/v3/company/${t.realm_id}/companyinfo/${t.realm_id}`;
 
@@ -268,6 +278,60 @@ test('qbApiRequest: a 401 and a transient 429 use INDEPENDENT retry budgets — 
   assert.strictEqual(r.res.status, 200);
   assert.strictEqual(apiCalls.length, 3, '401 (old token) -> refresh -> 429 (new token) -> retry -> 200');
   assert.strictEqual(intuitCalls, 1, 'exactly one refresh, from the 401 — never from the 429');
+});
+
+// ── Shared circuit breaker gating (October 2026, round 2: PR #47's bounded
+// per-call retry still let a SUSTAINED rate limit be hammered continuously
+// — "retry 1/2 (1000ms)" / "retry 2/2 (1000ms)" repeating almost every
+// second in production logs, for the full duration of a many-customer
+// cron tick. lib/qbRateLimitBreaker.js adds a breaker gate checked BEFORE
+// any network call; these tests exercise qbApiRequest's wiring to it via
+// the deps seam (circuitCheck/circuitSuccess/circuitFail), not the real
+// Postgres-backed state machine itself — see test/qbRateLimitBreaker.test.js
+// for that. ──────────────────────────────────────────────────────────────
+test('qbApiRequest: an OPEN circuit breaker skips the network call entirely and returns a synthetic circuit_open failure', async () => {
+  persisted = { ...expired(), expires_at: new Date(Date.now() + 3600000).toISOString() };
+  circuitGate = () => ({ allow: false, reason: 'cooldown', retryAt: '2026-01-01T00:05:00.000Z' });
+  const r = await mgr.qbApiRequest('production', API);
+  assert.strictEqual(apiCalls.length, 0, 'zero network calls made while the breaker is open');
+  assert.strictEqual(intuitCalls, 0, 'no token refresh attempted either — the breaker is checked first');
+  assert.strictEqual(r.res.ok, false);
+  assert.strictEqual(r.res.status, 'circuit_open', 'a string, never a number — can never be mistaken for a real Intuit HTTP status');
+  assert.strictEqual(r.circuitOpen, true);
+  assert.strictEqual(r.json.retry_at, '2026-01-01T00:05:00.000Z');
+});
+
+test('qbApiRequest: a closed breaker proceeds normally and reports success back to the breaker on an ok response', async () => {
+  persisted = { ...expired(), expires_at: new Date(Date.now() + 3600000).toISOString() };
+  const r = await mgr.qbApiRequest('production', API);
+  assert.strictEqual(r.res.ok, true);
+  assert.deepStrictEqual(circuitEvents, ['success']);
+});
+
+test('qbApiRequest: a TERMINAL (retry-exhausted) 429 reports exactly one failure to the breaker, never per-attempt', async () => {
+  persisted = { ...expired(), expires_at: new Date(Date.now() + 3600000).toISOString() };
+  apiResponse = () => ({ status: 429 }); // every attempt 429s — retry budget fully exhausted
+  const r = await mgr.qbApiRequest('production', API);
+  assert.strictEqual(r.res.status, 429);
+  assert.strictEqual(apiCalls.length, 3, '1 initial + 2 retries, the existing bounded budget');
+  assert.deepStrictEqual(circuitEvents, [{ fail: 429 }], 'one terminal failure recorded, not three');
+});
+
+test('qbApiRequest: an isolated 429 that succeeds on retry reports SUCCESS, never a failure — only a sustained/terminal failure counts', async () => {
+  persisted = { ...expired(), expires_at: new Date(Date.now() + 3600000).toISOString() };
+  let n = 0;
+  apiResponse = () => (++n === 1 ? { status: 429 } : { status: 200, body: {} });
+  const r = await mgr.qbApiRequest('production', API);
+  assert.strictEqual(r.res.ok, true);
+  assert.deepStrictEqual(circuitEvents, ['success'], 'the retry already recovered — never counted toward the breaker');
+});
+
+test('qbApiRequest: a breaker-check failure (e.g. a DB blip) fails OPEN — the real QuickBooks call still proceeds', async () => {
+  persisted = { ...expired(), expires_at: new Date(Date.now() + 3600000).toISOString() };
+  circuitGate = () => { throw new Error('breaker DB unreachable'); };
+  const r = await mgr.qbApiRequest('production', API);
+  assert.strictEqual(r.res.ok, true, 'a breaker bug must never itself block a real QuickBooks call');
+  assert.strictEqual(apiCalls.length, 1);
 });
 
 test('transient Intuit 5xx/429 → bounded retry with backoff; success on a later attempt; never revoked', async () => {
