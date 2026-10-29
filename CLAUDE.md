@@ -1939,6 +1939,155 @@ the sync-estimates write path itself was already covered by
 `test/estimateSyncRestoration.test.js`'s "no dependency on Handoff
 API/HANDOFF_API_KEY" test, unchanged by this fix.
 
+## QuickBooks authorization, idempotency, and proactive monitoring (October 2026 reliability audit, Phase 2)
+
+Follow-up pass to the reconnect-alert fix above, closing the remaining
+gaps the same audit found in `server.js`'s legacy QB proxy write surface.
+Nothing about `lib/qbTokenManager.js`'s refresh/rotation/locking logic
+changed — this phase is authorization, duplicate-write prevention, and a
+new proactive health probe layered on top of it.
+
+- **Authorization — role-gating the legacy QB proxy write routes.**
+  `server.js#requireProxySecret` accepts EITHER the server-to-server
+  `X-Proxy-Secret` header OR any valid Railway JWT, with NO role check on
+  the JWT path. Every legitimate caller on the proxy-secret path
+  (`lib/qbInternal.js`, used by `routes/leadQB.js` and
+  `routes/dealQbSync.js`) is already gated one layer up with
+  `requireRole('admin','manager')` — but a browser could reach these
+  routes DIRECTLY with ANY authenticated user's JWT (`sales_rep`, `office`,
+  anyone), completely bypassing that upstream gate, since this middleware
+  never checked `req.user.role`. Fixed with a new
+  `lib/qbRouteAuth.js#requireProxySecretOrRole(...roles)` — a separate,
+  independently `require()`-able and unit-testable module (not inlined in
+  `server.js`, so it can be tested without eval-extracting a source
+  fragment): the `X-Proxy-Secret` path is UNCHANGED (still unconditional —
+  restricting it too would double-gate, and could break, the legitimate
+  internal calls above); the JWT path now additionally requires
+  `req.user.role` to be one of the roles the specific route allows.
+  - **Admin-only** (an administrative action with real credential
+    consequences): `GET /auth/connect`, `POST /auth/callback`,
+    `POST /auth/disconnect`, and their `POST /qb/auth-connect` /
+    `/qb/auth-callback` / `/qb/auth-disconnect` aliases.
+    `GET /auth/status` / `POST /qb/auth-status` (read-only connection
+    status) is deliberately left on the unrestricted `requireProxySecret`
+    — reading status has no credential/financial consequence and is
+    needed by `QBReconnectBanner.jsx` and others.
+  - **Admin/manager** (preserves the existing manager-workflow precedent
+    already established in `routes/dealQbSync.js` and `routes/leadQB.js`):
+    `POST /customers`, `POST /estimates`, `POST /invoices` (both the
+    create path and its `operation==='void'` fallback), `POST
+    /invoices/:id/void`, `POST /qb/sync-lead`.
+  - Every GET/read-only QB proxy route (`GET /customers`, `GET
+    /estimates`, `GET /invoices`, `/qb/lead-status`, `/qb/diagnose-*`,
+    `/qb/resync-all`, `/qb/import-estimates`, `/qb/sync-lead-estimates`,
+    etc.) is UNCHANGED — confirmed via code audit to perform no QuickBooks
+    writes at all, so there is no financial-mutation risk to restrict.
+  - **Frontend**: `crm-frontend/src/pages/Integrations.jsx`'s
+    Connect/Reconnect/Disconnect buttons (including the Sandbox banner's
+    own Disconnect button) now render only for `currentUser?.role ===
+    'admin'`; a non-admin sees an explanatory note instead. This is a UX
+    courtesy only — the real enforcement is the server-side gate above; a
+    bypassed/stale frontend would still get a 403.
+  - Regression coverage: `test/qbRouteAuth.test.js` (the real middleware
+    behavior — proxy-secret bypass, each role tier, 401 vs 403, invalid/
+    expired JWT), `test/qbLegacyWriteRouteSecurity.test.js` (source-level
+    proof every listed route in `server.js` is actually wired to the
+    correct gate — same "source-level" convention this file already uses
+    for `isManuallyMatched`/`runQbEstimateSync`, since `server.js` has
+    top-level side effects and isn't a requirable module),
+    `crm-frontend/src/pages/Integrations.qbAuth.test.jsx` (admin sees the
+    control; manager and sales_rep do not).
+
+- **Duplicate-write protection on the same legacy write routes.** None of
+  `POST /customers`, `/estimates`, `/invoices`, `/qb/sync-lead` had any
+  lock at all — a double-click, a network retry, or two near-simultaneous
+  requests for the same customer/estimate/invoice could each see "doesn't
+  exist yet" and both create one, producing a real duplicate QuickBooks
+  record. (Verified via code audit that NOTHING in the live frontend or
+  any internal caller actually calls the bare `POST /customers`,
+  `/estimates`, or `/invoices` today — only `GET` — so this was a
+  dormant/legacy risk, not an active-path defect; `/qb/sync-lead` IS
+  actively called, via `lib/qbInternal.js` ← `routes/leadQB.js`, and had
+  the same no-lock gap.) Fixed by extracting the SAME advisory-lock
+  pattern `lib/qbEstimateInvoice.js#withDealLock` already uses into a
+  shared, generic `lib/advisoryLock.js#withAdvisoryLock(pool, namespace,
+  key, fn)` — the first place this pattern is shared rather than
+  re-copied a fourth time (see that file's header for the full list of
+  namespaces already in use: 1001 appointment booking, 1002 lead intake,
+  1003 QB deal estimate/invoice, **1004 — new — these legacy QB proxy
+  write routes**). `server.js#withQbWriteLock(key, fn)` wraps it with the
+  1004 namespace and `saleDb.pool`:
+  - `POST /customers` locks on `customer:<DisplayName>` and re-checks QB
+    directly (the same find-by-DisplayName query `/customers/search`
+    already uses) before creating — a duplicate DisplayName returns the
+    EXISTING customer instead of creating a second one.
+  - `POST /estimates` and the `POST /invoices` create path lock on
+    `estimate:<CustomerRef>:<DocNumber>` / `invoice:<CustomerRef>:<DocNumber>`
+    and re-check QB directly the same way — ONLY when the payload has both
+    fields (a realistic QB Estimate/Invoice always does); a payload
+    missing either falls through to a plain forward, since there is no
+    natural key to dedupe on in that case.
+  - `POST /invoices/:id/void` and the `POST /invoices`
+    `operation==='void'` fallback both lock on `invoice-void:<Id>` and
+    re-check the NEW `lib/qbInvoiceSaleMap.js#isVoided(db, qb_invoice_id)`
+    helper (reads `qb_invoices_cache.voided`, the same column
+    `markVoided` already sets) before calling QuickBooks' void operation
+    — an invoice already recorded voided returns `{success:true,
+    already_voided:true}` without a second QB API call.
+  - `POST /qb/sync-lead`'s find-or-create now locks on the SAME
+    `customer:<DisplayName>` key `POST /customers` uses — closing both its
+    own internal race (it previously had zero locking) and a cross-route
+    race between the two endpoints for the same DisplayName.
+  - No existing financial data was changed or re-created by this fix — it
+    only prevents a FUTURE duplicate on retry/concurrency; a pre-existing
+    duplicate (from before this fix) is not detected or merged.
+  - Regression coverage: `test/advisoryLock.test.js` (lock/unlock pairing,
+    releases on throw, client always returned to the pool, independent
+    keys don't cross-couple).
+
+- **Proactive scheduled connection health check — the "detection is purely
+  reactive" gap.** Previously the ONLY ways a revoked/expired QuickBooks
+  grant was ever discovered were: the 15-minute QB sync crons' real API
+  calls happening to fail, or an admin manually clicking "Run Live
+  Checks"/hitting `?verify=1` — there was no standalone scheduled probe.
+  `lib/qbProactiveHealthCheck.js` adds one WITHOUT inventing any new
+  refresh, credential, or notification mechanism: it calls the existing
+  `qbTokenManager.verifyConnection()` (a read-only companyinfo GET through
+  the canonical `qbApiRequest` path) on an hourly cron tick
+  (`server.js`, `0 * * * *`). If that live call (or the refresh it may
+  trigger) discovers the grant is genuinely revoked,
+  `lib/qbTokenManager.js#interpretRefresh` ALREADY calls
+  `deps.notifyReconnectRequired` with its existing per-day, per-recipient
+  idempotency key (the exact path fixed earlier in this document) — this
+  adds NO second alert path and cannot itself cause alert spam beyond what
+  that existing dedup already prevents.
+  - **Avoids unnecessary Intuit API usage**: `shouldSkipProactiveCheck`
+    skips the live call entirely when a real QuickBooks API call already
+    succeeded more recently than 20 minutes ago (comfortably longer than
+    the 15-minute sync crons' own interval — their ordinary traffic
+    already proves the credential live, so this backs off rather than
+    probing redundantly).
+  - **OFF by default — explicit opt-in required**
+    (`QB_PROACTIVE_HEALTH_CHECK_ENABLED=true`), mirroring this codebase's
+    established safe-by-default precedent (`REMINDER_DRY_RUN`, the SMS
+    automation's three activation gates): this calls a code path that CAN
+    trigger a real token refresh (the same one the existing sync crons
+    already trigger routinely), just on an additional schedule, so an
+    operator should confirm that schedule before it runs unattended in
+    production. **Not yet enabled in this pass** — enabling it is a
+    deliberate follow-up operator action, not a side effect of this
+    commit.
+  - No new Railway service was created — this runs as a cron tick inside
+    the existing `qb-proxy-server` process, the same way the two existing
+    15-minute QB crons do.
+  - Regression coverage: `test/qbProactiveHealthCheck.test.js` (the skip
+    decision in isolation — never-connected, recently-verified, and due
+    cases; `runProactiveHealthCheck`'s dependency-injected wiring, proving
+    it never calls `verifyConnection` when skipping and correctly surfaces
+    `reconnectRequired` when it doesn't); the cron's own wiring (env-var
+    gate, correct require) is covered by
+    `test/qbLegacyWriteRouteSecurity.test.js`'s source-level check.
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`

@@ -222,6 +222,23 @@ function requireProxySecret(req, res, next) {
 const qbTokens = require('./lib/qbTokenManager');
 const { ReconnectRequiredError } = qbTokens;
 
+// Admin/manager-restricted variant of requireProxySecret (see
+// lib/qbRouteAuth.js header) and a generic advisory-lock helper — both
+// added during the October 2026 QuickBooks reliability audit.
+const { requireProxySecretOrRole } = require('./lib/qbRouteAuth');
+const { withAdvisoryLock } = require('./lib/advisoryLock');
+
+// Idempotency/concurrency for the legacy QB proxy write routes below
+// (POST /customers, /estimates, /invoices, /invoices/:id/void,
+// /qb/sync-lead) — a session-scoped Postgres advisory lock keyed per
+// operation, serializing a double-click/retry/concurrent-request race for
+// the SAME customer/estimate/invoice. See lib/advisoryLock.js's header for
+// the full list of namespaces already in use; 1004 is reserved for this.
+const QB_LEGACY_WRITE_LOCK_NAMESPACE = 1004;
+function withQbWriteLock(key, fn) {
+  return withAdvisoryLock(saleDb.pool, QB_LEGACY_WRITE_LOCK_NAMESPACE, key, fn);
+}
+
 async function getValidTokens() {
   const tokens = await qbTokens.getValidTokens(QB_ENVIRONMENT);
   storedTokens = tokens;
@@ -352,10 +369,14 @@ app.get('/qb/health', async (req, res) => {
 // ── Auth routes ──────────────────────────────────────────────────────────────
 
 // GET /auth/connect — returns the Intuit OAuth URL (delegates to shared handler)
-app.get('/auth/connect', requireProxySecret, handleAuthConnect);
+// Admin-only: connecting QuickBooks is an administrative action with real
+// credential consequences (October 2026 QuickBooks reliability audit —
+// previously any authenticated user's JWT could reach this). Read-only
+// status (/auth/status) is left open to any authenticated caller below.
+app.get('/auth/connect', requireProxySecretOrRole('admin'), handleAuthConnect);
 
 // POST /auth/callback — exchange code for tokens (delegates to shared handler)
-app.post('/auth/callback', requireProxySecret, handleAuthCallback);
+app.post('/auth/callback', requireProxySecretOrRole('admin'), handleAuthCallback);
 
 // GET /auth/status — connection status (delegates to shared handler)
 app.get('/auth/status', requireProxySecret, handleAuthStatus);
@@ -462,12 +483,13 @@ async function handleGetCompany(req, res) {
 
 app.post('/qb/auth-status', requireProxySecret, handleAuthStatus);
 app.post('/qb/get-company', requireProxySecret, handleGetCompany);
-app.post('/qb/auth-connect', requireProxySecret, handleAuthConnect);
-app.post('/qb/auth-callback', requireProxySecret, handleAuthCallback);
-app.post('/qb/auth-disconnect', requireProxySecret, handleAuthDisconnect);
+// Admin-only — see the matching /auth/connect comment above.
+app.post('/qb/auth-connect', requireProxySecretOrRole('admin'), handleAuthConnect);
+app.post('/qb/auth-callback', requireProxySecretOrRole('admin'), handleAuthCallback);
+app.post('/qb/auth-disconnect', requireProxySecretOrRole('admin'), handleAuthDisconnect);
 
 // POST /auth/disconnect (delegates to shared handler)
-app.post('/auth/disconnect', requireProxySecret, handleAuthDisconnect);
+app.post('/auth/disconnect', requireProxySecretOrRole('admin'), handleAuthDisconnect);
 
 // ── Company Info ─────────────────────────────────────────────────────────────
 
@@ -514,17 +536,34 @@ app.get('/customers/:id', requireProxySecret, async (req, res) => {
 });
 
 // POST /customers — create or update a customer
-app.post('/customers', requireProxySecret, async (req, res) => {
+// Admin/manager only (October 2026 audit) — real QuickBooks writes.
+// Idempotency: when the payload has a DisplayName, the create is locked
+// and re-checked under that lock (same find-by-DisplayName logic as
+// /customers/search) so a double-click/retry/concurrent request returns
+// the ALREADY-created customer instead of creating a duplicate. A payload
+// with no DisplayName (not a realistic QB Customer shape) falls through to
+// a plain forward — there is no natural key to dedupe on in that case.
+app.post('/customers', requireProxySecretOrRole('admin', 'manager'), async (req, res) => {
   try {
-    const data = await qbFetch('/customer?minorversion=65', {
-      method: 'POST',
-      body: JSON.stringify(req.body),
-    });
+    const displayName = req.body && req.body.DisplayName;
+    const data = displayName
+      ? await withQbWriteLock(`customer:${displayName}`, () => createOrReuseCustomer(displayName, req.body))
+      : await qbFetch('/customer?minorversion=65', { method: 'POST', body: JSON.stringify(req.body) });
     res.json(data);
   } catch (e) {
     return handleQBError(e, res);
   }
 });
+
+async function createOrReuseCustomer(displayName, payload) {
+  const qr = await qbQuery(`SELECT * FROM Customer WHERE DisplayName = '${displayName.replace(/'/g, "\\'")}' MAXRESULTS 1`);
+  const existing = qr?.QueryResponse?.Customer?.[0];
+  if (existing) {
+    console.warn(`[proxy] POST /customers: DisplayName "${displayName}" already exists in QuickBooks (Id ${existing.Id}) — returning the existing customer instead of creating a duplicate`);
+    return { Customer: existing };
+  }
+  return qbFetch('/customer?minorversion=65', { method: 'POST', body: JSON.stringify(payload) });
+}
 
 // GET /customers/search?displayName=X&email=Y
 app.get('/customers/search', requireProxySecret, async (req, res) => {
@@ -633,17 +672,35 @@ app.get('/estimates/:id', requireProxySecret, async (req, res) => {
 });
 
 // POST /estimates — create estimate
-app.post('/estimates', requireProxySecret, async (req, res) => {
+// Admin/manager only (October 2026 audit) — real QuickBooks writes.
+// Idempotency: when the payload has both CustomerRef and DocNumber, the
+// create is locked and re-checked under that lock (a direct QB query for
+// the same customer+DocNumber pair) so a double-click/retry/concurrent
+// request returns the ALREADY-created estimate instead of a duplicate. A
+// payload missing either field falls through to a plain forward — there
+// is no natural key to dedupe on in that case.
+app.post('/estimates', requireProxySecretOrRole('admin', 'manager'), async (req, res) => {
   try {
-    const data = await qbFetch('/estimate?minorversion=65', {
-      method: 'POST',
-      body: JSON.stringify(req.body),
-    });
+    const customerId = req.body && req.body.CustomerRef && req.body.CustomerRef.value;
+    const docNumber = req.body && req.body.DocNumber;
+    const data = (customerId && docNumber)
+      ? await withQbWriteLock(`estimate:${customerId}:${docNumber}`, () => createOrReuseEstimate(customerId, docNumber, req.body))
+      : await qbFetch('/estimate?minorversion=65', { method: 'POST', body: JSON.stringify(req.body) });
     res.json(data);
   } catch (e) {
     return handleQBError(e, res);
   }
 });
+
+async function createOrReuseEstimate(customerId, docNumber, payload) {
+  const qr = await qbQuery(`SELECT * FROM Estimate WHERE CustomerRef = '${customerId}' AND DocNumber = '${String(docNumber).replace(/'/g, "\\'")}' MAXRESULTS 1`);
+  const existing = qr?.QueryResponse?.Estimate?.[0];
+  if (existing) {
+    console.warn(`[proxy] POST /estimates: DocNumber "${docNumber}" for customer ${customerId} already exists in QuickBooks (Id ${existing.Id}) — returning the existing estimate instead of creating a duplicate`);
+    return { Estimate: existing };
+  }
+  return qbFetch('/estimate?minorversion=65', { method: 'POST', body: JSON.stringify(payload) });
+}
 
 // GET /estimates/:id/pdf
 app.get('/estimates/:id/pdf', requireProxySecret, async (req, res) => {
@@ -699,24 +756,40 @@ app.get('/invoices', requireProxySecret, async (req, res) => {
 // crm_sale_id is the ONLY ownership boundary. Amount NEVER determines ownership.
 // An existing qb_invoice_id mapping is never reassigned. Persistence failure
 // does NOT alter the QB response (the invoice is already created in QuickBooks).
-app.post('/invoices', requireProxySecret, async (req, res) => {
+// Admin/manager only (October 2026 audit) — real QuickBooks writes
+// (invoice creation AND voiding, via the body.operation==='void' fallback
+// below). Idempotency: the void fallback is locked + re-checked against
+// qb_invoices_cache.voided (never issues a second QB void call for an
+// invoice already recorded voided); creation is locked + re-checked
+// against QuickBooks directly when CustomerRef+DocNumber are both present,
+// same pattern as POST /estimates above.
+app.post('/invoices', requireProxySecretOrRole('admin', 'manager'), async (req, res) => {
   try {
     if (req.body.operation === 'void' && req.body.Id && req.body.SyncToken !== undefined) {
-      console.log(`[proxy] Voiding invoice ${req.body.Id} via POST /invoices fallback`);
-      const data = await qbFetch('/invoice?operation=void&minorversion=65', {
-        method: 'POST',
-        body: JSON.stringify({ Id: req.body.Id, SyncToken: req.body.SyncToken }),
+      const invoiceId = String(req.body.Id);
+      const result = await withQbWriteLock(`invoice-void:${invoiceId}`, async () => {
+        if (await saleMap.isVoided(saleDb, invoiceId)) {
+          console.warn(`[proxy] POST /invoices (void fallback): invoice ${invoiceId} already voided — skipping a duplicate QB void call`);
+          return { success: true, already_voided: true };
+        }
+        console.log(`[proxy] Voiding invoice ${invoiceId} via POST /invoices fallback`);
+        const data = await qbFetch('/invoice?operation=void&minorversion=65', {
+          method: 'POST',
+          body: JSON.stringify({ Id: req.body.Id, SyncToken: req.body.SyncToken }),
+        });
+        try { await saleMap.markVoided(saleDb, invoiceId); }
+        catch (e) { console.warn('[proxy] voided-flag update failed (fallback):', e.message); }
+        return { success: true, invoice: data.Invoice || data };
       });
-      try { await saleMap.markVoided(saleDb, String(req.body.Id)); }
-      catch (e) { console.warn('[proxy] voided-flag update failed (fallback):', e.message); }
-      return res.json({ success: true, invoice: data.Invoice || data });
+      return res.json(result);
     }
     // Strip CRM side-channel fields before forwarding the payload to QuickBooks.
     const { crm_sale_id, crm_lead_id, mapping_method, ...qbPayload } = req.body;
-    const data = await qbFetch('/invoice?minorversion=65', {
-      method: 'POST',
-      body: JSON.stringify(qbPayload),
-    });
+    const createCustomerId = qbPayload.CustomerRef && qbPayload.CustomerRef.value;
+    const createDocNumber = qbPayload.DocNumber;
+    const data = (createCustomerId && createDocNumber)
+      ? await withQbWriteLock(`invoice:${createCustomerId}:${createDocNumber}`, () => createOrReuseInvoice(createCustomerId, createDocNumber, qbPayload))
+      : await qbFetch('/invoice?minorversion=65', { method: 'POST', body: JSON.stringify(qbPayload) });
     const inv = data?.Invoice;
     if (inv) {
       // Refresh the cache from authoritative QB data for every created invoice.
@@ -745,6 +818,16 @@ app.post('/invoices', requireProxySecret, async (req, res) => {
   }
 });
 
+async function createOrReuseInvoice(customerId, docNumber, payload) {
+  const qr = await qbQuery(`SELECT * FROM Invoice WHERE CustomerRef = '${customerId}' AND DocNumber = '${String(docNumber).replace(/'/g, "\\'")}' MAXRESULTS 1`);
+  const existing = qr?.QueryResponse?.Invoice?.[0];
+  if (existing) {
+    console.warn(`[proxy] POST /invoices: DocNumber "${docNumber}" for customer ${customerId} already exists in QuickBooks (Id ${existing.Id}) — returning the existing invoice instead of creating a duplicate`);
+    return { Invoice: existing };
+  }
+  return qbFetch('/invoice?minorversion=65', { method: 'POST', body: JSON.stringify(payload) });
+}
+
 app.get('/invoices/:id', requireProxySecret, async (req, res) => {
   try {
     const data = await qbFetch(`/invoice/${req.params.id}?minorversion=65`);
@@ -762,20 +845,33 @@ app.get('/invoices/:id', requireProxySecret, async (req, res) => {
 
 // POST /invoices/:id/void — void an invoice in QuickBooks
 // QB void requires fetching current SyncToken, then POST with operation=void
-app.post('/invoices/:id/void', requireProxySecret, async (req, res) => {
+// Admin/manager only (October 2026 audit). Idempotency: locked + re-checked
+// against qb_invoices_cache.voided — a retried/duplicated void request for
+// an already-voided invoice never issues a second QB void call (which
+// would otherwise fail on a stale SyncToken anyway, but this avoids
+// relying on that as the only guard).
+app.post('/invoices/:id/void', requireProxySecretOrRole('admin', 'manager'), async (req, res) => {
   try {
-    // First fetch the invoice to get SyncToken
-    const current = await qbFetch(`/invoice/${req.params.id}?minorversion=65`);
-    const inv = current?.Invoice;
-    if (!inv) return res.status(404).json({ error: 'Invoice not found in QuickBooks' });
-    // QB void: POST to /invoice with operation=void query param
-    const data = await qbFetch(`/invoice?operation=void&minorversion=65`, {
-      method: 'POST',
-      body: JSON.stringify({ Id: inv.Id, SyncToken: inv.SyncToken }),
+    const invoiceId = String(req.params.id);
+    const result = await withQbWriteLock(`invoice-void:${invoiceId}`, async () => {
+      if (await saleMap.isVoided(saleDb, invoiceId)) {
+        console.warn(`[proxy] POST /invoices/:id/void: invoice ${invoiceId} already voided — skipping a duplicate QB void call`);
+        return { status: 200, body: { success: true, already_voided: true } };
+      }
+      // First fetch the invoice to get SyncToken
+      const current = await qbFetch(`/invoice/${invoiceId}?minorversion=65`);
+      const inv = current?.Invoice;
+      if (!inv) return { status: 404, body: { error: 'Invoice not found in QuickBooks' } };
+      // QB void: POST to /invoice with operation=void query param
+      const data = await qbFetch(`/invoice?operation=void&minorversion=65`, {
+        method: 'POST',
+        body: JSON.stringify({ Id: inv.Id, SyncToken: inv.SyncToken }),
+      });
+      try { await saleMap.markVoided(saleDb, String(inv.Id)); }
+      catch (e) { console.warn('[proxy] voided-flag update failed:', e.message); }
+      return { status: 200, body: { success: true, invoice: data.Invoice } };
     });
-    try { await saleMap.markVoided(saleDb, String(inv.Id)); }
-    catch (e) { console.warn('[proxy] voided-flag update failed:', e.message); }
-    res.json({ success: true, invoice: data.Invoice });
+    res.status(result.status).json(result.body);
   } catch (e) {
     return handleQBError(e, res);
   }
@@ -1009,7 +1105,14 @@ app.post('/qb/lead-status', requireProxySecret, async (req, res) => {
   } catch (e) { return handleQBError(e, res); }
 });
 
-app.post('/qb/sync-lead', requireProxySecret, async (req, res) => {
+// Admin/manager only (October 2026 audit) — creates real QuickBooks
+// customers. Idempotency: the find-or-create below previously had NO lock
+// at all — two near-simultaneous calls for the same lead could both see
+// "no existing customer" and both create one with the same DisplayName.
+// Now locked under the SAME key namespace POST /customers above uses
+// (`customer:<DisplayName>`), so the two routes can't race each other
+// either.
+app.post('/qb/sync-lead', requireProxySecretOrRole('admin', 'manager'), async (req, res) => {
   // Creates or updates a QB customer from lead data. Despite its name/this
   // endpoint's former comment, it has NEVER created an invoice or estimate —
   // it only ever reads req.body.lead and does customer find-or-create.
@@ -1038,26 +1141,24 @@ app.post('/qb/sync-lead', requireProxySecret, async (req, res) => {
   if (!lead) return res.status(400).json({ error: 'lead required in body' });
   try {
     const displayName = `${lead.first_name || ''} ${lead.last_name || ''}`.trim();
-    // Find or create customer
-    let customer = null;
-    if (lead.qb_customer_id) {
-      const data = await qbFetch(`/customer/${lead.qb_customer_id}?minorversion=65`);
-      customer = data.Customer;
-    } else {
-      const qr = await qbQuery(`SELECT * FROM Customer WHERE DisplayName = '${displayName.replace(/'/g,"\\'")}' MAXRESULTS 1`);
-      customer = qr?.QueryResponse?.Customer?.[0] || null;
-    }
-    if (!customer) {
-      const payload = { DisplayName: displayName };
-      if (lead.email) payload.PrimaryEmailAddr = { Address: lead.email };
-      if (lead.phone) payload.PrimaryPhone = { FreeFormNumber: lead.phone };
-      if (lead.property_address) payload.BillAddr = { Line1: lead.property_address, City: lead.city || '' };
-      const created = await qbFetch('/customer?minorversion=65', { method: 'POST', body: JSON.stringify(payload) });
-      customer = created.Customer;
-    }
+    const customer = lead.qb_customer_id
+      ? (await qbFetch(`/customer/${lead.qb_customer_id}?minorversion=65`)).Customer
+      : await withQbWriteLock(`customer:${displayName}`, () => findOrCreateCustomerForLead(displayName, lead));
     res.json({ success: true, customer_id: customer.Id, customer });
   } catch (e) { return handleQBError(e, res); }
 });
+
+async function findOrCreateCustomerForLead(displayName, lead) {
+  const qr = await qbQuery(`SELECT * FROM Customer WHERE DisplayName = '${displayName.replace(/'/g,"\\'")}' MAXRESULTS 1`);
+  const existing = qr?.QueryResponse?.Customer?.[0];
+  if (existing) return existing;
+  const payload = { DisplayName: displayName };
+  if (lead.email) payload.PrimaryEmailAddr = { Address: lead.email };
+  if (lead.phone) payload.PrimaryPhone = { FreeFormNumber: lead.phone };
+  if (lead.property_address) payload.BillAddr = { Line1: lead.property_address, City: lead.city || '' };
+  const created = await qbFetch('/customer?minorversion=65', { method: 'POST', body: JSON.stringify(payload) });
+  return created.Customer;
+}
 
 app.post('/qb/clear-stale', requireProxySecret, (req, res) => {
   // Stale QB data clearing is a CRM-side operation (updating Lead entity fields).
@@ -2449,5 +2550,57 @@ app.listen(PORT, async () => {
       }
     });
     console.log('[proxy] QB inbound reconciliation cron scheduled every 15 minutes');
+  }
+
+  // ── QB Proactive Connection Health Check Cron (October 2026 audit) ───────
+  // Closes a real gap: detection of a revoked/expired QuickBooks grant was
+  // previously purely REACTIVE (the 15-min sync crons' real calls failing,
+  // or an admin manually clicking "Run Live Checks"). This adds a
+  // standalone scheduled probe — WITHOUT inventing any new refresh,
+  // credential, or notification mechanism: it only calls the existing
+  // qbTokenManager.verifyConnection() (a read-only companyinfo GET through
+  // the canonical path), which already triggers the existing
+  // refresh/revocation-detection/admin-alert logic exactly as it always
+  // does. See lib/qbProactiveHealthCheck.js's header for the full design
+  // and test/qbTokenManagerReconnectAlert.test.js for proof the alert
+  // path this relies on actually fires.
+  //
+  // OFF by default — explicit opt-in (QB_PROACTIVE_HEALTH_CHECK_ENABLED=true)
+  // required, per this feature's own review requirement ("any monitoring
+  // action that could rotate production credentials or have unexpected
+  // side effects must be reviewed before enabling it"): this calls a
+  // code path that CAN trigger a real token refresh (the same one the
+  // existing sync crons already trigger routinely), just on an additional
+  // schedule, so an operator should confirm that schedule before it runs
+  // unattended in production — mirroring this codebase's established
+  // safe-by-default precedent (REMINDER_DRY_RUN, the SMS activation gates).
+  if (cronLib && process.env.QB_PROACTIVE_HEALTH_CHECK_ENABLED === 'true') {
+    const { runProactiveHealthCheck } = require('./lib/qbProactiveHealthCheck');
+    cronLib.schedule('0 * * * *', async () => {
+      const t = new Date().toISOString();
+      try {
+        if (!(await require('./lib/companyConfig').isModuleEnabled('quickbooks'))) {
+          console.log(`[qb-health-cron] tick ${t} — skipped, quickbooks module disabled for this installation`);
+          return;
+        }
+        const outcome = await runProactiveHealthCheck({
+          environment: QB_ENVIRONMENT, apiBase: QB_API_BASE, tokenStore, qbTokenManager: qbTokens,
+        });
+        if (!outcome.ran) {
+          console.log(`[qb-health-cron] tick ${t} — skipped (${outcome.reason})`);
+        } else if (outcome.result.reconnectRequired) {
+          console.error(`[qb-health-cron] tick ${t} — RECONNECTION REQUIRED: ${outcome.result.error || 'unknown reason'}`);
+        } else if (!outcome.result.ok) {
+          console.warn(`[qb-health-cron] tick ${t} — transient failure (not revoked): ${outcome.result.error || outcome.result.status}`);
+        } else {
+          console.log(`[qb-health-cron] tick ${t} — OK`);
+        }
+      } catch (e) {
+        console.error(`[qb-health-cron] tick ${t} — failed (non-fatal): ${e.message}`);
+      }
+    });
+    console.log('[proxy] QB proactive connection health check cron scheduled hourly (QB_PROACTIVE_HEALTH_CHECK_ENABLED=true)');
+  } else if (cronLib) {
+    console.log('[proxy] QB proactive connection health check cron NOT scheduled — set QB_PROACTIVE_HEALTH_CHECK_ENABLED=true to enable (off by default, review first)');
   }
 });
