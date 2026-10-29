@@ -249,9 +249,13 @@ export default function Integrations() {
             <div className="flex-1">
               <p className="text-sm font-bold text-red-800">Connected to QuickBooks Sandbox — not Production</p>
               <p className="text-xs text-red-600 mt-1">Sync actions are disabled. Disconnect and reconnect to your Production account.</p>
-              <button onClick={handleDisconnect} className="mt-3 flex items-center gap-1.5 text-xs font-bold text-red-700 border border-red-300 px-3 py-1.5 rounded-md hover:bg-red-100 transition-colors">
-                <Unlink className="w-3.5 h-3.5" /> Disconnect Sandbox
-              </button>
+              {currentUser?.role === 'admin' ? (
+                <button onClick={handleDisconnect} className="mt-3 flex items-center gap-1.5 text-xs font-bold text-red-700 border border-red-300 px-3 py-1.5 rounded-md hover:bg-red-100 transition-colors">
+                  <Unlink className="w-3.5 h-3.5" /> Disconnect Sandbox
+                </button>
+              ) : (
+                <p className="text-[11px] text-red-500 mt-2 italic">Ask an admin to disconnect/reconnect QuickBooks.</p>
+              )}
             </div>
           </div>
         )}
@@ -325,7 +329,15 @@ export default function Integrations() {
             </div>
 
             <div className="flex-shrink-0">
-              {isConnected ? (
+              {currentUser?.role !== 'admin' ? (
+                // Connecting/disconnecting QuickBooks is an admin-only action,
+                // enforced server-side (see server.js's requireProxySecretOrRole
+                // on /auth/connect, /auth/callback, /auth/disconnect — the October
+                // 2026 QuickBooks reliability audit). Hiding the button here is
+                // a UX courtesy, not the real guard: a non-admin would get a 403
+                // from the backend even if this render check were bypassed.
+                <p className="text-[11px] text-slate-400 italic max-w-[160px] text-right">Admin access required to connect/disconnect QuickBooks</p>
+              ) : isConnected ? (
                 <button
                   onClick={handleDisconnect}
                   className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-red-600 border border-slate-200 hover:border-red-200 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors"

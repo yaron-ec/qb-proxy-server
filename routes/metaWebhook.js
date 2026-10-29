@@ -241,7 +241,7 @@ router.post('/', express.raw({ type: '*/*', verify: (req, res, buf) => { req.raw
               // New-lead alert
               try {
                 const leadRow = (await query('SELECT * FROM leads WHERE id = $1', [leadId])).rows[0];
-                if (leadRow) await sendNewLeadAlert(leadRow, process.env.CRM_PUBLIC_URL || '');
+                if (leadRow) await sendNewLeadAlert(leadRow);
               } catch (e) { console.warn('[meta-webhook] alert failed:', e.message); }
 
               // Google Contacts sync — this webhook previously never enqueued
@@ -294,7 +294,7 @@ router.post('/', express.raw({ type: '*/*', verify: (req, res, buf) => { req.raw
                 // New-lead alert
                 try {
                   const leadRow = (await q('SELECT * FROM leads WHERE id = $1', [leadId])).rows[0];
-                  if (leadRow) await sendNewLeadAlert(leadRow, process.env.CRM_PUBLIC_URL || '');
+                  if (leadRow) await sendNewLeadAlert(leadRow);
                 } catch (e) { console.warn('[meta-webhook] alert failed:', e.message); }
 
                 // Google Contacts sync — see comment on the with-appointment

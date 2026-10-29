@@ -186,7 +186,13 @@ router.post('/invite', require('../lib/rbac').requireAuth, require('../lib/rbac'
     try {
       const companyConfig = require('../lib/companyConfig');
       const cfg = await companyConfig.getCompanyConfig();
-      const frontendUrl = (process.env.CRM_PUBLIC_URL || '').replace(/\/$/, '');
+      // Delegates to the one validated source (lib/crmUrl.js) — the same
+      // missing-fallback pattern here (process.env.CRM_PUBLIC_URL || '',
+      // producing a bare relative "/accept-invite?token=..." link with no
+      // scheme or host when the env var is unset) was found and fixed
+      // alongside the November 2026 New Lead/incoming-SMS email link
+      // incident — see that module's header for the full root cause.
+      const frontendUrl = require('../lib/crmUrl').getCrmBaseUrl();
       inviteUrl = `${frontendUrl}/accept-invite?token=${encodeURIComponent(created.rawToken)}`;
       const { inviteEmail } = require('../lib/emailTemplates');
       const html = inviteEmail({
@@ -396,13 +402,24 @@ router.get('/google', (req, res) => {
   const redirectUri = `${apiBase}/api/v1/auth/google/callback`;
 
   // Frontend origin to return the user to after callback (carry through state).
-  const frontendRedirect = req.query.redirect || process.env.CRM_PUBLIC_URL || '/';
+  const frontendRedirect = req.query.redirect || require('../lib/crmUrl').getCrmBaseUrl();
   // Validate: must be a URL starting with http(s) or a relative path.
   const safeRedirect = /^(https?:\/\/|\/)/.test(frontendRedirect) ? frontendRedirect : '/';
 
-  // CSRF nonce + redirect URL encoded in state
+  // The CRM-internal path the user was actually trying to reach (e.g.
+  // "/leads/<id>" from a New Lead or incoming-SMS email link) when they were
+  // routed through login — carried through `state` the same way `redirect`
+  // (the origin) already was, so Login.jsx can send them back to the
+  // correct lead instead of always the dashboard after Google SSO
+  // completes. Validated here AND again on the way out of the callback
+  // below (defense in depth — state is attacker-visible/replayable, never
+  // trusted on faith alone).
+  const { sanitizeReturnTo } = require('../lib/safeReturnTo');
+  const returnTo = sanitizeReturnTo(req.query.returnTo);
+
+  // CSRF nonce + redirect URL (+ optional returnTo path) encoded in state
   const nonce = crypto.randomBytes(16).toString('hex');
-  const state = Buffer.from(JSON.stringify({ nonce, redirect: safeRedirect })).toString('base64url');
+  const state = Buffer.from(JSON.stringify({ nonce, redirect: safeRedirect, returnTo })).toString('base64url');
 
   const params = new URLSearchParams({
     client_id: clientId,
@@ -429,13 +446,15 @@ router.get('/google/callback', async (req, res) => {
   if (error) return res.status(400).send(`Google OAuth error: ${error}`);
   if (!code) return res.status(400).send('Missing authorization code.');
 
-  // Decode state to get the frontend redirect URL
+  // Decode state to get the frontend redirect URL (+ optional returnTo path)
   let frontendRedirect = '/';
+  let returnTo = null;
   try {
     const decoded = JSON.parse(Buffer.from(state, 'base64url').toString());
     if (decoded.redirect && /^(https?:\/\/|\/)/.test(decoded.redirect)) {
       frontendRedirect = decoded.redirect;
     }
+    returnTo = require('../lib/safeReturnTo').sanitizeReturnTo(decoded.returnTo);
   } catch (_) { /* use default */ }
 
   // Railway terminates TLS — use x-forwarded-proto for HTTPS redirect URI.
@@ -490,7 +509,8 @@ router.get('/google/callback', async (req, res) => {
     const redirectBase = frontendRedirect.startsWith('http')
       ? frontendRedirect.replace(/\/$/, '')
       : '';
-    const hash = `#access=${encodeURIComponent(session.access)}&refresh=${encodeURIComponent(session.refresh)}`;
+    const hash = `#access=${encodeURIComponent(session.access)}&refresh=${encodeURIComponent(session.refresh)}`
+      + (returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : '');
     res.redirect(`${redirectBase}/login${hash}`);
   } catch (e) {
     res.status(500).send(`Google OAuth callback error: ${e.message}`);

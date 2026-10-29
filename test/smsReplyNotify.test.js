@@ -89,6 +89,23 @@ test('notifyAssignedRep: resolves the REAL owner via the owners FK join, never a
   } finally { restore(); delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED; }
 });
 
+test('notifyAssignedRep: the "Open this lead" link is ALWAYS a valid absolute URL, regardless of CRM_PUBLIC_URL and regardless of the deprecated crmPublicUrl argument (November 2026 malformed-link incident, lib/crmUrl.js)', async () => {
+  process.env.SMS_REPLY_NOTIFICATIONS_ENABLED = 'true';
+  delete process.env.CRM_PUBLIC_URL;
+  queryImpl = async () => ({ rows: [{ id: 'lead-9', first_name: 'Sarah', last_name: 'Martinez', owner_email: 'mike@ecconstructiongroup.com', owner_name: 'Mike' }] });
+  let sentBody = null;
+  const restore = stub('../lib/emailService', {
+    send: async ({ htmlBody }) => { sentBody = htmlBody; return { gmailMessageId: 'g1' }; },
+  });
+  try {
+    // Pass the OLD unsafe empty-string shape that used to omit the link
+    // entirely — must now still produce a real, absolute link.
+    await smsReplyNotify.notifyAssignedRep({ leadId: 'lead-9', body: 'hi', messageSid: 'SM1', crmPublicUrl: '' });
+    assert.match(sentBody, /href="https:\/\/crm\.ecconstructiongroup\.com\/leads\/lead-9"/);
+    assert.doesNotMatch(sentBody, /href="http:\/\/\//, 'must never be scheme + empty host');
+  } finally { restore(); delete process.env.SMS_REPLY_NOTIFICATIONS_ENABLED; }
+});
+
 test('notifyAssignedRep: lead has no owner assigned -> no-op, never invents a recipient', async () => {
   process.env.SMS_REPLY_NOTIFICATIONS_ENABLED = 'true';
   queryImpl = async () => ({ rows: [{ id: 'lead-1', first_name: 'Sarah', owner_email: null, owner_name: null }] });

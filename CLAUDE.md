@@ -1030,6 +1030,166 @@ to Yaron's personal phone.
   keyword — proves email fires correctly and NO outbound SMS is ever sent
   as a reply notification).
 
+## CRM email notification links: centralized, validated base URL (`lib/crmUrl.js`, November 2026, fixed)
+
+**Production incident**: a New Lead notification email's "Open Lead in CRM"
+button opened `http:///leads/774d31bd-1134-4319-8298-5810dbe196a5` on mobile
+when clicked — scheme present, host EMPTY. Google's own redirect
+interstitial correctly flagged it "invalid url".
+
+**Root cause**: `lib/captureAlerts.js#sendNewLeadAlert` (the New Lead email —
+every intake path funnels through it) built its lead link as
+`` `${crmPublicUrl || ''}/leads/${lead.id}` `` with **no fallback of its
+own**, and all three of its real callers —
+`routes/websiteLeads.js`, `routes/publicCapture.js`, `routes/metaWebhook.js`
+(×2 call sites) — passed `process.env.CRM_PUBLIC_URL || ''`. When
+`CRM_PUBLIC_URL` was unset in production, the email shipped a bare
+**relative** path (`/leads/<id>`, no scheme, no host) baked directly into
+its HTML. There is no "current page" inside an email to resolve a relative
+`href` against, so Gmail's own link-safety/redirect wrapper rendered
+exactly the reported symptom. The identical missing-fallback pattern
+existed in `routes/sms.js`'s inbound-SMS-reply notification path
+(`lib/smsReplyNotify.js#notifyAssignedRep`), degrading more gracefully (it
+omitted the link entirely rather than emit a broken one) but still shipping
+a notification with no way to open the lead at all — found while auditing
+every "any other email containing a link back to CRM" per the same
+investigation. Every OTHER CRM-link call site in this codebase had already
+independently reinvented the same
+`process.env.CRM_PUBLIC_URL || 'https://crm.ecconstructiongroup.com'`
+fallback — duplicated across 8+ files, each copy a chance to be missed
+exactly like `captureAlerts.js` was. A ninth, previously-undiscovered copy
+of the SAME missing-fallback bug was also found and fixed in the SAME pass,
+unprompted: `routes/auth.js`'s employee-invite email built its
+`/accept-invite?token=...` link from `process.env.CRM_PUBLIC_URL || ''`
+too — same defect class, same fix.
+
+**Fix**: `lib/crmUrl.js` is now the ONE validated source for every CRM-link
+call site. `getCrmBaseUrl()` ALWAYS returns a valid absolute `http(s)` URL
+with a real host — falling back to the known production CRM URL
+(`https://crm.ecconstructiongroup.com`) whenever `CRM_PUBLIC_URL` is unset,
+unparsable, missing a protocol/host, or points at a blocked host
+(`localhost`/`127.0.0.1`/`0.0.0.0`/`::1`, any `*.railway.internal`, any
+`base44.app`/`base44.com`) — logging a warning only for the invalid/blocked
+cases, never for the simply-unset case (`CRM_PUBLIC_URL` is documented as
+"Recommended," not "Required"). Deliberately does NOT block a
+`*.up.railway.app` domain — `lib/platformInfraProvisioning.js` legitimately
+sets a brand-new multi-company installation's real `frontend_url` to
+exactly that shape before a custom domain is attached (see "Multi-company
+direction" below), so that is a genuine working CRM origin, not a
+misconfiguration. `buildLeadUrl(leadId)` builds on top of it and returns
+`null` when `leadId` is missing — every caller must omit the link/button
+entirely in that case rather than ever emit a bare `/leads/` or
+`/leads/undefined`. `/leads/:id` was verified (not assumed) as the real
+frontend route — `crm-frontend/src/App.jsx` routes it to
+`LeadDetailModern`.
+
+Every call site that used to read `process.env.CRM_PUBLIC_URL` directly now
+delegates to this module: `lib/captureAlerts.js`, `lib/smsReplyNotify.js`,
+`lib/dataAccessRailway.js`, `lib/emailTemplates.js`, `lib/reminderEmails.js`,
+`lib/reminderPages.js`, `lib/actionRouter.js`, `lib/crmActivityNotifier.js`,
+`routes/cronJobs.js`, `lib/phoneCallReminders.js`, `lib/qbTokenManager.js`
+(the QuickBooks reconnect-required admin alert), and `routes/auth.js` (the
+employee-invite email AND the Google OAuth `redirect` default). The three
+broken New Lead call sites (`routes/websiteLeads.js`,
+`routes/publicCapture.js`, `routes/metaWebhook.js`) and `routes/sms.js`'s
+inbound-SMS-reply call site no longer pass a raw env-var string at all —
+`sendNewLeadAlert`'s and `notifyAssignedRep`'s second `crmPublicUrl`
+argument is now an accepted-but-ignored, documented-deprecated parameter
+(kept only so no caller needed its call signature changed), and the link is
+unconditionally built from `lib/crmUrl.js` inside the function itself.
+
+**Deliberately NOT touched**: `crm-frontend/src/lib/crmEmailTemplates.js`'s
+`manualStaffReminderHtml` (the browser-triggered "manual reminder" email,
+`crm-frontend/src/lib/emailTransport.js`'s Railway-flow path) builds its
+link from `window.location.origin` — this runs IN THE BROWSER, so the
+origin is always correct by construction (whoever is viewing the CRM to
+click "send manual reminder" is necessarily on the right host); there is no
+env-var fallback to get wrong, and it needed no fix. `routes/platformCompanies.js#sendOwnerInvite`
+(multi-company owner invites) intentionally uses each company's own
+per-row `frontend_url` from `platform_companies`, never the global
+`CRM_PUBLIC_URL` env var — a different, already-correct mechanism, not an
+instance of this bug. `lib/smsClient.js#webhookBaseUrl` reads
+`CRM_PUBLIC_URL` too, but only as a documented last-resort fallback for the
+Twilio webhook/status-callback BACKEND URL (a different purpose entirely —
+see "SMS inbound-webhook / status-callback production incident" above) —
+not a lead link, not touched here.
+
+**Known, NOT-fixed-in-this-pass issue found while reading this code**:
+`lib/qbTokenManager.js#notifyReconnectRequired` destructures
+`const { ALERT_RECIPIENTS } = require('./captureAlerts')` — but
+`lib/captureAlerts.js` does not (and, per its current `module.exports`,
+never did in its current form) export `ALERT_RECIPIENTS`. This makes
+`ALERT_RECIPIENTS` `undefined` in production, so the `for...of` over it
+throws and is silently swallowed by the function's own try/catch — the
+QuickBooks reconnect-required ADMIN alert email has likely never sent in
+production. Every test file that exercises code paths near this (`test/
+integration/company2FunctionalProof.int.test.js` and 10+ others) masks this
+by stubbing the whole `lib/captureAlerts` module with its own
+`ALERT_RECIPIENTS: []`, which is why it was never caught by the existing
+suite. This is a genuinely separate defect (an email never sending, not a
+malformed link) from everything else in this section — tracked here as a
+known issue, deliberately not fixed in this pass to keep this fix scoped to
+link generation.
+
+### Post-login redirect now preserves the intended lead (`lib/safeReturnTo.js`)
+
+A related gap found while auditing requirement coverage for this incident:
+a user who followed a New Lead or incoming-SMS email link while logged out
+was always dropped on the dashboard after signing in — `crm-frontend/src/
+App.jsx`'s `auth_required` branch discarded the original URL entirely
+(`<Navigate to="/login" replace />`), and every success path in
+`crm-frontend/src/pages/Login.jsx` (Google SSO, email/password, and the
+already-authenticated redirect) always navigated to `/` unconditionally.
+
+Fixed by threading a validated `returnTo` path through the whole flow:
+`App.jsx` now preserves the original `location.pathname + location.search`
+as `/login?returnTo=<path>`. `lib/safeReturnTo.js` (backend) and
+`crm-frontend/src/lib/safeReturnTo.js` (frontend, duplicated — separate
+packages, no shared module boundary) are the ONE validated gate a `returnTo`
+value must pass before ever being used as a redirect target — it must be a
+same-origin, app-internal path starting with exactly one `/` (never
+`//host/...` or `/\host/...`, both browser-recognized protocol-relative
+forms, and never an absolute URL or a disguised scheme like
+`/javascript:...`) — an open-redirect vector is the one thing this can
+never become, since a freshly-issued session's tokens travel with it.
+For the email/password path, `Login.jsx` reads `returnTo` straight back off
+`window.location.search` (same page, no navigation occurred). For Google
+SSO, which does a full off-site round trip through Google, the value is
+carried through `routes/auth.js`'s existing `state` parameter (the same
+CSRF-nonce mechanism that already carried the frontend origin) —
+`GET /google` accepts an optional `?returnTo=` query param, validates it,
+and embeds it in `state`; `GET /google/callback` decodes and re-validates it
+(defense in depth — `state` is attacker-visible/replayable, never trusted on
+faith alone) and appends it to the final `#access=...&refresh=...` hash
+redirect as `&returnTo=...`; `Login.jsx`'s existing hash-token handler reads
+it back and navigates there instead of always `/`.
+
+**Permissions are unaffected by design, not by new code**: preserving the
+destination never bypasses lead ownership or role restrictions — once
+signed in, `LeadDetailModern`'s data fetch still goes through the normal
+authenticated API, which still enforces `routes/leads.js#resolveOwnerScope`
+exactly as it does for any other navigation. A `returnTo` to a lead the
+signed-in user isn't authorized to see still gets that user the same 403/
+scoped-empty response the API would give for any other route to it — this
+needed verification, not new code.
+
+Regression coverage: `test/crmUrl.test.js` (`getCrmBaseUrl`/`buildLeadUrl`
+validation matrix — unset, empty, valid http/https, unparsable, blocked
+hosts including the exact `http://` bare-scheme shape, `*.up.railway.app`
+NOT blocked, missing leadId, URL-encoding); `test/captureAlerts.test.js`
+(NEW — this file had zero coverage before this incident; proves the New
+Lead email's link is always valid absolute HTTPS regardless of
+`CRM_PUBLIC_URL`, and that the deprecated `crmPublicUrl` argument is fully
+ignored); `test/smsReplyNotify.test.js` (the incoming-SMS reply email's
+link is always valid, never omitted); `test/safeReturnTo.test.js` +
+`crm-frontend/src/lib/safeReturnTo.test.js` (the open-redirect-rejection
+matrix on both sides). **Not verified live** (no Railway/Twilio/Google
+OAuth credential access in this environment): the actual rendered HTML of a
+real production email (Gmail-specific link mangling can only be confirmed
+by receiving one), and a full Google-SSO round trip exercising the new
+`returnTo` passthrough end to end — both require live production access an
+operator must perform.
+
 ## Important business invariants
 
 - **Appointments**: no-double-booking is enforced by
@@ -1737,6 +1897,196 @@ run was over an hour ago (the cron runs every 15 minutes). No new
 `company_settings.enabled_modules` key was added — it rides on no toggle of
 its own (`MODULE_FLAG_ENFORCED.handoff_estimates_sync = false`, same
 precedent as `sms`), so it is never forced to DISABLED.
+
+**`crm-frontend/src/components/HandoffEstimatesPanel.jsx` previously had a
+SECOND, unrelated path back into the direct Handoff API (production
+incident, found and fixed in a later pass)**: alongside the correct
+"Sync from QuickBooks" button (`handleSync` → `syncQBEstimatesForLead` →
+`routes/leadQB.js`'s `sync-estimates`, per the pipeline above), this
+per-lead panel ALSO offered a second, visually near-identical "Sync from
+Handoff" icon (`handleHandoffSync` → `POST /handoff/sync-estimates-for-lead`,
+`routes/handoffSync.js` — the DIRECT Handoff REST integration). Clicking it
+always failed with `EXTERNAL BLOCKER — OFFICIAL HANDOFF API KEY REQUIRED...`
+(`routes/handoffSync.js#classifyHandoffError`'s `OFFICIAL_API_KEY_REQUIRED`
+message), since this installation has no Handoff API key and, per this
+section's own opening paragraph, is not pursuing one. That error rendering
+in the SAME panel as an unrelated, correct "No estimates yet" empty state
+(a lead whose QuickBooks-side match simply hadn't synced yet) read as one
+combined failure, even though the two had nothing to do with each other —
+the QB-based pipeline (cron + this panel's auto-sync + its remaining
+"Sync from QuickBooks" button) was never affected; the direct-Handoff
+button's own failure never touched the `handoff_estimates` table at all
+(`handoffClient.getApiKey()` throws before any `rda.create`/`rda.update`
+is ever reached), so no estimate data was ever at risk from this. Fixed by
+removing the "Sync from Handoff" button and its handler entirely from this
+panel — the backend route (`routes/handoffSync.js`) is untouched, since a
+future installation that genuinely configures a direct Handoff connection
+may still use it elsewhere; only this panel's dependency on it was removed.
+Confirms requirement: `enabled_modules.handoff` must in fact be `true` in
+this installation's production `company_settings` row for the reported
+`EXTERNAL BLOCKER` message to have been reachable at all — if it were
+`false`, `routes/handoffSync.js`'s own `gate()` (`requireModuleEnabled`)
+would have 404'd with `module_disabled` first, never reaching
+`classifyHandoffError`'s `OFFICIAL_API_KEY_REQUIRED` message. That module
+flag's actual current value was not independently verified against
+production from this environment (no Railway/DB access) — this is a
+code-level deduction from the exact error text reported, not a live check.
+Regression coverage: `crm-frontend/src/components/HandoffEstimatesPanel.test.jsx`
+(no "Sync from Handoff" control renders; auto-sync and the diagnose/sync
+buttons never call the direct Handoff API; the empty state never shows an
+`EXTERNAL BLOCKER`/`HANDOFF_API_KEY` message); the QB-only dependency of
+the sync-estimates write path itself was already covered by
+`test/estimateSyncRestoration.test.js`'s "no dependency on Handoff
+API/HANDOFF_API_KEY" test, unchanged by this fix.
+
+## QuickBooks authorization, idempotency, and proactive monitoring (October 2026 reliability audit, Phase 2)
+
+Follow-up pass to the reconnect-alert fix above, closing the remaining
+gaps the same audit found in `server.js`'s legacy QB proxy write surface.
+Nothing about `lib/qbTokenManager.js`'s refresh/rotation/locking logic
+changed — this phase is authorization, duplicate-write prevention, and a
+new proactive health probe layered on top of it.
+
+- **Authorization — role-gating the legacy QB proxy write routes.**
+  `server.js#requireProxySecret` accepts EITHER the server-to-server
+  `X-Proxy-Secret` header OR any valid Railway JWT, with NO role check on
+  the JWT path. Every legitimate caller on the proxy-secret path
+  (`lib/qbInternal.js`, used by `routes/leadQB.js` and
+  `routes/dealQbSync.js`) is already gated one layer up with
+  `requireRole('admin','manager')` — but a browser could reach these
+  routes DIRECTLY with ANY authenticated user's JWT (`sales_rep`, `office`,
+  anyone), completely bypassing that upstream gate, since this middleware
+  never checked `req.user.role`. Fixed with a new
+  `lib/qbRouteAuth.js#requireProxySecretOrRole(...roles)` — a separate,
+  independently `require()`-able and unit-testable module (not inlined in
+  `server.js`, so it can be tested without eval-extracting a source
+  fragment): the `X-Proxy-Secret` path is UNCHANGED (still unconditional —
+  restricting it too would double-gate, and could break, the legitimate
+  internal calls above); the JWT path now additionally requires
+  `req.user.role` to be one of the roles the specific route allows.
+  - **Admin-only** (an administrative action with real credential
+    consequences): `GET /auth/connect`, `POST /auth/callback`,
+    `POST /auth/disconnect`, and their `POST /qb/auth-connect` /
+    `/qb/auth-callback` / `/qb/auth-disconnect` aliases.
+    `GET /auth/status` / `POST /qb/auth-status` (read-only connection
+    status) is deliberately left on the unrestricted `requireProxySecret`
+    — reading status has no credential/financial consequence and is
+    needed by `QBReconnectBanner.jsx` and others.
+  - **Admin/manager** (preserves the existing manager-workflow precedent
+    already established in `routes/dealQbSync.js` and `routes/leadQB.js`):
+    `POST /customers`, `POST /estimates`, `POST /invoices` (both the
+    create path and its `operation==='void'` fallback), `POST
+    /invoices/:id/void`, `POST /qb/sync-lead`.
+  - Every GET/read-only QB proxy route (`GET /customers`, `GET
+    /estimates`, `GET /invoices`, `/qb/lead-status`, `/qb/diagnose-*`,
+    `/qb/resync-all`, `/qb/import-estimates`, `/qb/sync-lead-estimates`,
+    etc.) is UNCHANGED — confirmed via code audit to perform no QuickBooks
+    writes at all, so there is no financial-mutation risk to restrict.
+  - **Frontend**: `crm-frontend/src/pages/Integrations.jsx`'s
+    Connect/Reconnect/Disconnect buttons (including the Sandbox banner's
+    own Disconnect button) now render only for `currentUser?.role ===
+    'admin'`; a non-admin sees an explanatory note instead. This is a UX
+    courtesy only — the real enforcement is the server-side gate above; a
+    bypassed/stale frontend would still get a 403.
+  - Regression coverage: `test/qbRouteAuth.test.js` (the real middleware
+    behavior — proxy-secret bypass, each role tier, 401 vs 403, invalid/
+    expired JWT), `test/qbLegacyWriteRouteSecurity.test.js` (source-level
+    proof every listed route in `server.js` is actually wired to the
+    correct gate — same "source-level" convention this file already uses
+    for `isManuallyMatched`/`runQbEstimateSync`, since `server.js` has
+    top-level side effects and isn't a requirable module),
+    `crm-frontend/src/pages/Integrations.qbAuth.test.jsx` (admin sees the
+    control; manager and sales_rep do not).
+
+- **Duplicate-write protection on the same legacy write routes.** None of
+  `POST /customers`, `/estimates`, `/invoices`, `/qb/sync-lead` had any
+  lock at all — a double-click, a network retry, or two near-simultaneous
+  requests for the same customer/estimate/invoice could each see "doesn't
+  exist yet" and both create one, producing a real duplicate QuickBooks
+  record. (Verified via code audit that NOTHING in the live frontend or
+  any internal caller actually calls the bare `POST /customers`,
+  `/estimates`, or `/invoices` today — only `GET` — so this was a
+  dormant/legacy risk, not an active-path defect; `/qb/sync-lead` IS
+  actively called, via `lib/qbInternal.js` ← `routes/leadQB.js`, and had
+  the same no-lock gap.) Fixed by extracting the SAME advisory-lock
+  pattern `lib/qbEstimateInvoice.js#withDealLock` already uses into a
+  shared, generic `lib/advisoryLock.js#withAdvisoryLock(pool, namespace,
+  key, fn)` — the first place this pattern is shared rather than
+  re-copied a fourth time (see that file's header for the full list of
+  namespaces already in use: 1001 appointment booking, 1002 lead intake,
+  1003 QB deal estimate/invoice, **1004 — new — these legacy QB proxy
+  write routes**). `server.js#withQbWriteLock(key, fn)` wraps it with the
+  1004 namespace and `saleDb.pool`:
+  - `POST /customers` locks on `customer:<DisplayName>` and re-checks QB
+    directly (the same find-by-DisplayName query `/customers/search`
+    already uses) before creating — a duplicate DisplayName returns the
+    EXISTING customer instead of creating a second one.
+  - `POST /estimates` and the `POST /invoices` create path lock on
+    `estimate:<CustomerRef>:<DocNumber>` / `invoice:<CustomerRef>:<DocNumber>`
+    and re-check QB directly the same way — ONLY when the payload has both
+    fields (a realistic QB Estimate/Invoice always does); a payload
+    missing either falls through to a plain forward, since there is no
+    natural key to dedupe on in that case.
+  - `POST /invoices/:id/void` and the `POST /invoices`
+    `operation==='void'` fallback both lock on `invoice-void:<Id>` and
+    re-check the NEW `lib/qbInvoiceSaleMap.js#isVoided(db, qb_invoice_id)`
+    helper (reads `qb_invoices_cache.voided`, the same column
+    `markVoided` already sets) before calling QuickBooks' void operation
+    — an invoice already recorded voided returns `{success:true,
+    already_voided:true}` without a second QB API call.
+  - `POST /qb/sync-lead`'s find-or-create now locks on the SAME
+    `customer:<DisplayName>` key `POST /customers` uses — closing both its
+    own internal race (it previously had zero locking) and a cross-route
+    race between the two endpoints for the same DisplayName.
+  - No existing financial data was changed or re-created by this fix — it
+    only prevents a FUTURE duplicate on retry/concurrency; a pre-existing
+    duplicate (from before this fix) is not detected or merged.
+  - Regression coverage: `test/advisoryLock.test.js` (lock/unlock pairing,
+    releases on throw, client always returned to the pool, independent
+    keys don't cross-couple).
+
+- **Proactive scheduled connection health check — the "detection is purely
+  reactive" gap.** Previously the ONLY ways a revoked/expired QuickBooks
+  grant was ever discovered were: the 15-minute QB sync crons' real API
+  calls happening to fail, or an admin manually clicking "Run Live
+  Checks"/hitting `?verify=1` — there was no standalone scheduled probe.
+  `lib/qbProactiveHealthCheck.js` adds one WITHOUT inventing any new
+  refresh, credential, or notification mechanism: it calls the existing
+  `qbTokenManager.verifyConnection()` (a read-only companyinfo GET through
+  the canonical `qbApiRequest` path) on an hourly cron tick
+  (`server.js`, `0 * * * *`). If that live call (or the refresh it may
+  trigger) discovers the grant is genuinely revoked,
+  `lib/qbTokenManager.js#interpretRefresh` ALREADY calls
+  `deps.notifyReconnectRequired` with its existing per-day, per-recipient
+  idempotency key (the exact path fixed earlier in this document) — this
+  adds NO second alert path and cannot itself cause alert spam beyond what
+  that existing dedup already prevents.
+  - **Avoids unnecessary Intuit API usage**: `shouldSkipProactiveCheck`
+    skips the live call entirely when a real QuickBooks API call already
+    succeeded more recently than 20 minutes ago (comfortably longer than
+    the 15-minute sync crons' own interval — their ordinary traffic
+    already proves the credential live, so this backs off rather than
+    probing redundantly).
+  - **OFF by default — explicit opt-in required**
+    (`QB_PROACTIVE_HEALTH_CHECK_ENABLED=true`), mirroring this codebase's
+    established safe-by-default precedent (`REMINDER_DRY_RUN`, the SMS
+    automation's three activation gates): this calls a code path that CAN
+    trigger a real token refresh (the same one the existing sync crons
+    already trigger routinely), just on an additional schedule, so an
+    operator should confirm that schedule before it runs unattended in
+    production. **Not yet enabled in this pass** — enabling it is a
+    deliberate follow-up operator action, not a side effect of this
+    commit.
+  - No new Railway service was created — this runs as a cron tick inside
+    the existing `qb-proxy-server` process, the same way the two existing
+    15-minute QB crons do.
+  - Regression coverage: `test/qbProactiveHealthCheck.test.js` (the skip
+    decision in isolation — never-connected, recently-verified, and due
+    cases; `runProactiveHealthCheck`'s dependency-injected wiring, proving
+    it never calls `verifyConnection` when skipping and correctly surfaces
+    `reconnectRequired` when it doesn't); the cron's own wiring (env-var
+    gate, correct require) is covered by
+    `test/qbLegacyWriteRouteSecurity.test.js`'s source-level check.
 
 ## Open, known-limitation items
 

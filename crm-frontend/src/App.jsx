@@ -106,7 +106,17 @@ const AuthenticatedApp = () => {
       return <UserNotRegisteredError authError={authError} user={user} />;
     } else if (authError.type === 'auth_required') {
       // Railway auth: route to the native login page (Google SSO + email/password).
-      return <Navigate to="/login" replace />;
+      // Production incident (November 2026): following a New Lead/incoming-SMS
+      // email link while logged out always landed on the dashboard after
+      // signing in, never back on the lead the link was for — the original
+      // destination was discarded right here. Preserved as ?returnTo=<path>
+      // (sanitizeReturnTo validates it's a same-origin internal path on the
+      // way back out in Login.jsx — never an open-redirect vector).
+      {
+        const dest = `${location.pathname}${location.search}`;
+        const returnTo = dest && dest !== '/' ? `?returnTo=${encodeURIComponent(dest)}` : '';
+        return <Navigate to={`/login${returnTo}`} replace />;
+      }
     } else if (authError.type === 'network_error') {
       // Timeout or connection failure — show retry screen instead of infinite spinner
       return (

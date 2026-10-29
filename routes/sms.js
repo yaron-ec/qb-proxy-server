@@ -177,9 +177,8 @@ webhookRouter.post('/inbound', async (req, res) => {
     // SMS_REPLY_FORWARD_TO, which must stay unset in production.
     if (!result.duplicate && !result.keyword) {
       const smsReplyNotify = require('../lib/smsReplyNotify');
-      const crmPublicUrl = process.env.CRM_PUBLIC_URL || '';
       if (result.match && result.match.leadId) {
-        await smsReplyNotify.notifyAssignedRep({ leadId: result.match.leadId, body: Body || '', messageSid: MessageSid, crmPublicUrl }).catch(() => {});
+        await smsReplyNotify.notifyAssignedRep({ leadId: result.match.leadId, body: Body || '', messageSid: MessageSid }).catch(() => {});
       } else {
         await smsReplyNotify.notifyUnmatchedForReview({ body: Body || '', messageSid: MessageSid, fromNumber: From, ambiguous: !!(result.match && result.match.ambiguous), candidateLeadIds: result.match && result.match.candidateIds }).catch(() => {});
       }

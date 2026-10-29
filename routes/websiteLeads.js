@@ -49,9 +49,8 @@ function createWebsiteLeadsRouter(deps) {
     sendNewLeadAlert, enqueueContactSync, removeFromReminders,
     cleanupLeadTextRefs, cancelAppointmentsForLeadDelete,
     getSecret = () => process.env.WEBSITE_LEAD_WEBHOOK_SECRET,
-    crmPublicUrl = () => process.env.CRM_PUBLIC_URL || '',
-    // Dependency-injected like getSecret/crmPublicUrl above (tests pass
-    // their own synchronous stub); defaultRouter() below wires the real,
+    // Dependency-injected like getSecret above (tests pass their own
+    // synchronous stub); defaultRouter() below wires the real,
     // company_settings-backed async resolver. Default here never touches a
     // DB, matching every other dep's synchronous, no-I/O default.
     websiteDomain = () => 'ecconstructiongroup.com',
@@ -207,7 +206,7 @@ function createWebsiteLeadsRouter(deps) {
         if (!test) {
           try {
             const row = (await query('SELECT * FROM leads WHERE id = $1', [leadId])).rows[0];
-            if (row) await sendNewLeadAlert(row, crmPublicUrl());
+            if (row) await sendNewLeadAlert(row);
           } catch (e) { log.warn('[website-leads] new-lead alert failed (non-fatal):', e.message); }
           try { await enqueueContactSync(pool, leadId); } catch (e) { log.warn('[website-leads] contacts enqueue failed (non-fatal):', e.message); }
         }
