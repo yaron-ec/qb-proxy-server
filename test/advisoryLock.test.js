@@ -126,3 +126,48 @@ test('tryWithAdvisoryLock: the lock is released even when fn() throws, so a late
   const r = await tryWithAdvisoryLock(pool, 1005, 'qb-estimate-sync', async () => 'ok after throw');
   assert.deepStrictEqual(r, { skipped: false, result: 'ok after throw' });
 });
+
+// ── Unlock-failure hardening (merge-precondition review: "the Postgres
+// advisory lock is correctly acquired and released, including on errors")
+// — if the UNLOCK query itself fails, the session-level lock stays held on
+// that exact connection (Postgres only releases it on a successful unlock
+// or the session ending). Returning that connection to the pool as healthy
+// would let some LATER, unrelated caller silently inherit an already-held
+// lock. Both lock helpers must discard (not recycle) a connection whose
+// unlock failed. ────────────────────────────────────────────────────────
+function fakePoolWithFailingUnlock() {
+  const released = [];
+  const client = {
+    query: async (sql) => {
+      if (/unlock/.test(sql)) throw new Error('connection reset during unlock');
+      return { rows: [{ locked: true }] };
+    },
+    release: (err) => released.push(err),
+  };
+  return { pool: { connect: async () => client }, released };
+}
+
+test('withAdvisoryLock: an unlock failure discards the connection (release called with a truthy arg), never recycled as healthy', async () => {
+  const { pool, released } = fakePoolWithFailingUnlock();
+  const result = await withAdvisoryLock(pool, 1004, 'k', async () => 'done');
+  assert.strictEqual(result, 'done', 'fn\'s result is still returned despite the unlock failure');
+  assert.strictEqual(released.length, 1);
+  assert.ok(released[0], 'release must be called with a truthy value so pg-pool destroys this connection');
+});
+
+test('tryWithAdvisoryLock: an unlock failure discards the connection the same way', async () => {
+  const { pool, released } = fakePoolWithFailingUnlock();
+  const r = await tryWithAdvisoryLock(pool, 1005, 'qb-estimate-sync', async () => 'done');
+  assert.deepStrictEqual(r, { skipped: false, result: 'done' });
+  assert.strictEqual(released.length, 1);
+  assert.ok(released[0]);
+});
+
+test('a SUCCESSFUL unlock releases the connection as healthy (falsy arg) — the common case is never penalized', async () => {
+  const released = [];
+  const client = { query: async () => ({ rows: [{ locked: true }] }), release: (err) => released.push(err) };
+  const pool = { connect: async () => client };
+  await withAdvisoryLock(pool, 1004, 'k', async () => 'done');
+  assert.strictEqual(released.length, 1);
+  assert.ok(!released[0], 'a healthy connection must be released with no error so the pool keeps reusing it');
+});
