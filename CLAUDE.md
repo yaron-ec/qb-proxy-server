@@ -2306,6 +2306,43 @@ never backing off at the tick level, only at the per-call level.
    what prevents them from jointly overwhelming Intuit, not this lock); each
    can simply no longer overlap with ANOTHER instance of itself.
 
+**Full data-call-path audit (done as a precondition for merging the Phase 4
+PR, not left to chance)**: every QuickBooks data call in this codebase was
+confirmed to funnel through the one canonical `qbTokenManager.qbApiRequest`
+— `server.js`'s `qbFetch`/`qbQuery`, `lib/qbInboundSync.js`'s `qbQuery`,
+`lib/qbSyncTrigger.js`, `lib/qbEstimateInvoice.js`, and every PDF route —
+which means the breaker gate protects ALL of them UNIVERSALLY, by
+construction, regardless of which specific loop calls it: once open, every
+call anywhere in the codebase becomes a free, zero-network-traffic
+synthetic failure. This audit found a fifth unpaced, breaker-blind loop
+that the first Phase 4 pass missed: `lib/qbSyncTrigger.js#runQbEstimateSyncAsync`
+(the webhook-triggered, near-real-time sync — bounded to estimates updated
+in the last 24h) had the SAME zero-pacing, no-circuit-detection customer-fetch
+loop as the three already fixed, plus its OWN separate in-process `_syncing`
+boolean. Fixed identically: paced (~150ms), stops early on a `circuitOpen`
+skip, and its re-entrancy guard was upgraded to the same cross-process
+`tryWithAdvisoryLock` (namespace 1005, key `qb-webhook-sync` — distinct from
+`qb-inbound-reconcile`/`qb-estimate-sync`, so it can still run alongside
+them). The remaining QB-calling loops in the codebase
+(`routes/leadQB.js`'s manual, admin-triggered, single-lead-scoped
+sync-estimates route — its sub-customer and full-QB-estimate-scan loops;
+`lib/qbEstimateInvoice.js`'s per-deal estimate/invoice creation) are
+single-call or naturally small-volume operations (the full-scan loop
+specifically pre-filters by name/email before ever calling the API for a
+candidate, "to avoid fetching customers for all 100+ estimates" per its own
+comment) — none of them iterate over the WHOLE installation's customers/
+estimates the way the four fixed loops do, and all of them are still
+unconditionally covered by the same universal breaker gate regardless.
+Conclusion: no QuickBooks data-call path in this codebase can generate
+real outbound request volume once the breaker is open — the four
+previously-unpaced bulk loops were a pacing/early-exit EFFICIENCY fix (fewer
+retries spent reaching that point), not the only thing standing between a
+sustained condition and continued hammering; the breaker itself is the
+actual safety net, and it is structurally universal.
+Regression coverage: `test/qbSyncTrigger.test.js` (the new pacing, the
+`circuit_open`-stops-the-loop-early test, and the cross-process lock —
+same fake-pool convention as `test/qbInboundSync.test.js`).
+
 **System Health now surfaces the breaker's own state**
 (`lib/systemHealthChecks.js#checkQuickBooks`): a new, always-present
 `circuit_breaker` field (`state`/`consecutive_failures`/`opens_count`/

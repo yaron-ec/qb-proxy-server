@@ -102,6 +102,37 @@ require.cache[qbMatchPath] = {
   },
 };
 
+// Fake Postgres advisory-lock pool (lib/advisoryLock.js#tryWithAdvisoryLock)
+// — runQbEstimateSyncAsync now takes a cross-process lock (namespace 1005)
+// instead of an in-process `_syncing` boolean (October 2026, round 2: a
+// plain JS boolean never protected against two Railway replicas/processes
+// racing the same database — same fix already applied to
+// lib/qbInboundSync.js and server.js's runQbEstimateSync).
+function makeFakePool() {
+  const held = new Set();
+  return {
+    connect: async () => ({
+      query: async (sql, params) => {
+        const key = `${params[0]}:${params[1]}`;
+        if (/pg_try_advisory_lock/.test(sql)) {
+          if (held.has(key)) return { rows: [{ locked: false }] };
+          held.add(key);
+          return { rows: [{ locked: true }] };
+        }
+        if (/pg_advisory_unlock/.test(sql)) { held.delete(key); return { rows: [] }; }
+        return { rows: [] };
+      },
+      release: () => {},
+    }),
+  };
+}
+const dbClientPath = require.resolve('../db/client');
+delete require.cache[dbClientPath];
+require.cache[dbClientPath] = {
+  id: dbClientPath, filename: dbClientPath, loaded: true,
+  exports: { pool: makeFakePool(), query: async () => ({ rows: [] }) },
+};
+
 delete require.cache[require.resolve('../lib/qbSyncTrigger')];
 
 function mockFetch(estimatesByCall) {
@@ -245,5 +276,33 @@ test('concurrent invocations are serialized — a sync already in progress is sk
   await second;
   resolveFetch();
   await first;
+  delete global.fetch;
+});
+
+test('a circuit_open skip from the shared rate-limit breaker stops the loop early instead of treating every remaining estimate as unmatched', async () => {
+  resetStore();
+  global.fetch = async (url) => {
+    const u = String(url);
+    if (u.includes('/query?query=')) {
+      return { ok: true, status: 200, text: async () => JSON.stringify({ QueryResponse: { Estimate: [
+        { Id: 'qb-est-1', DocNumber: '3001', CustomerRef: { value: 'cust-brian', name: 'Brian Krantz' }, TotalAmt: 100, TxnStatus: 'Pending', TxnDate: '2026-08-01', MetaData: { LastUpdatedTime: '2026-08-01T00:00:00Z' } },
+        { Id: 'qb-est-2', DocNumber: '3002', CustomerRef: { value: 'cust-brian', name: 'Brian Krantz' }, TotalAmt: 200, TxnStatus: 'Pending', TxnDate: '2026-08-01', MetaData: { LastUpdatedTime: '2026-08-01T00:00:00Z' } },
+      ] } }) };
+    }
+    return { ok: false, status: 'circuit_open', json: async () => ({ error: 'quickbooks_rate_limited' }) };
+  };
+  // mockQbApiRequest (the stubbed qbTokenManager) must surface circuitOpen
+  // on the result the way the real qbApiRequest does for a breaker skip.
+  const realMock = mockQbApiRequest;
+  const qbTokenManagerPathLocal = require.resolve('../lib/qbTokenManager');
+  require.cache[qbTokenManagerPathLocal].exports.qbApiRequest = async (...a) => {
+    const r = await realMock(...a);
+    if (r.res.status === 'circuit_open') r.circuitOpen = true;
+    return r;
+  };
+  const { runQbEstimateSyncAsync } = require('../lib/qbSyncTrigger');
+  await assert.doesNotReject(runQbEstimateSyncAsync());
+  assert.strictEqual(store.estimates.length, 0, 'the loop stopped before ever writing a row for either estimate');
+  require.cache[qbTokenManagerPathLocal].exports.qbApiRequest = (...a) => mockQbApiRequest(...a);
   delete global.fetch;
 });
