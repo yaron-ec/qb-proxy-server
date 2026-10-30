@@ -26,6 +26,7 @@
  */
 'use strict';
 
+const qbEnvironment = require('../lib/qbEnvironment');
 const express = require('express');
 const { requireAuth, requireRole } = require('../lib/rbac');
 const { query } = require('../db/client');
@@ -331,8 +332,10 @@ router.post('/by-external/:externalRef/sync-estimates', requireAdminManager, asy
     const existingByQbId = new Map(existing.map(e => [String(e.qb_estimate_id), e]));
 
     let created = 0, updated = 0;
-    const SANDBOX = process.env.QB_SANDBOX === 'true';
-    const qbAppUrlBase = SANDBOX ? 'https://sandbox.qbo.intuit.com' : 'https://app.qbo.intuit.com';
+    // Same single resolver every other QB module uses (lib/qbEnvironment.js)
+    // — this cosmetic deep-link base must always match the real environment
+    // whose estimates were just fetched, never a separately-read QB_SANDBOX.
+    const qbAppUrlBase = qbEnvironment.resolveQbAppUrlBase(qbEnvironment.resolveQbEnvironment().environment);
 
     for (const qbEst of estimates) {
       const qbId = String(qbEst.Id);

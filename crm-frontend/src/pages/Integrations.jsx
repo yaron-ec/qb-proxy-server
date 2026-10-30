@@ -5,8 +5,8 @@ import { railwayRequest, normalizeIntegrationError } from "@/lib/railwayClient";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft, CheckCircle, AlertTriangle, RefreshCw, RotateCcw, Loader2,
-  Clock, Users, FileText, Receipt, AlertCircle, Unlink, Link as LinkIcon,
-  ChevronDown, ChevronUp, Zap, Building2, Wifi, WifiOff, Activity
+  Users, FileText, Receipt, AlertCircle, Unlink, Link as LinkIcon,
+  ChevronDown, ChevronUp, Zap, Building2, Wifi, WifiOff
 } from "lucide-react";
 import { useSync } from "@/lib/syncContext";
 import { useToast } from "@/components/ui/use-toast";
@@ -34,9 +34,11 @@ export default function Integrations() {
   const [currentUser, setCurrentUser] = useState(null);
   const [qbStatus, setQbStatus] = useState(null);
   const [company, setCompany] = useState(null);
-  const [lastJob, setLastJob] = useState(null);
-  const [failedLogs, setFailedLogs] = useState([]);
-  const [recentLogs, setRecentLogs] = useState([]);
+  // Typed CompanyInfo-lookup result (October 2026 fix) — distinguishes a
+  // verified company name from every kind of transient lookup failure, so a
+  // 429/circuit-breaker/network blip is never rendered as "disconnected".
+  const [companyStatus, setCompanyStatus] = useState(null);
+  const [syncStatus, setSyncStatus] = useState(null);
   const [stats, setStats] = useState({ customers: 0, estimates: 0, invoices: 0 });
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -44,8 +46,6 @@ export default function Integrations() {
   const [syncStage, setSyncStage] = useState(null);
   const [liveJobs, setLiveJobs] = useState([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [showAuditLog, setShowAuditLog] = useState(false);
-  const [showErrors, setShowErrors] = useState(true);
   const [matchStats, setMatchStats] = useState({ matched: 0, needs_review: 0, failed: 0 });
   const [unmatchedRecords, setUnmatchedRecords] = useState([]);
   const [showUnmatched, setShowUnmatched] = useState(false);
@@ -73,27 +73,35 @@ export default function Integrations() {
       const data = await railwayRequest('/qb/auth-status', {});
       setQbStatus(data);
       if (data?.connected) {
-        const compData = await railwayRequest('/qb/get-company', {}).catch(() => ({}));
-        setCompany(compData?.company);
+        // October 2026 fix: /qb/get-company now always returns 200 with a
+        // typed { company, available, reason, message, retry_at } shape
+        // instead of throwing on a transient failure — so this is no longer
+        // swallowed by a bare .catch(() => ({})), which previously made a
+        // 429/circuit-breaker/network blip render identically to "never
+        // fetched" (blank fields, indistinguishable from disconnected).
+        const compData = await railwayRequest('/qb/get-company', {}).catch((e) => ({
+          company: null, available: false, reason: 'network_failure', message: e?.message || 'Request failed',
+        }));
+        setCompany(compData?.company || null);
+        setCompanyStatus({ available: !!compData?.available, reason: compData?.reason, message: compData?.message, retry_at: compData?.retry_at });
       }
     } catch (e) { console.error(e); }
   };
 
   const loadSyncData = async () => {
     try {
-      const [jobs, logs, allEstimates] = await Promise.all([
-        Promise.resolve([]), // QBSyncJob — no Railway API yet
-        Promise.resolve([]), // QBSyncLog — no Railway API yet
+      const [sync, allEstimates] = await Promise.all([
+        // Real sync_cursors + table-count evidence (October 2026 fix) —
+        // replaces the previous hardcoded-empty QBSyncJob/QBSyncLog arrays.
+        railwayRequest('/qb/sync-status', {}).catch(() => null),
         railwayHandoffEstimates.list().then(r => r.items || []).catch(() => []),
       ]);
-      setLastJob(jobs[0] || null);
-      setFailedLogs(logs.filter(l => l.status === 'error'));
-      setRecentLogs(logs.slice(0, 20));
-      const successLogs = logs.filter(l => l.status === 'success');
-      const uniqueCustomers = new Set(successLogs.filter(l => l.qb_type === 'Customer').map(l => l.entity_id)).size;
-      const uniqueEstimates = new Set(successLogs.filter(l => l.qb_type === 'Estimate').map(l => l.entity_id)).size;
-      const uniqueInvoices = new Set(successLogs.filter(l => l.qb_type === 'Invoice').map(l => l.entity_id)).size;
-      setStats({ customers: uniqueCustomers, estimates: uniqueEstimates, invoices: uniqueInvoices });
+      setSyncStatus(sync);
+      setStats({
+        customers: sync?.customers_synced?.available ? sync.customers_synced.total : null,
+        estimates: sync?.estimates_synced?.available ? sync.estimates_synced.total : null,
+        invoices: sync?.invoices_synced?.available ? sync.invoices_synced.total : null,
+      });
       // Match stats from HandoffEstimate records
       const matched = allEstimates.filter(e => e.match_status === 'matched').length;
       const needs_review = allEstimates.filter(e => e.match_status === 'needs_review').length;
@@ -141,6 +149,7 @@ export default function Integrations() {
     await railwayRequest('/qb/auth-disconnect', {}).catch(() => {});
     setQbStatus({ connected: false });
     setCompany(null);
+    setCompanyStatus(null);
   };
 
   const handleResyncAll = async (mode = 'all', forceFullResync = false) => {
@@ -226,6 +235,35 @@ export default function Integrations() {
     ? Math.floor((new Date(qbStatus.refresh_expires_at) - Date.now()) / 86400000)
     : null;
   const tokenWarning = tokenDaysLeft !== null && tokenDaysLeft <= 30;
+  const companyUnavailable = isConnected && companyStatus && companyStatus.available === false;
+
+  // Real sync-status evidence from sync_cursors (October 2026 fix, replacing
+  // the previous hardcoded "Last Sync: Never"/zero-count placeholders). Each
+  // cursor reports last SUCCESSFUL vs last ATTEMPTED separately so a
+  // partial/blocked run is never shown as a clean success, and `available`
+  // distinguishes "verified unavailable" from "verified zero".
+  const describeCursor = (cursor) => {
+    if (!cursor || !cursor.available) return { available: false };
+    if (!cursor.ever_run) return { available: true, everRun: false };
+    return {
+      available: true,
+      everRun: true,
+      outcome: cursor.summary?.outcome || null,
+      lastSuccess: cursor.last_successful_sync_at,
+      lastAttempt: cursor.last_attempted_at,
+      failureReason: cursor.summary?.last_error
+        || (cursor.summary?.failureSummary ? JSON.stringify(cursor.summary.failureSummary) : null),
+    };
+  };
+  const estimateSyncInfo = describeCursor(syncStatus?.estimate_sync);
+  const inboundReconcileInfo = describeCursor(syncStatus?.inbound_reconcile);
+  // The compact "Last sync" line in the main status card shows whichever of
+  // the two cron cursors attempted most recently.
+  const mostRecentSyncInfo = [estimateSyncInfo, inboundReconcileInfo]
+    .filter((i) => i.available && i.everRun && i.lastAttempt)
+    .sort((a, b) => new Date(b.lastAttempt) - new Date(a.lastAttempt))[0] || null;
+  const OUTCOME_LABEL = { success: 'Succeeded', partial: 'Partially succeeded', blocked: 'Blocked (rate-limited)', failed: 'Failed', no_work: 'Nothing to sync' };
+  const OUTCOME_COLOR = { success: 'text-emerald-600 bg-emerald-50', partial: 'text-amber-600 bg-amber-50', blocked: 'text-red-600 bg-red-50', failed: 'text-red-600 bg-red-50', no_work: 'text-slate-500 bg-slate-50' };
 
   return (
     <div className="flex flex-col h-full bg-slate-50">
@@ -312,11 +350,22 @@ export default function Integrations() {
                 {isConnected && company && (
                   <p className="text-sm font-semibold text-slate-700 mt-1">{company.CompanyName}</p>
                 )}
+                {companyUnavailable && (
+                  <p className="text-xs text-amber-600 mt-1">Company name temporarily unavailable ({companyStatus.reason === 'rate_limited' || companyStatus.reason === 'circuit_open' ? 'rate-limited, not disconnected' : companyStatus.reason})</p>
+                )}
 
                 <div className="mt-1.5 space-y-0.5">
                   {isConnected ? (
                     <>
-                      <p className="text-xs text-slate-500">Last sync: <span className="font-semibold text-slate-700">{fmtRelative(lastJob?.completed_at || lastJob?.started_at)}</span></p>
+                      <p className="text-xs text-slate-500">
+                        Last sync attempt:{' '}
+                        <span className="font-semibold text-slate-700">
+                          {mostRecentSyncInfo ? fmtRelative(mostRecentSyncInfo.lastAttempt) : (syncStatus ? 'Never' : 'Loading…')}
+                        </span>
+                        {mostRecentSyncInfo?.outcome && mostRecentSyncInfo.outcome !== 'success' && (
+                          <span className={`ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded ${OUTCOME_COLOR[mostRecentSyncInfo.outcome] || ''}`}>{OUTCOME_LABEL[mostRecentSyncInfo.outcome] || mostRecentSyncInfo.outcome}</span>
+                        )}
+                      </p>
                       {qbStatus?.connected_at && (
                         <p className="text-xs text-slate-400">Connected {fmtRelative(qbStatus.connected_at)}</p>
                       )}
@@ -366,7 +415,10 @@ export default function Integrations() {
                 { label: 'Invoices Synced', value: stats.invoices, icon: <Receipt className="w-4 h-4" /> },
               ].map(({ label, value, icon }) => (
                 <div key={label} className="text-center">
-                  <div className="text-xl font-black text-slate-800">{value}</div>
+                  {/* value is null when the underlying count query failed —
+                      shown as "Unavailable", never as a 0 pretending to be a
+                      verified count (October 2026 fix). */}
+                  <div className={value === null ? 'text-sm font-semibold text-slate-400' : 'text-xl font-black text-slate-800'}>{value === null ? 'Unavailable' : value}</div>
                   <div className="text-xs text-slate-500 mt-0.5">{label}</div>
                 </div>
               ))}
@@ -512,103 +564,54 @@ export default function Integrations() {
           </div>
         )}
 
-        {/* ── CARD 3: RECENT SYNC ACTIVITY ── */}
-        <div className="card-premium overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-800">Recent Sync Activity</h3>
-            {lastJob && (
-              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${lastJob.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : lastJob.status === 'failed' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
-                {lastJob.status}
-              </span>
-            )}
-          </div>
-
-          {lastJob ? (
-            <div className="p-5 space-y-4">
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                {[
-                  { label: 'Customers', value: lastJob.customers_synced || 0, color: 'blue' },
-                  { label: 'Estimates', value: lastJob.estimates_synced || 0, color: 'purple' },
-                  { label: 'Invoices', value: lastJob.invoices_synced || 0, color: 'emerald' },
-                  { label: 'From QB', value: lastJob.pulled_from_qb || 0, color: 'amber' },
-                  { label: 'Failed', value: lastJob.failed_count || 0, color: 'red' },
-                ].map(({ label, value, color }) => (
-                  <MiniStat key={label} label={label} value={value} color={color} />
-                ))}
+        {/* ── CARD 3: SYNCHRONIZATION STATUS (real sync_cursors evidence) ──
+             October 2026 fix: this card previously read from QBSyncJob/
+             QBSyncLog, entities that were never implemented on Railway (the
+             underlying arrays were hardcoded empty with an explicit
+             "no Railway API yet" comment) — it always rendered
+             "No sync activity yet." regardless of real sync health. It now
+             shows the two real cron cursors this installation actually
+             writes: the QB Estimate Sync cron and the QB Inbound
+             Reconciliation cron (invoices/payments). */}
+        {isConnected && [
+          { key: 'estimate_sync', title: 'QuickBooks Estimate Sync', cadence: 'runs every 15 minutes', info: estimateSyncInfo },
+          { key: 'inbound_reconcile', title: 'Inbound Reconciliation (Invoices & Payments)', cadence: 'runs every 15 minutes', info: inboundReconcileInfo },
+        ].map(({ key, title, cadence, info }) => (
+          <div key={key} className="card-premium overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-slate-800">{title}</h3>
+                <p className="text-[11px] text-slate-400 mt-0.5">{cadence}</p>
               </div>
-              <div className="flex items-center gap-4 text-xs text-slate-400">
-                <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {fmtTime(lastJob.started_at)}</span>
-                <span>Triggered by: <span className="font-semibold text-slate-600">{lastJob.triggered_by}</span></span>
-              </div>
-              {lastJob.error_summary && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-xs text-red-700">{lastJob.error_summary}</div>
-              )}
-            </div>
-          ) : (
-            <div className="p-6 text-center text-sm text-slate-400">No sync activity yet.</div>
-          )}
-
-          {/* Sync/API Failures — distinct from match failures */}
-          {failedLogs.length > 0 && (
-            <div className="border-t border-slate-100">
-              <button
-                onClick={() => setShowErrors(!showErrors)}
-                className="w-full flex items-center justify-between px-5 py-3 hover:bg-red-50 transition-colors"
-              >
-                <span className="text-xs font-bold text-red-700 flex items-center gap-1.5">
-                  <AlertCircle className="w-3.5 h-3.5" /> {failedLogs.length} sync / API error{failedLogs.length !== 1 ? 's' : ''}
+              {info.available && info.everRun && info.outcome && (
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${OUTCOME_COLOR[info.outcome] || 'bg-slate-100 text-slate-600'}`}>
+                  {OUTCOME_LABEL[info.outcome] || info.outcome}
                 </span>
-                {showErrors ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
-              </button>
-              {showErrors && (
-                <div className="divide-y divide-slate-100 max-h-48 overflow-y-auto">
-                  {failedLogs.map(log => (
-                    <div key={log.id} className="px-5 py-3 flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-xs font-semibold text-slate-800">{log.entity_name || log.entity_id}</p>
-                        <p className="text-[11px] text-slate-400 mt-0.5">{log.entity_type} · {fmtTime(log.created_date)}</p>
-                        {log.error_message && <p className="text-[11px] text-red-600 mt-1">{log.error_message.slice(0, 120)}</p>}
-                      </div>
-                      <span className="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-bold flex-shrink-0">Failed</span>
-                    </div>
-                  ))}
-                </div>
               )}
             </div>
-          )}
-
-          {/* Audit log toggle */}
-          <div className="border-t border-slate-100">
-            <button
-              onClick={() => setShowAuditLog(!showAuditLog)}
-              className="w-full flex items-center justify-between px-5 py-3 hover:bg-slate-50 transition-colors"
-            >
-              <span className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
-                <Activity className="w-3.5 h-3.5" /> Audit log (last 20 actions)
-              </span>
-              {showAuditLog ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
-            </button>
-            {showAuditLog && (
-              <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto">
-                {recentLogs.length === 0 ? (
-                  <div className="p-5 text-center text-xs text-slate-400">No activity yet.</div>
-                ) : recentLogs.map(log => (
-                  <div key={log.id} className="px-5 py-2.5 flex items-center gap-3">
-                    <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${log.status === 'success' ? 'bg-emerald-400' : 'bg-red-400'}`} />
-                    <div className="flex-1 min-w-0">
-                      <span className="text-xs font-medium text-slate-700 mr-2 truncate">{log.entity_name || log.entity_id}</span>
-                      <span className="text-[11px] text-slate-400">{log.entity_type}</span>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <ActionBadge action={log.action} />
-                      <span className="text-[11px] text-slate-400">{fmtRelative(log.created_date)}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="p-5 space-y-2">
+              {!info.available ? (
+                <p className="text-sm text-slate-400">Sync status is temporarily unavailable (could not be read).</p>
+              ) : !info.everRun ? (
+                <p className="text-sm text-slate-400">Never run yet.</p>
+              ) : (
+                <>
+                  <p className="text-xs text-slate-500">
+                    Last <strong>successful</strong> run:{' '}
+                    <span className="font-semibold text-slate-700">{info.lastSuccess ? fmtRelative(info.lastSuccess) : 'Never succeeded'}</span>
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Last <strong>attempt</strong>:{' '}
+                    <span className="font-semibold text-slate-700">{fmtRelative(info.lastAttempt)}</span>
+                  </p>
+                  {info.failureReason && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-xs text-red-700 mt-2">{info.failureReason}</div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
-        </div>
+        ))}
 
         {/* ── CARD 4: ADVANCED DIAGNOSTICS (collapsed) ── */}
         <div className="card-premium overflow-hidden">
@@ -627,7 +630,7 @@ export default function Integrations() {
                 <p className="text-xs text-slate-500 mt-1">Scheduled syncs and automation workflows require Integration Credits. If credits are exhausted, automations pause until credits reset. Manual sync actions on this page are unaffected.</p>
               </div>
 
-              <QBDiagnosticsPanel qbStatus={qbStatus} company={company} isSandbox={isSandbox} isConnected={isConnected} />
+              <QBDiagnosticsPanel qbStatus={qbStatus} company={company} companyStatus={companyStatus} isSandbox={isSandbox} isConnected={isConnected} />
               <MeetingPipelineAudit />
               <CalendarSyncMonitor />
               <CalendarAuditPanel />
@@ -675,33 +678,3 @@ export default function Integrations() {
   );
 }
 
-function MiniStat({ label, value, color }) {
-  const colors = {
-    blue: 'bg-blue-50 text-blue-800',
-    purple: 'bg-purple-50 text-purple-800',
-    emerald: 'bg-emerald-50 text-emerald-800',
-    amber: 'bg-amber-50 text-amber-800',
-    red: 'bg-red-50 text-red-800',
-  };
-  return (
-    <div className={`rounded-lg p-3 text-center ${colors[color]}`}>
-      <div className="text-xl font-black">{value}</div>
-      <div className="text-[11px] font-semibold mt-0.5 leading-tight">{label}</div>
-    </div>
-  );
-}
-
-function ActionBadge({ action }) {
-  const map = {
-    created:   'bg-emerald-100 text-emerald-700',
-    imported:  'bg-emerald-100 text-emerald-700',
-    updated:   'bg-blue-100 text-blue-700',
-    pulled:    'bg-purple-100 text-purple-700',
-    unchanged: 'bg-slate-100 text-slate-500',
-    skipped:   'bg-slate-100 text-slate-600',
-    failed:    'bg-red-100 text-red-700',
-  };
-  return (
-    <span className={`px-1.5 py-0.5 rounded-full font-semibold text-[10px] ${map[action] || map.skipped}`}>{action}</span>
-  );
-}

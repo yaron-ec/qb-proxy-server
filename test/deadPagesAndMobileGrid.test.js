@@ -95,7 +95,15 @@ test('no source file imports any of the five removed files', () => {
 });
 
 test('Integrations.jsx sync-stats grid has a mobile-safe column count', () => {
+  // October 2026 reliability pass: the fictional 5-metric "Last Job" grid
+  // (grid-cols-3 sm:grid-cols-5) this test originally guarded was removed
+  // along with the rest of that card — it read from QBSyncJob, an entity
+  // that was never implemented on Railway, and always rendered empty. It
+  // was replaced with two real sync_cursors-backed cards (no 5-column grid
+  // at all). This test now guards the general property: no grid in this
+  // file uses 4+ columns without a responsive breakpoint that collapses it
+  // on mobile.
   const src = fs.readFileSync(path.join(frontendSrc, 'pages', 'Integrations.jsx'), 'utf8');
-  assert.ok(src.includes('grid-cols-3 sm:grid-cols-5'), 'expected the 5-stat grid to collapse to 3 columns below sm breakpoint');
-  assert.ok(!/className="grid grid-cols-5 gap-2"/.test(src), 'must not have a bare grid-cols-5 with no responsive breakpoint');
+  const bareWideGrids = src.match(/className="grid grid-cols-[4-9][^"\s]*"/g) || [];
+  assert.deepStrictEqual(bareWideGrids, [], 'a grid-cols-4-or-more with no responsive breakpoint must never be reintroduced');
 });

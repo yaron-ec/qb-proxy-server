@@ -33,6 +33,7 @@ const tokenStore = require('./lib/qbTokenStore'); // credential lifecycle metada
 const saleDb = require('./db/client'); // Railway Postgres pool (for sale-scoped invoice ownership)
 const saleMap = require('./lib/qbInvoiceSaleMap'); // qb_invoice_sale_map + qb_invoices_cache helpers
 const { syncAllMappedCustomers } = require('./lib/qbInboundSync'); // QB inbound reconciliation (invoices/payments/allocations)
+const qbEnvironment = require('./lib/qbEnvironment'); // single validated source of truth for QB_ENVIRONMENT (hostname + credential key)
 
 // qb_sync_jobs and integration_credentials used to be created here via raw
 // DDL at startup (CRM STABILITY PHASE completion pass, Section D: removed).
@@ -76,7 +77,12 @@ app.use(express.json());
 const QB_CLIENT_ID     = process.env.QB_CLIENT_ID;
 const QB_CLIENT_SECRET = process.env.QB_CLIENT_SECRET;
 const QB_REDIRECT_URI  = process.env.QB_REDIRECT_URI;
-const QB_ENVIRONMENT   = process.env.QB_ENVIRONMENT || 'sandbox';
+// Resolved once via lib/qbEnvironment.js — the ONE place QB_ENVIRONMENT is
+// read for hostname selection, shared with the credential-key resolution in
+// lib/qbInboundSync.js / lib/qbSyncTrigger.js / lib/qbEstimateInvoice.js, so
+// the two can never disagree. `qbEnvMisconfigured` is surfaced via
+// buildHealthPayload()/System Health rather than only a startup log line.
+const { environment: QB_ENVIRONMENT, misconfigured: QB_ENV_MISCONFIGURED } = qbEnvironment.resolveQbEnvironment();
 const PROXY_SECRET     = process.env.PROXY_SECRET;
 const ENCRYPTION_KEY   = process.env.ENCRYPTION_KEY;
 
@@ -91,9 +97,7 @@ const QB_TOKEN_URL = 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer'
 const QB_AUTH_URL  = 'https://appcenter.intuit.com/connect/oauth2';
 const QB_SCOPES    = 'com.intuit.quickbooks.accounting openid profile email';
 
-const QB_API_BASE = QB_ENVIRONMENT === 'production'
-  ? 'https://quickbooks.api.intuit.com/v3/company'
-  : 'https://sandbox-quickbooks.api.intuit.com/v3/company';
+const QB_API_BASE = qbEnvironment.resolveQbApiBase(QB_ENVIRONMENT);
 
 // ── Durable Token Storage (PostgreSQL via integrationCredentialStore) ────────
 //
@@ -330,6 +334,12 @@ async function buildHealthPayload({ verify = false } = {}) {
     status: 'ok',
     service_name: PROXY_SERVICE_NAME,
     environment: QB_ENVIRONMENT,
+    // true only when QB_ENVIRONMENT was unset/unrecognized and this process
+    // fell back to 'sandbox' rather than guessing 'production' — see
+    // lib/qbEnvironment.js. Never true today with QB_ENVIRONMENT=production
+    // correctly set; surfaced so a future misconfiguration is visible here
+    // (and in System Health) instead of only in a startup log line.
+    environmentMisconfigured: QB_ENV_MISCONFIGURED,
     connected,
     realmId: tokens?.realm_id || null,
     tokenExpiresAt: tokens?.expires_at || null,
@@ -481,13 +491,62 @@ async function handleAuthStatus(req, res) {
   });
 }
 
+// Classifies a CompanyInfo-retrieval failure into one of a small, typed set
+// the frontend can render distinctly (October 2026 "blank Company Name"
+// incident — the prior version threw on any failure and the frontend's own
+// `.catch(() => ({}))` discarded the reason entirely, so a 429, a circuit-
+// breaker skip, and a genuinely revoked credential all rendered as the
+// identical blank field, which read as "disconnected" even though the
+// company identity had already been independently verified correct).
+function classifyCompanyInfoFailure(e) {
+  if (e && e.reconnectRequired) return 'reconnect_required';
+  if (e && (e.circuitOpen || e.status === 'circuit_open')) return 'circuit_open';
+  if (e && e.status === 401) return 'reconnect_required';
+  if (e && e.status === 429) return 'rate_limited';
+  if (e && typeof e.status === 'number' && e.status >= 500) return 'network_failure';
+  if (e && typeof e.status === 'number') return 'unavailable';
+  return 'network_failure'; // no .status at all — a raw fetch/network exception
+}
+
+const COMPANY_INFO_FAILURE_MESSAGES = {
+  circuit_open: 'QuickBooks is being rate-limited by Intuit; CompanyInfo lookup is temporarily paused to avoid making it worse.',
+  rate_limited: 'QuickBooks API returned HTTP 429 (rate-limited) — temporary, not a disconnection.',
+  reconnect_required: 'QuickBooks requires re-authorization — the refresh token has expired or been revoked.',
+  network_failure: 'Could not reach QuickBooks — a transient network or server error, not a disconnection.',
+  unavailable: 'CompanyInfo is temporarily unavailable.',
+};
+
 async function handleGetCompany(req, res) {
+  // Peek (never consume) the shared rate-limit breaker's state before
+  // spending a real Intuit call — a manual Integrations-page load must
+  // never compete with a scheduled sync job for the one shared half-open
+  // trial slot just to display a company name (see
+  // lib/qbRateLimitBreaker.js#isCoolingDown's header).
+  let circuitBreaker = null;
+  try { circuitBreaker = await require('./lib/qbRateLimitBreaker').getState(); } catch (e) { /* best-effort */ }
+  if (require('./lib/qbRateLimitBreaker').isCoolingDown(circuitBreaker)) {
+    return res.json({
+      company: null,
+      available: false,
+      reason: 'circuit_open',
+      message: COMPANY_INFO_FAILURE_MESSAGES.circuit_open,
+      retry_at: circuitBreaker.cooldown_until,
+    });
+  }
+
   try {
     const tokens = await getValidTokens();
     const data = await qbFetch(`/companyinfo/${tokens.realm_id}?minorversion=65`);
-    res.json({ company: data.CompanyInfo });
+    res.json({ company: data.CompanyInfo, available: true, reason: 'verified' });
   } catch (e) {
-    return handleQBError(e, res);
+    const reason = classifyCompanyInfoFailure(e);
+    res.json({
+      company: null,
+      available: false,
+      reason,
+      message: COMPANY_INFO_FAILURE_MESSAGES[reason] || COMPANY_INFO_FAILURE_MESSAGES.unavailable,
+      retry_at: null,
+    });
   }
 }
 
@@ -497,6 +556,19 @@ async function handleGetCompany(req, res) {
 
 app.post('/qb/auth-status', requireProxySecret, handleAuthStatus);
 app.post('/qb/get-company', requireProxySecret, handleGetCompany);
+// Read-only synchronization-status evidence (October 2026 reliability pass)
+// — replaces the Integrations page's previous hardcoded "Last Sync: Never" /
+// zero-count placeholders with real sync_cursors + table-count data. No
+// secrets, no financial amounts — same read-only-status precedent as
+// /qb/auth-status above.
+app.post('/qb/sync-status', requireProxySecret, async (req, res) => {
+  try {
+    res.json(await require('./lib/qbSyncStatus').getQbSyncStatus());
+  } catch (e) {
+    console.error('[qb-sync-status] failed:', e.message);
+    res.status(500).json({ error: 'sync_status_unavailable' });
+  }
+});
 // Admin-only — see the matching /auth/connect comment above.
 app.post('/qb/auth-connect', requireProxySecretOrRole('admin'), handleAuthConnect);
 app.post('/qb/auth-callback', requireProxySecretOrRole('admin'), handleAuthCallback);
@@ -2362,12 +2434,31 @@ async function runQbEstimateSyncInner() {
     if (idx < qbEstimates.length - 1) await sleep(ESTIMATE_SYNC_PACING_MS);
   }
 
-  // Save cursor (mirrors saveCursor('quickbooks_estimates', ...))
+  // Save cursor (mirrors saveCursor('quickbooks_estimates', ...)). stats.failed
+  // was previously declared but never actually incremented anywhere in this
+  // loop (every per-item failure only ever pushed to stats.errors) — fixed
+  // here so the persisted summary's failure count is real, not permanently 0.
+  stats.failed = stats.errors.length;
   try {
+    const { classifySyncOutcome, isSuccessfulOutcome } = require('./lib/syncOutcome');
+    const succeeded = stats.imported + stats.updated + stats.skipped + stats.unchanged + stats.manual_preserved;
+    const outcome = classifySyncOutcome({ attempted: stats.fetched, succeeded, failed: stats.failed, stoppedEarly: stats.stopped_early });
+    const nowIso = new Date().toISOString();
     const rows = await rda.filter('SyncCursor', { integration: 'quickbooks_estimates' });
-    const summary = { fetched: stats.fetched, imported: stats.imported, updated: stats.updated, skipped: stats.skipped, unchanged: stats.unchanged, manual_preserved: stats.manual_preserved, failed: stats.failed };
-    if (rows[0]) await rda.update('SyncCursor', rows[0].id, { last_successful_sync_at: new Date().toISOString(), last_sync_summary: summary });
-    else await rda.create('SyncCursor', { integration: 'quickbooks_estimates', last_successful_sync_at: new Date().toISOString(), last_sync_summary: summary });
+    const summary = {
+      fetched: stats.fetched, imported: stats.imported, updated: stats.updated, skipped: stats.skipped,
+      unchanged: stats.unchanged, manual_preserved: stats.manual_preserved, failed: stats.failed,
+      stopped_early: stats.stopped_early, outcome,
+      last_error: stats.errors.length ? stats.errors[stats.errors.length - 1] : null,
+    };
+    // last_successful_sync_at only advances on a clean, uninterrupted run —
+    // a partial/blocked/all-failed tick still records last_attempted_at so
+    // the Integrations page can show "last attempt" separately from "last
+    // success" instead of conflating the two (October 2026 reliability pass).
+    const fields = { last_attempted_at: nowIso, last_sync_summary: summary };
+    if (isSuccessfulOutcome(outcome)) fields.last_successful_sync_at = nowIso;
+    if (rows[0]) await rda.update('SyncCursor', rows[0].id, fields);
+    else await rda.create('SyncCursor', { integration: 'quickbooks_estimates', ...fields });
   } catch (e) {
     console.warn('[qb-sync] cursor save failed:', e.message);
   }
@@ -2615,6 +2706,26 @@ app.listen(PORT, async () => {
           // and returned it in the HTTP response body this cron discarded.
           if (result?.failed > 0 && result?.failureSummary) {
             console.warn('[qb-inbound-cron] failure breakdown: ' + JSON.stringify(result.failureSummary));
+          }
+          // Persist this tick's outcome to sync_cursors — previously only
+          // ever console.log'd (October 2026 reliability pass finding: the
+          // Integrations page had no durable record of inbound
+          // reconciliation ever running at all, only of the QB Estimate
+          // Sync cron, which writes its own 'quickbooks_estimates' cursor
+          // a few lines above this one in runQbEstimateSync).
+          try {
+            const { classifySyncOutcome, isSuccessfulOutcome } = require('./lib/syncOutcome');
+            const total = result?.total ?? 0, synced = result?.synced ?? 0, failed = result?.failed ?? 0;
+            const outcome = classifySyncOutcome({ attempted: total, succeeded: synced, failed, stoppedEarly: !!result?.stopped_early });
+            const nowIso = new Date().toISOString();
+            const summary = { total, synced, failed, stopped_early: !!result?.stopped_early, outcome, failureSummary: result?.failureSummary || null };
+            const fields = { last_attempted_at: nowIso, last_sync_summary: summary };
+            if (isSuccessfulOutcome(outcome)) fields.last_successful_sync_at = nowIso;
+            const rows = await rda.filter('SyncCursor', { integration: 'quickbooks_inbound_reconcile' });
+            if (rows[0]) await rda.update('SyncCursor', rows[0].id, fields);
+            else await rda.create('SyncCursor', { integration: 'quickbooks_inbound_reconcile', ...fields });
+          } catch (cursorErr) {
+            console.warn('[qb-inbound-cron] cursor save failed: ' + cursorErr.message);
           }
         }
       } catch (e) {
