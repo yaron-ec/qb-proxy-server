@@ -164,7 +164,11 @@ test('one implementation: server.js, qbInboundSync (and qbSyncTrigger through it
   assert.strictEqual(count(inbound), 0, 'qbInboundSync no longer refreshes on its own');
   assert.strictEqual(count(server), 0, 'server.js no longer refreshes on its own');
   assert.match(server, /qbTokens\.getValidTokens\(QB_ENVIRONMENT\)/);
-  assert.match(inbound, /qbTokenManager\.getValidTokens\(environment, \{ requireConnected: false \}\)/);
+  // October 2026 reliability pass: qbInboundSync.js now resolves its
+  // environment once via lib/qbEnvironment.js (QB_ENVIRONMENT) instead of a
+  // locally-reconstructed `environment` variable — see
+  // test/qbEnvironmentConsistency.test.js for the shared-resolver proof.
+  assert.match(inbound, /qbTokenManager\.getValidTokens\(QB_ENVIRONMENT, \{ requireConnected: false \}\)/);
   assert.match(fs.readFileSync(path.join(root, 'lib/qbSyncTrigger.js'), 'utf8'), /require\('\.\/qbInboundSync'\)/);
   // /health reads the persisted credential, not an in-memory copy.
   const health = server.slice(server.indexOf('async function buildHealthPayload'), server.indexOf('// General health'));

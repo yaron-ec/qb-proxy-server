@@ -200,6 +200,7 @@ test('checkQuickBooks: breaker OPEN and still cooling down -> DEGRADED directly,
   const cooldownUntil = new Date(Date.now() + 60000).toISOString();
   const restoreBreaker = stub('../lib/qbRateLimitBreaker', {
     getState: async () => ({ state: 'open', consecutive_failures: 5, opens_count: 1, cooldown_until: cooldownUntil }),
+    isCoolingDown: (s) => !!(s && s.state === 'open' && s.cooldown_until && new Date(s.cooldown_until) > new Date()),
   });
   let verifyCalled = false;
   const restoreMgr = stub('../lib/qbTokenManager', {
@@ -223,6 +224,7 @@ test('checkQuickBooks: breaker OPEN but the cooldown has already elapsed -> proc
   });
   const restoreBreaker = stub('../lib/qbRateLimitBreaker', {
     getState: async () => ({ state: 'open', consecutive_failures: 5, opens_count: 1, cooldown_until: new Date(Date.now() - 1000).toISOString() }),
+    isCoolingDown: (s) => !!(s && s.state === 'open' && s.cooldown_until && new Date(s.cooldown_until) > new Date()),
   });
   let verifyCalled = false;
   const restoreMgr = stub('../lib/qbTokenManager', {
@@ -242,6 +244,7 @@ test('checkQuickBooks: a revoked credential is NEVER masked as DEGRADED by the b
   });
   const restoreBreaker = stub('../lib/qbRateLimitBreaker', {
     getState: async () => ({ state: 'closed', consecutive_failures: 0, opens_count: 0, cooldown_until: null }),
+    isCoolingDown: (s) => !!(s && s.state === 'open' && s.cooldown_until && new Date(s.cooldown_until) > new Date()),
   });
   const restoreMgr = stub('../lib/qbTokenManager', {
     verifyConnection: async () => ({ ok: false, reconnectRequired: true }),
@@ -276,6 +279,7 @@ test('checkQuickBooks: a breaker read failure degrades gracefully (circuit_break
   });
   const restoreBreaker = stub('../lib/qbRateLimitBreaker', {
     getState: async () => { throw new Error('breaker DB unreachable'); },
+    isCoolingDown: (s) => !!(s && s.state === 'open' && s.cooldown_until && new Date(s.cooldown_until) > new Date()),
   });
   const restoreMgr = stub('../lib/qbTokenManager', {
     verifyConnection: async () => ({ ok: true, reconnectRequired: false }),

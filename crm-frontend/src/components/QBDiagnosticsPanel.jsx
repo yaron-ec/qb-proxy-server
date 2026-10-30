@@ -6,7 +6,19 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, AlertTriangle, CheckCircle, Info } from "lucide-react";
 
-export default function QBDiagnosticsPanel({ qbStatus, company, isSandbox, isConnected }) {
+// Labels for a CompanyInfo lookup that didn't come back `available` — see
+// server.js#classifyCompanyInfoFailure. Distinct from "—" (never fetched /
+// not connected) so a transient failure never reads as "disconnected" when
+// the company identity may already be independently verified correct.
+const COMPANY_UNAVAILABLE_LABELS = {
+  circuit_open: 'Rate-limited (circuit breaker open) — not a disconnection',
+  rate_limited: 'QuickBooks HTTP 429 (rate-limited) — not a disconnection',
+  reconnect_required: 'Reconnect required',
+  network_failure: 'Temporarily unreachable — not a disconnection',
+  unavailable: 'Temporarily unavailable',
+};
+
+export default function QBDiagnosticsPanel({ qbStatus, company, companyStatus, isSandbox, isConnected }) {
   const [expanded, setExpanded] = useState(true);
 
   const env = qbStatus?.environment || '—';
@@ -14,8 +26,13 @@ export default function QBDiagnosticsPanel({ qbStatus, company, isSandbox, isCon
   const connectedAt = qbStatus?.connected_at ? new Date(qbStatus.connected_at).toLocaleString() : '—';
   const tokenExpires = qbStatus?.token_expires_at ? new Date(qbStatus.token_expires_at).toLocaleString() : '—';
   const refreshExpires = qbStatus?.refresh_expires_at ? new Date(qbStatus.refresh_expires_at).toLocaleString() : '—';
-  const companyName = company?.CompanyName || '—';
-  const legalName = company?.LegalName || '—';
+  const companyUnavailable = isConnected && companyStatus && companyStatus.available === false;
+  const companyName = companyUnavailable
+    ? (COMPANY_UNAVAILABLE_LABELS[companyStatus.reason] || COMPANY_UNAVAILABLE_LABELS.unavailable)
+    : (company?.CompanyName || '—');
+  const legalName = companyUnavailable
+    ? (COMPANY_UNAVAILABLE_LABELS[companyStatus.reason] || COMPANY_UNAVAILABLE_LABELS.unavailable)
+    : (company?.LegalName || '—');
   const email = company?.CustomerCommunicationEmailAddr?.Address || company?.Email?.Address || '—';
 
   // Realm ID heuristic: Intuit sandbox realm IDs tend to be very long (18+ digits).
@@ -58,14 +75,29 @@ export default function QBDiagnosticsPanel({ qbStatus, company, isSandbox, isCon
               <DiagRow label="OAuth Status" value={isConnected ? '✓ Connected' : '✗ Not connected'} color={isConnected ? 'text-emerald-400' : 'text-red-400'} />
               <DiagRow label="Environment (proxy QB_ENVIRONMENT)" value={env.toUpperCase()} color={isSandbox ? 'text-red-400' : 'text-emerald-400'} />
               <DiagRow label="Realm / Company ID" value={realmId} color="text-white" hint={realmEnvironmentHint} />
-              <DiagRow label="Company Name" value={companyName} color="text-white" />
-              <DiagRow label="Legal Name" value={legalName} color="text-white" />
+              <DiagRow label="Company Name" value={companyName} color={companyUnavailable ? 'text-amber-400' : 'text-white'} />
+              <DiagRow label="Legal Name" value={legalName} color={companyUnavailable ? 'text-amber-400' : 'text-white'} />
               <DiagRow label="QB Account Email" value={email} color="text-white" />
               <DiagRow label="Connected At" value={connectedAt} color="text-slate-300" />
               <DiagRow label="Access Token Expires" value={tokenExpires} color="text-slate-300" />
               <DiagRow label="Refresh Token Expires" value={refreshExpires} color="text-slate-300" />
             </div>
           </div>
+
+          {/* ── COMPANY INFO TEMPORARILY UNAVAILABLE (never "disconnected") ── */}
+          {companyUnavailable && (
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 flex gap-3">
+              <Info className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-slate-700">
+                <p className="font-bold mb-1">Company identity lookup temporarily unavailable</p>
+                <p>{companyStatus.message || COMPANY_UNAVAILABLE_LABELS[companyStatus.reason] || COMPANY_UNAVAILABLE_LABELS.unavailable}</p>
+                {companyStatus.retry_at && (
+                  <p className="mt-1 text-slate-500">Retry after {new Date(companyStatus.retry_at).toLocaleTimeString()}.</p>
+                )}
+                <p className="mt-1 text-slate-500">This is a temporary CompanyInfo lookup failure, not proof the QuickBooks connection itself is down — OAuth Status above and the stored Realm ID are unaffected by this.</p>
+              </div>
+            </div>
+          )}
 
           {/* ── ENVIRONMENT MISMATCH WARNING ── */}
           {envMismatch && (

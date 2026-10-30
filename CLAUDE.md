@@ -2394,6 +2394,216 @@ call and reports DEGRADED; an elapsed cooldown lets the trial call through;
 a revoked credential is never masked; `circuit_breaker` is surfaced even
 without `verify`; a breaker-read failure degrades gracefully).
 
+## QuickBooks persistent 429 after Phase 4 + company-identity verification + sync-status honesty (October 2026 reliability audit, Phase 5)
+
+**Context**: after Phase 4's circuit breaker shipped, production logs still
+showed sustained 429s — `opens_count` climbing (3/4/5 with cooldowns
+244816ms/480225ms/604608ms, matching `computeCooldownMs` exactly) and
+`inbound sync stopped at customer 2/100` every single 15-minute tick. A
+separate investigation also confirmed (read-only, via code trace — see
+below) that the CRM is correctly authorized against **EC Construction
+Group** specifically (the Intuit Developer *workspace* name, "EC Renewables
+Inc.", is unrelated to which QuickBooks *company* a given OAuth
+authorization connects to — that is entirely the operator's choice on
+Intuit's own consent screen, taken verbatim as `realmId` with zero
+independent validation by this codebase). This phase fixes the root cause
+of the persistent 429s and the Integrations page's dishonest sync-status
+display found during that same investigation.
+
+**Confirmed root cause of the persistent 429s (not a hypothesis — reverse-
+engineered directly from the breaker's own cooldown formula against the
+reported log values, and confirmed by reading the scheduler code)**:
+`MAX_COOLDOWN_MS` was 10 minutes — strictly **less** than the 15-minute
+interval both the QB Estimate Sync and QB Inbound Reconciliation crons run
+on. Once `opens_count` grew large enough to hit that cap, the cooldown had
+**always already elapsed by the next cron tick**, so every single tick
+spent its one half-open trial against the real Intuit API no matter how
+long the underlying rate-limit condition had actually persisted — the
+breaker was never malfunctioning; it was granting exactly one real trial
+every 15 minutes, which is as often as the cron schedule allowed, giving
+Intuit's own sustained limit no more than 15 minutes of real quiet before
+being probed again. **Fix**: raised to 30 minutes (`lib/qbRateLimitBreaker.js`)
+— two full cron intervals of real silence before the next trial. This is a
+backoff-duration change, not a retry-count or frequency increase (the
+per-call bounded retry and single-trial-per-cooldown mechanics are
+unchanged). A secondary, smaller contributor found in the same trace:
+`server.js#handleGetCompany` (the Integrations page's CompanyInfo lookup,
+fired once per page load) had no breaker-awareness at all — a page load
+during an elapsed cooldown could win and then burn the one shared recovery
+trial on a company-name display instead of leaving it for the real sync
+cron. Fixed by giving it the same pre-check short-circuit
+`lib/systemHealthChecks.js#checkQuickBooks` already had, factored into a
+shared, pure (state-reading, never state-mutating) `lib/qbRateLimitBreaker.js#isCoolingDown(state)`
+helper — distinct from `checkAndMaybeAllow()`, which flips `open`→`half_open`
+and consumes the trial the instant it's called. `checkQuickBooks` was
+refactored to call the same shared helper (no behavior change, removes a
+duplicated inline check).
+
+**Company identity — verified, not assumed**: `server.js#handleAuthCallback`
+takes `realmId` verbatim from the OAuth redirect/request body with zero
+independent validation; the credential store's `pgLoadActive`
+(`lib/integrationCredentialStore.js`) throws loudly — `'Multiple connected
+credentials exist... refusing to pick an arbitrary record'` — if more than
+one `status='connected'` row ever exists for the same
+`{provider, credentialType, environment}`, so a stale/duplicate company
+connection cannot be silently mis-selected; it would instead break every
+QB call with that specific error, which is not what the 429 logs show,
+confirming (not merely assuming) there is exactly one active credential row
+today. `routes/leadQB.js`'s existing per-lead estimate sync and
+`server.js`'s `GET /company` / `POST /qb/get-company` (which the
+Integrations page already calls and displays — `company.CompanyName` — see
+below) are both the one, pre-existing mechanism that proves company
+identity against Intuit directly; no new mechanism was needed. A real
+mismatch would most likely show as a 401/403 ("AuthenticationFailed"), not
+a 429 — the two investigations are independent; nothing here suggests the
+429s were ever company-identity-related.
+
+**Environment-resolution split closed (`lib/qbEnvironment.js`, new)** —
+found during the same trace, a separate (not the 429's cause, but a real
+latent risk the user asked to be unified): `server.js` and
+`lib/systemHealthChecks.js` resolved the API hostname from `QB_ENVIRONMENT`
+(default `'sandbox'`) while `lib/qbInboundSync.js`, `lib/qbSyncTrigger.js`
+and `lib/qbEstimateInvoice.js` separately resolved which **stored
+credential** to load from a second, independent variable, `QB_SANDBOX`
+(default `'production'` — the opposite default). The two only agreed in
+this installation because `QB_ENVIRONMENT=production` is explicitly set and
+`QB_SANDBOX` is unset. If `QB_ENVIRONMENT` were ever accidentally unset,
+those three modules would still load the **production** credential (from
+`QB_SANDBOX` defaulting false) while sending the request to the **sandbox**
+hostname (from `QB_ENVIRONMENT` defaulting `'sandbox'`) — a production
+access token presented to Intuit's sandbox API, which Intuit would reject
+outright (401/403, not a silent cross-company sync). `lib/qbEnvironment.js`
+is now the ONE place `QB_ENVIRONMENT` is read for both hostname (
+`resolveQbApiBase`) and credential-namespace selection — `server.js`,
+`lib/systemHealthChecks.js#checkQuickBooks`, `lib/qbInboundSync.js`,
+`lib/qbSyncTrigger.js`, `lib/qbEstimateInvoice.js` and `routes/leadQB.js`'s
+cosmetic QB-app deep-link builder all resolve through it now; `QB_SANDBOX`
+is no longer read by any hostname- or credential-selection code path
+anywhere. Fails safe (never defaults to `'production'`, the
+higher-consequence environment, on a missing/invalid value — keeps the
+historical `'sandbox'` fallback) and fails visibly (`misconfigured: true`,
+logged once per process and surfaced via `buildHealthPayload()`'s new
+`environmentMisconfigured` field and `checkQuickBooks`'s new
+`environment_misconfigured` field) rather than silently guessing. No
+Railway variable was added or changed — `QB_ENVIRONMENT=production` being
+already correctly set means this is purely a structural hardening with zero
+behavior change for this installation today.
+
+**Integrations page sync-status honesty** — `crm-frontend/src/pages/Integrations.jsx`'s
+"Last Sync: Never" / zero client/estimate/invoice counts were traced to
+hardcoded `Promise.resolve([])` placeholders with an explicit "QBSyncJob/
+QBSyncLog — no Railway API yet" comment — these entities were never
+implemented on Railway, so that card always rendered empty regardless of
+real sync health, which is exactly the symptom the user's manually-inspected
+diagnostics reported. Fixed with real, queryable evidence instead of
+inventing a job-log feature:
+- **`sync_cursors` now has `last_attempted_at`** (`db/migrations/2026-67-sync-cursors-last-attempt.sql`,
+  additive, backfilled from existing `last_successful_sync_at`) alongside
+  the pre-existing `last_successful_sync_at` — the two are now tracked
+  independently via `lib/syncOutcome.js#classifySyncOutcome({attempted,
+  succeeded, failed, stoppedEarly}) -> 'no_work'|'success'|'partial'|
+  'blocked'|'failed'` (`isSuccessfulOutcome(outcome)` gates whether
+  `last_successful_sync_at` advances — only `'success'`/`'no_work'` do; a
+  partial/blocked/all-failed tick still records `last_attempted_at` so
+  "last attempt" is never conflated with "last success"). Both
+  `server.js#runQbEstimateSync`'s existing `quickbooks_estimates` cursor
+  save and a NEW `quickbooks_inbound_reconcile` cursor save (added to the
+  `qb-inbound-cron` tick, which previously only ever `console.log`'d its
+  result — there was no durable record inbound reconciliation ever ran at
+  all) now use this classifier. Found and fixed in the same pass:
+  `stats.failed` in `runQbEstimateSync` was declared but never actually
+  incremented anywhere in the loop (every per-item failure only pushed to
+  `stats.errors`) — now set from `stats.errors.length` before the cursor
+  save, so the persisted failure count is real.
+- **`lib/qbSyncStatus.js`** (new) is the read model: both cursors (last
+  success, last attempt, outcome, sanitized last-error reason) plus real
+  counts — `estimates_synced` (`handoff_estimates WHERE sync_source =
+  'QuickBooks'`), `invoices_synced` (`qb_invoices_cache`), `customers_synced`
+  (`DISTINCT leads.qb_customer_id`) — and the circuit breaker's own state.
+  Every section independently reports `available: false` on its own query
+  failure rather than a fabricated `0`. Exposed read-only via
+  `POST /qb/sync-status` (`requireProxySecret`, same gate as
+  `/qb/auth-status`).
+- **Frontend**: `Integrations.jsx`'s fictional "Last Job" card (a 5-metric
+  grid that could never populate) was replaced with two real cards — one
+  per cursor — each showing an outcome badge (Succeeded/Partially succeeded/
+  Blocked (rate-limited)/Failed/Nothing to sync), last successful run, last
+  attempt, and the latest sanitized failure reason when present. The three
+  top-level stat tiles (Clients/Estimates/Invoices Synced) now render
+  "Unavailable" rather than `0` whenever the underlying count query failed,
+  never presenting an unverified zero as fact. The now-fictional
+  `failedLogs`/`recentLogs`/`MiniStat`/`ActionBadge` dead code (never
+  populated by anything real) was removed rather than left half-wired.
+
+**CompanyInfo error handling** (`server.js#handleGetCompany`, the October
+2026 "blank Company Name" incident from the prior investigation) — this
+route previously threw on ANY failure, and the frontend's own
+`.catch(() => ({}))` discarded the reason entirely, so a 429, a
+circuit-breaker skip, a genuinely revoked credential, and a bare network
+error all rendered identically (blank fields), reading as "disconnected"
+even though company identity may already be independently verified
+correct. Fixed: `handleGetCompany` now ALWAYS responds `200` with a typed
+`{ company, available, reason, message, retry_at }` shape —
+`classifyCompanyInfoFailure(e)` maps `reconnectRequired`/`401` →
+`'reconnect_required'`, a breaker skip → `'circuit_open'`, `429` →
+`'rate_limited'`, `5xx` → `'network_failure'`, another 4xx →
+`'unavailable'`, and a bare exception with no `.status` (a raw network/
+fetch error) → `'network_failure'`. `QBDiagnosticsPanel.jsx` and
+`Integrations.jsx` now render this distinctly (an amber "temporarily
+unavailable" note and explanatory banner) instead of a blank "—" that
+reads as disconnected.
+
+**Financial data pipeline (Handoff → QuickBooks → CRM) — validated, not
+modified**: no new direct Handoff integration was added (per explicit
+instruction); the existing matching/dedup/idempotency logic in
+`lib/qbMatch.js`, `server.js#runQbEstimateSync`'s manual-match guard, and
+`lib/qbInboundSync.js`'s customer/invoice/payment reconciliation are
+unchanged — only their environment-resolution call sites were touched (see
+above), and the full pre-existing regression suite for this pipeline
+(`test/qbMatch.test.js`, `test/qbEstimateSyncCapacity.test.js`,
+`test/qbEstimateSyncManualMatch.test.js`, `test/qbInboundSync.test.js`,
+`test/estimateSyncRestoration.test.js`) passes unchanged, confirming no
+behavior change to customer/estimate/invoice/payment matching. No bulk
+resynchronization was triggered from this environment (no live Intuit
+access here at all — this was a pure code change + unit/source-level test
+pass).
+
+**Not verifiable from this environment** (no Railway/Intuit production
+access here): whether the raised `MAX_COOLDOWN_MS` actually lets the live
+429 condition clear (that depends on Intuit's own, unknown, actual
+rate-limit window — this fix removes our own self-inflicted
+every-15-minutes re-probing, which is the one thing code alone can fix; if
+Intuit's real limit needs longer than 30 minutes of quiet, the breaker will
+still reopen, just far less often than before), and whether the stored
+`realm_id`'s Intuit-side company name is "EC Construction Group" (the
+Integrations page's existing Company Name field, now also correctly
+distinguishing a transient lookup failure from the real value per the fix
+above, is the one place to confirm this live). Confirming both is the
+remaining operator verification step.
+
+Regression coverage: `test/qbRateLimitBreaker.test.js` (`MAX_COOLDOWN_MS`
+now exceeds the 15-minute cron interval; `isCoolingDown`'s true/false
+matrix); `test/qbEnvironment.test.js` (the resolver's valid/invalid/unset/
+case-insensitive matrix, the fail-safe-not-production fallback, the
+once-only misconfiguration warning); `test/qbEnvironmentConsistency.test.js`
+(source-level proof every module now resolves through the shared module,
+and that a contradictory `QB_SANDBOX` is provably ignored);
+`test/syncOutcome.test.js` (the outcome classifier's full decision matrix);
+`test/qbSyncStatus.test.js` (the read model — real data, and independent
+`available:false` per failing section, never a fabricated 0);
+`test/qbCompanyInfoFailureClassification.test.js` (the extracted
+classifier's full branch matrix); `test/qbGetCompanyWiring.test.js` and
+`test/qbSyncCursorPersistence.test.js` (source-level wiring proof, same
+convention as `test/qbEstimateSyncManualMatch.test.js`, since `server.js`
+has top-level side effects and isn't directly requirable);
+`test/systemHealthChecks.test.js` (updated breaker stubs for the new shared
+`isCoolingDown` call); `test/qbTokenManager.test.js` (updated for
+`qbInboundSync.js`'s renamed `QB_ENVIRONMENT` variable);
+`crm-frontend/src/pages/Integrations.qbAuth.test.jsx` (unchanged, still
+passing) and `test/deadPagesAndMobileGrid.test.js` (updated — the fictional
+5-column "Last Job" grid it guarded no longer exists; now guards the
+general no-bare-wide-grid property).
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`
