@@ -737,17 +737,18 @@ test('checkWebsiteIntake: delivery_failures is zeroed, never crashes, when the r
 // QuickBooks -> CRM (no direct Handoff API key, none intended). This check
 // must report THAT pipeline's own evidence, completely independent of the
 // unused Direct Handoff API credential checkHandoff reports on.
-test('checkHandoffEstimatesSync: no sync_cursors row and zero handoff_estimates -> NOT_CONFIGURED shape', async () => {
+test('checkHandoffEstimatesSync: no sync_cursors row, zero handoff_estimates, no webhook activity -> NOT_CONFIGURED shape (missing sync data)', async () => {
   queryImpl = async () => ({ rows: [] });
   const result = await checkHandoffEstimatesSync({ verify: false });
   assert.strictEqual(result.credential_present, false);
   assert.strictEqual(result.live_check, null);
 });
 
-test('checkHandoffEstimatesSync: a recent successful cron run -> healthy live_check with match/unmatch counts', async () => {
+test('checkHandoffEstimatesSync: cron enabled + a recent successful run -> healthy live_check with match/unmatch counts', async () => {
   queryImpl = async (sql) => {
-    if (/sync_cursors/.test(sql)) return { rows: [{ last_successful_sync_at: new Date().toISOString(), last_sync_summary: { imported: 2 } }] };
+    if (/sync_cursors/.test(sql)) return { rows: [{ last_successful_sync_at: new Date().toISOString(), last_attempted_at: new Date().toISOString(), last_sync_summary: { imported: 2 } }] };
     if (/handoff_estimates/.test(sql)) return { rows: [{ total: 10, matched: 8, unmatched: 2, last_synced_at: new Date().toISOString() }] };
+    if (/app_settings/.test(sql)) return { rows: [] };
     throw new Error('unexpected query: ' + sql);
   };
   const result = await checkHandoffEstimatesSync({ verify: false });
@@ -755,21 +756,70 @@ test('checkHandoffEstimatesSync: a recent successful cron run -> healthy live_ch
   assert.strictEqual(result.live_check.ok, true);
   assert.strictEqual(result.live_check.degraded, false);
   assert.match(result.live_check.message, /completed/);
+  assert.strictEqual(result.scheduled_sync.enabled, true);
+  assert.ok(result.scheduled_sync.last_successful_sync_at);
+  assert.ok(result.scheduled_sync.last_attempted_at);
+  assert.strictEqual(result.webhook_sync.recently_active, false);
   assert.deepStrictEqual(result.recency, { total_estimates: 10, matched: 8, unmatched: 2, last_synced_at: result.recency.last_synced_at });
 });
 
-test('checkHandoffEstimatesSync: last successful sync over an hour ago -> degraded (cron may not be running)', async () => {
+test('checkHandoffEstimatesSync: STALE CURSOR — cron enabled but last success over an hour ago -> degraded (cron may not be running)', async () => {
   const staleAt = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
   queryImpl = async (sql) => {
-    if (/sync_cursors/.test(sql)) return { rows: [{ last_successful_sync_at: staleAt, last_sync_summary: null }] };
+    if (/sync_cursors/.test(sql)) return { rows: [{ last_successful_sync_at: staleAt, last_attempted_at: staleAt, last_sync_summary: null }] };
     if (/handoff_estimates/.test(sql)) return { rows: [{ total: 5, matched: 5, unmatched: 0, last_synced_at: staleAt }] };
+    if (/app_settings/.test(sql)) return { rows: [] };
     throw new Error('unexpected query: ' + sql);
   };
-  const result = await checkHandoffEstimatesSync({ verify: false });
+  const result = await withEnv({ QB_SYNC_CRON_ENABLED: undefined }, () => checkHandoffEstimatesSync({ verify: false }));
   assert.strictEqual(result.credential_present, true);
   assert.strictEqual(result.live_check.ok, false);
   assert.strictEqual(result.live_check.degraded, true);
   assert.match(result.live_check.message, /over an hour ago/);
+  assert.strictEqual(result.scheduled_sync.enabled, true);
+  assert.strictEqual(result.webhook_sync.recently_active, false);
+});
+
+test('checkHandoffEstimatesSync: DISABLED CRON — QB_SYNC_CRON_ENABLED=false is always surfaced distinctly, even with a stale cursor and no webhook activity', async () => {
+  const staleAt = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(); // ~7 weeks-style staleness, scaled down
+  queryImpl = async (sql) => {
+    if (/sync_cursors/.test(sql)) return { rows: [{ last_successful_sync_at: staleAt, last_attempted_at: staleAt, last_sync_summary: { imported: 0 } }] };
+    if (/handoff_estimates/.test(sql)) return { rows: [{ total: 174, matched: 158, unmatched: 16, last_synced_at: staleAt }] };
+    if (/app_settings/.test(sql)) return { rows: [] };
+    throw new Error('unexpected query: ' + sql);
+  };
+  const result = await withEnv({ QB_SYNC_CRON_ENABLED: 'false' }, () => checkHandoffEstimatesSync({ verify: false }));
+  assert.strictEqual(result.credential_present, true);
+  assert.strictEqual(result.scheduled_sync.enabled, false);
+  assert.strictEqual(result.live_check.ok, false);
+  assert.strictEqual(result.live_check.degraded, true);
+  assert.match(result.live_check.message, /QB_SYNC_CRON_ENABLED=false/);
+  assert.strictEqual(result.webhook_sync.recently_active, false);
+  // The real-world counts must still be reported even while disabled — this
+  // is NOT the same as "everything is healthy".
+  assert.deepStrictEqual(result.recency, { total_estimates: 174, matched: 158, unmatched: 16, last_synced_at: staleAt });
+});
+
+test('checkHandoffEstimatesSync: RECENT WEBHOOK ACTIVITY while the cron is disabled -> still NOT reported healthy, but the message surfaces the webhook evidence', async () => {
+  const staleAt = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const recentWebhookAt = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+  queryImpl = async (sql) => {
+    if (/sync_cursors/.test(sql)) return { rows: [{ last_successful_sync_at: staleAt, last_attempted_at: staleAt, last_sync_summary: null }] };
+    if (/handoff_estimates/.test(sql)) return { rows: [{ total: 180, matched: 160, unmatched: 20, last_synced_at: recentWebhookAt }] };
+    if (/app_settings/.test(sql)) return { rows: [{ value: recentWebhookAt }] };
+    throw new Error('unexpected query: ' + sql);
+  };
+  const result = await withEnv({ QB_SYNC_CRON_ENABLED: 'false' }, () => checkHandoffEstimatesSync({ verify: false }));
+  // The critical assertion this whole fix exists for: recent webhook
+  // activity must NEVER flip this to healthy while the scheduled sync is
+  // explicitly disabled.
+  assert.strictEqual(result.live_check.ok, false);
+  assert.strictEqual(result.live_check.degraded, true);
+  assert.strictEqual(result.scheduled_sync.enabled, false);
+  assert.strictEqual(result.webhook_sync.recently_active, true);
+  assert.strictEqual(result.webhook_sync.last_triggered_at, recentWebhookAt);
+  assert.match(result.live_check.message, /webhook last triggered a sync/);
+  assert.match(result.live_check.message, /scheduled full rescan is NOT running/);
 });
 
 test('checkHandoffEstimatesSync: queries failing entirely degrades gracefully, never crashes', async () => {
