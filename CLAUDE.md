@@ -2993,6 +2993,128 @@ SystemHealth.test.jsx` (the new explanatory block's three states —
 recent-evidence, no-evidence, and sub-configured-so-block-never-renders —
 asserting "Connected" is never shown without `sub_configured: true`).
 
+## Google Contacts live health check HTTP 403 production incident (November 2026, fixed)
+
+**Production report**: immediately after `GOOGLE_CONTACTS_SUB` was set and
+PR #52 deployed, running "Run Live Checks" flipped Google Contacts from
+Configured to **Disconnected**, with the exact error `"Google Contacts
+check failed HTTP 403"`. The operator independently confirmed real contact
+sync was (and remained) unaffected — contacts kept appearing on reps'
+phones.
+
+**Root cause, confirmed by direct code comparison (not guessed, and not
+independently verified against live Google API documentation — no network
+access in this environment)**: the live check's error message template
+(`` `Google Contacts check failed HTTP ${res.status}` ``) matches the
+reported error EXACTLY, and that template appears in exactly one place in
+this codebase — immediately after a successful `getAccessToken(sub)` call,
+wrapping a `GET https://people.googleapis.com/v1/people/me?personFields=names`
+fetch. This pinpoints the failure precisely: the OAuth token exchange
+itself succeeded (a genuinely missing scope, missing domain-wide-delegation
+grant, or wrong impersonated account would have thrown a DIFFERENT,
+distinct error from `getAccessToken()` itself —
+`lib/googleContactsClient.js`'s own `CONTACTS_SCOPE_NOT_CONFIGURED`/501
+path, or a `Google contacts token exchange failed ...` message — neither
+of which matches what was reported). The 403 happened strictly on the
+SUBSEQUENT People API call, using a token that was already valid for the
+`https://www.googleapis.com/auth/contacts` scope, the same service account,
+and the same impersonated `GOOGLE_CONTACTS_SUB` identity.
+
+Comparing that call against the real, already-proven-working sync path
+(`lib/googleContactsClient.js#createOrUpdateContact`/`findContact`/
+`getContact`) shows it calls a DIFFERENT People API RPC method than
+anything the real feature has ever used: `people.get` on the special
+`people/me` resource (fetches the impersonated user's OWN profile card) —
+never exercised anywhere else in this codebase. The real sync path only
+ever calls `people.createContact`, `people.updateContact`,
+`people.get(<real resourceName>)` (never the literal `me` alias), and
+`people.searchContacts` — all of which operate on that user's Contacts
+LIST, a different (and, per this incident, differently-authorized) surface
+than fetching the user's own profile via `people/me`. This is the most
+likely explanation for the 403: `people.get('people/me')` requires
+something beyond the plain `contacts` scope that domain-wide-delegation
+impersonation does not automatically satisfy the same way a real end-user
+OAuth consent flow would — **this is a hypothesis grounded in the code-level
+elimination above, not an independently-verified fact about Google's API
+behavior** (no live Google API/documentation access from this environment).
+
+**Scope/identity/permissions comparison (task items 2, 4, 5)**: the live
+check and the real sync path request the EXACT SAME OAuth scope
+(`https://www.googleapis.com/auth/contacts`, the one literal constant
+inside `getAccessToken`) and, for an unowned lead or whenever
+`GOOGLE_CONTACTS_SUB` matches a given lead's resolved identity, the SAME
+impersonated mailbox. There is no scope or credential divergence between
+the two paths — the divergence is entirely which RPC METHOD each one calls
+on that identical, already-authorized token. The live check therefore
+demanded a capability (`people.get('people/me')`) the real, working feature
+never needed — a defect in the health check's own implementation, not a
+missing production permission. `GOOGLE_CONTACTS_SUB` itself is read
+correctly (`process.env.GOOGLE_CONTACTS_SUB`, passed as the JWT `sub`
+claim, the textbook-correct domain-wide-delegation pattern) — its value was
+never printed or exposed by this investigation.
+
+**Is the failure limited to System Health, or does it also affect real
+sync? Limited to System Health**, based on code analysis: the real sync
+functions never call the endpoint that failed. This investigation found no
+code-level reason real sync would be affected. **Not independently
+re-verified from this environment** (no DB/network access): whether a real
+lead sync has actually succeeded using the newly-set `GOOGLE_CONTACTS_SUB`
+value specifically (the `sync_evidence` evidence available predates today's
+`GOOGLE_CONTACTS_SUB` change) — confirming this is the remaining operator
+verification step, via System Health's existing `sync_evidence` card after
+a natural lead create/edit, or a specific lead's own
+`google_contact_sync_status`. No bulk sync was triggered to test this, per
+explicit instruction.
+
+**Fix** (`lib/systemHealthChecks.js#checkGoogleContacts`): replaced the
+`people.get('people/me')` call with `people.searchContacts` — the EXACT
+same RPC method, endpoint base, and `readMask` shape
+`lib/googleContactsClient.js#findContact` already uses successfully for
+every real lead sync — querying a deliberately non-matching probe string
+(`health-check-probe-does-not-exist@invalid.example`) so the call touches
+zero real contact data while still exercising the identical
+auth/scope/endpoint class the real feature depends on. Deliberately does
+**NOT** delegate to `findContact()` itself: that function intentionally
+swallows a non-ok response as "not found" (correct for its own
+create-or-update use case — a search failure there should fall through to
+creating a new contact) but would be WRONG for a health check, which must
+surface a real failure rather than silently reporting a false "Connected."
+A new source-level test guards against this specific mistake being
+reintroduced. No change to `lib/googleContactsClient.js` itself, no change
+to the real sync path, no scope/credential/impersonation change — purely a
+different, already-proven-safe read-only call inside the health check.
+
+**No Google Workspace permission change is being requested or believed
+necessary (task item 8)**: because the exact same scope, service account,
+and impersonated identity already work for the real, production-proven
+sync path, this investigation's conclusion is that no Workspace-side change
+is required — the fix is code-only. If a future investigation finds the
+NEW `searchContacts`-based check still fails even though real sync
+continues to work, that would be new evidence this conclusion needs
+revisiting, not confirmation that a Workspace change is needed now.
+
+**Restrictions honored**: Google was not disconnected/reconnected; no
+credential, domain-wide-delegation, or production variable was changed; no
+contact was created, edited, deleted, or bulk-synced; QuickBooks, Meta, and
+the website were not touched; the fix was not merged or deployed without
+approval.
+
+**Incidentally found, unrelated, pre-existing test failure** (not caused by
+this change — reproduced identically with this fix's changes stashed out):
+`test/phoneCallRemindersMichelleExclusion.test.js`'s "Michelle...Yaron...
+no-owner fallback" test fails on `main` independent of this investigation.
+Not fixed here — out of scope for a Google-Contacts-only investigation and
+unrelated to any change in this pass.
+
+Regression coverage: `test/systemHealthChecks.test.js` — the live-check
+call now asserted to hit `people:searchContacts` and never the old
+`people/me?` shape; the exact reported incident reproduced (a 403 from the
+live call is still correctly surfaced as a failed, not falsely-Connected,
+`live_check`, with `sub_configured`/`sync_evidence` still reported
+alongside it); a source-level guard proving `checkGoogleContacts` never
+delegates to `findContact()` (which would silently mask a real failure as
+success).
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`
