@@ -3115,6 +3115,71 @@ alongside it); a source-level guard proving `checkGoogleContacts` never
 delegates to `findContact()` (which would silently mask a real failure as
 success).
 
+## Reminder/follow-up DST (fall-back/spring-forward) 1-hour miscalculation (November 2026, fixed)
+
+**Found while investigating `test/phoneCallRemindersMichelleExclusion.test.js`
+intermittently failing in CI** (it was passing locally most of the day but
+failed on a specific CI run) — root-caused, not guessed: the test computes a
+follow-up time as "now + 1 hour" and asserts a reminder email is sent; it
+failed only when that computed time landed in the roughly 2-hour window this
+bug affected on 2026-11-01 (the US DST "fall back" day), and was reproduced
+exactly by feeding the CI run's own timestamp into `pacificToUtcMs` directly.
+
+**Root cause**: `lib/reminderTime.js#pacificToUtcMs` determined the
+UTC/Pacific offset by probing a FIXED anchor — noon UTC of the appointment's
+calendar date — and applied that single offset to every time of day on that
+date. On an ordinary day this is harmless (the whole day shares one offset),
+but on the day a DST transition actually happens, the date straddles TWO
+offsets (the 2026 "fall back" day is PDT before ~2:00 AM Pacific and PST
+from ~1:00 AM Pacific onward); the noon anchor is always well past the
+transition, so it silently applied the WRONG, later offset to every
+wall-clock time from local midnight up to the transition — a full 1-hour
+miscalculation. This is shared code: both `lib/reminderEngine.js`
+(customer-facing appointment email + 12h/2h SMS reminders, via
+`getAppointmentMs`) and `lib/phoneCallReminders.js` (staff phone-call
+reminders, via `getCallMs`) call this same function, so the bug applied to
+both — not merely a test artifact. The same class of bug applies
+symmetrically to the "spring forward" day (2026-03-08), confirmed by the
+same direct comparison.
+
+**Real-world impact is narrow but real**: a customer appointment, phone-call
+follow-up, or booking confirmation whose Pacific wall-clock time falls
+between roughly midnight and 2:00 AM on the one Sunday each November DST
+ends (or a comparable narrow window each March DST begins) would have its
+reminder due-time computed up to 1 hour late, which could delay a reminder
+past its window or, depending on exact timing, cause the eligibility check
+to miss it for that tick. Appointments literally scheduled in that
+pre-dawn window are rare for this business, which is why this went
+undetected until a date-sensitive CI run exposed it.
+
+**Fix** (`lib/reminderTime.js#pacificToUtcMs`, `test/reminderTime.test.js`
+new): replaced the fixed noon-UTC anchor with an offset probe near the
+TARGET instant itself (an initial guess from treating the requested
+wall-clock date/time as if it were already UTC, cross-checked against the
+other offset found a few hours to either side), picking whichever candidate
+round-trips back to the exact requested local date/time. A genuinely
+AMBIGUOUS local time (the repeated hour on a "fall back" day) deterministic
+resolves to the earlier (pre-transition) instant; a genuinely NONEXISTENT
+local time (the skipped hour on a "spring forward" day — no correct answer
+exists by construction) resolves to the later (post-transition) instant as
+a best-effort fallback, never throws. Every non-transition date (the
+overwhelming majority of the year) is byte-for-byte unchanged — verified
+across ordinary summer/winter dates plus every hour of both 2026 US
+transition dates.
+
+**Not yet merged — held for explicit approval** per this engagement's SMS/
+reminder-system restrictions (no reminder-system code change ships without
+sign-off). No reminder cadence, window, or env var was changed — this is a
+pure due-time-calculation correctness fix; `REMINDER_DRY_RUN`,
+`SMS_AUTOMATED_REMINDERS_ENABLED`, and `SMS_REPLY_NOTIFICATIONS_ENABLED` are
+untouched.
+
+Regression coverage: `test/reminderTime.test.js` (new — every hour of both
+2026 DST transition dates, two ordinary non-transition dates as a
+regression guard, and the exact CI-reported drift reproduced and proven
+fixed); full existing backend suite re-run clean (0 failures, 1 pre-existing
+unrelated todo) with this fix applied.
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`
