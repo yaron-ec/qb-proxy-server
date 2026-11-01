@@ -110,6 +110,34 @@ function IntegrationCard({ moduleKey, data }) {
             {data.recency.total_estimates ?? 0} estimates synced · {data.recency.matched ?? 0} matched to a lead · {data.recency.unmatched ?? 0} unmatched
           </HelperText>
         )}
+        {moduleKey === "handoff_estimates_sync" && data.scheduled_sync && (
+          <div className="text-xs rounded-md px-2.5 py-2 leading-snug bg-slate-50 text-slate-600 space-y-1">
+            <div>
+              Scheduled sync (15-min cron):{" "}
+              <span className={data.scheduled_sync.enabled ? "text-emerald-700 font-semibold" : "text-amber-700 font-semibold"}>
+                {data.scheduled_sync.enabled ? "Enabled" : "Disabled (QB_SYNC_CRON_ENABLED=false)"}
+              </span>
+            </div>
+            <div>Last successful run: {fmt(data.scheduled_sync.last_successful_sync_at)}</div>
+            <div>Last attempted run: {fmt(data.scheduled_sync.last_attempted_at)}</div>
+            {!data.scheduled_sync.enabled && (
+              <div className="text-amber-700">
+                The scheduled full rescan is not running. Estimates may still update via webhook or manual sync below, but this is not a substitute for the scheduled sync.
+              </div>
+            )}
+          </div>
+        )}
+        {moduleKey === "handoff_estimates_sync" && data.webhook_sync && (
+          <div className="text-xs rounded-md px-2.5 py-2 leading-snug bg-slate-50 text-slate-600 space-y-1">
+            <div>
+              Webhook/manual sync activity:{" "}
+              <span className={data.webhook_sync.recently_active ? "text-emerald-700 font-semibold" : "text-slate-500"}>
+                {data.webhook_sync.recently_active ? "Recently active" : "No recent activity"}
+              </span>
+            </div>
+            <div>Last webhook-triggered sync: {fmt(data.webhook_sync.last_triggered_at)}</div>
+          </div>
+        )}
         {data.recency && moduleKey === "sms" && (
           <HelperText>
             Last inbound SMS received {fmt(data.recency.last_lead_received_at)} · {data.recency.total_leads_received ?? 0} total

@@ -2744,6 +2744,110 @@ payload never triggers a sync, the GET handshake unaffected);
 terminal-failure log lines and attached to the returned result, and that a
 response with no id never logs or attaches a bogus value).
 
+## Handoff Estimates (via QuickBooks) health-reporting fix (November 2026)
+
+**Production report**: System Health showed "Handoff Estimates (via
+QuickBooks)" as Degraded, with "Last automatic sync: September 10, 2026" —
+roughly seven weeks stale — while Railway startup logs confirmed the
+separate QB Inbound Reconciliation cron (invoices/payments) was running
+every 15 minutes, and Railway env vars showed `QB_SYNC_CRON_ENABLED=false`.
+
+**Confirmed root cause (code-level; this environment has no production DB
+or network access to independently confirm the live timestamps, only the
+operator-supplied evidence above)**: `QB_SYNC_CRON_ENABLED=false` disables
+the QB Estimate Sync cron (`server.js#runQbEstimateSync` +
+`runQbEstimatePdfSync`) — the **only** writer of the `sync_cursors` row
+(`integration = 'quickbooks_estimates'`) that
+`lib/systemHealthChecks.js#checkHandoffEstimatesSync` reads for its
+timestamp. The QB Inbound Reconciliation cron the Railway logs showed
+running is a **completely separate, unconditionally-scheduled** job
+(`lib/qbInboundSync.js#syncAllMappedCustomers`) that only syncs
+Invoices/Payments for already-mapped customers — confirmed via grep, it
+never references `Estimate` at all, and writes its own, different cursor
+(`quickbooks_inbound_reconcile`). The two crons' independent gating is real
+(by design, per the "QB Estimate Sync Cron" / "QB Inbound Reconciliation
+Cron" header comments in `server.js`) — the Degraded status was not a false
+positive: the scheduled estimate rescan genuinely had not run since
+whatever its last successful tick was before the flag was set.
+
+**A second, independent reporting-logic gap found during the same
+investigation** (distinct from the real disabled-cron finding above): the
+PREVIOUS implementation's `cursor?.last_successful_sync_at ||
+counts?.last_synced_at` fallback would have silently preferred a FRESHER
+webhook/manual-sync timestamp over a stale cron timestamp had the cursor
+row been entirely absent — meaning a disabled scheduled sync could, in a
+different data shape, have been invisibly masked by recent webhook/manual
+activity and reported as healthy. This was fixed as a matter of principle
+(the explicit requirement this fix was built against: "a disabled scheduled
+sync must remain clearly visible, even if webhook activity is recent"), not
+because the exact masking scenario was proven to have occurred in
+production.
+
+**Fix** (`lib/systemHealthChecks.js#checkHandoffEstimatesSync`,
+`lib/qbSyncCronConfig.js` new): the check now reports three independent
+pieces of evidence instead of collapsing them into one timestamp:
+- `scheduled_sync` — the cron's own `last_successful_sync_at` AND
+  `last_attempted_at` (the latter written on every tick regardless of
+  outcome, so staleness there specifically proves the cron hasn't even
+  attempted to run), PLUS `enabled` — whether
+  `QB_SYNC_CRON_ENABLED` actually allows the cron to run at all, resolved
+  via the new `lib/qbSyncCronConfig.js#isEstimateSyncCronEnabled()` — the
+  SAME function `server.js`'s own cron-registration gate now calls (the
+  inline `=== 'false'` check it used to duplicate was removed), so the two
+  can never silently disagree about this flag — the same class of
+  duplicated-env-var-logic bug this codebase already paid for once with the
+  `QB_ENVIRONMENT`/`QB_SANDBOX` split (see `lib/qbEnvironment.js`'s header).
+- `webhook_sync` — when the QB webhook receiver last actually triggered a
+  rescan, read from the SAME `app_settings` debounce row
+  `lib/qbWebhookDebounce.js` already maintains. This is a precise,
+  directly-attributable signal, chosen deliberately over trying to infer
+  "last webhook activity" from `handoff_estimates.source` — that column is
+  set only at row CREATION (confirmed via code read: neither the cron's nor
+  the webhook's `rda.update(...)` calls include `source`), so it cannot
+  reliably say which sync path most recently touched an already-existing
+  row.
+- `recency` — unchanged in shape: live `COUNT(*)`/matched/unmatched totals
+  and the table-wide `MAX(last_synced_at)`, covering all sync paths
+  together (cron + webhook + manual).
+
+The overall `ok`/`degraded` verdict **never** reports healthy while
+`QB_SYNC_CRON_ENABLED=false`, regardless of how recent webhook/manual
+activity is — recent webhook activity is surfaced as additional context in
+the message text, never as a substitute for "the scheduled sync is
+working." `crm-frontend/src/pages/SystemHealth.jsx`'s Handoff Estimates
+card now renders both `scheduled_sync` (Enabled/Disabled, last success,
+last attempt, a warning banner when disabled) and `webhook_sync`
+(recently-active indicator, last-triggered timestamp) as separate detail
+blocks, so an admin sees the disabled-cron state and any webhook activity
+side by side rather than one collapsed figure.
+
+**Restrictions honored**: `QB_SYNC_CRON_ENABLED` was NOT changed (still
+`false` in this installation unless an operator changes it); no manual or
+bulk synchronization was triggered; no OAuth/Railway variables/Intuit
+console settings were touched; no financial records were modified.
+
+**Not verifiable from this environment** (no Railway or production
+database access here): the live current values of the `quickbooks_estimates`
+and `qb_webhook_debounce` rows this fix reads, whether the webhook has
+actually fired since being configured, and the live circuit-breaker state
+(`qb_rate_limit_breaker`). Checking System Health's Handoff Estimates card
+after this deploys — and, if deeper confirmation is needed, querying
+`POST /qb/sync-status` directly — is the remaining operator verification
+step.
+
+Regression coverage: `test/qbSyncCronConfig.test.js` (the shared resolver's
+full value matrix, plus a source-level proof `server.js`'s cron gate
+actually calls it instead of re-checking the env var inline);
+`test/systemHealthChecks.test.js` (`checkHandoffEstimatesSync`'s six
+scenarios — missing sync data, a healthy recent cron run, a stale cursor
+with the cron enabled, a disabled cron with no webhook activity, a disabled
+cron WITH recent webhook activity proving it is never reported healthy, and
+a total query failure degrading gracefully);
+`crm-frontend/src/pages/SystemHealth.test.jsx` (the new `scheduled_sync`/
+`webhook_sync` detail blocks, including the disabled-cron warning and the
+recent-webhook-never-masks-disabled-cron case asserting the state badge
+stays Degraded, never Connected).
+
 ## Google Contacts sync — architecture, and the "Configured vs Connected" health-reporting gap (November 2026)
 
 **Production report**: System Health showed Google Contacts as
