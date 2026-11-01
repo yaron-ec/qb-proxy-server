@@ -368,19 +368,53 @@ test('checkGoogleContacts: GOOGLE_CONTACTS_SUB unset -> CONFIGURED but supports_
   });
 });
 
-test('checkGoogleContacts: GOOGLE_CONTACTS_SUB set + verify:true -> attempts a live People API call, and sub_configured is true', async () => {
+test('checkGoogleContacts: GOOGLE_CONTACTS_SUB set + verify:true -> calls people:searchContacts (the same RPC method the real sync uses), never people/me', async () => {
   const restore = stub('../lib/googleContactsClient', { getAccessToken: async (sub) => `tok-for-${sub}` });
   const origFetch = global.fetch;
   let calledWithAuth = null;
-  global.fetch = async (url, opts) => { calledWithAuth = opts.headers.Authorization; return { ok: true, json: async () => ({}) }; };
+  let calledUrl = null;
+  global.fetch = async (url, opts) => { calledUrl = url; calledWithAuth = opts.headers.Authorization; return { ok: true, json: async () => ({}) }; };
   try {
     await withEnv({ GOOGLE_SERVICE_ACCOUNT_KEY: '{"fake":true}', GOOGLE_CONTACTS_SUB: 'ops@example.com' }, async () => {
       const result = await checkGoogleContacts({ verify: true });
       assert.strictEqual(result.live_check.ok, true);
       assert.strictEqual(calledWithAuth, 'Bearer tok-for-ops@example.com');
       assert.strictEqual(result.sub_configured, true);
+      // November 2026 incident regression guard: the live check must use
+      // people:searchContacts (the exact RPC method lib/googleContactsClient.js
+      // #findContact already uses for every real sync) and must NEVER call
+      // people.get('people/me') again -- that call returned a genuine
+      // production 403 even with a valid token/scope/impersonation that the
+      // real sync path already proved works.
+      assert.match(calledUrl, /people:searchContacts/);
+      assert.ok(!calledUrl.includes('/people/me?'), 'must not call the old people.get(people/me) endpoint shape');
     });
   } finally { restore(); global.fetch = origFetch; }
+});
+
+test('checkGoogleContacts: November 2026 incident reproduced -- a 403 from the live People API call is still correctly reported as a failed (not Connected) live_check', async () => {
+  const restore = stub('../lib/googleContactsClient', { getAccessToken: async (sub) => `tok-for-${sub}` });
+  const origFetch = global.fetch;
+  global.fetch = async () => ({ ok: false, status: 403, json: async () => ({}) });
+  try {
+    await withEnv({ GOOGLE_SERVICE_ACCOUNT_KEY: '{"fake":true}', GOOGLE_CONTACTS_SUB: 'ops@example.com' }, async () => {
+      const result = await checkGoogleContacts({ verify: true });
+      assert.strictEqual(result.live_check.ok, false);
+      assert.match(result.live_check.message, /HTTP 403/);
+      // sub_configured and sync_evidence must still be reported even when
+      // the live check itself fails -- a failed live check is not reported
+      // as if credentials/config were absent.
+      assert.strictEqual(result.sub_configured, true);
+    });
+  } finally { restore(); global.fetch = origFetch; }
+});
+
+test('checkGoogleContacts: the live check never calls findContact() directly -- that function swallows a non-ok response as "not found," which would silently mask a real failure here', async () => {
+  const source = require('fs').readFileSync(require('path').join(__dirname, '..', 'lib', 'systemHealthChecks.js'), 'utf8');
+  const idx = source.indexOf('async function checkGoogleContacts');
+  const nextFn = source.indexOf('// ── SignNow', idx);
+  const block = source.slice(idx, nextFn);
+  assert.ok(!/contactsClient\.findContact\(/.test(block), 'checkGoogleContacts must not delegate to findContact(), which returns null instead of throwing on a non-ok response');
 });
 
 test('checkGoogleContacts: GOOGLE_SERVICE_ACCOUNT_KEY missing entirely -> sub_configured is still false (never undefined)', async () => {
