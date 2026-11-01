@@ -2604,6 +2604,146 @@ passing) and `test/deadPagesAndMobileGrid.test.js` (updated — the fictional
 5-column "Last Job" grid it guarded no longer exists; now guards the
 general no-bare-wide-grid property).
 
+## QuickBooks webhook reliability + intuit_tid capture (October 2026 reliability audit, Phase 6)
+
+**Context**: PR #49 (Phase 5) deployed successfully, but production 429s had
+not cleared even after 30+ minutes of real cron-only silence — `opens_count`
+reached 114, and the math (reopen cadence × elapsed time since the breaker
+was first deployed) showed the breaker had been open essentially
+continuously for 32+ hours, spanning both the old 15-minute and new
+30-minute cooldown regimes. A single isolated call still failing after that
+long a silent window is not consistent with an ordinary short-term rate
+limit — this pointed at either an account/app-level Intuit-side condition
+(requiring Intuit Developer Support escalation) or an unaccounted-for
+source of QuickBooks traffic our own analysis had missed. This phase closes
+the latter: a real, previously-unaudited traffic source.
+
+**Confirmed new finding: `routes/qbWebhook.js` was never accounted for in
+Phases 3–5.** Every prior rate-limit investigation only analyzed the two
+scheduled 15-minute crons. Reading the webhook receiver found it
+unconditionally triggered a FULL `lib/qbSyncTrigger.js#runQbEstimateSyncAsync`
+(24h estimate rescan) AND a FULL `lib/qbInboundSync.js#syncAllMappedCustomers`
+(~100-customer reconciliation) on every relevant Intuit notification — not a
+targeted sync of the single changed entity. Given this installation's
+documented architecture (Handoff pushes estimates directly into this
+QuickBooks company — see "Handoff → QuickBooks → CRM estimate sync" above),
+each Handoff-side create/update is a plausible trigger for an extra,
+unscheduled full reconciliation pass, completely independent of the cron
+schedule. `lib/advisoryLock.js#tryWithAdvisoryLock` prevents two such runs
+from literally overlapping, but does nothing to prevent back-to-back runs
+once a prior one finishes — and each one is an uncoordinated extra consumer
+of the shared circuit breaker's one precious half-open recovery trial: a
+webhook-triggered trial failing re-opens the breaker exactly like a
+cron-triggered one would, silently resetting the recovery clock at a moment
+the two scheduled crons' own cooldown window might otherwise have been
+genuinely quiet.
+
+**Fixes (`routes/qbWebhook.js`, new `lib/qbWebhookDebounce.js`):**
+- **Breaker-aware**: before triggering, the webhook handler now peeks (via
+  `lib/qbRateLimitBreaker.js#isCoolingDown` — pure, never consumes the
+  trial) the shared breaker's state; while cooling down, it skips the
+  trigger entirely and logs why, leaving the scheduled cron as the recovery
+  path. This can never lose the underlying change — a full reconciliation
+  reflects QuickBooks' current state at query time, which by definition
+  already includes any change Intuit has already notified us about, so the
+  next cron tick (≤15 minutes later) picks it up regardless.
+- **Bounded debounce** (`lib/qbWebhookDebounce.js`, new): at most one
+  webhook-triggered full rescan may start per 60-second window, enforced via
+  the SAME atomic-claim-in-`app_settings` pattern the circuit breaker
+  already uses (`INSERT ... ON CONFLICT DO UPDATE ... WHERE <stale>
+  RETURNING`), so it is correct across multiple Railway replicas, not just
+  within one process. Fails OPEN on its own error (a debounce-mechanism bug
+  must never silently suppress a real sync). A burst of many rapid webhook
+  deliveries (e.g. Handoff batch-creating several estimates within
+  seconds) now triggers exactly one rescan, not one per delivery.
+- **Signature verification fail-closed in production** (the same insecure
+  default `routes/metaWebhook.js#verifyMetaSignature` was already fixed
+  for): `verifyIntuitSignature` previously returned `true` (skip
+  verification) whenever `QB_WEBHOOK_VERIFIER_TOKEN` was unset, silently
+  accepting ANY unauthenticated POST as a genuine Intuit event. Now: when
+  `lib/qbEnvironment.js`'s resolved environment is `'production'`, a
+  missing token fails CLOSED — `503 not_configured`, the same
+  distinct-from-`401` convention `metaWebhook.js` already established — so
+  an operator can tell "not configured" from "a real but invalid signature"
+  from the status code alone. Outside production (sandbox/dev), the
+  historical lenient accept-without-verification behavior is preserved, but
+  now always logged, never silent. **Operator action required before this
+  deploys to a working state**: `QB_WEBHOOK_VERIFIER_TOKEN` must already be
+  set on the `qb-proxy-server` Railway service, or this change will start
+  rejecting Intuit's real production webhook deliveries with 503 the moment
+  it deploys. This environment has no way to verify whether that variable
+  is currently set — confirming it, and only then deploying, is the
+  required pre-deploy operator step for this specific change (same
+  "verify before relying on it" pattern as `TWILIO_WEBHOOK_BASE_URL`'s own
+  incident above).
+- **`lib/qbInboundSync.js`/`lib/qbEstimateInvoice.js`/`lib/qbMatch.js`'s
+  matching/dedup/idempotency logic is completely unchanged** — the breaker
+  and debounce guards can only ever SUPPRESS a webhook-triggered trigger,
+  never cause an extra one beyond what already existed, so they introduce
+  no new duplicate-record risk; the existing idempotent upsert behavior
+  (by `qb_estimate_id`/`qb_invoice_id`) remains the actual guarantee against
+  duplicates, unchanged and already covered by
+  `test/qbEstimateSyncManualMatch.test.js`/`test/qbEstimateSyncCapacity.test.js`/
+  `test/qbInboundSync.test.js`.
+- **The scheduled 15-minute reconciliation cron is untouched** and remains
+  the always-running, authoritative recovery path regardless of this
+  webhook's own behavior — nothing in this phase changes its schedule,
+  logic, or the `sync_cursors` evidence Phase 5 already wired up for it.
+
+**`intuit_tid` capture** (`lib/qbTokenManager.js#getIntuitTid`, new):
+Intuit's own request-correlation id — the one diagnostic Intuit Developer
+Support explicitly asks for on a rate-limit case — was never captured
+anywhere in this codebase before now, so no past failed request's id was
+recoverable from Railway logs. `getIntuitTid(res)` reads the `intuit_tid`
+(or `intuit-tid`) response header and is wired into the ONE canonical
+`qbApiRequest` path (`lib/qbTokenManager.js`) at both the per-attempt
+transient-retry log line and the terminal (retries-exhausted,
+reported-to-the-breaker) log line — since every QuickBooks data call in
+this codebase already funnels through this one function (`server.js`'s
+`qbFetch`, `lib/qbInboundSync.js`, `lib/qbSyncTrigger.js`,
+`lib/qbEstimateInvoice.js`, `lib/systemHealthChecks.js`), this one change
+point gives universal coverage with no per-call-site duplication needed.
+The result object returned by `qbApiRequest` now also carries `intuitTid`
+for any caller to log/use (`server.js#qbFetch` forwards it into both its
+own thrown error and its `tokenStore.markError` call). Always safe to log
+in full — it is a correlation UUID, never a credential or token.
+
+**Draft Intuit Developer Support case** (no credentials/tokens included —
+see the prior investigation's full draft; summary): app "EC CRM Sync"
+(production), the verified production `realm_id` (visible in the CRM's
+Integrations Diagnostics panel), a 32+ hour history of isolated calls
+continuing to return 429 even after 30+ minutes of total silence under
+that realm, representative timestamps, and the affected endpoints
+(`Estimate`/`Invoice`/`Payment` queries, `CompanyInfo` reads). This
+environment cannot file the case itself (no Intuit Developer account
+access) — filing it, with the real `realm_id` filled in, is an operator
+action.
+
+**Not verifiable from this environment** (no Railway/Intuit production
+access here): whether `QB_WEBHOOK_VERIFIER_TOKEN` is actually set in
+production today (the pre-deploy blocker called out above), actual
+real-world webhook delivery frequency/volume (the structural
+amplification risk this phase fixes is code-confirmed; whether it was
+actually the dominant contributor to the specific 32-hour incident is
+not), and whether Intuit confirms an account-level condition once the
+support case is filed. Confirming the webhook fix's effect requires
+watching Railway logs for `[qb-webhook]` lines (debounced / cooling-down
+skips vs. triggered rescans) after deploy — a code-level fix alone cannot
+prove the live incident's exact cause.
+
+Regression coverage: `test/qbWebhookDebounce.test.js` (the atomic
+claim-if-stale semantics — first call succeeds, a rapid burst claims
+exactly once, a call after the window elapses succeeds again, a DB failure
+fails open and logs); `test/qbWebhookFailClosed.test.js` (HTTP-level, real
+Express server, no live DB needed — the 503-in-production/lenient-outside-
+production matrix, signature verification's full true/false matrix,
+breaker-cooling-down skip, debounce-denies skip, a correctly-signed empty
+payload never triggers a sync, the GET handshake unaffected);
+`test/qbTokenManager.test.js` (new `getIntuitTid` unit tests plus
+`qbApiRequest` tests proving the id is logged on both the retry and
+terminal-failure log lines and attached to the returned result, and that a
+response with no id never logs or attaches a bogus value).
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`

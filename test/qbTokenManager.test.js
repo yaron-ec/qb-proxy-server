@@ -269,6 +269,64 @@ test('qbApiRequest: an oversized Retry-After is capped, never stalls a cron tick
   assert.deepStrictEqual(sleeps, [5000], 'capped at DATA_CALL_MAX_RETRY_AFTER_MS');
 });
 
+// ── intuit_tid capture (October 2026 "sustained 429, escalate to Intuit"
+// investigation): Intuit's own correlation id is the one diagnostic Intuit
+// Developer Support asks for on a rate-limit case, and this codebase never
+// captured it anywhere before now. getIntuitTid() is wired into BOTH the
+// per-attempt retry log and the terminal (retries-exhausted, reported to
+// the breaker) log — proven here by asserting it reaches console output at
+// each point and is attached to the returned result for every caller
+// (server.js#qbFetch, lib/qbInboundSync.js, lib/qbSyncTrigger.js,
+// lib/qbEstimateInvoice.js) to log/use, since they all share this one path.
+test('getIntuitTid: reads intuit_tid (or intuit-tid) off a response, returns null when absent or headers are missing', () => {
+  const withTid = { headers: { get: (k) => (k === 'intuit_tid' ? 'abc-123' : null) } };
+  assert.strictEqual(mgr.getIntuitTid(withTid), 'abc-123');
+  const withDash = { headers: { get: (k) => (k === 'intuit-tid' ? 'dash-456' : null) } };
+  assert.strictEqual(mgr.getIntuitTid(withDash), 'dash-456');
+  assert.strictEqual(mgr.getIntuitTid({ headers: { get: () => null } }), null);
+  assert.strictEqual(mgr.getIntuitTid({}), null, 'no .headers at all must never throw');
+  assert.strictEqual(mgr.getIntuitTid({ headers: {} }), null, 'headers.get not a function must never throw');
+});
+
+test('qbApiRequest: intuit_tid is logged on a per-attempt transient retry', async () => {
+  persisted = { ...expired(), expires_at: new Date(Date.now() + 3600000).toISOString() };
+  let n = 0;
+  const headerMap = new Map([['intuit_tid', 'tid-retry-001']]);
+  apiResponse = () => (++n === 1
+    ? { status: 429, headers: { get: (k) => headerMap.get(k.toLowerCase()) || null } }
+    : { status: 200, body: {} });
+  const origWarn = console.warn;
+  const lines = [];
+  console.warn = (...args) => lines.push(args.join(' '));
+  try {
+    await mgr.qbApiRequest('production', API);
+  } finally { console.warn = origWarn; }
+  assert.ok(lines.some((l) => l.includes('tid-retry-001')), 'the retry log line must include the intuit_tid');
+});
+
+test('qbApiRequest: intuit_tid is logged on the terminal (retries-exhausted) failure and attached to the returned result', async () => {
+  persisted = { ...expired(), expires_at: new Date(Date.now() + 3600000).toISOString() };
+  const headerMap = new Map([['intuit_tid', 'tid-terminal-002']]);
+  apiResponse = () => ({ status: 429, headers: { get: (k) => headerMap.get(k.toLowerCase()) || null } });
+  const origWarn = console.warn;
+  const lines = [];
+  console.warn = (...args) => lines.push(args.join(' '));
+  let r;
+  try {
+    r = await mgr.qbApiRequest('production', API);
+  } finally { console.warn = origWarn; }
+  assert.strictEqual(r.res.status, 429);
+  assert.strictEqual(r.intuitTid, 'tid-terminal-002', 'the result object must carry intuitTid for the caller to log/use');
+  assert.ok(lines.some((l) => l.includes('tid-terminal-002') && l.includes('circuit breaker')), 'the terminal-failure log line must include the intuit_tid');
+});
+
+test('qbApiRequest: a successful response with no intuit_tid header never logs or attaches a bogus value', async () => {
+  persisted = { ...expired(), expires_at: new Date(Date.now() + 3600000).toISOString() };
+  apiResponse = () => ({ status: 200, body: {} });
+  const r = await mgr.qbApiRequest('production', API);
+  assert.strictEqual(r.intuitTid, null);
+});
+
 test('qbApiRequest: a 401 and a transient 429 use INDEPENDENT retry budgets — a 401-triggered refresh never consumes a transient-retry slot', async () => {
   persisted = { ...expired(), expires_at: new Date(Date.now() + 3600000).toISOString() };
   let calls = 0;

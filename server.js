@@ -262,20 +262,24 @@ async function getValidTokens() {
 // qbApiRequest: valid token (auto-refreshed), one canonical refresh + a single
 // retry on 401, last_used_at recorded on success.
 async function qbFetch(path, options = {}) {
-  const { res, text, json, realmId } = await qbTokens.qbApiRequest(QB_ENVIRONMENT,
+  const { res, text, json, realmId, intuitTid } = await qbTokens.qbApiRequest(QB_ENVIRONMENT,
     (t) => `${QB_API_BASE}/${t.realm_id}${path}`,
     { ...options, headers: { 'Content-Type': 'application/json', ...(options.headers || {}) } });
   if (!res.ok) {
     const detail = json?.Fault?.Error?.[0]?.Detail || json?.Fault?.Error?.[0]?.Message || text.slice(0, 300);
-    // Record the error in the credential lifecycle (sanitized, no secrets)
-    try { await tokenStore.markError(QB_ENVIRONMENT, realmId, `QB ${res.status}`); } catch (e) { /* best-effort */ }
+    // Record the error in the credential lifecycle (sanitized, no secrets).
+    // intuit_tid (Intuit's own correlation id, never a secret) is appended
+    // when present — this is the one diagnostic Intuit Developer Support
+    // asks for on a rate-limit case, and this codebase never captured it
+    // anywhere before the October 2026 sustained-429 investigation.
+    try { await tokenStore.markError(QB_ENVIRONMENT, realmId, `QB ${res.status}${intuitTid ? ' intuit_tid=' + intuitTid : ''}`); } catch (e) { /* best-effort */ }
     // circuitOpen flags a synthetic, no-network-call skip from the shared
     // rate-limit breaker (lib/qbRateLimitBreaker.js) rather than a real
     // Intuit response — callers that loop over many customers/estimates
     // (fetchQbCustomer below, runQbEstimatePdfSync) use this to stop early
     // instead of grinding through dozens more already-doomed, breaker-
     // blocked calls.
-    throw Object.assign(new Error(`QB ${res.status}: ${detail}`), { status: res.status, qbError: json, circuitOpen: res.status === 'circuit_open' });
+    throw Object.assign(new Error(`QB ${res.status}: ${detail}`), { status: res.status, qbError: json, circuitOpen: res.status === 'circuit_open', intuitTid: intuitTid || null });
   }
   return json;
 }
