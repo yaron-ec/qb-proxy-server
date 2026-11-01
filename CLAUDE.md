@@ -2744,6 +2744,151 @@ payload never triggers a sync, the GET handshake unaffected);
 terminal-failure log lines and attached to the returned result, and that a
 response with no id never logs or attaches a bogus value).
 
+## Google Contacts sync — architecture, and the "Configured vs Connected" health-reporting gap (November 2026)
+
+**Production report**: System Health showed Google Contacts as
+"Configured" (not "Connected"), credential source `service_account`, a
+message saying a live connectivity check is unavailable and
+install-specific impersonation/account setup is required, `0` pending/
+retrying, and a last-sync timestamp of October 29, 2026 — while the
+operator independently confirmed (on her own phone, outside the CRM) that
+customer names ARE appearing in Google Contacts. This investigation traces
+the real sync architecture and fixes the health card's messaging; **no
+Google credential, sync behavior, or contact data was touched.**
+
+**Sync architecture (code-level, confirmed by reading the source — no live
+Google API call was made from this environment)**:
+- Auth: a single service account (`GOOGLE_SERVICE_ACCOUNT_KEY`) using
+  Google Workspace domain-wide delegation — the People API has no
+  "service account acting as itself" path; every call must impersonate a
+  real Workspace mailbox (`lib/googleContactsClient.js`).
+- **Destination is PER-LEAD, not a single fixed mailbox**:
+  `lib/googleContactsOutbox.js#processContactsOutbox` impersonates
+  `lead.owner_email` (the lead's assigned rep's own Workspace mailbox) when
+  set, falling back to `DEFAULT_SUB = process.env.GOOGLE_CONTACTS_SUB ||
+  'yaron@ecconstructiongroup.com'` (a pre-existing, hardcoded company-
+  specific fallback — the kind of literal "Development rules" above
+  already tracks as known debt; not introduced by this pass, not changed
+  here, since changing it has real behavior consequences for live contact
+  sync and needs its own deliberate review). This is WHY a given customer's
+  contact appears on a SPECIFIC rep's phone (their own Workspace account),
+  with unowned leads landing in Yaron's.
+- Enqueue → process pipeline: `lib/googleContactsOutbox.js#enqueueContactSync`
+  inserts a `google_contacts_outbox` row (idempotent per lead — skips if one
+  is already pending/processing) and flips the lead's own
+  `google_contact_sync_status` to `'pending'`. The row is later claimed and
+  processed by `scripts/calendarOutboxWorker.js` (the `noble-illumination`
+  Railway worker, same process that handles Calendar sync), which calls
+  `googleContactsClient.createOrUpdateContact()`. On success it records
+  `google_contact_sync_status='synced'`, `google_contact_resource_name`,
+  and — critically — `google_contact_synced_at` (set ONLY on a real sync
+  success, migration `2026-38`); on failure it records
+  `google_contact_sync_status='error'` + `google_contact_sync_error` and
+  retries the outbox row with exponential backoff (30s→1800s cap, dead
+  after 5 attempts).
+- **Enqueue call sites — confirmed present and intact, no regression from
+  the four gaps the "Open, known-limitation items" section below already
+  documents as fixed**: `routes/leads.js` `POST /` (create), `PUT /:id`
+  (edit — the most impactful of the four, since without it a lead only
+  ever synced once, at creation), `PUT /by-external/:externalRef`
+  (upsert), and `routes/metaWebhook.js` (both its with-appointment and
+  lead-only branches) — verified via direct grep + line-range mapping
+  against `routes/leads.js`'s own route table, not assumed from the prior
+  session's notes alone.
+- `lib/googleContactsClient.js#findContact`'s last-10-digits phone
+  comparison (the de-duplication fix from the same prior pass) is also
+  confirmed still in place.
+
+**Evidence the CRM actually records, and what the reported numbers mean**:
+`lib/systemHealthChecks.js#checkGoogleContacts`'s `sync_evidence` —
+`pending_count` (`COUNT(*) WHERE status IN ('pending','failed')`),
+`dead_count` (`COUNT(*) WHERE status = 'dead'`), and `last_synced_at`
+(`MAX(updated_at) WHERE status = 'synced'`) over `google_contacts_outbox`
+— is exactly what the reported "0 pending/retrying" and "last sync October
+29" come from. This is REAL evidence of a genuine, successful Google API
+write at that timestamp — not a cosmetic or fabricated number. One
+important nuance (parallel to, but distinct from, the Handoff Estimates
+investigation above): Google Contacts sync is EVENT-DRIVEN (a lead being
+created/edited), not a fixed-interval cron, so a gap since the last sync
+by itself does not imply breakage the way cron staleness does — it may
+simply mean no lead needed syncing in that window. This investigation
+does NOT apply the Estimates fix's "disabled cron" staleness logic here,
+since there is no equivalent always-scheduled job whose absence would be
+a comparable red flag — doing so would risk a false "stale" alarm on a
+perfectly healthy, idle queue.
+
+**Why the card says "Configured", not "Connected" — confirmed, not
+guessed**: `checkGoogleContacts` requires `GOOGLE_CONTACTS_SUB` to be set
+before it will even attempt a live People API self-lookup
+(`GET /v1/people/me`, impersonating that mailbox) — deliberately, so the
+health-check code path never has to guess or hardcode an installation-
+specific mailbox to impersonate (explicitly NOT reusing the EC-specific
+`YARON_EMAIL` fallback the real sync worker uses — a correct, deliberate
+abstraction boundary, not a bug). The reported card text ("install-specific
+impersonation/account setup is required") is the GENERIC message any
+integration gets in this exact state (`crm-frontend/src/pages/
+SystemHealth.jsx`'s shared `CONFIGURED && !supports_live_check` block) —
+it is not Google-Contacts-specific wording. This, taken together with the
+card's own message, confirms `GOOGLE_CONTACTS_SUB` is unset in this
+installation; the real sync worker is unaffected by this (it has its own
+fallback), so this is a HEALTH-REPORTING gap, not a sync gap — matching
+the operator's own independent observation that sync works.
+
+**Can a safe, read-only check report "Connected" here? Yes — and it
+already exists; no code change was needed for that path**: setting
+`GOOGLE_CONTACTS_SUB` to a real mailbox an operator is comfortable
+impersonating for a read-only self-lookup (any real Workspace user with
+Contacts access, e.g. `yaron@ecconstructiongroup.com`, the same mailbox
+the real worker's fallback already impersonates for actual sync writes) is
+all that's needed — `?verify=1` then performs exactly that safe, read-only
+call and reports a genuine CONNECTED. This environment made no such
+change (an operator/Railway-variable action, explicitly out of scope and
+not requested). **Deliberately NOT done**: inferring "Connected" purely
+from historical `sync_evidence` (a recent successful sync) without an
+actual live call — this would conflate "has worked recently" with "is
+verified right now," the same category error the Handoff Estimates fix
+was built to avoid in the other direction (never let stale evidence imply
+health; symmetrically, never let past success imply a current live
+connection either). `state` computation is unchanged.
+
+**Fix implemented**: `lib/systemHealthChecks.js#checkGoogleContacts` now
+returns an explicit `sub_configured` boolean (whether `GOOGLE_CONTACTS_SUB`
+is set) in every return branch — previously the response gave no direct
+way to know WHY no live check could run, only a generic absence.
+`crm-frontend/src/pages/SystemHealth.jsx`'s Google Contacts card now shows
+a specific explanatory block when `state === 'CONFIGURED' &&
+sub_configured === false`: naming the exact missing env var and what
+setting it would enable, and then — distinctly — interpreting the
+existing `sync_evidence` correctly: a recent successful sync is labeled
+"real, historical proof the integration has been working, just not a
+live, real-time guarantee" (never "Connected"); the absence of any
+recorded sync is labeled as a genuine open question ("could mean no lead
+has needed syncing yet, or that sync is failing") rather than silently
+implying either outcome.
+
+**Restrictions honored**: no Google Contacts created, modified, deleted,
+or duplicated; no bulk sync triggered; no service account reconnected or
+replaced; no production secrets or Google permissions changed; QuickBooks
+and Meta integrations untouched.
+
+**Not verifiable from this environment** (no Railway or production
+database access here): the live current values of `google_contacts_outbox`
+rows, whether `GOOGLE_CONTACTS_SUB` is set in production today (deduced
+from the reported UI text, not independently queried), and whether the
+four previously-documented auto-sync fixes (see "Open, known-limitation
+items" below) have been confirmed working against live production data —
+all of that remains exactly as previously documented: an open,
+live-environment verification step for the operator.
+
+Regression coverage: `test/systemHealthChecks.test.js` (`checkGoogleContacts`'s
+new `sub_configured` field across all three branches — credential missing,
+sub unset, sub set — plus a dedicated case proving real recent sync
+evidence is reported alongside the no-live-check state without ever being
+presented as if it were a live check); `crm-frontend/src/pages/
+SystemHealth.test.jsx` (the new explanatory block's three states —
+recent-evidence, no-evidence, and sub-configured-so-block-never-renders —
+asserting "Connected" is never shown without `sub_configured: true`).
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`

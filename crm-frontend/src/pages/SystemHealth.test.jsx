@@ -222,4 +222,57 @@ describe('SystemHealth', () => {
     await waitFor(() => expect(screen.getByText('Acme Remodeling')).toBeTruthy());
     expect(container.innerHTML).not.toMatch(/encrypted_payload|refresh_token|client_secret/i);
   });
+
+  it('November 2026 Google Contacts fix: Configured + no GOOGLE_CONTACTS_SUB with real recent sync evidence explains the gap, never claims Connected', async () => {
+    const recentAt = '2026-10-29T18:00:00Z';
+    get.mockResolvedValue(fixture({
+      integrations: {
+        google_contacts: integration({
+          module_enabled: true, flag_enforced: true, state: 'CONFIGURED',
+          credential_source: 'service_account', missing_env: [], supports_live_check: false, live_check: null,
+          sync_evidence: { pending_count: 0, dead_count: 0, last_synced_at: recentAt },
+          sub_configured: false,
+        }),
+      },
+    }));
+    render(<SystemHealth />);
+    await waitFor(() => expect(screen.getByText(/GOOGLE_CONTACTS_SUB/)).toBeTruthy());
+    expect(screen.getByText(/real, historical proof the integration has been working/)).toBeTruthy();
+    expect(screen.queryByText('Connected')).toBeFalsy();
+    expect(screen.getByText('Configured')).toBeTruthy();
+  });
+
+  it('Google Contacts Configured + no GOOGLE_CONTACTS_SUB and NO sync evidence shows a cautionary note, not a false positive', async () => {
+    get.mockResolvedValue(fixture({
+      integrations: {
+        google_contacts: integration({
+          module_enabled: true, flag_enforced: true, state: 'CONFIGURED',
+          credential_source: 'service_account', missing_env: [], supports_live_check: false, live_check: null,
+          sync_evidence: { pending_count: 0, dead_count: 0, last_synced_at: null },
+          sub_configured: false,
+        }),
+      },
+    }));
+    render(<SystemHealth />);
+    await waitFor(() => expect(screen.getByText(/GOOGLE_CONTACTS_SUB/)).toBeTruthy());
+    expect(screen.getByText(/No successful sync has ever been recorded/)).toBeTruthy();
+    expect(screen.queryByText(/real, historical proof/)).toBeFalsy();
+  });
+
+  it('Google Contacts with GOOGLE_CONTACTS_SUB configured never shows the explanatory gap note', async () => {
+    get.mockResolvedValue(fixture({
+      integrations: {
+        google_contacts: integration({
+          module_enabled: true, flag_enforced: true, state: 'CONNECTED',
+          credential_source: 'service_account', missing_env: [], supports_live_check: true,
+          live_check: { ok: true, degraded: false, message: 'Verified via a read-only People API call impersonating ops@example.com.', checked_at: new Date().toISOString() },
+          sync_evidence: { pending_count: 0, dead_count: 0, last_synced_at: '2026-10-29T18:00:00Z' },
+          sub_configured: true,
+        }),
+      },
+    }));
+    render(<SystemHealth />);
+    await waitFor(() => expect(screen.getByText('Connected')).toBeTruthy());
+    expect(screen.queryByText(/GOOGLE_CONTACTS_SUB/)).toBeFalsy();
+  });
 });

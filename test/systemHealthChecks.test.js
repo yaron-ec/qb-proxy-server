@@ -359,10 +359,16 @@ test('checkGoogleContacts: GOOGLE_CONTACTS_SUB unset -> CONFIGURED but supports_
     assert.strictEqual(result.credential_present, true);
     assert.strictEqual(result.supports_live_check, false);
     assert.strictEqual(result.live_check, null);
+    // November 2026 fix: sub_configured explicitly distinguishes "no live
+    // check possible because GOOGLE_CONTACTS_SUB isn't set" from a generic
+    // "cannot verify" — a production report found an operator reading this
+    // exact shape as "nothing is confirmed" despite real sync evidence
+    // existing on the same card.
+    assert.strictEqual(result.sub_configured, false);
   });
 });
 
-test('checkGoogleContacts: GOOGLE_CONTACTS_SUB set + verify:true -> attempts a live People API call', async () => {
+test('checkGoogleContacts: GOOGLE_CONTACTS_SUB set + verify:true -> attempts a live People API call, and sub_configured is true', async () => {
   const restore = stub('../lib/googleContactsClient', { getAccessToken: async (sub) => `tok-for-${sub}` });
   const origFetch = global.fetch;
   let calledWithAuth = null;
@@ -372,8 +378,33 @@ test('checkGoogleContacts: GOOGLE_CONTACTS_SUB set + verify:true -> attempts a l
       const result = await checkGoogleContacts({ verify: true });
       assert.strictEqual(result.live_check.ok, true);
       assert.strictEqual(calledWithAuth, 'Bearer tok-for-ops@example.com');
+      assert.strictEqual(result.sub_configured, true);
     });
   } finally { restore(); global.fetch = origFetch; }
+});
+
+test('checkGoogleContacts: GOOGLE_SERVICE_ACCOUNT_KEY missing entirely -> sub_configured is still false (never undefined)', async () => {
+  await withEnv({ GOOGLE_SERVICE_ACCOUNT_KEY: undefined, GOOGLE_CONTACTS_SUB: undefined }, async () => {
+    delete process.env.GOOGLE_SERVICE_ACCOUNT_KEY; delete process.env.GOOGLE_CONTACTS_SUB;
+    const result = await checkGoogleContacts({ verify: false });
+    assert.strictEqual(result.credential_present, false);
+    assert.strictEqual(result.sub_configured, false);
+  });
+});
+
+test('checkGoogleContacts: real sync evidence (recent successful sync, zero backlog) is reported alongside the no-live-check state, never discarded', async () => {
+  const recentAt = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+  queryImpl = async (sql) => {
+    assert.match(sql, /google_contacts_outbox/);
+    return { rows: [{ pending: '0', dead: '0', last_synced_at: recentAt }] };
+  };
+  await withEnv({ GOOGLE_SERVICE_ACCOUNT_KEY: '{"fake":true}', GOOGLE_CONTACTS_SUB: undefined }, async () => {
+    delete process.env.GOOGLE_CONTACTS_SUB;
+    const result = await checkGoogleContacts({ verify: true });
+    assert.strictEqual(result.sub_configured, false);
+    assert.strictEqual(result.live_check, null, 'no live check ran — evidence must never be presented as if it were one');
+    assert.deepStrictEqual(result.sync_evidence, { pending_count: 0, dead_count: 0, last_synced_at: recentAt });
+  });
 });
 
 test('checkGoogleContacts: sync_evidence reports outbox backlog/dead-letter/last-synced independent of credential state', async () => {

@@ -89,6 +89,22 @@ function IntegrationCard({ moduleKey, data }) {
         {!lc && data.state === "CONFIGURED" && !data.supports_live_check && (
           <HelperText>Live connectivity check is not available for this integration — install-specific impersonation/account setup is required.</HelperText>
         )}
+        {moduleKey === "google_contacts" && data.state === "CONFIGURED" && data.sub_configured === false && (
+          <div className="text-xs rounded-md px-2.5 py-2 leading-snug bg-slate-50 text-slate-600 space-y-1">
+            <div>
+              A live check needs <code className="font-mono">GOOGLE_CONTACTS_SUB</code> set to a real mailbox to impersonate for a read-only self-lookup — not set in this installation, so this card cannot show "Connected" even while sync is working.
+            </div>
+            {data.sync_evidence?.last_synced_at ? (
+              <div className="text-emerald-700">
+                The sync evidence above is real, historical proof the integration has been working — just not a live, real-time guarantee.
+              </div>
+            ) : (
+              <div className="text-amber-700">
+                No successful sync has ever been recorded for this installation. This could mean no lead has needed syncing yet, or that sync is failing — check a specific lead's Google Contact sync status to confirm.
+              </div>
+            )}
+          </div>
+        )}
         {data.recency && moduleKey === "handoff_estimates_sync" && (
           <HelperText>
             {data.recency.total_estimates ?? 0} estimates synced · {data.recency.matched ?? 0} matched to a lead · {data.recency.unmatched ?? 0} unmatched
