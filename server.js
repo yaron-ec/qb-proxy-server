@@ -2642,7 +2642,7 @@ app.listen(PORT, async () => {
     console.warn('[proxy] node-cron not installed — QB sync cron disabled (npm install will add it)');
   }
   if (cronLib) {
-    if (process.env.QB_SYNC_CRON_ENABLED === 'false') {
+    if (!require('./lib/qbSyncCronConfig').isEstimateSyncCronEnabled()) {
       console.log('[proxy] QB sync cron explicitly disabled (QB_SYNC_CRON_ENABLED=false)');
     } else {
       cronLib.schedule('*/15 * * * *', async () => {

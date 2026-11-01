@@ -216,6 +216,78 @@ describe('SystemHealth', () => {
     expect(container.innerHTML).not.toMatch(/\+1\d{10}/);
   });
 
+  it('November 2026 root-cause fix: a disabled scheduled estimate sync is shown distinctly, with last success/attempt and a warning', async () => {
+    const staleAt = '2026-09-10T21:09:27Z';
+    get.mockResolvedValue(fixture({
+      integrations: {
+        handoff_estimates_sync: integration({
+          module_enabled: true, flag_enforced: false, state: 'DEGRADED',
+          credential_source: 'database', missing_env: [], supports_live_check: false,
+          live_check: {
+            ok: false, degraded: true,
+            message: 'Scheduled estimate sync is disabled (QB_SYNC_CRON_ENABLED=false), and no recent webhook-triggered sync activity was found either.',
+            checked_at: new Date().toISOString(),
+          },
+          recency: { total_estimates: 174, matched: 158, unmatched: 16, last_synced_at: staleAt },
+          scheduled_sync: { enabled: false, last_successful_sync_at: staleAt, last_attempted_at: staleAt },
+          webhook_sync: { last_triggered_at: null, recently_active: false },
+        }),
+      },
+    }));
+    render(<SystemHealth />);
+    await waitFor(() => expect(screen.getByText(/Disabled \(QB_SYNC_CRON_ENABLED=false\)/)).toBeTruthy());
+    expect(screen.getByText(/174 estimates synced/)).toBeTruthy();
+    expect(screen.getByText(/The scheduled full rescan is not running/)).toBeTruthy();
+    expect(screen.getByText(/No recent activity/)).toBeTruthy();
+  });
+
+  it('recent webhook activity never masks a disabled scheduled sync — both are shown, never collapsed into "healthy"', async () => {
+    const staleAt = '2026-09-10T21:09:27Z';
+    const recentAt = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    get.mockResolvedValue(fixture({
+      integrations: {
+        handoff_estimates_sync: integration({
+          module_enabled: true, flag_enforced: false, state: 'DEGRADED',
+          credential_source: 'database', missing_env: [], supports_live_check: false,
+          live_check: {
+            ok: false, degraded: true,
+            message: `Scheduled estimate sync is disabled (QB_SYNC_CRON_ENABLED=false). The webhook last triggered a sync ${recentAt} — estimates may still be updating via webhook or manual sync, but the scheduled full rescan is NOT running.`,
+            checked_at: new Date().toISOString(),
+          },
+          recency: { total_estimates: 180, matched: 160, unmatched: 20, last_synced_at: recentAt },
+          scheduled_sync: { enabled: false, last_successful_sync_at: staleAt, last_attempted_at: staleAt },
+          webhook_sync: { last_triggered_at: recentAt, recently_active: true },
+        }),
+      },
+    }));
+    render(<SystemHealth />);
+    await waitFor(() => expect(screen.getByText(/Disabled \(QB_SYNC_CRON_ENABLED=false\)/)).toBeTruthy());
+    expect(screen.getByText(/Recently active/)).toBeTruthy();
+    // State badge must still read Degraded, never Connected, however recent
+    // the webhook activity is.
+    expect(screen.getByText('Degraded')).toBeTruthy();
+    expect(screen.queryByText('Connected')).toBeFalsy();
+  });
+
+  it('an enabled, recently-successful scheduled sync shows Enabled with no warning', async () => {
+    const recentAt = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    get.mockResolvedValue(fixture({
+      integrations: {
+        handoff_estimates_sync: integration({
+          module_enabled: true, flag_enforced: false, state: 'CONNECTED',
+          credential_source: 'database', missing_env: [], supports_live_check: false,
+          live_check: { ok: true, degraded: false, message: `Last automatic QuickBooks estimate sync completed ${recentAt}.`, checked_at: new Date().toISOString() },
+          recency: { total_estimates: 174, matched: 158, unmatched: 16, last_synced_at: recentAt },
+          scheduled_sync: { enabled: true, last_successful_sync_at: recentAt, last_attempted_at: recentAt },
+          webhook_sync: { last_triggered_at: null, recently_active: false },
+        }),
+      },
+    }));
+    render(<SystemHealth />);
+    await waitFor(() => expect(screen.getByText('Enabled')).toBeTruthy());
+    expect(screen.queryByText(/scheduled full rescan is not running/)).toBeFalsy();
+  });
+
   it('never renders a secret-looking value', async () => {
     get.mockResolvedValue(fixture());
     const { container } = render(<SystemHealth />);
