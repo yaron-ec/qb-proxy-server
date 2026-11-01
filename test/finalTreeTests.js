@@ -375,15 +375,35 @@ test('duplicate prevention: different version produces different key', function(
 // SECTION 5: REMINDER WINDOW REGRESSION TEST
 // ═════════════════════════════════════════════════════════════════════
 
-// Inline copy of REMINDER_WINDOWS from reminderEngine.js
+// Inline copy of REMINDER_WINDOWS from reminderEngine.js.
+// UPDATED November 2026: the approved six-customer-email schedule
+// (confirmation + 48h + 24h + 12h + 2h + 30min) added 48h/24h to this array
+// (gated off by default via EMAIL_EXTENDED_REMINDERS_ENABLED — see
+// lib/reminderEngine.js#activeReminderWindows). This inline copy and its
+// assertions were updated to match; the previous "NO 48h/24h window" tests
+// documented the pre-approval state, not a permanent restriction.
 var REMINDER_WINDOWS = [
+  { key: '48h', minutesBefore: 48 * 60, notifyStaff: true },
+  { key: '24h', minutesBefore: 24 * 60, notifyStaff: true },
   { key: '12h', minutesBefore: 12 * 60, notifyStaff: true },
   { key: '2h', minutesBefore: 2 * 60, notifyStaff: true },
   { key: '30min', minutesBefore: 30, notifyStaff: true },
 ];
 
-test('reminder windows: exactly 3 windows', function() {
-  eq(REMINDER_WINDOWS.length, 3, 'should have exactly 3 reminder windows');
+test('reminder windows: exactly 5 windows (48h/24h/12h/2h/30min)', function() {
+  eq(REMINDER_WINDOWS.length, 5, 'should have exactly 5 reminder windows');
+});
+
+test('reminder windows: 48h window exists', function() {
+  var w = REMINDER_WINDOWS.find(function(x) { return x.key === '48h'; });
+  assert(w, '48h window must exist');
+  eq(w.minutesBefore, 2880, '48h = 2880 minutes');
+});
+
+test('reminder windows: 24h window exists', function() {
+  var w = REMINDER_WINDOWS.find(function(x) { return x.key === '24h'; });
+  assert(w, '24h window must exist');
+  eq(w.minutesBefore, 1440, '24h = 1440 minutes');
 });
 
 test('reminder windows: 12h window exists', function() {
@@ -402,16 +422,6 @@ test('reminder windows: 30min window exists', function() {
   var w = REMINDER_WINDOWS.find(function(x) { return x.key === '30min'; });
   assert(w, '30min window must exist');
   eq(w.minutesBefore, 30, '30min = 30 minutes');
-});
-
-test('reminder windows: NO 48h window', function() {
-  var w = REMINDER_WINDOWS.find(function(x) { return x.key === '48h'; });
-  assert(!w, '48h window must NOT exist');
-});
-
-test('reminder windows: NO 24h window', function() {
-  var w = REMINDER_WINDOWS.find(function(x) { return x.key === '24h'; });
-  assert(!w, '24h window must NOT exist');
 });
 
 // ═════════════════════════════════════════════════════════════════════

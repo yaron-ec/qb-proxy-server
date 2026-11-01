@@ -3180,6 +3180,112 @@ regression guard, and the exact CI-reported drift reproduced and proven
 fixed); full existing backend suite re-run clean (0 failures, 1 pre-existing
 unrelated todo) with this fix applied.
 
+## Approved six-email / three-SMS customer appointment notification schedule (November 2026)
+
+**Approved final schedule, per explicit product sign-off**: SIX customer
+emails and THREE customer SMS messages per appointment when all windows are
+applicable — immediate confirmation (both channels) + 48h/24h/12h/2h/30min
+email, 12h/2h SMS (no SMS at 48h, 24h, or 30min). This section documents
+what already existed vs. what was genuinely missing and has now been added,
+all held behind new, off-by-default activation flags — merging/deploying
+this work changes zero live production behavior until an operator
+explicitly flips one of the new flags below.
+
+**Already working, unchanged by this pass**:
+- Customer EMAIL at 12h/2h/30min (`lib/reminderEngine.js#REMINDER_WINDOWS`,
+  pre-existing) — fully live in production.
+- Customer SMS confirmation-on-booking + 12h/2h
+  (`lib/booking/bookingService.js#sendBookingConfirmationSmsBestEffort`,
+  `lib/reminderEngine.js`'s `SMS_WINDOW_KEYS = {'12h','2h'}`) — built, gated
+  behind `SMS_AUTOMATED_REMINDERS_ENABLED` (pre-existing, see "Automated
+  appointment SMS" above), not yet activated in production.
+- SMS consent/opt-out/quiet-hours/Twilio-compliance
+  (`lib/smsService.js`/`lib/smsClient.js`) — untouched by this pass.
+- Email-only staff notifications and the retired Yaron-SMS-forward
+  (`lib/smsReplyNotify.js`, `routes/sms.js`) — untouched by this pass;
+  re-confirmed via code read that no live code path reads
+  `SMS_REPLY_FORWARD_TO` or calls the removed `forwardToYaronBestEffort`.
+
+**Genuinely missing, now implemented**:
+1. **Customer EMAIL confirmation-on-booking** (`lib/booking/bookingService.js
+   #sendBookingConfirmationEmailBestEffort`, new) — there was previously NO
+   email equivalent of the existing SMS booking confirmation; a customer
+   only ever got an immediate confirmation by SMS, never by email, unless a
+   short-notice booking happened to trigger the (unrelated,
+   lead-created-within-24h-only) catch-up email mechanism. Mirrors
+   `sendBookingConfirmationSmsBestEffort` exactly in shape: called from the
+   SAME post-commit `.then()` block in `createBooking`, gated on the SAME
+   `!result.idempotent && result.appointment` check (a replayed booking
+   request's own idempotency_key mechanism prevents any double-send — no
+   separate dedup logic needed), reuses the existing
+   `lead.customer_reminders_disabled` email opt-out (no new consent
+   concept — email never had a per-send consent column the way SMS does),
+   and reuses the EXISTING, already-approved "confirmed" wording
+   (`lib/reminderEmails.js#clientMeetingEmail`'s `isCatchUp: true` branch —
+   no new template). Its own `idempotencyKey:
+   booking-confirmation:<leadId>:<appointmentId>` is per-appointment, so a
+   genuine reschedule (a real `appointments` row update, not a replay) is
+   deliberately NOT re-confirmed by this mechanism — a reschedule
+   notification is a separate, not-yet-requested concern.
+2. **Customer EMAIL at 48h/24h** (`lib/reminderEngine.js#REMINDER_WINDOWS`,
+   extended from 3 to 5 entries: `48h, 24h, 12h, 2h, 30min`, in that
+   descending order so `determineCatchUpWindow`'s existing "earliest window
+   whose target has passed" logic picks the most generous one first) — the
+   two new windows reuse 100% of the existing Postgres claim/dedup
+   (`reminder_claims`, `ON CONFLICT DO NOTHING`), catch-up, cancellation
+   exclusion (`crmRepository.listEligibleLeads()`'s terminal-lost filter,
+   the reminder projection's `appointment_date` clear-on-cancel), and
+   narrow ~25-minute eligibility band (never a stale reminder for an
+   already-passed window) — zero new code paths for any of those concerns,
+   by construction of sharing the exact same array/loop every other window
+   already uses. The DST fix from PR #54 (`lib/reminderTime.js
+   #pacificToUtcMs`) applies identically and automatically, since
+   `getAppointmentMs` is unchanged.
+
+**Activation gates (both NEW, both default unset/false — mirrors this
+codebase's `SMS_AUTOMATED_REMINDERS_ENABLED` precedent so merging/deploying
+can never itself start a new kind of send)**:
+- `EMAIL_BOOKING_CONFIRMATION_ENABLED` — gates ONLY the new immediate
+  confirmation email.
+- `EMAIL_EXTENDED_REMINDERS_ENABLED` — gates ONLY the new 48h/24h email
+  windows (`lib/reminderEngine.js#activeReminderWindows`). The pre-existing
+  12h/2h/30min windows are unconditional (unaffected by this flag's value
+  either way — verified byte-for-byte identical with the flag on vs. off).
+  SMS is unaffected by this flag in either state: `SMS_WINDOW_KEYS` never
+  includes `48h`/`24h`, so SMS stays confirmation+12h+2h regardless.
+
+**Open design choice, not silently decided**: the two new 48h/24h windows
+were given `notifyStaff: true`, matching every pre-existing window's
+uniform treatment (rep + the `APPOINTMENT`-category staff broadcast, which
+already correctly excludes Michelle per her single-category policy). The
+approved schedule only specifies the CUSTOMER cadence; if staff should NOT
+also be cc'd at 48h/24h (unlike 12h/2h/30min), that is a one-line change
+(`notifyStaff: false` on those two entries) — not made here since it wasn't
+explicitly specified either way.
+
+**Not yet merged — held for explicit approval**, per this engagement's
+restriction that no reminder/SMS-system code ships without sign-off. No
+Railway variable was changed; both new flags are currently unset anywhere,
+so this entire schedule remains fully inert in production until an operator
+explicitly sets one or both.
+
+Regression coverage: `test/bookingConfirmationEmail.test.js` (new — the
+activation gate, the `customer_reminders_disabled`/no-email short-circuits,
+a real send's subject/recipient/idempotency-key shape); `test/
+reminderEngineExtendedEmailWindows.test.js` (new — the activation gate, that
+the pre-existing 12h/2h/30min windows are byte-for-byte unaffected by the
+flag either way, that SMS never gains 48h/24h/30min regardless of the
+email flag, catch-up window selection with the new windows present, the
+never-a-stale-reminder guarantee, the cancellation-exclusion mechanism
+proven to apply identically, and a direct DST-integration proof using the
+exact PR #54-fixed instant); `test/finalTreeTests.js` (its pre-existing,
+unrelated "NO 48h/24h window" snapshot assertions — which predated this
+approval and were never a deliberate restriction, confirmed via git history
+and the absence of any CLAUDE.md entry explaining such a restriction —
+updated to match the new, approved 5-window reality); full existing backend
+suite re-run clean (0 failures, 1 pre-existing unrelated todo) with every
+change in this section applied.
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`
