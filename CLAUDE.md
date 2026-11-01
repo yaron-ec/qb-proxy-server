@@ -3254,14 +3254,44 @@ can never itself start a new kind of send)**:
   SMS is unaffected by this flag in either state: `SMS_WINDOW_KEYS` never
   includes `48h`/`24h`, so SMS stays confirmation+12h+2h regardless.
 
-**Open design choice, not silently decided**: the two new 48h/24h windows
-were given `notifyStaff: true`, matching every pre-existing window's
-uniform treatment (rep + the `APPOINTMENT`-category staff broadcast, which
-already correctly excludes Michelle per her single-category policy). The
-approved schedule only specifies the CUSTOMER cadence; if staff should NOT
-also be cc'd at 48h/24h (unlike 12h/2h/30min), that is a one-line change
-(`notifyStaff: false` on those two entries) — not made here since it wasn't
-explicitly specified either way.
+**CUSTOMER-ONLY confirmed (November 2026, final adjustment before merge)**:
+the two new 48h/24h windows are `notifyStaff: false` — no staff CC, per
+explicit product decision. Every other window's staff notification is
+UNCHANGED: 12h/2h/30min remain `notifyStaff: true` exactly as before, and
+the pre-existing, universal catch-up override
+(`sendWindowEmails`'s `const sendStaff = win.notifyStaff || isCatchUp` —
+unmodified) still notifies staff for ANY catch-up send regardless of which
+window it lands on, including a catch-up that happens to pick 48h/24h. This
+is deliberate, not an oversight: catch-up is a separate, pre-existing,
+window-agnostic mechanism (it already overrode every other window's
+`notifyStaff` the same way, long before this feature existed), and
+special-casing it for just these two windows would introduce a NEW,
+inconsistent exception rather than "preserve existing staff notification
+behavior for the other reminder windows."
+
+**Confirmed idempotent and reschedule-safe**: both confirmation functions
+(`sendBookingConfirmationSmsBestEffort`, `sendBookingConfirmationEmailBestEffort`)
+have exactly ONE call site each, inside `createBooking`'s post-commit
+`.then()` — verified via a source-level regression test
+(`test/bookingConfirmationEmail.test.js`) that also confirms neither
+function's name appears anywhere inside `rescheduleAppointment`'s or
+`cancelAppointment`'s own function bodies. A reschedule therefore can
+neither re-trigger NOR suppress the original confirmation: nothing about
+either mechanism is reschedule-aware, by construction. Stale reminders
+after a reschedule are prevented by the SAME pre-existing mechanism every
+window already relied on, unchanged: `routes/leads.js`'s reschedule route
+wires `rescheduleAppointment`'s `onWrite` hook to
+`lib/reminderProjection.js#syncLeadToReminders`/`projectReminders` (see
+`routes/leads.js` lines ~1002/1084), which updates `reminder_leads.
+appointment_date/time` to the NEW appointment in the SAME transaction as
+the reschedule; the live reminder engine (`crmRepository.listEligibleLeads()`)
+only ever reads this CURRENT projected value, never the old appointment's
+row, so no code path can compute a reminder against a stale time. The one
+PRE-EXISTING, already-documented limitation (see "Known, accepted
+limitation" under "Automated appointment SMS" above — a same-day reschedule
+AFTER a window already fired for that date won't get a fresh reminder for
+the new time, since the claim key is keyed by date only) applies
+identically and was not introduced or changed by this work.
 
 **Not yet merged — held for explicit approval**, per this engagement's
 restriction that no reminder/SMS-system code ships without sign-off. No

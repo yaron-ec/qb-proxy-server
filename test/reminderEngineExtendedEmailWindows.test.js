@@ -34,6 +34,15 @@ test('REMINDER_WINDOWS: 48h and 24h exist, in descending order ahead of 12h/2h/3
   assert.strictEqual(by['24h'], 24 * 60);
 });
 
+test('REMINDER_WINDOWS: 48h and 24h are notifyStaff:false (customer-only, per explicit product decision); 12h/2h/30min remain notifyStaff:true (unchanged)', () => {
+  const by = Object.fromEntries(REMINDER_WINDOWS.map((w) => [w.key, w.notifyStaff]));
+  assert.strictEqual(by['48h'], false, '48h must be customer-only');
+  assert.strictEqual(by['24h'], false, '24h must be customer-only');
+  assert.strictEqual(by['12h'], true, '12h staff notification must be unchanged');
+  assert.strictEqual(by['2h'], true, '2h staff notification must be unchanged');
+  assert.strictEqual(by['30min'], true, '30min staff notification must be unchanged');
+});
+
 test('EXTENDED_EMAIL_WINDOW_KEYS contains exactly 48h and 24h', () => {
   assert.deepStrictEqual([...EXTENDED_EMAIL_WINDOW_KEYS].sort(), ['24h', '48h']);
 });
@@ -197,4 +206,11 @@ test('DST integration: a 48h-out appointment landing on the Nov 1 2026 fall-back
   } finally {
     delete process.env.EMAIL_EXTENDED_REMINDERS_ENABLED;
   }
+});
+
+test('source-level: sendWindowEmails\' sendStaff decision (win.notifyStaff || isCatchUp) is unchanged — the 48h/24h customer-only decision is carried entirely by the REMINDER_WINDOWS entries above, no new branching logic was introduced, and the pre-existing universal catch-up override (every catch-up notifies staff, regardless of window) is deliberately preserved', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const source = fs.readFileSync(path.join(__dirname, '../lib/reminderEngine.js'), 'utf8');
+  assert.match(source, /const sendStaff = win\.notifyStaff \|\| isCatchUp;/, 'sendStaff must still be derived from win.notifyStaff OR isCatchUp, unmodified by the 48h/24h customer-only change');
 });

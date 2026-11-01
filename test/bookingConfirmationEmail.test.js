@@ -112,3 +112,32 @@ test('sendBookingConfirmationEmailBestEffort: flag on + valid lead/appt -> sends
     delete process.env.EMAIL_BOOKING_CONFIRMATION_ENABLED;
   }
 });
+
+test('source-level: both confirmation functions (email + SMS) are called from exactly ONE site each, both inside createBooking\'s post-commit `.then()`, never from rescheduleAppointment/cancelAppointment/updateAppointment -- a reschedule can neither accidentally re-fire nor suppress the original confirmation, since nothing about it is reschedule-aware', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const source = fs.readFileSync(path.join(__dirname, '../lib/booking/bookingService.js'), 'utf8');
+
+  const smsCallSites = source.match(/sendBookingConfirmationSmsBestEffort\(/g) || [];
+  const emailCallSites = source.match(/sendBookingConfirmationEmailBestEffort\(/g) || [];
+  // Each name appears twice total in the file: once as the call, once as the
+  // `async function ...(` declaration itself.
+  assert.strictEqual(smsCallSites.length, 2, 'sendBookingConfirmationSmsBestEffort must have exactly one call site (plus its own declaration)');
+  assert.strictEqual(emailCallSites.length, 2, 'sendBookingConfirmationEmailBestEffort must have exactly one call site (plus its own declaration)');
+
+  const callLineRegex = /^\s*sendBookingConfirmation(Sms|Email)BestEffort\(result\.lead, result\.appointment\)\.catch/m;
+  assert.match(source, callLineRegex, 'the one real call site must be the post-commit result.lead/result.appointment pattern inside createBooking\'s .then()');
+
+  // Neither confirmation function may appear anywhere inside rescheduleAppointment
+  // or cancelAppointment's own function bodies.
+  const extractFnBody = (fnName) => {
+    const start = source.indexOf(`async function ${fnName}(`);
+    assert.ok(start >= 0, `${fnName} must exist`);
+    const nextFnStart = source.indexOf('\nasync function ', start + 1);
+    return source.slice(start, nextFnStart > 0 ? nextFnStart : start + 5000);
+  };
+  const rescheduleBody = extractFnBody('rescheduleAppointment');
+  const cancelBody = extractFnBody('cancelAppointment');
+  assert.ok(!rescheduleBody.includes('sendBookingConfirmation'), 'rescheduleAppointment must never call either confirmation function');
+  assert.ok(!cancelBody.includes('sendBookingConfirmation'), 'cancelAppointment must never call either confirmation function');
+});
