@@ -50,8 +50,14 @@ test('every non-quiet_hours rejection reason stays terminal (markSkippedNoRecipi
   const body = smsLoopBody();
   const elseIdx = body.lastIndexOf('} else {');
   assert.ok(elseIdx !== -1);
-  const branch = body.slice(elseIdx, elseIdx + 400);
-  assert.match(branch, /markSkippedNoRecipient\(smsClaim\.id\)/);
+  const branch = body.slice(elseIdx, elseIdx + 500);
+  // November 2026: markSkippedNoRecipient now also persists the exact
+  // rejection reason into reminder_claims.last_error_type (see
+  // test/reminderEngineSmsSkipReason.test.js) so existing diagnostics can
+  // explain the skip after the fact — this is still the same terminal,
+  // non-retryable call this test guards, just with its known reason kept
+  // instead of discarded.
+  assert.match(branch, /markSkippedNoRecipient\(smsClaim\.id, smsRes\.reason\)/);
 });
 
 test('retrying never continues past the appointment start time — an expired, still-retryable claim is explicitly closed out, not retried forever', () => {
