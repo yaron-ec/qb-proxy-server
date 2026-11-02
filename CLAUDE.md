@@ -1030,6 +1030,56 @@ to Yaron's personal phone.
   keyword — proves email fires correctly and NO outbound SMS is ever sent
   as a reply notification).
 
+## SMS reminder skip-reason persistence (`lib/reminderEngine.js#markSkippedNoRecipient`, November 2026)
+
+**Operational-visibility gap, found during a production notification audit,
+now fixed**: when `lib/reminderEngine.js`'s 12h/2h SMS claim loop skips a
+reminder for a genuine, permanent reason (`no_consent`, `recipient_opted_out`,
+`no_phone`, `twilio_not_configured` — whatever `lib/smsService.js`'s
+`SmsError` already reported as `smsRes.reason`), `markSkippedNoRecipient`
+unconditionally wrote `last_error_type = NULL` — the specific reason was
+computed, logged once to the console, and then discarded. The two existing,
+already-shipped read-only diagnostics (`routes/cronJobs.js`'s
+`POST /diagnose-reminder-delivery` and `lib/leadDiagnostic.js`) both already
+`SELECT`/return `reminder_claims.last_error_type` — they simply had nothing
+useful to show for an SMS skip, only `NULL`.
+
+**Fix**: `markSkippedNoRecipient(claimId, reason)` now takes an optional
+`reason` and persists it verbatim into `last_error_type` (`last_error`
+itself stays `NULL` either way — there's no human-readable message to add,
+only the already-known code). The ONE call site this applies to is the SMS
+loop's final, non-`quiet_hours` `else` branch —
+`markSkippedNoRecipient(smsClaim.id, smsRes.reason)`. Every other call site
+is **deliberately unchanged**, to keep this fix narrowly scoped to the exact
+gap found:
+- Email's own zero-recipient skip (`markSkippedNoRecipient(claim.id)`, no
+  second argument) — unchanged, `last_error_type` stays `NULL` exactly as
+  before.
+- The SMS "feature not activated" branch (`SMS_AUTOMATED_REMINDERS_ENABLED`
+  off, or `enabled_modules.sms` off) — no `SmsError`-based reason exists to
+  report there, so it's left as `NULL`, same as before.
+- The quiet-hours-exhausted ("no compliant sending window remained before
+  the appointment") branch — a different, already-distinct log message;
+  not changed by this pass.
+
+No new DDL: `reminder_claims.last_error_type` is a plain `TEXT` column with
+no `CHECK` constraint, added by the original `2026-08-reminder-worker-minimum.sql`
+migration — safe to write any string to, no migration needed. No new
+`sms_messages` row is ever created for a skip (that table only ever
+records a message that actually reached Twilio) — the SMS conversation view
+continues to show real messages only. Claim keys, the dedup/lease
+primitives, quiet-hours retry handling, and reschedule/cancellation safety
+are all completely untouched — this is purely a "persist a value already
+in hand" change on the terminal-skip path.
+
+Regression coverage: `test/reminderEngineSmsSkipReason.test.js` (new — direct,
+DB-stubbed proof of the exact SQL/params for each of the four named reasons
+plus the unchanged no-reason/email case, and a source-level proof that every
+other call site, and the successful-send path, are untouched);
+`test/reminderEngineQuietHoursDeferral.test.js` (pre-existing source-level
+test updated to match the call site's new, correct signature — its intent,
+"stays terminal, never retried," is unchanged).
+
 ## CRM email notification links: centralized, validated base URL (`lib/crmUrl.js`, November 2026, fixed)
 
 **Production incident**: a New Lead notification email's "Open Lead in CRM"
