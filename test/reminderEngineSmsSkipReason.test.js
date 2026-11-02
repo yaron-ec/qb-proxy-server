@@ -126,8 +126,12 @@ test('source-level: the permanent SMS-skip branch passes smsRes.reason through; 
 
   // reminder_claims.last_error_type is read by both existing read-only
   // diagnostics — confirms this fix needs no new endpoint (requirement 6).
-  const cronJobsSource = fs.readFileSync(path.join(__dirname, '../routes/cronJobs.js'), 'utf8');
-  assert.match(cronJobsSource, /last_error_type:\s*c\.last_error_type/, 'diagnose-reminder-delivery must already expose last_error_type');
+  // November 2026: diagnose-reminder-delivery's query/response logic was
+  // extracted verbatim into lib/reminderDeliveryDiagnostics.js (so the new
+  // CRM-admin-authenticated reminder-diagnostics route can reuse it) — the
+  // exposure of last_error_type moved with it, unchanged, not removed.
+  const sharedDiagnosticsSource = fs.readFileSync(path.join(__dirname, '../lib/reminderDeliveryDiagnostics.js'), 'utf8');
+  assert.match(sharedDiagnosticsSource, /last_error_type:\s*c\.last_error_type/, 'the shared diagnostics logic (used by both diagnose-reminder-delivery and the new admin route) must expose last_error_type');
   const leadDiagnosticSource = fs.readFileSync(path.join(__dirname, '../lib/leadDiagnostic.js'), 'utf8');
   assert.match(leadDiagnosticSource, /last_error_type/, 'leadDiagnostic must already select last_error_type');
 });

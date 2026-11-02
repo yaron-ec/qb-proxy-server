@@ -35,6 +35,7 @@ import SignNowPanel from "../components/SignNowPanel";
 import CalendarSyncPanel from "../components/CalendarSyncPanel";
 import GoogleContactSyncPanel from "../components/GoogleContactSyncPanel";
 import AppointmentReminderPanel from "../components/AppointmentReminderPanel";
+import ReminderDeliveryDiagnosticsPanel from "../components/ReminderDeliveryDiagnosticsPanel";
 import EstimateSyncButton from "../components/EstimateSyncButton";
 import ProposalPanel from "../components/ProposalPanel";
 import RightSidebarAccordion from "../components/RightSidebarAccordion";
@@ -474,6 +475,9 @@ function LeadDetailModernInner() {
               </div>
             )}
             {currentUser?.role === 'admin' && (
+              <ReminderDeliveryDiagnosticsPanel lead={lead} />
+            )}
+            {currentUser?.role === 'admin' && (
               <AdminCalendarRepairButton />
             )}
             <RightSidebarAccordion sections={accordionSections} defaultOpen="handoff" />
@@ -506,6 +510,11 @@ function LeadDetailModernInner() {
           <div className="border-t border-slate-100">
             <AppointmentReminderPanel lead={lead} />
           </div>
+          {currentUser?.role === 'admin' && (
+            <div className="border-t border-slate-100 p-3">
+              <ReminderDeliveryDiagnosticsPanel lead={lead} />
+            </div>
+          )}
           {currentUser?.role === 'admin' && (
             <div className="border-t border-slate-100 p-3">
               <AdminCalendarRepairButton />
