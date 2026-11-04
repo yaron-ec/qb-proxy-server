@@ -132,6 +132,50 @@ test('source-level: getAppointmentNotificationDiagnostics resolves reminder_clai
   assert.match(source, /FROM sms_messages WHERE lead_id = \$1[\s\S]*\[leadRow\.id\]/);
 });
 
+// Regression guard for a production defect (November 2026): the leads
+// table has no assigned_rep column of its own (only reminder_leads/deals
+// do — ownership on `leads` is via owner_id, a FK to owners), and the
+// appointments table has no appointment_type column (only
+// appointment_type_id, a FK to appointment_types). The original
+// implementation selected both directly, which is a genuine Postgres
+// "column does not exist" error on every call — never caught by the
+// pre-existing test suite because every test here stubs db/client.query
+// with canned rows, which can't catch a schema mismatch. This guard
+// catches the exact class of regression without needing a live database,
+// and test/integration/reminderDiagnosticsAppointment.int.test.js proves
+// the fix against a real, migrated Postgres schema.
+test('source-level: leads.assigned_rep and appointments.appointment_type are resolved via a LEFT JOIN, never selected as bare columns that do not exist', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../lib/reminderDeliveryDiagnostics.js'), 'utf8');
+  assert.match(
+    source,
+    /FROM leads l LEFT JOIN owners o ON o\.id = l\.owner_id/,
+    'leads.assigned_rep does not exist as a column — the lead lookup must resolve it via a LEFT JOIN to owners, same as routes/leads.js#serializeLead'
+  );
+  assert.match(
+    source,
+    /o\.display_name AS owner_display_name,\s*o\.email AS owner_email/,
+    'the owners join must select display_name/email so assigned_rep can be derived from them'
+  );
+  assert.match(
+    source,
+    /leadRow\.assigned_rep\s*=\s*leadRow\.owner_display_name\s*\|\|\s*leadRow\.owner_email\s*\|\|\s*null/,
+    'assigned_rep must be derived display_name-first, same precedence as routes/leads.js'
+  );
+  assert.match(
+    source,
+    /FROM appointments a LEFT JOIN appointment_types t ON t\.id = a\.appointment_type_id/,
+    'appointments.appointment_type does not exist as a column — the appointment lookup must resolve it via a LEFT JOIN to appointment_types, same as lib/leadDiagnostic.js'
+  );
+  assert.match(
+    source,
+    /t\.name AS appointment_type/,
+    'the appointment_types join must alias the type name as appointment_type, matching the field the rest of this module reads'
+  );
+  // Never regress back to a bare, nonexistent column on either table.
+  assert.doesNotMatch(source, /SELECT\s+id,\s*external_ref,\s*first_name,\s*last_name,\s*sms_consent,\s*phone,\s*email,\s*assigned_rep\s*\n\s*FROM leads/);
+  assert.doesNotMatch(source, /SELECT\s+start_at,\s*appointment_type,\s*status,\s*created_at\s*\n\s*FROM appointments/);
+});
+
 function stub(modPath, exportsObj) {
   const p = require.resolve(modPath);
   const prev = require.cache[p];

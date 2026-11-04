@@ -1149,6 +1149,73 @@ existing JWT, never the worker secret.
   (on-demand-only fetch, the full outcome-mix render, not-found and
   error states, never showing a send confirmation before data loads).
 
+### Production incident: `reminder_diagnostics_failed` on every "Check" click with an appointment (November 2026, fixed)
+
+**Production report**: clicking "Check" on the panel above returned
+`reminder_diagnostics_failed` for a lead with a scheduled appointment.
+
+**Root cause, reproduced directly against a real migrated Postgres schema
+(not guessed)**: `getAppointmentNotificationDiagnostics`'s very first query
+selected `leads.assigned_rep` — a column that **does not exist on `leads`
+at all**. `assigned_rep` only exists on `reminder_leads`/`deals`; `leads`
+ownership is exclusively via `owner_id` (a FK to `owners`), resolved
+everywhere else in this codebase (`routes/leads.js#serializeLead`) via a
+`LEFT JOIN owners`, never a direct column. This query failed with Postgres
+error `column "assigned_rep" does not exist` on **every** call, for any
+lead, not only ones with an appointment — the reported repro (a lead with a
+scheduled appointment) was simply the first case tried. A second, latent
+bug one query later would have surfaced immediately after fixing the
+first: the appointment lookup selected `appointments.appointment_type`,
+which likewise does not exist — `appointments` stores
+`appointment_type_id` (a FK to `appointment_types`), resolved to a
+human-readable name via a `LEFT JOIN`, the exact pattern
+`lib/leadDiagnostic.js` already uses for the same table.
+
+**Why PR #57's CI never caught this**: every existing test for this module
+stubs `db/client.query` to return canned rows (see
+`test/reminderDeliveryDiagnostics.test.js`'s `stub()` helper) — a stub can
+never catch a column that doesn't exist in the real schema, and CI's
+backend job runs with no `DATABASE_URL` at all (see
+`.github/workflows/ci.yml`'s own header comment), so no test in that run
+ever executed this function's SQL against a real database. This is a
+structural gap, not specific to this feature: any new query in this
+codebase is exactly as exposed unless it is also covered by a real-Postgres
+`test/integration/*.int.test.js` file.
+
+**Fix** (`lib/reminderDeliveryDiagnostics.js`): the leads lookup now does
+`FROM leads l LEFT JOIN owners o ON o.id = l.owner_id`, selecting
+`o.display_name AS owner_display_name, o.email AS owner_email`, with
+`assigned_rep` derived as `owner_display_name || owner_email || null` —
+byte-for-byte the same precedence `routes/leads.js#serializeLead` already
+uses. The appointments lookup now does
+`FROM appointments a LEFT JOIN appointment_types t ON t.id = a.appointment_type_id`,
+selecting `t.name AS appointment_type`. Both were reproduced failing
+against a real, disposable, fully-migrated Postgres instance before the
+fix and proven passing after. **Frontend, separately**: the panel's catch
+block only ever showed `e.message` — the generic error *code*
+(`reminder_diagnostics_failed`) the client's shared `apiCall` parser
+surfaces — discarding the backend's more specific `e.data.message` (the
+actual Postgres error text, in this case). Fixed to prefer
+`e.data?.message`, so a future failure of this kind is immediately
+diagnosable from the admin UI itself rather than requiring a Railway log
+lookup; this route is admin-only and purely read-only, so showing the
+underlying error text carries no credential/PII exposure.
+
+No reminder, SMS, or email was ever sent by this investigation or fix; no
+consent, claim, or any other record was modified — the bug and its fix are
+both entirely confined to two `SELECT` queries' column lists.
+
+Regression coverage: `test/integration/reminderDiagnosticsAppointment.int.test.js`
+(new — real-Postgres proof: a lead with a genuine scheduled appointment now
+returns 200 with the correct assigned-rep display name and appointment type
+name, reproduced failing against the pre-fix code and confirmed passing
+after; a lead with no appointment is unaffected; auth 401/403 unaffected);
+`test/reminderDeliveryDiagnostics.test.js` (new source-level guard asserting
+both joins are present and a bare, nonexistent column is never selected
+again); `crm-frontend/src/components/ReminderDeliveryDiagnosticsPanel.test.jsx`
+(unchanged — the existing error-path test continues to pass with the more
+specific message now shown).
+
 ## CRM email notification links: centralized, validated base URL (`lib/crmUrl.js`, November 2026, fixed)
 
 **Production incident**: a New Lead notification email's "Open Lead in CRM"
