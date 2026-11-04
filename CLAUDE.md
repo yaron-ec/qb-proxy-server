@@ -1080,6 +1080,75 @@ other call site, and the successful-send path, are untouched);
 test updated to match the call site's new, correct signature — its intent,
 "stays terminal, never retried," is unchanged).
 
+## Appointment Notification Diagnostics — admin-only CRM panel (November 2026)
+
+**Problem solved**: the only way to trace a specific appointment's actual
+reminder-delivery outcome was `POST /api/v1/cron/diagnose-reminder-delivery`,
+gated by `X-Worker-Secret` — not reachable from the CRM, and not something
+the frontend should ever be given (exposing `WORKER_SECRET` to the browser
+is never acceptable). This section adds the same underlying read-only
+diagnostic directly into the CRM, authenticated with the admin's own
+existing JWT, never the worker secret.
+
+- **`lib/reminderDeliveryDiagnostics.js`** (new) is the shared, purely
+  read-only (every query is a `SELECT`) logic module:
+  - `getReminderDeliveryDiagnostics({ lead_id, name })` is the **exact**
+    pre-existing query/response logic, extracted verbatim out of
+    `routes/cronJobs.js`'s `POST /diagnose-reminder-delivery` handler — that
+    route's external contract (request shape, response shape, the 400
+    pre-check for a missing `lead_id`/`name`) is byte-for-byte unchanged;
+    it now just calls this function instead of inlining the same queries.
+  - `getAppointmentNotificationDiagnostics(leadId)` is new: resolves a real
+    `leads.id` to the SAME reminder-identity formula
+    `lib/reminderProjection.js#reminderIdFor` uses
+    (`external_ref || id`) for `reminder_claims`/`reminder_leads` lookups,
+    while querying `sms_messages` by the real `leads.id` directly (its own
+    FK, independent of `external_ref`) — the two tables are keyed
+    differently, and conflating them would silently return nothing for any
+    lead with an `external_ref` (website/Meta-sourced leads).
+  - `classifyClaimRow()`/`classifyConfirmationSms()` turn a
+    `reminder_claims` row (plus, for SMS, the matching `sms_messages` row)
+    into one of exactly: `sent`, `delivered` (SMS only — Gmail has no
+    delivery tracking in this codebase, so email never claims more than
+    `sent`), `failed`, `skipped` (with its `last_error_type` reason when
+    recorded — see the SMS skip-reason persistence fix above; an older,
+    pre-fix skip explains itself as "not recorded" rather than guessing),
+    `pending_retry` (the existing `quiet_hours` retryable state), `not_yet_due`,
+    or `no_record / not verified`. **A missing claim row is NEVER reported
+    as "skipped"** — only as `not_yet_due` (its target time hasn't passed)
+    or `no_record` (it has, but nothing was ever recorded) — exactly the
+    distinction a human would otherwise have to work out by hand.
+- **`routes/reminderDiagnostics.js`** (new) — `GET /api/v1/leads/:id/reminder-diagnostics`,
+  gated by the CRM's own `requireAuth` + `requireAdmin` (identical
+  convention to `routes/systemInfo.js` and every other admin-only route in
+  this codebase) — never the cron route's `X-Worker-Secret`, and the
+  frontend never calls that worker-secret route at all.
+- **Frontend**: `crm-frontend/src/components/ReminderDeliveryDiagnosticsPanel.jsx`
+  — a collapsible, on-demand ("Check" button, never auto-run on page load)
+  panel rendered **admin-only** (`currentUser?.role === 'admin'`, matching
+  the existing `AdminCalendarRepairButton` convention) in Lead Detail,
+  directly below the existing `AppointmentReminderPanel` (desktop left
+  column) and alongside the existing admin calendar-repair control (mobile
+  integrations tab). Shows the appointment's resolved date/time, current
+  SMS consent state, and all eight notification rows — the five email
+  windows (48h/24h/12h/2h/30min) plus SMS confirmation/12h/2h — each with
+  its classified outcome and, for a skip, its exact reason.
+- **Purely read-only, end to end**: no write of any kind anywhere in this
+  feature — confirmed by a source-level regression test asserting every
+  SQL template literal in `lib/reminderDeliveryDiagnostics.js` is a
+  `SELECT`. Cannot send a message, change consent, or modify any record.
+- Regression coverage: `test/reminderDeliveryDiagnostics.test.js` (every
+  classification branch, the read-only-SQL source guard, the
+  `reminderIdFor`-consistent id-resolution source guard, the unchanged
+  lead-not-found behavior); `test/reminderDiagnosticsRoute.test.js`
+  (HTTP-level — delegates correctly, 401 without auth, 500 on a thrown
+  error, the route's `requireAuth`+`requireAdmin` wiring, the pre-existing
+  cron route's unchanged 400 pre-check and delegation, and that the
+  frontend never references the worker-secret endpoint or `WORKER_SECRET`);
+  `crm-frontend/src/components/ReminderDeliveryDiagnosticsPanel.test.jsx`
+  (on-demand-only fetch, the full outcome-mix render, not-found and
+  error states, never showing a send confirmation before data loads).
+
 ## CRM email notification links: centralized, validated base URL (`lib/crmUrl.js`, November 2026, fixed)
 
 **Production incident**: a New Lead notification email's "Open Lead in CRM"
