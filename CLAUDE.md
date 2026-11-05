@@ -3502,6 +3502,141 @@ updated to match the new, approved 5-window reality); full existing backend
 suite re-run clean (0 failures, 1 pre-existing unrelated todo) with every
 change in this section applied.
 
+## Outbound SMS visibility: Yaron sent/delivery-failure email alerts + System Health delivery evidence (November 2026)
+
+**Context**: a production trace of lead Manuel Manalo's appointment (Nov 5,
+2026) found his 12h and 2h automated SMS reminders both reached a terminal
+`undelivered`/`failed` status with Twilio error 30006 ("Landline or
+unreachable carrier" — a per-destination carrier rejection, confirmed
+against Twilio's own documentation, not an account-level misconfiguration).
+The Text Messages tab correctly showed both as Undelivered and the
+Appointment Notification Diagnostics panel (see above) correctly surfaced
+the error code — but nothing notified Yaron that an outbound SMS had even
+been accepted for sending, or that one had subsequently failed delivery.
+This was a genuine, confirmed gap, not a misconfiguration: no code path in
+this codebase emailed staff on either event before this change.
+
+**Fix — two new notification categories, reusing 100% of existing
+infrastructure, no new mechanism of any kind**:
+
+- `lib/notificationPreferences.js#CATEGORIES` gained `SMS_SENT` (`'sms_sent'`)
+  and `SMS_DELIVERY_FAILURE` (`'sms_delivery_failure'`) — the SAME
+  schema-free `notification_preferences` table every other category already
+  uses (absence of a row means enabled; a disabling row is the only way to
+  exclude a recipient).
+- `db/migrations/2026-68-sms-outbound-notification-categories.sql`
+  (additive, `ON CONFLICT (user_email, category) DO NOTHING`) seeds exactly
+  two disabling rows for `michelle@ecconstructiongroup.com` — **this MUST
+  be a new, separate migration, never an edit to
+  `2026-62-michelle-single-category-notifications.sql`**: `db/migrate.js`
+  never re-executes a migration filename that already has a
+  `schema_migrations` row (confirmed via its own checksum/skip logic), so
+  editing 2026-62 directly would silently never apply in any environment
+  where it had already run, permanently re-enabling Michelle for both new
+  categories. `test/michelleNotificationPolicySeed.test.js` was updated to
+  scan EVERY `db/migrations/*.sql` file for Michelle's disabling rows
+  (`readAllMichelleRows()`) rather than only 2026-62, so a future category
+  added with no matching disabling row in ANY migration is still caught —
+  it previously hardcoded the single 2026-62 filename and would otherwise
+  have silently passed despite Michelle being incorrectly re-enabled for
+  both new categories.
+- **`lib/smsOutboundNotify.js`** (new) is the one place both notifications
+  live: `notifySmsSent({ leadId, messageRow })` and
+  `notifySmsDeliveryFailure({ messageRow })`, each independently gated
+  (`sentNotificationsEnabled`/`deliveryFailureNotificationsEnabled` —
+  always-on today, no env var needed since these are plain staff-email
+  notifications, not a new automated customer-facing send), routed through
+  `notificationPreferences.filterRecipientsForCategory(getAllStaffRecipients(),
+  CATEGORIES.SMS_SENT / SMS_DELIVERY_FAILURE)` — the exact mechanism that
+  automatically keeps Michelle excluded (via the migration above) and Yaron
+  included, with zero person-specific logic in this new file. Each email
+  includes the lead name, a `lib/crmUrl.js#buildLeadUrl` link, timestamp,
+  `smsAuthorLabel(sentBy)` (a rep's email for a manual send, or a friendly
+  "Automated — Booking Confirmation / 12h Reminder / 2h Reminder" label —
+  reusing the exact same label convention `SmsConversationPanel.jsx`
+  already renders), and the **initial send status only** — the email body
+  explicitly says "accepted for sending," never "delivered," per the
+  requirement that provider acceptance must never be described as
+  successful delivery.
+- **Wired into `lib/smsService.js`** at the two points that already decide
+  these outcomes — no new call site logic, no new DB table:
+  - `sendSms()` calls `notifySmsSent` once, after the real `sms_messages`
+    row is inserted (never on a rejected send — opt-out/consent/quiet-hours
+    rejections never reach this point, matching the existing "no row on
+    rejection" behavior). A transport retry inside `sendSms` still only
+    inserts one row and fires one notification.
+  - `handleStatusCallback()` gained `TERMINAL_FAILURE_STATUSES = new
+    Set(['failed', 'undelivered'])` and a transition guard
+    (`wasAlreadyFailed`/`isNowFailed`) that fires `notifySmsDeliveryFailure`
+    **only on a genuine not-failed → failed transition** — reusing the
+    SAME pre-existing `OUTBOUND_STATUS_RANK` out-of-order-callback guard
+    this function already had. A redelivered identical-status webhook, a
+    different-terminal-status correction (e.g. `undelivered` → `failed`),
+    and a non-terminal transition (`sent` → `delivered`) all correctly fire
+    at most once or never — "at most one alert per delivery failure" is
+    structural, not a counter. No automatic resend is ever triggered by
+    either function.
+  - Both call sites wrap the notification in try/catch and only
+    `console.warn` on failure — a notification-email failure can never
+    fail or roll back the underlying SMS send/status-update it's reporting
+    on.
+- **`getOutboundDeliveryEvidence()`** (new, `lib/smsService.js`) is a
+  read-only aggregate over `sms_messages WHERE direction = 'outbound'` —
+  total attempts, delivered count, failed/undelivered count, the top 5
+  recent error codes (last 7 days) with counts, and the most recent
+  `updated_at` — reporting `{ available: false }` on any query failure
+  rather than fabricating zeros, matching this codebase's established
+  "never present an unverified zero as fact" convention (see the Handoff
+  Estimates sync-status fix above).
+- **System Health**: `lib/systemHealthChecks.js#checkTwilio` now calls
+  `getOutboundDeliveryEvidence()` (best-effort) and reports it as a new
+  `outbound_delivery` field, plus two new `notification_config` booleans
+  (`sms_sent_notifications_enabled`/`sms_delivery_failure_notifications_enabled`).
+  `crm-frontend/src/pages/SystemHealth.jsx`'s existing Twilio card renders
+  a new detail block (attempts/delivered/failed, recent error codes, last
+  status update) or an "unavailable" message — **this reuses the existing
+  Twilio card; no new monitoring dashboard was created**, per the explicit
+  requirement.
+
+**Explicitly preserved, unchanged by this work**: Yaron's existing
+inclusion in every other notification category; Michelle's single-category
+(`NEW_LEAD`-only) policy, now automatically extended to both new categories
+via the migration rather than any code-level special case; the retired
+Yaron-SMS-forward (`SMS_REPLY_FORWARD_TO` is still never read); SMS
+consent/opt-out enforcement and quiet hours (`lib/smsService.js#sendSms`'s
+check order is untouched); the automated 12h/2h reminder schedule and the
+`SMS_AUTOMATED_REMINDERS_ENABLED`/`enabled_modules.sms` gates; all Twilio
+credentials, A2P configuration, and the actual send/retry logic; QuickBooks
+and Meta integrations (not touched by this change at all).
+
+**Twilio error 30006 itself was NOT and will not be worked around** — per
+explicit instruction, a landline/unreachable-carrier rejection is a
+genuine, per-destination carrier limitation, not a bug; live SMS delivery
+will be re-verified later against a customer with a confirmed mobile number
+and valid consent.
+
+Regression coverage: `test/smsOutboundNotify.test.js` (14 tests — pure
+unit: `smsAuthorLabel`'s full mapping table, both functions' disabled-by-
+default/decoupled-gate/category-filter/wording/idempotency-key-shape/
+lead-not-found/never-throws behavior, plus 2 source-level guards against
+`lib/smsService.js`); `test/integration/smsOutboundNotify.int.test.js` (7
+tests, real Postgres — a successful send fires `notifySmsSent` exactly
+once; a genuine sent→failed transition fires `notifySmsDeliveryFailure`
+exactly once; a redelivered identical-status callback never fires twice; a
+different-terminal-status correction never fires twice; a non-terminal
+transition never fires the failure alert; Michelle is excluded from both
+new categories via the real migration-seeded rows while an unrestricted
+staff address is kept; `getOutboundDeliveryEvidence()` reports real counts
+matching the rows the test itself created); `test/systemHealthChecks.test.js`
+(+3 tests — real `outbound_delivery` evidence, graceful `null` degradation
+on a failing lookup, both new `notification_config` gate states);
+`crm-frontend/src/pages/SystemHealth.test.jsx` (+2 tests — full
+`outbound_delivery` card rendering including both new notification lines,
+and the "unavailable" render when the evidence query failed); full existing
+backend suite re-run clean (1413 pass, 0 fail, 1 pre-existing unrelated
+todo) and full frontend vitest suite re-run clean (426 pass) with every
+change in this section applied.
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`

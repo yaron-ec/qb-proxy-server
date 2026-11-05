@@ -216,6 +216,59 @@ describe('SystemHealth', () => {
     expect(container.innerHTML).not.toMatch(/\+1\d{10}/);
   });
 
+  it('November 2026 outbound-SMS-visibility fix: shows attempts/delivered/failed counts and recent error codes, and the two new notification gates', async () => {
+    get.mockResolvedValue(fixture({
+      integrations: {
+        sms: integration({
+          module_enabled: true, flag_enforced: false, state: 'CONFIGURED',
+          credential_source: 'env', missing_env: [], supports_live_check: true, live_check: null,
+          recency: { last_lead_received_at: null, total_leads_received: 0 },
+          delivery_failures: { recent_24h: 0, total: 0, last_rejected_at: null },
+          webhook_config: {
+            base_url_source: 'TWILIO_WEBHOOK_BASE_URL',
+            inbound_webhook_url: 'https://qb-proxy-server-production.up.railway.app/api/v1/sms-webhook/inbound',
+            status_webhook_url: 'https://qb-proxy-server-production.up.railway.app/api/v1/sms-webhook/status',
+          },
+          notification_config: {
+            reply_notifications_enabled: true,
+            sms_sent_notifications_enabled: false,
+            sms_delivery_failure_notifications_enabled: true,
+          },
+          outbound_delivery: {
+            available: true, attempts: 42, delivered: 38, failed: 2,
+            recent_error_codes: [{ error_code: '30006', count: 2 }],
+            last_status_update_at: '2026-11-05T08:02:00Z',
+          },
+        }),
+      },
+    }));
+    render(<SystemHealth />);
+    await waitFor(() => expect(screen.getByText(/42 attempts/)).toBeTruthy());
+    expect(screen.getByText(/38 delivered/)).toBeTruthy();
+    expect(screen.getByText(/2 failed\/undelivered/)).toBeTruthy();
+    expect(screen.getByText(/30006 \(2\)/)).toBeTruthy();
+    expect(screen.getByText(/Disabled \(SMS_SENT_NOTIFICATIONS_ENABLED\)/)).toBeTruthy();
+    // reply_notifications_enabled and sms_delivery_failure_notifications_enabled are both true.
+    expect(screen.getAllByText('Enabled').length).toBe(2);
+  });
+
+  it('a failed outbound_delivery lookup renders an "unavailable" message rather than fabricated zeros', async () => {
+    get.mockResolvedValue(fixture({
+      integrations: {
+        sms: integration({
+          module_enabled: true, flag_enforced: false, state: 'CONFIGURED',
+          credential_source: 'env', missing_env: [], supports_live_check: true, live_check: null,
+          recency: null, delivery_failures: null,
+          webhook_config: { base_url_source: 'unset', inbound_webhook_url: null, status_webhook_url: null },
+          notification_config: { reply_notifications_enabled: false, sms_sent_notifications_enabled: false, sms_delivery_failure_notifications_enabled: false },
+          outbound_delivery: { available: false },
+        }),
+      },
+    }));
+    render(<SystemHealth />);
+    await waitFor(() => expect(screen.getByText(/Outbound delivery evidence unavailable/)).toBeTruthy());
+  });
+
   it('November 2026 root-cause fix: a disabled scheduled estimate sync is shown distinctly, with last success/attempt and a warning', async () => {
     const staleAt = '2026-09-10T21:09:27Z';
     get.mockResolvedValue(fixture({
