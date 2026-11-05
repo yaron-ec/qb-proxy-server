@@ -75,7 +75,10 @@ export default function ReminderDeliveryDiagnosticsPanel({ lead }) {
       setData(res);
       setCollapsed(false);
     } catch (e) {
-      setError(e.message || "Diagnostic failed");
+      // e.message is the generic error code (e.g. "reminder_diagnostics_failed");
+      // e.data.message carries the actual failure detail the backend logs.
+      // Admin-only route, so showing it is safe and far more actionable.
+      setError(e.data?.message || e.message || "Diagnostic failed");
       setCollapsed(false);
     } finally {
       setLoading(false);
