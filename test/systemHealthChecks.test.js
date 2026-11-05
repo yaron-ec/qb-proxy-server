@@ -703,6 +703,72 @@ test('checkTwilio: a stray SMS_REPLY_FORWARD_TO left in the environment is never
   } finally { restoreSmsService(); delete process.env.SMS_REPLY_FORWARD_TO; }
 });
 
+// ── outbound_delivery / sms_sent + sms_delivery_failure notification_config
+// — November 2026, the Manuel Manalo Twilio-error-30006 incident. Reuses
+// the existing sms_messages table + status-callback updates only; no new
+// table, no new dashboard.
+test('checkTwilio: outbound_delivery reports real attempts/delivered/failed counts and recent error codes', async () => {
+  const restoreSmsService = stub('../lib/smsService', {
+    getInboundWebhookHealth: async () => ({ recency: null, delivery_failures: null }),
+    getOutboundDeliveryEvidence: async () => ({
+      available: true, attempts: 42, delivered: 38, failed: 2,
+      recent_error_codes: [{ error_code: '30006', count: 2 }],
+      last_status_update_at: '2026-11-05T08:02:00.000Z',
+    }),
+  });
+  try {
+    await withEnv({ TWILIO_ACCOUNT_SID: undefined, TWILIO_AUTH_TOKEN: undefined, TWILIO_FROM: undefined }, async () => {
+      delete process.env.TWILIO_ACCOUNT_SID; delete process.env.TWILIO_AUTH_TOKEN; delete process.env.TWILIO_FROM;
+      const result = await checkTwilio({ verify: false });
+      assert.strictEqual(result.outbound_delivery.attempts, 42);
+      assert.strictEqual(result.outbound_delivery.delivered, 38);
+      assert.strictEqual(result.outbound_delivery.failed, 2);
+      assert.deepStrictEqual(result.outbound_delivery.recent_error_codes, [{ error_code: '30006', count: 2 }]);
+      assert.strictEqual(result.outbound_delivery.last_status_update_at, '2026-11-05T08:02:00.000Z');
+    });
+  } finally { restoreSmsService(); }
+});
+
+test('checkTwilio: a failing outbound-delivery-evidence lookup degrades gracefully (outbound_delivery null), never crashes the whole check', async () => {
+  const restoreSmsService = stub('../lib/smsService', {
+    getInboundWebhookHealth: async () => ({ recency: null, delivery_failures: null }),
+    getOutboundDeliveryEvidence: async () => { throw new Error('db hiccup'); },
+  });
+  try {
+    await withEnv({ TWILIO_ACCOUNT_SID: undefined, TWILIO_AUTH_TOKEN: undefined, TWILIO_FROM: undefined }, async () => {
+      delete process.env.TWILIO_ACCOUNT_SID; delete process.env.TWILIO_AUTH_TOKEN; delete process.env.TWILIO_FROM;
+      const result = await checkTwilio({ verify: false });
+      assert.strictEqual(result.outbound_delivery, null);
+    });
+  } finally { restoreSmsService(); }
+});
+
+test('checkTwilio: notification_config reports sms_sent/sms_delivery_failure gates off by default and reflects them once set', async () => {
+  const restoreSmsService = stub('../lib/smsService', { getInboundWebhookHealth: async () => ({ recency: null, delivery_failures: null }) });
+  try {
+    await withEnv({
+      TWILIO_ACCOUNT_SID: undefined, TWILIO_AUTH_TOKEN: undefined, TWILIO_FROM: undefined,
+      SMS_SENT_NOTIFICATIONS_ENABLED: undefined, SMS_DELIVERY_FAILURE_NOTIFICATIONS_ENABLED: undefined,
+    }, async () => {
+      delete process.env.TWILIO_ACCOUNT_SID; delete process.env.TWILIO_AUTH_TOKEN; delete process.env.TWILIO_FROM;
+      delete process.env.SMS_SENT_NOTIFICATIONS_ENABLED; delete process.env.SMS_DELIVERY_FAILURE_NOTIFICATIONS_ENABLED;
+      const off = await checkTwilio({ verify: false });
+      assert.strictEqual(off.notification_config.sms_sent_notifications_enabled, false);
+      assert.strictEqual(off.notification_config.sms_delivery_failure_notifications_enabled, false);
+
+      process.env.SMS_SENT_NOTIFICATIONS_ENABLED = 'true';
+      process.env.SMS_DELIVERY_FAILURE_NOTIFICATIONS_ENABLED = 'true';
+      const on = await checkTwilio({ verify: false });
+      assert.strictEqual(on.notification_config.sms_sent_notifications_enabled, true);
+      assert.strictEqual(on.notification_config.sms_delivery_failure_notifications_enabled, true);
+    });
+  } finally {
+    restoreSmsService();
+    delete process.env.SMS_SENT_NOTIFICATIONS_ENABLED;
+    delete process.env.SMS_DELIVERY_FAILURE_NOTIFICATIONS_ENABLED;
+  }
+});
+
 // ── Meta / Website Intake (inbound-webhook-only, DB recency signal) ──────
 test('checkMeta: missing META_APP_SECRET -> NOT_CONFIGURED, supports_live_check:false, no DB query attempted', async () => {
   queryImpl = async () => { throw new Error('must never query when not configured'); };

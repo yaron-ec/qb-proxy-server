@@ -177,6 +177,37 @@ function IntegrationCard({ moduleKey, data }) {
                 {data.notification_config.reply_notifications_enabled ? "Enabled" : "Disabled (SMS_REPLY_NOTIFICATIONS_ENABLED)"}
               </span>
             </div>
+            <div>
+              Outbound-sent email notifications:{" "}
+              <span className={data.notification_config.sms_sent_notifications_enabled ? "text-emerald-700 font-semibold" : "text-slate-500 font-semibold"}>
+                {data.notification_config.sms_sent_notifications_enabled ? "Enabled" : "Disabled (SMS_SENT_NOTIFICATIONS_ENABLED)"}
+              </span>
+            </div>
+            <div>
+              Delivery-failure email alerts:{" "}
+              <span className={data.notification_config.sms_delivery_failure_notifications_enabled ? "text-emerald-700 font-semibold" : "text-slate-500 font-semibold"}>
+                {data.notification_config.sms_delivery_failure_notifications_enabled ? "Enabled" : "Disabled (SMS_DELIVERY_FAILURE_NOTIFICATIONS_ENABLED)"}
+              </span>
+            </div>
+          </div>
+        )}
+        {moduleKey === "sms" && data.outbound_delivery && (
+          <div className="text-xs rounded-md px-2.5 py-2 leading-snug bg-slate-50 text-slate-600 space-y-1">
+            {data.outbound_delivery.available ? (
+              <>
+                <div>
+                  Outbound: {data.outbound_delivery.attempts} attempts · {data.outbound_delivery.delivered} delivered · {data.outbound_delivery.failed} failed/undelivered
+                </div>
+                {data.outbound_delivery.recent_error_codes.length > 0 && (
+                  <div>
+                    Recent error codes (7d): {data.outbound_delivery.recent_error_codes.map((e) => `${e.error_code} (${e.count})`).join(", ")}
+                  </div>
+                )}
+                <div>Last status update: {fmt(data.outbound_delivery.last_status_update_at)}</div>
+              </>
+            ) : (
+              <div>Outbound delivery evidence unavailable (query failed).</div>
+            )}
           </div>
         )}
         {data.sync_evidence && (
