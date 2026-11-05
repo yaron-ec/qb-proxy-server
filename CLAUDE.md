@@ -3542,10 +3542,18 @@ infrastructure, no new mechanism of any kind**:
   both new categories.
 - **`lib/smsOutboundNotify.js`** (new) is the one place both notifications
   live: `notifySmsSent({ leadId, messageRow })` and
-  `notifySmsDeliveryFailure({ messageRow })`, each independently gated
-  (`sentNotificationsEnabled`/`deliveryFailureNotificationsEnabled` —
-  always-on today, no env var needed since these are plain staff-email
-  notifications, not a new automated customer-facing send), routed through
+  `notifySmsDeliveryFailure({ messageRow })`, each independently gated by
+  its OWN new, off-by-default env var —
+  `SMS_SENT_NOTIFICATIONS_ENABLED` / `SMS_DELIVERY_FAILURE_NOTIFICATIONS_ENABLED`
+  (`sentNotificationsEnabled()`/`deliveryFailureNotificationsEnabled()`) —
+  mirroring this codebase's established "one flag per independent concern"
+  doctrine (`SMS_AUTOMATED_REMINDERS_ENABLED`/`SMS_REPLY_NOTIFICATIONS_ENABLED`).
+  **Neither env var is set anywhere today, so both notifications are INERT
+  until an operator explicitly sets them to `'true'` on the `qb-proxy-server`
+  Railway service** — merging/deploying this feature changes zero live
+  behavior by itself. System Health's `notification_config` block (see
+  below) reports each gate's live Enabled/Disabled state so this can be
+  confirmed without Railway env-var access. Routed through
   `notificationPreferences.filterRecipientsForCategory(getAllStaffRecipients(),
   CATEGORIES.SMS_SENT / SMS_DELIVERY_FAILURE)` — the exact mechanism that
   automatically keeps Michelle excluded (via the migration above) and Yaron
