@@ -47,6 +47,8 @@ jobs:
   frontend:
     name: Frontend — production build
     runs-on: ubuntu-latest
+    outputs:
+      build_hash: ${{ steps.build-hash.outputs.hash }}
     steps:
       - uses: actions/checkout@v4
 
@@ -91,3 +93,93 @@ jobs:
         # Runs against the production-only install above — same command
         # and same installed tree as crm-frontend/Dockerfile's build stage.
         run: npm run build:exit
+
+      - name: Extract this build's sw.js hash
+        id: build-hash
+        working-directory: crm-frontend
+        # The exact hash swBuildHashPlugin baked into THIS build's sw.js —
+        # used by verify-production below to prove the live site is serving
+        # these exact bits, not just a matching commit SHA (the frontend has
+        # no git-SHA marker of its own; this is the strongest available
+        # verification: the actual built artifact, not just its source).
+        run: |
+          hash=$(grep -oE "ec-crm-v[A-Za-z0-9_-]+" dist/sw.js | head -1 | sed 's/ec-crm-v//')
+          if [ -z "$hash" ]; then echo "::error::Could not extract build hash from dist/sw.js"; exit 1; fi
+          echo "hash=$hash" >> "$GITHUB_OUTPUT"
+
+  # Production-correctness audit finding (P0): CI passing has never meant the
+  # change actually reached production — PR #59 merged and tested clean while
+  # its frontend changes silently never deployed (the frontend service has no
+  # committed deploy trigger; see railway.json's own header and CLAUDE.md).
+  # This job closes that specific gap for every future push to main: it does
+  # NOT gate the merge (it only ever runs after a push already landed, and
+  # Railway's own deploy time is outside this repo's control either way) —
+  # it gives a genuine, unambiguous PASS/FAIL/SKIPPED signal instead.
+  #
+  # Three states, never conflated:
+  #   SKIPPED (gray) — PRODUCTION_BACKEND_URL / PRODUCTION_FRONTEND_URL repo
+  #     variables aren't set yet. This is the state until an operator
+  #     configures them — never reported as green, never as red.
+  #   FAILED (red)   — configured, but the live site did not confirm this
+  #     exact commit/build within the timeout. A genuine production problem.
+  #   PASSED (green) — the live backend's build_commit matches this push's
+  #     SHA AND the live frontend's sw.js hash matches this exact build.
+  # A FAILED result here is never downgraded to a soft ::warning:: annotation
+  # — it is a real job failure, visible in the Actions tab and in any branch
+  # protection history, exactly so it can never be mistaken for a pass.
+  verify-production:
+    name: Verify production (backend + frontend)
+    needs: [backend, frontend]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.PRODUCTION_BACKEND_URL != '' && vars.PRODUCTION_FRONTEND_URL != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Poll backend build_commit
+        id: backend-check
+        env:
+          URL: ${{ vars.PRODUCTION_BACKEND_URL }}
+          SECRET: ${{ secrets.PRODUCTION_PROXY_SECRET }}
+          EXPECTED: ${{ github.sha }}
+        run: |
+          for i in $(seq 1 20); do
+            sha=$(curl -sf -H "X-Proxy-Secret: $SECRET" "$URL/api/v1/system/info" | jq -r '.build_commit // empty') || sha=""
+            if [ "$sha" = "$EXPECTED" ]; then
+              echo "Backend confirmed at $sha (attempt $i)"
+              echo "result=pass" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "Attempt $i: backend reports '$sha', expected '$EXPECTED' — retrying in 30s"
+            sleep 30
+          done
+          echo "result=fail" >> "$GITHUB_OUTPUT"
+          echo "::error::Backend never reported build_commit=$EXPECTED within 10 minutes of this push"
+          exit 1
+
+      - name: Poll frontend sw.js build hash
+        id: frontend-check
+        if: always() && steps.backend-check.outcome != 'cancelled'
+        env:
+          URL: ${{ vars.PRODUCTION_FRONTEND_URL }}
+          EXPECTED: ${{ needs.frontend.outputs.build_hash }}
+        run: |
+          for i in $(seq 1 20); do
+            hash=$(curl -sf "$URL/sw.js" | grep -oE "ec-crm-v[A-Za-z0-9_-]+" | head -1 | sed 's/ec-crm-v//') || hash=""
+            if [ "$hash" = "$EXPECTED" ]; then
+              echo "Frontend confirmed at $hash (attempt $i)"
+              echo "result=pass" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "Attempt $i: frontend reports '$hash', expected '$EXPECTED' — retrying in 30s"
+            sleep 30
+          done
+          echo "result=fail" >> "$GITHUB_OUTPUT"
+          echo "::error::Frontend never served build hash $EXPECTED within 10 minutes of this push"
+          exit 1
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## Production verification — $GITHUB_SHA"
+            echo "- Backend: ${{ steps.backend-check.outputs.result || 'did not run' }}"
+            echo "- Frontend: ${{ steps.frontend-check.outputs.result || 'did not run' }}"
+          } >> "$GITHUB_STEP_SUMMARY"

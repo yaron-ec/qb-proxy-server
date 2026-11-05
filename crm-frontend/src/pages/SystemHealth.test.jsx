@@ -60,7 +60,17 @@ function fixture(overrides = {}) {
   };
 }
 
-beforeEach(() => { get.mockReset(); mockUser = { role: 'admin', email: 'admin@acme.example' }; });
+beforeEach(() => {
+  get.mockReset();
+  mockUser = { role: 'admin', email: 'admin@acme.example' };
+  // Default: /sw.js fetch succeeds with a real-looking build hash, so
+  // existing tests that don't care about frontend-build-hash rendering
+  // aren't affected by the new effect firing on every mount.
+  global.fetch = vi.fn().mockResolvedValue({
+    ok: true,
+    text: () => Promise.resolve("const CACHE_VERSION = 'ec-crm-vTESTHASH123456';"),
+  });
+});
 
 describe('SystemHealth', () => {
   it('admin sees installation identity and integration states', async () => {
@@ -78,6 +88,37 @@ describe('SystemHealth', () => {
     render(<SystemHealth />);
     expect(screen.getByText(/admins only/i)).toBeTruthy();
     expect(screen.queryByText('Acme Remodeling')).toBeFalsy();
+  });
+
+  it('renders the frontend build hash read from the live /sw.js, distinct from the backend build commit', async () => {
+    get.mockResolvedValue(fixture());
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      text: () => Promise.resolve("/** sw */\nconst CACHE_VERSION = 'ec-crm-vdeadbeef1234567';\n"),
+    });
+    render(<SystemHealth />);
+    await waitFor(() => expect(screen.getByText('deadbeef1234')).toBeTruthy());
+    expect(global.fetch).toHaveBeenCalledWith('/sw.js', { cache: 'no-store' });
+    // Backend's own build_commit (routes/systemInfo.js, pre-existing) still
+    // renders separately -- the two must never be conflated.
+    expect(screen.getByText('abc123def456')).toBeTruthy();
+  });
+
+  it('frontend build hash shows "unavailable" when /sw.js fails to fetch, never a blank or stale value', async () => {
+    get.mockResolvedValue(fixture());
+    global.fetch = vi.fn().mockRejectedValue(new Error('network error'));
+    render(<SystemHealth />);
+    await waitFor(() => expect(screen.getByText('unavailable')).toBeTruthy());
+  });
+
+  it('frontend build hash shows "unavailable" when the build-hash placeholder was never replaced (e.g. a non-production build)', async () => {
+    get.mockResolvedValue(fixture());
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      text: () => Promise.resolve("const CACHE_VERSION = 'ec-crm-v__BUILD_HASH__';"),
+    });
+    render(<SystemHealth />);
+    await waitFor(() => expect(screen.getByText('unavailable')).toBeTruthy());
   });
 
   it('a disabled module never renders as Disconnected or Degraded', async () => {
