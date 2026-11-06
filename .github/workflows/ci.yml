@@ -116,32 +116,94 @@ jobs:
   # Railway's own deploy time is outside this repo's control either way) —
   # it gives a genuine, unambiguous PASS/FAIL/SKIPPED signal instead.
   #
-  # Three states, never conflated:
-  #   SKIPPED (gray) — PRODUCTION_BACKEND_URL / PRODUCTION_FRONTEND_URL repo
-  #     variables aren't set yet. This is the state until an operator
+  # Four states, never conflated:
+  #   SKIPPED (gray, whole job) — PRODUCTION_BACKEND_URL / PRODUCTION_FRONTEND_URL
+  #     repo variables aren't set yet. This is the state until an operator
   #     configures them — never reported as green, never as red.
-  #   FAILED (red)   — configured, but the live site did not confirm this
-  #     exact commit/build within the timeout. A genuine production problem.
+  #   SKIPPED (gray, one check) — a service's own Railway Watch Paths (mirrored
+  #     in scripts/ci/computeDeployRelevance.js) weren't touched by this push,
+  #     so Railway never redeployed it and polling for a new version would be
+  #     meaningless. Confirmed necessary directly: PR #60 (CLAUDE.md-only) was
+  #     observed via the Railway API to skip deployment on BOTH services —
+  #     without this check, that exact push would have polled for 10 minutes
+  #     and reported FAILED on a perfectly healthy release.
+  #   FAILED (red)   — a service's watched paths WERE touched, but the live
+  #     site did not confirm this exact commit/build within the timeout. A
+  #     genuine production problem.
   #   PASSED (green) — the live backend's build_commit matches this push's
-  #     SHA AND the live frontend's sw.js hash matches this exact build.
+  #     SHA AND/OR the live frontend's sw.js hash matches this exact build
+  #     (independently — either can PASS while the other is SKIPPED).
   # A FAILED result here is never downgraded to a soft ::warning:: annotation
   # — it is a real job failure, visible in the Actions tab and in any branch
   # protection history, exactly so it can never be mistaken for a pass.
+  #
+  # No privileged CI credential: the backend check reads build_commit off the
+  # pre-existing, UNAUTHENTICATED GET /health (lib/buildInfo.js) — not the
+  # admin-JWT-gated GET /api/v1/system/info. An earlier version of this job
+  # sent X-Proxy-Secret to that admin route, which never accepts it
+  # (routes/systemInfo.js uses requireAuth, Bearer-JWT only — see
+  # lib/rbac.js) — the job could never have passed. No secret is needed or
+  # read by this job at all.
+  #
+  # Reruns: GitHub preserves the original push event's before/after SHAs
+  # across a workflow rerun, so the relevance computation below is identical
+  # and stable on a rerun — nothing here is time- or run-dependent.
   verify-production:
     name: Verify production (backend + frontend)
     needs: [backend, frontend]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.PRODUCTION_BACKEND_URL != '' && vars.PRODUCTION_FRONTEND_URL != ''
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history needed to diff against github.event.before
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Determine which services this push could have redeployed
+        id: changed
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          # github.event.before is the all-zero SHA on the very first push to
+          # a ref — there is no prior commit to diff against, so we cannot
+          # prove anything was IRRELEVANT. Fail safe: run both checks rather
+          # than silently skip. Same fail-safe if the SHA can't be resolved
+          # even with full history (should not happen, but a diff we can't
+          # compute must never be read as "nothing changed").
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BEFORE" 2>/dev/null; then
+            echo "Cannot diff against a prior commit (initial push, merge commit base not resolvable, or before-SHA missing) — defaulting both checks to relevant."
+            echo "backend_relevant=true" >> "$GITHUB_OUTPUT"
+            echo "frontend_relevant=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Two-dot diff: every file that differs between the previous main
+          # tip and this one. Correct for both a single commit and a merge
+          # commit (an entire merged PR's file set) — either way it's just
+          # "every path that differs between these two trees," which is
+          # exactly what Railway's own Watch Paths evaluate against.
+          mapfile -t CHANGED < <(git diff --name-only "$BEFORE" "$AFTER")
+          echo "Changed files (${#CHANGED[@]}):"
+          printf '%s\n' "${CHANGED[@]}"
+
+          backend=$(node scripts/ci/computeDeployRelevance.js qb-proxy-server "${CHANGED[@]}")
+          frontend=$(node scripts/ci/computeDeployRelevance.js insightful-encouragement "${CHANGED[@]}")
+          echo "backend_relevant=$backend" >> "$GITHUB_OUTPUT"
+          echo "frontend_relevant=$frontend" >> "$GITHUB_OUTPUT"
+
       - name: Poll backend build_commit
         id: backend-check
+        if: steps.changed.outputs.backend_relevant == 'true'
         env:
           URL: ${{ vars.PRODUCTION_BACKEND_URL }}
-          SECRET: ${{ secrets.PRODUCTION_PROXY_SECRET }}
           EXPECTED: ${{ github.sha }}
         run: |
           for i in $(seq 1 20); do
-            sha=$(curl -sf -H "X-Proxy-Secret: $SECRET" "$URL/api/v1/system/info" | jq -r '.build_commit // empty') || sha=""
+            sha=$(curl -sf "$URL/health" | jq -r '.build_commit // empty') || sha=""
             if [ "$sha" = "$EXPECTED" ]; then
               echo "Backend confirmed at $sha (attempt $i)"
               echo "result=pass" >> "$GITHUB_OUTPUT"
@@ -156,7 +218,7 @@ jobs:
 
       - name: Poll frontend sw.js build hash
         id: frontend-check
-        if: always() && steps.backend-check.outcome != 'cancelled'
+        if: always() && steps.backend-check.outcome != 'cancelled' && steps.changed.outputs.frontend_relevant == 'true'
         env:
           URL: ${{ vars.PRODUCTION_FRONTEND_URL }}
           EXPECTED: ${{ needs.frontend.outputs.build_hash }}
@@ -178,8 +240,16 @@ jobs:
       - name: Summary
         if: always()
         run: |
+          backend_msg="${{ steps.backend-check.outputs.result || 'did not run' }}"
+          if [ "${{ steps.changed.outputs.backend_relevant }}" = "false" ]; then
+            backend_msg="skipped — no backend-relevant files changed this push"
+          fi
+          frontend_msg="${{ steps.frontend-check.outputs.result || 'did not run' }}"
+          if [ "${{ steps.changed.outputs.frontend_relevant }}" = "false" ]; then
+            frontend_msg="skipped — no frontend-relevant files changed this push"
+          fi
           {
             echo "## Production verification — $GITHUB_SHA"
-            echo "- Backend: ${{ steps.backend-check.outputs.result || 'did not run' }}"
-            echo "- Frontend: ${{ steps.frontend-check.outputs.result || 'did not run' }}"
+            echo "- Backend: $backend_msg"
+            echo "- Frontend: $frontend_msg"
           } >> "$GITHUB_STEP_SUMMARY"

@@ -29,6 +29,7 @@ const { query } = require('../db/client');
 const { identify } = require('../lib/installationIdentity');
 const { rateLimit } = require('../lib/rateLimit');
 const { getIntegrationHealth } = require('../lib/systemHealthChecks');
+const { buildCommit, productVersion } = require('../lib/buildInfo');
 
 const router = express.Router();
 router.use(requireAuth, requireRole('admin'));
@@ -37,31 +38,6 @@ router.use(requireAuth, requireRole('admin'));
 // (QuickBooks, Gmail, Google, SignNow, Handoff, Twilio) — rate-limit that
 // path specifically so repeated admin page-refreshes can't hammer them.
 const verifyRateLimit = rateLimit({ windowMs: 60 * 1000, max: 10 });
-
-let _pkgVersion = null;
-function productVersion() {
-  if (_pkgVersion) return _pkgVersion;
-  _pkgVersion = require('../package.json').version;
-  return _pkgVersion;
-}
-
-// Deployed-commit identity (PRODUCTIZATION PHASE 2, Section 9). Railway sets
-// RAILWAY_GIT_COMMIT_SHA automatically on every deploy — no Railway
-// project/service UUID is ever hardcoded here, only a well-known,
-// platform-generic env var name any Railway deployment gets for free.
-// Falls back to `git rev-parse HEAD` for local/non-Railway environments
-// (e.g. this sandbox, or a non-Railway host running the same image).
-let _buildCommit = null;
-function buildCommit() {
-  if (_buildCommit) return _buildCommit;
-  if (process.env.RAILWAY_GIT_COMMIT_SHA) { _buildCommit = process.env.RAILWAY_GIT_COMMIT_SHA; return _buildCommit; }
-  try {
-    _buildCommit = require('child_process').execSync('git rev-parse HEAD', { cwd: __dirname + '/..', stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
-  } catch (e) {
-    _buildCommit = null;
-  }
-  return _buildCommit;
-}
 
 router.get('/info', async (req, res, next) => {
   // Only the live-verify path is rate-limited — a plain refresh stays fast

@@ -34,6 +34,7 @@ const saleDb = require('./db/client'); // Railway Postgres pool (for sale-scoped
 const saleMap = require('./lib/qbInvoiceSaleMap'); // qb_invoice_sale_map + qb_invoices_cache helpers
 const { syncAllMappedCustomers } = require('./lib/qbInboundSync'); // QB inbound reconciliation (invoices/payments/allocations)
 const qbEnvironment = require('./lib/qbEnvironment'); // single validated source of truth for QB_ENVIRONMENT (hostname + credential key)
+const { buildCommit } = require('./lib/buildInfo'); // deployed-commit identity, shared with routes/systemInfo.js
 
 // qb_sync_jobs and integration_credentials used to be created here via raw
 // DDL at startup (CRM STABILITY PHASE completion pass, Section D: removed).
@@ -337,6 +338,12 @@ async function buildHealthPayload({ verify = false } = {}) {
   return {
     status: 'ok',
     service_name: PROXY_SERVICE_NAME,
+    // Deployed-commit identity — not a secret (already public in this repo's
+    // own history); exposed unauthenticated specifically so CI's
+    // verify-production job can confirm a push's exact commit went live
+    // without needing an admin JWT or any new privileged credential. See
+    // CLAUDE.md's "PR #59 frontend silent-non-deploy incident" section.
+    build_commit: buildCommit(),
     environment: QB_ENVIRONMENT,
     // true only when QB_ENVIRONMENT was unset/unrecognized and this process
     // fell back to 'sandbox' rather than guessing 'production' — see
