@@ -179,10 +179,18 @@ async function runWatchdog() {
       }
     }
 
+    // Per-service breakdown — previously only the aggregate counts were
+    // logged (e.g. "unhealthy":4), with no way to tell WHICH 4 without a
+    // separate Postgres query against monitoring_health_checks. Every
+    // unhealthy service's id + its own check's error reason is now in the
+    // one scan log line, matching the level of detail an operator actually
+    // needs without extra tooling.
+    const unhealthyServices = results.filter(r => !r.healthy).map(r => ({ serviceId: r.serviceId, checkType: r.checkType, error: r.error }));
     const summary = {
       total: results.length,
       healthy: results.filter(r => r.healthy).length,
       unhealthy: results.filter(r => !r.healthy).length,
+      unhealthyServices,
       checkedAt: new Date().toISOString(),
     };
     console.log(JSON.stringify({ event: 'PRODUCTION_WATCHDOG_SCAN', ...summary }));
