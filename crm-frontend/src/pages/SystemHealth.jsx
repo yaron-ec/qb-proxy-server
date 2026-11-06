@@ -241,6 +241,17 @@ export default function SystemHealth() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
+  // Frontend build identity (P0 production-version-verification pass,
+  // November 2026): the backend already reports its own build_commit/schema
+  // state above (routes/systemInfo.js, pre-existing) -- the frontend had no
+  // equivalent. Rather than add a new build-time env var/Dockerfile ARG
+  // (more deploy-config surface, exactly what this pass is trying to make
+  // more reliable, not less), this reads the ALREADY-EXISTING build-hash
+  // baked into public/sw.js's CACHE_VERSION (crm-frontend/vite.config.js's
+  // swBuildHashPlugin) via a same-origin fetch -- zero new build step, zero
+  // new config. /sw.js is served with Cache-Control: no-cache (nginx.conf),
+  // so this always reflects what's actually live, not a cached copy.
+  const [frontendBuild, setFrontendBuild] = useState({ status: "checking" });
 
   const load = (verify = false) => {
     (verify ? setVerifying : setLoading)(true);
@@ -252,6 +263,23 @@ export default function SystemHealth() {
   };
 
   useEffect(() => { load(false); }, []);
+
+  useEffect(() => {
+    fetch("/sw.js", { cache: "no-store" })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.text();
+      })
+      .then((text) => {
+        const match = text.match(/CACHE_VERSION\s*=\s*'ec-crm-v([^']+)'/);
+        if (match && match[1] && match[1] !== "__BUILD_HASH__") {
+          setFrontendBuild({ status: "ok", hash: match[1] });
+        } else {
+          setFrontendBuild({ status: "unavailable" });
+        }
+      })
+      .catch(() => setFrontendBuild({ status: "unavailable" }));
+  }, []);
 
   if (user && user.role !== "admin") {
     return (
@@ -312,8 +340,16 @@ export default function SystemHealth() {
                       <dd className="text-slate-800">{info.product_version || "—"}</dd>
                     </div>
                     <div>
-                      <dt className="text-slate-500 text-xs">Build commit</dt>
+                      <dt className="text-slate-500 text-xs">Build commit (backend)</dt>
                       <dd className="text-slate-800 font-mono text-xs">{info.build_commit ? info.build_commit.slice(0, 12) : "unknown"}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500 text-xs">Build hash (frontend, this page)</dt>
+                      <dd className="text-slate-800 font-mono text-xs">
+                        {frontendBuild.status === "ok" ? frontendBuild.hash.slice(0, 12)
+                          : frontendBuild.status === "checking" ? "checking…"
+                          : "unavailable"}
+                      </dd>
                     </div>
                     <div>
                       <dt className="text-slate-500 text-xs">Migrations applied</dt>
