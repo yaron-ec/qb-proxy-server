@@ -104,7 +104,7 @@ require.cache[addressPipelinePath] = {
 
 delete require.cache[require.resolve('../lib/booking/bookingService')];
 
-test('a brand new Lead created with its first appointment starts as "Appointment Scheduled" / "First Meeting"', async () => {
+test('a brand new Lead created with its first appointment starts as "Appointment scheduled" / "First Meeting"', async () => {
   resetLeads();
   resolveLeadImpl = async () => ({ action: 'create' });
   const { createBooking } = require('../lib/booking/bookingService');
@@ -114,7 +114,7 @@ test('a brand new Lead created with its first appointment starts as "Appointment
     start_at: '2026-08-01T17:00:00Z', appointment_type_id: 'type-1',
   });
   assert.strictEqual(leadsTable.length, 1);
-  assert.strictEqual(leadsTable[0].status, 'Appointment Scheduled');
+  assert.strictEqual(leadsTable[0].status, 'Appointment scheduled');
   assert.strictEqual(leadsTable[0].meeting_stage, 'First Meeting');
   assert.strictEqual(appointmentInserts, 1);
 });

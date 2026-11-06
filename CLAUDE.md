@@ -3702,6 +3702,244 @@ Every runtime dependency was traced two hops deep from `reminderWorker.js`'s own
 
 **Safety**: `artistic-determination` is a one-shot Railway Cron job (confirmed via the live environment status: `isCronJob: true`, 0 persistent replicas) — a new deploy only takes effect on the *next scheduled tick*, it never interrupts an in-flight run. Duplicate-send protection comes from the Postgres claim/lease mechanism (`reminder_claims`), not deploy cadence — restricting Watch Paths only reduces unnecessary redeploys, it does not change reminder scheduling, reminder logic, the claim/lease mechanism, notification recipients, or touch the database in any way. Narrower-than-necessary coverage is the only residual risk, mitigated by using broad `lib/**`/`db/**` globs (not an exact file list) — any future reminder-relevant file placed under those directories is covered automatically, matching the convention already used by the other three services.
 
+## CRM reliability closeout: status casing, reminder activity logging, watchdog/alerts, backup/SMS verification (November 2026)
+
+Final focused reliability pass addressing the three confirmed issues (plus
+two read-only verifications) the user required resolved before closing the
+CRM reliability workstream. Scope deliberately narrow — no speculative
+cleanup, QuickBooks/customer-data/permissions/unrelated workflows untouched.
+
+- **1. Lead status casing** (`lib/booking/bookingService.js`): `createBooking`
+  wrote `status = 'Appointment Scheduled'` (capital S) for a lead born with
+  its first appointment — the dominant lead-creation path (public capture,
+  Meta webhook, admin New Lead with an appointment all funnel through this
+  one function). Every READER in this codebase compares against the
+  lowercase `'Appointment scheduled'` instead
+  (`crm-frontend/src/lib/design-system.js`'s `STATUS_STYLES`, Dashboard,
+  Reports, Kanban, Settings, `LeadDetailModern.jsx`'s `STATUSES` dropdown,
+  and `routes/cronJobs.js`'s mark-invalid-contacts exclusion
+  `status NOT IN ('Sold', 'Appointment scheduled')`) — a capitalized lead
+  was silently invisible to all of those and not excluded by that cron.
+  Fixed the one write site to the lowercase literal. **Existing affected
+  records**: `scripts/backfillAppointmentScheduledStatusCasing.js`
+  (report-first, `--apply --confirm-host=<host>` to write, same convention
+  as `scripts/remediateTerminalLostLeadAppointments.js`) finds every lead
+  whose `status` is the exact wrong-cased literal and corrects ONLY that
+  column (re-checking the old value in the `WHERE` clause so a lead already
+  hand-corrected or moved on is never clobbered) — never touches
+  `appointments`, `follow_up_*`, `meeting_stage`, or any status other than
+  the exact literal the bug actually produced (a different casing variant,
+  e.g. all-lowercase, is left alone — this is an exact-literal match, never
+  a fuzzy/case-insensitive correction that could reclassify an unrelated,
+  intentionally-different status). **Not yet run against production from
+  this environment** (no production `DATABASE_URL` access here) — running
+  it (report-only first, then `--apply` if it confirms affected leads)
+  against production is the remaining operator action.
+  Regression coverage: `test/bookingServiceLeadInit.test.js`,
+  `test/integration/appointmentFollowUp.int.test.js` (both updated for the
+  corrected casing); `test/integration/backfillAppointmentScheduledStatusCasing.int.test.js`
+  (report-only/`--apply`/idempotent-re-run/wrong-`--confirm-host`/
+  unrelated-status/different-casing-variant-never-touched, and proof the
+  appointment row is completely untouched by `--apply`).
+
+- **2. Reminder activity logging** (`lib/reminderEngine.js`): the
+  REMINDER_SENT activity write (step 5 of `processReminders`, immediately
+  after a successful send is marked `sent` in `reminder_claims`) used
+  `require('./db/client')` — correct for a file in the repo root, but
+  `lib/reminderEngine.js` lives one directory down, so this resolved
+  against the nonexistent `lib/db/client.js`. Reproduced live in production
+  logs exactly 3 times, once per real send tick:
+  `"[engine] Activity write failed (non-blocking): Cannot find module
+  './db/client'"`. The reminder email/SMS itself still sent correctly (this
+  write is documented as best-effort, never the send gate) — only the
+  CRM-visible "Reminder sent" activity row was silently lost every time.
+  Fixed to `require('../db/client')` (the file's own top-level `db` import,
+  line 29, was already correct — only this one inline, lazy `require` had
+  the wrong relative path). Extracted into a named, exported
+  `writeReminderSentActivity(leadId, reminderKey, customerSkippedNoEmail)`
+  so a real-Postgres test can call it directly without driving the whole
+  Gmail-entangled `processReminders()` loop end to end (the same reason
+  `test/reminderEngineQuietHoursDeferral.test.js` stays source-level). This
+  is a DIFFERENT, separate function from the pre-existing
+  `crmRepository.writeReminderSentActivity({ leadId, reminderKey })` (used
+  only by this same file's own orphaned `enqueueActivity`/
+  `flushActivityQueue` retry queue, a different row shape with no
+  `metadata` column) — left exactly as-is, out of scope for this fix; this
+  class of bug (a wrong `require()` path) can only be caught by a real
+  `require()` resolved against the real file tree, never a test that stubs
+  `db/client` regardless of path, which is why it shipped undetected.
+  Duplicate-send protections and reminder schedules are completely
+  unchanged — no claim/lease/window logic was touched.
+  Regression coverage: `test/integration/reminderEngineActivityWrite.int.test.js`
+  (new — real-Postgres proof the require path resolves and inserts the
+  correct row shape, including `customer_skipped_no_email` and the
+  default `'appointment'` label when `reminderKey` is omitted; reproduced
+  failing against the pre-fix `./db/client` path and confirmed passing
+  after; proves the write never throws even when the insert itself fails,
+  e.g. a nonexistent `lead_id` FK violation — matching this write's
+  documented best-effort, never-the-send-gate behavior).
+
+- **3. Production watchdog health checks + alert delivery**: a live scan
+  (Railway logs, `artistic-determination`) confirmed `"total":11,
+  "healthy":7,"unhealthy":4"` on every tick. Root-caused three structural
+  bugs in the watchdog's OWN check logic (not in the monitored services,
+  most of which are healthy per CLAUDE.md's own prior audits) that account
+  for 3 of the 4:
+  - `lib/monitoring/healthProbes.js#checkHandoffHealth` had NO
+    module-aware gate at all — unlike every other optional-integration
+    check in this file (`checkGmailIntegrationHealth`,
+    `checkWebsiteIntakeSilence`/`checkWebsiteIntakeRejections`). Since this
+    installation has no Handoff API key and is deliberately NOT pursuing a
+    direct Handoff connection (see "Handoff → QuickBooks → CRM estimate
+    sync" above), this check always reported unhealthy — a genuine,
+    permanent false alarm for an intentionally-unconfigured integration,
+    distinct from the real, working Handoff-via-QuickBooks pipeline. Fixed
+    with the same `companyConfig.isModuleEnabled('handoff')` gate pattern.
+  - `lib/monitoring/serviceInventory.js`'s `qb-proxy-server` entry (plain
+    `/health` HTTP check) and `quickbooks-integration` entry
+    (`checkQbHealth`'s `/qb/health` call) had no `directUrl` at all.
+    `productionWatchdog.js` always runs from inside
+    `artistic-determination` (`reminderWorker.js` requires it inline — see
+    that file's own header; it is NOT a separate Railway service, despite
+    `railway.json`'s stale claim otherwise), never from `qb-proxy-server`
+    itself, and that container has no `QB_PROXY_URL`/`CRM_API_URL` env var
+    set — so both checks' `service.directUrl || baseUrl` fell through to
+    `http://localhost:<port>`, which only ever reaches the watchdog's OWN
+    container (no Express server there at all), structurally guaranteed to
+    fail regardless of `qb-proxy-server`'s real health. Fixed by giving
+    both entries a `directUrl` resolved via Railway's private-network
+    convention (`http://qb-proxy-server.railway.internal:3000`) — the same
+    fix shape `crm-frontend`'s own pre-existing `directUrl` already uses
+    for the identical class of problem — with `QB_PROXY_URL`/`CRM_API_URL`
+    still taking precedence when an operator sets either.
+  - The scan's own summary log previously reported ONLY aggregate counts
+    (`"unhealthy":4`), with no way to tell WHICH 4 without a separate
+    Postgres query against `monitoring_health_checks`. `productionWatchdog.js`'s
+    summary now includes `unhealthyServices` — each unhealthy service's id,
+    check type, and error reason — directly in the one scan log line, so
+    the exact remaining unhealthy service(s) (if any) are visible in
+    Railway logs on the next tick after this deploys, without extra
+    tooling. (The `reminder-worker` heartbeat check was investigated and
+    confirmed CORRECT, not a 4th bug — `lib/reminderEngine.js#processReminders`
+    already calls `health.recordRunStart`/`recordRunSuccess`/
+    `recordRunFailure`/`recordDryRun`/`recordRunSkipped` on every single
+    invocation, dry-run included, so its heartbeat should already be
+    fresh; the per-service breakdown above is what will confirm the true
+    identity of any 4th unhealthy service post-deploy.)
+  - A separate, independently-confirmed bug in the ALERT DELIVERY path
+    itself: `lib/monitoring/alertDispatcher.js`'s `MONITOR_ALERT_EMAIL_TO`
+    (critical-only) email channel called
+    `emailService.sendEmail({ to, subject, body })` — a method that has
+    NEVER existed on `lib/emailService.js`'s export (the real, only export
+    is `send({ to, subject, htmlBody, idempotencyKey })`). Every call threw
+    `"emailService.sendEmail is not a function"`, silently caught and
+    logged as a non-fatal delivery failure — so even an operator who DID
+    set `MONITOR_ALERT_EMAIL_TO` was never actually emailed. Fixed to call
+    the real `send()` with the fields it actually requires.
+  - **New, purely additive staff-broadcast email path**: every alert level
+    (warning/critical/info — the existing `handleSuccess`'s recovery
+    notification included) now also routes through
+    `notificationRecipients.getAllStaffRecipients()` narrowed by
+    `notificationPreferences.filterRecipientsForCategory(...,
+    CATEGORIES.SYSTEM_FAILURE)` — the SAME mechanism every other
+    CRM-generated staff email already uses, so Michelle's single-category
+    policy automatically excludes her with zero person-specific logic
+    added here. This closes the actual gap the user reported ("alerts
+    reach no human channel," since `ALERT_SLACK_WEBHOOK_URL` is unset and
+    the prior email path was both critical-only AND broken): now every
+    alert level reaches staff by email, independent of Slack/the static
+    `MONITOR_ALERT_EMAIL_TO` recipient, which are both preserved unchanged.
+    **No Slack or paid service was introduced** (per explicit instruction)
+    — this reuses only existing Railway-native Gmail sending.
+    **Existing spam-prevention is unchanged and was already correct**:
+    `handleFailure`'s `shouldAlert = isNew || isCrashLoop ||
+    (incident.failure_count % 5 === 0)` already caps repeated alerts to the
+    1st occurrence, a crash loop, and every 5th repeat thereafter.
+    **Existing recovery notification is unchanged and was already
+    correct**: `handleSuccess` already dispatches a `level: 'info'` alert
+    ("Service recovered — incident resolved") when `crashLoop.recordSuccess()`
+    reports `resolved: true` — this now also reaches staff by email via the
+    same new path, closing the "verify recovery notifications" requirement.
+  Regression coverage: `test/monitoringHealthProbes.test.js` (new
+  `checkHandoffHealth` tests — module disabled -> healthy/skip, enabled +
+  connected -> healthy, enabled + not connected -> genuine unhealthy, a
+  companyConfig read failure -> unhealthy not silently healthy);
+  `test/monitoringServiceInventoryDirectUrl.test.js` (new — both entries'
+  `directUrl` is never bare localhost, uses the `railway.internal`
+  convention, and `QB_PROXY_URL` still overrides it when set);
+  `test/monitoringAlertDispatcher.test.js` (new — the real `emailService.send`
+  is actually called with `htmlBody`/`idempotencyKey` for the critical
+  static-recipient path; a warning-level alert and an info-level recovery
+  alert both reach staff via the new path with Michelle correctly excluded;
+  zero-recipients-after-filtering never attempts a send; a staff-email
+  failure is non-fatal); `test/productionWatchdogSummary.test.js` (new —
+  `runWatchdog()`'s summary includes `unhealthyServices` naming every
+  unhealthy service's id and error reason).
+
+- **4. Railway Postgres backup verification — NOT VERIFIABLE from this
+  environment.** Railway's Postgres backup feature is Point-in-Time
+  Recovery (PITR, via `pgBackRest`) plus separate volume backups, both
+  managed exclusively through the dashboard's Backups tab or the
+  authenticated `railway postgres` CLI (`railway postgres backups list`,
+  `railway postgres pitr ...`) — confirmed via Railway's own documentation
+  (`docs.railway.com/volumes/point-in-time-recovery`,
+  `docs.railway.com/cli/postgres#manage-volume-backups`). Neither surface
+  is exposed by any tool available in this environment: `describe-service`
+  on the `Postgres` service returns its volume (`postgres-volume`, 5000MB,
+  region `sfo`, state `live`) with no backup/PITR/retention/last-successful-
+  backup field at all, and no `railway` CLI is installed in this sandbox to
+  query it directly. **Separately observed, not yet explained**:
+  `environment-status` reports `Postgres` with `"issues":{"warningCount":1,
+  "criticalCount":0}` — no tool available here returns the warning's actual
+  text, so whether it relates to backups, disk, or something else is
+  unknown from this environment (current disk usage is trivial — ~0.3GB of
+  the 5000MB volume — so it is unlikely to be a capacity warning).
+  **Operator action required**: check the Postgres service's Backups tab in
+  the Railway dashboard (or run `railway postgres backups list` /
+  `railway postgres pitr` with an authenticated CLI against this project)
+  to confirm whether automated backups/PITR are enabled, their frequency
+  and retention, and the timestamp of the last successful backup; also
+  worth checking what the one reported warning is. **No restore was
+  attempted and no backup setting was changed**, per explicit instruction.
+
+- **5. SMS notification settings — confirmed unchanged.** Re-checked via
+  Railway's read-only variable-NAME listing (values never read, per
+  instruction) that `SMS_SENT_NOTIFICATIONS_ENABLED` and
+  `SMS_DELIVERY_FAILURE_NOTIFICATIONS_ENABLED` (see "Outbound SMS
+  visibility" above) are both still present as configured variables on
+  `qb-proxy-server` — unchanged from their state when that feature shipped.
+  Their actual boolean values remain correctly unverifiable from this
+  environment (Railway only returns variable values to a connected OAuth
+  app as names, never plaintext) — confirming the live Enabled/Disabled
+  state is, as always, via System Health's `notification_config` block.
+  **Incidentally also confirmed present** (not evaluated further — outside
+  this item's scope): `SMS_REPLY_FORWARD_TO` still appears as a configured
+  variable NAME on `qb-proxy-server` — per CLAUDE.md's own "SMS reply
+  notifications: email-only" section above, this variable is never read by
+  any live code path regardless of its value (guarded by
+  `test/systemHealthChecks.test.js`'s "stray `SMS_REPLY_FORWARD_TO`" test),
+  so its continued presence as a variable name is inert and not a defect
+  this pass needed to address.
+
+**Testing performed**: full backend unit suite (`npm test`) — 1454 pass, 0
+fail, 1 pre-existing unrelated todo; `npm run test:syntax` — clean; full
+real-Postgres integration suite (`npm run test:integration`, local
+disposable Postgres 16, all 66 migrations applied) — 361 pass, 6 fail. The
+6 failures (`test/integration/qbEstimateInvoice.int.test.js`) were
+confirmed, via `git stash` + a second from-scratch disposable database, to
+be **pre-existing and unrelated to this pass** — they fail identically on
+pristine `main` with zero of this pass's changes applied, and nothing in
+this pass touches QuickBooks estimate/invoice code at all. No frontend
+file was touched, so no frontend build/test was needed for this pass.
+
+Regression coverage (consolidated): `test/bookingServiceLeadInit.test.js`,
+`test/integration/appointmentFollowUp.int.test.js`,
+`test/integration/backfillAppointmentScheduledStatusCasing.int.test.js`,
+`test/integration/reminderEngineActivityWrite.int.test.js`,
+`test/monitoringHealthProbes.test.js`,
+`test/monitoringServiceInventoryDirectUrl.test.js`,
+`test/monitoringAlertDispatcher.test.js`, `test/productionWatchdogSummary.test.js`.
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`
