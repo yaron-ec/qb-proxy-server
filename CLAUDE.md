@@ -3940,6 +3940,241 @@ Regression coverage (consolidated): `test/bookingServiceLeadInit.test.js`,
 `test/monitoringServiceInventoryDirectUrl.test.js`,
 `test/monitoringAlertDispatcher.test.js`, `test/productionWatchdogSummary.test.js`.
 
+## Watchdog follow-up fix: port, Handoff false alarm, website-intake severity, admin alert routing (November 2026)
+
+**Context**: the reliability-closeout pass above shipped a `directUrl` fix
+for `qb-proxy-server`/`quickbooks-integration` and a `checkHandoffHealth`
+gate fix. The FIRST post-deploy watchdog scan proved both still wrong, live
+— `qb-proxy-server`/`quickbooks-integration` were still unhealthy
+("fetch failed") and `handoff-integration` was still unhealthy too. This
+follow-up pass root-causes and corrects both, plus two further, explicitly
+requested changes: website-intake severity and admin alert routing.
+
+- **1-2. Wrong port, now fixed with a regression guard.** The prior fix
+  built `directUrl: 'http://qb-proxy-server.railway.internal:3000'` from
+  the pre-existing, never-actually-exercised `port: 3000` metadata field.
+  qb-proxy-server's REAL listening port is **8080** — verified two
+  independent ways against the live Railway service: its public
+  `serviceDomain` config reports `targetPort: 8080`, and its own boot log
+  literally prints `"[proxy] QuickBooks Proxy running on port 8080"`
+  (`server.js` resolves its listen port via `process.env.PORT || 3000`, so
+  Railway sets `PORT=8080` for this specific service; `3000` is only the
+  in-code fallback for an environment with no `PORT` set at all). The
+  first fix reached the right hostname on the wrong port — connection
+  refused, hence "fetch failed" persisting after that deploy.
+  `lib/monitoring/serviceInventory.js` now derives both the `directUrl`
+  port and the `port` metadata field from ONE named constant
+  (`QB_PROXY_SERVER_PORT = 8080`), so the two can never silently diverge
+  again — the exact bug class that caused this. `QB_PROXY_URL`/
+  `CRM_API_URL` still take precedence when an operator sets either.
+  Regression coverage: `test/monitoringServiceInventoryDirectUrl.test.js`
+  (4 new tests pinning the exact port, the metadata-field/URL single-
+  source-of-truth invariant, and that an operator override is trusted
+  as-is).
+
+- **3. `handoff-integration` false alarm — wrong gate, root-caused and
+  fixed.** The first fix gated `checkHandoffHealth` on
+  `companyConfig.isModuleEnabled('handoff')` — but that flag is NOT a
+  proxy for "is a direct Handoff connection configured." It is ALSO (and,
+  for this installation, ACTUALLY) the gate for
+  `routes/handoffEstimates.js`'s entire CRUD router — the real, actively-
+  used **Handoff → QuickBooks → CRM** estimates pipeline
+  (`EstimateSyncDiagnostics.jsx`/`UnmatchedEstimatesPanel.jsx`) — which is
+  exactly why it is `true` in production (migration
+  `2026-46-product-config.sql`'s own column default, written when that
+  assumption was believed accurate): correctly so, for that unrelated,
+  real feature, not because anyone configured a direct Handoff connection.
+  Gating the watchdog check on it therefore either kept reporting
+  unhealthy regardless (confirmed live: the first fix deployed and the
+  next scan still showed `handoff-integration` unhealthy with
+  "fetch failed") or would have required flipping that flag to `false`,
+  which would have 404'd the real estimates router — neither acceptable.
+  Fixed by checking the ACTUAL, already-authoritative signal instead:
+  `lib/handoffClient.js#getApiKey()` — the SAME function
+  `lib/systemHealthChecks.js#checkHandoff` already uses to correctly
+  report System Health's separate "Handoff (Direct API)" card as Not
+  Configured. It throws when no key exists in either
+  `app_settings.handoff_api_key` or `HANDOFF_API_KEY`, completely
+  independent of `enabled_modules.handoff`'s own value. No direct Handoff
+  integration was enabled, configured, or built — per explicit
+  instruction, this installation continues to have none, by design.
+  `handoff-integration`'s `serviceInventory.js` entry was also given the
+  same `qb-proxy-server.railway.internal:8080` `directUrl` as
+  `quickbooks-integration` (reusing the one `QB_PROXY_SERVER_PORT`
+  constant) — not exercised today (the check returns healthy before ever
+  making an HTTP call, since no API key is configured), but set so a
+  future operator who DOES configure a direct Handoff connection never
+  hits the identical localhost-fallback bug this whole pass fixes. This
+  has zero overlap with the QuickBooks estimate-sync pipeline's own health
+  reporting (`checkHandoffEstimatesSync`/`checkQuickBooks` in
+  `lib/systemHealthChecks.js`) — that pipeline isn't part of
+  `productionWatchdog.js`'s 11-service scan at all, so a genuine QB
+  estimate-sync failure is never masked by this change. Regression
+  coverage: `test/monitoringHealthProbes.test.js` (4 rewritten tests,
+  including a source-level guard that `checkHandoffHealth` never
+  references `isModuleEnabled`/`companyConfig` again).
+
+- **4. `website-intake` (silence) reclassified as a non-alerting metric;
+  `website-intake-rejections` made ALWAYS critical on a genuine
+  failure.** Absence of website leads and a genuinely broken delivery
+  pipeline produce the exact same "silence" shape to
+  `checkWebsiteIntakeSilence` alone — a quiet website (slow season, no ad
+  spend, a holiday) is not a system failure. Previously, once the silence
+  threshold elapsed, this check reported `healthy: false`, which fed
+  `productionWatchdog.js`'s crash-loop/incident/alert pipeline and
+  generated a `[EC CRM Monitor] WARNING — Website Lead Intake`
+  SYSTEM_FAILURE email to staff over mere quiet traffic. Fixed:
+  `checkWebsiteIntakeSilence` now ALWAYS reports `healthy: true` — it
+  never opens an incident, never dispatches an alert, never sends a
+  SYSTEM_FAILURE email over silence alone — while still computing and
+  returning the real data (`silenceDetected`, `ageMs`, `lastReceivedAt`,
+  etc.) in `details`, which is still recorded verbatim into
+  `monitoring_health_checks` on every run (`recordHealthCheck` records
+  unconditionally on `healthy`) — a real, queryable activity metric, just
+  never an alert. A genuine failure of the check's OWN infrastructure
+  (e.g. the query itself throwing) is still reported unhealthy, unchanged
+  — that is a real operational problem, not "no leads."
+
+  `checkWebsiteIntakeRejections` (a sustained burst of REJECTED
+  deliveries — proof the website IS attempting delivery and the CRM is
+  refusing every attempt, most likely a rotated/mismatched
+  `WEBSITE_LEAD_WEBHOOK_SECRET`) is the genuine-failure signal and is
+  UNCHANGED in its own detection logic — but
+  `productionWatchdog.js#handleFailure`'s alert level
+  (`isCrashLoop ? 'critical' : 'warning'`) made this check's own
+  real-world escalation nearly impossible: `isCrashLoop` requires 3
+  failures within a 10-minute window
+  (`lib/monitoring/crashLoopDetector.js`), which this watchdog's own
+  ~15-minute probe cadence can make practically unreachable even for a
+  real, ongoing failure — leaving a genuine delivery failure stuck at
+  `'warning'` indefinitely, contrary to the explicit requirement that "a
+  genuine website-to-CRM delivery failure must still trigger a critical
+  alert." Fixed with a new, narrowly-scoped `alwaysCritical: true` field
+  on ONLY the `website-intake-rejections` `serviceInventory.js` entry;
+  `productionWatchdog.js#handleFailure`'s level is now
+  `(service.alwaysCritical || isCrashLoop) ? 'critical' : 'warning'` —
+  every other service's alert level is completely unaffected (default
+  behavior unchanged; a regression test proves this explicitly). This is
+  the "appropriate non-customer-impacting health check" preserved per the
+  explicit requirement — no fake lead was ever created to test or
+  implement this.
+
+  Regression coverage: `test/monitoringHealthProbes.test.js` (silence
+  check: module-disabled, zero-ever, recent, stale, extreme/months-long
+  staleness, and a real query-failure-is-still-unhealthy case — 6 tests,
+  rewritten/added); `test/productionWatchdogAlertLevel.test.js` (new — a
+  genuine rejection-burst failure always dispatches `level: 'critical'`
+  even on the very first occurrence with `isCrashLoop: false`; a
+  stale-silence result from the real `serviceInventory` entry never opens
+  an incident or dispatches any alert; a regression guard proving every
+  OTHER service keeps the original crash-loop-driven level; a source-level
+  guard that `alwaysCritical` is set on exactly one entry).
+
+- **5. Critical system-failure/recovery alerts now reach BOTH
+  michelle@ecconstructiongroup.com and yaron@ecconstructiongroup.com, by
+  email only — an explicit, approved, narrowly-scoped exception to
+  Michelle's single-category policy.** Michelle's existing policy
+  (`2026-62-michelle-single-category-notifications.sql`) disabled her
+  `system_failure` category along with every other non-`new_lead`
+  category. Per explicit product approval, this one category is now
+  re-enabled for her (and Yaron, who already received it under the
+  "absence of a row = enabled" default, but is now given an explicit row
+  too, for the same reason this decision deserves to be durable and
+  self-documenting rather than resting on an implicit default). Per this
+  codebase's own migration convention (never edit an already-applied
+  migration — `db/migrate.js` never re-executes a filename it has already
+  recorded in `schema_migrations`), this is a NEW, additive migration
+  (`db/migrations/2026-69-system-failure-notify-michelle-yaron.sql`) that
+  flips the existing row via `ON CONFLICT (user_email, category) DO UPDATE
+  SET enabled = true` — `DO NOTHING` would never have flipped Michelle's
+  already-existing `false` row. No other category, for either address, is
+  touched; Michelle's other 12 disabling rows from `2026-62` are
+  unaffected (verified directly against a real, migrated disposable
+  Postgres instance). This rides entirely on the EXISTING staff-broadcast
+  path (`lib/monitoring/alertDispatcher.js`'s
+  `notificationRecipients.getAllStaffRecipients()` narrowed by
+  `notificationPreferences.filterRecipientsForCategory(...,
+  CATEGORIES.SYSTEM_FAILURE)`, already wired for every alert level —
+  warning/critical/info — since the reliability-closeout pass) — no new
+  notification mechanism, no SMS of any kind, and the existing alert
+  dedup (`crashLoopDetector.js#shouldAlert`'s new-incident/crash-loop/
+  every-5th-failure anti-spam) is completely untouched.
+  `test/michelleNotificationPolicySeed.test.js`'s existing structural
+  guard (every non-`new_lead` category must have a disabling row for
+  Michelle SOMEWHERE across all migrations) was updated to process
+  migration files in the same sorted/chronological order
+  `db/migrate.js` itself applies them in, and to carve out
+  `system_failure` as the one documented, approved exception — every
+  other category's guard is unchanged. Regression coverage (verified
+  against a real, migrated disposable Postgres, not just a stub):
+  `test/michelleNotificationPolicySeed.test.js` (the migration's own
+  `DO UPDATE` shape, both addresses' rows);
+  `test/integration/systemFailureNotifyMichelleYaron.int.test.js` (4
+  tests — both administrators resolved by the real DB-backed filter,
+  case-insensitivity, Michelle's other categories provably unaffected,
+  and a full end-to-end proof that `dispatchMonitoringAlert`'s real
+  staff-broadcast path emails both for a critical alert).
+
+- **6. Watchdog target/expected-result audit, verified before
+  deployment.** A new `test/productionWatchdogTargetAudit.test.js`
+  checks the complete, real 11-service surface together (every other
+  test file in this pass proves one check/entry at a time): every
+  cross-container HTTP check (`healthSignal` of `http`, `qb_integration`,
+  or `handoff_integration` — the three whose own check function resolves
+  its target via `service.directUrl || baseUrl` in
+  `lib/monitoring/healthProbes.js`) has an explicit, non-localhost
+  `directUrl`; `probeService`'s dispatch switch has a case for every
+  `healthSignal` any `SERVICES` entry actually declares (a typo'd/removed
+  case would otherwise silently fall through to the generic HTTP default
+  with no test ever catching it); the full 11-entry `healthSignal` roster
+  matches a known-good snapshot (fails loudly if a future service is
+  added/removed/retargeted without updating this audit); exactly one
+  entry (`website-intake-rejections`) is marked `alwaysCritical`; and
+  `qb-proxy-server`/`quickbooks-integration`/`handoff-integration` all
+  resolve to the identical `qb-proxy-server.railway.internal:8080` target
+  by default, since they are, correctly, the same backend process.
+
+- **7. Unrelated functionality — confirmed untouched.** This pass only
+  edited `lib/monitoring/serviceInventory.js`, `lib/monitoring/healthProbes.js`,
+  `productionWatchdog.js`, their test files, and the one new notification-
+  preferences migration + its tests. QuickBooks OAuth/token refresh/sync
+  logic, financial records (`qb_invoice_sale_map`, `qb_invoices_cache`,
+  deals), reminders (email/SMS engines, claim/lease mechanism), SMS
+  delivery (`lib/smsService.js`, `lib/smsClient.js`, consent/opt-out/quiet
+  hours), the website publishing/SEO workstream, and every other
+  subsystem are completely unmodified — confirmed both by the diff itself
+  and by the full regression suite below showing zero new failures
+  outside this pass's own new/updated tests.
+
+**Testing performed**: full backend unit suite (`npm test`) — 1471 pass, 0
+fail, 1 pre-existing unrelated todo; `npm run test:syntax` — clean; full
+real-Postgres integration suite (`npm run test:integration`, local
+disposable Postgres 16, all 67 migrations applied, run twice against two
+independent fresh databases) — 365 pass, 6 fail both times. The 6 failures
+(`test/integration/qbEstimateInvoice.int.test.js`) are the SAME
+pre-existing, already-documented failures from the reliability-closeout
+pass above (confirmed identical test names/line numbers) — this pass
+touches no QuickBooks estimate/invoice code at all. No frontend file was
+touched, so no frontend build/test was needed.
+
+**Not yet merged or deployed — held for explicit review and approval**,
+per explicit instruction. The migration (`2026-69-...sql`) has been
+verified to apply cleanly, idempotently, and correctly against a local
+disposable Postgres instance (run twice, including a `DO UPDATE` flip
+proof) but has NOT been run against the real production database from
+this environment (no production `DATABASE_URL`/network access here) —
+`db/migrate.js`'s own deploy-time run is the mechanism that will apply it
+once this PR is approved and merged, matching every other migration in
+this codebase.
+
+Regression coverage (consolidated, this pass):
+`test/monitoringServiceInventoryDirectUrl.test.js`,
+`test/monitoringHealthProbes.test.js`, `test/productionWatchdogAlertLevel.test.js`,
+`test/productionWatchdogTargetAudit.test.js`, `test/productionWatchdogSummary.test.js`
+(unchanged, re-verified), `test/monitoringAlertDispatcher.test.js`
+(unchanged, re-verified), `test/michelleNotificationPolicySeed.test.js`,
+`test/integration/systemFailureNotifyMichelleYaron.int.test.js`.
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`
