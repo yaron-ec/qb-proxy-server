@@ -120,9 +120,22 @@ async function handleFailure(service, result) {
     previousHealthy: !isCrashLoop,
   });
 
+  // Default alert level follows the crash-loop heuristic (isCrashLoop ?
+  // 'critical' : 'warning') — but a small number of checks (currently only
+  // website-intake-rejections, see serviceInventory.js's own comment on
+  // that entry) represent an ALREADY-sustained, genuinely customer-
+  // impacting condition the moment they report unhealthy at all — the
+  // crash-loop window (3 failures within 10 minutes) is nearly impossible
+  // to satisfy at this watchdog's own ~15-minute probe cadence, which would
+  // otherwise leave a real, ongoing failure stuck at 'warning' forever.
+  // `service.alwaysCritical` opts a specific service entry into 'critical'
+  // on every unhealthy result, independent of crash-loop status — every
+  // other service's level is completely unaffected (default unchanged).
+  const level = (service.alwaysCritical || isCrashLoop) ? 'critical' : 'warning';
+
   await dispatchMonitoringAlert({
     serviceId: service.id,
-    level: isCrashLoop ? 'critical' : 'warning',
+    level,
     errorSummary: result.error,
     errorType: result.checkType,
     httpStatus: result.httpStatus,
