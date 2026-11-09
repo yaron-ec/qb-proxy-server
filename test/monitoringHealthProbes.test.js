@@ -43,8 +43,50 @@ function stub(modPath, exportsObj) {
 delete require.cache[require.resolve('../lib/monitoring/healthProbes')];
 const {
   checkGoogleContactsOutboxHealth, checkGmailIntegrationHealth, checkWebsiteIntakeSilence,
-  checkWebsiteIntakeRejections,
+  checkWebsiteIntakeRejections, checkHandoffHealth,
 } = require('../lib/monitoring/healthProbes');
+
+// ── Handoff (Direct API) — module-aware gate (CRM reliability fix pass) ────
+// Production audit found checkHandoffHealth had NO module-aware gate at
+// all, unlike every other optional-integration check in this file — since
+// this installation has no Handoff API key and is deliberately NOT
+// pursuing a direct Handoff connection (CLAUDE.md), this check always
+// reported unhealthy, 24/7, for an intentionally-unconfigured integration.
+test('checkHandoffHealth: module disabled -> healthy (skip), never a false alarm for an intentionally-unconfigured integration', async () => {
+  enabledModulesImpl = { handoff: false };
+  const result = await checkHandoffHealth({ id: 'handoff-integration' }, 'http://unused:3000');
+  assert.strictEqual(result.healthy, true);
+  assert.strictEqual(result.details.moduleEnabled, false);
+  assert.strictEqual(result.error, null);
+});
+
+test('checkHandoffHealth: module enabled + stored credential connected + upstream reachable -> healthy', async () => {
+  enabledModulesImpl = { handoff: true };
+  global.fetch = async () => ({ ok: true, status: 200, json: async () => ({ connected: true }) });
+  try {
+    const result = await checkHandoffHealth({ id: 'handoff-integration' }, 'http://unused:3000');
+    assert.strictEqual(result.healthy, true);
+  } finally { delete global.fetch; }
+});
+
+test('checkHandoffHealth: module enabled + no stored credential -> unhealthy (a genuine, real gap, not a false alarm)', async () => {
+  enabledModulesImpl = { handoff: true };
+  global.fetch = async () => ({ ok: true, status: 200, json: async () => ({ connected: false }) });
+  try {
+    const result = await checkHandoffHealth({ id: 'handoff-integration' }, 'http://unused:3000');
+    assert.strictEqual(result.healthy, false);
+    assert.match(result.error, /not connected/);
+  } finally { delete global.fetch; }
+});
+
+test('checkHandoffHealth: a companyConfig read failure never crashes, reports unhealthy with the error (not silently healthy)', async () => {
+  const restore = stub('../lib/companyConfig', { isModuleEnabled: async () => { throw new Error('db down'); } });
+  try {
+    const result = await checkHandoffHealth({ id: 'handoff-integration' }, 'http://unused:3000');
+    assert.strictEqual(result.healthy, false);
+    assert.match(result.error, /db down/);
+  } finally { restore(); }
+});
 
 // ── Google Contacts outbox backlog ──────────────────────────────────────
 test('checkGoogleContactsOutboxHealth: empty backlog -> healthy', async () => {
