@@ -17,6 +17,7 @@
 const engine = require('./lib/reminderEngine');
 const phoneEngine = require('./lib/phoneCallReminders');
 const taskEngine = require('./lib/taskReminderEngine');
+const estimateFollowupEngine = require('./lib/estimateFollowupEngine');
 
 (async () => {
   const dryRun = process.env.REMINDER_DRY_RUN !== 'false'; // default true
@@ -26,7 +27,21 @@ const taskEngine = require('./lib/taskReminderEngine');
     const apt = await engine.processReminders({ dryRun, triggeredBy: 'cron' });
     const phone = await phoneEngine.processPhoneCallReminders({ dryRun, triggeredBy: 'cron' });
     const task = await taskEngine.processTaskReminders({ dryRun, triggeredBy: 'cron' });
-    console.log('[reminderWorker] done:', JSON.stringify({ appointment: apt, phone, task }));
+
+    // Estimate follow-up sequence — its OWN independent dry-run flag
+    // (ESTIMATE_FOLLOWUP_DRY_RUN, default true) rather than REMINDER_DRY_RUN,
+    // per this codebase's "one flag per independent concern" doctrine. A
+    // failure here must never fail the reminder/phone/task passes above —
+    // same isolation the watchdog call below already gets.
+    let estimateFollowup = null;
+    try {
+      estimateFollowup = await estimateFollowupEngine.processEstimateFollowups({ triggeredBy: 'cron' });
+    } catch (e) {
+      console.error('[reminderWorker] estimate followup error:', e.message);
+      estimateFollowup = { ok: false, error: e.message };
+    }
+
+    console.log('[reminderWorker] done:', JSON.stringify({ appointment: apt, phone, task, estimateFollowup }));
 
     // Railway-owned production watchdog — runs after reminders in the same
     // cron tick. ONE canonical execution path (artistic-determination */15).

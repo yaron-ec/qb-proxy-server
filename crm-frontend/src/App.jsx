@@ -33,6 +33,7 @@ import LeadCapture from './pages/LeadCapture';
 import Settings from './pages/Settings';
 import SystemHealth from './pages/SystemHealth';
 import Integrations from './pages/Integrations';
+import EstimateFollowUps from './pages/EstimateFollowUps';
 import QBCallback from './pages/QBCallback';
 import DealDetail from './pages/DealDetail';
 import Deals from './pages/Deals';
@@ -168,6 +169,7 @@ const AuthenticatedApp = () => {
         <Route path="/settings" element={<PageContentWrapper><Settings /></PageContentWrapper>} />
         <Route path="/system-health" element={<PageContentWrapper><SystemHealth /></PageContentWrapper>} />
         <Route path="/integrations" element={<PageContentWrapper><Integrations /></PageContentWrapper>} />
+        <Route path="/estimate-followups" element={<PageContentWrapper><EstimateFollowUps /></PageContentWrapper>} />
         {/* Platform-admin-only — see lib/rbac.js#requirePlatformAdmin and
             PlatformCompanies.jsx's own client-side gate (the server check is
             the real boundary; this route renders for anyone authenticated,

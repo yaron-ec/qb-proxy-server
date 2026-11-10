@@ -36,6 +36,7 @@ import CalendarSyncPanel from "../components/CalendarSyncPanel";
 import GoogleContactSyncPanel from "../components/GoogleContactSyncPanel";
 import AppointmentReminderPanel from "../components/AppointmentReminderPanel";
 import ReminderDeliveryDiagnosticsPanel from "../components/ReminderDeliveryDiagnosticsPanel";
+import EstimateFollowUpPanel from "../components/EstimateFollowUpPanel";
 import EstimateSyncButton from "../components/EstimateSyncButton";
 import ProposalPanel from "../components/ProposalPanel";
 import RightSidebarAccordion from "../components/RightSidebarAccordion";
@@ -474,6 +475,7 @@ function LeadDetailModernInner() {
                 <p className="text-[11px] text-slate-500 mt-1">Use "Calendar" button above to repair.</p>
               </div>
             )}
+            <EstimateFollowUpPanel lead={lead} currentUser={currentUser} />
             {currentUser?.role === 'admin' && (
               <ReminderDeliveryDiagnosticsPanel lead={lead} />
             )}
@@ -509,6 +511,9 @@ function LeadDetailModernInner() {
           </div>
           <div className="border-t border-slate-100">
             <AppointmentReminderPanel lead={lead} />
+          </div>
+          <div className="border-t border-slate-100 p-3">
+            <EstimateFollowUpPanel lead={lead} currentUser={currentUser} />
           </div>
           {currentUser?.role === 'admin' && (
             <div className="border-t border-slate-100 p-3">

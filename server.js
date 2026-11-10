@@ -1401,6 +1401,7 @@ app.use('/api/v1/auth', require('./routes/auth'));
 app.use('/api/v1', require('./routes/emails'));
 app.use('/api/v1', require('./routes/sms').router);
 app.use('/api/v1', require('./routes/reminderDiagnostics'));
+app.use('/api/v1', require('./routes/estimateFollowups'));
 app.use('/api/v1', require('./routes/bookings'));
 app.use('/api/v1/gmail', require('./routes/gmail'));
 // Admin-authenticated bridge to reconnect Gmail from Settings (no PROXY_SECRET/Railway access needed)

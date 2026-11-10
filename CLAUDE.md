@@ -4175,6 +4175,270 @@ Regression coverage (consolidated, this pass):
 (unchanged, re-verified), `test/michelleNotificationPolicySeed.test.js`,
 `test/integration/systemFailureNotifyMichelleYaron.int.test.js`.
 
+## Automated 14-day estimate follow-up email sequence (November 2026, built — NOT activated)
+
+Built per an explicit feature request: convert more QuickBooks estimates
+into signed projects via 6 automated follow-up emails over 14 days,
+without a direct Handoff integration and without changing QuickBooks sync
+architecture. **Everything below is built, tested, and merged in DRY-RUN
+mode only — no automated customer email has been sent by this feature, and
+none will be until an operator explicitly flips `ESTIMATE_FOLLOWUP_DRY_RUN`
+to `'false'`** (default unset/true — mirrors `REMINDER_DRY_RUN`'s own
+safe-by-default precedent, independent of every other reminder/SMS
+dry-run flag, per this codebase's "one flag per independent concern"
+doctrine).
+
+- **No automatic "estimate sent to customer" signal exists anywhere in the
+  QB/Handoff data model** (confirmed by investigation, not assumed) — estimate
+  creation, import, or an appointment are all unreliable proxies for actual
+  customer delivery. There is therefore **no automatic enrollment of any
+  kind**. The ONE way a sequence starts is an authorized user explicitly
+  clicking "Confirm Estimate Sent" (or, admin/manager-only, "Manually
+  Enroll") in the new Lead Detail panel — both call the same
+  `lib/estimateFollowupEngine.js#enroll()`, which never backdates or
+  invents the sent timestamp (defaults to the moment of the call; an
+  earlier explicit `sentAt` is accepted only as a caller-supplied fact,
+  never computed).
+- **Schema** (`db/migrations/2026-70-estimate-followup-sequence.sql`):
+  `estimate_followup_sequences` (one row per enrollment — lead, linked
+  `handoff_estimates` row, status `active`/`paused`/`completed`/`stopped`,
+  recipient email, sales rep owner, the confirmed-sent audit fields,
+  enrollment method, unsubscribe token hash, pause/stop reason/by/at) with
+  a **partial unique index on `(lead_id) WHERE status IN ('active',
+  'paused')`** — the mechanism that makes a second enrollment attempt for
+  a lead with a revised/additional estimate fail closed
+  (`competing_sequence_already_active`) rather than ever running two
+  competing sequences for the same customer/project;
+  `estimate_followup_steps` (the 6 pre-computed steps per sequence, fixed
+  `due_at` timestamps set once at enrollment, status
+  `pending`/`processing`/`sent`/`skipped`/`failed`/`cancelled`, bounded
+  `attempts`, a unique `idempotency_key`); `estimate_followup_templates`
+  (versioned, `is_active` flag, seeded at version 1 with the business
+  owner's own exact given wording for all 6 steps — same "one-time
+  approval record" precedent as `lib/smsTemplates.js`); and
+  `estimate_followup_suppressions` (a permanent, email-keyed unsubscribe
+  registry, mirrors `sms_opt_outs`' "survives a later QB re-sync"
+  guarantee — distinct from, and checked in addition to, the existing
+  per-lead `customer_reminders_disabled` boolean).
+- **Eligibility** (`lib/estimateFollowupEligibility.js`) is re-checked FRESH
+  before every single send, never trusted from enrollment time: lead not in
+  `TERMINAL_LOST_STATUSES` or `'Sold'` (a customer who already bought has no
+  reason to keep receiving "should I keep your project on my radar?"
+  follow-ups about an estimate they already accepted), valid email, not
+  suppressed, `customer_reminders_disabled` false, and the linked estimate's
+  `estimate_status` still exactly `'Pending'` (the only QuickBooks
+  `Estimate.TxnStatus` value this codebase treats as "still outstanding" —
+  `Accepted`/`Closed`/`Rejected`/anything else auto-stops the sequence the
+  moment it's observed, same as the lead-status check).
+- **Schedule** (`lib/estimateFollowupEngine.js#computeStepDueDates`):
+  calendar days 1/3/5/8/11/14 after the verified sent instant, business-
+  hours-clamped (9:00 AM–5:00 PM, this installation's configured timezone
+  — default `America/Los_Angeles`), computed DST-safely via the SAME
+  `lib/reminderTime.js#pacificToUtcMs` this codebase already fixed a real
+  DST bug in (reused, not re-derived — verified against both the November
+  2026 "fall back" and March 2026 "spring forward" transition dates in
+  `test/estimateFollowupEngine.test.js`). **Never a catch-up flood**: if a
+  worker outage leaves several steps simultaneously overdue, only the
+  single latest one ever sends — every earlier overdue step is marked
+  `skipped: superseded_by_later_step`, never retried. **At most one
+  estimate-followup email per lead per calendar day**
+  (`hasSentToLeadToday`), independent of (and on top of) the per-step
+  due-date math.
+- **Templates** (`lib/estimateFollowupTemplates.js`): the business owner's
+  exact given wording for all 6 subjects/bodies, `{{first_name}}`/
+  `{{sales_rep_name}}` tokens (both HTML-escaped), editable and versioned
+  via `saveTemplateVersion` (never mutates an existing row — inserts the
+  next version and flips the previous one's `is_active` off, same
+  "additive, auditable history" pattern as every other versioned-content
+  table in this codebase). Deliberately NOT wrapped in
+  `lib/emailTemplates.js`'s branded shell — these six messages are written
+  in first person as a personal note from the assigned rep. A small,
+  unobtrusive CAN-SPAM compliance footer (real physical mailing address
+  read from `company_settings` + a working unsubscribe link) is appended
+  at RENDER time, never baked into `body_html` — editing the company's
+  address in Company Settings never requires a new template version.
+  **`buildComplianceFooterHtml` throws `ConfigurationError` (never invents
+  an address) if no business address is configured** — the engine treats
+  this as a blocking, tick-wide configuration prerequisite (see below),
+  never a per-lead failure.
+- **Personalization/sender**: first name, the lead's REAL assigned rep's
+  display name (resolved via the `owners` FK, never a heuristic
+  reconstruction), sent via the existing, already-authorized
+  `lib/emailService.js` (idempotency/retry/audit-log infrastructure reused
+  as-is, never duplicated — this module only tracks per-step SCHEDULING
+  state, not send mechanics). Never includes estimate amounts, financing
+  eligibility, private project details, attachments, fabricated
+  testimonials, urgency, or discounts, per the exact given wording and the
+  explicit requirement — the templates contain none of this, and nothing
+  in the rendering pipeline adds any.
+- **Stop/Pause**: fully automatic auto-stop (re-checked before every send,
+  never only at enrollment) on the lead becoming
+  Sold/Lost/DNQ/Cancelled, the estimate leaving `Pending`, or an
+  unsubscribe. **Manual-only pause/stop for a customer reply** — this
+  codebase's Gmail integration
+  (`lib/gmailSender.js`) is outbound-send only, with no inbound-reply
+  webhook or polling mechanism (unlike SMS's dedicated inbound webhook
+  route) — there is genuinely no reliable signal to detect a reply. This
+  is a documented limitation, not an oversight: the Lead Detail panel
+  (`EstimateFollowUpPanel.jsx`) surfaces a permanent, visible banner
+  ("No automatic reply detection: ... a rep must manually pause or stop
+  the sequence — it will not stop itself") rather than silently claiming
+  automatic reply handling, and provides the Pause/Stop controls as the
+  actual mechanism a rep uses today. Revised/multiple estimates on the
+  same lead are handled by the partial unique index above (a second
+  enrollment attempt while one sequence is active/paused is rejected,
+  never a competing sequence) — once the first sequence is stopped (e.g.
+  the original estimate is superseded/closed), a brand-new sequence for a
+  revised estimate can enroll normally.
+- **Unsubscribe link**: a DETERMINISTIC token
+  (`unsubscribeTokenForSequence` — HMAC-SHA256 of the sequence's own
+  app-generated UUID, keyed by `RAILWAY_JWT_SECRET`/`PROXY_SECRET`), not a
+  one-time random value — this is what lets the SAME working link be
+  reconstructed on demand for every one of the 6 emails (steps 2-6 are
+  rendered long after enrollment, when a one-time random token would no
+  longer be available anywhere but its one-way hash). The sequence id is
+  generated in application code (not the column's `gen_random_uuid()`
+  default) specifically so the token can be computed before the row is
+  inserted. The public, unauthenticated
+  `GET /api/v1/estimate-followups/public/unsubscribe/:token` route
+  (`routes/estimateFollowups.js`) hashes the incoming token and matches it
+  against the stored `unsubscribe_token_hash`; a match inserts a permanent
+  suppression row and stops the sequence, returning a small branded
+  confirmation page (never JSON — this is a link clicked from inside an
+  email).
+- **CRM UI**: `crm-frontend/src/components/EstimateFollowUpPanel.jsx` in
+  Lead Detail (visible to every role Lead Detail itself is visible to —
+  ownership/authorization enforced server-side via the SAME
+  `routes/leads.js#resolveOwnerScope` every other lead sub-resource
+  reuses, never a new permission model) shows state (Not Eligible /
+  Awaiting Sent Confirmation / Scheduled / Active / Paused / Completed /
+  Stopped / Failed — the latter five derived client-side from the raw
+  sequence status + step statuses for display, never stored as a separate
+  enum), the linked estimate, rep + recipient, all 6 steps with due
+  dates/statuses, pause/stop reasons, and Preview/Confirm-Sent/Manual-
+  Enroll/Pause/Resume/Stop controls (Manual-Enroll admin/manager-only).
+  `crm-frontend/src/pages/EstimateFollowUps.jsx` (new route
+  `/estimate-followups`, linked from Settings — admin/manager-only, same
+  "Integrations Hub"-style redirect card pattern) is the global
+  oversight page: state counts + per-sequence table, the dry-run
+  eligibility report, and the versioned template editor (editing itself
+  is admin-only; manager can view).
+- **Reliability/audit**: durable Postgres scheduling (fixed `due_at` per
+  step, atomic `UPDATE ... WHERE status='pending' ... RETURNING` claim —
+  proven safe under real concurrent workers in
+  `test/integration/estimateFollowupSequence.int.test.js`'s race test, no
+  advisory lock needed since row-level atomicity suffices), bounded retry
+  (`MAX_STEP_ATTEMPTS = 5`, never an unbounded loop), and the existing
+  `email_send_claims`/`email_send_logs` idempotency/audit infrastructure
+  reused as-is for the actual send. **A missing business address
+  (`ConfigurationError`) blocks the WHOLE tick, not just one lead** — the
+  claimed step is released back to `pending` (never burned as a terminal
+  failure; never stuck in `processing`), and
+  `lib/estimateFollowupAlerts.js#notifyAutomationFailures` fires exactly
+  once per tick via the EXISTING staff `SYSTEM_FAILURE` broadcast category
+  (`lib/notificationPreferences.js`) — the same mechanism
+  `lib/monitoring/alertDispatcher.js` already uses for watchdog alerts, so
+  Michelle's single-category policy correctly excludes her with zero new
+  person-specific logic. This alert also fires for a genuine per-step send
+  failure (after `MAX_STEP_ATTEMPTS`); it never fires for an ordinary tick
+  with nothing eligible — "no noise for ordinary non-eligible leads" per
+  the explicit requirement.
+- **Compliance**: CAN-SPAM unsubscribe + the permanent suppression table
+  above (survives a later QB re-sync — it's keyed by email, never touched
+  by the estimate-sync pipeline), accurate sender identity (the real
+  assigned rep's name, EC's existing authorized Gmail sender), a real
+  business address read from `company_settings` (never invented — see
+  `ConfigurationError` above), and no deceptive/urgency content by
+  construction of the given wording.
+- **Wiring**: `server.js` mounts `routes/estimateFollowups.js` at
+  `/api/v1`; `reminderWorker.js` calls
+  `estimateFollowupEngine.processEstimateFollowups({ triggeredBy: 'cron'
+  })` on the SAME cron tick as the existing appointment/phone/task
+  reminder engines (own try/catch — a failure here never fails the other
+  three passes); `routes/leads.js`'s terminal-lost-status transition
+  (`PUT /:id` and `PUT /by-external/:externalRef`, the only two write
+  paths) now also calls
+  `estimateFollowupEngine.stopActiveSequencesForLead(leadId,
+  'lead_status_<status>')` post-commit, best-effort, alongside the
+  existing appointment-cancellation step — never a second/raw stop path.
+- **Dry-run verification performed in this environment** (disposable,
+  fully-migrated local Postgres — no production access): a seeded 4-lead
+  dataset (one cleanly eligible, one disqualified by `Lost` status, one
+  with no valid email, one already enrolled) run through
+  `getDryRunEligibilityReport()` classified all four correctly
+  (`eligible_awaiting_sent_confirmation`: 1, `not_eligible`: 2 with the
+  exact right reasons, `already_enrolled`: 1) with zero emails sent; a
+  separate run of `processEstimateFollowups()` with its default dry-run
+  flag active against a due step reported `wouldSend: 1, sent: 0` and
+  logged (never wrote or sent) the would-be send. **Existing leads are
+  NOT automatically enrolled retroactively by this feature in any way** —
+  there is no retroactive-enrollment code path at all; every lead starts
+  `not_eligible`/`awaiting_sent_confirmation` until a human explicitly
+  confirms.
+- **NOT activated.** `ESTIMATE_FOLLOWUP_DRY_RUN` is unset anywhere in this
+  codebase/environment — the feature is fully inert for real sending
+  until an operator explicitly sets it to `'false'` AND has separately
+  approved the final templates, sender identity, recipient eligibility
+  rules, and this dry-run verification, per the explicit instruction this
+  feature was built against. No QuickBooks credential, financial record,
+  or estimate-sync behavior was touched by this work — confirmed by the
+  diff itself (only `lib/companyConfig.js` gained two already-existing-
+  but-unexposed address columns; every other change is new files plus the
+  three additive wiring points listed above).
+
+Regression coverage: `test/estimateFollowupEligibility.test.js` (27 tests
+— the full eligibility matrix, both enrollment and fresh-before-send
+checks, every disqualifying lead status, email validity, suppression,
+competing sequence, estimate status); `test/estimateFollowupEngine.test.js`
+(13 tests — business-hour clamping, the 6-step cadence, both documented
+2026 DST transition dates reproduced exactly, the deterministic
+unsubscribe token); `test/estimateFollowupTemplates.test.js` (10 tests —
+token rendering/escaping, the `ConfigurationError`-never-invents-an-address
+guarantee, `saveTemplateVersion`'s never-mutates-an-existing-row
+transaction); `test/estimateFollowupAlerts.test.js` (6 tests — fires only
+for a genuine failure/config-block, the SYSTEM_FAILURE category reuse,
+never throws back to the caller); `test/integration/estimateFollowupSequence.int.test.js`
+(17 tests, real Postgres — full lifecycle, catch-up collapsing, one-per-
+day enforcement, both auto-stop paths, competing/revised-estimate
+handling, pause/resume/stop, unsubscribe-by-token, concurrent-worker claim
+safety, the config-blocked tick, role-scoped HTTP access, and the dry-run
+report/engine paths); `crm-frontend/src/components/EstimateFollowUpPanel.test.jsx`
+(11 tests) and `crm-frontend/src/pages/EstimateFollowUps.test.jsx` (10
+tests) — the full frontend state machine, role gating (including the
+fix ensuring the admin-only overview API is never called before the
+caller's role is known), and the template editor's admin-only edit gate.
+Full existing backend unit suite re-run clean (1527 pass, 0 fail, 1
+pre-existing unrelated todo) and the full real-Postgres integration suite
+re-run clean against this exact change (382 pass, 6 fail — the same
+pre-existing, already-documented `qbEstimateInvoice.int.test.js` failures
+from before this work, unrelated to anything this feature touches) with
+every change in this section applied. Full frontend vitest suite re-run
+clean (450 pass) and `npm run build:exit` confirmed clean after every
+`.jsx` edit in this section.
+
+### Activation checklist (operator action required — none of this has been done)
+
+1. Review the final template wording in the new admin UI
+   (`/estimate-followups` → Templates tab) against the originally-approved
+   copy — it is seeded verbatim from the given wording, but this is the
+   point to confirm or revise it.
+2. Confirm the sender identity (`EmailService`'s existing Gmail sender,
+   `yaron@ecconstructiongroup.com`) and that `company_settings`'s business
+   address fields are populated in production — `GET /api/v1/estimate-followups/admin/dry-run-report`
+   (or the Dry-Run Report tab) will show a `configuration_error` if not.
+3. Review the dry-run eligibility report
+   (`/estimate-followups` → Dry-Run Report tab) against REAL production
+   data — confirm the set of leads it would consider eligible matches
+   expectations, with zero emails sent (this tab never sends).
+4. Only after explicit approval of 1-3: set
+   `ESTIMATE_FOLLOWUP_DRY_RUN=false` on the `qb-proxy-server` Railway
+   service (the same env var `reminderWorker.js` reads on every cron
+   tick) to enable real sending.
+5. Monitor the System Health / staff `SYSTEM_FAILURE` email channel for
+   the first several ticks after activation — a config-blocked or
+   per-step-failed tick alerts automatically via the existing mechanism
+   described above.
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`
