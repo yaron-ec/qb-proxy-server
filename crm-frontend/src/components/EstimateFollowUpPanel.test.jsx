@@ -27,7 +27,7 @@ function lead(overrides = {}) { return { id: 'lead-1', ...overrides }; }
 function admin() { return { role: 'admin', email: 'admin@example.com' }; }
 function salesRep() { return { role: 'sales_rep', email: 'rep@example.com' }; }
 
-const REPLY_LIMITATION = 'This CRM has no automatic inbound-email reply detection for this sequence. If a customer replies, a rep must manually pause or stop the sequence — it will not stop itself.';
+const HEALTHY_MONITORING = { enabled: true, healthyForSending: true, status: 'healthy', lastSuccessAt: '2026-11-10T12:00:00Z' };
 
 beforeEach(() => {
   getState.mockReset(); getPreview.mockReset(); confirmSent.mockReset();
@@ -35,39 +35,58 @@ beforeEach(() => {
 });
 
 describe('EstimateFollowUpPanel', () => {
-  it('always surfaces the no-automatic-reply-detection limitation prominently', async () => {
-    getState.mockResolvedValue({ state: 'not_eligible', eligibilityReasons: ['no_pending_estimate'], replyDetectionLimitation: REPLY_LIMITATION });
+  it('reply monitoring healthy: surfaces an active/automatic banner, never the old manual-only wording', async () => {
+    getState.mockResolvedValue({ state: 'not_eligible', eligibilityReasons: ['no_pending_estimate'], replyMonitoring: HEALTHY_MONITORING });
     render(<EstimateFollowUpPanel lead={lead()} currentUser={admin()} />);
-    await waitFor(() => expect(screen.getByText(/No automatic reply detection/)).toBeInTheDocument());
-    expect(screen.getByText(REPLY_LIMITATION)).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText(/Automatic reply detection is active/)).toBeInTheDocument());
+    expect(screen.queryByText(/No automatic reply detection/)).not.toBeInTheDocument();
+  });
+
+  it('reply monitoring disabled: surfaces the fail-closed warning banner', async () => {
+    getState.mockResolvedValue({
+      state: 'not_eligible', eligibilityReasons: ['no_pending_estimate'],
+      replyMonitoring: { enabled: false, healthyForSending: false, status: 'unhealthy' },
+    });
+    render(<EstimateFollowUpPanel lead={lead()} currentUser={admin()} />);
+    await waitFor(() => expect(screen.getByText(/Automatic reply detection is not yet enabled/)).toBeInTheDocument());
+  });
+
+  it('reply monitoring enabled but degraded: surfaces the not-healthy warning with its status', async () => {
+    getState.mockResolvedValue({
+      state: 'not_eligible', eligibilityReasons: ['no_pending_estimate'],
+      replyMonitoring: { enabled: true, healthyForSending: false, status: 'degraded' },
+    });
+    render(<EstimateFollowUpPanel lead={lead()} currentUser={admin()} />);
+    await waitFor(() => expect(screen.getByText(/Reply monitoring is enabled but not currently healthy/)).toBeInTheDocument());
+    expect(screen.getByText(/status: degraded/)).toBeInTheDocument();
   });
 
   it('not_eligible: shows the human-readable reasons', async () => {
-    getState.mockResolvedValue({ state: 'not_eligible', eligibilityReasons: ['lead_status_disqualifying:Lost'], replyDetectionLimitation: REPLY_LIMITATION });
+    getState.mockResolvedValue({ state: 'not_eligible', eligibilityReasons: ['lead_status_disqualifying:Lost'], replyMonitoring: HEALTHY_MONITORING });
     render(<EstimateFollowUpPanel lead={lead()} currentUser={admin()} />);
     await waitFor(() => expect(screen.getByText('Not Eligible')).toBeInTheDocument());
     expect(screen.getByText(/Lead status disqualifies this sequence/)).toBeInTheDocument();
   });
 
   it('awaiting_sent_confirmation: shows Confirm Estimate Sent, and Manually Enroll only for admin/manager', async () => {
-    getState.mockResolvedValue({ state: 'awaiting_sent_confirmation', eligibilityReasons: [], replyDetectionLimitation: REPLY_LIMITATION, candidateEstimates: [] });
+    getState.mockResolvedValue({ state: 'awaiting_sent_confirmation', eligibilityReasons: [], replyMonitoring: HEALTHY_MONITORING, candidateEstimates: [] });
     render(<EstimateFollowUpPanel lead={lead()} currentUser={admin()} />);
     await waitFor(() => expect(screen.getByText('Confirm Estimate Sent — Start Sequence')).toBeInTheDocument());
     expect(screen.getByText(/Manually Enroll/)).toBeInTheDocument();
   });
 
   it('awaiting_sent_confirmation: a sales_rep never sees the Manually Enroll control', async () => {
-    getState.mockResolvedValue({ state: 'awaiting_sent_confirmation', eligibilityReasons: [], replyDetectionLimitation: REPLY_LIMITATION, candidateEstimates: [] });
+    getState.mockResolvedValue({ state: 'awaiting_sent_confirmation', eligibilityReasons: [], replyMonitoring: HEALTHY_MONITORING, candidateEstimates: [] });
     render(<EstimateFollowUpPanel lead={lead()} currentUser={salesRep()} />);
     await waitFor(() => expect(screen.getByText('Confirm Estimate Sent — Start Sequence')).toBeInTheDocument());
     expect(screen.queryByText(/Manually Enroll/)).not.toBeInTheDocument();
   });
 
   it('clicking Confirm Estimate Sent calls the API and reloads state', async () => {
-    getState.mockResolvedValueOnce({ state: 'awaiting_sent_confirmation', eligibilityReasons: [], replyDetectionLimitation: REPLY_LIMITATION, candidateEstimates: [] });
+    getState.mockResolvedValueOnce({ state: 'awaiting_sent_confirmation', eligibilityReasons: [], replyMonitoring: HEALTHY_MONITORING, candidateEstimates: [] });
     confirmSent.mockResolvedValue({ sequence: { id: 'seq-1', status: 'active' } });
     getState.mockResolvedValueOnce({
-      state: 'scheduled', replyDetectionLimitation: REPLY_LIMITATION,
+      state: 'scheduled', replyMonitoring: HEALTHY_MONITORING,
       sequence: { id: 'seq-1', status: 'active', recipientEmail: 'jane@example.com', enrollmentMethod: 'confirm_sent', estimateSentConfirmedAt: '2026-11-10T12:00:00Z', estimateSentConfirmedBy: 'rep@example.com', steps: [] },
     });
     render(<EstimateFollowUpPanel lead={lead()} currentUser={admin()} />);
@@ -79,7 +98,7 @@ describe('EstimateFollowUpPanel', () => {
 
   it('a multiple-pending-estimates lead shows a picker and requires a selection before enrolling', async () => {
     getState.mockResolvedValue({
-      state: 'not_eligible', eligibilityReasons: ['multiple_pending_estimates'], replyDetectionLimitation: REPLY_LIMITATION,
+      state: 'not_eligible', eligibilityReasons: ['multiple_pending_estimates'], replyMonitoring: HEALTHY_MONITORING,
       candidateEstimates: [{ id: 'est-1', qb_estimate_number: '101' }, { id: 'est-2', qb_estimate_number: '102' }],
     });
     render(<EstimateFollowUpPanel lead={lead()} currentUser={admin()} />);
@@ -90,7 +109,7 @@ describe('EstimateFollowUpPanel', () => {
 
   it('active sequence: renders the 6-step timeline with statuses, and shows Pause/Stop (not Resume)', async () => {
     getState.mockResolvedValue({
-      state: 'active', replyDetectionLimitation: REPLY_LIMITATION,
+      state: 'active', replyMonitoring: HEALTHY_MONITORING,
       sequence: {
         id: 'seq-1', status: 'active', recipientEmail: 'jane@example.com', enrollmentMethod: 'confirm_sent',
         estimateSentConfirmedAt: '2026-11-01T12:00:00Z', estimateSentConfirmedBy: 'rep@example.com',
@@ -114,7 +133,7 @@ describe('EstimateFollowUpPanel', () => {
 
   it('paused sequence: shows the paused reason/by, and Resume (not Pause)', async () => {
     getState.mockResolvedValue({
-      state: 'paused', replyDetectionLimitation: REPLY_LIMITATION,
+      state: 'paused', replyMonitoring: HEALTHY_MONITORING,
       sequence: {
         id: 'seq-1', status: 'paused', recipientEmail: 'jane@example.com', enrollmentMethod: 'confirm_sent',
         pausedReason: 'customer_requested_pause', pausedBy: 'rep@example.com', steps: [],
@@ -130,7 +149,7 @@ describe('EstimateFollowUpPanel', () => {
 
   it('stopped sequence: shows the stop reason/by, and neither Pause/Resume/Stop controls', async () => {
     getState.mockResolvedValue({
-      state: 'stopped', replyDetectionLimitation: REPLY_LIMITATION,
+      state: 'stopped', replyMonitoring: HEALTHY_MONITORING,
       sequence: {
         id: 'seq-1', status: 'stopped', recipientEmail: 'jane@example.com', enrollmentMethod: 'confirm_sent',
         stoppedReason: 'customer_unsubscribed', stoppedBy: 'system:unsubscribe_link', steps: [],
@@ -146,12 +165,12 @@ describe('EstimateFollowUpPanel', () => {
 
   it('clicking Pause calls the API with a reason and reloads', async () => {
     getState.mockResolvedValueOnce({
-      state: 'active', replyDetectionLimitation: REPLY_LIMITATION,
+      state: 'active', replyMonitoring: HEALTHY_MONITORING,
       sequence: { id: 'seq-1', status: 'active', recipientEmail: 'jane@example.com', enrollmentMethod: 'confirm_sent', steps: [] },
     });
     pause.mockResolvedValue({ sequence: { id: 'seq-1', status: 'paused' } });
     getState.mockResolvedValueOnce({
-      state: 'paused', replyDetectionLimitation: REPLY_LIMITATION,
+      state: 'paused', replyMonitoring: HEALTHY_MONITORING,
       sequence: { id: 'seq-1', status: 'paused', recipientEmail: 'jane@example.com', enrollmentMethod: 'confirm_sent', pausedReason: 'manual_pause', pausedBy: 'rep@example.com', steps: [] },
     });
     render(<EstimateFollowUpPanel lead={lead()} currentUser={admin()} />);
@@ -159,6 +178,28 @@ describe('EstimateFollowUpPanel', () => {
     fireEvent.click(screen.getByText('Pause'));
     await waitFor(() => expect(pause).toHaveBeenCalledWith('lead-1', 'manual_pause'));
     await waitFor(() => expect(screen.getByText('Paused')).toBeInTheDocument());
+  });
+
+  it('auto_qb_email_status enrollment renders the Automatic (QuickBooks) label', async () => {
+    getState.mockResolvedValue({
+      state: 'active', replyMonitoring: HEALTHY_MONITORING,
+      sequence: { id: 'seq-1', status: 'active', recipientEmail: 'jane@example.com', enrollmentMethod: 'auto_qb_email_status', steps: [] },
+    });
+    render(<EstimateFollowUpPanel lead={lead()} currentUser={admin()} />);
+    await waitFor(() => expect(screen.getByText('Automatic (QuickBooks)')).toBeInTheDocument());
+  });
+
+  it('a sequence paused by a detected customer reply renders a friendly "customer replied" reason', async () => {
+    getState.mockResolvedValue({
+      state: 'paused', replyMonitoring: HEALTHY_MONITORING,
+      sequence: {
+        id: 'seq-1', status: 'paused', recipientEmail: 'jane@example.com', enrollmentMethod: 'auto_qb_email_status',
+        pausedReason: 'customer_replied', pausedBy: 'system:gmail_reply_detected', triggeringGmailMessageId: 'msg-123', steps: [],
+      },
+    });
+    render(<EstimateFollowUpPanel lead={lead()} currentUser={admin()} />);
+    await waitFor(() => expect(screen.getByText(/customer replied/)).toBeInTheDocument());
+    expect(screen.getByText(/system:gmail_reply_detected/)).toBeInTheDocument();
   });
 
   it('a load error renders a visible error message, not a crash', async () => {

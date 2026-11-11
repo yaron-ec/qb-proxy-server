@@ -131,6 +131,24 @@ test.before(async () => {
   companySettingsIdToCleanUp = insertedCompanySettingsId;
   require(path.join(ROOT, 'lib/companyConfig')).invalidate();
 
+  // This suite tests the PRE-EXISTING manual lifecycle (enroll/pause/resume/
+  // stop/send) — the fail-closed reply-monitoring gate added for the
+  // "Fully Automatic Estimate Detection and Customer Reply Tracking"
+  // requirement is a SEPARATE concern, covered on its own in
+  // test/integration/estimateFollowupAutomaticDetection.int.test.js. Without
+  // this, every real send in this file would be silently held
+  // (heldForMonitoring) instead of sent, since reply monitoring defaults to
+  // disabled/unhealthy. Seed a healthy checkpoint + enable the flag so this
+  // file's own, unrelated assertions keep exercising real sends.
+  process.env.ESTIMATE_FOLLOWUP_REPLY_DETECTION_ENABLED = 'true';
+  const MAILBOX = process.env.GMAIL_FROM_ADDRESS || 'yaron@ecconstructiongroup.com';
+  await db.query(
+    `INSERT INTO estimate_followup_gmail_checkpoint (mailbox, history_id, status, last_success_at)
+     VALUES ($1, '1', 'healthy', NOW())
+     ON CONFLICT (mailbox) DO UPDATE SET history_id='1', status='healthy', last_success_at=NOW(), consecutive_failures=0`,
+    [MAILBOX]
+  );
+
   await db.query(`INSERT INTO owners (email, display_name, is_active) VALUES ($1, 'Owner A', true) ON CONFLICT DO NOTHING`, [`${RUN}.ownerA@example.com`]);
   await db.query(`INSERT INTO owners (email, display_name, is_active) VALUES ($1, 'Owner B', true) ON CONFLICT DO NOTHING`, [`${RUN}.ownerB@example.com`]);
   ownerA = (await db.query(`SELECT id FROM owners WHERE email = $1`, [`${RUN}.ownerA@example.com`])).rows[0].id;
@@ -156,6 +174,7 @@ test.after(async () => {
     );
   }
   require(path.join(ROOT, 'lib/companyConfig')).invalidate();
+  delete process.env.ESTIMATE_FOLLOWUP_REPLY_DETECTION_ENABLED;
   await db.pool.end();
 });
 

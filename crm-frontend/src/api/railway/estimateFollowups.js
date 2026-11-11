@@ -48,6 +48,18 @@ export function getDryRunReport() {
   return apiCall('/api/v1/estimate-followups/admin/dry-run-report', { method: 'GET' });
 }
 
+export function getAutomationStatus() {
+  return apiCall('/api/v1/estimate-followups/admin/automation-status', { method: 'GET' });
+}
+
+export function getAmbiguousReplies() {
+  return apiCall('/api/v1/estimate-followups/admin/ambiguous-replies', { method: 'GET' });
+}
+
+export function resolveAmbiguousReply(id) {
+  return apiCall(`/api/v1/estimate-followups/admin/ambiguous-replies/${id}/resolve`, { method: 'POST', body: {} });
+}
+
 export function listTemplates() {
   return apiCall('/api/v1/estimate-followups/templates', { method: 'GET' });
 }

@@ -9,11 +9,13 @@
  * this component never duplicates that check, it just renders what the API
  * returns or a 403.
  *
- * IMPORTANT, surfaced prominently rather than silently assumed: this CRM has
- * no automatic inbound-email reply detection for this sequence (Gmail
- * integration is outbound-send only). A customer reply does NOT
- * automatically pause/stop the sequence — a rep must do so manually via the
- * Pause/Stop controls below.
+ * Reply detection is now AUTOMATIC (lib/estimateFollowupReplyDetection.js
+ * polls Gmail and pauses a sequence the moment a genuine customer reply is
+ * detected — no rep action required in normal operation). The banner below
+ * surfaces the live health of that monitoring (never a static claim) since
+ * the engine's fail-closed gate holds ALL due sends, for every sequence,
+ * whenever reply monitoring is disabled or unhealthy. Pause/Stop below
+ * remain available as a manual override for exceptional cases.
  */
 import { useEffect, useState, useCallback } from "react";
 import { Loader2, Mail, Pause, Play, Square, Eye, CheckCircle2, AlertTriangle, Clock, XCircle } from "lucide-react";
@@ -90,6 +92,35 @@ function StepRow({ step }) {
         {step.skippedReason && <div className="text-[9px] text-amber-600">{step.skippedReason.replace(/_/g, " ")}</div>}
         {step.lastError && <div className="text-[9px] text-red-600 max-w-[180px] truncate" title={step.lastError}>{step.lastError}</div>}
       </div>
+    </div>
+  );
+}
+
+const ENROLLMENT_METHOD_LABEL = {
+  manual_enroll: "Manual",
+  confirm_sent: "Confirm Sent",
+  auto_qb_email_status: "Automatic (QuickBooks)",
+};
+
+function ReplyMonitoringBanner({ replyMonitoring }) {
+  if (!replyMonitoring) return null;
+  if (replyMonitoring.enabled && replyMonitoring.healthyForSending) {
+    return (
+      <div className="mb-2 p-2 bg-emerald-50 border border-emerald-200 rounded text-[10px] text-emerald-800">
+        <strong>Automatic reply detection is active.</strong> A genuine customer reply will automatically pause this sequence — no rep action required.
+      </div>
+    );
+  }
+  if (replyMonitoring.enabled) {
+    return (
+      <div className="mb-2 p-2 bg-amber-50 border border-amber-200 rounded text-[10px] text-amber-800">
+        <strong>Reply monitoring is enabled but not currently healthy</strong> (status: {replyMonitoring.status}). Per the fail-closed safety rule, automated estimate follow-up emails are held — for every lead, not just this one — until monitoring recovers. You can still Pause/Stop below if needed.
+      </div>
+    );
+  }
+  return (
+    <div className="mb-2 p-2 bg-amber-50 border border-amber-200 rounded text-[10px] text-amber-800">
+      <strong>Automatic reply detection is not yet enabled</strong> for this installation. Per the fail-closed safety rule, automated estimate follow-up emails are held — for every lead — until an operator enables it. You can still Pause/Stop below if a customer replies.
     </div>
   );
 }
@@ -200,9 +231,7 @@ export default function EstimateFollowUpPanel({ lead, currentUser }) {
       </div>
 
       <div className="px-3 py-2.5">
-        <div className="mb-2 p-2 bg-amber-50 border border-amber-200 rounded text-[10px] text-amber-800">
-          <strong>No automatic reply detection:</strong> {data?.replyDetectionLimitation}
-        </div>
+        <ReplyMonitoringBanner replyMonitoring={data?.replyMonitoring} />
 
         {error && <div className="mb-2 p-2 bg-red-50 border border-red-200 rounded text-[11px] text-red-700">{error}</div>}
 
@@ -218,8 +247,10 @@ export default function EstimateFollowUpPanel({ lead, currentUser }) {
         {state === "awaiting_sent_confirmation" && (
           <div>
             <p className="text-[11px] text-slate-600 mb-2">
-              This lead has a Pending estimate and is eligible to enroll. No automatic enrollment happens —
-              confirm below only once the estimate has genuinely been sent/presented to the customer.
+              This lead has a Pending estimate and is eligible to enroll. Enrollment happens automatically once
+              QuickBooks itself confirms the estimate was emailed to the customer (EmailStatus=EmailSent) — no
+              action is required in normal operation. Use the button below only to confirm/enroll manually for
+              an exceptional case (e.g. the estimate was sent a way QuickBooks can't see).
             </p>
             <div className="flex flex-wrap gap-2">
               <button
@@ -267,12 +298,14 @@ export default function EstimateFollowUpPanel({ lead, currentUser }) {
           <div>
             <div className="grid grid-cols-2 gap-2 mb-2 text-[11px]">
               <div><span className="text-slate-400">Recipient:</span> {data.sequence.recipientEmail}</div>
-              <div><span className="text-slate-400">Enrollment:</span> {data.sequence.enrollmentMethod === "manual_enroll" ? "Manual" : "Confirm Sent"}</div>
+              <div><span className="text-slate-400">Enrollment:</span> {ENROLLMENT_METHOD_LABEL[data.sequence.enrollmentMethod] || data.sequence.enrollmentMethod}</div>
               <div><span className="text-slate-400">Sent confirmed:</span> {fmtDate(data.sequence.estimateSentConfirmedAt)}</div>
               <div><span className="text-slate-400">By:</span> {data.sequence.estimateSentConfirmedBy}</div>
             </div>
             {data.sequence.pausedReason && (
-              <div className="mb-2 text-[11px] text-amber-700">Paused: {data.sequence.pausedReason} ({data.sequence.pausedBy})</div>
+              <div className="mb-2 text-[11px] text-amber-700">
+                Paused: {data.sequence.pausedReason === "customer_replied" ? "customer replied" : data.sequence.pausedReason} ({data.sequence.pausedBy})
+              </div>
             )}
             {data.sequence.stoppedReason && (
               <div className="mb-2 text-[11px] text-red-700">Stopped: {data.sequence.stoppedReason} ({data.sequence.stoppedBy})</div>

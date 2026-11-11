@@ -35,6 +35,7 @@ const { query } = require('../db/client');
 const engine = require('../lib/estimateFollowupEngine');
 const eligibility = require('../lib/estimateFollowupEligibility');
 const templates = require('../lib/estimateFollowupTemplates');
+const replyDetection = require('../lib/estimateFollowupReplyDetection');
 
 const router = express.Router();
 
@@ -71,6 +72,26 @@ async function loadLeadForScope(req, res) {
     return null;
   }
   return { lead: rows[0], scope };
+}
+
+// Used by BOTH the per-lead GET and the admin automation-status endpoint,
+// so the two can never silently drift into two different field-casing
+// conventions for the same underlying status (the exact class of bug this
+// codebase has paid for before — see lib/qbEnvironment.js's header for the
+// QB_ENVIRONMENT/QB_SANDBOX precedent).
+function serializeReplyMonitoring(replyMonitoring) {
+  return {
+    enabled: replyMonitoring.enabled,
+    notificationsEnabled: replyMonitoring.notifications_enabled,
+    healthyForSending: replyMonitoring.healthy_for_sending,
+    reason: replyMonitoring.reason,
+    status: replyMonitoring.checkpoint ? replyMonitoring.checkpoint.status : 'unhealthy',
+    lastCheckedAt: replyMonitoring.checkpoint ? replyMonitoring.checkpoint.last_checked_at : null,
+    lastSuccessAt: replyMonitoring.checkpoint ? replyMonitoring.checkpoint.last_success_at : null,
+    consecutiveFailures: replyMonitoring.checkpoint ? replyMonitoring.checkpoint.consecutive_failures : null,
+    lastError: replyMonitoring.checkpoint ? replyMonitoring.checkpoint.last_error : null,
+    unresolvedAmbiguousReplies: replyMonitoring.unresolved_ambiguous_replies,
+  };
 }
 
 function writeAllowed(scope, res) {
@@ -130,6 +151,7 @@ function serializeSequence(sequence, steps) {
     pausedReason: sequence.paused_reason,
     pausedAt: sequence.paused_at,
     pausedBy: sequence.paused_by,
+    triggeringGmailMessageId: sequence.triggering_gmail_message_id,
     stoppedReason: sequence.stopped_reason,
     stoppedAt: sequence.stopped_at,
     stoppedBy: sequence.stopped_by,
@@ -176,13 +198,24 @@ router.get('/leads/:id/estimate-followup', requireAuth, async (req, res) => {
       }
     }
 
+    const replyMonitoring = await replyDetection.getReplyMonitoringStatus();
+
     res.json({
       state: deriveDisplayState({ sequence, steps, eligibleNow }),
       sequence: serializeSequence(sequence, steps),
       eligibleNow,
       eligibilityReasons,
       candidateEstimates: sequence ? [] : candidateEstimates,
-      replyDetectionLimitation: 'This CRM has no automatic inbound-email reply detection for this sequence. If a customer replies, a rep must manually pause or stop the sequence — it will not stop itself.',
+      // Reply detection is now automatic (Gmail history.list poll — see
+      // lib/estimateFollowupReplyDetection.js) rather than the manual-only
+      // limitation this field used to describe. Surfaced here (global
+      // health, not lead-specific) so a rep can tell whether "no reply
+      // detected yet" is trustworthy right now, or whether reply monitoring
+      // is itself down/disabled — in which case lib/estimateFollowupEngine.js's
+      // fail-closed gate is ALSO holding every due send for every sequence,
+      // not just this one. Manual pause/stop below remain available as an
+      // explicit override for exceptional cases regardless of this status.
+      replyMonitoring: serializeReplyMonitoring(replyMonitoring),
     });
   } catch (e) { logAndRespondUnexpectedError(e, res, 'get state'); }
 });
@@ -334,6 +367,45 @@ router.get('/estimate-followups/admin/dry-run-report', requireAuth, requireRole(
     const report = await engine.getDryRunEligibilityReport();
     res.json(report);
   } catch (e) { logAndRespondUnexpectedError(e, res, 'dry-run report'); }
+});
+
+// ── Automation status (reply-monitoring health + unresolved ambiguous
+//    replies) — read-only, admin/manager, for the global oversight page.
+//    This is the one place an operator confirms the fail-closed gate's own
+//    current state without needing Railway log access. ───────────────────
+router.get('/estimate-followups/admin/automation-status', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
+  try {
+    const replyMonitoring = await replyDetection.getReplyMonitoringStatus();
+    res.json({ replyMonitoring: serializeReplyMonitoring(replyMonitoring) });
+  } catch (e) { logAndRespondUnexpectedError(e, res, 'automation status'); }
+});
+
+// Every inbound reply that could not be deterministically correlated to
+// exactly one active/paused sequence (zero or multiple candidate leads) —
+// never silently attached to a possibly-wrong lead. Manual staff triage is
+// the explicit, exceptional-case override this requirement calls for.
+router.get('/estimate-followups/admin/ambiguous-replies', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
+  try {
+    const { rows } = await query(
+      `SELECT id, gmail_message_id, gmail_thread_id, from_address, candidate_sequence_ids, reason, received_at, resolved, resolved_at, resolved_by, created_at
+         FROM estimate_followup_ambiguous_replies
+        ORDER BY resolved ASC, created_at DESC
+        LIMIT 200`
+    );
+    res.json({ ambiguousReplies: rows });
+  } catch (e) { logAndRespondUnexpectedError(e, res, 'ambiguous replies'); }
+});
+
+router.post('/estimate-followups/admin/ambiguous-replies/:id/resolve', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
+  try {
+    const { rows } = await query(
+      `UPDATE estimate_followup_ambiguous_replies SET resolved = TRUE, resolved_at = NOW(), resolved_by = $2
+         WHERE id = $1 AND NOT resolved RETURNING *`,
+      [req.params.id, req.user.email]
+    );
+    if (!rows.length) return res.status(409).json({ error: 'not_found_or_already_resolved' });
+    res.json({ ambiguousReply: rows[0] });
+  } catch (e) { logAndRespondUnexpectedError(e, res, 'resolve ambiguous reply'); }
 });
 
 router.get('/estimate-followups/templates', requireAuth, requireRole('admin', 'manager'), async (req, res) => {

@@ -147,6 +147,106 @@ function DryRunReportTab() {
   );
 }
 
+function AutomationStatusTab() {
+  const [status, setStatus] = useState(null);
+  const [ambiguous, setAmbiguous] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [resolving, setResolving] = useState(null);
+
+  const load = () => {
+    setLoading(true);
+    setError(null);
+    Promise.all([api.getAutomationStatus(), api.getAmbiguousReplies()])
+      .then(([statusRes, ambiguousRes]) => {
+        setStatus(statusRes.replyMonitoring);
+        setAmbiguous(ambiguousRes.ambiguousReplies);
+        setLoading(false);
+      })
+      .catch((e) => { setError(e.data?.message || e.message || "Failed to load"); setLoading(false); });
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const resolve = async (id) => {
+    setResolving(id);
+    try {
+      await api.resolveAmbiguousReply(id);
+      load();
+    } catch (e) {
+      setError(e.data?.message || e.message || "Failed to resolve");
+    } finally {
+      setResolving(null);
+    }
+  };
+
+  if (loading) return <div className="flex justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-slate-400" /></div>;
+  if (error) return <div className="p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">{error}</div>;
+
+  const healthy = status.enabled && status.healthyForSending;
+
+  return (
+    <div>
+      <div className={`mb-4 p-3 rounded-lg border text-sm ${healthy ? "bg-emerald-50 border-emerald-200 text-emerald-800" : "bg-amber-50 border-amber-200 text-amber-800"}`}>
+        <div className="font-bold mb-1">
+          Reply monitoring: {status.enabled ? (healthy ? "Healthy" : `Enabled but ${status.status || "unhealthy"}`) : "Disabled"}
+        </div>
+        <div className="text-xs">
+          {!healthy && "Per the fail-closed safety rule, EVERY estimate follow-up send across EVERY lead is currently held until this recovers."}
+          {healthy && "Automated estimate follow-up emails may send normally — reply detection is active and polling Gmail successfully."}
+        </div>
+        {status.lastSuccessAt && (
+          <div className="text-[11px] mt-1 opacity-75">Last successful poll: {new Date(status.lastSuccessAt).toLocaleString()}</div>
+        )}
+        {status.lastError && (
+          <div className="text-[11px] mt-1 opacity-75">Last error: {status.lastError}</div>
+        )}
+      </div>
+
+      <h3 className="text-sm font-bold text-slate-700 mb-2">Ambiguous Replies — Manual Triage</h3>
+      <p className="text-xs text-slate-500 mb-3">
+        An inbound reply that could not be matched to exactly one active/paused sequence (zero or multiple
+        candidates) is recorded here rather than guessed. Resolve once reviewed.
+      </p>
+      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+        <table className="w-full text-xs">
+          <thead className="bg-slate-50 text-slate-500">
+            <tr>
+              <th className="text-left px-3 py-2 font-semibold">From</th>
+              <th className="text-left px-3 py-2 font-semibold">Reason</th>
+              <th className="text-left px-3 py-2 font-semibold">Candidates</th>
+              <th className="text-left px-3 py-2 font-semibold">Received</th>
+              <th className="text-left px-3 py-2 font-semibold">Status</th>
+              <th className="px-3 py-2"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {ambiguous.map((r) => (
+              <tr key={r.id} className="border-t border-slate-100">
+                <td className="px-3 py-2">{r.from_address}</td>
+                <td className="px-3 py-2 text-slate-500">{r.reason.replace(/_/g, " ")}</td>
+                <td className="px-3 py-2">{(r.candidate_sequence_ids || []).length}</td>
+                <td className="px-3 py-2 text-slate-400">{r.received_at ? new Date(r.received_at).toLocaleString() : "—"}</td>
+                <td className="px-3 py-2">{r.resolved ? <span className="text-emerald-600">Resolved</span> : <span className="text-amber-600">Needs review</span>}</td>
+                <td className="px-3 py-2">
+                  {!r.resolved && (
+                    <button disabled={resolving === r.id} onClick={() => resolve(r.id)} className="text-blue-600 hover:underline disabled:opacity-50">
+                      Mark Resolved
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+            {ambiguous.length === 0 && (
+              <tr><td colSpan={6} className="px-3 py-6 text-center text-slate-400">No ambiguous replies.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function TemplateEditorTab({ isAdmin }) {
   const [templates, setTemplates] = useState(null);
   const [selected, setSelected] = useState(null);
@@ -265,7 +365,7 @@ export default function EstimateFollowUps() {
       </div>
 
       <div className="flex gap-1 mb-4 border-b border-slate-200">
-        {[["overview", "Overview"], ["dry-run", "Dry-Run Report"], ["templates", "Templates"]].map(([key, label]) => (
+        {[["overview", "Overview"], ["automation", "Automation Status"], ["dry-run", "Dry-Run Report"], ["templates", "Templates"]].map(([key, label]) => (
           <button
             key={key}
             onClick={() => setTab(key)}
@@ -277,6 +377,7 @@ export default function EstimateFollowUps() {
       </div>
 
       {tab === "overview" && <OverviewTab />}
+      {tab === "automation" && <AutomationStatusTab />}
       {tab === "dry-run" && <DryRunReportTab />}
       {tab === "templates" && <TemplateEditorTab isAdmin={currentUser?.role === "admin"} />}
     </div>

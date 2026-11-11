@@ -345,6 +345,13 @@ router.post('/by-external/:externalRef/sync-estimates', requireAdminManager, asy
       const qbAppUrl = `${qbAppUrlBase}/app/estimate?txnId=${qbId}`;
       const estimateDate = qbEst.TxnDate || null;
 
+      // Persisted verbatim for the estimate follow-up sequence's automatic-
+      // enrollment path (lib/estimateFollowupEngine.js#runAutoEnrollmentScan)
+      // — see lib/estimateSentDetection.js's header. qbEst already comes
+      // from this route's own fetch above — zero new QB API calls.
+      const qbEmailStatus = qbEst.EmailStatus || null;
+      const qbEmailDeliveryTime = qbEst.DeliveryInfo?.DeliveryTime || null;
+
       const estimateData = {
         qb_estimate_id: qbId,
         qb_estimate_number: qbNumber,
@@ -372,14 +379,15 @@ router.post('/by-external/:externalRef/sync-estimates', requireAdminManager, asy
              qb_estimate_number = $1, estimate_amount = $2, estimate_status = $3,
              estimate_date = $4, qb_app_url = $5, last_synced_at = $6,
              match_status = $7, match_method = $8, sync_source = $9, source = $10,
-             ${existingRow.pdf_status === 'failed' ? 'pdf_status = $11, pdf_retry_count = $12,' : ''}
+             qb_email_status = $11, qb_email_delivery_time = $12,
+             ${existingRow.pdf_status === 'failed' ? 'pdf_status = $13, pdf_retry_count = $14,' : ''}
              updated_at = NOW()
-           WHERE id = $${existingRow.pdf_status === 'failed' ? '13' : '11'}`,
+           WHERE id = $${existingRow.pdf_status === 'failed' ? '15' : '13'}`,
           existingRow.pdf_status === 'failed'
             ? [qbNumber, totalAmt, status, estimateDate, qbAppUrl, estimateData.last_synced_at,
-               'matched', 'qb_direct', 'QuickBooks', 'QB Direct Sync', 'pending', 0, existingRow.id]
+               'matched', 'qb_direct', 'QuickBooks', 'QB Direct Sync', qbEmailStatus, qbEmailDeliveryTime, 'pending', 0, existingRow.id]
             : [qbNumber, totalAmt, status, estimateDate, qbAppUrl, estimateData.last_synced_at,
-               'matched', 'qb_direct', 'QuickBooks', 'QB Direct Sync', existingRow.id]
+               'matched', 'qb_direct', 'QuickBooks', 'QB Direct Sync', qbEmailStatus, qbEmailDeliveryTime, existingRow.id]
         );
         updated++;
       } else {
@@ -389,11 +397,12 @@ router.post('/by-external/:externalRef/sync-estimates', requireAdminManager, asy
              (qb_estimate_id, qb_estimate_number, lead_id, customer_name,
               estimate_amount, estimate_status, estimate_date, qb_app_url,
               last_synced_at, match_status, match_method, sync_source, source,
+              qb_email_status, qb_email_delivery_time,
               pdf_status, pdf_retry_count)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,'pending',0)`,
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,'pending',0)`,
           [qbId, qbNumber, lead.id, estimateData.customer_name,
            totalAmt, status, estimateDate, qbAppUrl, estimateData.last_synced_at,
-           'matched', 'qb_direct', 'QuickBooks', 'QB Direct Sync']
+           'matched', 'qb_direct', 'QuickBooks', 'QB Direct Sync', qbEmailStatus, qbEmailDeliveryTime]
         );
         created++;
         // Activity note for newly imported estimate (restores pre-migration behavior)
