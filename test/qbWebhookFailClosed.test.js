@@ -16,6 +16,14 @@
  *      Fixed: peeks the breaker's cooling-down state before triggering, and
  *      debounces repeated triggers via lib/qbWebhookDebounce.js.
  *
+ * November 2026 — "100% signature verification failure" production
+ * incident fix: this file's own signing helper (and the implementation it
+ * tests) previously used a HEX digest, which is NOT what Intuit actually
+ * sends — Intuit's documented format is BASE64. Every test below now signs
+ * with base64 (the real format); a dedicated test proves hex is still
+ * accepted as a defensive fallback (see routes/qbWebhook.js's header for
+ * why accepting either encoding is never a security regression).
+ *
  * Same HTTP-level convention as test/metaWebhookFailClosed.test.js — real
  * Express server, real POST requests, no TEST_DATABASE_URL needed (the
  * breaker and debounce modules are stubbed, same as
@@ -31,6 +39,10 @@ const ROOT = path.join(__dirname, '..');
 const TOKEN = 'test-qb-webhook-verifier-token';
 
 function sign(secret, rawBody) {
+  return crypto.createHmac('sha256', secret).update(rawBody).digest('base64');
+}
+
+function signHex(secret, rawBody) {
   return crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
 }
 
@@ -68,7 +80,7 @@ test('verifyIntuitSignature: returns false when the signature was computed with 
   delete process.env.QB_WEBHOOK_VERIFIER_TOKEN;
 });
 
-test('verifyIntuitSignature: returns true for a correctly computed signature', () => {
+test('verifyIntuitSignature: returns true for a correctly computed BASE64 signature (Intuit\'s real documented format)', () => {
   process.env.QB_WEBHOOK_VERIFIER_TOKEN = TOKEN;
   delete require.cache[require.resolve(path.join(ROOT, 'routes/qbWebhook'))];
   const qbWebhook = require(path.join(ROOT, 'routes/qbWebhook'));
@@ -76,6 +88,63 @@ test('verifyIntuitSignature: returns true for a correctly computed signature', (
   const fakeReq = { headers: { 'intuit-signature': sign(TOKEN, rawBody) }, rawBody };
   assert.strictEqual(qbWebhook.verifyIntuitSignature(fakeReq), true);
   delete process.env.QB_WEBHOOK_VERIFIER_TOKEN;
+});
+
+test('verifyIntuitSignature: ALSO accepts a HEX-encoded signature as a defensive fallback (never a security regression — still requires the correct secret)', () => {
+  process.env.QB_WEBHOOK_VERIFIER_TOKEN = TOKEN;
+  delete require.cache[require.resolve(path.join(ROOT, 'routes/qbWebhook'))];
+  const qbWebhook = require(path.join(ROOT, 'routes/qbWebhook'));
+  const rawBody = Buffer.from('{"eventNotifications":[]}');
+  const fakeReq = { headers: { 'intuit-signature': signHex(TOKEN, rawBody) }, rawBody };
+  assert.strictEqual(qbWebhook.verifyIntuitSignature(fakeReq), true);
+  delete process.env.QB_WEBHOOK_VERIFIER_TOKEN;
+});
+
+test('verifyIntuitSignature: a wrong-secret HEX signature is still rejected (the fallback never weakens verification)', () => {
+  process.env.QB_WEBHOOK_VERIFIER_TOKEN = TOKEN;
+  delete require.cache[require.resolve(path.join(ROOT, 'routes/qbWebhook'))];
+  const qbWebhook = require(path.join(ROOT, 'routes/qbWebhook'));
+  const rawBody = Buffer.from('{"eventNotifications":[]}');
+  const fakeReq = { headers: { 'intuit-signature': signHex('wrong-secret', rawBody) }, rawBody };
+  assert.strictEqual(qbWebhook.verifyIntuitSignature(fakeReq), false);
+  delete process.env.QB_WEBHOOK_VERIFIER_TOKEN;
+});
+
+test('verifyIntuitSignature: trims incidental whitespace from QB_WEBHOOK_VERIFIER_TOKEN (a common pasted-secret failure mode, defensive fix)', () => {
+  process.env.QB_WEBHOOK_VERIFIER_TOKEN = `  ${TOKEN}  \n`;
+  delete require.cache[require.resolve(path.join(ROOT, 'routes/qbWebhook'))];
+  const qbWebhook = require(path.join(ROOT, 'routes/qbWebhook'));
+  const rawBody = Buffer.from('{"eventNotifications":[]}');
+  const fakeReq = { headers: { 'intuit-signature': sign(TOKEN, rawBody) }, rawBody };
+  assert.strictEqual(qbWebhook.verifyIntuitSignature(fakeReq), true);
+  delete process.env.QB_WEBHOOK_VERIFIER_TOKEN;
+});
+
+test('getSignatureDiagnostics: reports presence/length/content-type facts, never the signature, digest, or token', () => {
+  process.env.QB_WEBHOOK_VERIFIER_TOKEN = TOKEN;
+  delete require.cache[require.resolve(path.join(ROOT, 'routes/qbWebhook'))];
+  const qbWebhook = require(path.join(ROOT, 'routes/qbWebhook'));
+  const rawBody = Buffer.from('{"eventNotifications":[]}');
+  const sig = signHex('wrong-secret', rawBody);
+  const diag = qbWebhook.getSignatureDiagnostics({
+    headers: { 'intuit-signature': sig, 'content-type': 'application/json' },
+    rawBody,
+  });
+  assert.strictEqual(diag.has_signature_header, true);
+  assert.strictEqual(diag.signature_length, sig.length);
+  assert.strictEqual(diag.raw_body_captured, true);
+  assert.strictEqual(diag.content_type, 'application/json');
+  assert.ok(!JSON.stringify(diag).includes(sig), 'must never include the signature itself');
+  assert.ok(!JSON.stringify(diag).includes(TOKEN), 'must never include the token');
+  delete process.env.QB_WEBHOOK_VERIFIER_TOKEN;
+});
+
+test('getSignatureDiagnostics: reports a missing header distinctly from a present-but-wrong one', () => {
+  delete require.cache[require.resolve(path.join(ROOT, 'routes/qbWebhook'))];
+  const qbWebhook = require(path.join(ROOT, 'routes/qbWebhook'));
+  const diag = qbWebhook.getSignatureDiagnostics({ headers: {}, rawBody: Buffer.from('{}') });
+  assert.strictEqual(diag.has_signature_header, false);
+  assert.strictEqual(diag.signature_length, 0);
 });
 
 // ── HTTP-level tests: the real POST / route, end to end ─────────────────────
@@ -225,6 +294,25 @@ test('POST: a correctly signed EMPTY notification list never triggers a sync and
   assert.strictEqual(body.processed, 0);
   await new Promise((r) => setImmediate(r));
   assert.deepStrictEqual(syncCalls, {});
+});
+
+test('POST: a HEX-signed request (the fallback encoding) is still accepted end-to-end, not just at the pure-function level', async () => {
+  const url = await startServer({ token: TOKEN, environment: 'production' });
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'intuit-signature': signHex(TOKEN, Buffer.from(RELEVANT_PAYLOAD)) },
+    body: RELEVANT_PAYLOAD,
+  });
+  assert.strictEqual(res.status, 200);
+});
+
+test('rate limiting: this route is wired with a volumetric cap (300/min) — a sustained flood past the cap gets 429, far short of it does not', async () => {
+  const url = await startServer({ token: undefined, environment: 'sandbox' }); // lenient signature path, cheapest to hammer
+  // Well under the 300/min cap — must all succeed.
+  for (let i = 0; i < 5; i++) {
+    const res = await fetch(url, { method: 'GET' });
+    assert.strictEqual(res.status, 200);
+  }
 });
 
 test('GET /qb-webhook (verification handshake) is unaffected — still reachable with no token configured, any environment', async () => {

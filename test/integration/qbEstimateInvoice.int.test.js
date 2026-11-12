@@ -43,6 +43,17 @@ if (DB_URL) {
   if (!process.env.DATABASE_SSL) process.env.DATABASE_SSL = 'false';
   if (!process.env.ENCRYPTION_KEY) process.env.ENCRYPTION_KEY = crypto.randomBytes(16).toString('hex');
   process.env.RAILWAY_JWT_SECRET = process.env.RAILWAY_JWT_SECRET || 'int-test-secret-int-test-secret-0123456789';
+  // November 2026 fix: this suite's test.before() seeds its fake QB credential
+  // under the literal 'production' namespace, but lib/qbEstimateInvoice.js
+  // resolves which namespace to read via qbEnvironment.resolveQbEnvironment(),
+  // which defaults to 'sandbox' when QB_ENVIRONMENT is unset — exactly the
+  // case in a bare test run. That mismatch (write to 'production', read from
+  // 'sandbox') made every real call in this file throw
+  // QUICKBOOKS_RECONNECT_REQUIRED, cascading into all 6 of this file's
+  // previously-failing tests. In real Railway production QB_ENVIRONMENT is
+  // always explicitly set, so this mismatch cannot occur there — this is a
+  // test-environment-only fix, zero production code change.
+  if (!process.env.QB_ENVIRONMENT) process.env.QB_ENVIRONMENT = 'production';
 }
 
 let base, server, db, tokenStore, qbTokenManager, companyConfig, adminToken, leadId, qbCustomerId, dealAId, dealBId;

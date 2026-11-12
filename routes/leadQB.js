@@ -31,6 +31,7 @@ const express = require('express');
 const { requireAuth, requireRole } = require('../lib/rbac');
 const { query } = require('../db/client');
 const qbInternal = require('../lib/qbInternal');
+const { logAndRespondUnexpectedError } = require('../lib/httpErrors');
 const leadEstimateSync = require('../lib/leadEstimateSync');
 const { resolveLeadByIdentifier } = require('../lib/leadResolver');
 const { requireModuleEnabled } = require('../lib/moduleGate');
@@ -154,8 +155,7 @@ router.get('/by-external/:externalRef', async (req, res) => {
       qbReconnectRequired,
     });
   } catch (e) {
-    console.error('[lead-qb] get error:', e.message);
-    res.status(500).json({ error: e.message });
+    logAndRespondUnexpectedError(e, res, 'lead-qb:get');
   }
 });
 
@@ -192,8 +192,7 @@ router.post('/by-external/:externalRef/refresh', requireAdminManager, async (req
     if (e.qbError && e.qbError.reconnectRequired) {
       return res.status(401).json({ error: 'QUICKBOOKS_RECONNECT_REQUIRED', message: e.message });
     }
-    console.error('[lead-qb] refresh error:', e.message);
-    res.status(500).json({ error: e.message });
+    logAndRespondUnexpectedError(e, res, 'lead-qb:refresh');
   }
 });
 
@@ -231,8 +230,7 @@ router.post('/by-external/:externalRef/sync-estimates', requireAdminManager, asy
     if (e.qbError && e.qbError.reconnectRequired) {
       return res.status(401).json({ error: 'QUICKBOOKS_RECONNECT_REQUIRED', message: e.message });
     }
-    console.error('[lead-qb] sync-estimates error:', e.message);
-    res.status(500).json({ error: e.message });
+    logAndRespondUnexpectedError(e, res, 'lead-qb:sync-estimates');
   }
 });
 
@@ -276,8 +274,7 @@ router.post('/by-external/:externalRef/sync', requireAdminManager, async (req, r
     if (e.qbError && e.qbError.reconnectRequired) {
       return res.status(401).json({ error: 'QUICKBOOKS_RECONNECT_REQUIRED', message: e.message });
     }
-    console.error('[lead-qb] sync error:', e.message);
-    res.status(500).json({ error: e.message });
+    logAndRespondUnexpectedError(e, res, 'lead-qb:sync');
   }
 });
 

@@ -14,6 +14,7 @@ const express = require('express');
 const { requireAuth, requireRole } = require('../lib/rbac');
 const { query } = require('../db/client');
 const companyConfig = require('../lib/companyConfig');
+const { logAndRespondUnexpectedError } = require('../lib/httpErrors');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -123,8 +124,7 @@ router.get('/', async (req, res) => {
     if (!rows[0]) return res.json({ settings: null });
     res.json({ settings: serializeSettings(rows[0]) });
   } catch (e) {
-    console.error('[company-settings] get error:', e.message);
-    res.status(500).json({ error: e.message });
+    logAndRespondUnexpectedError(e, res, 'company-settings:get');
   }
 });
 
@@ -171,8 +171,7 @@ router.put('/', requireRole('admin'), async (req, res) => {
     companyConfig.invalidate();
     res.status(201).json({ settings: serializeSettings(rows[0]) });
   } catch (e) {
-    console.error('[company-settings] put error:', e.message);
-    res.status(500).json({ error: e.message });
+    logAndRespondUnexpectedError(e, res, 'company-settings:put');
   }
 });
 
@@ -183,8 +182,7 @@ router.delete('/', requireRole('admin'), async (req, res) => {
     companyConfig.invalidate();
     res.json({ success: true });
   } catch (e) {
-    console.error('[company-settings] delete error:', e.message);
-    res.status(500).json({ error: e.message });
+    logAndRespondUnexpectedError(e, res, 'company-settings:delete');
   }
 });
 

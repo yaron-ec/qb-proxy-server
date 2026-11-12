@@ -18,7 +18,14 @@
  *   5. Add activity log entry
  *   6. Send email notifications to Yaron, Michelle, and lead owner
  *
- * Idempotent: skips if document already marked as signed.
+ * Idempotent: skips if document already marked as signed (or already
+ * marked declined, for a decline event).
+ *
+ * November 2026: document.fieldinvite.decline (named in this file's own
+ * comment below since it was first written, but never actually handled)
+ * now records signnow_documents.status = 'declined', an activity note, and
+ * an email notification to staff + the lead owner — the same audience as a
+ * signed contract, since a decline is exactly as actionable to a rep.
  */
 'use strict';
 
@@ -86,6 +93,83 @@ router.post('/', express.json(), async (req, res) => {
       (payload.meta?.action === 'done') ||
       (payload.content?.document_status === 'completed')
     );
+
+    // November 2026 hardening: this event type was already named in this
+    // file's own header comment ("invite declined (not a completion)") but
+    // had no handling branch at all — it silently fell into the
+    // no-op "Ignoring non-completion event" path below, leaving
+    // signnow_documents stuck at its prior status with no record anywhere
+    // that the signer actually declined. Handled separately from (and
+    // before) the completion branch, since a decline is never a completion.
+    const isDeclineEvent = (
+      eventType === 'document.fieldinvite.decline' ||
+      eventType === 'user.document.fieldinvite.decline' ||
+      (payload.content?.document_status === 'declined')
+    );
+
+    if (isDeclineEvent && docId) {
+      const { query } = require('../db/client');
+      const docRes = await query('SELECT * FROM signnow_documents WHERE document_id = $1', [docId]);
+      const docRecord = docRes.rows[0];
+      if (!docRecord) {
+        console.log(`[signnow-webhook] Decline event for unknown doc ID: ${docId}`);
+        return res.json({ received: true, processed: false, reason: 'no_crm_record' });
+      }
+      if (docRecord.status === 'declined') {
+        console.log(`[signnow-webhook] Decline already recorded: ${docId}`);
+        return res.json({ received: true, processed: false, reason: 'already_declined' });
+      }
+      await query(
+        `UPDATE signnow_documents SET status = 'declined', updated_at = NOW() WHERE document_id = $1`,
+        [docId]
+      );
+      const declinedNote = `✍️ Signature declined in SignNow for "${docRecord.document_name}".`;
+      await query(
+        `INSERT INTO activities (lead_id, type, content, author, source, created_at)
+         VALUES ($1, 'note', $2, 'SignNow (auto)', 'manual', NOW())`,
+        [docRecord.lead_id, declinedNote]
+      );
+      // Notify the same audience as a signed contract (staff + lead owner) —
+      // a declined signature is exactly as actionable to a rep as a signed
+      // one, just the opposite outcome. Reuses CONTRACT_SIGNED rather than
+      // adding a new notification category/migration for this one event.
+      const declineNotification = { attempted: 0, sent: 0, failed: 0 };
+      try {
+        const leadRes = await query(
+          `SELECT l.*, o.email AS owner_email FROM leads l LEFT JOIN owners o ON o.id = l.owner_id WHERE l.id = $1`,
+          [docRecord.lead_id]
+        );
+        const lead = leadRes.rows[0];
+        const recipients = new Set(await notificationRecipients.getAllStaffRecipients());
+        if (lead?.owner_email) recipients.add(lead.owner_email);
+        else if (lead?.assigned_rep?.includes('@')) recipients.add(lead.assigned_rep);
+
+        const notificationPreferences = require('../lib/notificationPreferences');
+        const recipientList = await notificationPreferences.filterRecipientsForCategory(
+          Array.from(recipients).filter(Boolean),
+          notificationPreferences.CATEGORIES.CONTRACT_SIGNED
+        );
+        const leadName = lead ? `${lead.first_name || ''} ${lead.last_name || ''}`.trim() : '(unknown lead)';
+        const subject = `Signature Declined: ${leadName}`;
+        const htmlEmailBody = `<pre style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:15px;line-height:1.6;color:#1A1A2E;white-space:pre-wrap;word-wrap:break-word;">A signer has DECLINED to sign a document.\n\nLead: ${leadName}\nDocument: ${docRecord.document_name}\n\nFollow up with the customer to understand why and determine next steps.</pre>`;
+        const emailService = require('../lib/emailService');
+        const idempotencyKey = `signnow-webhook-decline:${docId}`;
+        for (const recipient of recipientList) {
+          declineNotification.attempted++;
+          try {
+            await emailService.send({ to: recipient, subject, htmlBody: htmlEmailBody, idempotencyKey: `${idempotencyKey}:${recipient}`, role: 'signnow-webhook' });
+            declineNotification.sent++;
+          } catch (e) {
+            declineNotification.failed++;
+            console.warn(`[signnow-webhook] Failed to send decline notification to ${recipient}: ${e.message}`);
+          }
+        }
+      } catch (e) {
+        console.warn('[signnow-webhook] Decline notification unavailable:', e.message);
+      }
+      console.log(`[signnow-webhook] Recorded decline for doc ID: ${docId}`);
+      return res.json({ received: true, processed: true, declined: true, email_notification: declineNotification });
+    }
 
     if (!isCompletionEvent || !docId) {
       console.log('[signnow-webhook] Ignoring non-completion event or missing doc ID');

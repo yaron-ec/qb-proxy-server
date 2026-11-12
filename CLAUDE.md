@@ -96,12 +96,26 @@ about topology, this file wins; go correct `railway.json` and
   (used only by `routes/emails.js`), `routes/leads.js#resolveOwnerScope`
   (the real DB-level filter for lead CRUD), and `lib/dealModel.js#canAccessDeal`/
   `canWriteDeal` (used by `routes/deals.js`). When adding a new
-  ownership-scoped route, reuse one of these rather than inventing a
-  fourth. Several existing routes (`tasks.js`, `activities.js`,
-  `invoices.js`, all four deal sub-resource routers, `dealFinancials.js`)
-  currently have **no ownership check at all** beyond `requireAuth` despite
-  header comments claiming scoping — this is known, tracked technical debt,
-  not a pattern to copy into new code.
+  ownership-scoped route, reuse one of these (via `lib/recordAccess.js`'s
+  `checkLeadScope`/`checkDealScope` consolidation below) rather than
+  inventing a fourth.
+  **CORRECTION (November 2026 — this bullet was previously stale and
+  incorrectly claimed an active gap):** `tasks.js`, `activities.js`,
+  `invoices.js`, all four deal sub-resource routers
+  (`dealCommissions.js`, `dealExpenses.js`, `dealExpensePayments.js`,
+  `dealLoanPayments.js`), `dealFinancials.js`, `leadAttachments.js`,
+  `dealTimeline.js`, and `leadEmails.js` were previously documented as
+  having "no ownership check at all" — found during a production audit to
+  no longer be true. `lib/recordAccess.js`'s `checkLeadScope`/
+  `checkDealScope` (a consolidation that delegates to the exact same
+  `resolveOwnerScope`/`dealModel.canAccessDeal` logic named above, never a
+  fourth model) is now called on every list/create/get/update/delete route
+  in all of those files, confirmed via direct code read and grep — a
+  sales_rep cannot read or write another owner's tasks, activities,
+  invoices, commissions, expenses, loan payments, attachments, or deal
+  financials via these routes today. This document had not been updated to
+  reflect that fix; do not re-"fix" this gap again without first
+  re-confirming it still exists.
 - **QuickBooks token refresh**: `lib/qbTokenManager.js` is the ONE refresh
   implementation (server.js routes/crons, `lib/qbInboundSync.js`, and
   `lib/qbSyncTrigger.js` through it). The persisted credential is the source

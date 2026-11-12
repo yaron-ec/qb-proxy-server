@@ -24,7 +24,15 @@
 const express = require('express');
 const crypto = require('crypto');
 const { requireModuleEnabled } = require('../lib/moduleGate');
+const { rateLimit } = require('../lib/rateLimit');
 const router = express.Router();
+
+// November 2026 hardening: no volumetric cap existed on this unauthenticated
+// endpoint. A generous per-IP window — well above Meta's real leadgen
+// delivery volume (plus its own retry behavior) for a single-company
+// installation — bounds an unauthenticated flood's cost without affecting
+// legitimate traffic.
+router.use(rateLimit({ windowMs: 60 * 1000, max: 300 }));
 
 // PRODUCTIZATION PHASE 2: gated on enabled_modules.meta — but only the lead-
 // processing POST. Meta's own GET verification handshake (hub.challenge) must

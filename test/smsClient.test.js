@@ -34,11 +34,11 @@ test('verifyTwilioSignature: rejects a missing signature header when a token IS 
   assert.strictEqual(smsClient.verifyTwilioSignature('https://crm.example.com/x', {}, undefined), false);
 });
 
-test('verifyTwilioSignature: skips verification (returns true) when TWILIO_AUTH_TOKEN is not configured — matches routes/metaWebhook.js\'s existing convention', () => {
+test('verifyTwilioSignature: FAILS CLOSED (returns false) when TWILIO_AUTH_TOKEN is not configured — November 2026 fix; previously returned true (fail-open) here, the same latent gap routes/metaWebhook.js and routes/qbWebhook.js already closed for their own providers', () => {
   delete process.env.TWILIO_AUTH_TOKEN;
   delete require.cache[require.resolve('../lib/smsClient')];
   const smsClient = require('../lib/smsClient');
-  assert.strictEqual(smsClient.verifyTwilioSignature('https://crm.example.com/x', {}, undefined), true);
+  assert.strictEqual(smsClient.verifyTwilioSignature('https://crm.example.com/x', {}, undefined), false);
 });
 
 test('missingConfig: reports every absent required env var without ever including a secret value', () => {
