@@ -18,6 +18,12 @@
  *   Admin/manager-only (global oversight, never a per-lead ownership check):
  *     GET  /api/v1/estimate-followups/admin/overview
  *     GET  /api/v1/estimate-followups/admin/dry-run-report
+ *     GET  /api/v1/estimate-followups/admin/automation-status
+ *     GET  /api/v1/estimate-followups/admin/ambiguous-replies
+ *     POST /api/v1/estimate-followups/admin/ambiguous-replies/:id/resolve
+ *     GET  /api/v1/estimate-followups/admin/post-appointment-sync-status
+ *       (failed/overdue post-appointment sync job monitoring — see
+ *       lib/postAppointmentEstimateSync.js)
  *     GET  /api/v1/estimate-followups/templates
  *     GET  /api/v1/estimate-followups/templates/:key/history
  *     PUT  /api/v1/estimate-followups/templates/:key   (admin only — content/compliance edit)
@@ -92,6 +98,54 @@ function serializeReplyMonitoring(replyMonitoring) {
     lastError: replyMonitoring.checkpoint ? replyMonitoring.checkpoint.last_error : null,
     unresolvedAmbiguousReplies: replyMonitoring.unresolved_ambiguous_replies,
   };
+}
+
+// Per-lead post-appointment sync visibility (CRM feature: "Automatic
+// Post-Appointment QuickBooks Estimate Sync and Follow-Up Enrollment" —
+// see lib/postAppointmentEstimateSync.js). Most recent appointments first
+// — a lead can have more than one tracked appointment over time.
+async function postAppointmentSyncsForLead(leadId) {
+  const { rows } = await query(
+    `SELECT p.id, p.status, p.attempt_number, p.next_attempt_at, p.last_attempt_at,
+            p.last_result, p.last_error, p.stopped_reason, p.window_expires_at, p.created_at,
+            a.id AS appointment_id, a.start_at, a.end_at, a.status AS appointment_status,
+            t.name AS appointment_type_name,
+            h.id AS handoff_estimate_id, h.qb_estimate_number, h.estimate_status,
+            h.qb_email_status, h.qb_email_delivery_time, h.qb_app_url
+       FROM post_appointment_estimate_syncs p
+       JOIN appointments a ON a.id = p.appointment_id
+       LEFT JOIN appointment_types t ON t.id = a.appointment_type_id
+       LEFT JOIN handoff_estimates h ON h.id = p.handoff_estimate_id
+      WHERE p.lead_id = $1
+      ORDER BY a.end_at DESC
+      LIMIT 10`,
+    [leadId]
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    status: r.status,
+    attemptNumber: r.attempt_number,
+    nextAttemptAt: r.status === 'pending' ? r.next_attempt_at : null,
+    lastAttemptAt: r.last_attempt_at,
+    lastResult: r.last_result,
+    lastError: r.last_error,
+    stoppedReason: r.stopped_reason,
+    windowExpiresAt: r.window_expires_at,
+    appointment: {
+      id: r.appointment_id,
+      startAt: r.start_at,
+      endAt: r.end_at,
+      status: r.appointment_status,
+      typeName: r.appointment_type_name,
+    },
+    estimate: r.handoff_estimate_id ? {
+      id: r.handoff_estimate_id,
+      qbEstimateNumber: r.qb_estimate_number,
+      estimateStatus: r.estimate_status,
+      deliveryVerified: r.qb_email_status === 'EmailSent',
+      qbAppUrl: r.qb_app_url,
+    } : null,
+  }));
 }
 
 function writeAllowed(scope, res) {
@@ -199,6 +253,7 @@ router.get('/leads/:id/estimate-followup', requireAuth, async (req, res) => {
     }
 
     const replyMonitoring = await replyDetection.getReplyMonitoringStatus();
+    const postAppointmentSyncs = await postAppointmentSyncsForLead(lead.id);
 
     res.json({
       state: deriveDisplayState({ sequence, steps, eligibleNow }),
@@ -206,6 +261,10 @@ router.get('/leads/:id/estimate-followup', requireAuth, async (req, res) => {
       eligibleNow,
       eligibilityReasons,
       candidateEstimates: sequence ? [] : candidateEstimates,
+      // Automatic post-appointment QuickBooks sync tracking — see
+      // lib/postAppointmentEstimateSync.js. Empty when this lead has no
+      // tracked appointment yet (nothing to show, not an error).
+      postAppointmentSyncs,
       // Reply detection is now automatic (Gmail history.list poll — see
       // lib/estimateFollowupReplyDetection.js) rather than the manual-only
       // limitation this field used to describe. Surfaced here (global
@@ -378,6 +437,56 @@ router.get('/estimate-followups/admin/automation-status', requireAuth, requireRo
     const replyMonitoring = await replyDetection.getReplyMonitoringStatus();
     res.json({ replyMonitoring: serializeReplyMonitoring(replyMonitoring) });
   } catch (e) { logAndRespondUnexpectedError(e, res, 'automation status'); }
+});
+
+// Admin monitoring for failed/overdue post-appointment sync jobs — read
+// only, no write of any kind. "Overdue" means a 'pending' row whose
+// next_attempt_at has already passed by more than OVERDUE_MINUTES: since
+// the reminder worker tick (which calls
+// lib/postAppointmentEstimateSync.js#processPostAppointmentEstimateSyncs)
+// runs every ~30 minutes, a row still waiting well past that is a sign the
+// worker tick itself isn't running, not a normal scheduling gap.
+const POST_APPOINTMENT_SYNC_OVERDUE_MINUTES = 90;
+router.get('/estimate-followups/admin/post-appointment-sync-status', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
+  try {
+    const { rows: countRows } = await query(
+      `SELECT status, COUNT(*) AS n FROM post_appointment_estimate_syncs GROUP BY status`
+    );
+    const counts = countRows.reduce((acc, r) => { acc[r.status] = Number(r.n); return acc; }, {});
+
+    const { rows: overdueRows } = await query(
+      `SELECT p.id, p.next_attempt_at, p.attempt_number, p.last_result, p.last_error,
+              l.id AS lead_id, l.first_name, l.last_name
+         FROM post_appointment_estimate_syncs p
+         JOIN leads l ON l.id = p.lead_id
+        WHERE p.status = 'pending' AND p.next_attempt_at < NOW() - INTERVAL '${POST_APPOINTMENT_SYNC_OVERDUE_MINUTES} minutes'
+        ORDER BY p.next_attempt_at ASC
+        LIMIT 100`
+    );
+
+    const { rows: erroredRows } = await query(
+      `SELECT p.id, p.last_error, p.last_attempt_at, p.attempt_number,
+              l.id AS lead_id, l.first_name, l.last_name
+         FROM post_appointment_estimate_syncs p
+         JOIN leads l ON l.id = p.lead_id
+        WHERE p.last_result = 'error' AND p.status IN ('pending', 'processing')
+        ORDER BY p.last_attempt_at DESC
+        LIMIT 100`
+    );
+
+    res.json({
+      counts,
+      overdueMinutesThreshold: POST_APPOINTMENT_SYNC_OVERDUE_MINUTES,
+      overdue: overdueRows.map((r) => ({
+        id: r.id, leadId: r.lead_id, leadName: `${r.first_name || ''} ${r.last_name || ''}`.trim(),
+        nextAttemptAt: r.next_attempt_at, attemptNumber: r.attempt_number, lastResult: r.last_result, lastError: r.last_error,
+      })),
+      recentErrors: erroredRows.map((r) => ({
+        id: r.id, leadId: r.lead_id, leadName: `${r.first_name || ''} ${r.last_name || ''}`.trim(),
+        lastAttemptAt: r.last_attempt_at, attemptNumber: r.attempt_number, lastError: r.last_error,
+      })),
+    });
+  } catch (e) { logAndRespondUnexpectedError(e, res, 'post-appointment sync status'); }
 });
 
 // Every inbound reply that could not be deterministically correlated to

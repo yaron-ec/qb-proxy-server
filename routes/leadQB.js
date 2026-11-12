@@ -31,7 +31,7 @@ const express = require('express');
 const { requireAuth, requireRole } = require('../lib/rbac');
 const { query } = require('../db/client');
 const qbInternal = require('../lib/qbInternal');
-const qbMatch = require('../lib/qbMatch');
+const leadEstimateSync = require('../lib/leadEstimateSync');
 const { resolveLeadByIdentifier } = require('../lib/leadResolver');
 const { requireModuleEnabled } = require('../lib/moduleGate');
 
@@ -213,229 +213,17 @@ router.post('/by-external/:externalRef/sync-estimates', requireAdminManager, asy
     const lead = await resolveLeadByIdentifier(externalRef);
     if (!lead) return res.status(404).json({ error: 'not_found' });
 
-    // 1. Resolve the QB customer ID — use stored qb_customer_id, or look up by name/email
-    let qbCustomerId = lead.qb_customer_id;
-    let customerName = `${lead.first_name} ${lead.last_name}`.trim();
+    // Delegates to the ONE lead-scoped sync implementation (lib/leadEstimateSync.js),
+    // extracted verbatim from this handler so the new automatic post-appointment
+    // sync job (lib/postAppointmentEstimateSync.js) can reuse it too. A
+    // human-triggered manual sync keeps the full-company-scan fallback
+    // (allowFullScan: true, the pre-existing default/behavior) — only the
+    // automated job opts out of it.
+    const result = await leadEstimateSync.syncEstimatesForLead(lead, { allowFullScan: true });
 
-    if (!qbCustomerId) {
-      // Look up QB customer by name or email
-      const qbData = await qbInternal.getLeadStatus(null, customerName, lead.email);
-      if (qbData.found && qbData.customer) {
-        qbCustomerId = qbData.customer.Id;
-        // Persist the QB customer ID for future syncs
-        await query(
-          'UPDATE leads SET qb_customer_id = $1, qb_last_sync_at = NOW(), qb_last_sync_result = $2, updated_at = NOW() WHERE id = $3',
-          [qbCustomerId, 'success', lead.id]
-        );
-      } else {
-        return res.json({
-          success: false,
-          message: 'No QuickBooks customer found for this lead. Sync the lead to QB first.',
-          matched: 0,
-        });
-      }
-    }
+    console.log(`[lead-qb] sync-estimates: customer=${result.qb_customer_id || lead.qb_customer_id} fetched=${result.total_fetched} created=${result.created} updated=${result.updated}`);
 
-    // 2. Fetch QB estimates for this customer (all statuses) via the QB proxy
-    //    GET /estimates/by-customer/:customerId returns all estimates for the customer
-    const estData = await qbInternal.callQb(`/estimates/by-customer/${qbCustomerId}`, 'GET');
-    let estimates = estData.estimates || [];
-
-    // 2b. Sub-customer handling: Handoff creates project nodes as sub-customers
-    //     (ParentRef.value == qbCustomerId). Fetch estimates for each sub-customer.
-    //     This restores the pre-migration syncLeadEstimatesFromQB behavior.
-    if (estimates.length === 0) {
-      try {
-        const allCustData = await qbInternal.callQb('/customers', 'GET');
-        const allCustomers = allCustData?.customers || [];
-        const subCustomerIds = allCustomers
-          .filter(c => String(c.ParentRef?.value) === String(qbCustomerId))
-          .map(c => String(c.Id));
-        for (const subId of subCustomerIds) {
-          try {
-            const subEstData = await qbInternal.callQb(`/estimates/by-customer/${subId}`, 'GET');
-            const subEstimates = subEstData.estimates || [];
-            estimates.push(...subEstimates);
-          } catch (e) {
-            console.warn(`[lead-qb] sub-customer ${subId} fetch failed:`, e.message);
-          }
-        }
-        if (subCustomerIds.length > 0) {
-          console.log(`[lead-qb] sub-customer fetch: ${subCustomerIds.length} subs, ${estimates.length} estimates`);
-        }
-      } catch (e) {
-        console.warn('[lead-qb] sub-customer resolution failed:', e.message);
-      }
-    }
-
-    // 2c. Full-scan fallback: fetch ALL QB estimates, match each to this lead using
-    //     qbMatch.findMatchingLead (the same matching engine as the global sync).
-    //     This catches estimates that aren't under the direct customer or sub-customers
-    //     but match by phone/email/name/address. Restores the pre-migration
-    //     syncLeadEstimatesFromQB full-scan behavior.
-    let additionalFromFullScan = [];
-    try {
-      const allEstData = await qbInternal.callQb('/estimates', 'GET');
-      const allEstimates = allEstData?.estimates || [];
-      const existingIds = new Set(estimates.map(e => String(e.Id)));
-      for (const est of allEstimates) {
-        if (existingIds.has(String(est.Id))) continue;
-        // Pre-filter: only fetch customer if estimate's customer name partially
-        // matches the lead's name OR the estimate's email matches the lead's email.
-        // This avoids fetching customers for all 100+ estimates.
-        const rawRef = est.CustomerRef?.name || '';
-        const billEmail = typeof est.BillEmail === 'string' ? est.BillEmail : est.BillEmail?.Address || '';
-        const nameMatches = qbMatch.partialNameMatch(rawRef, lead.first_name, lead.last_name);
-        const emailMatches = billEmail && qbMatch.normalizeEmail(billEmail) === qbMatch.normalizeEmail(lead.email || '');
-        if (!nameMatches && !emailMatches) continue;
-        // Fetch the full customer record for matching
-        const custRef = est.CustomerRef;
-        if (!custRef?.value) continue;
-        let customer = null;
-        try {
-          const custData = await qbInternal.callQb(`/customers/${custRef.value}`, 'GET');
-          customer = custData?.customer;
-        } catch { continue; }
-        if (!customer) continue;
-        // Match against THIS lead only
-        const matched = qbMatch.findMatchingLead(customer, [lead]);
-        if (matched) {
-          additionalFromFullScan.push(est);
-          existingIds.add(String(est.Id));
-        }
-      }
-      if (additionalFromFullScan.length > 0) {
-        console.log(`[lead-qb] full-scan fallback found ${additionalFromFullScan.length} additional estimate(s)`);
-      }
-    } catch (e) {
-      console.warn('[lead-qb] full-scan fallback failed:', e.message);
-    }
-    estimates.push(...additionalFromFullScan);
-
-    if (estimates.length === 0) {
-      return res.json({
-        success: true,
-        message: 'No QuickBooks estimates found for this customer.',
-        total_fetched: 0,
-        matched: 0,
-        created: 0,
-        updated: 0,
-      });
-    }
-
-    // 3. Load existing QB-sourced estimates for this lead to check for duplicates
-    const existingRes = await query(
-      `SELECT * FROM handoff_estimates WHERE lead_id = $1 AND qb_estimate_id IS NOT NULL`,
-      [lead.id]
-    );
-    const existing = existingRes.rows;
-    const existingByQbId = new Map(existing.map(e => [String(e.qb_estimate_id), e]));
-
-    let created = 0, updated = 0;
-    // Same single resolver every other QB module uses (lib/qbEnvironment.js)
-    // — this cosmetic deep-link base must always match the real environment
-    // whose estimates were just fetched, never a separately-read QB_SANDBOX.
-    const qbAppUrlBase = qbEnvironment.resolveQbAppUrlBase(qbEnvironment.resolveQbEnvironment().environment);
-
-    for (const qbEst of estimates) {
-      const qbId = String(qbEst.Id);
-      const qbNumber = qbEst.DocNumber || qbId;
-      const totalAmt = Number(qbEst.TotalAmt) || 0;
-      const status = qbEst.TxnStatus || 'Pending';
-      const qbAppUrl = `${qbAppUrlBase}/app/estimate?txnId=${qbId}`;
-      const estimateDate = qbEst.TxnDate || null;
-
-      // Persisted verbatim for the estimate follow-up sequence's automatic-
-      // enrollment path (lib/estimateFollowupEngine.js#runAutoEnrollmentScan)
-      // — see lib/estimateSentDetection.js's header. qbEst already comes
-      // from this route's own fetch above — zero new QB API calls.
-      const qbEmailStatus = qbEst.EmailStatus || null;
-      const qbEmailDeliveryTime = qbEst.DeliveryInfo?.DeliveryTime || null;
-
-      const estimateData = {
-        qb_estimate_id: qbId,
-        qb_estimate_number: qbNumber,
-        lead_id: lead.id,
-        customer_name: qbEst.CustomerRef?.name || customerName,
-        estimate_amount: totalAmt,
-        estimate_status: status,
-        estimate_date: estimateDate,
-        qb_app_url: qbAppUrl,
-        last_synced_at: new Date().toISOString(),
-        match_status: 'matched',
-        match_method: 'qb_direct',
-        sync_source: 'QuickBooks',
-        source: 'QB Direct Sync',
-      };
-
-      const existingRow = existingByQbId.get(qbId);
-      if (existingRow) {
-        // Update existing — reset PDF status if it was failed
-        const pdfReset = existingRow.pdf_status === 'failed'
-          ? { pdf_status: 'pending', pdf_retry_count: 0 }
-          : {};
-        await query(
-          `UPDATE handoff_estimates SET
-             qb_estimate_number = $1, estimate_amount = $2, estimate_status = $3,
-             estimate_date = $4, qb_app_url = $5, last_synced_at = $6,
-             match_status = $7, match_method = $8, sync_source = $9, source = $10,
-             qb_email_status = $11, qb_email_delivery_time = $12,
-             ${existingRow.pdf_status === 'failed' ? 'pdf_status = $13, pdf_retry_count = $14,' : ''}
-             updated_at = NOW()
-           WHERE id = $${existingRow.pdf_status === 'failed' ? '15' : '13'}`,
-          existingRow.pdf_status === 'failed'
-            ? [qbNumber, totalAmt, status, estimateDate, qbAppUrl, estimateData.last_synced_at,
-               'matched', 'qb_direct', 'QuickBooks', 'QB Direct Sync', qbEmailStatus, qbEmailDeliveryTime, 'pending', 0, existingRow.id]
-            : [qbNumber, totalAmt, status, estimateDate, qbAppUrl, estimateData.last_synced_at,
-               'matched', 'qb_direct', 'QuickBooks', 'QB Direct Sync', qbEmailStatus, qbEmailDeliveryTime, existingRow.id]
-        );
-        updated++;
-      } else {
-        // Insert new
-        await query(
-          `INSERT INTO handoff_estimates
-             (qb_estimate_id, qb_estimate_number, lead_id, customer_name,
-              estimate_amount, estimate_status, estimate_date, qb_app_url,
-              last_synced_at, match_status, match_method, sync_source, source,
-              qb_email_status, qb_email_delivery_time,
-              pdf_status, pdf_retry_count)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,'pending',0)`,
-          [qbId, qbNumber, lead.id, estimateData.customer_name,
-           totalAmt, status, estimateDate, qbAppUrl, estimateData.last_synced_at,
-           'matched', 'qb_direct', 'QuickBooks', 'QB Direct Sync', qbEmailStatus, qbEmailDeliveryTime]
-        );
-        created++;
-        // Activity note for newly imported estimate (restores pre-migration behavior)
-        try {
-          const amtStr = totalAmt > 0 ? ` — $${Number(totalAmt).toLocaleString('en-US', { minimumFractionDigits: 0 })}` : '';
-          await query(
-            `INSERT INTO activities (lead_id, type, content, author, source)
-             VALUES ($1, 'note', $2, $3, 'manual')`,
-            [lead.id, `📋 QB estimate #${qbNumber}${amtStr} synced from QuickBooks. Status: ${status}.`, 'QB Direct Sync']
-          );
-        } catch (e) { console.warn('[lead-qb] activity insert failed:', e.message); }
-      }
-    }
-
-    // 4. Update lead handoff_estimate_status if awaiting_qb
-    if (lead.handoff_estimate_status === 'awaiting_qb' && (created > 0 || updated > 0)) {
-      await query(
-        'UPDATE leads SET handoff_estimate_status = $1, updated_at = NOW() WHERE id = $2',
-        ['synced', lead.id]
-      ).catch((e) => console.warn('[lead-qb] failed to flip handoff_estimate_status for lead ' + lead.id + ':', e.message));
-    }
-
-    console.log(`[lead-qb] sync-estimates: customer=${qbCustomerId} fetched=${estimates.length} created=${created} updated=${updated}`);
-
-    res.json({
-      success: true,
-      message: `Synced ${estimates.length} QuickBooks estimate(s): ${created} new, ${updated} updated`,
-      total_fetched: estimates.length,
-      matched: estimates.length,
-      created,
-      updated,
-      qb_customer_id: qbCustomerId,
-    });
+    res.json(result);
   } catch (e) {
     if (e.code === 'QB_PROXY_NOT_CONFIGURED') {
       return res.status(503).json({ error: 'QB proxy not configured', message: e.message });

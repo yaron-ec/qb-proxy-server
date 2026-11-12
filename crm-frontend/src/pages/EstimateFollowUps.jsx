@@ -150,6 +150,7 @@ function DryRunReportTab() {
 function AutomationStatusTab() {
   const [status, setStatus] = useState(null);
   const [ambiguous, setAmbiguous] = useState(null);
+  const [postAppointmentSync, setPostAppointmentSync] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [resolving, setResolving] = useState(null);
@@ -157,10 +158,11 @@ function AutomationStatusTab() {
   const load = () => {
     setLoading(true);
     setError(null);
-    Promise.all([api.getAutomationStatus(), api.getAmbiguousReplies()])
-      .then(([statusRes, ambiguousRes]) => {
+    Promise.all([api.getAutomationStatus(), api.getAmbiguousReplies(), api.getPostAppointmentSyncStatus()])
+      .then(([statusRes, ambiguousRes, syncRes]) => {
         setStatus(statusRes.replyMonitoring);
         setAmbiguous(ambiguousRes.ambiguousReplies);
+        setPostAppointmentSync(syncRes);
         setLoading(false);
       })
       .catch((e) => { setError(e.data?.message || e.message || "Failed to load"); setLoading(false); });
@@ -202,6 +204,53 @@ function AutomationStatusTab() {
           <div className="text-[11px] mt-1 opacity-75">Last error: {status.lastError}</div>
         )}
       </div>
+
+      <h3 className="text-sm font-bold text-slate-700 mb-2">Automatic Post-Appointment QuickBooks Sync — Failed/Overdue Jobs</h3>
+      <p className="text-xs text-slate-500 mb-3">
+        A row is "overdue" when it has waited more than {postAppointmentSync?.overdueMinutesThreshold ?? 90} minutes past
+        its scheduled check — a sign the reminder worker tick itself isn't running, not a normal scheduling gap.
+      </p>
+      <div className="mb-4 flex gap-3 text-xs">
+        {Object.entries(postAppointmentSync?.counts || {}).map(([k, v]) => (
+          <span key={k} className="px-2.5 py-1 bg-slate-100 rounded font-semibold text-slate-600">{k}: {v}</span>
+        ))}
+        {Object.keys(postAppointmentSync?.counts || {}).length === 0 && (
+          <span className="text-slate-400">No post-appointment sync jobs tracked yet.</span>
+        )}
+      </div>
+      {(postAppointmentSync?.overdue?.length > 0) && (
+        <div className="mb-4 bg-white border border-amber-200 rounded-lg overflow-hidden">
+          <div className="px-3 py-1.5 bg-amber-50 text-amber-800 text-xs font-bold">Overdue</div>
+          <table className="w-full text-xs">
+            <tbody>
+              {postAppointmentSync.overdue.map((r) => (
+                <tr key={r.id} className="border-t border-slate-100">
+                  <td className="px-3 py-2">{r.leadName}</td>
+                  <td className="px-3 py-2 text-slate-400">attempt {r.attemptNumber}</td>
+                  <td className="px-3 py-2 text-slate-400">due {new Date(r.nextAttemptAt).toLocaleString()}</td>
+                  <td className="px-3 py-2 text-slate-500">{r.lastResult || "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {(postAppointmentSync?.recentErrors?.length > 0) && (
+        <div className="mb-4 bg-white border border-red-200 rounded-lg overflow-hidden">
+          <div className="px-3 py-1.5 bg-red-50 text-red-800 text-xs font-bold">Recent QuickBooks check failures (retry pending)</div>
+          <table className="w-full text-xs">
+            <tbody>
+              {postAppointmentSync.recentErrors.map((r) => (
+                <tr key={r.id} className="border-t border-slate-100">
+                  <td className="px-3 py-2">{r.leadName}</td>
+                  <td className="px-3 py-2 text-slate-400">attempt {r.attemptNumber}</td>
+                  <td className="px-3 py-2 text-red-600">{r.lastError}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <h3 className="text-sm font-bold text-slate-700 mb-2">Ambiguous Replies — Manual Triage</h3>
       <p className="text-xs text-slate-500 mb-3">

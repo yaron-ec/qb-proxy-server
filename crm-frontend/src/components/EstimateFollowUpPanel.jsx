@@ -100,7 +100,78 @@ const ENROLLMENT_METHOD_LABEL = {
   manual_enroll: "Manual",
   confirm_sent: "Confirm Sent",
   auto_qb_email_status: "Automatic (QuickBooks)",
+  auto_post_appointment_sync: "Automatic (Post-Appointment Sync)",
 };
+
+const SYNC_RESULT_LABEL = {
+  not_found: "No estimate found yet",
+  found_unverified: "Estimate found — awaiting delivery confirmation",
+  found_verified_enrolled: "Estimate confirmed sent — enrolled",
+  lead_ineligible: "Stopped — lead no longer eligible",
+  error: "QuickBooks check failed — will retry",
+};
+
+function fmtDateTime(iso) {
+  if (!iso) return "—";
+  try { return new Date(iso).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }); } catch { return iso; }
+}
+
+function PostAppointmentSyncSection({ syncs }) {
+  if (!syncs || syncs.length === 0) return null;
+  return (
+    <div className="mb-3 border border-slate-200 rounded">
+      <div className="px-2.5 py-1.5 border-b border-slate-100 flex items-center gap-1.5">
+        <Clock className="w-3.5 h-3.5 text-slate-400" />
+        <span className="text-[11px] font-bold text-slate-700">Automatic Post-Appointment QuickBooks Sync</span>
+      </div>
+      <div className="divide-y divide-slate-100">
+        {syncs.map((s) => (
+          <div key={s.id} className="px-2.5 py-2 text-[11px]">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-slate-700">
+                Appointment: {fmtDateTime(s.appointment.startAt)}
+                {s.appointment.typeName ? ` (${s.appointment.typeName})` : ""}
+              </span>
+              <span className="flex items-center gap-1">
+                {s.status === "completed" && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />}
+                {s.status === "stopped" && <XCircle className="w-3.5 h-3.5 text-slate-400" />}
+                {s.status === "expired" && <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />}
+                {(s.status === "pending" || s.status === "processing") && <Loader2 className="w-3.5 h-3.5 text-blue-500" />}
+                <span className="text-slate-500">{s.status}</span>
+              </span>
+            </div>
+            <div className="text-slate-500 mt-0.5">
+              {s.lastResult ? (SYNC_RESULT_LABEL[s.lastResult] || s.lastResult) : "Not yet checked"}
+              {s.lastAttemptAt ? ` — last checked ${fmtDateTime(s.lastAttemptAt)}` : ""}
+            </div>
+            {s.status === "pending" && s.nextAttemptAt && (
+              <div className="text-slate-400">Next check: {fmtDateTime(s.nextAttemptAt)}</div>
+            )}
+            {s.estimate && (
+              <div className="mt-0.5">
+                QB Estimate #{s.estimate.qbEstimateNumber} ({s.estimate.estimateStatus}) —{" "}
+                {s.estimate.deliveryVerified ? (
+                  <span className="text-emerald-700 font-semibold">delivery verified</span>
+                ) : (
+                  <span className="text-amber-700">delivery not yet verified</span>
+                )}
+                {s.estimate.qbAppUrl && (
+                  <>
+                    {" "}
+                    <a href={s.estimate.qbAppUrl} target="_blank" rel="noreferrer" className="text-blue-600 underline">
+                      View in QuickBooks
+                    </a>
+                  </>
+                )}
+              </div>
+            )}
+            {s.stoppedReason && <div className="text-slate-400 mt-0.5">Reason: {s.stoppedReason}</div>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function ReplyMonitoringBanner({ replyMonitoring }) {
   if (!replyMonitoring) return null;
@@ -232,6 +303,7 @@ export default function EstimateFollowUpPanel({ lead, currentUser }) {
 
       <div className="px-3 py-2.5">
         <ReplyMonitoringBanner replyMonitoring={data?.replyMonitoring} />
+        <PostAppointmentSyncSection syncs={data?.postAppointmentSyncs} />
 
         {error && <div className="mb-2 p-2 bg-red-50 border border-red-200 rounded text-[11px] text-red-700">{error}</div>}
 

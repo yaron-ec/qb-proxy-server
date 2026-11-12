@@ -60,6 +60,12 @@ export function resolveAmbiguousReply(id) {
   return apiCall(`/api/v1/estimate-followups/admin/ambiguous-replies/${id}/resolve`, { method: 'POST', body: {} });
 }
 
+// Automatic post-appointment QuickBooks estimate sync — admin monitoring
+// for failed/overdue jobs (see lib/postAppointmentEstimateSync.js).
+export function getPostAppointmentSyncStatus() {
+  return apiCall('/api/v1/estimate-followups/admin/post-appointment-sync-status', { method: 'GET' });
+}
+
 export function listTemplates() {
   return apiCall('/api/v1/estimate-followups/templates', { method: 'GET' });
 }

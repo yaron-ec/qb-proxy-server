@@ -4780,6 +4780,172 @@ through `isReplyMonitoringHealthy()` reporting `'healthy'` before setting
 `ESTIMATE_FOLLOWUP_REPLY_DETECTION_ENABLED=true` in production — both
 explicitly called out above as not verifiable from this environment.
 
+## Automatic post-appointment QuickBooks estimate sync + follow-up enrollment (November 2026, built — reply detection still activation-gated)
+
+Built per an explicit refinement request on top of the work above:
+**"My requirement is full automation in normal operation, without sales
+reps manually confirming estimates or monitoring replies."** This section
+adds the piece that was still missing — nothing previously triggered a
+fresh, targeted QuickBooks check for a specific lead right after their
+appointment; the only automatic detection was the periodic 15-minute
+company-wide cron and the EmailStatus-based global scan (`runAutoEnrollmentScan`,
+documented above), neither of which is anchored to "this customer just had
+their appointment."
+
+- **"Safest existing signal" for appointment completion — investigated,
+  not invented.** `appointments.status` already has a real `'completed'`
+  value (`db/migrations/2026-08-crm-booking-core.sql`), but nothing sets it
+  automatically — it is a manual "Done" click a rep may never make, and the
+  explicit instruction was "determine the safest existing signal rather
+  than inventing a completed status." The signal used instead: an
+  appointment is eligible the moment its scheduled END TIME has passed AND
+  its status is still one that represents a real, un-cancelled booking
+  (`'scheduled'`, `'confirmed'`, or `'completed'` — never `'cancelled'`,
+  `'rescheduled'`, or `'no_show'`), AND it is not a legacy, pre-"Phone Call
+  is never an appointment" unbuffered row
+  (`lib/booking/appointmentKind.js#isPhoneCallAppointment` — the same
+  durable signal every other appointment-kind-aware feature in this
+  codebase already uses). This deliberately does NOT require a human to
+  mark anything "completed," which is exactly what full automation
+  requires — CLAUDE.md's existing "never infer completed from a past start
+  time" rule protects a DIFFERENT concern (the terminal-lost auto-cancel
+  logic, where treating a scheduled appointment as already-handled could
+  wrongly skip a real cancellation); for a read-only, idempotent, retried
+  QuickBooks check, this is the safest available fact.
+- **Reuses the existing lead-specific sync, never a new mechanism.**
+  `routes/leadQB.js`'s `POST /by-external/:externalRef/sync-estimates`
+  handler (the manual "Sync from QuickBooks" button) was extracted
+  verbatim into `lib/leadEstimateSync.js#syncEstimatesForLead(lead, {
+  allowFullScan })` — the route now just calls it (`allowFullScan: true`,
+  unchanged behavior). The new automated job calls the SAME function with
+  `allowFullScan: false`, skipping only the one genuinely expensive step
+  (a full-company `/estimates` fetch + fuzzy match) — the independently-
+  scheduled 15-minute `server.js#runQbEstimateSync` cron already performs
+  that full scan on its own cadence and will catch anything this narrower,
+  customer-scoped lookup misses, so repeating it on every one of a
+  per-appointment job's up to 8 retries would be a redundant, unbounded
+  source of QuickBooks traffic — exactly what the October–November 2026
+  rate-limit reliability work (QB Phases 3-6 above) was built to prevent.
+  Every QuickBooks call this still makes funnels through the same
+  canonical `qbTokenManager.qbApiRequest` path (circuit-breaker protected,
+  bounded 429/5xx retry) — no new credential, API shape, or rate-limit
+  handling was introduced.
+- **Durable, idempotent Postgres scheduling**
+  (`db/migrations/2026-72-post-appointment-estimate-sync.sql`,
+  `lib/postAppointmentEstimateSync.js`): one `post_appointment_estimate_syncs`
+  row per eligible appointment (`UNIQUE(appointment_id)` — enqueueing is
+  safe to run every tick, `ON CONFLICT DO NOTHING`), retried 3h after the
+  appointment ends, then 24h/48h/72h, then once daily through day 7
+  (`RETRY_OFFSET_HOURS = [3,24,48,72,96,120,144,168]`, the one place this
+  schedule is defined). Claiming a due row for processing uses the same
+  single-`UPDATE...WHERE status='pending'...RETURNING` pattern
+  `lib/estimateFollowupEngine.js`'s own step claim already established — a
+  second worker/replica racing the same row gets zero rows back and moves
+  on; a row stuck in `'processing'` from a crash mid-attempt is reaped back
+  to `'pending'` after 10 minutes on the next tick
+  (`reapStuckProcessingRows`). Stops checking exactly on: a qualifying
+  (delivery-confirmed) estimate found and enrolled (`'completed'`), the
+  lead becoming ineligible (`'stopped'`), or the 7-day window elapsing with
+  nothing found (`'expired'`) — an estimate found but not yet
+  delivery-verified is explicitly NOT a stop condition; the row keeps
+  retrying on the same schedule until it either confirms delivery or the
+  window expires.
+- **Real enrollment, not a second mechanism.** The moment a synced estimate
+  carries QuickBooks' own confirmed-sent evidence
+  (`lib/estimateSentDetection.js#classifyQbSentEvidence`, `EmailStatus='EmailSent'`
+  — never estimate creation alone), the job calls the SAME
+  `lib/estimateFollowupEngine.js#enroll()` every other enrollment path
+  uses, with a new, distinct, attributable `enrollment_method` value —
+  `'auto_post_appointment_sync'` (migration 2026-72 widens the existing
+  CHECK constraint again, additively, never editing the already-reviewed
+  2026-71 migration in place). `enroll()`'s own `competing_sequence_already_active`
+  response (the lead was already enrolled by this same job on an earlier
+  retry, or by the separate global `runAutoEnrollmentScan`) is treated as
+  an already-enrolled SUCCESS, not an error — idempotent by construction,
+  never a duplicate sequence. **Enrollment itself never sends anything** —
+  `enroll()` only inserts the sequence/step rows; the actual customer
+  email send remains gated exactly as before by `ESTIMATE_FOLLOWUP_DRY_RUN`
+  (`processEstimateFollowups`) and the fail-closed reply-monitoring gate
+  (`ESTIMATE_FOLLOWUP_REPLY_DETECTION_ENABLED`) — this feature introduces
+  no new email-sending path and needs no email-sending gate of its own.
+- **Reply detection, pause, and the fail-closed gate are completely
+  unchanged** — `lib/estimateFollowupReplyDetection.js`/
+  `lib/estimateFollowupReplyNotify.js` were not touched by this pass, per
+  the explicit instruction to preserve them.
+- **CRM visibility** (`routes/estimateFollowups.js`'s
+  `GET /leads/:id/estimate-followup` now includes a `postAppointmentSyncs`
+  array; `crm-frontend/src/components/EstimateFollowUpPanel.jsx`'s new
+  `PostAppointmentSyncSection`): per tracked appointment — its date/time,
+  the sync job's status/last result, next scheduled check, whether an
+  estimate was found, its QuickBooks number/status and a direct link, and
+  whether delivery was verified. **Admin monitoring for failed/overdue
+  jobs**: `GET /api/v1/estimate-followups/admin/post-appointment-sync-status`
+  (counts by status, rows overdue by more than 90 minutes past their
+  scheduled check — a sign the reminder worker tick itself isn't running,
+  not a normal scheduling gap — and rows with a recorded QuickBooks check
+  error awaiting retry), rendered in `crm-frontend/src/pages/EstimateFollowUps.jsx`'s
+  existing Automation Status tab alongside the pre-existing reply-monitoring
+  health and ambiguous-reply triage sections.
+- **Wiring**: `reminderWorker.js` calls
+  `postAppointmentEstimateSync.processPostAppointmentEstimateSyncs({
+  triggeredBy: 'cron' })` on the same tick as the other reminder/follow-up
+  engines, BEFORE the global `runAutoEnrollmentScan` (so an estimate this
+  exact tick just synced with confirmed delivery evidence is enrolled
+  immediately, though the global scan would catch it either way on the
+  next tick regardless).
+- **No new activation gate for the sync/enrollment mechanics themselves** —
+  a deliberate decision, not an oversight: the explicit instruction was to
+  keep CUSTOMER-FACING EMAIL SENDING dry-run/disabled until authorized,
+  which remains true (enrollment creates rows, never sends); the sync
+  scheduler itself only performs read-only, circuit-breaker-protected
+  QuickBooks lookups and local Postgres bookkeeping, and per the stated
+  requirement ("full automation... without sales reps manually confirming
+  estimates or monitoring replies") this runs unconditionally once
+  deployed. **Operator awareness**: on first deploy, every appointment
+  that ended within the lookback window (9 days) will be enqueued and its
+  first QuickBooks check attempted on the very next reminder-worker tick —
+  expected, intentional behavior, not a bug, but worth knowing before
+  deploying to a production environment with many recent appointments.
+- **Still unresolved, same as before this pass** (Section 3 of the request
+  asked to "investigate whether delivery evidence is available" — this
+  pass did not change that investigation's conclusion, only added the
+  per-appointment trigger that will exercise it automatically once
+  deployed): whether Handoff-originated estimates' QuickBooks `EmailStatus`
+  ever actually becomes `'EmailSent'` in this installation remains unknown
+  from this environment (no production database access) —
+  `scripts/auditQbEstimateEmailStatus.js` (pre-existing, read-only, built in
+  the prior pass) is the concrete next step to resolve this empirically;
+  running it against production, now that real per-appointment sync
+  traffic will be flowing once this deploys, is the most useful time to
+  check it.
+
+Regression coverage: `test/postAppointmentEstimateSync.test.js` (11 tests,
+pure/DB-stubbed — the retry-offset table, `computeAdvance`'s next-offset/
+expiry/window-guard branches, and `attemptSync`'s full outcome matrix:
+lead-ineligible-stops-immediately, not-found, found-unverified,
+EmailSent-confirmed-enrolls, competing-sequence-is-still-a-success,
+mid-search-disqualification-stops, and a genuine QuickBooks/network error
+propagating rather than being swallowed as "not found");
+`test/integration/postAppointmentEstimateSync.int.test.js` (15 tests, real
+Postgres, only the QuickBooks network call faked — 3h-after-end scheduling,
+idempotent re-enqueue, every exclusion case (phone-call-kind, cancelled/
+rescheduled/no-show, not-yet-occurred, but DOES include `'completed'`),
+the full not-found/found-unverified/enrolled/ineligible/expired lifecycle
+with REAL enrollment via `estimateFollowupEngine.enroll`, stuck-row
+recovery, concurrent-tick claim safety, and both new HTTP surfaces);
+`test/estimateSyncRestoration.test.js` (updated — its source-level checks
+now read `lib/leadEstimateSync.js`, where the sync workflow body now
+lives, instead of `routes/leadQB.js`, and gained an explicit assertion that
+the full-scan fallback is gated behind `allowFullScan`). Full existing
+backend unit suite re-run clean (1572 pass, 0 fail, 1 pre-existing
+unrelated todo) and the full real-Postgres integration suite re-run clean
+of NEW regressions (414 pass, 6 fail — the same pre-existing, already-
+documented `qbEstimateInvoice.int.test.js` failures from before this work,
+reproduced identically with this pass's changes reverted, confirming they
+are unrelated) with every change in this section applied. Full frontend
+build (`npm run build:exit`) re-run clean after every `.jsx` edit in this
+section.
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`
