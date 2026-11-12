@@ -4175,6 +4175,777 @@ Regression coverage (consolidated, this pass):
 (unchanged, re-verified), `test/michelleNotificationPolicySeed.test.js`,
 `test/integration/systemFailureNotifyMichelleYaron.int.test.js`.
 
+## Automated 14-day estimate follow-up email sequence (November 2026, built — NOT activated)
+
+**SUPERSEDED (November 2026, "REQUIRED CHANGE: Fully Automatic Estimate
+Detection and Customer Reply Tracking") — read "Fully automatic estimate-
+sent detection + Gmail reply tracking" below first.** The manual-only
+enrollment and manual-only reply-stop design this section originally
+described was explicitly rejected by the business owner and replaced with
+full automation (QuickBooks EmailStatus-based auto-enrollment, Gmail
+history.list-based auto-pause-on-reply). This section is kept as the
+historical record of the base schema, templates, eligibility rules,
+unsubscribe mechanism, and six-email cadence — all of which are UNCHANGED
+and still exactly as described below; only enrollment and reply-handling
+became automatic, documented in the section below.
+
+Built per an explicit feature request: convert more QuickBooks estimates
+into signed projects via 6 automated follow-up emails over 14 days,
+without a direct Handoff integration and without changing QuickBooks sync
+architecture. **Everything below is built, tested, and merged in DRY-RUN
+mode only — no automated customer email has been sent by this feature, and
+none will be until an operator explicitly flips `ESTIMATE_FOLLOWUP_DRY_RUN`
+to `'false'`** (default unset/true — mirrors `REMINDER_DRY_RUN`'s own
+safe-by-default precedent, independent of every other reminder/SMS
+dry-run flag, per this codebase's "one flag per independent concern"
+doctrine).
+
+- **No automatic "estimate sent to customer" signal exists anywhere in the
+  QB/Handoff data model** (confirmed by investigation, not assumed) — estimate
+  creation, import, or an appointment are all unreliable proxies for actual
+  customer delivery. There is therefore **no automatic enrollment of any
+  kind**. The ONE way a sequence starts is an authorized user explicitly
+  clicking "Confirm Estimate Sent" (or, admin/manager-only, "Manually
+  Enroll") in the new Lead Detail panel — both call the same
+  `lib/estimateFollowupEngine.js#enroll()`, which never backdates or
+  invents the sent timestamp (defaults to the moment of the call; an
+  earlier explicit `sentAt` is accepted only as a caller-supplied fact,
+  never computed).
+- **Schema** (`db/migrations/2026-70-estimate-followup-sequence.sql`):
+  `estimate_followup_sequences` (one row per enrollment — lead, linked
+  `handoff_estimates` row, status `active`/`paused`/`completed`/`stopped`,
+  recipient email, sales rep owner, the confirmed-sent audit fields,
+  enrollment method, unsubscribe token hash, pause/stop reason/by/at) with
+  a **partial unique index on `(lead_id) WHERE status IN ('active',
+  'paused')`** — the mechanism that makes a second enrollment attempt for
+  a lead with a revised/additional estimate fail closed
+  (`competing_sequence_already_active`) rather than ever running two
+  competing sequences for the same customer/project;
+  `estimate_followup_steps` (the 6 pre-computed steps per sequence, fixed
+  `due_at` timestamps set once at enrollment, status
+  `pending`/`processing`/`sent`/`skipped`/`failed`/`cancelled`, bounded
+  `attempts`, a unique `idempotency_key`); `estimate_followup_templates`
+  (versioned, `is_active` flag, seeded at version 1 with the business
+  owner's own exact given wording for all 6 steps — same "one-time
+  approval record" precedent as `lib/smsTemplates.js`); and
+  `estimate_followup_suppressions` (a permanent, email-keyed unsubscribe
+  registry, mirrors `sms_opt_outs`' "survives a later QB re-sync"
+  guarantee — distinct from, and checked in addition to, the existing
+  per-lead `customer_reminders_disabled` boolean).
+- **Eligibility** (`lib/estimateFollowupEligibility.js`) is re-checked FRESH
+  before every single send, never trusted from enrollment time: lead not in
+  `TERMINAL_LOST_STATUSES` or `'Sold'` (a customer who already bought has no
+  reason to keep receiving "should I keep your project on my radar?"
+  follow-ups about an estimate they already accepted), valid email, not
+  suppressed, `customer_reminders_disabled` false, and the linked estimate's
+  `estimate_status` still exactly `'Pending'` (the only QuickBooks
+  `Estimate.TxnStatus` value this codebase treats as "still outstanding" —
+  `Accepted`/`Closed`/`Rejected`/anything else auto-stops the sequence the
+  moment it's observed, same as the lead-status check).
+- **Schedule** (`lib/estimateFollowupEngine.js#computeStepDueDates`):
+  calendar days 1/3/5/8/11/14 after the verified sent instant, business-
+  hours-clamped (9:00 AM–5:00 PM, this installation's configured timezone
+  — default `America/Los_Angeles`), computed DST-safely via the SAME
+  `lib/reminderTime.js#pacificToUtcMs` this codebase already fixed a real
+  DST bug in (reused, not re-derived — verified against both the November
+  2026 "fall back" and March 2026 "spring forward" transition dates in
+  `test/estimateFollowupEngine.test.js`). **Never a catch-up flood**: if a
+  worker outage leaves several steps simultaneously overdue, only the
+  single latest one ever sends — every earlier overdue step is marked
+  `skipped: superseded_by_later_step`, never retried. **At most one
+  estimate-followup email per lead per calendar day**
+  (`hasSentToLeadToday`), independent of (and on top of) the per-step
+  due-date math.
+- **Templates** (`lib/estimateFollowupTemplates.js`): the business owner's
+  exact given wording for all 6 subjects/bodies, `{{first_name}}`/
+  `{{sales_rep_name}}` tokens (both HTML-escaped), editable and versioned
+  via `saveTemplateVersion` (never mutates an existing row — inserts the
+  next version and flips the previous one's `is_active` off, same
+  "additive, auditable history" pattern as every other versioned-content
+  table in this codebase). Deliberately NOT wrapped in
+  `lib/emailTemplates.js`'s branded shell — these six messages are written
+  in first person as a personal note from the assigned rep. A small,
+  unobtrusive CAN-SPAM compliance footer (real physical mailing address
+  read from `company_settings` + a working unsubscribe link) is appended
+  at RENDER time, never baked into `body_html` — editing the company's
+  address in Company Settings never requires a new template version.
+  **`buildComplianceFooterHtml` throws `ConfigurationError` (never invents
+  an address) if no business address is configured** — the engine treats
+  this as a blocking, tick-wide configuration prerequisite (see below),
+  never a per-lead failure.
+- **Personalization/sender**: first name, the lead's REAL assigned rep's
+  display name (resolved via the `owners` FK, never a heuristic
+  reconstruction), sent via the existing, already-authorized
+  `lib/emailService.js` (idempotency/retry/audit-log infrastructure reused
+  as-is, never duplicated — this module only tracks per-step SCHEDULING
+  state, not send mechanics). Never includes estimate amounts, financing
+  eligibility, private project details, attachments, fabricated
+  testimonials, urgency, or discounts, per the exact given wording and the
+  explicit requirement — the templates contain none of this, and nothing
+  in the rendering pipeline adds any.
+- **Stop/Pause**: fully automatic auto-stop (re-checked before every send,
+  never only at enrollment) on the lead becoming
+  Sold/Lost/DNQ/Cancelled, the estimate leaving `Pending`, or an
+  unsubscribe. **Manual-only pause/stop for a customer reply** — this
+  codebase's Gmail integration
+  (`lib/gmailSender.js`) is outbound-send only, with no inbound-reply
+  webhook or polling mechanism (unlike SMS's dedicated inbound webhook
+  route) — there is genuinely no reliable signal to detect a reply. This
+  is a documented limitation, not an oversight: the Lead Detail panel
+  (`EstimateFollowUpPanel.jsx`) surfaces a permanent, visible banner
+  ("No automatic reply detection: ... a rep must manually pause or stop
+  the sequence — it will not stop itself") rather than silently claiming
+  automatic reply handling, and provides the Pause/Stop controls as the
+  actual mechanism a rep uses today. Revised/multiple estimates on the
+  same lead are handled by the partial unique index above (a second
+  enrollment attempt while one sequence is active/paused is rejected,
+  never a competing sequence) — once the first sequence is stopped (e.g.
+  the original estimate is superseded/closed), a brand-new sequence for a
+  revised estimate can enroll normally.
+- **Unsubscribe link**: a DETERMINISTIC token
+  (`unsubscribeTokenForSequence` — HMAC-SHA256 of the sequence's own
+  app-generated UUID, keyed by `RAILWAY_JWT_SECRET`/`PROXY_SECRET`), not a
+  one-time random value — this is what lets the SAME working link be
+  reconstructed on demand for every one of the 6 emails (steps 2-6 are
+  rendered long after enrollment, when a one-time random token would no
+  longer be available anywhere but its one-way hash). The sequence id is
+  generated in application code (not the column's `gen_random_uuid()`
+  default) specifically so the token can be computed before the row is
+  inserted. The public, unauthenticated
+  `GET /api/v1/estimate-followups/public/unsubscribe/:token` route
+  (`routes/estimateFollowups.js`) hashes the incoming token and matches it
+  against the stored `unsubscribe_token_hash`; a match inserts a permanent
+  suppression row and stops the sequence, returning a small branded
+  confirmation page (never JSON — this is a link clicked from inside an
+  email).
+- **CRM UI**: `crm-frontend/src/components/EstimateFollowUpPanel.jsx` in
+  Lead Detail (visible to every role Lead Detail itself is visible to —
+  ownership/authorization enforced server-side via the SAME
+  `routes/leads.js#resolveOwnerScope` every other lead sub-resource
+  reuses, never a new permission model) shows state (Not Eligible /
+  Awaiting Sent Confirmation / Scheduled / Active / Paused / Completed /
+  Stopped / Failed — the latter five derived client-side from the raw
+  sequence status + step statuses for display, never stored as a separate
+  enum), the linked estimate, rep + recipient, all 6 steps with due
+  dates/statuses, pause/stop reasons, and Preview/Confirm-Sent/Manual-
+  Enroll/Pause/Resume/Stop controls (Manual-Enroll admin/manager-only).
+  `crm-frontend/src/pages/EstimateFollowUps.jsx` (new route
+  `/estimate-followups`, linked from Settings — admin/manager-only, same
+  "Integrations Hub"-style redirect card pattern) is the global
+  oversight page: state counts + per-sequence table, the dry-run
+  eligibility report, and the versioned template editor (editing itself
+  is admin-only; manager can view).
+- **Reliability/audit**: durable Postgres scheduling (fixed `due_at` per
+  step, atomic `UPDATE ... WHERE status='pending' ... RETURNING` claim —
+  proven safe under real concurrent workers in
+  `test/integration/estimateFollowupSequence.int.test.js`'s race test, no
+  advisory lock needed since row-level atomicity suffices), bounded retry
+  (`MAX_STEP_ATTEMPTS = 5`, never an unbounded loop), and the existing
+  `email_send_claims`/`email_send_logs` idempotency/audit infrastructure
+  reused as-is for the actual send. **A missing business address
+  (`ConfigurationError`) blocks the WHOLE tick, not just one lead** — the
+  claimed step is released back to `pending` (never burned as a terminal
+  failure; never stuck in `processing`), and
+  `lib/estimateFollowupAlerts.js#notifyAutomationFailures` fires exactly
+  once per tick via the EXISTING staff `SYSTEM_FAILURE` broadcast category
+  (`lib/notificationPreferences.js`) — the same mechanism
+  `lib/monitoring/alertDispatcher.js` already uses for watchdog alerts, so
+  Michelle's single-category policy correctly excludes her with zero new
+  person-specific logic. This alert also fires for a genuine per-step send
+  failure (after `MAX_STEP_ATTEMPTS`); it never fires for an ordinary tick
+  with nothing eligible — "no noise for ordinary non-eligible leads" per
+  the explicit requirement.
+- **Compliance**: CAN-SPAM unsubscribe + the permanent suppression table
+  above (survives a later QB re-sync — it's keyed by email, never touched
+  by the estimate-sync pipeline), accurate sender identity (the real
+  assigned rep's name, EC's existing authorized Gmail sender), a real
+  business address read from `company_settings` (never invented — see
+  `ConfigurationError` above), and no deceptive/urgency content by
+  construction of the given wording.
+- **Wiring**: `server.js` mounts `routes/estimateFollowups.js` at
+  `/api/v1`; `reminderWorker.js` calls
+  `estimateFollowupEngine.processEstimateFollowups({ triggeredBy: 'cron'
+  })` on the SAME cron tick as the existing appointment/phone/task
+  reminder engines (own try/catch — a failure here never fails the other
+  three passes); `routes/leads.js`'s terminal-lost-status transition
+  (`PUT /:id` and `PUT /by-external/:externalRef`, the only two write
+  paths) now also calls
+  `estimateFollowupEngine.stopActiveSequencesForLead(leadId,
+  'lead_status_<status>')` post-commit, best-effort, alongside the
+  existing appointment-cancellation step — never a second/raw stop path.
+- **Dry-run verification performed in this environment** (disposable,
+  fully-migrated local Postgres — no production access): a seeded 4-lead
+  dataset (one cleanly eligible, one disqualified by `Lost` status, one
+  with no valid email, one already enrolled) run through
+  `getDryRunEligibilityReport()` classified all four correctly
+  (`eligible_awaiting_sent_confirmation`: 1, `not_eligible`: 2 with the
+  exact right reasons, `already_enrolled`: 1) with zero emails sent; a
+  separate run of `processEstimateFollowups()` with its default dry-run
+  flag active against a due step reported `wouldSend: 1, sent: 0` and
+  logged (never wrote or sent) the would-be send. **Existing leads are
+  NOT automatically enrolled retroactively by this feature in any way** —
+  there is no retroactive-enrollment code path at all; every lead starts
+  `not_eligible`/`awaiting_sent_confirmation` until a human explicitly
+  confirms.
+- **NOT activated.** `ESTIMATE_FOLLOWUP_DRY_RUN` is unset anywhere in this
+  codebase/environment — the feature is fully inert for real sending
+  until an operator explicitly sets it to `'false'` AND has separately
+  approved the final templates, sender identity, recipient eligibility
+  rules, and this dry-run verification, per the explicit instruction this
+  feature was built against. No QuickBooks credential, financial record,
+  or estimate-sync behavior was touched by this work — confirmed by the
+  diff itself (only `lib/companyConfig.js` gained two already-existing-
+  but-unexposed address columns; every other change is new files plus the
+  three additive wiring points listed above).
+
+Regression coverage: `test/estimateFollowupEligibility.test.js` (27 tests
+— the full eligibility matrix, both enrollment and fresh-before-send
+checks, every disqualifying lead status, email validity, suppression,
+competing sequence, estimate status); `test/estimateFollowupEngine.test.js`
+(13 tests — business-hour clamping, the 6-step cadence, both documented
+2026 DST transition dates reproduced exactly, the deterministic
+unsubscribe token); `test/estimateFollowupTemplates.test.js` (10 tests —
+token rendering/escaping, the `ConfigurationError`-never-invents-an-address
+guarantee, `saveTemplateVersion`'s never-mutates-an-existing-row
+transaction); `test/estimateFollowupAlerts.test.js` (6 tests — fires only
+for a genuine failure/config-block, the SYSTEM_FAILURE category reuse,
+never throws back to the caller); `test/integration/estimateFollowupSequence.int.test.js`
+(17 tests, real Postgres — full lifecycle, catch-up collapsing, one-per-
+day enforcement, both auto-stop paths, competing/revised-estimate
+handling, pause/resume/stop, unsubscribe-by-token, concurrent-worker claim
+safety, the config-blocked tick, role-scoped HTTP access, and the dry-run
+report/engine paths); `crm-frontend/src/components/EstimateFollowUpPanel.test.jsx`
+(11 tests) and `crm-frontend/src/pages/EstimateFollowUps.test.jsx` (10
+tests) — the full frontend state machine, role gating (including the
+fix ensuring the admin-only overview API is never called before the
+caller's role is known), and the template editor's admin-only edit gate.
+Full existing backend unit suite re-run clean (1527 pass, 0 fail, 1
+pre-existing unrelated todo) and the full real-Postgres integration suite
+re-run clean against this exact change (382 pass, 6 fail — the same
+pre-existing, already-documented `qbEstimateInvoice.int.test.js` failures
+from before this work, unrelated to anything this feature touches) with
+every change in this section applied. Full frontend vitest suite re-run
+clean (450 pass) and `npm run build:exit` confirmed clean after every
+`.jsx` edit in this section.
+
+### Activation checklist (operator action required — none of this has been done)
+
+1. Review the final template wording in the new admin UI
+   (`/estimate-followups` → Templates tab) against the originally-approved
+   copy — it is seeded verbatim from the given wording, but this is the
+   point to confirm or revise it.
+2. Confirm the sender identity (`EmailService`'s existing Gmail sender,
+   `yaron@ecconstructiongroup.com`) and that `company_settings`'s business
+   address fields are populated in production — `GET /api/v1/estimate-followups/admin/dry-run-report`
+   (or the Dry-Run Report tab) will show a `configuration_error` if not.
+3. Review the dry-run eligibility report
+   (`/estimate-followups` → Dry-Run Report tab) against REAL production
+   data — confirm the set of leads it would consider eligible matches
+   expectations, with zero emails sent (this tab never sends).
+4. Only after explicit approval of 1-3: set
+   `ESTIMATE_FOLLOWUP_DRY_RUN=false` on the `qb-proxy-server` Railway
+   service (the same env var `reminderWorker.js` reads on every cron
+   tick) to enable real sending.
+5. Monitor the System Health / staff `SYSTEM_FAILURE` email channel for
+   the first several ticks after activation — a config-blocked or
+   per-step-failed tick alerts automatically via the existing mechanism
+   described above.
+
+## Fully automatic estimate-sent detection + Gmail reply tracking (November 2026, built — NOT activated)
+
+Built per an explicit "REQUIRED CHANGE" request rejecting the manual-only
+design the section above originally shipped: no sales rep action should be
+required, in normal operation, to either start the six-email sequence or
+stop it when a customer replies. **Everything below is additive and still
+behind its own off-by-default gates — merging/deploying this changes ZERO
+live behavior until an operator explicitly flips the new env vars named
+below.** The base schema, six templates, eligibility rules, unsubscribe
+mechanism, and `ESTIMATE_FOLLOWUP_DRY_RUN` send gate from the section above
+are completely unchanged.
+
+### 1. What QuickBooks actually exposes about estimate sending (investigated, not assumed)
+
+`EmailStatus` and `DeliveryInfo.DeliveryTime` are standard, documented
+fields on every QuickBooks Online `Estimate` (and every other
+`SalesTransaction`-family entity) — confirmed ALREADY PRESENT in every
+response this codebase's existing `SELECT * FROM Estimate` sync already
+fetches (`server.js#runQbEstimateSync`, `lib/qbSyncTrigger.js`'s
+webhook-triggered sync, `routes/leadQB.js`'s manual per-lead sync — all
+three call sites verified and fixed, see "Where it's persisted" below).
+**Zero new QuickBooks API calls, scopes, or credentials were needed.**
+`EmailStatus` has exactly three documented values: `'NotSet'` (QuickBooks'
+own Send feature never used), `'NeedToSend'` (queued, not yet sent), and
+`'EmailSent'` (QuickBooks itself emailed the document and recorded that it
+did — `DeliveryInfo.DeliveryTime` is then typically populated with the real
+send instant). `lib/estimateSentDetection.js#classifyQbSentEvidence` is the
+ONE classifier: `confirmed: true` ONLY when `EmailStatus === 'EmailSent'`
+AND a usable timestamp exists (`DeliveryInfo.DeliveryTime`, falling back to
+`MetaData.LastUpdatedTime` only when reading the live API shape directly —
+never backdating further than what QuickBooks itself reports, never
+falling back to "now"). **Estimate creation, import, or an appointment are
+NEVER treated as proof of sending** — per the explicit requirement, this is
+unchanged from the original design's own stated principle.
+
+**CONFIRMED PRE-EXISTING DEFECT, found during this investigation, deliberately
+NOT fixed** (out of scope — business-status logic unrelated to this
+feature, changing it is a separate, deliberate decision):
+`server.js#runQbEstimateSyncInner`'s existing `const status = qbEst.TxnStatus
+|| qbEst.EmailStatus || 'Draft'` line folds `EmailStatus` into the
+business-approval `estimate_status` column as a near-dead fallback (only
+relevant when `TxnStatus` is entirely absent). This module reads
+`EmailStatus`/`DeliveryInfo` directly off the raw QB object and persists
+them into their OWN new, additive columns
+(`handoff_estimates.qb_email_status` / `qb_email_delivery_time` —
+`db/migrations/2026-71-estimate-followup-automation.sql`) — never derived
+from or overwriting `estimate_status`.
+
+**Where it's persisted** — all THREE estimate-sync write paths in this
+codebase were updated identically (confirmed via a full audit of every
+`handoff_estimates` write site, not just the primary cron):
+`server.js#runQbEstimateSyncInner`'s `sharedBase` object,
+`lib/qbSyncTrigger.js`'s webhook-triggered sync's own `sharedBase`, and
+`routes/leadQB.js`'s manual per-lead `POST /by-external/:externalRef/sync-estimates`
+route's raw INSERT/UPDATE statements. All three now carry
+`qb_email_status`/`qb_email_delivery_time` verbatim off the same `qbEst`
+object each path already fetches — zero new QB API calls anywhere.
+
+**KNOWN, HONEST LIMITATION — the one deciding fact code alone cannot
+determine from this environment**: whether Handoff's own push of an
+estimate into QuickBooks ever triggers QuickBooks' own email-send mechanism
+(the only thing that sets `EmailStatus` to `'EmailSent'`) is unverified
+here (no production database access). Handoff most plausibly emails the
+customer through ITS OWN system, entirely outside QuickBooks, in which case
+`EmailStatus` would read `'NotSet'`/`'NeedToSend'` forever for every
+Handoff-origin estimate and auto-enrollment — while real, correctly
+implemented, and requiring no new credentials — may simply never fire for
+this installation's actual estimate source. **New tool to resolve this
+empirically rather than guessing**: `node scripts/auditQbEstimateEmailStatus.js
+[--json] [--sample-limit=20]` — pure read-only (no `--apply` flag exists),
+reports the real, observed distribution of `qb_email_status` across every
+synced estimate (by status, cross-tabbed with `estimate_status` and
+`sync_source`), a sample of any confirmed `EmailSent` rows, and an explicit
+CONFIRMED/NO-EVIDENCE-YET verdict. **Not run against production from this
+environment** (no production `DATABASE_URL` here) — running it after this
+deploys is the concrete next operator step to resolve this uncertainty.
+
+### 2. What Gmail permissions/APIs are already available (investigated, not assumed)
+
+`lib/gmailOAuthRouter.js`'s `SCOPES` constant already grants BOTH
+`gmail.send` AND `gmail.readonly` for the one sending mailbox
+(`yaron@ecconstructiongroup.com`) — confirmed via direct code read, with
+that file's own header comment citing a prior production verification that
+`gmail.readonly` genuinely works for a real Gmail read (it was added for
+`routes/leadEmails.js`'s existing per-lead correspondence feature). **No
+OAuth scope change, reconnect, or new credential was needed** — the
+explicit instruction to never modify OAuth scopes without identifying an
+exact, justified need is satisfied by there being no gap to fill at all.
+
+`lib/estimateFollowupReplyDetection.js` is the new Gmail inbound-reply
+poller, using three capabilities this same grant already supports:
+- `users.getProfile` — a cheap, one-time bootstrap of the mailbox's current
+  `historyId`, used ONLY the very first time this ever runs (never scans
+  historical mail — a reply that arrived before reply detection was first
+  enabled was never actionable anyway).
+- `users.history.list` — the incremental, checkpointed poll itself
+  (`startHistoryId` = the last successfully-processed id,
+  `historyTypes=messageAdded`, `labelId=INBOX`). The durable checkpoint
+  (`estimate_followup_gmail_checkpoint`, one row per mailbox — migration
+  2026-71) advances only after a page is fully processed, and survives a
+  worker restart/outage (recorded `consecutive_failures`/`last_error`
+  drive the health classification below).
+- `users.messages.get` (`format=metadata`) — just enough headers
+  (From/Subject/Date/Auto-Submitted/Precedence) to classify and correlate
+  each new message; the response's own top-level `threadId` is used for
+  correlation regardless of format.
+
+**Thread correlation (preferred over address-only matching, per the
+explicit requirement)**: `lib/gmailSender.js#sendEmail` now accepts an
+optional `threadId` and always returns the Gmail-assigned `threadId` from
+the send response (read back, NEVER forced via custom References/
+In-Reply-To — Gmail's documented criteria for accepting an explicitly-set
+`threadId` requires the Subject to also match, which the six templates'
+deliberately distinct subjects would break). `lib/emailService.js#send`
+passes `threadId` through and returns it; `lib/estimateFollowupEngine.js#processEstimateFollowups`
+persists it onto `estimate_followup_steps.gmail_thread_id` (added in
+migration 2026-71) on every successful send. An inbound message's own
+`threadId` (correctly assigned by Gmail from the customer's own
+In-Reply-To/References — their mail client sets those regardless of what
+we send) is compared against every active/paused sequence's sent steps.
+Only when no thread match exists does correlation fall back to a
+From-address match against the sequence's own recorded `recipient_email` —
+the same "prefer the strong signal, fall back to address, never guess on
+ambiguity" shape this codebase already uses for SMS phone-matching. **Zero
+matches = an ordinary, untracked inbound email (ignored, never logged).
+More than one match is never guessed** — recorded in the new
+`estimate_followup_ambiguous_replies` table (mirrors the existing SMS
+ambiguous-match convention) for manual staff triage via the new admin UI
+(see below).
+
+**Bounce/autoresponder/self-loop filtering**
+(`looksLikeAutomatedOrBounce`): a mailer-daemon/postmaster/no-reply/
+do-not-reply/bounce From address, an RFC 3834 `Auto-Submitted` header that
+isn't exactly `'no'`, a bulk/junk/list `Precedence` header, a common
+automated-subject pattern (out-of-office, delivery failure, etc.), or a
+message From our own sending address are all ignored before any
+correlation is attempted — never pauses a sequence or notifies a rep over
+a bounce or an auto-reply.
+
+### 3. Fully automatic lifecycle — both halves implemented and tested
+
+- **Auto-enrollment** (`lib/estimateFollowupEngine.js#runAutoEnrollmentScan`,
+  called on every `reminderWorker.js` tick): scans every Pending,
+  lead-linked `handoff_estimates` row for `qb_email_status = 'EmailSent'`,
+  classifies it via `estimateSentDetection.js`, and enrolls via the SAME
+  `enroll()` function every other enrollment path uses —
+  `method: 'auto_qb_email_status'`, `sentAt` = QuickBooks' own verified
+  delivery instant (never the scan's own run time). Re-checks eligibility
+  itself (disqualifying lead status, invalid/suppressed email, a competing
+  sequence already active) exactly like every other enrollment path — a
+  disqualified lead is correctly skipped, never force-enrolled. The
+  pre-existing `manualEnroll`/`confirmEstimateSent` actions remain as
+  explicit, human-triggered escape hatches for exceptional cases, per the
+  explicit requirement that manual controls may remain but must not be
+  required.
+- **Auto-pause-on-reply** (`lib/estimateFollowupReplyDetection.js#pollForReplies`,
+  called on every tick BEFORE auto-enrollment/send, so a reply detected
+  this exact tick can never be raced by a decision made earlier in the same
+  tick): the moment a genuine new reply is correlated to a sequence, that
+  sequence is paused (`paused_reason='customer_replied'`,
+  `paused_by='system:gmail_reply_detected'`,
+  `triggering_gmail_message_id` recorded for audit — new column, migration
+  2026-71), the reply is recorded as an ordinary `'email'` activity row
+  (idempotent on the EXISTING `activities.external_ref` unique index — a
+  redelivered Gmail history entry never double-writes or double-notifies),
+  and — gated by its own separate flag — the assigned rep (or staff, if
+  unowned) is notified **by EMAIL ONLY**, with a direct
+  `lib/crmUrl.js#buildLeadUrl` link
+  (`lib/estimateFollowupReplyNotify.js`, mirrors `lib/smsReplyNotify.js`'s
+  precedent exactly — resolves the REAL owner via the `owners` FK, never a
+  heuristic). A paused sequence's steps are simply never picked up by
+  `processEstimateFollowups`'s own `WHERE seq.status = 'active'` query —
+  no separate "cancel queued jobs" step was needed, it falls out of the
+  existing query shape by construction.
+- Auto-stop on Sold/Lost/DNQ/Cancelled or the estimate leaving `Pending` is
+  completely unchanged from the base design — re-checked fresh before
+  every send, as before.
+
+**No manual enrollment or manual reply monitoring is required for normal
+operation.** The Lead Detail panel's manual Confirm/Enroll/Pause/Resume/Stop
+controls all remain, exactly as before, as the explicit override for
+exceptional cases.
+
+### 4. Reliability and safety — the fail-closed reply-monitoring gate
+
+`lib/estimateFollowupReplyDetection.js#isReplyMonitoringHealthy()` is the
+literal, strict implementation of the explicit requirement: **"If the
+reply-monitoring connection is unhealthy or its checkpoint is stale, fail
+closed: hold outgoing follow-up emails until reply monitoring is
+restored."** `healthy: true` requires ALL of: the feature explicitly
+enabled (`ESTIMATE_FOLLOWUP_REPLY_DETECTION_ENABLED='true'` — absence is
+itself "unhealthy," never merely "feature off," so a real send is only ever
+possible when reply detection is actively running AND succeeding), a
+checkpoint that has polled successfully recently (reminder-worker cron
+cadence is ~30 minutes; stale beyond ~90 min or ≥2 consecutive failures =
+`'degraded'`, beyond ~4h or ≥5 failures = `'unhealthy'`), and that poll's
+own tri-state status reading EXACTLY `'healthy'` — `'degraded'` is
+deliberately NOT good enough for the send gate (only for System Health
+display), since the requirement treats "stale" the same as "unhealthy."
+
+`lib/estimateFollowupEngine.js#processEstimateFollowups` checks this ONCE
+per tick, BEFORE sending any real email for ANY sequence — not
+per-affected-lead, the WHOLE tick holds (`summary.heldForMonitoring`,
+distinct from `sent`/`wouldSend`/`failed`). A held step stays `'pending'` —
+never consumed, never marked `'processing'` — so it is retried on the very
+next tick once monitoring recovers; this is a HOLD, not a skip or failure,
+and it is checked (and logged) identically whether `ESTIMATE_FOLLOWUP_DRY_RUN`
+is on or off, so a dry-run report accurately reflects what the real gate
+would do once live. Every other existing protection (no duplicate
+sequences, no retrospective enrollment of old estimates, no catch-up
+floods, lead ownership/permissions, six editable templates, accurate
+sender identity, CAN-SPAM suppression, full activity logging, admin
+monitoring/failure alerts) is completely unchanged.
+
+### 5. New activation gates (both off by default, independent of each other and of `ESTIMATE_FOLLOWUP_DRY_RUN`)
+
+- `ESTIMATE_FOLLOWUP_REPLY_DETECTION_ENABLED` — gates the Gmail poll itself
+  (detection/pause/the fail-closed send gate). **This is the one that
+  matters for safety**: until an operator sets this to `'true'` AND the
+  checkpoint is genuinely healthy, `processEstimateFollowups` holds every
+  due send, for every sequence, regardless of `ESTIMATE_FOLLOWUP_DRY_RUN`'s
+  own value.
+- `ESTIMATE_FOLLOWUP_REPLY_NOTIFICATIONS_ENABLED` — gates ONLY the
+  rep-notification email fired on a detected reply. A reply is always
+  detected and the sequence always paused regardless of this flag; this
+  flag only decides whether the notification email itself sends — mirrors
+  the SMS subsystem's own `SMS_AUTOMATED_REMINDERS_ENABLED`/
+  `SMS_REPLY_NOTIFICATIONS_ENABLED` split precedent exactly.
+
+Neither flag is set anywhere in this environment — this entire automatic
+pipeline is fully inert (held by the fail-closed gate) until an operator
+explicitly sets `ESTIMATE_FOLLOWUP_REPLY_DETECTION_ENABLED=true`, in
+addition to everything the base section's own activation checklist already
+requires (dry-run review, template review, business address configured,
+then `ESTIMATE_FOLLOWUP_DRY_RUN=false`).
+
+### 6. New admin/CRM surfaces
+
+- `GET /api/v1/leads/:id/estimate-followup` now returns a `replyMonitoring`
+  block (`enabled`/`healthyForSending`/`status`/`lastSuccessAt`/etc., all
+  camelCase) instead of the old static `replyDetectionLimitation` string —
+  `EstimateFollowUpPanel.jsx`'s banner is now a live health indicator
+  (green "Automatic reply detection is active" / amber "not yet enabled" /
+  amber "enabled but <status>") rather than a permanent "no automatic
+  detection" notice.
+- `GET /api/v1/estimate-followups/admin/automation-status` (admin/manager) —
+  the same reply-monitoring status, for the global oversight page's new
+  "Automation Status" tab (`EstimateFollowUps.jsx`), alongside a table of
+  unresolved ambiguous replies.
+- `GET /api/v1/estimate-followups/admin/ambiguous-replies` +
+  `POST .../ambiguous-replies/:id/resolve` (admin/manager) — read/triage
+  surface over the new ambiguous-replies table; resolving is a manual,
+  human-confirmed action (never automatic), matching every other
+  "never guess on ambiguity" convention in this codebase.
+- Both the per-lead and admin reply-monitoring responses are serialized
+  through the ONE shared `routes/estimateFollowups.js#serializeReplyMonitoring`
+  function, so the two can never drift into different field-casing
+  conventions for the same underlying status — the exact class of bug this
+  codebase already paid for once with `QB_ENVIRONMENT`/`QB_SANDBOX` (see
+  `lib/qbEnvironment.js`'s header).
+
+### Dry-run / test verification performed in this environment
+
+A disposable, fully-migrated local Postgres instance (no production
+access) was used to prove, end to end, with a faked Gmail HTTP transport
+and a faked email-send transport: checkpoint bootstrap; thread-id
+correlation pausing the correct sequence + writing the activity + firing
+the rep-notification email; idempotency on a redelivered identical history
+entry (no second activity, no second notification); bounce/autoresponder
+messages correctly ignored; zero-match messages ignored (never logged);
+multiple-match messages correctly recorded as ambiguous with neither
+sequence guessed/paused; `runAutoEnrollmentScan` enrolling on real
+`EmailSent` evidence, never enrolling without a usable timestamp or on
+`NeedToSend`/`NotSet`, and never double-enrolling on a re-run; the
+fail-closed gate holding every due step while monitoring is
+disabled/unhealthy and sending normally once healthy; and the full new
+HTTP surface (automation-status casing, ambiguous-replies list/resolve,
+the per-lead `replyMonitoring` block). **No real customer email was sent
+during this verification** — all transports were faked.
+
+**Not verifiable from this environment** (no production
+database/Gmail/Railway access here): whether `scripts/auditQbEstimateEmailStatus.js`
+finds any real `EmailSent` evidence in this installation's actual
+production data (the one deciding fact for whether auto-enrollment will
+ever fire in practice — see "KNOWN, HONEST LIMITATION" above), and the full
+live Gmail `history.list` round trip against a real inbound reply.
+Confirming both is the remaining operator verification step, in that
+order — running the audit script first tells you whether the feature can
+possibly do anything before spending effort confirming the reply-detection
+half.
+
+Regression coverage: `test/estimateSentDetection.test.js` (10 tests — the
+classifier's full decision matrix, pure); `test/estimateFollowupReplyDetection.test.js`
+(16 tests — bounce/autoresponder/self-loop filtering, the tri-state
+checkpoint status computation, the fail-closed gate's DB-stubbed branches,
+pure); `test/estimateFollowupReplyNotify.test.js` (8 tests — the
+decoupled-gate, real-owner-resolution, staff-broadcast-fallback, and
+email-only source guard, pure); `test/emailService.behavior.test.js` (+2 —
+`threadId` passthrough and omission); `test/integration/estimateFollowupAutomaticDetection.int.test.js`
+(14 tests, real Postgres + faked Gmail/email transports — every scenario
+in the "Dry-run / test verification" paragraph above, reproduced for real);
+`test/integration/estimateFollowupSequence.int.test.js` (the base design's
+own 17 tests, updated to seed a healthy reply-monitoring checkpoint so its
+unrelated manual-lifecycle assertions keep exercising real sends under the
+new fail-closed gate); `test/integration/auditQbEstimateEmailStatus.int.test.js`
+(3 tests, real Postgres — the audit script's report shape and its
+read-only guarantee). Full existing backend unit suite re-run clean (1561
+pass, 0 fail, 1 pre-existing unrelated todo) and full frontend vitest suite
+re-run clean (454 pass) with every change in this section applied. Full
+real-Postgres integration suite re-run clean of NEW regressions (389 pass,
+16 fail — 6 are the already-documented pre-existing `qbEstimateInvoice.int.test.js`
+failures from before this work; the other 10 are the SMS-subsystem's own
+pre-existing, purely time-of-day-dependent quiet-hours tests failing
+because the suite happened to run before 8:00 AM Pacific — both failure
+classes are unrelated to any file this section touches, confirmed via
+their own stack traces).
+
+### GO/NO-GO
+
+**GO**, with the fail-closed gate as the safety mechanism: this work is
+safe to merge and deploy as-is (inert by default, per the gates above), but
+real automatic sending should not be activated until an operator has (1)
+run `scripts/auditQbEstimateEmailStatus.js` against production to confirm
+`EmailStatus` evidence actually exists for this installation's estimates,
+and (2) separately verified a real Gmail reply round-trips correctly
+through `isReplyMonitoringHealthy()` reporting `'healthy'` before setting
+`ESTIMATE_FOLLOWUP_REPLY_DETECTION_ENABLED=true` in production — both
+explicitly called out above as not verifiable from this environment.
+
+## Automatic post-appointment QuickBooks estimate sync + follow-up enrollment (November 2026, built — reply detection still activation-gated)
+
+Built per an explicit refinement request on top of the work above:
+**"My requirement is full automation in normal operation, without sales
+reps manually confirming estimates or monitoring replies."** This section
+adds the piece that was still missing — nothing previously triggered a
+fresh, targeted QuickBooks check for a specific lead right after their
+appointment; the only automatic detection was the periodic 15-minute
+company-wide cron and the EmailStatus-based global scan (`runAutoEnrollmentScan`,
+documented above), neither of which is anchored to "this customer just had
+their appointment."
+
+- **"Safest existing signal" for appointment completion — investigated,
+  not invented.** `appointments.status` already has a real `'completed'`
+  value (`db/migrations/2026-08-crm-booking-core.sql`), but nothing sets it
+  automatically — it is a manual "Done" click a rep may never make, and the
+  explicit instruction was "determine the safest existing signal rather
+  than inventing a completed status." The signal used instead: an
+  appointment is eligible the moment its scheduled END TIME has passed AND
+  its status is still one that represents a real, un-cancelled booking
+  (`'scheduled'`, `'confirmed'`, or `'completed'` — never `'cancelled'`,
+  `'rescheduled'`, or `'no_show'`), AND it is not a legacy, pre-"Phone Call
+  is never an appointment" unbuffered row
+  (`lib/booking/appointmentKind.js#isPhoneCallAppointment` — the same
+  durable signal every other appointment-kind-aware feature in this
+  codebase already uses). This deliberately does NOT require a human to
+  mark anything "completed," which is exactly what full automation
+  requires — CLAUDE.md's existing "never infer completed from a past start
+  time" rule protects a DIFFERENT concern (the terminal-lost auto-cancel
+  logic, where treating a scheduled appointment as already-handled could
+  wrongly skip a real cancellation); for a read-only, idempotent, retried
+  QuickBooks check, this is the safest available fact.
+- **Reuses the existing lead-specific sync, never a new mechanism.**
+  `routes/leadQB.js`'s `POST /by-external/:externalRef/sync-estimates`
+  handler (the manual "Sync from QuickBooks" button) was extracted
+  verbatim into `lib/leadEstimateSync.js#syncEstimatesForLead(lead, {
+  allowFullScan })` — the route now just calls it (`allowFullScan: true`,
+  unchanged behavior). The new automated job calls the SAME function with
+  `allowFullScan: false`, skipping only the one genuinely expensive step
+  (a full-company `/estimates` fetch + fuzzy match) — the independently-
+  scheduled 15-minute `server.js#runQbEstimateSync` cron already performs
+  that full scan on its own cadence and will catch anything this narrower,
+  customer-scoped lookup misses, so repeating it on every one of a
+  per-appointment job's up to 8 retries would be a redundant, unbounded
+  source of QuickBooks traffic — exactly what the October–November 2026
+  rate-limit reliability work (QB Phases 3-6 above) was built to prevent.
+  Every QuickBooks call this still makes funnels through the same
+  canonical `qbTokenManager.qbApiRequest` path (circuit-breaker protected,
+  bounded 429/5xx retry) — no new credential, API shape, or rate-limit
+  handling was introduced.
+- **Durable, idempotent Postgres scheduling**
+  (`db/migrations/2026-72-post-appointment-estimate-sync.sql`,
+  `lib/postAppointmentEstimateSync.js`): one `post_appointment_estimate_syncs`
+  row per eligible appointment (`UNIQUE(appointment_id)` — enqueueing is
+  safe to run every tick, `ON CONFLICT DO NOTHING`), retried 3h after the
+  appointment ends, then 24h/48h/72h, then once daily through day 7
+  (`RETRY_OFFSET_HOURS = [3,24,48,72,96,120,144,168]`, the one place this
+  schedule is defined). Claiming a due row for processing uses the same
+  single-`UPDATE...WHERE status='pending'...RETURNING` pattern
+  `lib/estimateFollowupEngine.js`'s own step claim already established — a
+  second worker/replica racing the same row gets zero rows back and moves
+  on; a row stuck in `'processing'` from a crash mid-attempt is reaped back
+  to `'pending'` after 10 minutes on the next tick
+  (`reapStuckProcessingRows`). Stops checking exactly on: a qualifying
+  (delivery-confirmed) estimate found and enrolled (`'completed'`), the
+  lead becoming ineligible (`'stopped'`), or the 7-day window elapsing with
+  nothing found (`'expired'`) — an estimate found but not yet
+  delivery-verified is explicitly NOT a stop condition; the row keeps
+  retrying on the same schedule until it either confirms delivery or the
+  window expires.
+- **Real enrollment, not a second mechanism.** The moment a synced estimate
+  carries QuickBooks' own confirmed-sent evidence
+  (`lib/estimateSentDetection.js#classifyQbSentEvidence`, `EmailStatus='EmailSent'`
+  — never estimate creation alone), the job calls the SAME
+  `lib/estimateFollowupEngine.js#enroll()` every other enrollment path
+  uses, with a new, distinct, attributable `enrollment_method` value —
+  `'auto_post_appointment_sync'` (migration 2026-72 widens the existing
+  CHECK constraint again, additively, never editing the already-reviewed
+  2026-71 migration in place). `enroll()`'s own `competing_sequence_already_active`
+  response (the lead was already enrolled by this same job on an earlier
+  retry, or by the separate global `runAutoEnrollmentScan`) is treated as
+  an already-enrolled SUCCESS, not an error — idempotent by construction,
+  never a duplicate sequence. **Enrollment itself never sends anything** —
+  `enroll()` only inserts the sequence/step rows; the actual customer
+  email send remains gated exactly as before by `ESTIMATE_FOLLOWUP_DRY_RUN`
+  (`processEstimateFollowups`) and the fail-closed reply-monitoring gate
+  (`ESTIMATE_FOLLOWUP_REPLY_DETECTION_ENABLED`) — this feature introduces
+  no new email-sending path and needs no email-sending gate of its own.
+- **Reply detection, pause, and the fail-closed gate are completely
+  unchanged** — `lib/estimateFollowupReplyDetection.js`/
+  `lib/estimateFollowupReplyNotify.js` were not touched by this pass, per
+  the explicit instruction to preserve them.
+- **CRM visibility** (`routes/estimateFollowups.js`'s
+  `GET /leads/:id/estimate-followup` now includes a `postAppointmentSyncs`
+  array; `crm-frontend/src/components/EstimateFollowUpPanel.jsx`'s new
+  `PostAppointmentSyncSection`): per tracked appointment — its date/time,
+  the sync job's status/last result, next scheduled check, whether an
+  estimate was found, its QuickBooks number/status and a direct link, and
+  whether delivery was verified. **Admin monitoring for failed/overdue
+  jobs**: `GET /api/v1/estimate-followups/admin/post-appointment-sync-status`
+  (counts by status, rows overdue by more than 90 minutes past their
+  scheduled check — a sign the reminder worker tick itself isn't running,
+  not a normal scheduling gap — and rows with a recorded QuickBooks check
+  error awaiting retry), rendered in `crm-frontend/src/pages/EstimateFollowUps.jsx`'s
+  existing Automation Status tab alongside the pre-existing reply-monitoring
+  health and ambiguous-reply triage sections.
+- **Wiring**: `reminderWorker.js` calls
+  `postAppointmentEstimateSync.processPostAppointmentEstimateSyncs({
+  triggeredBy: 'cron' })` on the same tick as the other reminder/follow-up
+  engines, BEFORE the global `runAutoEnrollmentScan` (so an estimate this
+  exact tick just synced with confirmed delivery evidence is enrolled
+  immediately, though the global scan would catch it either way on the
+  next tick regardless).
+- **No new activation gate for the sync/enrollment mechanics themselves** —
+  a deliberate decision, not an oversight: the explicit instruction was to
+  keep CUSTOMER-FACING EMAIL SENDING dry-run/disabled until authorized,
+  which remains true (enrollment creates rows, never sends); the sync
+  scheduler itself only performs read-only, circuit-breaker-protected
+  QuickBooks lookups and local Postgres bookkeeping, and per the stated
+  requirement ("full automation... without sales reps manually confirming
+  estimates or monitoring replies") this runs unconditionally once
+  deployed. **Operator awareness**: on first deploy, every appointment
+  that ended within the lookback window (9 days) will be enqueued and its
+  first QuickBooks check attempted on the very next reminder-worker tick —
+  expected, intentional behavior, not a bug, but worth knowing before
+  deploying to a production environment with many recent appointments.
+- **Still unresolved, same as before this pass** (Section 3 of the request
+  asked to "investigate whether delivery evidence is available" — this
+  pass did not change that investigation's conclusion, only added the
+  per-appointment trigger that will exercise it automatically once
+  deployed): whether Handoff-originated estimates' QuickBooks `EmailStatus`
+  ever actually becomes `'EmailSent'` in this installation remains unknown
+  from this environment (no production database access) —
+  `scripts/auditQbEstimateEmailStatus.js` (pre-existing, read-only, built in
+  the prior pass) is the concrete next step to resolve this empirically;
+  running it against production, now that real per-appointment sync
+  traffic will be flowing once this deploys, is the most useful time to
+  check it.
+
+Regression coverage: `test/postAppointmentEstimateSync.test.js` (11 tests,
+pure/DB-stubbed — the retry-offset table, `computeAdvance`'s next-offset/
+expiry/window-guard branches, and `attemptSync`'s full outcome matrix:
+lead-ineligible-stops-immediately, not-found, found-unverified,
+EmailSent-confirmed-enrolls, competing-sequence-is-still-a-success,
+mid-search-disqualification-stops, and a genuine QuickBooks/network error
+propagating rather than being swallowed as "not found");
+`test/integration/postAppointmentEstimateSync.int.test.js` (15 tests, real
+Postgres, only the QuickBooks network call faked — 3h-after-end scheduling,
+idempotent re-enqueue, every exclusion case (phone-call-kind, cancelled/
+rescheduled/no-show, not-yet-occurred, but DOES include `'completed'`),
+the full not-found/found-unverified/enrolled/ineligible/expired lifecycle
+with REAL enrollment via `estimateFollowupEngine.enroll`, stuck-row
+recovery, concurrent-tick claim safety, and both new HTTP surfaces);
+`test/estimateSyncRestoration.test.js` (updated — its source-level checks
+now read `lib/leadEstimateSync.js`, where the sync workflow body now
+lives, instead of `routes/leadQB.js`, and gained an explicit assertion that
+the full-scan fallback is gated behind `allowFullScan`). Full existing
+backend unit suite re-run clean (1572 pass, 0 fail, 1 pre-existing
+unrelated todo) and the full real-Postgres integration suite re-run clean
+of NEW regressions (414 pass, 6 fail — the same pre-existing, already-
+documented `qbEstimateInvoice.int.test.js` failures from before this work,
+reproduced identically with this pass's changes reverted, confirming they
+are unrelated) with every change in this section applied. Full frontend
+build (`npm run build:exit`) re-run clean after every `.jsx` edit in this
+section.
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`

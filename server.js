@@ -35,6 +35,7 @@ const saleMap = require('./lib/qbInvoiceSaleMap'); // qb_invoice_sale_map + qb_i
 const { syncAllMappedCustomers } = require('./lib/qbInboundSync'); // QB inbound reconciliation (invoices/payments/allocations)
 const qbEnvironment = require('./lib/qbEnvironment'); // single validated source of truth for QB_ENVIRONMENT (hostname + credential key)
 const { buildCommit } = require('./lib/buildInfo'); // deployed-commit identity, shared with routes/systemInfo.js
+const estimateSentDetection = require('./lib/estimateSentDetection'); // classifies QB EmailStatus/DeliveryInfo for the estimate follow-up sequence's auto-enrollment path
 
 // qb_sync_jobs and integration_credentials used to be created here via raw
 // DDL at startup (CRM STABILITY PHASE completion pass, Section D: removed).
@@ -1401,6 +1402,7 @@ app.use('/api/v1/auth', require('./routes/auth'));
 app.use('/api/v1', require('./routes/emails'));
 app.use('/api/v1', require('./routes/sms').router);
 app.use('/api/v1', require('./routes/reminderDiagnostics'));
+app.use('/api/v1', require('./routes/estimateFollowups'));
 app.use('/api/v1', require('./routes/bookings'));
 app.use('/api/v1/gmail', require('./routes/gmail'));
 // Admin-authenticated bridge to reconnect Gmail from Settings (no PROXY_SECRET/Railway access needed)
@@ -2350,6 +2352,16 @@ async function runQbEstimateSyncInner() {
         last_synced_at: new Date().toISOString(),
         sync_source: 'QuickBooks',
         qb_app_url: qbAppUrl,
+        // Persisted verbatim for the estimate follow-up sequence's
+        // automatic-enrollment path (lib/estimateFollowupEngine.js#runAutoEnrollmentScan)
+        // — zero new QuickBooks API calls, since `qbEst` already comes from
+        // the `SELECT * FROM Estimate` this sync already issues. Never used
+        // to derive/overwrite estimate_status above — see
+        // lib/estimateSentDetection.js's header for the pre-existing,
+        // deliberately-untouched EmailStatus/TxnStatus conflation this
+        // module does NOT fix.
+        qb_email_status: qbEst.EmailStatus || null,
+        qb_email_delivery_time: qbEst.DeliveryInfo?.DeliveryTime || null,
       };
 
       const qbUpdatedAt = qbEst.MetaData?.LastUpdatedTime;

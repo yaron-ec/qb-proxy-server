@@ -666,6 +666,15 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
     if (enteringTerminalLost) {
       terminalLostApptResult = await cancelActiveAppointmentsForTerminalLost(fullRow.id, req.user?.email);
       await logTerminalLostTransition(fullRow.id, req.user?.email, terminalLostApptResult, fullRow.status);
+      // Stop any live estimate follow-up sequence the same way every other
+      // terminal-lost side effect above does — never a second/raw stop
+      // path (lib/estimateFollowupEngine.js#stopActiveSequencesForLead is
+      // the one entry point, mirroring stopSequence's own cancel-pending-
+      // steps behavior). Best-effort/non-blocking like the contacts sync
+      // below — a failure here must never roll back or fail this request.
+      try {
+        await require('../lib/estimateFollowupEngine').stopActiveSequencesForLead(fullRow.id, `lead_status_${fullRow.status}`);
+      } catch (e) { console.warn('[leads] estimate follow-up stop-on-terminal-lost failed (non-fatal):', e.message); }
     }
 
     const appt = await fetchActiveAppointment(fullRow.id);
@@ -1688,6 +1697,11 @@ router.put('/:id', requireAuth, async (req, res) => {
     if (enteringTerminalLost) {
       terminalLostApptResult = await cancelActiveAppointmentsForTerminalLost(fullRow.id, req.user?.email);
       await logTerminalLostTransition(fullRow.id, req.user?.email, terminalLostApptResult, fullRow.status);
+      // Stop any live estimate follow-up sequence — see the identical
+      // comment on PUT /by-external/:externalRef's own copy of this step.
+      try {
+        await require('../lib/estimateFollowupEngine').stopActiveSequencesForLead(fullRow.id, `lead_status_${fullRow.status}`);
+      } catch (e) { console.warn('[leads] estimate follow-up stop-on-terminal-lost failed (non-fatal):', e.message); }
     }
 
     // Post-commit: re-enqueue Google Contacts sync when contact-relevant

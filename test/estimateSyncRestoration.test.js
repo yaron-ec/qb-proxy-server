@@ -204,27 +204,34 @@ function testE_NoCrossCustomerAssociation() {
 }
 
 // ── Test H: no dependency on Handoff API/HANDOFF_API_KEY ──────────────────
+// The actual sync workflow now lives in lib/leadEstimateSync.js (extracted
+// from this route so lib/postAppointmentEstimateSync.js can reuse it too —
+// see that module's own header). These checks read BOTH the route (which
+// still defines the HTTP surface) and the extracted lib (which holds the
+// workflow body), so they hold regardless of which file a given line of
+// logic lives in.
 function testH_NoHandoffDependency() {
-  // Read the leadQB.js source and verify it doesn't import or call handoffClient
   const fs = require('fs');
   const path = require('path');
-  const source = fs.readFileSync(path.join(__dirname, '..', 'routes', 'leadQB.js'), 'utf8');
+  const routeSource = fs.readFileSync(path.join(__dirname, '..', 'routes', 'leadQB.js'), 'utf8');
+  const libSource = fs.readFileSync(path.join(__dirname, '..', 'lib', 'leadEstimateSync.js'), 'utf8');
+  const source = routeSource + '\n' + libSource;
 
   // Must NOT import handoffClient
-  assert.ok(!source.includes("require('../lib/handoffClient')"), 'H: leadQB.js must not import handoffClient');
-  assert.ok(!source.includes('require(\'./lib/handoffClient\''), 'H: leadQB.js must not import handoffClient (alt path)');
+  assert.ok(!source.includes("require('../lib/handoffClient')"), 'H: must not import handoffClient');
+  assert.ok(!source.includes('require(\'./lib/handoffClient\''), 'H: must not import handoffClient (alt path)');
 
   // Must NOT reference HANDOFF_API_KEY
-  assert.ok(!source.includes('HANDOFF_API_KEY'), 'H: leadQB.js must not reference HANDOFF_API_KEY');
+  assert.ok(!source.includes('HANDOFF_API_KEY'), 'H: must not reference HANDOFF_API_KEY');
 
   // Must NOT CALL /handoff/ endpoints (comments mentioning /handoff/ are OK)
   // Check for actual API calls: fetch('/handoff/...'), callQb('/handoff/...'), railwayRequest('/handoff/...')
   const handoffCallPattern = /(?:fetch|callQb|railwayRequest|apiCall)\s*\(\s*['"`]\/handoff\//;
-  assert.ok(!handoffCallPattern.test(source), 'H: leadQB.js must not call /handoff/ endpoints');
+  assert.ok(!handoffCallPattern.test(source), 'H: must not call /handoff/ endpoints');
 
   // Must use QuickBooks as the source
-  assert.ok(source.includes("sync_source: 'QuickBooks'"), 'H: leadQB.js must set sync_source = QuickBooks');
-  assert.ok(source.includes('qbInternal.callQb'), 'H: leadQB.js must call QB API via qbInternal');
+  assert.ok(source.includes("'QuickBooks'"), 'H: must set sync_source = QuickBooks');
+  assert.ok(source.includes('qbInternal.callQb'), 'H: must call QB API via qbInternal');
 
   console.log('  H: no dependency on Handoff API/HANDOFF_API_KEY — EXECUTED PASS');
 }
@@ -233,20 +240,22 @@ function testH_NoHandoffDependency() {
 function testI_NoBase44Dependency() {
   const fs = require('fs');
   const path = require('path');
-  const source = fs.readFileSync(path.join(__dirname, '..', 'routes', 'leadQB.js'), 'utf8');
+  const routeSource = fs.readFileSync(path.join(__dirname, '..', 'routes', 'leadQB.js'), 'utf8');
+  const libSource = fs.readFileSync(path.join(__dirname, '..', 'lib', 'leadEstimateSync.js'), 'utf8');
+  const source = routeSource + '\n' + libSource;
 
   // Must NOT import @base44/sdk
-  assert.ok(!source.includes('@base44/sdk'), 'I: leadQB.js must not import @base44/sdk');
+  assert.ok(!source.includes('@base44/sdk'), 'I: must not import @base44/sdk');
 
   // Must NOT call base44.entities, base44.functions, base44.auth
-  assert.ok(!source.includes('base44.entities'), 'I: leadQB.js must not call base44.entities');
-  assert.ok(!source.includes('base44.functions'), 'I: leadQB.js must not call base44.functions');
-  assert.ok(!source.includes('base44.auth'), 'I: leadQB.js must not call base44.auth');
+  assert.ok(!source.includes('base44.entities'), 'I: must not call base44.entities');
+  assert.ok(!source.includes('base44.functions'), 'I: must not call base44.functions');
+  assert.ok(!source.includes('base44.auth'), 'I: must not call base44.auth');
 
   // Must use Railway PostgreSQL (query from db/client)
-  assert.ok(source.includes("require('../db/client')"), 'I: leadQB.js must use Railway db/client');
-  assert.ok(source.includes('INSERT INTO handoff_estimates'), 'I: leadQB.js must persist to Railway PostgreSQL');
-  assert.ok(source.includes('INSERT INTO activities'), 'I: leadQB.js must create Activity notes in Railway');
+  assert.ok(libSource.includes("require('../db/client')"), 'I: leadEstimateSync.js must use Railway db/client');
+  assert.ok(source.includes('INSERT INTO handoff_estimates'), 'I: must persist to Railway PostgreSQL');
+  assert.ok(source.includes('INSERT INTO activities'), 'I: must create Activity notes in Railway');
 
   console.log('  I: no Base44 runtime dependency — EXECUTED PASS');
 }
@@ -282,7 +291,8 @@ function testJ_UnrelatedQBBehaviorPreserved() {
 function test_SubCustomerHandlingPresent() {
   const fs = require('fs');
   const path = require('path');
-  const source = fs.readFileSync(path.join(__dirname, '..', 'routes', 'leadQB.js'), 'utf8');
+  // Lives in lib/leadEstimateSync.js now — see that module's header.
+  const source = fs.readFileSync(path.join(__dirname, '..', 'lib', 'leadEstimateSync.js'), 'utf8');
 
   // Must handle sub-customers (ParentRef)
   assert.ok(source.includes('ParentRef'), 'Sub-customer: ParentRef check present');
@@ -300,7 +310,9 @@ function test_SubCustomerHandlingPresent() {
 function test_FullScanFallbackPresent() {
   const fs = require('fs');
   const path = require('path');
-  const source = fs.readFileSync(path.join(__dirname, '..', 'routes', 'leadQB.js'), 'utf8');
+  // Lives in lib/leadEstimateSync.js now, gated behind allowFullScan — see
+  // that module's header for why the automated post-appointment job skips it.
+  const source = fs.readFileSync(path.join(__dirname, '..', 'lib', 'leadEstimateSync.js'), 'utf8');
 
   // Must fetch ALL estimates for full-scan
   assert.ok(source.includes("'/estimates'"), 'Full-scan: /estimates fetch present');
@@ -312,9 +324,13 @@ function test_FullScanFallbackPresent() {
   assert.ok(source.includes('partialNameMatch'), 'Full-scan: partialNameMatch pre-filter present');
 
   // Must import qbMatch
-  assert.ok(source.includes("require('../lib/qbMatch')"), 'Full-scan: qbMatch import present');
+  assert.ok(source.includes("require('./qbMatch')"), 'Full-scan: qbMatch import present');
 
-  console.log('  Full-scan fallback present — EXECUTED PASS');
+  // The full scan must be gated (never run unconditionally) — this is the
+  // change this pass introduced, so the automated job can opt out of it.
+  assert.ok(source.includes('allowFullScan'), 'Full-scan: gated behind allowFullScan');
+
+  console.log('  Full-scan fallback present (gated behind allowFullScan) — EXECUTED PASS');
 }
 
 // ── Run all tests ──────────────────────────────────────────────────────────

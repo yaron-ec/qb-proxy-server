@@ -383,6 +383,7 @@ export default function Settings() {
                   { id: "google",            label: "Google",           emoji: "🔍" },
                   { id: "handoff_import",    label: "Handoff",          emoji: "📤" },
                   { id: "integrations_page", label: "Integrations Hub", emoji: "🌐" },
+                  { id: "estimate_followups", label: "Estimate Follow-Ups", emoji: "✉️" },
                 ].map(sub => (
                   <button
                     key={sub.id}
@@ -404,6 +405,7 @@ export default function Settings() {
               {syncSubTab === "integrations_page" && <IntegrationsRedirect />}
               {syncSubTab === "google" && <GoogleSyncTab />}
               {syncSubTab === "handoff_import" && <HandoffImportTab />}
+              {syncSubTab === "estimate_followups" && <EstimateFollowUpsRedirect />}
             </div>
           )}
           {activeTab === "quickbooks" && <QuickBooksMainTab />}
@@ -558,6 +560,24 @@ function SourcesTab({ sources, newSource, setNewSource, addSource, removeSource,
             )}
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function EstimateFollowUpsRedirect() {
+  return (
+    <div className="max-w-xl">
+      <div className="bg-white border border-slate-200 rounded-lg p-8 text-center">
+        <div className="text-4xl mb-3">✉️</div>
+        <h2 className="text-lg font-bold text-slate-800 mb-2">Estimate Follow-Up Automation</h2>
+        <p className="text-sm text-slate-500 mb-5">
+          Admin/manager overview, dry-run eligibility report, and the versioned email template editor
+          for the automated 14-day estimate follow-up sequence.
+        </p>
+        <RouterLink to="/estimate-followups" className="inline-flex items-center gap-2 bg-amber-600 text-white px-5 py-2.5 text-sm font-bold rounded-lg hover:bg-amber-700 transition-colors">
+          Open Estimate Follow-Ups →
+        </RouterLink>
       </div>
     </div>
   );

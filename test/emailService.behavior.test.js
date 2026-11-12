@@ -46,7 +46,7 @@ class MockGmailCredentialsError extends Error {
   constructor(m) { super(m); this.name = 'GmailCredentialsError'; this.errorType = 'gmail_credentials'; }
 }
 
-function makeGmailMock({ failTimes = 0, credentialError = false, messageId = 'msg-1' } = {}) {
+function makeGmailMock({ failTimes = 0, credentialError = false, messageId = 'msg-1', threadId = 'thread-1' } = {}) {
   const calls = { refresh: 0, send: 0, lastOpts: null };
   return {
     calls,
@@ -55,7 +55,7 @@ function makeGmailMock({ failTimes = 0, credentialError = false, messageId = 'ms
       calls.send++; calls.lastOpts = opts;
       if (credentialError) throw new MockGmailCredentialsError('Gmail credentials error: refresh token revoked (invalidGrant)');
       if (failTimes > 0) { failTimes--; throw new Error('Gmail send 503: transient'); }
-      return { id: messageId };
+      return { id: messageId, threadId };
     },
     GmailCredentialsError: MockGmailCredentialsError,
   };
@@ -184,6 +184,21 @@ async function run() {
     await es.send({ to: 'a@x.com', subject: 's', htmlBody: '<i>html</i>', idempotencyKey: 'k7', headers: h });
     assert.strictEqual(gm.calls.lastOpts.htmlBody, '<i>html</i>');
     assert.deepStrictEqual(gm.calls.lastOpts.headers, h);
+  });
+
+  await test('optional threadId is passed through to gmailSender, and the Gmail-assigned threadId is returned on success', async () => {
+    clearMocks(); const db = makeDbMock(); const gm = makeGmailMock({ threadId: 't-xyz' }); installMocks(db, gm);
+    const es = require('../lib/emailService');
+    const r = await es.send({ to: 'a@x.com', subject: 's', htmlBody: 'h', idempotencyKey: 'k-thread-1', threadId: 'requested-thread' });
+    assert.strictEqual(gm.calls.lastOpts.threadId, 'requested-thread');
+    assert.strictEqual(r.threadId, 't-xyz');
+  });
+
+  await test('threadId is omitted from gmailSender opts when not provided', async () => {
+    clearMocks(); const db = makeDbMock(); const gm = makeGmailMock(); installMocks(db, gm);
+    const es = require('../lib/emailService');
+    await es.send({ to: 'a@x.com', subject: 's', htmlBody: 'h', idempotencyKey: 'k-thread-2' });
+    assert.strictEqual(gm.calls.lastOpts.threadId, undefined);
   });
 
   await test('attachment passthrough to gmailSender', async () => {
