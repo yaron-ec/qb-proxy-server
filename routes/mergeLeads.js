@@ -45,6 +45,7 @@ const express = require('express');
 const { requireAuth, requireRole } = require('../lib/rbac');
 const { pool } = require('../db/client');
 const { UUID_RE } = require('../lib/leadResolver');
+const { logAndRespondUnexpectedError } = require('../lib/httpErrors');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -222,8 +223,7 @@ router.post('/merge', requireAdmin, async (req, res) => {
     });
   } catch (e) {
     await client.query('ROLLBACK').catch(() => {});
-    console.error('[merge] error:', e.message);
-    res.status(500).json({ error: e.message });
+    logAndRespondUnexpectedError(e, res, 'merge');
   } finally {
     client.release();
   }

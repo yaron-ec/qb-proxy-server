@@ -27,6 +27,7 @@ const express = require('express');
 const { requireAuth, requireRole } = require('../lib/rbac');
 const { query } = require('../db/client');
 const { upsertMapping, upsertInvoiceCache, classifyExisting } = require('../lib/qbInvoiceSaleMap');
+const { logAndRespondUnexpectedError } = require('../lib/httpErrors');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -66,8 +67,7 @@ router.post('/map', requireAdminManager, async (req, res) => {
     }
     res.json({ success: true, qb_invoice_id: b.qb_invoice_id, crm_sale_id: b.crm_sale_id });
   } catch (e) {
-    console.error('[saleInvoices:map] error:', e.message);
-    res.status(500).json({ error: e.message });
+    logAndRespondUnexpectedError(e, res, 'saleInvoices:map');
   }
 });
 
@@ -79,8 +79,7 @@ router.post('/classify', requireAdminManager, async (req, res) => {
     const counts = rows.reduce((a, r) => { a[r.classification] = (a[r.classification] || 0) + 1; return a; }, {});
     res.json({ success: true, counts, rows });
   } catch (e) {
-    console.error('[saleInvoices:classify] error:', e.message);
-    res.status(500).json({ error: e.message });
+    logAndRespondUnexpectedError(e, res, 'saleInvoices:classify');
   }
 });
 

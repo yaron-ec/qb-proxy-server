@@ -24,6 +24,7 @@
 const express = require('express');
 const { requireAuth } = require('../lib/rbac');
 const { requireModuleEnabled } = require('../lib/moduleGate');
+const { rateLimit } = require('../lib/rateLimit');
 const smsService = require('../lib/smsService');
 const smsClient = require('../lib/smsClient');
 
@@ -121,8 +122,29 @@ router.get('/leads/:id/sms', requireAuth, requireModuleEnabled('sms'), async (re
 
 // ── Twilio webhooks (unauthenticated — signature-verified instead) ─────────
 const webhookRouter = express.Router();
+// November 2026 hardening: no volumetric cap existed on these unauthenticated
+// routes. A generous per-IP window — well above Twilio's real delivery
+// volume (plus its own retry behavior) for a single-company installation —
+// bounds an unauthenticated flood's cost without affecting legitimate
+// traffic.
+webhookRouter.use(rateLimit({ windowMs: 60 * 1000, max: 300 }));
 webhookRouter.use(requireModuleEnabled('sms'));
 webhookRouter.use(express.urlencoded({ extended: false }));
+
+// PRODUCTION SECURITY FIX (November 2026): previously, an unset
+// TWILIO_AUTH_TOKEN fell through to smsClient.verifyTwilioSignature's old
+// fail-OPEN behavior and silently accepted any unsigned request. Now fails
+// CLOSED with a distinct 503 — same convention as routes/metaWebhook.js /
+// routes/qbWebhook.js (a 503 "not configured" is never confused with a 401
+// "signature didn't match"). Not currently exploitable in production
+// (TWILIO_AUTH_TOKEN is configured) — this closes the latent gap.
+webhookRouter.use((req, res, next) => {
+  if (!smsClient.getCredentials().authToken) {
+    console.warn('[sms-webhook] TWILIO_AUTH_TOKEN not configured — rejecting (fail-closed)');
+    return res.status(503).json({ error: 'not_configured', message: 'Twilio webhook is not configured.' });
+  }
+  next();
+});
 
 // Returns { ok, url } — `url` is always returned (even on failure) so a
 // rejection can be recorded with the EXACT URL our server expected Twilio to

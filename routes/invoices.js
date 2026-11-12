@@ -17,6 +17,7 @@ const { requireAuth } = require('../lib/rbac');
 const { query } = require('../db/client');
 const { UUID_RE } = require('../lib/leadResolver');
 const { checkLeadScope, checkDealScope } = require('../lib/recordAccess');
+const { logAndRespondUnexpectedError } = require('../lib/httpErrors');
 
 const router = express.Router();
 
@@ -104,8 +105,7 @@ router.get('/', requireAuth, async (req, res) => {
     const { rows } = await query(`SELECT * FROM invoices ${whereClause} ORDER BY created_at DESC LIMIT $${p}`, [...params, limit]);
     res.json({ items: rows.map(serializeInvoice), total: rows.length });
   } catch (e) {
-    console.error('[invoices] list error:', e.message);
-    res.status(500).json({ error: e.message });
+    logAndRespondUnexpectedError(e, res, 'invoices:list');
   }
 });
 
@@ -129,8 +129,7 @@ router.post('/', requireAuth, async (req, res) => {
     );
     res.status(201).json({ invoice: serializeInvoice(rows[0]) });
   } catch (e) {
-    console.error('[invoices] create error:', e.message);
-    res.status(500).json({ error: e.message });
+    logAndRespondUnexpectedError(e, res, 'invoices:create');
   }
 });
 
@@ -143,8 +142,7 @@ router.get('/:id', requireAuth, async (req, res) => {
     if (!access.allowed) return res.status(403).json({ error: 'forbidden' });
     res.json({ invoice: serializeInvoice(rows[0]) });
   } catch (e) {
-    console.error('[invoices] get error:', e.message);
-    res.status(500).json({ error: e.message });
+    logAndRespondUnexpectedError(e, res, 'invoices:get');
   }
 });
 
@@ -183,8 +181,7 @@ router.put('/:id', requireAuth, async (req, res) => {
     if (!rows[0]) return res.status(404).json({ error: 'not_found' });
     res.json({ invoice: serializeInvoice(rows[0]) });
   } catch (e) {
-    console.error('[invoices] update error:', e.message);
-    res.status(500).json({ error: e.message });
+    logAndRespondUnexpectedError(e, res, 'invoices:update');
   }
 });
 
@@ -199,8 +196,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
     await query('DELETE FROM invoices WHERE id = $1', [req.params.id]);
     res.json({ success: true, id: req.params.id });
   } catch (e) {
-    console.error('[invoices] delete error:', e.message);
-    res.status(500).json({ error: e.message });
+    logAndRespondUnexpectedError(e, res, 'invoices:delete');
   }
 });
 

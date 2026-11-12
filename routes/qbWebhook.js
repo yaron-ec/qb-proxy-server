@@ -38,6 +38,28 @@
  *
  * Idempotent: Intuit retries on non-200. The sync itself is idempotent
  * (upsert by qb_estimate_id / qb_invoice_id) — unchanged by this pass.
+ *
+ * November 2026 — "100% signature verification failure" production
+ * incident, root-caused: this receiver's signature check computed only a
+ * HEX digest and compared it to the `intuit-signature` header. Intuit's own
+ * webhook-validation documentation and its public AsyncAPI spec both
+ * describe that header as a BASE64-encoded HMAC-SHA256 digest, not hex —
+ * confirmed against production logs showing this check fail on every real
+ * Intuit delivery (13+ occurrences, Nov 5-11 2026) regardless of whether
+ * QB_WEBHOOK_VERIFIER_TOKEN was correct, which a pure token mismatch would
+ * not explain so consistently. The hex assumption most likely carried over
+ * from routes/metaWebhook.js's own (correct, for Meta) hex convention —
+ * Meta really does use hex for X-Hub-Signature-256; Intuit does not. Fixed:
+ * verifyIntuitSignature now checks BASE64 first (the documented Intuit
+ * format) and still accepts HEX as a defensive fallback — accepting either
+ * encoding of a digest computed from the correct secret is never a security
+ * regression, since both still require knowing QB_WEBHOOK_VERIFIER_TOKEN.
+ * The verifier token is also now `.trim()`-ed defensively (a pasted secret
+ * with incidental leading/trailing whitespace is a common, separate failure
+ * mode this costs nothing to guard against). getSignatureDiagnostics() below
+ * gives the next real failure (if any) enough detail to root-cause without
+ * guessing again — it never logs the signature, the computed digest, or the
+ * token itself, only presence/length/content-type facts.
  */
 'use strict';
 
@@ -46,23 +68,44 @@ const crypto = require('crypto');
 const qbEnvironment = require('../lib/qbEnvironment');
 const { isCoolingDown, getState } = require('../lib/qbRateLimitBreaker');
 const { shouldTriggerWebhookSync, DEBOUNCE_WINDOW_MS } = require('../lib/qbWebhookDebounce');
+const { rateLimit } = require('../lib/rateLimit');
 const router = express.Router();
 
+// November 2026 hardening: this unauthenticated endpoint had no volumetric
+// cap at all — a flood still costs a signature check (and, on failure, a
+// console.warn) per request with no bound. A generous per-IP window keeps
+// legitimate traffic (Intuit's own retries on a non-200, plus the debounced
+// webhook-triggered sync this file already guards) completely unaffected —
+// Intuit's real delivery volume for a single-company installation is far
+// below this — while still bounding an unauthenticated flood's cost.
+router.use(rateLimit({ windowMs: 60 * 1000, max: 300 }));
+
 // Optional webhook signature verification
-const VERIFIER_TOKEN = process.env.QB_WEBHOOK_VERIFIER_TOKEN || '';
+const VERIFIER_TOKEN = (process.env.QB_WEBHOOK_VERIFIER_TOKEN || '').trim();
 
 function verifyIntuitSignature(req) {
   if (!VERIFIER_TOKEN) return false; // caller decides whether "no token configured" is fail-open or fail-closed — see POST handler
   const signature = req.headers['intuit-signature'] || req.headers['intuit-signature-256'] || '';
   if (!signature) return false;
-  // Intuit sends a hex-encoded HMAC-SHA256 of the raw body using the verifier token
   const rawBody = req.rawBody || JSON.stringify(req.body || {});
-  const expected = crypto.createHmac('sha256', VERIFIER_TOKEN).update(rawBody).digest('hex');
-  try {
-    return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
-  } catch (_) {
-    return false; // length mismatch or non-hex signature — never a thrown 500
-  }
+  const expectedBase64 = crypto.createHmac('sha256', VERIFIER_TOKEN).update(rawBody).digest('base64');
+  const expectedHex = crypto.createHmac('sha256', VERIFIER_TOKEN).update(rawBody).digest('hex');
+  const matches = (expected) => {
+    try { return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected)); }
+    catch (_) { return false; } // length mismatch or non-matching encoding — never a thrown 500
+  };
+  return matches(expectedBase64) || matches(expectedHex);
+}
+
+/** Diagnostic facts about a signature-verification failure — never the signature, digest, or token. */
+function getSignatureDiagnostics(req) {
+  const signature = req.headers['intuit-signature'] || req.headers['intuit-signature-256'] || '';
+  return {
+    has_signature_header: !!signature,
+    signature_length: signature.length,
+    raw_body_captured: Buffer.isBuffer(req.rawBody),
+    content_type: req.headers['content-type'] || null,
+  };
 }
 
 // GET — Intuit endpoint verification
@@ -96,7 +139,7 @@ router.post('/', express.json({ verify: (req, res, buf) => { req.rawBody = buf; 
       // Railway logs for any non-production environment that reaches here.
       console.warn('[qb-webhook] QB_WEBHOOK_VERIFIER_TOKEN not configured (environment=' + environment + ') — accepting without signature verification');
     } else if (!verifyIntuitSignature(req)) {
-      console.warn('[qb-webhook] Signature verification failed');
+      console.warn('[qb-webhook] Signature verification failed', getSignatureDiagnostics(req));
       return res.status(401).json({ error: 'signature_verification_failed' });
     }
 
@@ -169,3 +212,4 @@ module.exports = router;
 // Exported for direct unit testing (mirrors routes/metaWebhook.js's own
 // verifyMetaSignature export convention) without needing a live HTTP server.
 module.exports.verifyIntuitSignature = verifyIntuitSignature;
+module.exports.getSignatureDiagnostics = getSignatureDiagnostics;
