@@ -59,6 +59,7 @@ const ELIGIBILITY_REASON_LABEL = {
   customer_reminders_disabled: "Customer reminders are disabled for this lead",
   email_suppressed_unsubscribed: "This email address has unsubscribed from estimate follow-ups",
   competing_sequence_already_active: "A follow-up sequence is already active or paused for this lead",
+  competing_sequence_for_same_estimate: "A follow-up sequence is already active or paused for this exact QuickBooks estimate, under a different lead",
   no_estimate_specified: "No estimate specified",
   no_pending_estimate: "No Pending estimate on this lead",
   multiple_pending_estimates: "Multiple Pending estimates — pick one to enroll",
@@ -86,9 +87,9 @@ function StepRow({ step }) {
       </div>
       <div className="text-right flex-shrink-0">
         <div className="text-[11px] font-semibold text-slate-600 capitalize">{step.status}</div>
-        <div className="text-[10px] text-slate-400">
-          {step.status === "sent" ? fmtDate(step.sentAt) : fmtDate(step.dueAt)}
-        </div>
+        <div className="text-[10px] text-slate-400">Scheduled: {fmtDate(step.dueAt)}</div>
+        {step.sentAt && <div className="text-[10px] text-slate-400">Sent: {fmtDate(step.sentAt)}</div>}
+        {step.attempts > 1 && <div className="text-[9px] text-amber-600">{step.attempts} attempts</div>}
         {step.skippedReason && <div className="text-[9px] text-amber-600">{step.skippedReason.replace(/_/g, " ")}</div>}
         {step.lastError && <div className="text-[9px] text-red-600 max-w-[180px] truncate" title={step.lastError}>{step.lastError}</div>}
       </div>
@@ -369,7 +370,9 @@ export default function EstimateFollowUpPanel({ lead, currentUser }) {
         {data?.sequence && (
           <div>
             <div className="grid grid-cols-2 gap-2 mb-2 text-[11px]">
+              <div><span className="text-slate-400">QuickBooks estimate:</span> {data.sequence.qbEstimateId || "—"}</div>
               <div><span className="text-slate-400">Recipient:</span> {data.sequence.recipientEmail}</div>
+              <div><span className="text-slate-400">Sent as:</span> {data.sequence.salesRepName || "(no rep assigned)"}</div>
               <div><span className="text-slate-400">Enrollment:</span> {ENROLLMENT_METHOD_LABEL[data.sequence.enrollmentMethod] || data.sequence.enrollmentMethod}</div>
               <div><span className="text-slate-400">Sent confirmed:</span> {fmtDate(data.sequence.estimateSentConfirmedAt)}</div>
               <div><span className="text-slate-400">By:</span> {data.sequence.estimateSentConfirmedBy}</div>
@@ -380,7 +383,9 @@ export default function EstimateFollowUpPanel({ lead, currentUser }) {
               </div>
             )}
             {data.sequence.stoppedReason && (
-              <div className="mb-2 text-[11px] text-red-700">Stopped: {data.sequence.stoppedReason} ({data.sequence.stoppedBy})</div>
+              <div className="mb-2 text-[11px] text-red-700">
+                Stopped: {data.sequence.stoppedReason === "customer_replied" ? "customer replied — no further automated emails will be sent" : data.sequence.stoppedReason} ({data.sequence.stoppedBy})
+              </div>
             )}
 
             <div className="mb-2">

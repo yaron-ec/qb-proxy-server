@@ -230,15 +230,29 @@ test('a genuine reply in a known thread pauses the sequence, records an activity
   assert.strictEqual(result.ambiguous, 0);
 
   const { rows: seqRows } = await db.query('SELECT * FROM estimate_followup_sequences WHERE id = $1', [sequence.id]);
-  assert.strictEqual(seqRows[0].status, 'paused');
-  assert.strictEqual(seqRows[0].paused_reason, 'customer_replied');
-  assert.strictEqual(seqRows[0].paused_by, 'system:gmail_reply_detected');
+  // November 2026 refinement: a genuine reply now permanently STOPS the
+  // sequence (never merely pauses it) — "do not require a team member to
+  // stop the sequence manually" + "permanently cancels all remaining
+  // emails", read literally. See lib/estimateFollowupReplyDetection.js's
+  // own header for the full rationale.
+  assert.strictEqual(seqRows[0].status, 'stopped');
+  assert.strictEqual(seqRows[0].stopped_reason, 'customer_replied');
+  assert.strictEqual(seqRows[0].stopped_by, 'system:gmail_reply_detected');
   assert.strictEqual(seqRows[0].triggering_gmail_message_id, msgId);
 
   const { rows: activityRows } = await db.query(`SELECT * FROM activities WHERE external_ref = $1`, [`estimate-followup-reply:${msgId}`]);
   assert.strictEqual(activityRows.length, 1);
   assert.strictEqual(activityRows[0].lead_id, leadId);
   assert.strictEqual(activityRows[0].metadata.direction, 'inbound');
+
+  // A SECOND, dedicated "automatically stopped" note is also written —
+  // distinct from the raw inbound-email activity above.
+  const { rows: stopNoteRows } = await db.query(
+    `SELECT * FROM activities WHERE lead_id = $1 AND content ILIKE '%automatically stopped%' ORDER BY created_at DESC LIMIT 1`,
+    [leadId]
+  );
+  assert.strictEqual(stopNoteRows.length, 1);
+  assert.strictEqual(stopNoteRows[0].author, 'system:gmail_reply_detected');
 
   assert.strictEqual(sentEmails.length, 1);
   assert.strictEqual(sentEmails[0].to, `${RUN}.ownerA@example.com`);

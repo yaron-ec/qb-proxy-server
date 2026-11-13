@@ -190,14 +190,16 @@ function deriveDisplayState({ sequence, steps, eligibleNow }) {
   return anySent ? 'active' : 'scheduled';
 }
 
-function serializeSequence(sequence, steps) {
+function serializeSequence(sequence, steps, salesRepName) {
   if (!sequence) return null;
   return {
     id: sequence.id,
     status: sequence.status,
     recipientEmail: sequence.recipient_email,
     salesRepOwnerId: sequence.sales_rep_owner_id,
+    salesRepName: salesRepName || null,
     handoffEstimateId: sequence.handoff_estimate_id,
+    qbEstimateId: sequence.qb_estimate_id,
     estimateSentConfirmedAt: sequence.estimate_sent_confirmed_at,
     estimateSentConfirmedBy: sequence.estimate_sent_confirmed_by,
     estimateSentConfirmationNote: sequence.estimate_sent_confirmation_note,
@@ -236,6 +238,17 @@ router.get('/leads/:id/estimate-followup', requireAuth, async (req, res) => {
     const sequence = await engine.getSequenceForLead(lead.id);
     const steps = sequence ? await engine.getStepsForSequence(sequence.id) : [];
 
+    // "Sending identity" (explicit CLAUDE.md-adjacent requirement, November
+    // 2026): every estimate-followup email is sent from the ONE connected
+    // Gmail sender (lib/gmailSender.js), but each template signs off with
+    // the lead's rep's own name — resolve it here so the panel can show it
+    // rather than a bare owner UUID.
+    let salesRepName = null;
+    if (sequence && sequence.sales_rep_owner_id) {
+      const { rows } = await query('SELECT display_name FROM owners WHERE id = $1', [sequence.sales_rep_owner_id]);
+      salesRepName = (rows[0] && rows[0].display_name) || null;
+    }
+
     let eligibleNow = false;
     let eligibilityReasons = [];
     let candidateEstimates = [];
@@ -257,7 +270,7 @@ router.get('/leads/:id/estimate-followup', requireAuth, async (req, res) => {
 
     res.json({
       state: deriveDisplayState({ sequence, steps, eligibleNow }),
-      sequence: serializeSequence(sequence, steps),
+      sequence: serializeSequence(sequence, steps, salesRepName),
       eligibleNow,
       eligibilityReasons,
       candidateEstimates: sequence ? [] : candidateEstimates,

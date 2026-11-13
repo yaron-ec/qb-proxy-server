@@ -4960,6 +4960,183 @@ are unrelated) with every change in this section applied. Full frontend
 build (`npm run build:exit`) re-run clean after every `.jsx` edit in this
 section.
 
+## Estimate follow-up reliability completion: estimate-level dedup, permanent reply-stop, activity logging (November 2026, built — still dry-run/reply-detection-gated)
+
+Follow-up to the two sections above, closing the remaining gaps a live
+production audit found (the "COMPLETE ESTIMATE FOLLOW-UP RELIABILITY
+IMPLEMENTATION" pass). Nothing here changes any activation gate's default —
+`ESTIMATE_FOLLOWUP_DRY_RUN` and `ESTIMATE_FOLLOWUP_REPLY_DETECTION_ENABLED`
+remain exactly as documented above (both inert by default); this pass is
+code-only.
+
+- **Estimate-level enrollment dedup (closes the HNDF-EST-10260 cross-lead
+  gap)**: the live audit found a real QuickBooks estimate
+  (`qb_estimate_id=78`, `HNDF-EST-10260`) with two `handoff_estimates` rows
+  — one from the original bulk import matched to one lead, one created
+  independently by a later live sync pass matched to a DIFFERENT lead. The
+  pre-existing `estimate_followup_sequences_one_live_per_lead` index
+  (migration 2026-70) only prevents a second sequence for the SAME lead —
+  it does nothing to stop two different leads from each enrolling a
+  sequence for the same real estimate. Fixed in
+  `db/migrations/2026-74-estimate-followup-estimate-level-dedup.sql`:
+  `estimate_followup_sequences` gained a denormalized `qb_estimate_id`
+  column (populated at `enroll()` time from the linked `handoff_estimates`
+  row) plus a SECOND partial unique index,
+  `estimate_followup_sequences_one_live_per_estimate`, scoped identically
+  to the lead-level one (`WHERE status IN ('active','paused') AND
+  qb_estimate_id IS NOT NULL` — a completed/stopped sequence never blocks a
+  future, legitimate re-enrollment for a revised estimate). Two layers,
+  matching the lead-level index's own precedent: an application-level
+  pre-check (`lib/estimateFollowupEligibility.js#hasLiveSequenceForEstimate`,
+  surfaced as a new `competing_sequence_for_same_estimate` reason, checked
+  only once the estimate itself is otherwise Pending/valid) PLUS the actual
+  concurrency-safe backstop, the DB constraint itself —
+  `lib/estimateFollowupEngine.js#enroll()`'s catch block now branches on
+  Postgres's own reported constraint name (`e.constraint`) to report the
+  correct reason (lead-level vs. estimate-level) rather than guessing;
+  `runAutoEnrollmentScan` treats either reason identically as "already
+  enrolled," never an error. Does NOT delete, merge, or rewrite any
+  historical `handoff_estimates` row — per explicit instruction, the
+  duplicate estimate rows the audit found are left exactly as they are;
+  this migration only prevents the FOLLOW-UP SEQUENCE layer from ever
+  acting on two of them at once. Proven under genuine
+  `Promise.allSettled` concurrency (two simultaneous `confirmEstimateSent`
+  calls for the same `qb_estimate_id`, different leads: exactly one wins).
+- **A genuine customer reply now PERMANENTLY STOPS the sequence, never
+  merely pauses it** (`lib/estimateFollowupReplyDetection.js#processInboundMessage`):
+  the prior design (see "Fully automatic estimate-sent detection..." above)
+  set `status='paused'` on a detected reply — functionally already
+  prevented further sends (the processing query only ever selects
+  `status='active'`), but left the sequence in a RESUMABLE state, and the
+  explicit requirement reads "immediately stops or permanently cancels...
+  do not require a team member to stop the sequence manually." Changed to
+  set `status='stopped'` (terminal — `stopped_reason='customer_replied'`,
+  `stopped_by='system:gmail_reply_detected'`) and cancel any
+  `pending`/`processing` step in the same two-query shape
+  `stopSequence()` already uses (duplicated rather than imported, to avoid
+  a circular require between this module and
+  `lib/estimateFollowupEngine.js`, which already requires this one for the
+  fail-closed send gate). The manual `pauseSequence`/`resumeSequence`
+  controls are completely unchanged — a rep can still choose to pause a
+  sequence for an unrelated reason (e.g. "customer asked me to hold off a
+  week"); only the AUTOMATIC reply-triggered transition changed from pause
+  to stop. Thread-id correlation (the preferred signal) was widened to
+  match a sequence of ANY status, not just active/paused — so a
+  redelivered copy of the SAME message that already triggered the stop
+  still correlates for idempotency (`results.matched`), rather than
+  falling through to "zero matches = untracked email" purely because the
+  sequence is now terminal; the actual stop transition itself stays
+  correctly scoped to `active`/`paused` (stopping an already-terminal
+  sequence a second time is already a correctly-handled no-op).
+- **Reply-vs-scheduled-send race closed at the DB level**
+  (`lib/estimateFollowupEngine.js#processEstimateFollowups`): the per-step
+  claim (`UPDATE estimate_followup_steps SET status='processing' ...`) is
+  now gated, in the SAME atomic statement, on the owning sequence still
+  being `status='active'` at that exact instant
+  (`AND EXISTS (SELECT 1 FROM estimate_followup_sequences seq WHERE
+  seq.id = st.sequence_id AND seq.status='active')`). Within a single
+  tick this is already structurally impossible to violate —
+  `reminderWorker.js` runs `pollForReplies()` strictly before
+  `processEstimateFollowups()`, so a reply discovered this tick has
+  already stopped its sequence before the send loop even starts — but the
+  atomic claim is the real backstop for a cross-tick/cross-process
+  overlap (a slow prior tick still finishing, or more than one worker
+  instance), where a reply could be detected and stop the sequence in the
+  window between this loop's own per-sequence eligibility check and the
+  claim moments later. A single atomic statement leaves no check-then-act
+  window of its own to race. Proven directly against the exact SQL
+  condition (deterministic: stop the sequence, reset the step to
+  `pending`, confirm the claim statement itself returns zero rows and
+  never leaves the step stuck in `processing`) — genuine concurrent-tick
+  atomicity for this same UPDATE *pattern* was already proven under real
+  `Promise.all` concurrency by the pre-existing "two overlapping ticks
+  never double-send" test; this is a strict narrowing (one added `AND`
+  condition) of that same, already-proven-atomic statement.
+- **Activity history, closing a real gap**: `enroll()`,
+  `pauseSequence()`, `resumeSequence()`, and `stopSequence()` previously
+  wrote NO activity-log row at all — a rep confirming an estimate sent,
+  pausing, resuming, or stopping a sequence left zero trace in the lead's
+  own activity feed, contrary to the explicit requirement
+  ("confirmation method and activity history," "the lead's activity
+  history records... the automatic stop, including timestamp and
+  reason"). Fixed via a new, deliberately standalone leaf module,
+  `lib/estimateFollowupActivityLog.js#logFollowupActivity` (no dependency
+  on either `estimateFollowupEngine.js` or
+  `estimateFollowupReplyDetection.js`, so neither needs to require the
+  other back just to log a note — avoids a circular-require footgun given
+  engine.js already requires replyDetection.js for the send gate). Writes
+  an ordinary `activities` row, `type='note'`, `source='manual'` — this
+  codebase's own established convention for an automated/system-authored
+  note is `source='manual'` (there is no `'system'` value in
+  `activities.source`'s CHECK constraint; see
+  `routes/signnowWebhook.js`'s SignNow-auto-decline note for the exact
+  same precedent, `author='SignNow (auto)'`), never throws (a logging
+  failure must never roll back the real state transition it documents).
+  A genuine customer reply now writes TWO activity rows: the raw inbound
+  email (pre-existing, `type='email'`, the actual message) plus a
+  dedicated "Estimate follow-up automatically stopped — customer replied
+  ... No further automated follow-up emails will be sent" note — so the
+  automatic stop is its own legible fact, not something a reader has to
+  infer from the inbound email's metadata JSON.
+- **CRM visibility additions** (`routes/estimateFollowups.js`,
+  `crm-frontend/src/components/EstimateFollowUpPanel.jsx`): the per-lead
+  `GET` response and panel now also surface `qbEstimateId` (the exact
+  QuickBooks estimate id, satisfying "the system must record... exact
+  QuickBooks estimate ID") and `salesRepName` (resolved via the same
+  `owners` join the preview endpoint already used, rather than a bare
+  owner UUID — "sending identity"); the step timeline shows BOTH the
+  scheduled (`dueAt`) and actual (`sentAt`) time side by side (previously
+  one OR the other), plus the attempt count when a step needed more than
+  one try (retries). The Stopped block's `customer_replied` reason now
+  renders the same friendly "customer replied" wording the old Paused
+  block used, plus an explicit "no further automated emails will be sent"
+  line; a new `competing_sequence_for_same_estimate` eligibility reason
+  has a specific, human-readable label distinct from the lead-level one.
+- **No new infrastructure, no direct Handoff integration, no change to
+  QuickBooks sync**: confirmed by the diff itself — every change is
+  confined to `db/migrations/2026-74-*.sql`,
+  `lib/estimateFollowup{Engine,Eligibility,ReplyDetection,ReplyNotify,ActivityLog}.js`,
+  `routes/estimateFollowups.js`, and
+  `crm-frontend/src/components/EstimateFollowUpPanel.jsx`; nothing in
+  `server.js`'s QB estimate-sync/inbound-reconciliation crons, `lib/qb*`,
+  or the Handoff-adjacent health checks was touched. `QB_SYNC_CRON_ENABLED`
+  remains `true` and unmodified by this pass.
+- **Intuit webhook silence — re-confirmed, not re-investigated**: no new
+  evidence was gathered in this pass beyond the November 2026 investigation
+  already on record above (zero deliveries, successful or failed, since
+  the Base64 signature fix deployed) — resolving it requires an operator
+  checking the Intuit Developer Dashboard's Webhooks page
+  (`https://developer.intuit.com/app/developer/myapps` → select the app →
+  Webhooks), which this environment cannot do. The 15-minute cron remains
+  the authoritative, unaffected backstop either way.
+
+Regression coverage: `test/estimateFollowupEligibility.test.js` (+3 tests
+— `hasLiveSequenceForEstimate`'s null-short-circuit and the new
+cross-lead-rejection branch, pure); `test/integration/estimateFollowupEstimateLevelDedup.int.test.js`
+(new, 5 tests, real Postgres — the exact HNDF-EST-10260 shape rejected,
+the dedup lifting once the blocking sequence is stopped, genuine
+concurrent-enrollment race safety, the atomic claim's SQL condition
+proven directly, and an end-to-end proof a pre-stopped sequence is simply
+never selected); `test/integration/estimateFollowupAutomaticDetection.int.test.js`
+(updated — the reply-stop assertions now expect `status='stopped'`/
+`stopped_*` fields plus the dedicated "automatically stopped" activity
+note, not `paused`); `test/integration/estimateFollowupSequence.int.test.js`
+(updated — enroll/pause/resume/stop activity-log assertions added to the
+existing lifecycle tests); `crm-frontend/src/components/EstimateFollowUpPanel.test.jsx`
+(+4 tests — the permanently-stopped-not-paused reply rendering, the
+QuickBooks-estimate-id/sales-rep-name display including the no-rep
+placeholder, and the new eligibility reason's label). Full existing
+backend unit suite re-run clean (1592 pass, 0 fail, 1 pre-existing
+unrelated todo) and full frontend vitest suite re-run clean (457 pass)
+with every change in this section applied; `npm run build:exit` re-run
+clean after every `.jsx` edit. Full real-Postgres integration suite
+re-run clean of NEW regressions (422 pass, 7 fail — all 7 in
+`smsConsentIntake.int.test.js`/`smsOutboundNotify.int.test.js`, confirmed
+unrelated: the run executed at 11:31 PM Pacific, outside this
+installation's 8:00 AM–9:00 PM SMS quiet-hours window, the same
+pre-existing, time-of-day-dependent failure class this document already
+describes elsewhere — neither file was touched by this pass).
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`

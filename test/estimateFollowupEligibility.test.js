@@ -31,11 +31,12 @@ const DEFAULT_LEAD = {
 };
 const DEFAULT_ESTIMATE = { id: 'est-1', lead_id: 'lead-1', estimate_status: 'Pending', qb_estimate_id: 'QBE-1', customer_email: 'jane@example.com' };
 
-function makeDb({ lead = DEFAULT_LEAD, estimate = DEFAULT_ESTIMATE, suppressed = false, liveSequences = [] } = {}) {
+function makeDb({ lead = DEFAULT_LEAD, estimate = DEFAULT_ESTIMATE, suppressed = false, liveSequences = [], liveSequencesForEstimate = [] } = {}) {
   return {
     query: async (sql, params) => {
       if (/FROM leads WHERE id = \$1/.test(sql)) return { rows: lead ? [lead] : [] };
       if (/FROM estimate_followup_suppressions/.test(sql)) return { rows: suppressed ? [{ x: 1 }] : [] };
+      if (/FROM estimate_followup_sequences\s+WHERE qb_estimate_id/.test(sql)) return { rows: liveSequencesForEstimate.map((id) => ({ id })) };
       if (/FROM estimate_followup_sequences\s+WHERE lead_id/.test(sql)) return { rows: liveSequences.map((id) => ({ id })) };
       if (/FROM handoff_estimates WHERE id = \$1/.test(sql)) return { rows: estimate ? [estimate] : [] };
       throw new Error(`unexpected query: ${sql}`);
@@ -135,6 +136,25 @@ test('checkEligibilityForEnrollment: a competing active/paused sequence on the s
     const result = await m.checkEligibilityForEnrollment({ leadId: 'lead-1', handoffEstimateId: 'est-1' });
     assert.strictEqual(result.eligible, false);
     assert.ok(result.reasons.includes('competing_sequence_already_active'));
+  } finally { restore(); }
+});
+
+test('hasLiveSequenceForEstimate: returns false for a null/undefined qb_estimate_id without querying', async () => {
+  const restore = stub('../db/client', { query: async () => { throw new Error('must not query when qb_estimate_id is falsy'); } });
+  try {
+    const m = freshModule();
+    assert.strictEqual(await m.hasLiveSequenceForEstimate(null), false);
+    assert.strictEqual(await m.hasLiveSequenceForEstimate(undefined), false);
+  } finally { restore(); }
+});
+
+test('checkEligibilityForEnrollment: a DIFFERENT lead\'s live sequence for the SAME real qb_estimate_id is rejected (HNDF-EST-10260 cross-lead fix)', async () => {
+  const restore = stub('../db/client', makeDb({ liveSequencesForEstimate: ['some-other-sequence-on-a-different-lead'] }));
+  try {
+    const m = freshModule();
+    const result = await m.checkEligibilityForEnrollment({ leadId: 'lead-1', handoffEstimateId: 'est-1' });
+    assert.strictEqual(result.eligible, false);
+    assert.ok(result.reasons.includes('competing_sequence_for_same_estimate'), JSON.stringify(result.reasons));
   } finally { restore(); }
 });
 

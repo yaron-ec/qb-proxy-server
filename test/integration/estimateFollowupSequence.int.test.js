@@ -187,6 +187,18 @@ test('confirmEstimateSent schedules all 6 steps with the correct cadence; a due 
   assert.strictEqual(sequence.status, 'active');
   assert.strictEqual(sequence.estimate_sent_confirmed_by, 'rep@example.com');
 
+  // Confirmation method + activity history, per the explicit requirement
+  // ("the system must record... confirmation method and activity history").
+  assert.ok(sequence.qb_estimate_id, 'the exact QuickBooks estimate id must be recorded on the sequence itself');
+  const { rows: enrollActivity } = await db.query(
+    `SELECT * FROM activities WHERE lead_id = $1 AND content ILIKE '%sequence started%' ORDER BY created_at DESC LIMIT 1`,
+    [leadId]
+  );
+  assert.strictEqual(enrollActivity.length, 1);
+  assert.strictEqual(enrollActivity[0].author, 'rep@example.com');
+  assert.ok(enrollActivity[0].content.includes(sequence.qb_estimate_id));
+  assert.ok(enrollActivity[0].content.includes(`${RUN}.lifecycle@example.com`));
+
   const steps = await engine.getStepsForSequence(sequence.id);
   assert.strictEqual(steps.length, 6);
   assert.deepStrictEqual(steps.map((s) => s.step_number), [1, 2, 3, 4, 5, 6]);
@@ -333,6 +345,11 @@ test('pause prevents sending; resume re-allows it; stop cancels all pending step
   await db.query(`UPDATE estimate_followup_steps SET due_at = NOW() - INTERVAL '1 hour' WHERE id = $1`, [steps[0].id]);
 
   await engine.pauseSequence({ sequenceId: sequence.id, reason: 'customer_requested_pause', pausedBy: 'rep@example.com' });
+  const { rows: pauseActivity } = await db.query(
+    `SELECT * FROM activities WHERE lead_id = $1 AND content ILIKE '%paused%' ORDER BY created_at DESC LIMIT 1`, [leadId]
+  );
+  assert.strictEqual(pauseActivity.length, 1, 'pause must be recorded in the lead\'s activity history');
+  assert.strictEqual(pauseActivity[0].author, 'rep@example.com');
 
   sentEmails.length = 0;
   const summaryWhilePaused = await engine.processEstimateFollowups({ dryRun: false, triggeredBy: 'test' });
@@ -341,6 +358,10 @@ test('pause prevents sending; resume re-allows it; stop cancels all pending step
 
   const resumed = await engine.resumeSequence({ sequenceId: sequence.id, resumedBy: 'rep@example.com' });
   assert.strictEqual(resumed.status, 'active');
+  const { rows: resumeActivity } = await db.query(
+    `SELECT * FROM activities WHERE lead_id = $1 AND content ILIKE '%resumed%' ORDER BY created_at DESC LIMIT 1`, [leadId]
+  );
+  assert.strictEqual(resumeActivity.length, 1, 'resume must be recorded in the lead\'s activity history');
 
   sentEmails.length = 0;
   const summaryAfterResume = await engine.processEstimateFollowups({ dryRun: false, triggeredBy: 'test' });
@@ -350,6 +371,10 @@ test('pause prevents sending; resume re-allows it; stop cancels all pending step
   assert.strictEqual(stopped.status, 'stopped');
   const finalSteps = await engine.getStepsForSequence(sequence.id);
   assert.ok(finalSteps.filter((s) => s.step_number > 1).every((s) => s.status === 'cancelled'));
+  const { rows: stopActivity } = await db.query(
+    `SELECT * FROM activities WHERE lead_id = $1 AND content ILIKE '%stopped: manual_stop%' ORDER BY created_at DESC LIMIT 1`, [leadId]
+  );
+  assert.strictEqual(stopActivity.length, 1, 'stop must be recorded in the lead\'s activity history');
 });
 
 // ── 8. Unsubscribe-by-token ─────────────────────────────────────────────────
