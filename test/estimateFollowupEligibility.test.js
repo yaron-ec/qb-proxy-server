@@ -272,3 +272,44 @@ test('checkEligibilityForSend: email suppressed since enrollment -> stopped', as
     assert.strictEqual(result.reason, 'email_suppressed_unsubscribed');
   } finally { restore(); }
 });
+
+// ── isEnteringDisqualifyingStatus (November 2026 — Sold/Lost/DNQ auto-stop) ──
+test('isEnteringDisqualifyingStatus: New -> Sold is an entry', () => {
+  const m = freshModule();
+  assert.strictEqual(m.isEnteringDisqualifyingStatus('New', 'Sold'), true);
+});
+
+test('isEnteringDisqualifyingStatus: New -> Lost is an entry', () => {
+  const m = freshModule();
+  assert.strictEqual(m.isEnteringDisqualifyingStatus('New', 'Lost'), true);
+});
+
+test('isEnteringDisqualifyingStatus: New -> DNQ is an entry', () => {
+  const m = freshModule();
+  assert.strictEqual(m.isEnteringDisqualifyingStatus('New', 'DNQ'), true);
+});
+
+test('isEnteringDisqualifyingStatus: Appointment scheduled -> New is never an entry', () => {
+  const m = freshModule();
+  assert.strictEqual(m.isEnteringDisqualifyingStatus('Appointment scheduled', 'New'), false);
+});
+
+test('isEnteringDisqualifyingStatus: an edit that leaves an already-Sold lead Sold is not a re-entry', () => {
+  const m = freshModule();
+  assert.strictEqual(m.isEnteringDisqualifyingStatus('Sold', 'Sold'), false);
+});
+
+test('isEnteringDisqualifyingStatus: moving between two disqualifying statuses (Lost -> DNQ) is not a fresh entry', () => {
+  const m = freshModule();
+  assert.strictEqual(m.isEnteringDisqualifyingStatus('Lost', 'DNQ'), false);
+});
+
+test('isEnteringDisqualifyingStatus: moving between Sold and Lost is not a fresh entry either', () => {
+  const m = freshModule();
+  assert.strictEqual(m.isEnteringDisqualifyingStatus('Sold', 'Lost'), false);
+});
+
+test('isEnteringDisqualifyingStatus: reopening away from Sold/Lost/DNQ is never an entry', () => {
+  const m = freshModule();
+  assert.strictEqual(m.isEnteringDisqualifyingStatus('DNQ', 'New'), false);
+});
