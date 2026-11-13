@@ -34,17 +34,37 @@
 -- shape — app-level pre-check + DB constraint as the real backstop — the
 -- lead-level protection already uses).
 --
--- No historical estimate_followup_sequences rows exist in production as of
--- this migration (the feature has never left dry-run / had a real
--- enrollment) — the backfill below is a no-op there, but is still correct
--- for any seeded test/dev data.
+-- No historical estimate_followup_sequences rows are believed to exist in
+-- production as of this migration (sending has always stayed in dry-run
+-- and reply detection has never been enabled — see CLAUDE.md), but
+-- ENROLLMENT itself (confirmEstimateSent / manual enroll from the Lead
+-- Detail panel) does NOT depend on either of those flags, so this cannot
+-- be assumed with certainty from code alone. Since the exact scenario this
+-- migration exists to prevent (HNDF-EST-10260, two leads, same real
+-- estimate) is already confirmed present in handoff_estimates, this
+-- migration does NOT assume a clean enrollment table: the unique index
+-- below is created defensively, inside a DO block that checks for a
+-- pre-existing conflict FIRST. A failing `CREATE UNIQUE INDEX` would abort
+-- this entire migration transaction and, per this codebase's Dockerfile
+-- boot chain (`node db/migrate.js && node server.js`), block the whole API
+-- from starting — an outage this migration must never cause on its own
+-- behalf. If a conflict is found, the index is skipped (not created) and a
+-- clear, actionable warning is logged; the lead-level unique index and the
+-- application-level `hasLiveSequenceForEstimate` pre-check
+-- (lib/estimateFollowupEligibility.js) still apply either way, so even a
+-- skipped index only narrows (never removes) protection pending a manual
+-- resolution of whichever specific qb_estimate_id already conflicts.
 --
 -- Does NOT touch handoff_estimates itself in any way — no deletion,
 -- merging, or rewriting of the duplicate estimate rows the investigation
 -- found, per explicit instruction. Those rows (and the cross-lead
 -- duplication they represent) are left exactly as they are; this migration
 -- only prevents the FOLLOW-UP SEQUENCE layer from ever acting on both of
--- them at once.
+-- them at once. It also never stops, pauses, or otherwise modifies an
+-- existing estimate_followup_sequences row to force the index to apply —
+-- resolving a real conflict, if one is ever found, is a deliberate,
+-- reviewed operator action (e.g. `stopSequence()` on all but one
+-- conflicting row), never something a migration does silently.
 -- =====================================================================
 
 ALTER TABLE estimate_followup_sequences
@@ -57,8 +77,24 @@ UPDATE estimate_followup_sequences seq
    AND seq.qb_estimate_id IS NULL
    AND he.qb_estimate_id IS NOT NULL;
 
-CREATE UNIQUE INDEX IF NOT EXISTS estimate_followup_sequences_one_live_per_estimate
-  ON estimate_followup_sequences (qb_estimate_id) WHERE status IN ('active', 'paused') AND qb_estimate_id IS NOT NULL;
+DO $$
+DECLARE
+  conflicting_estimate_count INT;
+BEGIN
+  SELECT COUNT(*) INTO conflicting_estimate_count FROM (
+    SELECT qb_estimate_id
+      FROM estimate_followup_sequences
+     WHERE status IN ('active', 'paused') AND qb_estimate_id IS NOT NULL
+     GROUP BY qb_estimate_id
+    HAVING COUNT(*) > 1
+  ) dupes;
+
+  IF conflicting_estimate_count > 0 THEN
+    RAISE WARNING '[2026-74] % qb_estimate_id value(s) already have more than one active/paused estimate_followup_sequences row — SKIPPING creation of estimate_followup_sequences_one_live_per_estimate to avoid blocking this deploy. The application-level hasLiveSequenceForEstimate() pre-check and the lead-level unique index still apply. Resolve by stopping all but one conflicting sequence per qb_estimate_id (lib/estimateFollowupEngine.js#stopSequence), then re-run: CREATE UNIQUE INDEX estimate_followup_sequences_one_live_per_estimate ON estimate_followup_sequences (qb_estimate_id) WHERE status IN (''active'', ''paused'') AND qb_estimate_id IS NOT NULL;', conflicting_estimate_count;
+  ELSE
+    EXECUTE 'CREATE UNIQUE INDEX IF NOT EXISTS estimate_followup_sequences_one_live_per_estimate ON estimate_followup_sequences (qb_estimate_id) WHERE status IN (''active'', ''paused'') AND qb_estimate_id IS NOT NULL';
+  END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS estimate_followup_sequences_qb_estimate_id_idx
   ON estimate_followup_sequences (qb_estimate_id);
