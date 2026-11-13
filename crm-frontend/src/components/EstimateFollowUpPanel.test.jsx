@@ -68,6 +68,13 @@ describe('EstimateFollowUpPanel', () => {
     expect(screen.getByText(/Lead status disqualifies this sequence/)).toBeInTheDocument();
   });
 
+  it('not_eligible: a cross-lead duplicate estimate (HNDF-EST-10260 shape) shows a specific, human-readable reason', async () => {
+    getState.mockResolvedValue({ state: 'not_eligible', eligibilityReasons: ['competing_sequence_for_same_estimate'], replyMonitoring: HEALTHY_MONITORING });
+    render(<EstimateFollowUpPanel lead={lead()} currentUser={admin()} />);
+    await waitFor(() => expect(screen.getByText('Not Eligible')).toBeInTheDocument());
+    expect(screen.getByText(/already active or paused for this exact QuickBooks estimate, under a different lead/)).toBeInTheDocument();
+  });
+
   it('awaiting_sent_confirmation: shows Confirm Estimate Sent, and Manually Enroll only for admin/manager', async () => {
     getState.mockResolvedValue({ state: 'awaiting_sent_confirmation', eligibilityReasons: [], replyMonitoring: HEALTHY_MONITORING, candidateEstimates: [] });
     render(<EstimateFollowUpPanel lead={lead()} currentUser={admin()} />);
@@ -131,6 +138,33 @@ describe('EstimateFollowUpPanel', () => {
     expect(screen.queryByText('Resume')).not.toBeInTheDocument();
   });
 
+  it('renders the exact QuickBooks estimate id and the sending rep\'s display name, per the "who/what/estimate ID" requirement', async () => {
+    getState.mockResolvedValue({
+      state: 'active', replyMonitoring: HEALTHY_MONITORING,
+      sequence: {
+        id: 'seq-1', status: 'active', recipientEmail: 'jane@example.com', enrollmentMethod: 'confirm_sent',
+        qbEstimateId: 'QBID-78', salesRepName: 'Alex Rep',
+        estimateSentConfirmedAt: '2026-11-01T12:00:00Z', estimateSentConfirmedBy: 'rep@example.com',
+        steps: [{ id: 's1', stepNumber: 1, dayOffset: 1, status: 'pending', dueAt: '2026-11-02T17:00:00Z' }],
+      },
+    });
+    render(<EstimateFollowUpPanel lead={lead()} currentUser={admin()} />);
+    await waitFor(() => expect(screen.getByText('QBID-78')).toBeInTheDocument());
+    expect(screen.getByText('Alex Rep')).toBeInTheDocument();
+  });
+
+  it('with no sales rep assigned, shows a clear placeholder rather than a blank field', async () => {
+    getState.mockResolvedValue({
+      state: 'active', replyMonitoring: HEALTHY_MONITORING,
+      sequence: {
+        id: 'seq-1', status: 'active', recipientEmail: 'jane@example.com', enrollmentMethod: 'confirm_sent',
+        qbEstimateId: null, salesRepName: null, steps: [],
+      },
+    });
+    render(<EstimateFollowUpPanel lead={lead()} currentUser={admin()} />);
+    await waitFor(() => expect(screen.getByText('(no rep assigned)')).toBeInTheDocument());
+  });
+
   it('paused sequence: shows the paused reason/by, and Resume (not Pause)', async () => {
     getState.mockResolvedValue({
       state: 'paused', replyMonitoring: HEALTHY_MONITORING,
@@ -189,17 +223,21 @@ describe('EstimateFollowUpPanel', () => {
     await waitFor(() => expect(screen.getByText('Automatic (QuickBooks)')).toBeInTheDocument());
   });
 
-  it('a sequence paused by a detected customer reply renders a friendly "customer replied" reason', async () => {
+  it('a sequence permanently stopped by a detected customer reply renders a friendly "customer replied" reason — never shown as merely paused', async () => {
+    // November 2026: a genuine reply now permanently STOPS the sequence
+    // (status: 'stopped'), never merely pauses it — see
+    // lib/estimateFollowupReplyDetection.js's own header for the rationale.
     getState.mockResolvedValue({
-      state: 'paused', replyMonitoring: HEALTHY_MONITORING,
+      state: 'stopped', replyMonitoring: HEALTHY_MONITORING,
       sequence: {
-        id: 'seq-1', status: 'paused', recipientEmail: 'jane@example.com', enrollmentMethod: 'auto_qb_email_status',
-        pausedReason: 'customer_replied', pausedBy: 'system:gmail_reply_detected', triggeringGmailMessageId: 'msg-123', steps: [],
+        id: 'seq-1', status: 'stopped', recipientEmail: 'jane@example.com', enrollmentMethod: 'auto_qb_email_status',
+        stoppedReason: 'customer_replied', stoppedBy: 'system:gmail_reply_detected', triggeringGmailMessageId: 'msg-123', steps: [],
       },
     });
     render(<EstimateFollowUpPanel lead={lead()} currentUser={admin()} />);
     await waitFor(() => expect(screen.getByText(/customer replied/)).toBeInTheDocument());
     expect(screen.getByText(/system:gmail_reply_detected/)).toBeInTheDocument();
+    expect(screen.queryByText(/^Paused:/)).not.toBeInTheDocument();
   });
 
   it('a load error renders a visible error message, not a crash', async () => {
