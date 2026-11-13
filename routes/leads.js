@@ -35,6 +35,7 @@ const { serializeAppointment, fetchActiveAppointmentsForLeads } = require('../li
 const { isPhoneCallAppointment } = require('../lib/booking/appointmentKind');
 const { normalizeFollowUp, FOLLOW_UP_FIELDS } = require('../lib/followUp');
 const { isEnteringTerminalLostStatus, isTerminalLostStatus } = require('../lib/leadStatus');
+const { isEnteringDisqualifyingStatus } = require('../lib/estimateFollowupEligibility');
 const router = express.Router();
 
 // ── Lead field diff helper ──────────────────────────────────────────────────
@@ -411,6 +412,16 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
     const existingById = await query(`SELECT id, external_ref, status FROM leads WHERE ${upsertWhere} LIMIT 1`, upsertParams);
     const enteringTerminalLost = body.status !== undefined
       && isEnteringTerminalLostStatus(existingById.rows[0] ? existingById.rows[0].status : null, body.status);
+    // Separate from enteringTerminalLost on purpose: 'Sold' must never
+    // cancel an appointment or clear a follow-up (see lib/leadStatus.js's
+    // own header), but it DOES disqualify the lead from estimate follow-up
+    // (lib/estimateFollowupEligibility.js#DISQUALIFYING_LEAD_STATUSES
+    // already includes 'Sold' alongside every TERMINAL_LOST_STATUSES
+    // value) — so entering Sold needs its own edge check here, independent
+    // of enteringTerminalLost, to stop a live sequence immediately rather
+    // than only via the next scheduled per-send eligibility re-check.
+    const enteringEstimateFollowupStop = body.status !== undefined
+      && isEnteringDisqualifyingStatus(existingById.rows[0] ? existingById.rows[0].status : null, body.status);
 
     // Build cleaned contact fields (only allow known contact fields)
     const cleaned = {};
@@ -666,15 +677,19 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
     if (enteringTerminalLost) {
       terminalLostApptResult = await cancelActiveAppointmentsForTerminalLost(fullRow.id, req.user?.email);
       await logTerminalLostTransition(fullRow.id, req.user?.email, terminalLostApptResult, fullRow.status);
+    }
+    if (enteringTerminalLost || enteringEstimateFollowupStop) {
       // Stop any live estimate follow-up sequence the same way every other
-      // terminal-lost side effect above does — never a second/raw stop
-      // path (lib/estimateFollowupEngine.js#stopActiveSequencesForLead is
-      // the one entry point, mirroring stopSequence's own cancel-pending-
-      // steps behavior). Best-effort/non-blocking like the contacts sync
-      // below — a failure here must never roll back or fail this request.
+      // disqualifying-status side effect above does — never a second/raw
+      // stop path (lib/estimateFollowupEngine.js#stopActiveSequencesForLead
+      // is the one entry point, mirroring stopSequence's own cancel-
+      // pending-steps behavior). Fires for Sold too, independent of the
+      // terminal-lost appointment-cancel block above. Best-effort/non-
+      // blocking like the contacts sync below — a failure here must never
+      // roll back or fail this request.
       try {
         await require('../lib/estimateFollowupEngine').stopActiveSequencesForLead(fullRow.id, `lead_status_${fullRow.status}`);
-      } catch (e) { console.warn('[leads] estimate follow-up stop-on-terminal-lost failed (non-fatal):', e.message); }
+      } catch (e) { console.warn('[leads] estimate follow-up stop-on-status-change failed (non-fatal):', e.message); }
     }
 
     const appt = await fetchActiveAppointment(fullRow.id);
@@ -1500,6 +1515,10 @@ router.put('/:id', requireAuth, async (req, res) => {
     // the follow-up to clear in this SAME statement — see
     // cancelActiveAppointmentsForTerminalLost below for the appointment side.
     const enteringTerminalLost = body.status !== undefined && isEnteringTerminalLostStatus(oldLead.status, body.status);
+    // See the identical comment on PUT /by-external/:externalRef's own
+    // copy of this check — 'Sold' must stop estimate follow-up without
+    // touching appointment/follow-up cancellation.
+    const enteringEstimateFollowupStop = body.status !== undefined && isEnteringDisqualifyingStatus(oldLead.status, body.status);
     const updates = [];
     const params = [];
     let p = 1;
@@ -1697,11 +1716,14 @@ router.put('/:id', requireAuth, async (req, res) => {
     if (enteringTerminalLost) {
       terminalLostApptResult = await cancelActiveAppointmentsForTerminalLost(fullRow.id, req.user?.email);
       await logTerminalLostTransition(fullRow.id, req.user?.email, terminalLostApptResult, fullRow.status);
+    }
+    if (enteringTerminalLost || enteringEstimateFollowupStop) {
       // Stop any live estimate follow-up sequence — see the identical
       // comment on PUT /by-external/:externalRef's own copy of this step.
+      // Fires for Sold too, independent of the terminal-lost block above.
       try {
         await require('../lib/estimateFollowupEngine').stopActiveSequencesForLead(fullRow.id, `lead_status_${fullRow.status}`);
-      } catch (e) { console.warn('[leads] estimate follow-up stop-on-terminal-lost failed (non-fatal):', e.message); }
+      } catch (e) { console.warn('[leads] estimate follow-up stop-on-status-change failed (non-fatal):', e.message); }
     }
 
     // Post-commit: re-enqueue Google Contacts sync when contact-relevant
