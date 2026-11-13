@@ -5137,6 +5137,70 @@ installation's 8:00 AM–9:00 PM SMS quiet-hours window, the same
 pre-existing, time-of-day-dependent failure class this document already
 describes elsewhere — neither file was touched by this pass).
 
+## Estimate follow-up final activation pass: approved copy + Sold auto-stop (November 2026, still dry-run-gated)
+
+Final content-approval and stop-rule-completion pass, immediately preceding
+live activation. **Still fully inert for real customer sending** —
+`ESTIMATE_FOLLOWUP_DRY_RUN` is untouched by this pass and remains unset
+anywhere in production.
+
+- **Final approved six-email copy** shipped as template version 2
+  (`db/migrations/2026-75-estimate-followup-final-templates.sql`) — the
+  business owner's own exact given wording, a direct transcription, not
+  Claude-authored (same "one-time approval record" precedent as the
+  original `2026-70` seed and `lib/smsTemplates.js`'s own header). Never
+  mutates the v1 rows — flips `is_active` the same way
+  `lib/estimateFollowupTemplates.js#saveTemplateVersion` already does for
+  any future edit, just expressed as migration SQL since this content
+  ships through the same deploy pipeline as everything else here. Day
+  1/3/5/8/11/14 schedule, `{{first_name}}`/`{{sales_rep_name}}` tokens, and
+  the render-time compliance footer are byte-for-byte unchanged.
+- **Closes a real gap in the stop rules, found during this pass's own
+  review, not reported by a user incident**: entering `'Sold'` never
+  stopped a lead's live sequence *immediately* — only the pre-existing
+  terminal-lost hook (`Lost`/`DNQ`/`Cancelled`/`Closed Lost`) called
+  `lib/estimateFollowupEngine.js#stopActiveSequencesForLead` from
+  `routes/leads.js`. A newly-sold lead's sequence would stay `'active'`
+  indefinitely — no cancelled steps, no activity-log entry — even though
+  the separate, pre-existing pre-send eligibility re-check
+  (`checkEligibilityForSend`, called fresh immediately before every single
+  send) would still correctly refuse to ever send again on the next tick.
+  Fixed with `lib/estimateFollowupEligibility.js#isEnteringDisqualifyingStatus`
+  — the identical edge-detection shape as
+  `lib/leadStatus.js#isEnteringTerminalLostStatus`, but checked against
+  `DISQUALIFYING_LEAD_STATUSES` (`'Sold'` + every `TERMINAL_LOST_STATUSES`
+  value), the same set the eligibility checks already used as their single
+  source of truth. Deliberately kept out of `leadStatus.js` itself —
+  `'Sold'` must never cancel an appointment or affect Google Contacts
+  exclusion (see that module's own header), only estimate-followup
+  termination — so this is a separate, independent edge check, wired into
+  **both** `routes/leads.js` write paths (`PUT /:id` and
+  `PUT /by-external/:externalRef`) as its own trigger for
+  `stopActiveSequencesForLead`, alongside — never replacing — the existing
+  terminal-lost-only appointment-cancel block.
+- **Re-confirmed, not re-built, during this pass**: enrollment still only
+  ever requires verified-sent evidence (QuickBooks `EmailStatus=EmailSent`
+  + a timestamp, or an explicit "Confirm Estimate Sent" human action) —
+  never mere Handoff/QuickBooks import; a stopped sequence is terminal and
+  never auto-resumes on reopen (`resumeSequence` only ever operates on
+  `status='paused'`, never `'stopped'`); the CRM only ever shows `sent`
+  (accurate — "handed to Gmail's send API") and never implies a delivery
+  confirmation Gmail's API doesn't provide. None of these needed new code.
+- Regression coverage: `test/estimateFollowupEligibility.test.js` (+8 —
+  `isEnteringDisqualifyingStatus`'s full entry/no-op/between-statuses/
+  reopen matrix); `test/integration/estimateFollowupStatusStopHttp.int.test.js`
+  (new, 9 tests, real Postgres + real HTTP routes — Sold/DNQ via
+  `PUT /:id`, Lost/Sold via `PUT /by-external/:externalRef`, no re-fire on
+  a status-unchanged edit, cannot enroll an already-disqualified lead, an
+  unrelated lead's own sequence is completely untouched, a lead with no
+  active sequence is a safe no-op, and a stopped sequence is never
+  auto-resumed on reopen). `test/integration/closedLostTransition.int.test.js`
+  plus the full existing estimate-followup integration suite re-run
+  serialized to confirm zero regression to the Lost/DNQ/Cancelled/Closed
+  Lost appointment-cancellation path (56/56 pass). Full backend unit suite
+  re-run clean (1600 pass, 0 fail, 1 pre-existing unrelated todo). Full
+  real-Postgres integration suite re-run clean (438 pass, 0 fail).
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`
