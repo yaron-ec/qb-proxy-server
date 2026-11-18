@@ -36,6 +36,7 @@ const { isPhoneCallAppointment } = require('../lib/booking/appointmentKind');
 const { normalizeFollowUp, FOLLOW_UP_FIELDS } = require('../lib/followUp');
 const { isEnteringTerminalLostStatus, isTerminalLostStatus } = require('../lib/leadStatus');
 const { isEnteringDisqualifyingStatus } = require('../lib/estimateFollowupEligibility');
+const { isEnteringSoldStatus } = require('../lib/soldWelcomeEmail');
 const router = express.Router();
 
 // ── Lead field diff helper ──────────────────────────────────────────────────
@@ -422,6 +423,12 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
     // than only via the next scheduled per-send eligibility re-check.
     const enteringEstimateFollowupStop = body.status !== undefined
       && isEnteringDisqualifyingStatus(existingById.rows[0] ? existingById.rows[0].status : null, body.status);
+    // A completely separate, decoupled automation (lib/soldWelcomeEmail.js)
+    // — fires only on the actual edge INTO 'Sold', never overlaps with the
+    // terminal-lost/estimate-followup-stop checks above (those never fire
+    // for 'Sold' entry, and this never fires for a terminal-lost status).
+    const enteringSold = body.status !== undefined
+      && isEnteringSoldStatus(existingById.rows[0] ? existingById.rows[0].status : null, body.status);
 
     // Build cleaned contact fields (only allow known contact fields)
     const cleaned = {};
@@ -690,6 +697,16 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
       try {
         await require('../lib/estimateFollowupEngine').stopActiveSequencesForLead(fullRow.id, `lead_status_${fullRow.status}`);
       } catch (e) { console.warn('[leads] estimate follow-up stop-on-status-change failed (non-fatal):', e.message); }
+    }
+    if (enteringSold) {
+      // Automated "Welcome to the EC Construction Group Family!" email —
+      // best-effort/non-blocking, like every other post-commit side effect
+      // here; feature-gated inside handleLeadEnteringSold itself
+      // (SOLD_WELCOME_EMAIL_ENABLED), so this is a safe no-op until an
+      // operator explicitly enables it.
+      try {
+        await require('../lib/soldWelcomeEmail').handleLeadEnteringSold(fullRow, { triggeredBy: req.user?.email });
+      } catch (e) { console.warn('[leads] sold welcome email failed (non-fatal):', e.message); }
     }
 
     const appt = await fetchActiveAppointment(fullRow.id);
@@ -1519,6 +1536,9 @@ router.put('/:id', requireAuth, async (req, res) => {
     // copy of this check — 'Sold' must stop estimate follow-up without
     // touching appointment/follow-up cancellation.
     const enteringEstimateFollowupStop = body.status !== undefined && isEnteringDisqualifyingStatus(oldLead.status, body.status);
+    // See the identical comment on PUT /by-external/:externalRef's own copy
+    // of this check — a separate, decoupled automation (lib/soldWelcomeEmail.js).
+    const enteringSold = body.status !== undefined && isEnteringSoldStatus(oldLead.status, body.status);
     const updates = [];
     const params = [];
     let p = 1;
@@ -1724,6 +1744,13 @@ router.put('/:id', requireAuth, async (req, res) => {
       try {
         await require('../lib/estimateFollowupEngine').stopActiveSequencesForLead(fullRow.id, `lead_status_${fullRow.status}`);
       } catch (e) { console.warn('[leads] estimate follow-up stop-on-status-change failed (non-fatal):', e.message); }
+    }
+    if (enteringSold) {
+      // See the identical comment on PUT /by-external/:externalRef's own
+      // copy of this step.
+      try {
+        await require('../lib/soldWelcomeEmail').handleLeadEnteringSold(fullRow, { triggeredBy: req.user?.email });
+      } catch (e) { console.warn('[leads] sold welcome email failed (non-fatal):', e.message); }
     }
 
     // Post-commit: re-enqueue Google Contacts sync when contact-relevant
