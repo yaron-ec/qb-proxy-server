@@ -5201,6 +5201,72 @@ anywhere in production.
   re-run clean (1600 pass, 0 fail, 1 pre-existing unrelated todo). Full
   real-Postgres integration suite re-run clean (438 pass, 0 fail).
 
+## Controlled live-send test safety net: `ESTIMATE_FOLLOWUP_LIVE_SEND_ALLOWLIST` (November 2026)
+
+Built specifically to satisfy an explicit pre-condition for running ONE
+controlled, internal-only live-send test (one approved test lead/sequence)
+without exposing any OTHER active sequence to a real send during the same
+window — requested because, before this, `ESTIMATE_FOLLOWUP_DRY_RUN` was
+the ONLY gate, global and all-or-nothing: flipping it to `'false'` to test
+one sequence would, with equal force, let every other currently-active,
+currently-due sequence send too.
+
+- **`lib/estimateFollowupEngine.js#getLiveSendAllowlist()`/`isAllowedToLiveSend()`**:
+  a pure, additive safety net layered strictly ON TOP of
+  `ESTIMATE_FOLLOWUP_DRY_RUN`, never a replacement for it, and never a
+  second enrollment/eligibility mechanism. `ESTIMATE_FOLLOWUP_LIVE_SEND_ALLOWLIST`
+  unset/empty (the default — unset in production today) is a complete
+  no-op: `getLiveSendAllowlist()` returns `null` and every due, eligible,
+  active sequence sends exactly as it always has — confirmed both by a
+  dedicated regression test and by the fact every pre-existing
+  estimate-followup test file (none of which ever sets this new env var)
+  continues to pass unmodified.
+- When set — a comma-separated list of sequence UUIDs and/or recipient
+  email addresses, case-insensitive — `processEstimateFollowups()` only
+  allows an actual send (i.e. only while `ESTIMATE_FOLLOWUP_DRY_RUN` is
+  also `'false'`) for a sequence whose own `id` OR `recipient_email`
+  appears on the list. Every other active, due sequence is **held**, not
+  stopped, not skipped, not mutated in any way (`summary.heldByAllowlist`)
+  — its pending step(s) stay exactly `'pending'` at their existing
+  `due_at`, so once the allowlist is removed (or the sequence is added to
+  it), a normal tick picks it up and sends correctly, with no "superseded"
+  catch-up collapsing artifact introduced by having been held. The check
+  runs immediately after the per-send eligibility re-check and strictly
+  BEFORE the catch-up-collapsing step (which marks earlier overdue steps
+  `'skipped'`) — a held sequence is left completely untouched, not
+  partially processed.
+- Dry-run reporting (`dryRun: true`, including the admin dry-run
+  eligibility report) is completely unaffected by this allowlist either
+  way — it only ever gates a REAL send, confirmed by a dedicated test.
+- **Operator procedure for one controlled live test**: set
+  `ESTIMATE_FOLLOWUP_LIVE_SEND_ALLOWLIST` to the approved test sequence's
+  id (and/or its recipient's email address, for defense in depth) on
+  `artistic-determination`, confirm (via a read-only check) that this is
+  in fact the only currently active+due sequence in production or that
+  every other one is correctly excluded by this list, THEN and only then
+  set `ESTIMATE_FOLLOWUP_DRY_RUN=false` for the test window, verify the
+  one expected send, then restore `ESTIMATE_FOLLOWUP_DRY_RUN` to unset/
+  `'true'` and remove the allowlist variable. Neither variable is set in
+  production as of this change — both remain fully inert until an operator
+  deliberately sets them for a specific, bounded test or activation.
+- Regression coverage: `test/estimateFollowupEngine.test.js` (+7 pure unit
+  tests — `getLiveSendAllowlist`'s unset/blank/parsed-list shapes,
+  `isAllowedToLiveSend`'s null-allowlist/id-match/email-match/no-match
+  matrix, all case-insensitive); `test/integration/estimateFollowupSequence.int.test.js`
+  (+4 real-Postgres tests — unset is a complete no-op for two simultaneously
+  due sequences, an id-based allowlist holds the non-listed sequence
+  without mutating its backlog of overdue steps while the listed one sends
+  normally, an email-based allowlist match with whitespace/case variance,
+  and dry-run's `wouldSend` reporting is unaffected by an allowlist that
+  would otherwise block every due sequence). Full backend unit suite
+  re-run clean (1606 pass, 0 fail, 1 pre-existing unrelated todo); the full
+  `estimateFollowupSequence.int.test.js` file (21/21), plus
+  `estimateFollowupEstimateLevelDedup.int.test.js` (5/5) and
+  `estimateFollowupStatusStopHttp.int.test.js` (9/9), re-run clean against
+  a freshly migrated disposable local Postgres 16 instance with this change
+  applied — confirming zero regression to the pre-existing lifecycle,
+  dedup, and status-stop behavior this change sits on top of.
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`

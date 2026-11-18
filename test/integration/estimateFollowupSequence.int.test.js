@@ -240,6 +240,119 @@ test('a backlog of overdue steps collapses to only the latest one sending; earli
   assert.strictEqual(byNumber[3].status, 'sent', 'the latest overdue step (step 3) is the one that actually sends');
 });
 
+// ── 2b. Live-send allowlist safety net (November 2026, controlled live test) ─
+test('ESTIMATE_FOLLOWUP_LIVE_SEND_ALLOWLIST unset: both due sequences send normally (unrestricted, unchanged default behavior)', { skip }, async () => {
+  const leadA = await makeLead({ email: `${RUN}.allow-unset-a@example.com` });
+  const leadB = await makeLead({ email: `${RUN}.allow-unset-b@example.com` });
+  const estA = await makeEstimate(leadA);
+  const estB = await makeEstimate(leadB);
+  const { sequence: seqA } = await engine.confirmEstimateSent({ leadId: leadA, handoffEstimateId: estA, confirmedBy: 'rep@example.com' });
+  const { sequence: seqB } = await engine.confirmEstimateSent({ leadId: leadB, handoffEstimateId: estB, confirmedBy: 'rep@example.com' });
+  const stepsA = await engine.getStepsForSequence(seqA.id);
+  const stepsB = await engine.getStepsForSequence(seqB.id);
+  await db.query(`UPDATE estimate_followup_steps SET due_at = NOW() - INTERVAL '1 hour' WHERE id = ANY($1)`, [[stepsA[0].id, stepsB[0].id]]);
+
+  delete process.env.ESTIMATE_FOLLOWUP_LIVE_SEND_ALLOWLIST;
+  assert.strictEqual(engine.getLiveSendAllowlist(), null);
+
+  sentEmails.length = 0;
+  const summary = await engine.processEstimateFollowups({ dryRun: false, triggeredBy: 'test' });
+  assert.strictEqual(summary.sent, 2, 'with no allowlist configured, both due sequences send exactly as before');
+  assert.strictEqual(summary.heldByAllowlist, 0);
+  assert.strictEqual(summary.liveSendAllowlistActive, false);
+  assert.strictEqual(sentEmails.length, 2);
+  // Both sequences' step 1 is now 'sent' (step 2 not due) — nothing overdue
+  // left behind, so no explicit cleanup is needed here.
+});
+
+test('ESTIMATE_FOLLOWUP_LIVE_SEND_ALLOWLIST set to one sequence id: only that sequence sends; the other is held untouched (no skip mutation)', { skip }, async () => {
+  const leadA = await makeLead({ email: `${RUN}.allow-id-a@example.com` });
+  const leadB = await makeLead({ email: `${RUN}.allow-id-b@example.com` });
+  const estA = await makeEstimate(leadA);
+  const estB = await makeEstimate(leadB);
+  const { sequence: seqA } = await engine.confirmEstimateSent({ leadId: leadA, handoffEstimateId: estA, confirmedBy: 'rep@example.com' });
+  const { sequence: seqB } = await engine.confirmEstimateSent({ leadId: leadB, handoffEstimateId: estB, confirmedBy: 'rep@example.com' });
+  try {
+    const stepsA = await engine.getStepsForSequence(seqA.id);
+    const stepsB = await engine.getStepsForSequence(seqB.id);
+    // Give B a backlog of 2 overdue steps too, to prove a held sequence's
+    // earlier-overdue steps are NEVER marked skipped/superseded the way
+    // they would be for a sequence that's actually allowed to be processed.
+    await db.query(`UPDATE estimate_followup_steps SET due_at = NOW() - INTERVAL '1 hour' WHERE id = $1`, [stepsA[0].id]);
+    await db.query(`UPDATE estimate_followup_steps SET due_at = NOW() - INTERVAL '10 days' WHERE id = ANY($1)`, [[stepsB[0].id, stepsB[1].id]]);
+
+    process.env.ESTIMATE_FOLLOWUP_LIVE_SEND_ALLOWLIST = seqA.id;
+    assert.ok(engine.getLiveSendAllowlist());
+    assert.strictEqual(engine.isAllowedToLiveSend(seqA, engine.getLiveSendAllowlist()), true);
+    assert.strictEqual(engine.isAllowedToLiveSend(seqB, engine.getLiveSendAllowlist()), false);
+
+    sentEmails.length = 0;
+    const summary = await engine.processEstimateFollowups({ dryRun: false, triggeredBy: 'test' });
+    assert.strictEqual(summary.sent, 1, 'only the allowlisted sequence sends');
+    assert.strictEqual(summary.heldByAllowlist, 1, 'the non-allowlisted sequence is held, not sent and not stopped');
+    assert.strictEqual(summary.liveSendAllowlistActive, true);
+    assert.strictEqual(sentEmails.length, 1);
+    assert.strictEqual(sentEmails[0].to, `${RUN}.allow-id-a@example.com`);
+
+    const updatedB = await engine.getStepsForSequence(seqB.id);
+    const byNumberB = Object.fromEntries(updatedB.map((s) => [s.step_number, s]));
+    assert.strictEqual(byNumberB[1].status, 'pending', 'held sequence: step 1 left exactly as-is, never marked skipped');
+    assert.strictEqual(byNumberB[2].status, 'pending', 'held sequence: step 2 left exactly as-is, never marked skipped');
+    const freshB = (await db.query('SELECT status FROM estimate_followup_sequences WHERE id = $1', [seqB.id])).rows[0];
+    assert.strictEqual(freshB.status, 'active', 'held sequence is never stopped, just held for a later tick');
+  } finally {
+    delete process.env.ESTIMATE_FOLLOWUP_LIVE_SEND_ALLOWLIST;
+    // B was deliberately left 'active' with overdue pending steps to prove
+    // the hold never mutates it — clean it up now so it doesn't pollute
+    // every later test's global due-sequence counts for the rest of this
+    // shared-database suite.
+    await engine.stopSequence({ sequenceId: seqB.id, reason: 'test_cleanup', stoppedBy: 'test' });
+  }
+});
+
+test('ESTIMATE_FOLLOWUP_LIVE_SEND_ALLOWLIST matches by recipient email too (case-insensitive)', { skip }, async () => {
+  const leadA = await makeLead({ email: `${RUN}.Allow-Email-A@example.com` });
+  const estA = await makeEstimate(leadA);
+  const { sequence: seqA } = await engine.confirmEstimateSent({ leadId: leadA, handoffEstimateId: estA, confirmedBy: 'rep@example.com' });
+  try {
+    const stepsA = await engine.getStepsForSequence(seqA.id);
+    await db.query(`UPDATE estimate_followup_steps SET due_at = NOW() - INTERVAL '1 hour' WHERE id = $1`, [stepsA[0].id]);
+
+    process.env.ESTIMATE_FOLLOWUP_LIVE_SEND_ALLOWLIST = `  ${RUN}.ALLOW-EMAIL-A@EXAMPLE.COM  `; // whitespace + case variance
+
+    sentEmails.length = 0;
+    const summary = await engine.processEstimateFollowups({ dryRun: false, triggeredBy: 'test' });
+    assert.strictEqual(summary.sent, 1);
+    assert.strictEqual(summary.heldByAllowlist, 0);
+    assert.strictEqual(sentEmails.length, 1);
+  } finally {
+    delete process.env.ESTIMATE_FOLLOWUP_LIVE_SEND_ALLOWLIST;
+  }
+});
+
+test('ESTIMATE_FOLLOWUP_LIVE_SEND_ALLOWLIST never restricts dry-run reporting (wouldSend is unaffected)', { skip }, async () => {
+  const leadA = await makeLead({ email: `${RUN}.allow-dryrun-a@example.com` });
+  const estA = await makeEstimate(leadA);
+  const { sequence: seqA } = await engine.confirmEstimateSent({ leadId: leadA, handoffEstimateId: estA, confirmedBy: 'rep@example.com' });
+  try {
+    const stepsA = await engine.getStepsForSequence(seqA.id);
+    await db.query(`UPDATE estimate_followup_steps SET due_at = NOW() - INTERVAL '1 hour' WHERE id = $1`, [stepsA[0].id]);
+
+    process.env.ESTIMATE_FOLLOWUP_LIVE_SEND_ALLOWLIST = 'nobody-on-this-list@example.com';
+    sentEmails.length = 0;
+    const summary = await engine.processEstimateFollowups({ dryRun: true, triggeredBy: 'test' });
+    assert.strictEqual(summary.wouldSend, 1, 'dry-run reporting is unaffected by the allowlist — it only gates a REAL send');
+    assert.strictEqual(summary.heldByAllowlist, 0);
+    assert.strictEqual(sentEmails.length, 0);
+  } finally {
+    delete process.env.ESTIMATE_FOLLOWUP_LIVE_SEND_ALLOWLIST;
+    // dry-run never advances the step — it's still overdue and 'pending'
+    // after this test; stop the sequence so it doesn't leak into later
+    // tests' global due-sequence counts.
+    await engine.stopSequence({ sequenceId: seqA.id, reason: 'test_cleanup', stoppedBy: 'test' });
+  }
+});
+
 // ── 3. One email per lead per calendar day ─────────────────────────────────
 test('a lead that already received an estimate-followup email today is deferred, never double-sent same day', { skip }, async () => {
   const leadId = await makeLead({ email: `${RUN}.oneperday@example.com` });
