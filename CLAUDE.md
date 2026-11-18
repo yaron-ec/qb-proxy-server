@@ -5267,6 +5267,118 @@ currently-due sequence send too.
   applied — confirming zero regression to the pre-existing lifecycle,
   dedup, and status-stop behavior this change sits on top of.
 
+## Automated "Sold" customer welcome email (`lib/soldWelcomeEmail.js`, November 2026, built — automatic trigger off by default)
+
+A completely separate, deliberately decoupled automation from the Estimate
+Follow-Up sequence above (no shared code — see the module's own header for
+why) — sends one branded "Welcome to the EC Construction Group Family!"
+email the moment a lead's status enters `'Sold'`. Content is the business
+owner's own exact approved wording (`lib/emailTemplates.js#soldWelcomeEmail`),
+rendered through the existing `shell()` branded wrapper (real logo, navy/
+gold, no placeholder branding) with a real plain-text alternative — a
+genuine gap found and fixed here: `lib/gmailSender.js#buildMime`/`sendEmail`
+and `lib/emailService.js#send` previously had no way to pass a real
+plain-text body at all (always a generic placeholder); all three now accept
+an optional `textBody`, defaulting to the old placeholder when omitted, so
+every pre-existing caller is byte-for-byte unaffected.
+
+- **Edge detection**: `lib/soldWelcomeEmail.js#isEnteringSoldStatus` — the
+  same `isEnteringX(old, new)` shape as `lib/leadStatus.js#isEnteringTerminalLostStatus`
+  and `lib/estimateFollowupEligibility.js#isEnteringDisqualifyingStatus`, but
+  a THIRD, independent copy — `'Sold'` must never be added to
+  `lib/leadStatus.js` itself (that module's own header explains why: a
+  post-sale appointment must never be auto-cancelled). Wired into BOTH of
+  `routes/leads.js`'s status-write paths (`PUT /:id` and
+  `PUT /by-external/:externalRef`), computed alongside the existing
+  `enteringTerminalLost`/`enteringEstimateFollowupStop` checks and fired
+  post-commit, best-effort (try/catch, never blocks the response) —
+  identical shape to those two existing hooks.
+- **Idempotency ("send only once per actual sale")**: two layers. (1)
+  `lib/emailService.js`'s own `email_send_claims` keyed by a PERMANENT,
+  per-lead idempotency key `sold-welcome:<lead.id>` — once a real send
+  succeeds for a lead, that key can never send again, ever, for the
+  lead's entire lifetime, race-safe by construction. (2) this module's own
+  `sold_welcome_emails` table (`UNIQUE(lead_id)`,
+  `db/migrations/2026-76-sold-welcome-email.sql`) — an `INSERT ... ON
+  CONFLICT (lead_id) DO UPDATE ... WHERE status IS DISTINCT FROM 'sent'`
+  upsert, so a row already `'sent'` can never be overwritten, while a
+  `'skipped_*'`/`'failed'` row (no real send ever happened) CAN be updated
+  on a later attempt. **Deliberate interpretation of "reopened and returned
+  to Sold"**: taken literally — a lead whose row already reached `'sent'`
+  never sends again no matter how many more times it leaves and re-enters
+  `'Sold'` (there is no separate "deal" entity transition counter in this
+  schema to distinguish a second genuine sale); a lead that was only ever
+  skipped (no email on file, etc.) DOES get a fresh real attempt on a later
+  re-entry, since that may be the first genuine opportunity to welcome them.
+- **Missing/invalid email (requirement, never a silent drop)**: records
+  `'skipped_no_email'`/`'skipped_invalid_email'` (own locally-duplicated
+  `EMAIL_RE`, deliberately not importing
+  `lib/estimateFollowupEligibility.js#isValidEmail` — see the module's own
+  decoupling rationale), logs an `activities` note (`source: 'manual'`,
+  this codebase's established convention for an automated note — see
+  `routes/signnowWebhook.js`'s SignNow-auto-decline precedent), and emails
+  the lead's owner (or, with no owner/no owner email on file, broadcasts to
+  staff via the existing `CATEGORIES.ACTIVITY` notification-preference
+  category — Michelle's single-category policy excludes her automatically,
+  zero new person-specific logic).
+- **Success/failure audit (requirement #8)**: `sold_welcome_emails` records
+  recipient/subject/body_html/idempotency_key/gmail_message_id/sent_at/
+  error_message/attempts/triggered_by; a real send failure (after
+  `emailService.send`'s own bounded retries) is recorded `'failed'` with
+  the error, and a LATER call (the lead is edited/re-saved, or genuinely
+  retried) attempts again — `owner_notified_at` is set only once the
+  owner-notify email itself actually succeeds. The owner-notify step
+  (`safeNotifyOwner`) is deliberately isolated so it can NEVER turn an
+  already-successful welcome-email send into a reported failure, and can
+  never throw back to the caller even if the owner lookup itself fails.
+- **Retroactive sending (requirement — explicitly NOT done)**: the
+  automatic trigger only ever fires on the live status-write edge; no
+  backfill/bulk-enrollment script exists or was run for this feature —
+  unlike the Estimate Follow-Up feature's own (separately gated, separately
+  authorized) auto-enrollment scan, there is no equivalent "scan every
+  historical Sold lead" mechanism here at all.
+- **Admin CRM surface** (`routes/soldWelcomeEmail.js`, admin-only —
+  `requireAuth`+`requireAdmin`, same convention as
+  `routes/reminderDiagnostics.js`): `GET .../preview` (pure render, no DB
+  write, no send — the EXACT branded HTML the lead would receive, real
+  first name, never placeholder branding), `GET .../sold-welcome-email`
+  (current audit record + whether the automatic trigger is enabled), `POST
+  .../send` (manual trigger for ONE lead — bypasses the automatic-trigger
+  feature gate since it's an explicit human action, but NOT the per-lead
+  idempotency: a lead already `'sent'` is refused 409, never re-sent).
+  `crm-frontend/src/components/SoldWelcomeEmailPanel.jsx` (admin-only, both
+  desktop and mobile columns of `LeadDetailModern.jsx`) renders this —
+  on-demand status/preview (never auto-fetched on page load), a confirm
+  step before any real "Send Now".
+- **Activation gate**: `SOLD_WELCOME_EMAIL_ENABLED` (default unset/false)
+  gates ONLY the automatic Sold-status-change trigger
+  (`handleLeadEnteringSold`) — mirrors this codebase's established
+  `SMS_AUTOMATED_REMINDERS_ENABLED`/`ESTIMATE_FOLLOWUP_DRY_RUN` safe-by-
+  default precedent. The admin-only manual send endpoint is NOT gated by
+  this flag (an explicit, human-authorized action on one specific lead is
+  not the automatic trigger this flag exists to hold back) — it is gated
+  by `requireAdmin` and the per-lead idempotency check instead.
+- Regression coverage: `test/soldWelcomeEmail.test.js` (DB-stubbed unit —
+  edge detection, email validation, the feature gate, every
+  sent/skipped/failed/already-sent/never-throws branch, and a source-level
+  guard that both `routes/leads.js` write paths wire the hook);
+  `test/integration/soldWelcomeEmail.int.test.js` (real Postgres — the
+  actual `UNIQUE(lead_id)`/`ON CONFLICT` upsert SQL, a second call for the
+  same lead never re-sending, a skipped-then-later-valid-email lead
+  genuinely sending once an email is added, a failed-then-retried send
+  succeeding, the no-owner-email staff-broadcast fallback with Michelle's
+  real seeded exclusion, and the feature gate being a real no-op against
+  the DB). Full existing backend unit suite re-run clean (1621 pass, 0
+  fail, 1 pre-existing unrelated todo) and full frontend vitest suite
+  re-run clean (457 pass) with every change in this section applied; `npm
+  run build:exit` confirmed clean.
+
+**Not yet enabled in production** — `SOLD_WELCOME_EMAIL_ENABLED` is unset
+on `qb-proxy-server`; the automatic trigger is fully inert until an
+operator explicitly sets it, per this feature's own activation sequence
+(implement → preview → internal test send → one authorized one-time send →
+only then enable the automatic trigger).
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`
