@@ -124,3 +124,46 @@ test('MAX_STEP_ATTEMPTS is a small positive bound (never an unbounded retry loop
   assert.ok(Number.isInteger(engine.MAX_STEP_ATTEMPTS));
   assert.ok(engine.MAX_STEP_ATTEMPTS > 0 && engine.MAX_STEP_ATTEMPTS <= 10);
 });
+
+// ── getLiveSendAllowlist / isAllowedToLiveSend (November 2026 controlled
+// live-send safety net) ──────────────────────────────────────────────────
+test('getLiveSendAllowlist: unset or blank env var returns null (no restriction, existing behavior unchanged)', () => {
+  delete process.env.ESTIMATE_FOLLOWUP_LIVE_SEND_ALLOWLIST;
+  assert.strictEqual(engine.getLiveSendAllowlist(), null);
+  process.env.ESTIMATE_FOLLOWUP_LIVE_SEND_ALLOWLIST = '   ';
+  assert.strictEqual(engine.getLiveSendAllowlist(), null);
+  process.env.ESTIMATE_FOLLOWUP_LIVE_SEND_ALLOWLIST = ',, ,';
+  assert.strictEqual(engine.getLiveSendAllowlist(), null);
+  delete process.env.ESTIMATE_FOLLOWUP_LIVE_SEND_ALLOWLIST;
+});
+
+test('getLiveSendAllowlist: parses a comma-separated list, trimmed and lowercased', () => {
+  process.env.ESTIMATE_FOLLOWUP_LIVE_SEND_ALLOWLIST = ' Some-Id-1 , test@Example.com ,, ';
+  const list = engine.getLiveSendAllowlist();
+  assert.ok(list instanceof Set);
+  assert.ok(list.has('some-id-1'));
+  assert.ok(list.has('test@example.com'));
+  assert.strictEqual(list.size, 2);
+  delete process.env.ESTIMATE_FOLLOWUP_LIVE_SEND_ALLOWLIST;
+});
+
+test('isAllowedToLiveSend: with no allowlist (null), every sequence is allowed', () => {
+  assert.strictEqual(engine.isAllowedToLiveSend({ id: 'anything', recipient_email: 'a@b.com' }, null), true);
+});
+
+test('isAllowedToLiveSend: matches by sequence id (case-insensitive)', () => {
+  const list = new Set(['abc-123']);
+  assert.strictEqual(engine.isAllowedToLiveSend({ id: 'ABC-123', recipient_email: 'nobody@x.com' }, list), true);
+  assert.strictEqual(engine.isAllowedToLiveSend({ id: 'other-id', recipient_email: 'nobody@x.com' }, list), false);
+});
+
+test('isAllowedToLiveSend: matches by recipient_email (case-insensitive)', () => {
+  const list = new Set(['yaron.dsm@gmail.com']);
+  assert.strictEqual(engine.isAllowedToLiveSend({ id: 'whatever', recipient_email: 'Yaron.DSM@Gmail.com' }, list), true);
+  assert.strictEqual(engine.isAllowedToLiveSend({ id: 'whatever', recipient_email: 'someone-else@gmail.com' }, list), false);
+});
+
+test('isAllowedToLiveSend: a non-empty allowlist denies a sequence matching neither id nor email', () => {
+  const list = new Set(['only-this-id', 'only-this@email.com']);
+  assert.strictEqual(engine.isAllowedToLiveSend({ id: 'different', recipient_email: 'different@email.com' }, list), false);
+});
