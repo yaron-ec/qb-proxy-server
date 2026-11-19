@@ -58,7 +58,7 @@ test('runWatchdog(): the scan summary names every unhealthy service with its rea
   const { runWatchdog } = require('../productionWatchdog');
   try {
     const summary = await runWatchdog();
-    assert.strictEqual(summary.total, 11);
+    assert.strictEqual(summary.total, 12);
     assert.strictEqual(summary.unhealthy, 2);
     assert.ok(Array.isArray(summary.unhealthyServices), 'unhealthyServices must be present and an array — this is exactly the missing breakdown');
     assert.strictEqual(summary.unhealthyServices.length, 2);

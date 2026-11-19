@@ -79,7 +79,7 @@ test('probeService (lib/monitoring/healthProbes.js) has a dispatch case for ever
   }
 });
 
-test('the full expected healthSignal roster for all 11 monitored services matches this known-good inventory (fails loudly if a service is added/removed/retargeted without updating this audit)', () => {
+test('the full expected healthSignal roster for all 12 monitored services matches this known-good inventory (fails loudly if a service is added/removed/retargeted without updating this audit)', () => {
   const { getMonitoredServices } = freshServiceInventory();
   const services = getMonitoredServices();
   const roster = Object.fromEntries(services.map((s) => [s.id, s.healthSignal || 'http']));
@@ -87,6 +87,7 @@ test('the full expected healthSignal roster for all 11 monitored services matche
     'qb-proxy-server': 'http',
     'reminder-worker': 'reminder_runs_heartbeat',
     'calendar-outbox-worker': 'outbox_backlog',
+    'calendar-outbox-heartbeat': 'calendar_worker_heartbeat',
     'google-contacts-outbox': 'google_contacts_outbox_backlog',
     'gmail-integration': 'gmail_integration',
     'website-intake': 'website_intake_silence',
@@ -96,7 +97,12 @@ test('the full expected healthSignal roster for all 11 monitored services matche
     'handoff-integration': 'handoff_integration',
     postgres: 'db_connection',
   });
-  assert.strictEqual(services.length, 11);
+  assert.strictEqual(services.length, 12);
+});
+
+test('calendar-outbox-heartbeat is alert-only (circuit-breaker-protected), never a restart candidate, since it is the same physical worker as calendar-outbox-worker', () => {
+  const { CIRCUIT_BREAKER_SERVICES } = require('../lib/monitoring/recoveryPolicy');
+  assert.ok(CIRCUIT_BREAKER_SERVICES.includes('calendar-outbox-heartbeat'));
 });
 
 test('website-intake-rejections is the ONLY service marked alwaysCritical, and it is also the only genuine-delivery-failure signal among the two website-intake entries', () => {
