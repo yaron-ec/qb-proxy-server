@@ -130,7 +130,7 @@ const dbClientPath = require.resolve('../db/client');
 delete require.cache[dbClientPath];
 require.cache[dbClientPath] = {
   id: dbClientPath, filename: dbClientPath, loaded: true,
-  exports: { pool: makeFakePool(), query: async () => ({ rows: [] }) },
+  exports: { pool: makeFakePool(), query: async () => ({ rows: [] }), guardClient: (c) => { c._guardErrored = c._guardErrored || (() => false); return c; } },
 };
 
 delete require.cache[require.resolve('../lib/qbSyncTrigger')];

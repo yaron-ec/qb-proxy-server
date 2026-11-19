@@ -54,6 +54,47 @@ pool.on('error', (err, client) => {
   console.error('[db] pool error:', err.message);
 });
 
+/**
+ * guardClient(client, label) — November 2026 P0 outage fix.
+ *
+ * `pool.on('error', ...)` above only covers IDLE, pool-owned clients. A
+ * client explicitly checked out via `pool.connect()` and held across
+ * non-trivial async work (an advisory lock held across a QuickBooks network
+ * call, a multi-statement migration run, a token refresh) is a SEPARATE
+ * EventEmitter — if the underlying connection drops while that client has no
+ * 'error' listener of its own, Node's default behavior for an unhandled
+ * 'error' event is to throw, crashing the whole process. This is exactly
+ * what killed qb-proxy-server during a transient Postgres network blip
+ * (confirmed via the crash's own stack trace: "Emitted 'error' event on
+ * Client instance" from a client checked out by
+ * lib/advisoryLock.js#tryWithAdvisoryLock, held across the QB inbound
+ * reconciliation loop's real network calls).
+ *
+ * This attaches a listener (so the 'error' event is handled, never thrown)
+ * and tracks whether one fired, so the caller's own `finally` block can
+ * discard the connection (`client.release(true)`) instead of returning a
+ * now-broken socket to the pool for a future caller to inherit. Does NOT
+ * retry or reconnect this specific client — the operation it was in the
+ * middle of has already failed and must surface that failure to its own
+ * caller exactly as before; this only prevents that failure from crashing
+ * the entire process.
+ */
+function guardClient(client, label) {
+  let erroredAt = null;
+  // A real pg Client is always an EventEmitter (.on exists) — this guard is
+  // only for a test double/mock that doesn't implement it, so a unit test's
+  // lightweight stub client never has to grow an EventEmitter interface
+  // just to be usable with this helper.
+  if (typeof client.on === 'function') {
+    client.on('error', (err) => {
+      erroredAt = new Date().toISOString();
+      console.error(`[db] checked-out client error (${label}) — connection will be discarded, not returned to the pool: ${err.message}`);
+    });
+  }
+  client._guardErrored = () => !!erroredAt;
+  return client;
+}
+
 // Same key db/migrate.js holds while migrating — schema DDL is never run by two
 // sessions at once, and never concurrently with a migration.
 const MIGRATION_LOCK_KEY = 0x4d494752; // 'MIGR' as int32
@@ -135,7 +176,7 @@ async function ensureSchema() {
   if (!_ensuring) {
     _ensuring = (async () => {
       if (await baseSchemaCurrent(query)) return;
-      const client = await pool.connect();
+      const client = guardClient(await pool.connect(), 'ensureSchema');
       try {
         await client.query('SELECT pg_advisory_lock($1)', [MIGRATION_LOCK_KEY]);
         try {
@@ -146,7 +187,7 @@ async function ensureSchema() {
           await client.query('SELECT pg_advisory_unlock($1)', [MIGRATION_LOCK_KEY]).catch(() => {});
         }
       } finally {
-        client.release();
+        client.release(client._guardErrored());
       }
     })();
   }
@@ -182,4 +223,4 @@ async function query(text, params) {
   return pool.query(text, params);
 }
 
-module.exports = { pool, ensureSchema, applyBaseSchema, ensureColumns, query, MIGRATION_LOCK_KEY };
+module.exports = { pool, ensureSchema, applyBaseSchema, ensureColumns, query, MIGRATION_LOCK_KEY, guardClient };

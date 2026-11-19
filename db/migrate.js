@@ -107,11 +107,16 @@ async function runMigrationsOn(client) {
 }
 
 async function runMigrations() {
-  const client = await db.pool.connect();
+  // guardClient (November 2026 P0 outage fix): held across every migration
+  // statement; see db/client.js#guardClient's own header for the incident
+  // this prevents a recurrence of (a dropped connection here previously
+  // risked an uncaught process crash instead of the clean, logged failure
+  // the Dockerfile CMD chain already expects via exit(1)).
+  const client = db.guardClient(await db.pool.connect(), 'migrate');
   try {
     await runMigrationsOn(client);
   } finally {
-    client.release();
+    client.release(client._guardErrored());
   }
 }
 

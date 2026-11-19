@@ -20,7 +20,15 @@
  *   7. Sends alerts via independent channel (Railway emailService + Slack webhook).
  *
  * What it does NOT do:
- *   - Does NOT auto-restart services (Railway API token is read-only).
+ *   - Does NOT attempt a restart for a service with no railwayProjectId/
+ *     railwayServiceId in serviceInventory.js, or when RAILWAY_API_TOKEN is
+ *     unset/insufficiently scoped (checked live via railwayApiClient — this
+ *     degrades to alert-only exactly as before, never throws).
+ *   - Does NOT restart a CIRCUIT_BREAKER_SERVICES entry (cron/loop-managed
+ *     worker — see recoveryPolicy.js) under any circumstance.
+ *   - Does NOT attempt more than one restart per open incident (see
+ *     executeRecovery/recordRecoveryOutcome below) — a second failure on the
+ *     same still-open incident escalates instead of restarting again.
  *   - Does NOT auto-rollback deployments (requires deployment management scopes).
  *   - Does NOT send customer emails or mutate production data.
  *   - Does NOT monitor clever-manifestation (LEGACY_UNUSED).
@@ -38,9 +46,10 @@ const { dispatchMonitoringAlert } = require('./lib/monitoring/alertDispatcher');
 const { evaluateRecovery, isEscalationError } = require('./lib/monitoring/recoveryPolicy');
 const railwayApi = require('./lib/monitoring/railwayApiClient');
 
-// Post-restart health verification: poll for up to 90 seconds
-const RESTART_VERIFY_TIMEOUT_MS = 90 * 1000;
-const RESTART_VERIFY_INTERVAL_MS = 10 * 1000;
+// Post-restart health verification: poll for up to 90 seconds (overridable
+// only for tests — a real deploy never sets these env vars).
+const RESTART_VERIFY_TIMEOUT_MS = parseInt(process.env.WATCHDOG_RESTART_VERIFY_TIMEOUT_MS || '', 10) || 90 * 1000;
+const RESTART_VERIFY_INTERVAL_MS = parseInt(process.env.WATCHDOG_RESTART_VERIFY_INTERVAL_MS || '', 10) || 10 * 1000;
 
 async function verifyServiceHealth(service, baseUrl) {
   const deadline = Date.now() + RESTART_VERIFY_TIMEOUT_MS;
@@ -52,46 +61,59 @@ async function verifyServiceHealth(service, baseUrl) {
   return { healthy: false, reason: 'Health did not recover within 90s after restart' };
 }
 
-async function attemptSafeRecovery(service, result, incident, baseUrl) {
-  const errorSummary = result.error || 'Unknown failure';
-  const isCrashLoop = incident?.is_crash_loop || (incident?.failure_count >= 3);
-
-  // Level 3 — escalation errors: BLOCK recovery
-  if (isEscalationError(errorSummary)) {
+// Executes the recovery decision from recoveryPolicy.js#evaluateRecovery, for
+// REAL, when it is safe to do so. Previously (found during the November 2026
+// P0 outage response) this function existed but had ZERO call sites anywhere
+// in the codebase — handleFailure() only ever logged evaluateRecovery()'s
+// static decision TEXT into the alert email ("AUTO_RECOVERY_ATTEMPTED:
+// restart" / "...One controlled restart permitted.") without ever actually
+// restarting anything, for two services that crashed outright, for roughly
+// three hours, until a human noticed a Railway dashboard screenshot. Fixed
+// by wiring this into handleFailure below and making it perform the restart
+// it describes, bounded to exactly ONE attempt per open incident (tracked on
+// monitoring_incidents.recovery_action, which this function is now the only
+// writer of) — a second failure on the SAME still-open incident never
+// re-attempts; it escalates, exactly like an exhausted crash-loop would.
+async function executeRecovery(service, recoveryDecision, incident) {
+  if (recoveryDecision.action !== 'restart') {
+    return { attempted: false, restarted: false, outcome: recoveryDecision.reason };
+  }
+  // Bounded to one attempt per incident — recovery_action is only ever set
+  // by this function, so a non-null value here means a prior failure on
+  // this SAME open incident already tried it.
+  if (incident.recovery_action) {
     return {
-      action: 'escalate',
       attempted: false,
-      reason: `Automatic recovery BLOCKED — escalation error pattern: ${errorSummary.slice(0, 100)}`,
+      restarted: false,
+      outcome: `Already attempted a ${incident.recovery_action} for this incident (result: ${incident.recovery_result || 'unknown'}) — not restarting again. Escalating.`,
     };
   }
-
-  // Crash loop: BLOCK restart
-  if (isCrashLoop) {
-    return {
-      action: 'escalate',
-      attempted: false,
-      reason: 'Automatic recovery BLOCKED — crash loop detected (3+ failures in 10 min)',
-    };
+  if (!service.railwayProjectId || !service.railwayServiceId) {
+    return { attempted: false, restarted: false, outcome: 'Restart recommended, but this service has no Railway project/service ID configured in serviceInventory.js — operator must restart via the Railway dashboard.' };
   }
-
-  // Level 1 — transient failure: attempt ONE controlled restart
+  // checkCapabilities() only proves the token is VALID and of the right
+  // type — it does not prove it can actually mutate THIS project/service
+  // (an account token could still lack access to this specific project).
+  // The real proof is restartService()'s own result below: a successful
+  // Railway API request is itself not proof of recovery either — that is
+  // why the caller polls verifyServiceHealth() afterward rather than
+  // trusting `result.success` alone.
   const caps = await railwayApi.checkCapabilities();
   if (!caps.canRestart) {
-    return {
-      action: 'escalate',
-      attempted: false,
-      reason: `Restart not available — ${caps.reason}. Operator must restart via Railway dashboard.`,
-    };
+    return { attempted: false, restarted: false, outcome: `Restart not available — ${caps.reason}. Operator must restart via the Railway dashboard.` };
   }
+  const result = await railwayApi.restartService(service.railwayProjectId, service.railwayServiceId);
+  if (!result.success) {
+    return { attempted: true, restarted: false, outcome: `Restart API call failed: ${result.error}. Operator must restart via the Railway dashboard.` };
+  }
+  return { attempted: true, restarted: true, outcome: `Restart triggered via Railway API (restartId: ${result.restartId || 'n/a'}). Polling health before declaring recovery...` };
+}
 
-  // Attempt restart (requires project/service IDs from Railway API)
-  // Since we don't have the IDs in the inventory yet, we report the action
-  // and the operator performs it. When IDs are available, this becomes automatic.
-  return {
-    action: 'restart',
-    attempted: false,
-    reason: 'Restart recommended — Railway API token scope insufficient for automated restart. Operator must restart via Railway dashboard. Post-restart health verification will run on next watchdog cycle.',
-  };
+async function recordRecoveryOutcome(incidentId, action, outcome) {
+  await db.query(
+    `UPDATE monitoring_incidents SET recovery_action = $2, recovery_result = $3 WHERE id = $1`,
+    [incidentId, action, outcome]
+  );
 }
 
 async function recordHealthCheck(result) {
@@ -103,7 +125,7 @@ async function recordHealthCheck(result) {
   );
 }
 
-async function handleFailure(service, result) {
+async function handleFailure(service, result, baseUrl) {
   const { incident, isNew, isCrashLoop } = await crashLoop.recordFailure(
     service.id, result.error || 'Unknown failure', result.checkType, result.details || {}
   );
@@ -133,6 +155,57 @@ async function handleFailure(service, result) {
   // other service's level is completely unaffected (default unchanged).
   const level = (service.alwaysCritical || isCrashLoop) ? 'critical' : 'warning';
 
+  const { attempted, restarted, outcome } = await executeRecovery(service, recoveryDecision, incident);
+  if (attempted || recoveryDecision.action === 'restart') {
+    await recordRecoveryOutcome(incident.id, recoveryDecision.action, outcome);
+  }
+
+  // November 2026 P0 outage follow-up: "a successful API request is not
+  // proof of recovery" — when a restart was genuinely triggered, poll the
+  // service's own real health check (never just trust the Railway API's
+  // 200) before deciding whether to tell anyone it's fixed. This produces
+  // exactly one of two alerts, both distinct from the generic failure
+  // alert below: a verified-recovery confirmation, or an escalated
+  // recovery-failed critical alert — never a silent nothing either way.
+  if (restarted) {
+    const verify = await verifyServiceHealth(service, baseUrl);
+    if (verify.healthy) {
+      const verifiedOutcome = `${outcome} VERIFIED healthy at ${verify.verifiedAt} (polled, not assumed from the API call alone).`;
+      await recordRecoveryOutcome(incident.id, recoveryDecision.action, verifiedOutcome);
+      await crashLoop.recordSuccess(service.id); // resolves the incident now, not on the next regular tick
+      await dispatchMonitoringAlert({
+        serviceId: service.id,
+        level: 'info',
+        errorSummary: 'Recovery verified — automatic restart succeeded and service health was independently re-checked afterward.',
+        errorType: 'recovery_verified',
+        httpStatus: verify.result?.httpStatus,
+        isCrashLoop: false,
+        recoveryAction: recoveryDecision.action,
+        recoveryResult: verifiedOutcome,
+        incidentId: incident.id,
+        logLines: [],
+      });
+      await crashLoop.markAlertSent(incident.id);
+      return;
+    }
+    const failedOutcome = `${outcome} Verification FAILED: ${verify.reason}`;
+    await recordRecoveryOutcome(incident.id, recoveryDecision.action, failedOutcome);
+    await dispatchMonitoringAlert({
+      serviceId: service.id,
+      level: 'critical',
+      errorSummary: `Automatic restart was triggered but the service did NOT become healthy within ${Math.round(RESTART_VERIFY_TIMEOUT_MS / 1000)}s — operator must investigate immediately.`,
+      errorType: 'recovery_failed',
+      httpStatus: result.httpStatus,
+      isCrashLoop,
+      recoveryAction: recoveryDecision.action,
+      recoveryResult: failedOutcome,
+      incidentId: incident.id,
+      logLines: [],
+    });
+    await crashLoop.markAlertSent(incident.id);
+    return;
+  }
+
   await dispatchMonitoringAlert({
     serviceId: service.id,
     level,
@@ -141,7 +214,8 @@ async function handleFailure(service, result) {
     httpStatus: result.httpStatus,
     isCrashLoop,
     recoveryAction: recoveryDecision.action,
-    recoveryResult: recoveryDecision.reason,
+    recoveryResult: outcome,
+    incidentId: incident.id,
     logLines: [],
   });
 
@@ -154,12 +228,13 @@ async function handleSuccess(service, result) {
     await dispatchMonitoringAlert({
       serviceId: service.id,
       level: 'info',
-      errorSummary: 'Service recovered — incident resolved',
+      errorSummary: 'Service recovered — incident resolved (health was observed healthy on a regular watchdog cycle, independent of any restart)',
       errorType: 'recovery',
       httpStatus: result.httpStatus,
       isCrashLoop: false,
       recoveryAction: 'none',
       recoveryResult: 'healthy',
+      incidentId: incident.id,
       logLines: [],
     });
   }
@@ -188,7 +263,7 @@ async function runWatchdog() {
       if (result.healthy) {
         await handleSuccess(service, result);
       } else {
-        await handleFailure(service, result);
+        await handleFailure(service, result, baseUrl);
       }
     }
 
@@ -211,7 +286,7 @@ async function runWatchdog() {
     return summary;
 }
 
-module.exports = { runWatchdog };
+module.exports = { runWatchdog, handleFailure, executeRecovery, recordRecoveryOutcome };
 
 // If run directly (not required as a module), execute and exit
 if (require.main === module) {
