@@ -74,6 +74,7 @@ test('syncAllMappedCustomers: paces between customers and reports a sanitized, s
       return { rows: [] }; // every UPDATE/cache write below
     },
     pool: makeFakePool(),
+    guardClient: (c) => { c._guardErrored = c._guardErrored || (() => false); return c; },
   });
   const restoreTokenStore = stub('../lib/qbTokenStore', { markUsed: async () => {} });
   const restoreSaleMap = stub('../lib/qbInvoiceSaleMap', {
@@ -115,6 +116,7 @@ test('syncAllMappedCustomers: a status-less failure (e.g. a DB write error) is s
       return { rows: [] };
     },
     pool: makeFakePool(),
+    guardClient: (c) => { c._guardErrored = c._guardErrored || (() => false); return c; },
   });
   const restoreTokenStore = stub('../lib/qbTokenStore', { markUsed: async () => {} });
   const restoreSaleMap = stub('../lib/qbInvoiceSaleMap', { upsertInvoiceCacheFromQb: async () => {}, upsertMapping: async () => {} });
@@ -140,6 +142,7 @@ test('syncAllMappedCustomers: zero failures -> an empty failureSummary, not a mi
       return { rows: [] };
     },
     pool: makeFakePool(),
+    guardClient: (c) => { c._guardErrored = c._guardErrored || (() => false); return c; },
   });
   const restoreTokenStore = stub('../lib/qbTokenStore', { markUsed: async () => {} });
   const restoreSaleMap = stub('../lib/qbInvoiceSaleMap', { upsertInvoiceCacheFromQb: async () => {}, upsertMapping: async () => {} });
@@ -162,6 +165,7 @@ test('syncAllMappedCustomers: single customer -> zero pacing sleeps (nothing to 
   const restoreDb = stub('../db/client', {
     query: async (sql) => (/SELECT DISTINCT qb_customer_id/.test(sql) ? { rows: [{ qb_customer_id: 'C1' }] } : { rows: [] }),
     pool: makeFakePool(),
+    guardClient: (c) => { c._guardErrored = c._guardErrored || (() => false); return c; },
   });
   const restoreTokenStore = stub('../lib/qbTokenStore', { markUsed: async () => {} });
   const restoreSaleMap = stub('../lib/qbInvoiceSaleMap', { upsertInvoiceCacheFromQb: async () => {}, upsertMapping: async () => {} });
@@ -188,6 +192,7 @@ test('syncAllMappedCustomers: stops early the moment the circuit breaker opens, 
       return { rows: [] };
     },
     pool: makeFakePool(),
+    guardClient: (c) => { c._guardErrored = c._guardErrored || (() => false); return c; },
   });
   const restoreTokenStore = stub('../lib/qbTokenStore', { markUsed: async () => {} });
   const restoreSaleMap = stub('../lib/qbInvoiceSaleMap', { upsertInvoiceCacheFromQb: async () => {}, upsertMapping: async () => {} });
@@ -222,6 +227,7 @@ test('syncAllMappedCustomers: an overlapping call (same or a different process, 
   const restoreDb = stub('../db/client', {
     query: async (sql) => (/SELECT DISTINCT qb_customer_id/.test(sql) ? { rows: [{ qb_customer_id: 'C1' }] } : { rows: [] }),
     pool: fakePool,
+    guardClient: (c) => { c._guardErrored = c._guardErrored || (() => false); return c; },
   });
   const restoreTokenStore = stub('../lib/qbTokenStore', { markUsed: async () => {} });
   const restoreSaleMap = stub('../lib/qbInvoiceSaleMap', { upsertInvoiceCacheFromQb: async () => {}, upsertMapping: async () => {} });

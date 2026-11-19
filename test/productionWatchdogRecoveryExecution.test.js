@@ -66,29 +66,89 @@ function baseStubs({ restartResult, caps, dbUpdates } = {}) {
   return restores;
 }
 
-test('executeRecovery actually calls railwayApi.restartService for an eligible, non-circuit-breaker service with Railway IDs on a brand-new incident', async () => {
+test('executeRecovery actually calls railwayApi.restartService for an eligible, non-circuit-breaker service with Railway IDs on a brand-new incident, and verifies health before confirming recovery', async () => {
   const dbUpdates = { restartCalls: [], recoveryUpdates: [] };
   const restores = baseStubs({ dbUpdates });
+  let recordSuccessCalls = 0;
   restores.push(stub('../lib/monitoring/crashLoopDetector', {
     recordFailure: async () => ({ incident: { id: 42, failure_count: 1, recovery_action: null, recovery_result: null }, isNew: true, isCrashLoop: false }),
-    recordSuccess: async () => ({ resolved: false, incident: null }),
+    recordSuccess: async (id) => { recordSuccessCalls++; return { resolved: true, incident: { id: 42 } }; },
     markAlertSent: async () => {},
   }));
   restores.push(stub('../lib/monitoring/recoveryPolicy', {
     evaluateRecovery: () => ({ action: 'restart', reason: 'Transient failure on previously-healthy service. One controlled restart permitted.' }),
     isEscalationError: () => false,
   }));
+  // Health check is independently polled AFTER the restart — never trusted
+  // from the restartService() API call alone. Stub it to report healthy
+  // on the very first poll so this test doesn't actually wait 90s.
+  restores.push(stub('../lib/monitoring/healthProbes', {
+    probeService: async (service) => ({ serviceId: service.id, healthy: true, checkType: 'http', httpStatus: 200 }),
+  }));
+  const alerts = [];
+  restores.push(stub('../lib/monitoring/alertDispatcher', { dispatchMonitoringAlert: async (opts) => { alerts.push(opts); return opts; } }));
   try {
     const { handleFailure } = freshWatchdog();
     const service = { id: 'qb-proxy-server', railwayProjectId: 'proj-1', railwayServiceId: 'svc-1' };
     await handleFailure(service, { error: 'fetch failed', checkType: 'http' });
     assert.strictEqual(dbUpdates.restartCalls.length, 1, 'restartService must actually be called');
     assert.deepStrictEqual(dbUpdates.restartCalls[0], { projectId: 'proj-1', serviceId: 'svc-1' });
-    assert.strictEqual(dbUpdates.recoveryUpdates.length, 1, 'the real outcome must be persisted onto the incident row');
-    assert.strictEqual(dbUpdates.recoveryUpdates[0].action, 'restart');
+    assert.strictEqual(dbUpdates.recoveryUpdates.length, 2, 'the real outcome is persisted once for the restart attempt and once for the verified result');
     assert.match(dbUpdates.recoveryUpdates[0].outcome, /Restart triggered via Railway API/);
+    assert.match(dbUpdates.recoveryUpdates[1].outcome, /VERIFIED healthy/);
+    assert.strictEqual(recordSuccessCalls, 1, 'a verified recovery must resolve the incident immediately, not wait for the next regular tick');
+    assert.strictEqual(alerts.length, 1);
+    assert.strictEqual(alerts[0].level, 'info');
+    assert.strictEqual(alerts[0].errorType, 'recovery_verified');
+    assert.strictEqual(alerts[0].incidentId, 42);
   } finally {
     restores.forEach((r) => r());
+  }
+});
+
+test('when a restart is triggered but the service never becomes healthy, escalate with a distinct critical "recovery_failed" alert instead of claiming success', async () => {
+  const dbUpdates = { restartCalls: [], recoveryUpdates: [] };
+  const restores = baseStubs({ dbUpdates });
+  let recordSuccessCalls = 0;
+  restores.push(stub('../lib/monitoring/crashLoopDetector', {
+    recordFailure: async () => ({ incident: { id: 43, failure_count: 1, recovery_action: null, recovery_result: null }, isNew: true, isCrashLoop: false }),
+    recordSuccess: async () => { recordSuccessCalls++; return { resolved: false, incident: null }; },
+    markAlertSent: async () => {},
+  }));
+  restores.push(stub('../lib/monitoring/recoveryPolicy', {
+    evaluateRecovery: () => ({ action: 'restart', reason: 'Transient failure on previously-healthy service. One controlled restart permitted.' }),
+    isEscalationError: () => false,
+  }));
+  restores.push(stub('../lib/monitoring/healthProbes', {
+    // Always unhealthy — the restart "succeeded" per the API, but the
+    // service never actually comes back up.
+    probeService: async (service) => ({ serviceId: service.id, healthy: false, checkType: 'http', error: 'fetch failed' }),
+  }));
+  const alerts = [];
+  restores.push(stub('../lib/monitoring/alertDispatcher', { dispatchMonitoringAlert: async (opts) => { alerts.push(opts); return opts; } }));
+  // Shrink the poll window via its test-only env var override (see
+  // productionWatchdog.js's own header on RESTART_VERIFY_TIMEOUT_MS) so
+  // this test proves the real timeout-then-escalate path without taking 90
+  // real seconds.
+  const prevTimeout = process.env.WATCHDOG_RESTART_VERIFY_TIMEOUT_MS;
+  const prevInterval = process.env.WATCHDOG_RESTART_VERIFY_INTERVAL_MS;
+  process.env.WATCHDOG_RESTART_VERIFY_TIMEOUT_MS = '30';
+  process.env.WATCHDOG_RESTART_VERIFY_INTERVAL_MS = '10';
+  try {
+    const { handleFailure } = freshWatchdog();
+    const service = { id: 'qb-proxy-server', railwayProjectId: 'proj-1', railwayServiceId: 'svc-1' };
+    await handleFailure(service, { error: 'fetch failed', checkType: 'http' });
+    assert.strictEqual(recordSuccessCalls, 0, 'must never resolve the incident when verification failed');
+    assert.strictEqual(alerts.length, 1);
+    assert.strictEqual(alerts[0].level, 'critical');
+    assert.strictEqual(alerts[0].errorType, 'recovery_failed');
+    assert.strictEqual(alerts[0].incidentId, 43);
+    assert.match(alerts[0].recoveryResult, /Verification FAILED/);
+  } finally {
+    restores.forEach((r) => r());
+    if (prevTimeout === undefined) delete process.env.WATCHDOG_RESTART_VERIFY_TIMEOUT_MS; else process.env.WATCHDOG_RESTART_VERIFY_TIMEOUT_MS = prevTimeout;
+    if (prevInterval === undefined) delete process.env.WATCHDOG_RESTART_VERIFY_INTERVAL_MS; else process.env.WATCHDOG_RESTART_VERIFY_INTERVAL_MS = prevInterval;
+    delete require.cache[require.resolve('../productionWatchdog')];
   }
 });
 

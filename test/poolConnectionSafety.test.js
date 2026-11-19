@@ -156,8 +156,8 @@ test('ensureSchema sets statement_timeout = 0 on dedicated client', () => {
   );
   assert.ok(source.includes('SET statement_timeout = 0'),
     'ensureSchema must set statement_timeout = 0 for schema execution');
-  assert.ok(source.includes('const client = await pool.connect()'),
-    'ensureSchema must use a dedicated client');
+  assert.ok(source.includes("const client = guardClient(await pool.connect(), 'ensureSchema')"),
+    'ensureSchema must use a dedicated, guarded client (see db/client.js#guardClient — November 2026 P0 outage fix)');
   assert.ok(source.includes('finally'),
     'ensureSchema must have a finally block to release the client');
 });

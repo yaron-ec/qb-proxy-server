@@ -2421,8 +2421,19 @@ async function runQbEstimateSyncInner() {
           }
         }
 
+        // November 2026 P0 outage follow-up: this block previously also
+        // backfilled an "appointment_date" field here — `leads` has NO such
+        // column (that concept lives on `appointments`, or on
+        // `reminder_leads` as a
+        // projection lib/reminderProjection.js#syncLeadToReminders
+        // maintains independently; see CLAUDE.md's "Appointment vs
+        // Follow-Up" rule — this ad-hoc write must never compete with that
+        // projection). Every attempt failed with "column \"appointment_date\"
+        // of relation \"leads\" does not exist" and was silently swallowed
+        // by the .catch(() => {}) below, for every matched/newly-imported
+        // QB estimate, always. Removed — follow_up_date (a real leads
+        // column) is unaffected and unchanged.
         const leadUpdate = {};
-        if (qbEst.TxnDate && !matchedLead.appointment_date) leadUpdate.appointment_date = toDateStr(qbEst.TxnDate);
         if (qbEst.TxnDate && !matchedLead.follow_up_date) leadUpdate.follow_up_date = toDateStr(qbEst.TxnDate);
         if (Object.keys(leadUpdate).length > 0) {
           await rda.update('Lead', matchedLead.id, leadUpdate).catch(() => {});
