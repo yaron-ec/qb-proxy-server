@@ -178,3 +178,82 @@ test('3. explicit per-invoice ownership (qb_invoice_sale_map) is never reassigne
   const { rows } = await db.query('SELECT crm_sale_id FROM qb_invoice_sale_map WHERE qb_invoice_id = $1', [mapInvoiceId]);
   assert.strictEqual(rows[0].crm_sale_id, dealOldId, 'an invoice mapping must NEVER be reassigned to a different deal once set');
 });
+
+test('4. a deal with its own DIRECT invoice attribution is never overridden by the waterfall estimate (the Lalani-class root-cause fix)', { skip }, async () => {
+  // This is the exact production shape reported for the Ali & Mohemmed
+  // Lalani "Bathroom Repair" addendum: the customer has paid MORE in total
+  // (via the shared qb_customer_id) than the smaller addendum's own
+  // contract amount, so the waterfall would estimate it as fully paid —
+  // but this deal ALSO has its own real, directly-mapped invoice showing a
+  // SPECIFIC, SMALLER paid amount. The direct mapping must win.
+  const stamp = Date.now();
+  const customerId = `qbcust-direct-${stamp}`;
+  const { rows: ownerRows } = await db.query(
+    `INSERT INTO owners (email, display_name) VALUES ($1, 'Direct Attribution Owner') RETURNING id`,
+    [`owner-direct-${stamp}@test.example`]
+  );
+  const { rows: leadRows2 } = await db.query(
+    `INSERT INTO leads (first_name, last_name, email, phone, source, status, qb_customer_id, owner_id)
+     VALUES ('Direct', 'Attribution', $1, '5551112222', 'Referral', 'Sold', $2, $3) RETURNING id`,
+    [`direct-${stamp}@test.example`, customerId, ownerRows[0].id]
+  );
+  const leadId2 = leadRows2[0].id;
+
+  const { rows: parentRows } = await db.query(
+    `INSERT INTO deals (lead_id, name, amount, stage, sold_date, created_at)
+     VALUES ($1, 'Main Contract', 33000, 'Sold / Estimate Approved', NOW() - INTERVAL '30 days', NOW() - INTERVAL '30 days')
+     RETURNING id`,
+    [leadId2]
+  );
+  const parentDealId = parentRows[0].id;
+  const { rows: addendumRows } = await db.query(
+    `INSERT INTO deals (lead_id, name, amount, stage, sold_date, created_at, parent_deal_id)
+     VALUES ($1, 'Bathroom Repair', 7934.35, 'Sold / Estimate Approved', NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days', $2)
+     RETURNING id`,
+    [leadId2, parentDealId]
+  );
+  const addendumDealId = addendumRows[0].id;
+
+  // Deliberately chosen so the waterfall's OWN estimate for the addendum
+  // provably diverges from its real direct invoice, rather than happening
+  // to coincide: customer total received = $25,000 ($20,000 toward the
+  // parent's own invoice + $5,000 toward the addendum's own invoice). The
+  // waterfall (older deal funded first, capped at its own $33,000
+  // contract) would allocate the FULL $25,000 to the parent and exactly
+  // $0 to the addendum — but the addendum's own real invoice shows $5,000
+  // paid. $0 (waterfall estimate) vs $5,000 (real direct invoice) is an
+  // unambiguous, non-coincidental proof this fix is load-bearing: this
+  // exact test, run against the pre-fix code, asserts the real number and
+  // fails because the pre-fix override replaces it with $0.
+  const { upsertMapping } = require(path.join(ROOT, 'lib/qbInvoiceSaleMap'));
+  const addendumInvoiceId = `wf-direct-addendum-inv-${stamp}`;
+  await db.query(
+    `INSERT INTO qb_invoices_cache (qb_invoice_id, qb_customer_id, total_amt, balance, paid, voided, last_synced_at)
+     VALUES ($1, $2, 7934.35, 2934.35, 5000, false, NOW())`,
+    [addendumInvoiceId, customerId]
+  );
+  await upsertMapping({ query: db.query }, {
+    qb_invoice_id: addendumInvoiceId, qb_doc_number: 'DOC-ADDENDUM', crm_sale_id: addendumDealId,
+    crm_lead_id: leadId2, qb_customer_id: customerId, mapping_method: 'crm_created',
+  });
+  const parentInvoiceId = `wf-direct-parent-inv-${stamp}`;
+  await db.query(
+    `INSERT INTO qb_invoices_cache (qb_invoice_id, qb_customer_id, total_amt, balance, paid, voided, last_synced_at)
+     VALUES ($1, $2, 33000, 13000, 20000, false, NOW())`,
+    [parentInvoiceId, customerId]
+  );
+  await upsertMapping({ query: db.query }, {
+    qb_invoice_id: parentInvoiceId, qb_doc_number: 'DOC-PARENT', crm_sale_id: parentDealId,
+    crm_lead_id: leadId2, qb_customer_id: customerId, mapping_method: 'crm_created',
+  });
+
+  const addendumFin = await api('GET', `/api/v1/deals/${addendumDealId}/financials?sale_total=7934.35`, undefined, adminToken);
+  assert.strictEqual(addendumFin.status, 200, JSON.stringify(addendumFin.body));
+  assert.strictEqual(addendumFin.body.invoices.length, 1, 'the addendum must see its own one direct invoice');
+  assert.strictEqual(addendumFin.body.paid, 5000, 'paid must come from the DIRECT invoice ($5,000), never the waterfall estimate (which would be $0 here)');
+  assert.strictEqual(addendumFin.body.balance, 2934.35);
+  assert.strictEqual(addendumFin.body.payment_status, 'partial');
+
+  const parentFin = await api('GET', `/api/v1/deals/${parentDealId}/financials?sale_total=33000`, undefined, adminToken);
+  assert.strictEqual(parentFin.body.paid, 20000, 'the parent\'s own direct invoice is likewise authoritative ($20,000), never the waterfall\'s $25,000 estimate');
+});

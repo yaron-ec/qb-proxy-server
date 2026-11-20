@@ -75,15 +75,25 @@ export function commissionAmount(c, ctx) {
 /**
  * getDealPaymentSummary — THE single source of truth for deal payment KPIs.
  *
- * WATERFALL PRECEDENCE: When the customer payment waterfall is applied
- * (waterfallAllocation.applied === true AND this_deal_allocation exists),
- * the waterfall's allocated_paid / allocated_remaining take PRECEDENCE over
- * both the sale-scoped path and the legacy path. The waterfall is the
- * authoritative customer-level allocation from QuickBooks received money.
- *
- * This ensures the UI never shows $0 paid when QuickBooks has received money
- * for the customer, even when invoices are not mapped to this sale or the
- * cache has stale paid=0 values.
+ * WATERFALL PRECEDENCE (revised November 2026 — see the sale-scoped
+ * branch's own inline comment for the full root-cause history): the
+ * waterfall's allocated_paid / allocated_remaining are authoritative
+ * ONLY as a FALLBACK — they never override a deal's own real, directly-
+ * attributed (qb_invoice_sale_map-backed) paid amount once it is nonzero.
+ *   - Legacy path (no sale-scoped invoices mapped at all): waterfall wins
+ *     when applied — unchanged, this is the original "Rita Wing" fix
+ *     (never show $0 paid when QuickBooks has received money for the
+ *     customer but this specific deal has no invoice mapping of its own).
+ *   - Sale-scoped path (this deal DOES have its own mapped invoice(s)):
+ *     the direct, summed paid amount wins whenever it is nonzero; the
+ *     waterfall only fills in when that direct sum is still genuinely
+ *     $0 (e.g. the invoice synced before its payment did). A deal's own
+ *     real paid figure must never be silently replaced by a customer-
+ *     level estimate once it exists — that estimate is contract-size-
+ *     capped and was the exact cause of a smaller addendum showing an
+ *     artificial "fully paid" figure once a sibling deal's payments
+ *     pushed the customer's total above the addendum's own contract
+ *     amount.
  *
  * Manual payment schedule (deposit_paid, progress_payment_paid,
  * final_payment_paid) is NEVER read or mutated here — those are displayed
@@ -105,13 +115,36 @@ export function getDealPaymentSummary(deal, lead, invoices = [], saleInvoices = 
     ? safeNumber(waterfallAllocation.this_deal_allocation.allocated_remaining)
     : null;
 
-  // Sale-scoped path — INVOICED from sale-scoped invoices, PAID from waterfall.
+  // Sale-scoped path — INVOICED from sale-scoped invoices. PAID prefers
+  // this deal's OWN direct invoice data whenever it shows a genuine
+  // nonzero paid amount; the waterfall is a fallback ONLY for the case a
+  // direct invoice exists but its own paid figure is still $0 (e.g. the
+  // invoice synced before its payment did) — never a substitute for real,
+  // specifically-attributed payment data once it exists.
+  //
+  // ROOT-CAUSE FIX (November 2026 — the Ali & Mohemmed Lalani "Bathroom
+  // Repair addendum shows an artificial Paid amount derived from the
+  // contract value" report): this branch previously let the waterfall
+  // unconditionally win whenever it applied, even when saleScopedPaid was
+  // already a real, nonzero, directly-attributed amount — silently
+  // discarding it in favor of a customer-level estimate that is
+  // mathematically capped at `Math.min(remaining, projectTotal)`
+  // (lib/customerPaymentWaterfall.js), so a smaller addendum's own real
+  // paid figure would be overwritten the moment the customer's total
+  // received money (across ALL their deals) exceeded that addendum's own
+  // contract amount. This preference order is unchanged for the ORIGINAL
+  // bug this file's waterfall-precedence rule fixed (a multi-deal customer
+  // whose invoice cache hadn't yet reflected a received payment, e.g. Rita
+  // Wing — saleScopedPaid genuinely $0, waterfall correctly fills the gap)
+  // — see test/financialCalcWaterfallPrecedence.test.js cases A/B, both of
+  // which keep passing against this exact fix.
   if (saleInvoices && saleInvoices.length > 0) {
     const invoiced = saleInvoices.reduce((s, i) => s + safeNumber(i.total_amt ?? i.totalAmt ?? i.amount), 0);
     const saleScopedPaid = saleInvoices.reduce((s, i) => s + safeNumber(i.paid ?? i.payment_received), 0);
-    const paid = waterfallPaid !== null ? waterfallPaid : saleScopedPaid;
+    const directWins = saleScopedPaid > 0;
+    const paid = directWins ? saleScopedPaid : (waterfallPaid !== null ? waterfallPaid : saleScopedPaid);
     const balance = round2(Math.max(0, invoiced - paid));
-    const remaining = waterfallRemaining !== null ? waterfallRemaining : round2(Math.max(0, projectTotal - paid));
+    const remaining = (!directWins && waterfallRemaining !== null) ? waterfallRemaining : round2(Math.max(0, projectTotal - paid));
     const pctPaid = projectTotal > 0 ? Math.min(100, round2((paid / projectTotal) * 100 * 100) / 100) : 0;
     return { hasQB: true, projectTotal, invoiced: round2(invoiced), paid: round2(paid), balance, remaining, pctPaid, saleScoped: true, waterfall: waterfallAllocation };
   }

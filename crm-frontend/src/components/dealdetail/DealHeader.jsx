@@ -2,7 +2,7 @@
  * DealHeader — breadcrumb, title, stage badge, actions, progress bar.
  */
 import { Link } from "react-router-dom";
-import { ArrowLeft, Plus, Trash2, TrendingUp } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, TrendingUp, Link2 } from "lucide-react";
 
 const PIPELINE_STAGES = [
   "Sold / Estimate Approved",
@@ -32,7 +32,7 @@ const STAGE_COLORS = {
 
 const fmtMoney = (v) => v != null ? `$${Number(v).toLocaleString("en-US", { minimumFractionDigits: 0 })}` : "—";
 
-export default function DealHeader({ deal, lead, onAddProject, onDeleteDeal }) {
+export default function DealHeader({ deal, lead, isAdmin, onAddProject, onAddAddendum, onDeleteDeal }) {
   const stageColor = STAGE_COLORS[deal.stage] || { bg: "bg-slate-100", text: "text-slate-600", border: "border-slate-200" };
   const stageIndex = PIPELINE_STAGES.indexOf(deal.stage);
 
@@ -86,6 +86,21 @@ export default function DealHeader({ deal, lead, onAddProject, onDeleteDeal }) {
             <span className="hidden sm:inline">Add Project</span>
             <span className="sm:hidden">Add</span>
           </button>
+          {/* Admin-only, and hidden when this deal is ITSELF an addendum —
+              addendums are one level deep only (lib/dealModel.js's own
+              rule). This is the one, clearly-labeled entry point for the
+              "convert an existing deal into an addendum" action — see
+              AddAddendumModal.jsx's own header for why this replaced an
+              action previously buried inside a collapsed, generically-named
+              Financials accordion section. */}
+          {isAdmin && !deal.parent_deal_id && (
+            <button onClick={onAddAddendum}
+              className="px-3 md:px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 rounded-lg border border-slate-200 transition-colors flex items-center gap-1.5 btn-compact">
+              <Link2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Add Addendum</span>
+              <span className="sm:hidden">Addendum</span>
+            </button>
+          )}
           <button onClick={onDeleteDeal}
             className="px-3 md:px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg border border-red-200 transition-colors flex items-center gap-1.5 btn-compact">
             <Trash2 className="w-3.5 h-3.5" />

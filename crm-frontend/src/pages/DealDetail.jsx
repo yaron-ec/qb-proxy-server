@@ -5,6 +5,8 @@ import * as railwayLeads from "@/api/railway/leads";
 import * as railwayInvoices from "@/api/railway/invoices";
 import { TrendingUp, LayoutDashboard, FileText, Briefcase, Clock, PieChart, AlertCircle } from "lucide-react";
 import AddNewProjectModal from "@/components/AddNewProjectModal";
+import AddAddendumModal from "@/components/AddAddendumModal";
+import { useAuth } from "@/lib/AuthContext";
 import { TabBar } from "@/components/DesignSystem";
 import { deriveStageFromPayments } from "@/components/DealPaymentPanel";
 import DealHeader from "@/components/dealdetail/DealHeader";
@@ -41,6 +43,10 @@ export default function DealDetail() {
   const [saving, setSaving] = useState(null);
   const [savedMsg, setSavedMsg] = useState(null);
   const [showAddProject, setShowAddProject] = useState(false);
+  const [showAddAddendum, setShowAddAddendum] = useState(false);
+  const [addendumRefreshKey, setAddendumRefreshKey] = useState(0);
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const [invoices, setInvoices] = useState([]);
   const [activeTab, setActiveTab] = useState("overview");
   const [loadError, setLoadError] = useState(null);
@@ -177,6 +183,15 @@ export default function DealDetail() {
     }).catch(() => {});
   };
 
+  const handleAddAddendumSuccess = () => {
+    setShowAddAddendum(false);
+    // Bump the refresh signal so AddendumPanel re-fetches GET /:id/addendums
+    // immediately — this deal's own row doesn't change when a SIBLING deal
+    // is linked to it (parent_deal_id is set on the sibling, not here), so
+    // there is no deal-field change for a child effect to react to.
+    setAddendumRefreshKey((k) => k + 1);
+  };
+
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center bg-slate-50">
@@ -243,8 +258,16 @@ export default function DealDetail() {
       {showAddProject && lead && (
         <AddNewProjectModal lead={lead} currentDeal={deal} onClose={() => setShowAddProject(false)} onSuccess={handleAddProjectSuccess} />
       )}
+      {showAddAddendum && lead && (
+        <AddAddendumModal deal={deal} lead={lead} onClose={() => setShowAddAddendum(false)} onSuccess={handleAddAddendumSuccess} />
+      )}
       <div className="flex flex-col h-full bg-slate-50 overflow-hidden">
-        <DealHeader deal={deal} lead={lead} onAddProject={() => setShowAddProject(true)} onDeleteDeal={handleDeleteDeal} />
+        <DealHeader
+          deal={deal} lead={lead} isAdmin={isAdmin}
+          onAddProject={() => setShowAddProject(true)}
+          onAddAddendum={() => setShowAddAddendum(true)}
+          onDeleteDeal={handleDeleteDeal}
+        />
         {!lead && leadLoadError && (
           <div className="bg-rose-50 border-b border-rose-200 px-4 py-2 flex items-center gap-2 flex-shrink-0">
             <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
@@ -272,7 +295,7 @@ export default function DealDetail() {
             <OverviewTab deal={deal} lead={lead} updateField={updateField} setDeal={setDeal} setLead={setLead} saving={saving} />
           )}
           {activeTab === "financials" && (
-            <FinancialsTab deal={deal} lead={lead} invoices={invoices} setDeal={setDeal} setLead={setLead} refreshLead={refreshLead} />
+            <FinancialsTab deal={deal} lead={lead} invoices={invoices} setDeal={setDeal} setLead={setLead} refreshLead={refreshLead} addendumRefreshKey={addendumRefreshKey} />
           )}
           {activeTab === "documents" && <DocumentsTab lead={lead} setLead={setLead} deal={deal} />}
           {activeTab === "project" && <ProjectTab deal={deal} lead={lead} updateField={updateField} setLead={setLead} saving={saving} />}
