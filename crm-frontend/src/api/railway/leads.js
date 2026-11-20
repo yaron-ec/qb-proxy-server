@@ -138,6 +138,22 @@ export function updateSmsConsent(id, data, opts = {}) {
 }
 
 /**
+ * Promote a lead's dated Meeting/Phone Call Follow-Up to the canonical
+ * Appointment (admin/manager only) — for the case where a reschedule was
+ * mistakenly entered via Follow-Up instead of the Appointment editor. Any
+ * existing active appointment is superseded (kept as history, its Google
+ * Calendar events cancelled), a real appointment is created from the
+ * Follow-Up's date/time through the normal booking service (conflict
+ * checks, travel buffer, calendar outbox, reminders), and the Follow-Up
+ * fields are cleared. This is a real, non-reversible booking mutation —
+ * only call it once a human has confirmed the Follow-Up genuinely IS the
+ * appointment. Returns { lead, appointment, superseded_appointment_id }.
+ */
+export function promoteFollowUpToAppointment(id, opts = {}) {
+  return apiCall(`/api/v1/leads/${encodeURIComponent(id)}/promote-follow-up-to-appointment`, { method: 'POST', signal: opts.signal });
+}
+
+/**
  * Trigger Google Calendar sync for a lead via the native Railway calendarOutbox
  * system. Enqueues main + travel events (1hr buffer before/after) processed by
  * the calendar outbox worker. No Base44, no direct Google API calls from the

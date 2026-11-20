@@ -15,12 +15,14 @@ const updateAppointment = vi.fn();
 const updateFollowUp = vi.fn();
 const syncCalendar = vi.fn();
 const getLead = vi.fn();
+const promoteFollowUpToAppointment = vi.fn();
 vi.mock('@/api/railway', () => ({
   leads: {
     updateAppointment: (...a) => updateAppointment(...a),
     updateFollowUp: (...a) => updateFollowUp(...a),
     syncCalendar: (...a) => syncCalendar(...a),
     get: (...a) => getLead(...a),
+    promoteFollowUpToAppointment: (...a) => promoteFollowUpToAppointment(...a),
   },
 }));
 const AUTH = { user: { email: 'rep@ecconstructiongroup.com', role: 'sales_rep' } };
@@ -170,5 +172,72 @@ describe('FollowUpScheduler (follow-up only)', () => {
     fireEvent.click(screen.getByText('Edit'));
     fireEvent.click(screen.getByText('Update'));
     expect(await screen.findByText('follow_up_date must be a valid YYYY-MM-DD date')).toBeInTheDocument();
+  });
+});
+
+// ── November 2026 "John John" production incident fix: the saved-state
+// mismatch warning (lead.follow_up_appointment_mismatch, computed
+// read-only by the server) and the live, as-you-type warning, plus the
+// admin/manager-only Promote action. ──────────────────────────────────────
+describe('FollowUpScheduler: Appointment/Follow-up mismatch warning + Promote action', () => {
+  const MISMATCHED_LEAD = lead({
+    appointment: APPT, appointment_date: '2026-11-20', appointment_time: '09:00', appointment_type: 'Meeting',
+    follow_up_date: '2026-11-23', follow_up_time: '09:00', follow_up_type: 'Meeting',
+    follow_up_appointment_mismatch: { reason: 'different_date', appointment_date: '2026-11-20', appointment_time: '09:00', appointment_kind: 'Meeting' },
+  });
+
+  it('shows the warning on the saved (collapsed) view when the server reports a mismatch, with NO Promote action for a sales_rep', () => {
+    render(<FollowUpScheduler lead={MISMATCHED_LEAD} onLeadUpdate={vi.fn()} currentUser={{ role: 'sales_rep' }} />);
+    expect(screen.getByText(/differs from the active Appointment/)).toBeInTheDocument();
+    expect(screen.queryByText(/promote it/)).not.toBeInTheDocument();
+  });
+
+  it('never shows the warning when there is no mismatch', () => {
+    render(<FollowUpScheduler lead={lead({ follow_up_date: '2031-04-10', follow_up_type: 'Text' })} onLeadUpdate={vi.fn()} currentUser={{ role: 'admin' }} />);
+    expect(screen.queryByText(/differs from the active Appointment/)).not.toBeInTheDocument();
+  });
+
+  it('never shows the warning once the follow-up is marked done, even if it still mismatches', () => {
+    render(<FollowUpScheduler lead={{ ...MISMATCHED_LEAD, follow_up_status: 'completed' }} onLeadUpdate={vi.fn()} currentUser={{ role: 'admin' }} />);
+    expect(screen.queryByText(/differs from the active Appointment/)).not.toBeInTheDocument();
+  });
+
+  it('shows the Promote action for an admin, and it calls promoteFollowUpToAppointment then updates the lead', async () => {
+    window.confirm = vi.fn(() => true);
+    const onLeadUpdate = vi.fn();
+    promoteFollowUpToAppointment.mockResolvedValue({ lead: lead({ follow_up_date: null }) });
+    render(<FollowUpScheduler lead={MISMATCHED_LEAD} onLeadUpdate={onLeadUpdate} currentUser={{ role: 'admin' }} />);
+    fireEvent.click(screen.getByText(/promote it/));
+    await waitFor(() => expect(promoteFollowUpToAppointment).toHaveBeenCalledWith('lead-1'));
+    await waitFor(() => expect(onLeadUpdate).toHaveBeenCalled());
+  });
+
+  it('shows the Promote action for a manager too', () => {
+    render(<FollowUpScheduler lead={MISMATCHED_LEAD} onLeadUpdate={vi.fn()} currentUser={{ role: 'manager' }} />);
+    expect(screen.getByText(/promote it/)).toBeInTheDocument();
+  });
+
+  it('declining the confirm dialog never calls promoteFollowUpToAppointment', () => {
+    window.confirm = vi.fn(() => false);
+    render(<FollowUpScheduler lead={MISMATCHED_LEAD} onLeadUpdate={vi.fn()} currentUser={{ role: 'admin' }} />);
+    fireEvent.click(screen.getByText(/promote it/));
+    expect(promoteFollowUpToAppointment).not.toHaveBeenCalled();
+  });
+
+  it('shows a LIVE warning in the editing view as soon as an unsaved Meeting date differs from the active appointment — with no Promote action (it would act on stale, unsaved data)', () => {
+    render(<FollowUpScheduler lead={lead({ appointment_date: '2026-11-20', appointment_time: '09:00', appointment_type: 'Meeting' })} onLeadUpdate={vi.fn()} currentUser={{ role: 'admin' }} />);
+    fireEvent.click(screen.getByText('Add'));
+    fireEvent.change(screen.getByLabelText('Follow-up date'), { target: { value: '2026-11-23' } });
+    fireEvent.change(screen.getByLabelText('Follow-up type'), { target: { value: 'Meeting' } });
+    expect(screen.getByText(/differs from the active Appointment/)).toBeInTheDocument();
+    expect(screen.queryByText(/promote it/)).not.toBeInTheDocument();
+  });
+
+  it('the live warning never appears for a follow-up type other than Meeting/Phone Call', () => {
+    render(<FollowUpScheduler lead={lead({ appointment_date: '2026-11-20', appointment_time: '09:00', appointment_type: 'Meeting' })} onLeadUpdate={vi.fn()} currentUser={{ role: 'admin' }} />);
+    fireEvent.click(screen.getByText('Add'));
+    fireEvent.change(screen.getByLabelText('Follow-up date'), { target: { value: '2026-11-23' } });
+    fireEvent.change(screen.getByLabelText('Follow-up type'), { target: { value: 'Text' } });
+    expect(screen.queryByText(/differs from the active Appointment/)).not.toBeInTheDocument();
   });
 });

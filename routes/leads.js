@@ -243,6 +243,36 @@ async function fetchActiveAppointment(leadId) {
   return rows[0] || null;
 }
 
+// Permanent systemic fix (November 2026 "John John" production incident —
+// a reschedule entered via Follow-Up instead of the Appointment editor left
+// the real appointments row, and therefore Google Calendar + reminders,
+// pointing at a stale date while the Lead Detail page appeared to show the
+// new one). Read-only, computed signal mirroring
+// scripts/auditAppointmentFollowUp.js#classify's own DIVERGENT detection
+// (same date/time/kind comparison) so the CRM can warn a rep at the exact
+// moment this mistake is made, instead of only being discoverable later by
+// a customer-facing Google Calendar screenshot. Never written anywhere,
+// never auto-applied — promotion (if warranted) is always the explicit,
+// human-confirmed POST /:id/promote-follow-up-to-appointment action.
+function followUpAppointmentMismatch(row, appt) {
+  if (!appt) return null;
+  const fuDated = !!row.follow_up_date;
+  const fuScheduled = fuDated && ['Meeting', 'Phone Call'].includes(row.follow_up_type);
+  if (!fuScheduled) return null;
+  const fuDate = String(row.follow_up_date).slice(0, 10);
+  const fuTime = row.follow_up_time ? String(row.follow_up_time).slice(0, 5) : null;
+  const sameDate = fuDate === appt.date;
+  const sameTime = fuTime === appt.time;
+  const sameKind = row.follow_up_type === appt.kind;
+  if (sameDate && sameTime && sameKind) return null; // identical — a MIRROR, not a divergence needing a warning
+  return {
+    reason: !sameDate ? 'different_date' : !sameTime ? 'different_time' : 'kind_only',
+    appointment_date: appt.date,
+    appointment_time: appt.time,
+    appointment_kind: appt.kind,
+  };
+}
+
 function serializeLead(row, appointment = null) {
   if (!row) return null;
   // APPOINTMENT (canonical: the active appointments row — lib/booking/appointmentView).
@@ -304,6 +334,7 @@ function serializeLead(row, appointment = null) {
     appointment_time: appt ? appt.time : null,
     appointment_type: appt ? appt.kind : null,
     appointment_status: appt ? appt.status : null,
+    follow_up_appointment_mismatch: followUpAppointmentMismatch(row, appt),
     crm_created_date: row.crm_created_date || row.created_at,
     reviewed_at: row.reviewed_at || null,
     created_date: row.created_at,
@@ -2127,3 +2158,5 @@ module.exports.cancelAppointmentsForLeadDelete = cancelAppointmentsForLeadDelete
 // (see CLAUDE.md's "Ownership/authorization" note: reuse one of the three
 // existing implementations, never invent a fourth).
 module.exports.resolveOwnerScope = resolveOwnerScope;
+// Pure, unit-testable in isolation — see test/followUpAppointmentMismatch.test.js.
+module.exports.followUpAppointmentMismatch = followUpAppointmentMismatch;
