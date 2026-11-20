@@ -1,10 +1,14 @@
 /**
- * ProfitabilitySummary.test.jsx — regression coverage for the Financials
- * visual redesign: the previous full-bleed dark navy hero with oversized
- * monospace (.fin-figure-lg) numbers is gone, replaced with the same
- * card-premium + typography-section-header language used everywhere else
- * in the CRM (see components/dealdetail/OverviewTab.jsx). Verifies actual
- * rendered output, not source-string assertions.
+ * ProfitabilitySummary.test.jsx — regression coverage for the Financial
+ * Summary hero. November 2026 explicit product requirement: clean
+ * navy/gold/white styling, reusing the EXACT brand colors every branded
+ * email already uses (lib/emailTemplates.js's NAVY #0B2D5C / GOLD #C9A227),
+ * with plain-English terminology (Contract Total, Collected, Balance Due,
+ * Total Cost, Profit, Margin) and clear label-over-value hierarchy — this
+ * supersedes the PRIOR redesign's "no dark hero" assertions (that pass's
+ * real complaint was numbers carrying weight through raw size rather than
+ * hierarchy, not navy/gold itself). Verifies actual rendered output, not
+ * source-string assertions.
  */
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
@@ -13,6 +17,8 @@ import ProfitabilitySummary from './ProfitabilitySummary';
 function fin(overrides = {}) {
   return {
     totalRevenue: 50000,
+    paymentsReceived: 20000,
+    remainingCustomerBalance: 30000,
     totalCosts: 25300,
     netProfit: 24700,
     profitMargin: 49.4,
@@ -20,53 +26,65 @@ function fin(overrides = {}) {
   };
 }
 
-describe('ProfitabilitySummary — no dark hero, matches CRM visual language', () => {
-  it('does not render the old dark gradient hero background', () => {
+describe('ProfitabilitySummary — Financial Summary hero (navy/gold/white, plain-English terms)', () => {
+  it('renders a navy header bar with a gold bottom border, matching the brand colors every branded email already uses', () => {
     const { container } = render(<ProfitabilitySummary fin={fin()} />);
-    expect(container.querySelector('.from-slate-900')).toBeNull();
-    expect(container.querySelector('.bg-gradient-to-br')).toBeNull();
+    const card = screen.getByTestId('financial-summary-card');
+    expect(card).toBeInTheDocument();
+    const header = container.querySelector('[style*="background: rgb(11, 45, 92)"], [style*="background:#0B2D5C"]')
+      || Array.from(container.querySelectorAll('div')).find((el) => el.getAttribute('style')?.includes('0B2D5C') || el.style.backgroundColor === 'rgb(11, 45, 92)');
+    expect(header).toBeTruthy();
+    expect(screen.getByText('Financial Summary')).toBeInTheDocument();
   });
 
-  it('does not use the monospace fin-figure-lg typography', () => {
-    const { container } = render(<ProfitabilitySummary fin={fin()} />);
-    expect(container.querySelector('.fin-figure-lg')).toBeNull();
-    expect(container.querySelector('.fin-figure')).toBeNull();
-  });
-
-  it('uses the shared card-premium + typography-section-header convention', () => {
-    const { container } = render(<ProfitabilitySummary fin={fin()} />);
-    expect(container.querySelector('.card-premium')).toBeInTheDocument();
-    expect(screen.getByText('JOB PROFITABILITY')).toHaveClass('typography-section-header');
-  });
-
-  it('renders all four metrics with correct values', () => {
+  it('renders all six metrics with plain-English labels and correct values', () => {
     render(<ProfitabilitySummary fin={fin()} />);
-    expect(screen.getByText('Project Value')).toBeInTheDocument();
+    expect(screen.getByText('Contract Total')).toBeInTheDocument();
     expect(screen.getByText('$50,000.00')).toBeInTheDocument();
-    expect(screen.getByText('Total Costs')).toBeInTheDocument();
+    expect(screen.getByText('Collected')).toBeInTheDocument();
+    expect(screen.getByText('$20,000.00')).toBeInTheDocument();
+    expect(screen.getByText('Balance Due')).toBeInTheDocument();
+    expect(screen.getByText('$30,000.00')).toBeInTheDocument();
+    expect(screen.getByText('Total Cost')).toBeInTheDocument();
     expect(screen.getByText('$25,300.00')).toBeInTheDocument();
-    expect(screen.getByText('Projected Profit')).toBeInTheDocument();
+    expect(screen.getByText('Profit')).toBeInTheDocument();
     expect(screen.getByText('$24,700.00')).toBeInTheDocument();
-    expect(screen.getByText('Profit Margin')).toBeInTheDocument();
+    expect(screen.getByText('Margin')).toBeInTheDocument();
     expect(screen.getByText('49.4%')).toBeInTheDocument();
   });
 
-  it('positive profit renders in restrained emerald, not the old bright emerald-300-on-dark treatment', () => {
+  it('never uses jargon field names as on-screen labels ("Project Value"/"Projected Profit"/"Total Costs" from the old design)', () => {
     render(<ProfitabilitySummary fin={fin()} />);
-    expect(screen.getByText('$24,700.00')).toHaveClass('text-emerald-700');
-    expect(screen.getByText('49.4%')).toHaveClass('text-emerald-700');
+    expect(screen.queryByText('Project Value')).toBeNull();
+    expect(screen.queryByText('Projected Profit')).toBeNull();
+    expect(screen.queryByText('Total Costs')).toBeNull();
+    expect(screen.queryByText('Profit Margin')).toBeNull();
   });
 
-  it('negative profit renders in restrained rose, and Total Costs stays neutral (a cost is not "bad" for existing)', () => {
+  it('positive profit renders in gold, and "On Track" status', () => {
+    render(<ProfitabilitySummary fin={fin()} />);
+    expect(screen.getByTestId('fin-metric-profit').querySelector('p:last-child')).toHaveStyle({ color: '#C9A227' });
+    expect(screen.getByText('On Track')).toBeInTheDocument();
+  });
+
+  it('negative profit renders in rose/red, "Over Budget" status, and Total Cost stays neutral (a cost is not "bad" for existing)', () => {
     render(<ProfitabilitySummary fin={fin({ totalCosts: 45152.90, netProfit: -42094.90, profitMargin: -1376.5 })} />);
-    expect(screen.getByText('-$42,094.90')).toHaveClass('text-rose-700');
-    expect(screen.getByText('-1376.5%')).toHaveClass('text-rose-700');
+    expect(screen.getByTestId('fin-metric-profit').querySelector('p:last-child')).toHaveStyle({ color: '#be123c' });
+    expect(screen.getByText('-$42,094.90')).toBeInTheDocument();
+    expect(screen.getByText('Over Budget')).toBeInTheDocument();
     expect(screen.getByText('$45,152.90')).toHaveClass('text-slate-900');
   });
 
-  it('zero project value does not crash and renders 0% profit bar segments safely', () => {
+  it('zero contract total does not crash and renders 0% profit bar segments safely', () => {
     expect(() => {
-      render(<ProfitabilitySummary fin={fin({ totalRevenue: 0, totalCosts: 0, netProfit: 0, profitMargin: 0 })} />);
+      render(<ProfitabilitySummary fin={fin({ totalRevenue: 0, paymentsReceived: 0, remainingCustomerBalance: 0, totalCosts: 0, netProfit: 0, profitMargin: 0 })} />);
     }).not.toThrow();
+  });
+
+  it('is responsive: a 2-column grid on mobile widens to 4 columns on larger screens (sm: breakpoint classes present)', () => {
+    const { container } = render(<ProfitabilitySummary fin={fin()} />);
+    const grid = container.querySelector('.grid-cols-2');
+    expect(grid).toBeInTheDocument();
+    expect(grid.className).toMatch(/sm:grid-cols-4/);
   });
 });
