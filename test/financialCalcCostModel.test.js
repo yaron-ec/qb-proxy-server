@@ -270,4 +270,96 @@ test('computeFinancials: deleting an expense (empty list) removes its cost impac
   assert.strictEqual(deleted.netProfit, 50000);
 });
 
+// ── ACTUAL PROFIT / ACTUAL PROFIT MARGIN (November 2026 business rule) ──────
+//
+// EC Construction Group issues a customer invoice only AFTER receiving the
+// customer's check — under this established workflow, an issued invoice IS
+// collected revenue. ACTUAL PROFIT = COLLECTED REVENUE (paymentsReceived)
+// − TOTAL RECORDED COSTS (totalCosts, the SAME figure projected profit
+// already uses); ACTUAL PROFIT MARGIN = ACTUAL PROFIT / COLLECTED REVENUE
+// × 100. This is fundamental and CRM-wide, not a Lalani-specific
+// workaround — covered here at the pure calculation level (completed
+// project, partial collection, and zero-revenue cases); the consolidated
+// multi-deal/addendum case is covered in
+// test/integration/dealMasterFinancialAggregation.int.test.js.
+
+test('computeFinancials: a COMPLETED project (fully collected, matches contract) — actual profit equals projected profit', () => {
+  const fin = computeFinancials(baseArgs({
+    deal: { amount: 50000 },
+    invoices: [{ amount: 50000, payment_received: 50000 }],
+    expenses: [{ category: 'Subcontractor', amount: 10000, amount_paid: 10000, payment_status: 'Paid' }],
+  }));
+  assert.strictEqual(fin.paymentsReceived, 50000);
+  assert.strictEqual(fin.totalCosts, 10000);
+  assert.strictEqual(fin.actualProfit, 40000, 'ACTUAL PROFIT = COLLECTED − TOTAL RECORDED COSTS');
+  assert.strictEqual(fin.actualProfitMargin, 80, 'ACTUAL PROFIT MARGIN = ACTUAL PROFIT / COLLECTED × 100');
+  assert.strictEqual(fin.netProfit, 40000, 'fully collected: projected profit coincides with actual profit here');
+  assert.strictEqual(fin.profitMargin, 80);
+});
+
+test('computeFinancials: a PARTIAL COLLECTION (collected less than contract value) — actual profit is lower than projected profit, never force-matched', () => {
+  // $50,000 contract, only $20,000 collected so far, $12,000 in recorded
+  // costs already recognized (a real project still in progress).
+  const fin = computeFinancials(baseArgs({
+    deal: { amount: 50000 },
+    invoices: [{ amount: 30000, payment_received: 20000 }],
+    expenses: [{ category: 'Subcontractor', amount: 12000, amount_paid: 0, payment_status: 'Unpaid' }],
+  }));
+  assert.strictEqual(fin.paymentsReceived, 20000);
+  assert.strictEqual(fin.totalCosts, 12000);
+  assert.strictEqual(fin.netProfit, 38000, 'PROJECTED (contract-based, planning only) — 50000 - 12000');
+  assert.strictEqual(fin.profitMargin, 76);
+  assert.strictEqual(fin.actualProfit, 8000, 'ACTUAL (collected-based, primary) — 20000 - 12000, must never equal the contract-based figure here');
+  assert.strictEqual(fin.actualProfitMargin, 40);
+  assert.notStrictEqual(fin.actualProfit, fin.netProfit, 'a partial collection must show a genuinely different actual-vs-projected profit, never silently force-matched');
+});
+
+test('computeFinancials: recorded costs EXCEED what has been collected so far — actual profit is a real negative number, projected profit can still be positive', () => {
+  const fin = computeFinancials(baseArgs({
+    deal: { amount: 50000 },
+    invoices: [{ amount: 15000, payment_received: 10000 }],
+    expenses: [{ category: 'Subcontractor', amount: 18000, amount_paid: 18000, payment_status: 'Paid' }],
+  }));
+  assert.strictEqual(fin.paymentsReceived, 10000);
+  assert.strictEqual(fin.totalCosts, 18000);
+  assert.strictEqual(fin.actualProfit, -8000, 'actual profit is a genuine loss against collected revenue so far');
+  assert.strictEqual(fin.actualProfitMargin, -80);
+  assert.strictEqual(fin.netProfit, 32000, 'projected (contract-based) profit is unaffected and stays positive — the two figures must never be conflated');
+});
+
+test('computeFinancials: ZERO collected revenue — actual profit margin is exactly 0, never NaN/Infinity, never crashes', () => {
+  const fin = computeFinancials(baseArgs({
+    deal: { amount: 50000 },
+    invoices: [],
+  }));
+  assert.strictEqual(fin.paymentsReceived, 0);
+  assert.strictEqual(fin.actualProfit, 0, 'no costs recorded either — 0 collected minus 0 costs');
+  assert.strictEqual(fin.actualProfitMargin, 0, 'division-by-zero guard: must be exactly 0, never NaN or Infinity');
+  assert.ok(Number.isFinite(fin.actualProfitMargin));
+});
+
+test('computeFinancials: ZERO collected revenue WITH recorded costs — actual profit is negative, margin is still 0 (not -Infinity)', () => {
+  const fin = computeFinancials(baseArgs({
+    deal: { amount: 50000 },
+    invoices: [],
+    expenses: [{ category: 'Materials', amount: 5000, amount_paid: 5000, payment_status: 'Paid' }],
+  }));
+  assert.strictEqual(fin.paymentsReceived, 0);
+  assert.strictEqual(fin.totalCosts, 5000);
+  assert.strictEqual(fin.actualProfit, -5000, 'ACTUAL PROFIT = 0 collected − 5000 recorded costs');
+  assert.strictEqual(fin.actualProfitMargin, 0, 'division-by-zero guard still applies even when actual profit itself is negative');
+  assert.ok(Number.isFinite(fin.actualProfitMargin));
+});
+
+test('computeFinancials: never infers additional revenue from the contract amount — a change order raises the contract (projected) figure but never touches collected/actual profit', () => {
+  const fin = computeFinancials(baseArgs({
+    deal: { amount: 50000, financial_change_orders_amount: 5000 },
+    invoices: [{ amount: 30000, payment_received: 20000 }],
+    expenses: [{ category: 'Subcontractor', amount: 12000, amount_paid: 0, payment_status: 'Unpaid' }],
+  }));
+  assert.strictEqual(fin.totalRevenue, 55000, 'contract-based figure correctly includes the change order');
+  assert.strictEqual(fin.paymentsReceived, 20000, 'collected revenue is NEVER inferred from the contract/change-order amount');
+  assert.strictEqual(fin.actualProfit, 8000, 'ACTUAL PROFIT only ever uses real collected revenue — unaffected by the change order');
+});
+
 console.log('\n✅ All financialCalc cost-model tests passed');
