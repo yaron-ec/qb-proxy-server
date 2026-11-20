@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { PieChart, TrendingUp, Percent, Receipt, Landmark, FileText, Clock } from "lucide-react";
+import { PieChart, TrendingUp, Percent, Receipt, FileText, Clock } from "lucide-react";
 import * as railwayDeals from "@/api/railway/deals";
 import * as railwayDealExpenses from "@/api/railway/dealExpenses";
 import * as railwayDealExpensePayments from "@/api/railway/dealExpensePayments";
@@ -17,7 +17,6 @@ import RevenueSection from "./RevenueSection";
 import LeadCostSection from "./LeadCostSection";
 import CommissionSection from "./CommissionSection";
 import ExpensesSection from "./ExpensesSection";
-import LoanPaymentsSection from "./LoanPaymentsSection";
 import FinancialActivitySection from "./FinancialActivitySection";
 import InvoiceMappingPanel from "./InvoiceMappingPanel";
 import AddendumPanel from "./AddendumPanel";
@@ -51,6 +50,7 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal, setLead, 
   const [saleInvoices, setSaleInvoices] = useState([]);
   const [waterfall, setWaterfall] = useState(null);
   const [waterfallError, setWaterfallError] = useState(null);
+  const [addendumData, setAddendumData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Per-deal, per-tab (sessionStorage, not localStorage — never persists
@@ -83,7 +83,7 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal, setLead, 
     if (!deal?.id) return;
     setLoading(true);
     try {
-      const [exRes, payRes, comRes, loanRes, actRes, finRes] = await Promise.all([
+      const [exRes, payRes, comRes, loanRes, actRes, finRes, addRes] = await Promise.all([
         canViewFull ? railwayDealExpenses.list({ deal_id: deal.id }) : Promise.resolve({ items: [] }),
         canViewFull ? railwayDealExpensePayments.list({ deal_id: deal.id }) : Promise.resolve({ items: [] }),
         railwayDealCommissions.list({ deal_id: deal.id }).catch(() => ({ items: [] })),
@@ -92,6 +92,12 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal, setLead, 
         // Sale-scoped QB invoices from qb_invoice_sale_map + qb_invoices_cache.
         // QuickBooks is authoritative — no customer-level fallback, no double counting.
         railwayDealFinancials.getFinancials(deal.id, deal.amount).catch(() => null),
+        // Addendum/Master Project data — fetched ONCE here, shared by both
+        // ProfitabilitySummary (the hero, which must show the SAME combined
+        // totals when this project has approved addendums) and AddendumPanel
+        // (the contract-structure breakdown) — never two independent
+        // fetches that could show two different numbers for the same thing.
+        canViewFull ? railwayDeals.getAddendums(deal.id).catch(() => null) : Promise.resolve(null),
       ]);
       setExpenses(exRes.items || []);
       setExpensePayments(payRes.items || []);
@@ -101,12 +107,13 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal, setLead, 
       setSaleInvoices(finRes?.invoices || []);
       setWaterfall(finRes?.waterfall || null);
       setWaterfallError(finRes?.waterfallError || null);
+      setAddendumData(addRes || null);
     } catch {
       // non-critical
     } finally {
       setLoading(false);
     }
-  }, [deal?.id, deal?.lead_id, deal?.amount, canViewFull]);
+  }, [deal?.id, deal?.lead_id, deal?.amount, canViewFull, addendumRefreshKey]);
 
   useEffect(() => {
     load();
@@ -192,7 +199,6 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal, setLead, 
   const sectionBadges = {
     commissions: commissions.length,
     expenses: expenses.length,
-    loan_payments: loanPayments.length,
     activity_log: activities.length,
   };
 
@@ -208,16 +214,16 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal, setLead, 
           mapping, activity log) lives in the Expandable Details accordion
           below, collapsed by default, so the page opens as a summary, not a
           wall of every sub-panel at once. */}
-      <ProfitabilitySummary fin={fin} />
+      <ProfitabilitySummary fin={fin} master={addendumData?.master} />
 
       {/* Master Project Summary (Original Contract/Approved Addendums/
-          Combined Contract Value + consolidated Invoiced/Collected/
-          Outstanding/Costs/Profit/Margin) — always visible, directly below
-          the Financial Summary hero, not buried in Expandable Details, so
-          the fact this project HAS addendums (and their combined totals)
-          is immediately clear rather than requiring an accordion click.
-          Renders nothing when this project has no addendums at all. */}
-      <AddendumPanel deal={deal} lead={lead} isAdmin={isAdmin} refreshKey={addendumRefreshKey} />
+          Combined Contract Value + the invoiced-vs-contract discrepancy
+          banner) — always visible, directly below the Financial Summary
+          hero (which itself now shows the combined metrics above when this
+          project has addendums — see ProfitabilitySummary's own `master`
+          prop), not buried in Expandable Details. Renders nothing when
+          this project has no addendums at all. */}
+      <AddendumPanel deal={deal} data={addendumData} />
 
       <div data-testid="fin-collections-section">
         <CustomerCollections
@@ -282,15 +288,6 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal, setLead, 
           >
             <AccordionContent>
               <ExpensesSection deal={deal} expenses={expenses} payments={expensePayments} canEdit={canEdit} canDelete={canDelete} onChange={load} logActivity={logActivity} user={user} />
-            </AccordionContent>
-          </AccordionItem>
-
-          <AccordionItem
-            title="Loan Payments" icon={Landmark} color="blue" badge={sectionBadges.loan_payments}
-            isOpen={!!openSections.loan_payments} onToggle={() => toggleSection("loan_payments")}
-          >
-            <AccordionContent>
-              <LoanPaymentsSection deal={deal} loanPayments={loanPayments} canEdit={canEdit} canDelete={canDelete} onChange={load} logActivity={logActivity} user={user} />
             </AccordionContent>
           </AccordionItem>
 

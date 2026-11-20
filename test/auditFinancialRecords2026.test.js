@@ -25,7 +25,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert');
-const { invoicePaidAmount } = require('../scripts/auditFinancialRecords2026.js');
+const { invoicePaidAmount, checkAddendumAmountVsEstimate } = require('../scripts/auditFinancialRecords2026.js');
 
 test('invoicePaidAmount: real qb_invoices_cache shape (string numerics, total_amt column)', () => {
   assert.strictEqual(
@@ -74,4 +74,73 @@ test('invoicePaidAmount: a genuine $0 paid invoice really is zero (not every zer
     invoicePaidAmount({ total_amt: '5000.00', balance: '5000.00', paid: '0.00' }),
     0
   );
+});
+
+/**
+ * checkAddendumAmountVsEstimate — regression coverage for the real
+ * production finding (PR #78 follow-up): a Bathroom Repair addendum deal
+ * stored amount=$7,934.00 while its QuickBooks estimate reads $7,934.35.
+ * handoff_estimates is lead_id-scoped, never deal_id-scoped (confirmed via
+ * \d handoff_estimates against a disposable Postgres instance), so this
+ * check must never guess which estimate applies when a lead has more than
+ * one — per "reassign CRM mappings only where evidence confirms the
+ * correct deal," extended here to "never silently correct an amount
+ * without unambiguous evidence."
+ */
+
+test('checkAddendumAmountVsEstimate: not an addendum (no parent_deal_id) — never flagged, regardless of estimates', () => {
+  const deal = { id: 'roof', amount: 33000, parent_deal_id: null };
+  const estimates = [{ estimate_amount: '99999.99', qb_estimate_number: 'HNDF-EST-1' }];
+  assert.strictEqual(checkAddendumAmountVsEstimate(deal, estimates), null);
+});
+
+test('checkAddendumAmountVsEstimate: no estimates for the lead at all — never flagged (nothing to compare against)', () => {
+  const deal = { id: 'bath', amount: 7934.00, parent_deal_id: 'roof' };
+  assert.strictEqual(checkAddendumAmountVsEstimate(deal, []), null);
+  assert.strictEqual(checkAddendumAmountVsEstimate(deal, null), null);
+});
+
+test('checkAddendumAmountVsEstimate: exactly one estimate, amounts agree — never flagged', () => {
+  const deal = { id: 'bath', amount: 7934.35, parent_deal_id: 'roof' };
+  const estimates = [{ estimate_amount: '7934.35', qb_estimate_number: 'HNDF-EST-10260' }];
+  assert.strictEqual(checkAddendumAmountVsEstimate(deal, estimates), null);
+});
+
+test('checkAddendumAmountVsEstimate: reproduces the exact reported Lalani discrepancy ($7,934.00 deal vs $7,934.35 estimate)', () => {
+  const deal = { id: 'bath', amount: 7934.00, parent_deal_id: 'roof' };
+  const estimates = [{ estimate_amount: '7934.35', qb_estimate_number: 'HNDF-EST-10260' }];
+  const flag = checkAddendumAmountVsEstimate(deal, estimates);
+  assert.match(flag, /ADDENDUM_AMOUNT_VS_ESTIMATE_MISMATCH/);
+  assert.match(flag, /\$7934\.00/);
+  assert.match(flag, /\$7934\.35/);
+  assert.match(flag, /HNDF-EST-10260/);
+  assert.match(flag, /diff=\$0\.35/);
+  assert.match(flag, /never auto-corrected/);
+});
+
+test('checkAddendumAmountVsEstimate: a sub-cent floating-point difference is never flagged', () => {
+  const deal = { id: 'bath', amount: 7934.35, parent_deal_id: 'roof' };
+  const estimates = [{ estimate_amount: '7934.3500001', qb_estimate_number: 'HNDF-EST-10260' }];
+  assert.strictEqual(checkAddendumAmountVsEstimate(deal, estimates), null);
+});
+
+test('checkAddendumAmountVsEstimate: MORE than one estimate for the lead — never guesses, flags as unverifiable listing every candidate', () => {
+  const deal = { id: 'bath', amount: 7934.00, parent_deal_id: 'roof' };
+  const estimates = [
+    { estimate_amount: '7934.35', qb_estimate_number: 'HNDF-EST-10260' },
+    { estimate_amount: '5000.00', qb_estimate_number: 'HNDF-EST-10300' },
+  ];
+  const flag = checkAddendumAmountVsEstimate(deal, estimates);
+  assert.match(flag, /ADDENDUM_AMOUNT_UNVERIFIABLE_MULTIPLE_ESTIMATES/);
+  assert.match(flag, /HNDF-EST-10260/);
+  assert.match(flag, /HNDF-EST-10300/);
+  assert.match(flag, /cannot safely match/);
+  // Must NOT also emit the single-estimate mismatch flag — never a guess.
+  assert.doesNotMatch(flag, /ADDENDUM_AMOUNT_VS_ESTIMATE_MISMATCH/);
+});
+
+test('checkAddendumAmountVsEstimate: non-numeric estimate_amount is never flagged (never crash, never false positive)', () => {
+  const deal = { id: 'bath', amount: 7934.00, parent_deal_id: 'roof' };
+  const estimates = [{ estimate_amount: 'not-a-number', qb_estimate_number: 'HNDF-EST-10260' }];
+  assert.strictEqual(checkAddendumAmountVsEstimate(deal, estimates), null);
 });
