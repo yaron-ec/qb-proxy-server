@@ -827,7 +827,7 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
 
         {/* Follow-up */}
         <div className="mt-3">
-          <FollowUpScheduler key={`fup-${lead.follow_up_date}-${lead.follow_up_time}-${lead.follow_up_type}-${lead.follow_up_status}`} lead={lead} onLeadUpdate={onLeadUpdate} currentUser={currentUser} />
+          <FollowUpScheduler key={`fup-${lead.follow_up_date}-${lead.follow_up_time}-${lead.follow_up_type}-${lead.follow_up_status}`} lead={lead} onLeadUpdate={onLeadUpdate} />
         </div>
       </SidebarSection>
 

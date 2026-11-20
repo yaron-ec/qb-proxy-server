@@ -214,7 +214,7 @@ test('2. New Lead with follow-up only → no appointment row, follow-up persiste
   assert.strictEqual(ob.rows[0].n, 0, 'a follow-up never enqueues Google Calendar work');
 });
 
-let bothLeadId, bothDay;
+let bothLeadId, bothDay, meetingFollowUpDay, bothAppointmentFromFollowUpId;
 test('3. New Lead with BOTH → independent appointment + follow-up', { skip }, async () => {
   bothDay = uniqueDay();
   const r = await api('POST', '/api/public/capture', capturePayload({
@@ -280,7 +280,17 @@ test('6. Edit appointment (reschedule) updates every representation atomically',
   assert.strictEqual(lead.follow_up_type, 'Text');
 });
 
-test('7. Edit follow-up (partial + full) never touches the appointment', { skip }, async () => {
+// PRODUCT CORRECTION (November 2026, "John John" production incident):
+// Follow-Up is now the single, user-facing source of scheduling truth for
+// a Meeting. Editing the follow-up to a NON-Meeting type still never
+// touches the appointment (unchanged) — but setting it to a dated Meeting
+// now automatically creates/reschedules the real appointment, and clearing
+// a Meeting follow-up that matches the active appointment cancels it. See
+// lib/booking/followUpAppointmentSync.js. This supersedes this test's own
+// prior title/assertions ("never touches the appointment", "must not move
+// the appointment") for the Meeting case specifically — every non-Meeting
+// assertion below is unchanged from before this correction.
+test('7. Edit follow-up: non-Meeting edits never touch the appointment; a Meeting edit automatically syncs it', { skip }, async () => {
   const before = await getLead(bothLeadId);
   let r = await api('PUT', `/api/v1/leads/${bothLeadId}/follow-up`, { follow_up_status: 'completed' });
   assert.strictEqual(r.status, 200, JSON.stringify(r.body));
@@ -290,40 +300,63 @@ test('7. Edit follow-up (partial + full) never touches the appointment', { skip 
     follow_up_date: '2031-05-01', follow_up_time: '11:45', follow_up_type: 'Email', follow_up_notes: 'Revised', follow_up_status: 'pending',
   });
   assert.strictEqual(r.status, 200, JSON.stringify(r.body));
-  const lead = r.body.lead;
+  let lead = r.body.lead;
   assert.deepStrictEqual(
     [lead.follow_up_date, lead.follow_up_time, lead.follow_up_type, lead.follow_up_notes, lead.follow_up_status],
     ['2031-05-01', '11:45', 'Email', 'Revised', 'pending']);
-  assert.strictEqual(lead.appointment_id, before.appointment_id);
+  assert.strictEqual(lead.appointment_id, before.appointment_id, 'a non-Meeting follow-up edit never touches the appointment');
   assert.strictEqual(lead.appointment_time, before.appointment_time);
-  // Legacy follow-up-shaped body sent to /appointment is saved as follow-up only.
-  r = await api('PUT', `/api/v1/leads/${bothLeadId}/appointment`, { follow_up_date: '2031-05-02', follow_up_time: '08:00', follow_up_type: 'Meeting' });
+  assert.deepStrictEqual(r.body.follow_up_appointment_sync, { action: 'none' }, 'no sync action for a non-Meeting type');
+
+  // Setting it to a dated Meeting (via the legacy follow-up-shaped body sent
+  // to /appointment, which saves as a follow-up only) now AUTOMATICALLY
+  // reschedules the real appointment to match — never a second manual step.
+  meetingFollowUpDay = uniqueDay();
+  r = await api('PUT', `/api/v1/leads/${bothLeadId}/appointment`, { follow_up_date: meetingFollowUpDay, follow_up_time: '08:00', follow_up_type: 'Meeting' });
   assert.strictEqual(r.status, 200, JSON.stringify(r.body));
   assert.ok(r.body.deprecated);
-  assert.strictEqual(r.body.lead.follow_up_date, '2031-05-02');
-  assert.strictEqual(r.body.lead.appointment_id, before.appointment_id, 'legacy follow-up body must not move the appointment');
-  // Clear the follow-up entirely.
+  assert.strictEqual(r.body.lead.follow_up_date, meetingFollowUpDay);
+  assert.strictEqual(r.body.follow_up_appointment_sync.action, 'rescheduled', 'a dated Meeting follow-up automatically reschedules the appointment');
+  assert.notStrictEqual(r.body.lead.appointment_id, before.appointment_id, 'the appointment is a NEW row (reschedule), not the old one mutated');
+  assert.strictEqual(r.body.lead.appointment_date, meetingFollowUpDay);
+  assert.strictEqual(r.body.lead.appointment_time, '08:00');
+  const syncedApptId = r.body.lead.appointment_id;
+
+  // Clearing the follow-up entirely now automatically CANCELS the matching
+  // appointment (it is exactly the one this follow-up had just been
+  // representing) — kept as history, never deleted.
   r = await api('PUT', `/api/v1/leads/${bothLeadId}/follow-up`, { follow_up_date: null, follow_up_time: null, follow_up_type: null });
-  assert.strictEqual(r.status, 200);
+  assert.strictEqual(r.status, 200, JSON.stringify(r.body));
   assert.strictEqual(r.body.lead.follow_up_date, null);
   assert.strictEqual(r.body.lead.follow_up_notes, null);
-  assert.strictEqual(r.body.lead.appointment_id, before.appointment_id);
+  assert.strictEqual(r.body.follow_up_appointment_sync.action, 'cancelled', 'clearing a matching Meeting follow-up cancels the appointment it represented');
+  assert.strictEqual(r.body.lead.appointment, null, 'no active appointment remains');
+  const cancelledRow = (await db.query('SELECT status FROM appointments WHERE id = $1', [syncedApptId])).rows[0];
+  assert.strictEqual(cancelledRow.status, 'cancelled', 'the superseded appointment is kept as history, never deleted');
 });
 
-test('8. Refresh persistence: a fresh read after the edits returns the saved values', { skip }, async () => {
-  await api('PUT', `/api/v1/leads/${bothLeadId}/follow-up`, {
-    follow_up_date: '2031-06-01', follow_up_time: '14:00', follow_up_type: 'Phone Call', follow_up_notes: 'After refresh',
+test('8. Refresh persistence: a fresh read after a Meeting follow-up save returns BOTH the saved follow-up and the automatically-synced appointment', { skip }, async () => {
+  const freshDay = uniqueDay();
+  const r = await api('PUT', `/api/v1/leads/${bothLeadId}/follow-up`, {
+    follow_up_date: freshDay, follow_up_time: '14:00', follow_up_type: 'Meeting', follow_up_notes: 'After refresh',
   });
+  assert.strictEqual(r.status, 200, JSON.stringify(r.body));
+  assert.strictEqual(r.body.follow_up_appointment_sync.action, 'created');
+  meetingFollowUpDay = freshDay;
+
   const lead = await getLead(bothLeadId);
-  assert.strictEqual(lead.follow_up_date, '2031-06-01');
+  assert.strictEqual(lead.follow_up_date, freshDay);
   assert.strictEqual(lead.follow_up_notes, 'After refresh');
-  assert.strictEqual(lead.appointment_time, '13:00');
+  assert.strictEqual(lead.appointment_date, freshDay, 'the fresh read reflects the automatically-created appointment');
+  assert.strictEqual(lead.appointment_time, '14:00');
   const row = (await db.query('SELECT follow_up_date, follow_up_notes FROM leads WHERE id = $1', [bothLeadId])).rows[0];
-  assert.strictEqual(row.follow_up_date, '2031-06-01');
+  assert.strictEqual(row.follow_up_date, freshDay);
+  bothAppointmentFromFollowUpId = lead.appointment_id;
 });
 
-test('9. Appointment and Meeting cannot contradict: every surface derives from the one appointments row', { skip }, async () => {
+test('9. Appointment created from a Meeting follow-up is internally consistent, AND the separate followUpMeeting calendar mechanism correctly defers to it (no duplicate calendar representation)', { skip }, async () => {
   const lead = await getLead(bothLeadId);
+  assert.strictEqual(lead.appointment_id, bothAppointmentFromFollowUpId);
   const row = (await db.query('SELECT * FROM appointments WHERE id = $1', [lead.appointment_id])).rows[0];
   const { serializeAppointment } = require('../../lib/booking/appointmentView');
   const s = serializeAppointment(row);
@@ -340,6 +373,19 @@ test('9. Appointment and Meeting cannot contradict: every surface derives from t
   const rid = lead.external_ref || lead.id;
   const rl = (await db.query('SELECT appointment_date, appointment_time, appointment_type FROM reminder_leads WHERE id = $1', [rid])).rows[0];
   assert.deepStrictEqual([rl.appointment_date, rl.appointment_time, rl.appointment_type], [s.date, s.time, s.kind]);
+
+  // lib/booking/followUpReminders.js's own pre-existing mirror-dedup guard
+  // (desiredReminders()) must see this follow-up's date/time EXACTLY match
+  // the real appointment's start_at and therefore skip creating a SEPARATE
+  // 'meeting' virtual-appointment calendar representation for the same
+  // lead — proving this correction introduces no duplicate-event risk
+  // against that pre-existing, independent mechanism.
+  const { reconcileFollowUpReminders } = require('../../lib/booking/followUpReminders');
+  const followUpReminderResult = await reconcileFollowUpReminders(db.pool, { google: require('../../lib/booking/googleCalendarClient'), limit: 1000, delayMs: 0, crmPublicUrl: '' });
+  assert.strictEqual(followUpReminderResult.errors, 0, JSON.stringify(followUpReminderResult));
+  const reminderStateRow = (await db.query('SELECT * FROM followup_calendar_reminders WHERE lead_id = $1', [bothLeadId])).rows[0];
+  assert.ok(!reminderStateRow || reminderStateRow.google_event_id == null || reminderStateRow.status !== 'active',
+    'the dedup guard must prevent a separate meeting-kind calendar representation once a matching real appointment exists');
 });
 
 // ── 10–12: Google Calendar via the real outbox ───────────────────────────────

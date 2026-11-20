@@ -119,9 +119,22 @@ test('reports the real canonical Follow-Up + real Appointment, and classifies a 
   // ...and set an independent Follow-Up on a LATER, different date — exactly
   // the shape reported for a real production lead (Appointment Sep 29,
   // Follow-Up Oct 1).
+  //
+  // November 2026 PRODUCT CORRECTION: PUT /:id/follow-up now automatically
+  // reschedules the real appointment to match a dated Meeting follow-up
+  // (see lib/booking/followUpAppointmentSync.js) — so saving THIS
+  // different-dated follow-up through the live HTTP route would no longer
+  // leave a divergent pair to diagnose; it would resolve it immediately.
+  // This test is specifically about the diagnostic tool correctly
+  // reporting a DIV_OTHER shape when one still exists (pre-existing/
+  // historical data, or any other case the live write path didn't touch)
+  // — so the divergent follow-up is written directly, bypassing the HTTP
+  // route and its new auto-sync, exactly simulating that historical shape.
   const followUpDay = new Date(Date.now() + (dayOffset + 2) * 86400000).toISOString().slice(0, 10);
-  const fuRes = await api('PUT', `/api/v1/leads/${leadId}/follow-up`, { follow_up_date: followUpDay, follow_up_time: '12:00', follow_up_type: 'Meeting', follow_up_status: 'pending' }, adminToken);
-  assert.strictEqual(fuRes.status, 200, JSON.stringify(fuRes.body));
+  await db.query(
+    `UPDATE leads SET follow_up_date = $1, follow_up_time = $2, follow_up_type = 'Meeting', follow_up_status = 'pending' WHERE id = $3`,
+    [followUpDay, '12:00', leadId]
+  );
 
   const diag = await api('GET', `/api/v1/system/lead-diagnostic/${leadId}`, undefined, adminToken);
   assert.strictEqual(diag.status, 200, JSON.stringify(diag.body));
