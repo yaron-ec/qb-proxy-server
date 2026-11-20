@@ -33,6 +33,7 @@ export default function SignNowPanel({ lead, onLeadUpdate, deal }) {
   const [downloadingPdf, setDownloadingPdf] = useState(null);
   const [sendingDocId, setSendingDocId] = useState(null);
   const [openingDocId, setOpeningDocId] = useState(null);
+  const [reverifyingDocId, setReverifyingDocId] = useState(null);
   const { toast } = useToast();
   const refreshTimer = useRef(null);
 
@@ -218,9 +219,41 @@ export default function SignNowPanel({ lead, onLeadUpdate, deal }) {
       toast({ title: 'Sent for signature', duration: 3000 });
       await loadDocuments();
     } catch (e) {
-      toast({ title: 'Failed to send', description: e.message, variant: 'destructive', duration: 5000 });
+      if (e.data?.error === 'unverified_fields_present') {
+        toast({
+          title: 'Blocked — may contain another record\'s data',
+          description: e.data.message,
+          variant: 'destructive',
+          duration: 9000,
+        });
+      } else {
+        toast({ title: 'Failed to send', description: e.data?.message || e.message, variant: 'destructive', duration: 5000 });
+      }
+      await loadDocuments();
     } finally {
       setSendingDocId(null);
+    }
+  };
+
+  const handleReverify = async (docId) => {
+    setReverifyingDocId(docId);
+    try {
+      const { document: doc } = await railwaySignnow.reverifyDocument(docId);
+      if (doc.status === 'needs_review') {
+        toast({
+          title: 'Still needs review',
+          description: `${doc.unverified_fields?.length || 0} field(s) still look like they may hold another record's data. Fix them in SignNow, then re-verify again.`,
+          variant: 'destructive',
+          duration: 7000,
+        });
+      } else {
+        toast({ title: 'Verified — ready to send', duration: 3000 });
+      }
+      await loadDocuments();
+    } catch (e) {
+      toast({ title: 'Re-verify failed', description: e.data?.message || e.message, variant: 'destructive', duration: 5000 });
+    } finally {
+      setReverifyingDocId(null);
     }
   };
 
@@ -288,6 +321,7 @@ export default function SignNowPanel({ lead, onLeadUpdate, deal }) {
     completed: { color: 'text-emerald-600', bg: 'bg-emerald-50', icon: CheckCircle2, label: 'Completed' },
     voided: { color: 'text-red-500', bg: 'bg-red-50', icon: AlertCircle, label: 'Voided' },
     error: { color: 'text-red-500', bg: 'bg-red-50', icon: AlertCircle, label: 'Error' },
+    needs_review: { color: 'text-red-600', bg: 'bg-red-50', icon: AlertCircle, label: 'Needs Review' },
   };
 
   if (loading) {
@@ -422,6 +456,39 @@ export default function SignNowPanel({ lead, onLeadUpdate, deal }) {
                     {doc.signers.map((s, i) => (
                       <p key={i} className="text-[10px] text-slate-500 truncate">→ {s.email}</p>
                     ))}
+                  </div>
+                )}
+
+                {/* Identity-safety warning — November 2026 incident fix: a
+                    document copied from a template that was itself made
+                    from an already-filled document can carry a PRIOR
+                    customer's name/address/etc. as stale default content.
+                    This is never auto-resolved — an admin must open the
+                    document, fix/clear the flagged fields, then re-verify. */}
+                {doc.unverified_fields && doc.unverified_fields.length > 0 && (
+                  <div className="mb-1.5 bg-red-100 border border-red-300 rounded-lg px-2.5 py-2">
+                    <p className="text-[11px] font-bold text-red-700 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" /> May contain another record's data — cannot be sent
+                    </p>
+                    <ul className="mt-1 space-y-0.5">
+                      {doc.unverified_fields.map((risk, i) => (
+                        <li key={i} className="text-[10px] text-red-600">
+                          • "{risk.field_name}": currently shows "{risk.current}"
+                          {risk.expected ? ` (expected "${risk.expected}")` : ' (no CRM mapping for this field)'}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="text-[10px] text-red-600 mt-1">
+                      Open in SignNow, fix or clear these fields, then click Re-verify.
+                    </p>
+                    <button
+                      onClick={() => handleReverify(doc.document_id)}
+                      disabled={reverifyingDocId === doc.document_id}
+                      className="mt-1.5 text-[10px] text-red-700 hover:text-red-800 font-bold flex items-center gap-1 disabled:opacity-50"
+                    >
+                      {reverifyingDocId === doc.document_id ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                      Re-verify
+                    </button>
                   </div>
                 )}
 

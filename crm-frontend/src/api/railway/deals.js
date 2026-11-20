@@ -49,3 +49,12 @@ export async function update(id, data) {
 export function remove(id) {
   return apiCall(`/api/v1/deals/${id}`, { method: 'DELETE' });
 }
+
+// Parent Project / Addendum relationship (CRM repair item 1, November 2026).
+export function getAddendums(id) {
+  return apiCall(`/api/v1/deals/${id}/addendums`, { method: 'GET' });
+}
+
+export async function convertToAddendum(id, data) {
+  return apiCall(`/api/v1/deals/${id}/convert-to-addendum`, { method: 'POST', body: data });
+}

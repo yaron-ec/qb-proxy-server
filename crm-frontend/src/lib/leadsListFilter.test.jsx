@@ -14,7 +14,7 @@
  * itself (extracted to lib/leadsListFilter.js for direct testability).
  */
 import { describe, it, expect } from 'vitest';
-import { filterAndSortLeads } from './leadsListFilter';
+import { filterAndSortLeads, rankSearchRelevance } from './leadsListFilter';
 
 function lead(overrides = {}) {
   return {
@@ -102,5 +102,46 @@ describe('filterAndSortLeads — Sales Rep (owner) filter', () => {
 
   it('handles an empty leads array safely', () => {
     expect(filterAndSortLeads([], { ownerFilter: 'Yaron Drilevich', userRole: 'admin' })).toEqual([]);
+  });
+});
+
+describe('filterAndSortLeads — search relevance ranking (November 2026 production fix)', () => {
+  // REGRESSION: searching "ali" previously ranked "Ali & Mohemmed Lalani"
+  // far down the list — a search never changed sort order, results stayed
+  // ordered by follow-up urgency regardless of match quality.
+  const relevanceLeads = [
+    lead({ id: 'urgent-other', first_name: 'Dean', last_name: 'Richter', follow_up_date: '2020-01-01', follow_up_status: 'pending' }),
+    lead({ id: 'lalani', first_name: 'Ali & Mohemmed', last_name: 'Lalani', follow_up_date: null }),
+    lead({ id: 'substring-only', first_name: 'Monica', last_name: 'Gonzalez', notes: 'spoke with her husband Ali about the quote', follow_up_date: null }),
+  ];
+
+  it('an exact-prefix name match ranks above a lead with only an unrelated notes match, and a lead with no "ali" anywhere never matches at all, regardless of follow-up urgency', () => {
+    const result = filterAndSortLeads(relevanceLeads, { searchTerm: 'ali', userRole: 'admin' });
+    const ids = result.map((l) => l.id);
+    expect(ids.indexOf('lalani')).toBeLessThan(ids.indexOf('substring-only'));
+    expect(ids).not.toContain('urgent-other'); // "Dean Richter" has no "ali" anywhere — must not match at all
+  });
+
+  it('rankSearchRelevance: tier 0 exact full name, tier 1 name begins with query, tier 2 any name token begins with query, tier 3 name contains query, tier 4 no name match', () => {
+    expect(rankSearchRelevance({ first_name: 'Ali', last_name: 'Lalani' }, 'ali lalani')).toBe(0);
+    expect(rankSearchRelevance({ first_name: 'Ali', last_name: 'Lalani' }, 'ali')).toBe(1);
+    expect(rankSearchRelevance({ first_name: 'Ali & Mohemmed', last_name: 'Lalani' }, 'lalani')).toBe(2);
+    expect(rankSearchRelevance({ first_name: 'Natalie', last_name: 'Price' }, 'ali')).toBe(3); // "natalie" contains "ali" mid-word, not at a token boundary
+    expect(rankSearchRelevance({ first_name: 'Monica', last_name: 'Gonzalez' }, 'ali')).toBe(4);
+    expect(rankSearchRelevance({ first_name: '', last_name: '' }, 'ali')).toBe(4);
+  });
+
+  it('an explicitly selected sort (created/updated) is honored even while searching — relevance is only the default', () => {
+    const result = filterAndSortLeads(relevanceLeads, { searchTerm: 'ali', sortField: 'created', userRole: 'admin' });
+    // Falls through to the plain created-date sort, never relevance, once
+    // the user has explicitly chosen a sort order.
+    expect(result.map((l) => l.id)).toEqual(
+      [...result].sort((a, b) => new Date(b.created_date) - new Date(a.created_date)).map((l) => l.id)
+    );
+  });
+
+  it('a search with zero name/field matches still returns an empty array, not a crash', () => {
+    const result = filterAndSortLeads(relevanceLeads, { searchTerm: 'zzz-no-such-lead', userRole: 'admin' });
+    expect(result).toEqual([]);
   });
 });

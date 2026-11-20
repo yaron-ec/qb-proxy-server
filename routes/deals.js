@@ -343,4 +343,104 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// ── GET /:id/addendums — list this deal's addendums + combined total ───────
+// CRM repair item 1 (November 2026): "auto-calculate combined approved
+// contract value." Returns the parent's own amount, every addendum
+// (deals with parent_deal_id = this deal), and the combined total — rolled
+// up exactly once (an addendum's amount is never also counted as part of
+// the parent's own `amount`, since they are two separate deal rows).
+router.get('/:id/addendums', async (req, res) => {
+  try {
+    const { whereSql, params } = dealIdWhere(req.params.id);
+    const { rows } = await query(`SELECT * FROM deals WHERE ${whereSql} LIMIT 1`, params);
+    const deal = rows[0];
+    if (!deal) return res.status(404).json({ error: 'not_found' });
+    if (!canAccessDeal(req.user, deal)) return res.status(403).json({ error: 'forbidden' });
+
+    const { rows: addendumRows } = await query(
+      `SELECT * FROM deals WHERE parent_deal_id = $1 ORDER BY created_at ASC`,
+      [deal.id]
+    );
+    const addendums = addendumRows.map(serializeDeal);
+    const originalAmount = Number(deal.amount || 0);
+    const addendumsTotal = addendums.reduce((s, a) => s + Number(a.amount || 0), 0);
+
+    res.json({
+      deal: serializeDeal(deal),
+      addendums,
+      original_contract_amount: originalAmount,
+      approved_addendums_amount: addendumsTotal,
+      total_approved_contract: originalAmount + addendumsTotal,
+    });
+  } catch (e) {
+    console.error('[deals] addendums error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── POST /:id/convert-to-addendum — admin-only, audited, never automatic ───
+// "Allow admins to convert an existing separate deal into an addendum of a
+// selected parent without losing IDs/invoices/payments/expenses/documents/
+// activity history" — this is purely a relationship link (parent_deal_id);
+// the deal's own id, and everything already keyed to it (deal_expenses,
+// qb_invoice_sale_map, signnow_documents, deal_timeline, deal_commissions),
+// is completely untouched. "Never automatically merge ambiguous records" —
+// this requires an explicit admin action with a reason, never inferred from
+// amount/date/name.
+router.post('/:id/convert-to-addendum', async (req, res) => {
+  try {
+    if (String(req.user.role || '').toLowerCase() !== 'admin') {
+      return res.status(403).json({ error: 'forbidden', message: 'Converting a deal into an addendum is an admin-only action.' });
+    }
+    const { parent_deal_id, reason } = req.body || {};
+    if (!parent_deal_id) return res.status(400).json({ error: 'parent_deal_id required' });
+    if (!reason || !String(reason).trim()) {
+      return res.status(400).json({ error: 'reason required', message: 'A reason is required to convert a deal into an addendum — this changes financial reporting and is never a silent guess.' });
+    }
+
+    const { whereSql, params } = dealIdWhere(req.params.id);
+    const { rows } = await query(`SELECT * FROM deals WHERE ${whereSql} LIMIT 1`, params);
+    const deal = rows[0];
+    if (!deal) return res.status(404).json({ error: 'not_found' });
+
+    const parentRes = await query('SELECT * FROM deals WHERE id = $1', [parent_deal_id]);
+    const parent = parentRes.rows[0];
+    if (!parent) return res.status(404).json({ error: 'parent_not_found' });
+
+    const { canConvertToAddendum } = require('../lib/dealModel');
+    const check = canConvertToAddendum(deal, parent);
+    if (!check.ok) {
+      const messages = {
+        self_reference: 'A deal cannot be its own addendum.',
+        cross_lead: 'An addendum must belong to the SAME customer/lead as its parent project — never a different customer.',
+        already_an_addendum: 'This deal is already an addendum of another project. Only one conversion is supported per deal.',
+        parent_is_itself_an_addendum: 'The selected parent is itself an addendum — addendums can only be one level deep.',
+      };
+      return res.status(422).json({ error: check.reason, message: messages[check.reason] || check.reason });
+    }
+
+    const upd = await query(
+      'UPDATE deals SET parent_deal_id = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+      [parent.id, deal.id]
+    );
+
+    try {
+      await query(
+        `INSERT INTO activities (lead_id, type, content, author, source, created_at)
+         VALUES ($1, 'note', $2, $3, 'manual', NOW())`,
+        [deal.lead_id,
+         `🔧 Deal "${deal.name}" converted into an addendum of "${parent.name}". Reason: ${String(reason).trim()}`,
+         req.user.email]
+      );
+    } catch (actErr) {
+      console.warn('[deals] convert-to-addendum activity log failed:', actErr.message);
+    }
+
+    res.json({ deal: serializeDeal(upd.rows[0]), parent_deal_name: parent.name });
+  } catch (e) {
+    console.error('[deals] convert-to-addendum error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;

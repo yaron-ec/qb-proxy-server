@@ -49,7 +49,8 @@ if (DB_URL) {
   process.env.RAILWAY_JWT_SECRET = process.env.RAILWAY_JWT_SECRET || 'int-test-secret-int-test-secret-0123456789';
 }
 
-let base, server, db, adminToken, leadId, otherLeadId, dealId, otherLeadDealId, companyConfig, insertedCompanySettingsId;
+let base, server, db, adminToken, adminEmail, leadId, otherLeadId, dealId, otherLeadDealId, companyConfig, insertedCompanySettingsId;
+let staleDocIdForReverify;
 let prefillCalls, getDocumentFieldsCalls, createFromTemplateCalls;
 
 async function api(method, url, body, token) {
@@ -84,6 +85,14 @@ async function setSignNowEnabled() {
 // unknowable without live credentials in this environment.
 const LIVE_DOC_FIELDS = ['customer_full_name', 'job_address', 'contract_amount'];
 
+// Set (and cleared) by individual tests to simulate a template made from an
+// already-filled document (the November 2026 incident's actual root cause)
+// — a field that already carries a PRIOR customer's text, both BEFORE and
+// AFTER any prefillTexts call, exactly like a real SignNow template field
+// that was never cleared would. Keys are live field names from
+// LIVE_DOC_FIELDS; values are the "stale" content to report.
+let staleFieldOverrides = {};
+
 if (DB_URL) {
   const p = require.resolve(path.join(ROOT, 'lib/signnowClient'));
   require.cache[p] = {
@@ -101,7 +110,10 @@ if (DB_URL) {
       getDocumentStatus: async () => ({ field_invites: [], signatures: [] }),
       getDocumentFields: async (docId) => {
         getDocumentFieldsCalls.push(docId);
-        return { fields: LIVE_DOC_FIELDS.map((name) => ({ name, type: 'text', id: name })), roles: [], approverRoles: [], viewerRoles: [], raw: {} };
+        return {
+          fields: LIVE_DOC_FIELDS.map((name) => ({ name, type: 'text', id: name, value: staleFieldOverrides[name] ?? null })),
+          roles: [], approverRoles: [], viewerRoles: [], raw: {},
+        };
       },
       prefillTexts: async (docId, fields) => {
         prefillCalls.push({ docId, fields });
@@ -132,7 +144,8 @@ test.before(async () => {
 
   const { issueAccessToken } = require(path.join(ROOT, 'lib/authService'));
   const stamp = Date.now();
-  adminToken = issueAccessToken({ id: '00000000-0000-0000-0000-00000000dd01', email: `admin-fieldmap-${stamp}@test.example`, role: 'admin' });
+  adminEmail = `admin-fieldmap-${stamp}@test.example`;
+  adminToken = issueAccessToken({ id: '00000000-0000-0000-0000-00000000dd01', email: adminEmail, role: 'admin' });
 
   const ownerRes = await db.query(
     `INSERT INTO owners (email, display_name) VALUES ($1, 'Field Mapping Test Owner') RETURNING id`,
@@ -283,4 +296,67 @@ test('7. deal_id is scoped to the caller\'s own lead — another lead\'s deal is
   const byName = Object.fromEntries(call.fields.map((f) => [f.field_name, f.prefilled_text]));
   assert.notStrictEqual(byName.contract_amount, '99999', 'a different lead\'s deal amount must never leak into this contract');
   assert.strictEqual(byName.contract_amount, undefined, 'with no valid deal in scope, the optional deal_amount field is simply left unmapped, never invented');
+});
+
+// ── November 2026 production incident fix: "wrong customer's data on a new
+//    document" (Ali & Mohemmed Lalani's Notice of Completion showed Joann
+//    D Gregg's info) — proves the real HTTP-level identity-safety guard. ──
+test('8. an unmapped field with pre-existing stale content flags the new document needs_review and reports identity_risks', { skip }, async () => {
+  staleFieldOverrides = { job_address: 'STALE: 22713 Chase Pl., Canoga Park (prior customer)' };
+  try {
+    const r = await api('POST', `/api/v1/signnow/by-external/${leadId}/prepare`, {
+      template_id: 'tmpl-stale-content', template_name: 'Notice Of Completion', deal_id: dealId,
+    }, adminToken);
+    assert.strictEqual(r.status, 201, JSON.stringify(r.body));
+    assert.strictEqual(r.body.document.status, 'needs_review', 'a document with a stale unmapped field must never look like an ordinary pending contract');
+    assert.strictEqual(r.body.identity_risks.length, 1);
+    assert.strictEqual(r.body.identity_risks[0].field_name, 'job_address');
+    assert.strictEqual(r.body.identity_risks[0].kind, 'unmapped_content');
+
+    // Blocked from sending even if send_invite had been requested.
+    const sendAttempt = await api('POST', `/api/v1/signnow/documents/${r.body.document.document_id}/send`, undefined, adminToken);
+    assert.strictEqual(sendAttempt.status, 422, JSON.stringify(sendAttempt.body));
+    assert.strictEqual(sendAttempt.body.error, 'unverified_fields_present');
+
+    staleDocIdForReverify = r.body.document.document_id; // handed to test 9 below
+  } finally {
+    staleFieldOverrides = {};
+  }
+});
+
+test('9. POST /documents/:docId/reverify clears the block once the field no longer has stale content, and the document can then be sent', { skip }, async () => {
+  const docId = staleDocIdForReverify;
+  assert.ok(docId, 'test 8 must have run first and recorded a needs_review document');
+
+  // Admin has now fixed the field directly in SignNow (simulated: the live
+  // field no longer carries any override, since staleFieldOverrides was
+  // reset to {} at the end of test 8).
+  const reverify = await api('POST', `/api/v1/signnow/documents/${docId}/reverify`, undefined, adminToken);
+  assert.strictEqual(reverify.status, 200, JSON.stringify(reverify.body));
+  assert.strictEqual(reverify.body.document.status, 'pending', 'clearing the last risk must restore the document to a normal, sendable pending state');
+  assert.strictEqual(reverify.body.document.unverified_fields, null);
+  assert.ok(reverify.body.document.identity_verified_at);
+  assert.strictEqual(reverify.body.document.identity_verified_by, adminEmail);
+
+  const send = await api('POST', `/api/v1/signnow/documents/${docId}/send`, undefined, adminToken);
+  assert.strictEqual(send.status, 200, JSON.stringify(send.body));
+  assert.strictEqual(send.body.document.status, 'sent');
+});
+
+test('10. a mapped field whose live value disagrees with the resolved CRM value also blocks the document (mismatch, not just unmapped)', { skip }, async () => {
+  await api('PUT', '/api/v1/signnow/field-mappings/tmpl-mismatch-check', {
+    mappings: [{ signnow_field_name: 'customer_full_name', crm_source: 'lead_full_name', required: true }],
+  }, adminToken);
+
+  staleFieldOverrides = { customer_full_name: 'Joann D Gregg' }; // this field maps to lead_full_name ("Mapped Customer")
+  try {
+    const r = await api('POST', `/api/v1/signnow/by-external/${leadId}/prepare`, {
+      template_id: 'tmpl-mismatch-check', template_name: 'HIC Template', document_name: 'Mismatch Check Doc', deal_id: dealId,
+    }, adminToken);
+    assert.strictEqual(r.status, 201, JSON.stringify(r.body));
+    assert.strictEqual(r.body.document.status, 'needs_review');
+    assert.ok(r.body.identity_risks.some((risk) => risk.kind === 'mismatch' && risk.current === 'Joann D Gregg' && risk.expected === 'Mapped Customer'));
+  } finally {
+    staleFieldOverrides = {};
+  }
 });

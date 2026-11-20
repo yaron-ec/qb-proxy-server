@@ -17,6 +17,8 @@ import CommissionSection from "./CommissionSection";
 import ExpensesSection from "./ExpensesSection";
 import LoanPaymentsSection from "./LoanPaymentsSection";
 import FinancialActivitySection from "./FinancialActivitySection";
+import InvoiceMappingPanel from "./InvoiceMappingPanel";
+import AddendumPanel from "./AddendumPanel";
 
 export default function FinancialsTab({ deal, lead, invoices, setDeal, setLead, refreshLead }) {
   const { user } = useAuth();
@@ -176,6 +178,9 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal, setLead, 
         invoices={invoices} saleInvoices={saleInvoices} waterfall={waterfall}
         setDeal={setDeal} refreshLead={refreshLead}
       />
+
+      {canViewFull && <AddendumPanel deal={deal} lead={lead} isAdmin={isAdmin} onChange={load} />}
+      {canViewFull && <InvoiceMappingPanel lead={lead} canEdit={isAdmin} />}
 
       <ExpensesSection deal={deal} expenses={expenses} payments={expensePayments} canEdit={canEdit} canDelete={canDelete} onChange={load} logActivity={logActivity} user={user} />
 

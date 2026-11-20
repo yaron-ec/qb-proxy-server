@@ -288,6 +288,8 @@ function serializeLead(row, appointment = null) {
     lead_score: row.lead_score || 0,
     is_new_intake_lead: row.is_new_intake_lead || false,
     customer_reminders_disabled: row.customer_reminders_disabled || false,
+    customer_email_reminders_disabled: row.customer_email_reminders_disabled || false,
+    customer_sms_reminders_disabled: row.customer_sms_reminders_disabled || false,
     photo_urls: row.photo_urls || [],
     record_type: row.record_type || 'Lead',
     follow_up_date: row.follow_up_date || null,
@@ -514,6 +516,7 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
       'status', 'notes', 'follow_up_date', 'follow_up_time', 'follow_up_type',
       'meeting_stage', 'project_type', 'budget_range', 'start_timeframe', 'source',
       'referral_name', 'lead_score', 'is_new_intake_lead', 'customer_reminders_disabled',
+      'customer_email_reminders_disabled', 'customer_sms_reminders_disabled',
       'record_type', 'reviewed_at', 'message', 'photo_urls',
     ];
 
@@ -531,7 +534,7 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
       if (body[col] !== undefined) {
         let val = body[col];
         // Handle boolean fields
-        if (['is_new_intake_lead', 'customer_reminders_disabled'].includes(col)) {
+        if (['is_new_intake_lead', 'customer_reminders_disabled', 'customer_email_reminders_disabled', 'customer_sms_reminders_disabled'].includes(col)) {
           val = val === true || val === 'true';
         }
         // Handle photo_urls (array → JSONB)
@@ -1495,6 +1498,7 @@ const UPDATABLE_FIELDS = [
   'status', 'notes', 'follow_up_date', 'follow_up_time', 'follow_up_type',
   'meeting_stage', 'project_type', 'budget_range', 'start_timeframe', 'source',
   'referral_name', 'lead_score', 'is_new_intake_lead', 'customer_reminders_disabled',
+  'customer_email_reminders_disabled', 'customer_sms_reminders_disabled',
   'record_type', 'reviewed_at', 'message', 'photo_urls',
 ];
 // NOTE: owner_id is NOT in UPDATABLE_FIELDS — it is NOT NULL in the DB and must
@@ -1628,7 +1632,7 @@ router.put('/:id', requireAuth, async (req, res) => {
       if (body[col] !== undefined) {
         let val = body[col];
         // Handle boolean fields
-        if (['is_new_intake_lead', 'customer_reminders_disabled'].includes(col)) {
+        if (['is_new_intake_lead', 'customer_reminders_disabled', 'customer_email_reminders_disabled', 'customer_sms_reminders_disabled'].includes(col)) {
           val = val === true || val === 'true';
         }
         // Handle photo_urls (array → JSONB)

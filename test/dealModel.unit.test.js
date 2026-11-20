@@ -213,6 +213,57 @@ test('isValidUUID', () => {
     && m.isValidUUID(null) === false;
 });
 
+// ── canConvertToAddendum — CRM repair item 1 (November 2026): Parent
+// Project / Addendum relationship. Pure validation, same convention as the
+// rest of this file (no DB) — see routes/deals.js#POST /:id/convert-to-addendum
+// for the real HTTP wiring and lib/dealModel.js's own header for the full
+// rationale (the Ali & Mohemmed Lalani case).
+test('canConvertToAddendum: a deal and a DIFFERENT deal on the SAME lead, neither already linked -> ok', () => {
+  const deal = { id: 'd1', lead_id: 'lead-a', parent_deal_id: null };
+  const parent = { id: 'd2', lead_id: 'lead-a', parent_deal_id: null };
+  const r = m.canConvertToAddendum(deal, parent);
+  return r.ok === true;
+});
+
+test('canConvertToAddendum: self-reference is rejected', () => {
+  const deal = { id: 'd1', lead_id: 'lead-a', parent_deal_id: null };
+  const r = m.canConvertToAddendum(deal, deal);
+  return r.ok === false && r.reason === 'self_reference';
+});
+
+test('canConvertToAddendum: a deal on a DIFFERENT lead is rejected — never crosses the real ownership boundary', () => {
+  const deal = { id: 'd1', lead_id: 'lead-a', parent_deal_id: null };
+  const parent = { id: 'd2', lead_id: 'lead-b', parent_deal_id: null };
+  const r = m.canConvertToAddendum(deal, parent);
+  return r.ok === false && r.reason === 'cross_lead';
+});
+
+test('canConvertToAddendum: a deal already converted into an addendum of something else is rejected', () => {
+  const deal = { id: 'd1', lead_id: 'lead-a', parent_deal_id: 'd0' };
+  const parent = { id: 'd2', lead_id: 'lead-a', parent_deal_id: null };
+  const r = m.canConvertToAddendum(deal, parent);
+  return r.ok === false && r.reason === 'already_an_addendum';
+});
+
+test('canConvertToAddendum: the candidate parent is itself an addendum — rejected (one level deep only, no nested addendums)', () => {
+  const deal = { id: 'd1', lead_id: 'lead-a', parent_deal_id: null };
+  const parent = { id: 'd2', lead_id: 'lead-a', parent_deal_id: 'd3' };
+  const r = m.canConvertToAddendum(deal, parent);
+  return r.ok === false && r.reason === 'parent_is_itself_an_addendum';
+});
+
+test('canConvertToAddendum: a missing deal or parent is rejected, never throws', () => {
+  const r1 = m.canConvertToAddendum(null, { id: 'd2' });
+  const r2 = m.canConvertToAddendum({ id: 'd1' }, null);
+  return r1.ok === false && r1.reason === 'not_found' && r2.ok === false && r2.reason === 'not_found';
+});
+
+test('serializeDeal exposes parent_deal_id (null for an ordinary, independent deal — the default)', () => {
+  const s1 = m.serializeDeal({ id: 'd1', lead_id: 'lead-a', name: 'Roof', parent_deal_id: null });
+  const s2 = m.serializeDeal({ id: 'd2', lead_id: 'lead-a', name: 'Bathroom Addendum', parent_deal_id: 'd1' });
+  return s1.parent_deal_id === null && s2.parent_deal_id === 'd1';
+});
+
 // Run
 let pass = 0;
 let fail = 0;
