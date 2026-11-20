@@ -251,21 +251,30 @@ test('P4. a lead with no dated Meeting/Phone-Call follow-up cannot be "promoted"
   assert.strictEqual(promote.body.error, 'no_promotable_follow_up');
 });
 
-test('P5. a genuinely independent follow-up is never touched by promoting a DIFFERENT lead — isolation', { skip }, async () => {
+test('P5. a genuinely independent follow-up/appointment is never touched by promoting a DIFFERENT lead — isolation', { skip }, async () => {
   const leadA = (await api('POST', '/api/public/capture', capturePayload({}), null)).body.lead.id;
   const leadB = (await api('POST', '/api/public/capture', capturePayload({}), null)).body.lead.id;
   const dayA = pickDay();
   const dayB = pickDay();
 
   await api('PUT', `/api/v1/leads/${leadA}/follow-up`, { follow_up_date: dayA, follow_up_time: '09:00', follow_up_type: 'Meeting', follow_up_status: 'pending' });
-  await api('PUT', `/api/v1/leads/${leadB}/follow-up`, { follow_up_date: dayB, follow_up_time: '09:00', follow_up_type: 'Meeting', follow_up_status: 'pending' });
+  // November 2026 PRODUCT CORRECTION: saving a dated Meeting follow-up now
+  // automatically syncs leadB's own real appointment too (see
+  // lib/booking/followUpAppointmentSync.js) — this is leadB's OWN save,
+  // entirely independent of anything that happens to leadA below. The
+  // isolation this test actually checks is that PROMOTING leadA never
+  // reaches into leadB's record.
+  const leadBSetup = await api('PUT', `/api/v1/leads/${leadB}/follow-up`, { follow_up_date: dayB, follow_up_time: '09:00', follow_up_type: 'Meeting', follow_up_status: 'pending' });
+  assert.strictEqual(leadBSetup.body.follow_up_appointment_sync?.action, 'created');
+  const leadBAppointmentId = leadBSetup.body.lead.appointment_id;
 
   const promote = await api('POST', `/api/v1/leads/${leadA}/promote-follow-up-to-appointment`, {});
   assert.strictEqual(promote.status, 200, JSON.stringify(promote.body));
 
   const leadBAfter = await getLead(leadB);
   assert.strictEqual(leadBAfter.follow_up_date, dayB, 'an unrelated lead\'s follow-up is completely untouched by promoting a different lead');
-  assert.strictEqual(leadBAfter.appointment_date, null);
+  assert.strictEqual(leadBAfter.appointment_date, dayB, 'leadB\'s own appointment (synced from its own follow-up save) is unaffected by leadA\'s promotion');
+  assert.strictEqual(leadBAfter.appointment_id, leadBAppointmentId, 'still the exact same appointment row — never re-created or touched');
 });
 
 test('P6. only admin/manager may promote — a sales_rep is forbidden', { skip }, async () => {

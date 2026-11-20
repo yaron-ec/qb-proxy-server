@@ -443,7 +443,7 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
     // builder) so enteringTerminalLost can be computed before the CRM_FIELDS
     // loop below — needs the lead's CURRENT status, not just its existence.
     const { whereSql: upsertWhere, params: upsertParams } = leadIdWhere(externalRef);
-    const existingById = await query(`SELECT id, external_ref, status FROM leads WHERE ${upsertWhere} LIMIT 1`, upsertParams);
+    const existingById = await query(`SELECT id, external_ref, status, follow_up_date, follow_up_time, follow_up_type FROM leads WHERE ${upsertWhere} LIMIT 1`, upsertParams);
     const enteringTerminalLost = body.status !== undefined
       && isEnteringTerminalLostStatus(existingById.rows[0] ? existingById.rows[0].status : null, body.status);
     // Separate from enteringTerminalLost on purpose: 'Sold' must never
@@ -743,11 +743,35 @@ router.put('/by-external/:externalRef', requireAuth, async (req, res) => {
       } catch (e) { console.warn('[leads] sold welcome email failed (non-fatal):', e.message); }
     }
 
-    const appt = await fetchActiveAppointment(fullRow.id);
-    if (terminalLostApptResult && terminalLostApptResult.failures.length) {
-      return res.json({ lead: serializeLead(fullRow, appt), closed_lost_appointment_cancel_failures: terminalLostApptResult.failures });
+    // Post-commit: Follow-Up is the source of scheduling truth for a
+    // Meeting (see lib/booking/followUpAppointmentSync.js) — mirrors
+    // PUT /:id's identical step. Skipped on a terminal-lost transition,
+    // already handled above via cancelActiveAppointmentsForTerminalLost.
+    let followUpSyncResult = { action: 'none' };
+    if (!enteringTerminalLost && FOLLOW_UP_FIELDS.some(f => body[f] !== undefined)) {
+      const prevFollowUp = existingById.rows[0] || {};
+      followUpSyncResult = await require('../lib/booking/followUpAppointmentSync').syncAppointmentFromFollowUp(fullRow.id, {
+        before: { date: prevFollowUp.follow_up_date, time: prevFollowUp.follow_up_time, type: prevFollowUp.follow_up_type },
+        after: { date: fullRow.follow_up_date, time: fullRow.follow_up_time, type: fullRow.follow_up_type },
+        actor: req.user?.email || null,
+        onWrite: async (client2) => projectReminders(client2, fullRow.id),
+      });
+      if (followUpSyncResult.action === 'error') {
+        console.warn('[leads] follow-up -> appointment sync failed (non-fatal):', followUpSyncResult.error.message);
+      }
     }
-    res.json({ lead: serializeLead(fullRow, appt) });
+
+    const appt = await fetchActiveAppointment(fullRow.id);
+    const extra = {};
+    if (followUpSyncResult.action !== 'none') {
+      extra.follow_up_appointment_sync = followUpSyncResult.action === 'error'
+        ? { action: 'error', error: followUpSyncResult.error }
+        : { action: followUpSyncResult.action };
+    }
+    if (terminalLostApptResult && terminalLostApptResult.failures.length) {
+      extra.closed_lost_appointment_cancel_failures = terminalLostApptResult.failures;
+    }
+    res.json({ lead: serializeLead(fullRow, appt), ...extra });
   } catch (e) {
     console.error('[leads] put-by-external error:', e.message);
     res.status(500).json({ error: e.message });
@@ -929,6 +953,14 @@ async function respondWithLead(res, leadId, extra) {
 }
 
 // ── Follow-Up update ─────────────────────────────────────────────────────────
+// PRODUCT CORRECTION (November 2026): the Follow-Up fields are the single
+// user-facing source of scheduling truth for a Meeting — see
+// lib/booking/followUpAppointmentSync.js's own header for the full
+// rationale and the one safety rail it adds. Every save through this
+// function (PUT /:id/follow-up, PUT /by-external/:externalRef/follow-up,
+// and the Phone-Call-conversion branch of executeAppointmentRequest) now
+// automatically drives the real appointment/calendar/reminder lifecycle —
+// never a second, manual "Reschedule" or "Promote" step.
 async function executeFollowUpUpdate(req, res, leadId, opts) {
   opts = opts || {};
   const body = req.body || {};
@@ -943,6 +975,7 @@ async function executeFollowUpUpdate(req, res, leadId, opts) {
 
   const client = await pool.connect();
   let before;
+  let savedFollowUp;
   try {
     await client.query('BEGIN');
     const cur = await client.query('SELECT * FROM leads WHERE id = $1 FOR UPDATE', [leadId]);
@@ -973,6 +1006,7 @@ async function executeFollowUpUpdate(req, res, leadId, opts) {
     await client.query(`UPDATE leads SET ${sets.join(', ')} WHERE id = $${vals.length}`, vals);
     await projectReminders(client, leadId);
     await client.query('COMMIT');
+    savedFollowUp = fu ? fu.value : { follow_up_date: before.follow_up_date, follow_up_time: before.follow_up_time, follow_up_type: before.follow_up_type };
   } catch (e) {
     try { await client.query('ROLLBACK'); } catch (_) { /* noop */ }
     console.error('[leads] follow-up update error:', e.message);
@@ -981,8 +1015,34 @@ async function executeFollowUpUpdate(req, res, leadId, opts) {
     client.release();
   }
 
-  const out = await respondWithLead(res, leadId, opts.extra
-    || (opts.legacy ? { deprecated: 'follow-up fields sent to /appointment are saved as a follow-up only; use PUT /:id/follow-up' } : null));
+  // Post-commit: automatically sync the real appointment to match the
+  // follow-up (create/reschedule/cancel as needed — see module header).
+  // Never fatal to this request: the follow-up field save already
+  // committed, so a sync failure (most plausibly a genuine Google Calendar
+  // conflict) is reported alongside success, never instead of it.
+  const actor = (req.user && req.user.email) || null;
+  const syncResult = await require('../lib/booking/followUpAppointmentSync').syncAppointmentFromFollowUp(leadId, {
+    before: { date: before.follow_up_date, time: before.follow_up_time, type: before.follow_up_type },
+    after: { date: savedFollowUp.follow_up_date, time: savedFollowUp.follow_up_time, type: savedFollowUp.follow_up_type },
+    actor,
+    onWrite: async (client2) => projectReminders(client2, leadId),
+  });
+  if (syncResult.action === 'error') {
+    console.warn('[leads] follow-up -> appointment sync failed (non-fatal, follow-up save itself already succeeded):', syncResult.error.message);
+    try {
+      await query(
+        `INSERT INTO activities (lead_id, type, content, author, source) VALUES ($1, 'note', $2, $3, 'manual')`,
+        [leadId, `Automatic appointment sync from the Follow-Up failed: ${syncResult.error.message}. The Follow-Up itself was saved; the appointment/calendar were not updated — please check manually.`, 'system:follow-up-appointment-sync']
+      );
+    } catch (_) { /* best-effort audit note only */ }
+  }
+
+  const out = await respondWithLead(res, leadId, {
+    ...(opts.extra || (opts.legacy ? { deprecated: 'follow-up fields sent to /appointment are saved as a follow-up only; use PUT /:id/follow-up' } : {})),
+    follow_up_appointment_sync: syncResult.action === 'error'
+      ? { action: 'error', error: syncResult.error }
+      : { action: syncResult.action },
+  });
   const changes = computeLeadDiff(before, out.full);
   if (changes.length) sendLeadNotification('lead_updated', out.full, changes, req.user && req.user.email);
   return res.json(out.body);
@@ -1429,8 +1489,29 @@ router.post('/', requireAuth, async (req, res) => {
       await contactsOutbox.enqueueContactSync(pool, fullRow.id);
     } catch (e) { console.warn('[leads] contacts outbox enqueue failed (non-fatal):', e.message); }
 
+    // Post-commit: a brand-new lead created with a dated Meeting Follow-Up
+    // (the "New Lead" form) gets its real appointment created automatically
+    // — see lib/booking/followUpAppointmentSync.js's header. Never fatal:
+    // the lead itself always gets created even if the appointment sync
+    // fails (e.g. a genuine Google Calendar slot conflict).
+    let syncResult = { action: 'none' };
+    if (['Meeting'].includes(fullRow.follow_up_type) && fullRow.follow_up_date) {
+      syncResult = await require('../lib/booking/followUpAppointmentSync').syncAppointmentFromFollowUp(fullRow.id, {
+        before: { date: null, time: null, type: null },
+        after: { date: fullRow.follow_up_date, time: fullRow.follow_up_time, type: fullRow.follow_up_type },
+        actor: req.user?.email || null,
+        onWrite: async (client2) => projectReminders(client2, fullRow.id),
+      });
+      if (syncResult.action === 'error') {
+        console.warn('[leads] new-lead follow-up -> appointment sync failed (non-fatal):', syncResult.error.message);
+      }
+    }
+
     const appt = await fetchActiveAppointment(fullRow.id);
-    res.status(201).json({ lead: serializeLead(fullRow, appt) });
+    res.status(201).json({
+      lead: serializeLead(fullRow, appt),
+      ...(syncResult.action !== 'none' ? { follow_up_appointment_sync: syncResult.action === 'error' ? { action: 'error', error: syncResult.error } : { action: syncResult.action } } : {}),
+    });
   } catch (e) {
     console.error('[leads] create error:', e.message);
     res.status(500).json({ error: e.message });
@@ -1831,14 +1912,42 @@ router.put('/:id', requireAuth, async (req, res) => {
       }
     }
 
+    // Post-commit: Follow-Up is the source of scheduling truth for a
+    // Meeting (see lib/booking/followUpAppointmentSync.js) — any edit
+    // through this general lead-update route that touches follow_up_date/
+    // _time/_type automatically syncs the real appointment too. Skipped
+    // entirely on a terminal-lost transition — that case already cancels
+    // the appointment through the dedicated, specific
+    // cancelActiveAppointmentsForTerminalLost path above; running this as
+    // well would be redundant (though harmless/idempotent) and would log a
+    // confusing second cancel actor for the same event.
+    let followUpSyncResult = { action: 'none' };
+    if (!enteringTerminalLost && FOLLOW_UP_FIELDS.some(f => body[f] !== undefined)) {
+      followUpSyncResult = await require('../lib/booking/followUpAppointmentSync').syncAppointmentFromFollowUp(fullRow.id, {
+        before: { date: oldLead.follow_up_date, time: oldLead.follow_up_time, type: oldLead.follow_up_type },
+        after: { date: fullRow.follow_up_date, time: fullRow.follow_up_time, type: fullRow.follow_up_type },
+        actor: req.user?.email || null,
+        onWrite: async (client2) => projectReminders(client2, fullRow.id),
+      });
+      if (followUpSyncResult.action === 'error') {
+        console.warn('[leads] follow-up -> appointment sync failed (non-fatal):', followUpSyncResult.error.message);
+      }
+    }
+
     const appt = await fetchActiveAppointment(fullRow.id);
+    const extra = {};
+    if (followUpSyncResult.action !== 'none') {
+      extra.follow_up_appointment_sync = followUpSyncResult.action === 'error'
+        ? { action: 'error', error: followUpSyncResult.error }
+        : { action: followUpSyncResult.action };
+    }
     // Surface a detectable error state rather than silently claiming success
     // when an appointment failed to cancel (the lead's status change itself
     // always succeeds — this is reported alongside it, never instead of it).
     if (terminalLostApptResult && terminalLostApptResult.failures.length) {
-      return res.json({ lead: serializeLead(fullRow, appt), closed_lost_appointment_cancel_failures: terminalLostApptResult.failures });
+      extra.closed_lost_appointment_cancel_failures = terminalLostApptResult.failures;
     }
-    res.json({ lead: serializeLead(fullRow, appt) });
+    res.json({ lead: serializeLead(fullRow, appt), ...extra });
   } catch (e) {
     console.error('[leads] put error:', e.message);
     res.status(500).json({ error: e.message });

@@ -84,7 +84,10 @@ test('PUT /:id re-reads the FULL row and the LIVE active appointment, then seria
   const handler = extractHandler("router.put('/:id'");
   assert.ok(/fullRow = \(await client\.query\(/.test(handler), 'must re-SELECT the full row after the UPDATE, not trust the RETURNING clause\'s partial shape alone');
   assert.ok(/fetchActiveAppointment\(fullRow\.id\)/.test(handler), 'must recompute the canonical appointment exactly as GET does');
-  assert.ok(/res\.json\(\{ lead: serializeLead\(fullRow, appt\) \}\)/.test(handler), 'must respond with the freshly re-read row through the same serializer GET uses');
+  // November 2026: the response may also carry extra, additive fields
+  // (follow_up_appointment_sync / closed_lost_appointment_cancel_failures)
+  // alongside lead: serializeLead(...) — never instead of it.
+  assert.ok(/res\.json\(\{ lead: serializeLead\(fullRow, appt\)/.test(handler), 'must respond with the freshly re-read row through the same serializer GET uses');
 });
 
 test('PUT /:id commits the update and the reminder projection atomically (same transaction) — a status change can never partially apply', () => {

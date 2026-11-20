@@ -10,6 +10,24 @@
  * Appointment is historical/reference data only and is NEVER a route-stop
  * fallback, even when no active Follow-Up exists at all (routes/routing.js's
  * /daily-schedule no longer queries the `appointments` table at all).
+ *
+ * PRODUCT CORRECTION (November 2026, "John John" production incident):
+ * MUHAMMAD KHAN and JAMEY COREY originally proved the Appointment stays
+ * UNTOUCHED at its own original date/time even when an independent Meeting
+ * Follow-Up is set to a different date/time on the same lead — that premise
+ * is now WRONG. Follow-Up Date/Time/Type is the single, user-facing source
+ * of scheduling truth for a Meeting (lib/booking/followUpAppointmentSync.js,
+ * wired into the same PUT /:id/follow-up route setFollowUp() below calls):
+ * saving a Meeting follow-up now automatically RESCHEDULES the lead's
+ * existing active appointment to match, exactly the bug these two
+ * production cases originally reported. Both tests are rewritten below to
+ * prove the NEW correct behavior (the appointment moves with the follow-up)
+ * while preserving their still-valid, orthogonal routing assertions (routing
+ * reads ENTIRELY from the Follow-Up, never falls back to the Appointment —
+ * unaffected by this correction either way). MARIO IBANEZ and the two tests
+ * that never set a conflicting Meeting follow-up date/time are unaffected
+ * and unchanged.
+ *
  * Exercises the real HTTP API (routes/leads.js, routes/routing.js) end to
  * end — no mocks beyond Google Maps (stubbed so routing never needs network
  * access). Skipped without TEST_DATABASE_URL.
@@ -106,11 +124,13 @@ test.after(async () => {
   await db.pool.end();
 });
 
-test('MUHAMMAD KHAN: Appointment 9:00 AM + active Meeting Follow-Up 10:00 AM (same day) — My Day/routing shows ONLY the 10:00 AM Follow-Up, never the 9:00 AM Appointment', { skip }, async () => {
+test('MUHAMMAD KHAN (corrected): setting a Meeting Follow-Up for 10:00 AM when the lead already has an Appointment at 9:00 AM the SAME day now automatically reschedules the Appointment to 10:00 AM — the exact production bug this case now proves is FIXED', { skip }, async () => {
   const day = pickDay();
   const id = await createLead('Muhammad', 'Khan');
   await setAppointment(id, day, '09:00');
-  await setFollowUp(id, day, '10:00', 'Meeting');
+  const fu = await api('PUT', `/api/v1/leads/${id}/follow-up`, { follow_up_date: day, follow_up_time: '10:00', follow_up_type: 'Meeting', follow_up_status: 'pending' });
+  assert.strictEqual(fu.status, 200, JSON.stringify(fu.body));
+  assert.strictEqual(fu.body.follow_up_appointment_sync.action, 'rescheduled', 'the pre-existing 9:00 appointment is automatically rescheduled to match the new 10:00 follow-up');
 
   const schedule = await scheduleFor(day);
   const stops = schedule.filter((s) => s.id === id);
@@ -118,28 +138,36 @@ test('MUHAMMAD KHAN: Appointment 9:00 AM + active Meeting Follow-Up 10:00 AM (sa
   assert.strictEqual(stops[0].is_meeting_followup, true);
   assert.strictEqual(stops[0].follow_up_time, '10:00');
 
-  // The Appointment record itself is never deleted — Lead Detail still has it.
+  // The Appointment record is not deleted — it moved WITH the follow-up, so
+  // Lead Detail now shows the two in agreement, never divergent.
   const lead = (await api('GET', `/api/v1/leads/${id}`)).body.lead;
   assert.strictEqual(lead.appointment_date, day);
-  assert.strictEqual(lead.appointment_time, '09:00');
+  assert.strictEqual(lead.appointment_time, '10:00', 'the appointment now matches the follow-up — no second, independent 9:00 record remains active');
 });
 
-test('JAMEY COREY: historical Appointment + active Meeting Follow-Up on a LATER day — the later day shows ONLY the Follow-Up; the Appointment\'s OWN day has NO route stop at all (no fallback)', { skip }, async () => {
+test('JAMEY COREY (corrected): an Appointment on one day + a NEW Meeting Follow-Up on a LATER day now automatically MOVES the appointment onto the follow-up\'s day — the old day correctly has no stop because the appointment is no longer there, not because it was ignored', { skip }, async () => {
   const apptDay = pickDay();
   const followUpDay = pickDay();
   const id = await createLead('Jamey', 'Corey');
   await setAppointment(id, apptDay, '18:00');
-  await setFollowUp(id, followUpDay, '12:00', 'Meeting');
+  const fu = await api('PUT', `/api/v1/leads/${id}/follow-up`, { follow_up_date: followUpDay, follow_up_time: '12:00', follow_up_type: 'Meeting', follow_up_status: 'pending' });
+  assert.strictEqual(fu.status, 200, JSON.stringify(fu.body));
 
   const followUpDaySchedule = await scheduleFor(followUpDay);
   const followUpStops = followUpDaySchedule.filter((s) => s.id === id);
   assert.strictEqual(followUpStops.length, 1, JSON.stringify(followUpDaySchedule));
   assert.strictEqual(followUpStops[0].is_meeting_followup, true);
 
-  // On the Appointment's OWN day (a different day than the Follow-Up), there
-  // is NO route stop at all — the Appointment is historical/reference data
-  // only and is never a fallback source of current work/route stops.
+  const lead = (await api('GET', `/api/v1/leads/${id}`)).body.lead;
   if (apptDay !== followUpDay) {
+    assert.strictEqual(fu.body.follow_up_appointment_sync.action, 'rescheduled');
+    assert.strictEqual(lead.appointment_date, followUpDay, 'the appointment was moved onto the follow-up\'s new day, not left behind on the old day');
+
+    // The Appointment's OLD day correctly has no route stop — the
+    // appointment is simply no longer scheduled there at all (it moved),
+    // which is a different, stronger guarantee than "the Appointment is
+    // historical data and never a fallback" (still also true: routing
+    // reads only from the Follow-Up either way).
     const apptDaySchedule = await scheduleFor(apptDay);
     const apptStops = apptDaySchedule.filter((s) => s.id === id);
     assert.strictEqual(apptStops.length, 0, JSON.stringify(apptDaySchedule));

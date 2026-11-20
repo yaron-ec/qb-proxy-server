@@ -195,16 +195,37 @@ test('2. UPDATING/rescheduling an existing Appointment keeps Michelle on the att
     'Michelle remains an attendee after a reschedule (enqueueUpdate path) despite her disabled "appointment" EMAIL category — this is exactly the update path that silently removed her in the production incident');
 });
 
-test('3. An active Meeting follow-up\'s calendar representation invites Michelle even though her "follow_up" email category is disabled', { skip }, async () => {
+test('3. A dated Meeting follow-up now automatically syncs a real appointment, whose calendar representation still invites Michelle despite her disabled "follow_up"/"appointment" EMAIL categories', { skip }, async () => {
+  // November 2026 PRODUCT CORRECTION: PUT /:id/follow-up now automatically
+  // syncs a REAL appointment to match a dated Meeting follow-up (see
+  // lib/booking/followUpAppointmentSync.js). Once that real appointment
+  // exists at the SAME date/time, followUpReminders.js's own pre-existing
+  // mirror-dedup guard correctly suppresses the separate, virtual-
+  // appointment ('followup-meeting:...') calendar event this test
+  // originally checked — see test/integration/appointmentFollowUp.int.test.js's
+  // own case 9 for the direct proof of that dedup. This test now asserts
+  // against the representation that actually exists for this scenario:
+  // the automatically-synced real appointment's own main event — and
+  // additionally proves the virtual representation is correctly absent.
   const lead = await createLead();
   const day = pickDay();
   const r = await api('PUT', `/api/v1/leads/${lead.id}/follow-up`, { follow_up_date: day, follow_up_time: '11:00', follow_up_type: 'Meeting' });
   assert.strictEqual(r.status, 200, JSON.stringify(r.body));
+  assert.strictEqual(r.body.follow_up_appointment_sync?.action, 'created',
+    'saving a dated Meeting follow-up now automatically creates the real appointment — this test exercises the result of that sync');
+  await drain();
 
-  const s = await reconcileFollowUps();
-  assert.ok(s.upserted >= 1, JSON.stringify(s));
-  const main = liveMeetingMainEvent(lead.id);
-  assert.ok(main, 'meeting follow-up main event exists');
+  const apptRow = (await db.query(`SELECT * FROM appointments WHERE lead_id = $1 AND status IN ('scheduled','confirmed')`, [lead.id])).rows[0];
+  assert.ok(apptRow, 'the automatically-synced real appointment exists');
+  const main = mainEventFor(apptRow);
+  assert.ok(main, 'the real appointment\'s main event exists');
   assert.ok(main.attendees.some((a) => a.email === MICHELLE),
-    'Michelle is still invited to the Meeting follow-up\'s calendar representation despite her disabled "follow_up" EMAIL category');
+    'Michelle is still invited to the appointment automatically synced from the Meeting follow-up, despite her disabled "follow_up"/"appointment" EMAIL categories');
+
+  // The separate virtual-appointment ('meeting') representation must be
+  // correctly suppressed now that a matching real appointment exists —
+  // never a duplicate calendar event for the same meeting.
+  const s = await reconcileFollowUps();
+  assert.strictEqual(s.errors, 0, JSON.stringify(s));
+  assert.ok(!liveMeetingMainEvent(lead.id), 'no separate virtual-appointment meeting event exists once the real appointment matches');
 });

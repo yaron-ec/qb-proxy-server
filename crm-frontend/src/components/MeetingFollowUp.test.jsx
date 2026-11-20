@@ -2,30 +2,35 @@
  * MeetingFollowUp.test.jsx — Lead Detail → Follow-Up / Next Update → Type
  * "Meeting".
  *
- * A 'Meeting' follow-up is STILL ONLY A FOLLOW-UP RECORD (an internal next
- * action, leads.follow_up_*). It can be selected and saved through
- * PUT /:id/follow-up, survives a reload, and never becomes an `appointments`
- * row in the UI: no appointment API call from this form, no customer
- * appointment reminder (that stays appointment-only), no driving stop from
- * Lead Detail itself.
+ * PRODUCT CORRECTION (November 2026, supersedes the "STILL ONLY A FOLLOW-UP
+ * RECORD" framing this file's header used to open with): the Follow-Up
+ * fields are now the single, user-facing source of scheduling truth for a
+ * Meeting. Saving a dated Meeting Follow-Up now automatically creates or
+ * reschedules the real `appointments` row, its Google Calendar main+travel
+ * events, and reminders — see lib/booking/followUpAppointmentSync.js
+ * (backend) and the "John John" production incident it was built to fix
+ * permanently. Crucially, this sync is a SERVER-SIDE side effect of
+ * PUT /:id/follow-up, never a second, separate frontend API call — this
+ * file's own assertions that `updateAppointment`/`syncCalendar` are never
+ * called directly BY THIS COMPONENT remain true and unchanged below; the
+ * component still only ever calls `updateFollowUp`. FollowUpScheduler.jsx
+ * itself still never becomes a physical-meeting scheduling engine (no
+ * availability/blocking/conflict logic lives here) — it only renders the
+ * server's reported sync outcome (created/rescheduled/cancelled/error) and
+ * a residual mismatch notice for the one case the server deliberately
+ * leaves untouched (see the component's own header). It is therefore added
+ * to this file's own DISPLAY_ONLY guard set below as a legitimate,
+ * documented exception — showing informational help text about automatic
+ * syncing, never appointment-affecting logic of its own.
  *
- * UPDATED (post-Jamey-Corey production defect, PERMANENT RULE): an ACTIVE
- * Meeting Follow-Up now gets real physical-meeting SCHEDULING SEMANTICS on
- * the backend (blocks availability, 1h duration, Driving/Travel Time, one
- * calendar meeting representation — see lib/booking/followUpMeeting.js) and
- * My Day (pages/MobileDayView.jsx) is the one frontend surface that reflects
- * this in its own schedule/count/map, via its own candidate-building logic
- * (isAppointmentSupersededForDay + a per-lead candidates loop — mirrors the
- * backend's lib/booking/currentAction.js, PERMANENT RULE: an active
- * Meeting-type Follow-Up supersedes a same-day Appointment, even at a
- * different time — see test/currentAction.test.js and
- * MobileDayView.dateSync.test.jsx's Muhammad Khan/Jamey Corey/Mario Ibanez
- * cases). This does not change anything this file asserts: Lead Detail's
- * own Follow-Up form still never calls the appointment API or syncs the
- * calendar directly, and `syncCalendar`/`updateAppointment` still go
- * uncalled when saving a Meeting follow-up — see the "No frontend path
- * converts a Meeting follow-up into an appointment" describe block below
- * for MobileDayView.jsx's narrow, documented carve-out.
+ * Everything else this file predates is unchanged: an active Meeting
+ * Follow-Up ALSO still gets real physical-meeting scheduling semantics via
+ * the separate, pre-existing lib/booking/followUpMeeting.js mechanism
+ * (blocks availability, Driving/Travel Time, My Day) — that mechanism and
+ * this correction are complementary, not in tension: one is "what does a
+ * Meeting Follow-Up occupy on the calendar/schedule" (followUpMeeting.js,
+ * unchanged), the other is "what does editing the Follow-Up do to the
+ * canonical `appointments` row" (followUpAppointmentSync.js, new).
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -90,11 +95,11 @@ describe('Follow-Up type "Meeting"', () => {
     await waitFor(() => expect(onLeadUpdate).toHaveBeenCalledWith(expect.objectContaining({ follow_up_type: 'Meeting' })));
   });
 
-  it('reload preserves Meeting (display + edit form)', () => {
+  it('reload preserves Meeting (display + edit form) — and now explicitly tells the user it keeps Google Calendar in sync (November 2026 correction, supersedes the old "no mention of Google Calendar" assertion)', () => {
     render(<FollowUpScheduler lead={lead(MEETING_FU)} onLeadUpdate={vi.fn()} />);
     expect(screen.getByText('Meeting')).toBeInTheDocument();
     expect(screen.getByTestId('follow-up-when')).toHaveTextContent('May 1, 2031 • 11:00 AM');
-    expect(screen.queryByText(/Google Calendar/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Google Calendar/)).toBeInTheDocument();
     fireEvent.click(screen.getByText('Edit'));
     expect(screen.getByLabelText('Follow-up type')).toHaveValue('Meeting');
   });
@@ -129,6 +134,17 @@ describe('No frontend path converts a Meeting follow-up into an appointment', ()
     'components/FollowUpsWidget.jsx', // bucket colour/icon for the follow-up entry
     'pages/LeadsModern.jsx',          // row badge
     'pages/OverdueLeads.jsx',         // icon
+    // November 2026 PRODUCT CORRECTION: shows a different, purely
+    // informational help line for Meeting (vs. every other type) and
+    // renders the server's own reported sync outcome
+    // (created/rescheduled/cancelled/error) + the residual mismatch
+    // notice. It never calls the appointment API itself, never computes
+    // availability/blocking/conflict logic, and never decides scheduling
+    // outcomes — the real decision and every write happen server-side in
+    // lib/booking/followUpAppointmentSync.js, triggered by the SAME
+    // PUT /:id/follow-up call this component already made before this
+    // correction. See the component's own header and this file's header.
+    'components/FollowUpScheduler.jsx',
   ]);
   // PERMANENT RULE (post-Jamey-Corey production defect): the canonical
   // PHYSICAL MEETING is a real Appointment Meeting OR an active Meeting-type
