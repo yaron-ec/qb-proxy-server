@@ -40,14 +40,20 @@ test('Dashboard/Leads/Reports/Deals use the wide container instead of max-w-7xl'
   }
 });
 
-test('FinancialsTab.jsx uses the wide container and a side-by-side grid for Collections + Cost Breakdown', () => {
+test('FinancialsTab.jsx uses the wide container, with a simple summary + Expandable Details (superseding the old side-by-side Collections/Cost Breakdown grid)', () => {
+  // Superseded by the navy/gold "Financial Summary" redesign: Cost Breakdown
+  // now lives inside the collapsed-by-default Expandable Details accordion
+  // (alongside Revenue & Lead Cost, Commissions, Expenses, Loan Payments,
+  // Documents & QuickBooks Mapping, and the Activity Log) rather than
+  // sitting side-by-side with Collections at all times — the explicit,
+  // approved requirement being a simple summary first, with detail
+  // available on demand, not every sub-panel competing for space at once.
   const src = read('components/financials/FinancialsTab.jsx');
   assert.ok(!src.includes('max-w-4xl mx-auto px-4 md:px-6 py-5 space-y-5'), 'the old narrow single-column wrapper must be gone from the main render paths');
   assert.ok(src.includes('max-w-[1600px] mx-auto'), 'must use the wide page container');
-  assert.ok(src.includes('grid grid-cols-1 lg:grid-cols-2 gap-5'), 'Collections and CostBreakdown must sit side-by-side on desktop');
-  // Detail/configuration sections stay at a comfortable reading width so
-  // they do not visually compete with the headline financial picture.
-  assert.ok(src.includes('max-w-4xl mx-auto w-full space-y-5'), 'detail/config sections must be narrower than the headline area');
+  assert.ok(src.includes('data-testid="fin-expandable-details"'), 'Cost Breakdown and the other detail sections must live in the collapsed-by-default Expandable Details accordion, not a side-by-side grid');
+  assert.ok(src.includes('data-testid="fin-collections-section"'), 'Customer Collections must remain always-visible, above the fold');
+  assert.ok(src.includes('<CostBreakdown'), 'Cost Breakdown must still be rendered somewhere on the page');
 });
 
 test('index.css: .fin-figure-lg (the Financials hero numbers) is genuinely large, not merely text-2xl', () => {

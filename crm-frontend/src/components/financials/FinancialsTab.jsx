@@ -196,6 +196,8 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal, setLead, 
     activity_log: activities.length,
   };
 
+  // ONE deal, one financial picture — admin/manager see the full
+  // profitability view (everything sales_rep sees above, plus cost/profit).
   return (
     <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-5 space-y-6">
       {/* Simple financial summary first (the one plain-English answer to
