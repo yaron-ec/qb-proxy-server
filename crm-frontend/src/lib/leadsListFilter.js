@@ -17,6 +17,36 @@
 import { isActiveSalesLead } from './activeLeadFilter';
 import { sortActiveLeads } from './sortActiveLeads';
 
+/**
+ * rankSearchRelevance — production fix (November 2026): searching "ali" in
+ * Active Leads ranked "Ali & Mohemmed Lalani" far down the list, because a
+ * search never changed the sort order at all — results stayed sorted by
+ * follow-up urgency (sortActiveLeads), so a lead with an urgent follow-up
+ * could rank above an exact-prefix name match on the user's actual query.
+ *
+ * Returns a tier (lower = more relevant); ties are broken by the caller.
+ * Tiers, per the required ranking:
+ *   0 — exact full name match
+ *   1 — name begins with the query
+ *   2 — a name token (word) begins with the query, anywhere in the name
+ *   3 — name contains the query anywhere (not at a token boundary)
+ *   4 — no name match; some OTHER searchable field matched instead
+ */
+export function rankSearchRelevance(lead, queryLower) {
+  const first = (lead.first_name || '').toLowerCase();
+  const last = (lead.last_name || '').toLowerCase();
+  const full = `${first} ${last}`.trim();
+  if (!full) return 4;
+  if (full === queryLower) return 0;
+  if (full.startsWith(queryLower)) return 1;
+  // Split on whitespace AND punctuation like "&" so a multi-person lead
+  // name ("Ali & Mohemmed Lalani") still token-matches each real name part.
+  const tokens = full.split(/[^a-z0-9]+/).filter(Boolean);
+  if (tokens.some((t) => t.startsWith(queryLower))) return 2;
+  if (full.includes(queryLower)) return 3;
+  return 4;
+}
+
 export function filterAndSortLeads(leads, opts = {}) {
   const {
     searchTerm = '',
@@ -73,6 +103,19 @@ export function filterAndSortLeads(leads, opts = {}) {
       }
       return lead.assigned_rep?.trim().toLowerCase() === ownerFilter.toLowerCase();
     });
+
+  // A free-text search defaults to relevance ranking — preserved only while
+  // the sort control is still at its untouched default ('follow_up'); an
+  // explicitly chosen sort (created/updated) is honored even while
+  // searching, per the requirement to preserve explicitly selected sorting.
+  if (isGlobalSearch && sortField === 'follow_up') {
+    const queryLower = searchTerm.trim().toLowerCase();
+    return [...baseFiltered].sort((a, b) => {
+      const diff = rankSearchRelevance(a, queryLower) - rankSearchRelevance(b, queryLower);
+      if (diff !== 0) return diff;
+      return `${a.first_name || ''} ${a.last_name || ''}`.localeCompare(`${b.first_name || ''} ${b.last_name || ''}`);
+    });
+  }
 
   if (sortField === 'follow_up') return sortActiveLeads(baseFiltered);
 

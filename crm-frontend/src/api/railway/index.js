@@ -27,6 +27,7 @@ export * as syncCursors from './syncCursors';
 export * as companySettings from './companySettings';
 export * as leadQB from './leadQB';
 export * as signnow from './signnow';
+export * as qbInvoiceMapping from './qbInvoiceMapping';
 export * as routing from './routing';
 export * as leadSubmissions from './leadSubmissions';
 export * as dealTimeline from './dealTimeline';

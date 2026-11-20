@@ -753,26 +753,61 @@ function LeftSidebarContent({ lead, updateField, onLeadUpdate, contactOwners, pr
           </span>
         </CRMField>
 
-        {/* Customer reminder preference — prominent when opted out */}
-        <div className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 border ${
+        {/* Customer Reminders — Master/Email/SMS (CRM repair item 10,
+            November 2026): previously ONE ambiguous toggle that only ever
+            stopped reminder EMAILS — SMS reminders (booking confirmation,
+            12h/2h) were never gated by it at all. Master now stops BOTH
+            channels; Email/SMS below are independent per-channel overrides
+            a rep can use without touching the other channel. */}
+        <div className={`rounded-lg border px-3 py-2.5 space-y-2 ${
           lead.customer_reminders_disabled ? 'border-amber-300 bg-amber-50' : 'border-slate-200 bg-slate-50'
         }`}>
-          <div className="flex items-center gap-2 min-w-0">
-            {lead.customer_reminders_disabled
-              ? <BellOff className="w-4 h-4 text-amber-600 flex-shrink-0" />
-              : <Bell className="w-4 h-4 text-slate-400 flex-shrink-0" />
-            }
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              {lead.customer_reminders_disabled
+                ? <BellOff className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                : <Bell className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              }
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-slate-700 leading-tight">Customer Reminders — Master</p>
+                <p className={`text-[11px] leading-tight mt-0.5 ${lead.customer_reminders_disabled ? 'text-amber-700' : 'text-slate-400'}`}>
+                  {lead.customer_reminders_disabled ? 'Opted out — no reminder emails OR texts' : 'Both channels enabled (unless disabled below)'}
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={!lead.customer_reminders_disabled}
+              onCheckedChange={(checked) => updateField("customer_reminders_disabled", !checked)}
+            />
+          </div>
+
+          <div className="flex items-center justify-between gap-3 pl-6 pt-1 border-t border-slate-200/70">
             <div className="min-w-0">
-              <p className="text-xs font-semibold text-slate-700 leading-tight">Customer Reminders</p>
-              <p className={`text-[11px] leading-tight mt-0.5 ${lead.customer_reminders_disabled ? 'text-amber-700' : 'text-slate-400'}`}>
-                {lead.customer_reminders_disabled ? 'Opted out — no reminder emails' : 'Reminder emails enabled'}
+              <p className="text-[11px] font-semibold text-slate-600 leading-tight">Email Reminders</p>
+              <p className="text-[10px] text-slate-400 leading-tight mt-0.5">
+                {lead.customer_reminders_disabled ? 'Off (Master is off)' : lead.customer_email_reminders_disabled ? 'Off' : 'On'}
               </p>
             </div>
+            <Switch
+              disabled={!!lead.customer_reminders_disabled}
+              checked={!lead.customer_reminders_disabled && !lead.customer_email_reminders_disabled}
+              onCheckedChange={(checked) => updateField("customer_email_reminders_disabled", !checked)}
+            />
           </div>
-          <Switch
-            checked={!lead.customer_reminders_disabled}
-            onCheckedChange={(checked) => updateField("customer_reminders_disabled", !checked)}
-          />
+
+          <div className="flex items-center justify-between gap-3 pl-6">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold text-slate-600 leading-tight">SMS Reminders</p>
+              <p className="text-[10px] text-slate-400 leading-tight mt-0.5">
+                {lead.customer_reminders_disabled ? 'Off (Master is off)' : lead.customer_sms_reminders_disabled ? 'Off' : 'On (also requires SMS consent)'}
+              </p>
+            </div>
+            <Switch
+              disabled={!!lead.customer_reminders_disabled}
+              checked={!lead.customer_reminders_disabled && !lead.customer_sms_reminders_disabled}
+              onCheckedChange={(checked) => updateField("customer_sms_reminders_disabled", !checked)}
+            />
+          </div>
         </div>
       </SidebarSection>
 

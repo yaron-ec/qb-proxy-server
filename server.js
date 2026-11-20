@@ -1432,6 +1432,7 @@ app.use('/api/v1/company-settings', require('./routes/companySettings'));
 app.use('/api/v1/system', require('./routes/systemInfo'));
 app.use('/api/v1/qb-executive-metrics', require('./routes/qbExecutiveMetrics'));
 app.use('/api/v1/financial-backfill', require('./routes/financialBackfill'));
+app.use('/api/v1/qb-invoice-mapping', require('./routes/qbInvoiceMapping'));
 app.use('/api/v1/cron', require('./routes/cronJobs'));
 // Admin-only System Health (admin JWT or the verification workflow's GitHub OIDC identity)
 app.use('/api/v1/system', require('./routes/systemHealth'));

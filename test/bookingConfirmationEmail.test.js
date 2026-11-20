@@ -62,6 +62,22 @@ test('sendBookingConfirmationEmailBestEffort: customer_reminders_disabled short-
   }
 });
 
+test('sendBookingConfirmationEmailBestEffort: customer_email_reminders_disabled (CRM repair item 10, November 2026) also short-circuits before any send, independent of customer_reminders_disabled', async () => {
+  process.env.EMAIL_BOOKING_CONFIRMATION_ENABLED = 'true';
+  let sendCalled = false;
+  const unstub = stub('../lib/emailService', { send: async () => { sendCalled = true; return { gmailMessageId: 'm1' }; } });
+  try {
+    await sendBookingConfirmationEmailBestEffort(
+      { id: 'lead-1', email: 'customer@example.com', customer_reminders_disabled: false, customer_email_reminders_disabled: true },
+      { id: 'appt-1', start_at: '2026-07-15T21:00:00Z', timezone: 'America/Los_Angeles' }
+    );
+    assert.strictEqual(sendCalled, false, 'the Email-specific override must stop this email even when the Master control is false');
+  } finally {
+    unstub();
+    delete process.env.EMAIL_BOOKING_CONFIRMATION_ENABLED;
+  }
+});
+
 test('sendBookingConfirmationEmailBestEffort: no lead.email short-circuits before any send', async () => {
   process.env.EMAIL_BOOKING_CONFIRMATION_ENABLED = 'true';
   let sendCalled = false;

@@ -243,6 +243,8 @@ router.get('/by-external/:externalRef', async (req, res) => {
         pdf_url: d.pdf_url,
         created_by: d.created_by,
         error_message: d.error_message,
+        unverified_fields: d.unverified_fields || null,
+        identity_verified_at: d.identity_verified_at,
         created_at: d.created_at,
         updated_at: d.updated_at,
       })),
@@ -385,6 +387,7 @@ router.post('/by-external/:externalRef/prepare', requireAdminManager, async (req
     let inviteSent = false;
     let prefilledCount = 0;
     let prefillWarning = null;
+    let identityRisks = [];
     try {
       const docResult = await signnowClient.createDocumentFromTemplate(template_id, finalDocName);
       docId = docResult.id;
@@ -415,10 +418,30 @@ router.post('/by-external/:externalRef/prepare', requireAdminManager, async (req
         }
       }
 
-      // Send field invite ONLY when explicitly requested — never implied by
-      // creation. Defaults to false: preparing a contract must never auto-send
-      // it (see POST /documents/:docId/send, the explicit, separate action).
-      const shouldSend = send_invite === true;
+      // IDENTITY-SAFETY CHECK (November 2026 production incident — see
+      // lib/signnowFieldMapping.js#findIdentityRisks's header): re-fetch the
+      // document's LIVE fields (now reflecting whatever prefill just wrote,
+      // or didn't) and compare against this template's own mapping config.
+      // Any field with no mapping yet non-blank content, or a mapped field
+      // whose live value doesn't match the CRM-resolved value, is a risk
+      // that a prior customer's data (or any other stale/incorrect content)
+      // could reach this document's signer. Best-effort: a failure here
+      // never blocks document creation — it simply means risks can't be
+      // confirmed clean, and the send guard below treats "unknown" the same
+      // as this route always has treated an explicit risk (see below).
+      try {
+        const postFill = await signnowClient.getDocumentFields(docId);
+        identityRisks = fieldMapping.findIdentityRisks(mappings, resolved, postFill.fields);
+      } catch (riskErr) {
+        console.warn('[signnow] prepare: identity-safety check failed (non-fatal):', riskErr.message);
+      }
+
+      // Send field invite ONLY when explicitly requested AND no identity
+      // risk was found — never implied by creation, and never sent while a
+      // field might still carry another customer's data. Defaults to
+      // false regardless: preparing a contract must never auto-send it
+      // (see POST /documents/:docId/send, the explicit, separate action).
+      const shouldSend = send_invite === true && identityRisks.length === 0;
       const signerList = signers || (lead.email ? [{ email: lead.email, name: customerName, role: 'Signer 1' }] : []);
       if (shouldSend && signerList.length > 0 && docId) {
         const userInfo = await signnowClient.getUserInfo().catch(() => null);
@@ -436,23 +459,34 @@ router.post('/by-external/:externalRef/prepare', requireAdminManager, async (req
       return res.status(500).json({ error: e.message });
     }
 
+    // A document with an open identity risk is never stored as 'sent'
+    // (inviteSent is already forced false above when risks exist) and is
+    // flagged 'needs_review' instead of the usual 'pending' so the Lead
+    // Detail UI and GET /by-external/:externalRef surface it immediately,
+    // without the admin having to open SignNow itself to notice.
+    const initialStatus = identityRisks.length > 0 ? 'needs_review' : (inviteSent ? 'sent' : 'pending');
+
     // Store in Postgres
     const ins = await query(
-      `INSERT INTO signnow_documents (lead_id, document_id, template_id, document_name, status, signers, created_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      `INSERT INTO signnow_documents (lead_id, document_id, template_id, document_name, status, signers, created_by, unverified_fields)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
       [lead.id, docId, template_id, finalDocName,
-       inviteSent ? 'sent' : 'pending',
+       initialStatus,
        JSON.stringify(signers || (lead.email ? [{ email: lead.email, name: customerName }] : [])),
-       req.user.email]
+       req.user.email,
+       identityRisks.length > 0 ? JSON.stringify(identityRisks) : null]
     );
 
     // Activity log — record the contract creation
     try {
+      const riskNote = identityRisks.length > 0
+        ? ` ⚠️ NEEDS REVIEW: ${identityRisks.length} field(s) may still contain another record's data — open in SignNow and verify before sending.`
+        : '';
       await query(
         `INSERT INTO activities (lead_id, type, content, author, source, created_at)
          VALUES ($1, 'note', $2, $3, 'manual', NOW())`,
         [lead.id,
-         `📄 SignNow contract created from template "${templateName}" — ${inviteSent ? 'sent to ' + (lead.email || 'signer') : 'pending (not sent)'}. Document: ${finalDocName}`,
+         `📄 SignNow contract created from template "${templateName}" — ${inviteSent ? 'sent to ' + (lead.email || 'signer') : 'pending (not sent)'}. Document: ${finalDocName}${riskNote}`,
          req.user.email]
       );
     } catch (actErr) {
@@ -471,6 +505,8 @@ router.post('/by-external/:externalRef/prepare', requireAdminManager, async (req
       },
       prefilled_fields: prefilledCount,
       prefill_warning: prefillWarning,
+      identity_risks: identityRisks,
+      send_blocked_by_identity_risk: send_invite === true && identityRisks.length > 0,
     });
   } catch (e) {
     console.error('[signnow] prepare error:', e.message);
@@ -490,6 +526,24 @@ router.post('/documents/:docId/send', requireAdminManager, async (req, res) => {
     const dbRes = await query('SELECT * FROM signnow_documents WHERE document_id = $1', [docId]);
     const doc = dbRes.rows[0];
     if (!doc) return res.status(404).json({ error: 'not_found' });
+    // IDENTITY-SAFETY GUARD (November 2026 incident — see
+    // lib/signnowFieldMapping.js#findIdentityRisks's header): checked BEFORE
+    // the generic status check below, because a 'needs_review' document's
+    // status is itself non-'pending' — without this ordering it would be
+    // (mis)reported as the generic "already_sent" 409 instead of the
+    // specific, actionable error naming exactly which fields are unsafe.
+    // Never send a document that still has an open identity risk (a field
+    // with no mapping yet non-blank content, or a mismatched mapped field)
+    // — that content may belong to a different customer. The admin must
+    // open the document in SignNow (GET /documents/:docId/open-link), fix
+    // it there, then call POST /documents/:docId/reverify to unblock.
+    if (doc.unverified_fields && Array.isArray(doc.unverified_fields) && doc.unverified_fields.length > 0) {
+      return res.status(422).json({
+        error: 'unverified_fields_present',
+        message: `This document has ${doc.unverified_fields.length} field(s) that may still contain another record's data. Open it in SignNow, verify/fix the fields, then re-verify before sending.`,
+        unverified_fields: doc.unverified_fields,
+      });
+    }
     if (doc.status !== 'pending') {
       return res.status(409).json({ error: 'already_sent', message: `This document is already "${doc.status}" — it can only be sent while pending.` });
     }
@@ -533,6 +587,73 @@ router.post('/documents/:docId/send', requireAdminManager, async (req, res) => {
       return res.status(501).json({ error: 'signnow_not_configured', message: e.message });
     }
     console.error('[signnow] send error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── POST /documents/:docId/reverify — re-check a document's fields for the
+//    "another customer's data" identity risk (November 2026 incident) ──────
+// The ONLY way to clear `unverified_fields` once /prepare has flagged a
+// document — re-fetches the document's LIVE fields from SignNow right now
+// (never cached) and re-runs the exact same check. Lets an admin who has
+// fixed the stale content directly in SignNow's editor (via the
+// GET /documents/:docId/open-link route) unblock sending without needing a
+// brand-new document. If a template_id mapping no longer exists this just
+// reports every non-blank field as a risk, same as a template with zero
+// configured mappings always has.
+router.post('/documents/:docId/reverify', requireAdminManager, async (req, res) => {
+  try {
+    const { docId } = req.params;
+    const dbRes = await query('SELECT * FROM signnow_documents WHERE document_id = $1', [docId]);
+    const doc = dbRes.rows[0];
+    if (!doc) return res.status(404).json({ error: 'not_found' });
+
+    const mappings = doc.template_id ? await fieldMapping.getMappingsForTemplate(doc.template_id) : [];
+    const lead = await query('SELECT * FROM leads WHERE id = $1', [doc.lead_id]).then((r) => r.rows[0] || null);
+    const { resolved } = fieldMapping.resolveMappingValues(mappings, { lead, deal: null });
+
+    const live = await signnowClient.getDocumentFields(docId);
+    const identityRisks = fieldMapping.findIdentityRisks(mappings, resolved, live.fields);
+
+    const clearedToPending = identityRisks.length === 0 && doc.status === 'needs_review';
+    const upd = await query(
+      `UPDATE signnow_documents
+       SET unverified_fields = $1,
+           identity_verified_at = NOW(),
+           identity_verified_by = $2,
+           status = CASE WHEN $3 THEN 'pending' ELSE status END,
+           updated_at = NOW()
+       WHERE document_id = $4 RETURNING *`,
+      [identityRisks.length > 0 ? JSON.stringify(identityRisks) : null, req.user.email, clearedToPending, docId]
+    );
+
+    if (clearedToPending) {
+      try {
+        await query(
+          `INSERT INTO activities (lead_id, type, content, author, source, created_at)
+           VALUES ($1, 'note', $2, $3, 'manual', NOW())`,
+          [doc.lead_id, `✅ SignNow document "${doc.document_name}" re-verified — no other-customer data found. Ready to send.`, req.user.email]
+        );
+      } catch (actErr) {
+        console.warn('[signnow] reverify activity log failed:', actErr.message);
+      }
+    }
+
+    res.json({
+      document: {
+        id: upd.rows[0].id,
+        document_id: docId,
+        status: upd.rows[0].status,
+        unverified_fields: upd.rows[0].unverified_fields,
+        identity_verified_at: upd.rows[0].identity_verified_at,
+        identity_verified_by: upd.rows[0].identity_verified_by,
+      },
+    });
+  } catch (e) {
+    if (e.code === 'SIGNNOW_NOT_CONFIGURED') {
+      return res.status(501).json({ error: 'signnow_not_configured', message: e.message });
+    }
+    console.error('[signnow] reverify error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });

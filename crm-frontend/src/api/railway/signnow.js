@@ -5,6 +5,7 @@
  *   uploadDocument(externalRef, data)        -> { document }
  *   prepareFromTemplate(externalRef, data)  -> { document, message }
  *   sendDocument(docId)                      -> { success, document }
+ *   reverifyDocument(docId)                  -> { document } (re-checks for another customer's stale field data)
  *   getDocumentStatus(docId)                -> { document }
  *   getOpenLink(docId)                       -> { url, mode: 'editor'|'view' }
  *   downloadSignedPdf(docId)                -> Blob (PDF)
@@ -40,6 +41,10 @@ export function getOpenLink(docId) {
 
 export function sendDocument(docId) {
   return apiCall(`/api/v1/signnow/documents/${encodeURIComponent(docId)}/send`, { method: 'POST' });
+}
+
+export function reverifyDocument(docId) {
+  return apiCall(`/api/v1/signnow/documents/${encodeURIComponent(docId)}/reverify`, { method: 'POST' });
 }
 
 export function deleteDocument(docId) {
