@@ -395,6 +395,72 @@ test('M3d. Saving the follow-up again with an unchanged date/time is a safe no-o
   assert.strictEqual(liveApptEvents(before.id, 'main').length, 1, 'still exactly one main event');
 });
 
+// "JOHN JOHN" PRODUCTION SCENARIO, reproduced directly: an appointment that
+// has drifted out of sync with its own follow-up (exactly what a lead
+// created/edited before this correction shipped would look like — the old
+// code path never kept the two in agreement) must self-heal the moment
+// anyone clicks Update on the follow-up, even if they change NOTHING —
+// the frontend's Save/Update button always resends the full, currently-
+// displayed date/time/type (crm-frontend/src/components/FollowUpScheduler.jsx
+// #handleSave), so a follow-up that already correctly reads the intended
+// date/time still triggers the sync's reschedule branch, because the sync
+// compares the follow-up to the CURRENT appointment, never to its own
+// previous value.
+test('M3e. "John John" scenario reproduced: an appointment that drifted out of sync with its own follow-up (legacy/pre-fix data shape) self-heals the moment the follow-up is re-saved, even with no field actually changed', { skip }, async () => {
+  const synced = (await db.query(`SELECT id, start_at FROM appointments WHERE lead_id = $1 AND status IN ('scheduled','confirmed')`, [leadId])).rows[0];
+  assert.ok(synced, 'precondition: the appointment is currently in sync with the follow-up (day, 15:00)');
+
+  // Simulate drift: directly desync the appointment's own start/end/busy
+  // window to an EARLIER time, bypassing followUpAppointmentSync entirely —
+  // exactly the shape a lead edited before this correction shipped would
+  // have (its appointment stuck on a stale date while the follow-up had
+  // since moved forward), never through the HTTP route.
+  const staleStartIso = require('../../lib/booking/slotBlocking').toUtcIso(day, '09:00', 'America/Los_Angeles');
+  const staleStart = new Date(staleStartIso);
+  const staleEnd = new Date(staleStart.getTime() + 60 * 60 * 1000);
+  const staleBusyStart = new Date(staleStart.getTime() - 60 * 60 * 1000);
+  const staleBusyEnd = new Date(staleEnd.getTime() + 60 * 60 * 1000);
+  await db.query(
+    `UPDATE appointments SET start_at = $1, end_at = $2, busy_range = tstzrange($3, $4, '[)') WHERE id = $5`,
+    [staleStart, staleEnd, staleBusyStart, staleBusyEnd, synced.id]
+  );
+  const drifted = (await db.query(`SELECT start_at FROM appointments WHERE id = $1`, [synced.id])).rows[0];
+  assert.notStrictEqual(new Date(drifted.start_at).getTime(), new Date(synced.start_at).getTime(), 'precondition: the appointment is now genuinely stale relative to its follow-up');
+
+  // The lead's own follow-up is still exactly day/15:00/Meeting (M3b/M3d) —
+  // re-send that SAME, unchanged value, exactly as clicking "Update" with
+  // no edits does.
+  const leadBefore = await getLead(leadId);
+  assert.strictEqual(leadBefore.follow_up_date, day);
+  assert.strictEqual(leadBefore.follow_up_time, '15:00');
+  const r = await api('PUT', `/api/v1/leads/${leadId}/follow-up`, {
+    follow_up_date: leadBefore.follow_up_date,
+    follow_up_time: leadBefore.follow_up_time,
+    follow_up_type: leadBefore.follow_up_type,
+    follow_up_notes: leadBefore.follow_up_notes || null,
+    follow_up_status: leadBefore.follow_up_status,
+  });
+  assert.strictEqual(r.status, 200, JSON.stringify(r.body));
+  assert.strictEqual(r.body.follow_up_appointment_sync.action, 'rescheduled', 'a no-op-looking Update still heals a stale appointment, because the sync compares against the CURRENT appointment, not the follow-up\'s own prior value');
+  await drainOutbox();
+
+  // bookingService.rescheduleAppointment supersedes the old row (status ->
+  // 'rescheduled', start_at left exactly as it was — correct, preserved
+  // history, same pattern already proven in M3b/M6) and creates a NEW
+  // active row for the new time — never updates start_at on the old row in
+  // place, so the active appointment must be re-queried by status, not by
+  // the old id.
+  const superseded = (await db.query(`SELECT status FROM appointments WHERE id = $1`, [synced.id])).rows[0];
+  assert.strictEqual(superseded.status, 'rescheduled', 'the stale row is superseded, kept as history — never silently mutated or deleted');
+  const healed = (await db.query(`SELECT id, start_at FROM appointments WHERE lead_id = $1 AND status IN ('scheduled','confirmed')`, [leadId])).rows[0];
+  assert.ok(healed, 'exactly one new active appointment exists after healing');
+  assert.notStrictEqual(healed.id, synced.id, 'a genuinely new row, not a mutation of the stale one');
+  assert.strictEqual(new Date(healed.start_at).getTime(), new Date(synced.start_at).getTime(), 'back in sync with the follow-up (day, 15:00)');
+  const av = await availability(day);
+  assert.ok(av.blocked_slots.includes('15:00'), 'the healed slot blocks');
+  assert.ok(!av.blocked_slots.includes('09:00'), 'the stale 09:00 slot no longer blocks');
+});
+
 test('M4. The automatically-synced appointment now correctly DOES drive the customer appointment-reminder projection — the whole point of creating a real appointment from the follow-up', { skip }, async () => {
   const { getAppointmentMs } = require('../../lib/reminderEngine');
   const rl = (await db.query(
