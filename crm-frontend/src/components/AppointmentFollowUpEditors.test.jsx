@@ -262,3 +262,66 @@ describe('FollowUpScheduler: automatic appointment sync result + residual mismat
     expect(promoteFollowUpToAppointment).not.toHaveBeenCalled();
   });
 });
+
+// ── Production report (November 2026): a screenshot of this exact editor,
+// for a Meeting follow-up, showed the OLD generic "Follow-ups are internal
+// reminders — they don't book a visit or block your calendar" text. Traced
+// to the component's SOURCE (git-diffed byte-identical against the deployed
+// commit) already branching correctly on type — these tests pin that
+// branch explicitly, at the component level, so a future regression here is
+// caught by this file rather than only inferred from backend behavior. The
+// screenshot's most likely cause was a browser tab/service-worker state
+// that predated the deploy, not a code defect — these tests are the
+// code-level guarantee the correct wording exists and is reachable.
+describe('FollowUpScheduler: Meeting vs non-Meeting wording is correct and mutually exclusive', () => {
+  const OLD_GENERIC_TEXT = /internal reminders.*don.t book a visit/;
+  const NEW_MEETING_EDIT_TEXT = /Saving this keeps the real appointment, Google Calendar, and reminders in sync automatically/;
+  const NEW_MEETING_COLLAPSED_TEXT = /Keeps the appointment, Google Calendar, and reminders in sync automatically/;
+
+  it('edit view: Meeting shows the sync-explanation text and NEVER the old "internal reminders" text', () => {
+    render(<FollowUpScheduler lead={lead({ follow_up_date: '2026-11-23', follow_up_time: '09:00', follow_up_type: 'Meeting' })} onLeadUpdate={vi.fn()} />);
+    fireEvent.click(screen.getByText('Edit'));
+    expect(screen.getByText(NEW_MEETING_EDIT_TEXT)).toBeInTheDocument();
+    expect(screen.queryByText(OLD_GENERIC_TEXT)).not.toBeInTheDocument();
+  });
+
+  it('edit view: a non-Meeting type (Phone Call) shows the "internal reminders" text and NEVER the Meeting sync-explanation text', () => {
+    render(<FollowUpScheduler lead={lead({ follow_up_date: '2026-11-23', follow_up_time: '09:00', follow_up_type: 'Phone Call' })} onLeadUpdate={vi.fn()} />);
+    fireEvent.click(screen.getByText('Edit'));
+    expect(screen.getByText(OLD_GENERIC_TEXT)).toBeInTheDocument();
+    expect(screen.queryByText(NEW_MEETING_EDIT_TEXT)).not.toBeInTheDocument();
+  });
+
+  it('edit view: picking Meeting in the type dropdown (while adding a brand-new follow-up) switches to the sync-explanation text live, before saving', () => {
+    render(<FollowUpScheduler lead={lead()} onLeadUpdate={vi.fn()} />);
+    fireEvent.click(screen.getByText('Add'));
+    expect(screen.queryByText(NEW_MEETING_EDIT_TEXT)).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Follow-up type'), { target: { value: 'Meeting' } });
+    expect(screen.getByText(NEW_MEETING_EDIT_TEXT)).toBeInTheDocument();
+    expect(screen.queryByText(OLD_GENERIC_TEXT)).not.toBeInTheDocument();
+  });
+
+  it('collapsed view: a saved Meeting follow-up shows the sync-explanation text', () => {
+    render(<FollowUpScheduler lead={lead({ follow_up_date: '2026-11-23', follow_up_time: '09:00', follow_up_type: 'Meeting' })} onLeadUpdate={vi.fn()} />);
+    expect(screen.getByText(NEW_MEETING_COLLAPSED_TEXT)).toBeInTheDocument();
+    expect(screen.queryByText(OLD_GENERIC_TEXT)).not.toBeInTheDocument();
+  });
+
+  it('collapsed view: a saved non-Meeting follow-up never shows the Meeting sync-explanation text', () => {
+    render(<FollowUpScheduler lead={lead({ follow_up_date: '2026-11-23', follow_up_time: '09:00', follow_up_type: 'Email' })} onLeadUpdate={vi.fn()} />);
+    expect(screen.queryByText(NEW_MEETING_COLLAPSED_TEXT)).not.toBeInTheDocument();
+  });
+
+  it('clicking Update on a Meeting follow-up with NO fields changed still sends the full current date/time/type (so a stale appointment can self-heal server-side) — never a partial/empty diff', async () => {
+    updateFollowUp.mockResolvedValue({ lead: lead({ follow_up_date: '2026-11-23', follow_up_time: '09:00', follow_up_type: 'Meeting', follow_up_notes: 'Site walk' }), follow_up_appointment_sync: { action: 'rescheduled' } });
+    render(<FollowUpScheduler lead={lead({ follow_up_date: '2026-11-23', follow_up_time: '09:00', follow_up_type: 'Meeting', follow_up_notes: 'Site walk', follow_up_status: 'pending' })} onLeadUpdate={vi.fn()} />);
+    fireEvent.click(screen.getByText('Edit'));
+    // No field is touched — click Update exactly as-is.
+    fireEvent.click(screen.getByText('Update'));
+    await waitFor(() => expect(updateFollowUp).toHaveBeenCalledTimes(1));
+    expect(updateFollowUp.mock.calls[0][1]).toEqual({
+      follow_up_date: '2026-11-23', follow_up_time: '09:00', follow_up_type: 'Meeting', follow_up_notes: 'Site walk', follow_up_status: 'pending',
+    });
+    expect(await screen.findByText('The appointment was rescheduled to match.')).toBeInTheDocument();
+  });
+});
