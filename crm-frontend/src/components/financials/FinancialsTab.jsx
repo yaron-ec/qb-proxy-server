@@ -31,7 +31,7 @@ import AddendumPanel from "./AddendumPanel";
 // same tab keeps a rep's chosen sections open, without persisting across
 // deals or devices.
 
-export default function FinancialsTab({ deal, lead, invoices, setDeal, setLead, refreshLead }) {
+export default function FinancialsTab({ deal, lead, invoices, setDeal, setLead, refreshLead, addendumRefreshKey }) {
   const { user } = useAuth();
   const role = user?.role;
   const isAdmin = role === "admin";
@@ -210,6 +210,15 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal, setLead, 
           wall of every sub-panel at once. */}
       <ProfitabilitySummary fin={fin} />
 
+      {/* Master Project Summary (Original Contract/Approved Addendums/
+          Combined Contract Value + consolidated Invoiced/Collected/
+          Outstanding/Costs/Profit/Margin) — always visible, directly below
+          the Financial Summary hero, not buried in Expandable Details, so
+          the fact this project HAS addendums (and their combined totals)
+          is immediately clear rather than requiring an accordion click.
+          Renders nothing when this project has no addendums at all. */}
+      <AddendumPanel deal={deal} lead={lead} isAdmin={isAdmin} refreshKey={addendumRefreshKey} />
+
       <div data-testid="fin-collections-section">
         <CustomerCollections
           deal={deal} lead={lead} fin={fin}
@@ -292,7 +301,6 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal, setLead, 
             >
               <AccordionContent>
                 <div className="space-y-4">
-                  <AddendumPanel deal={deal} lead={lead} isAdmin={isAdmin} onChange={load} />
                   <InvoiceMappingPanel lead={lead} canEdit={isAdmin} />
                 </div>
               </AccordionContent>

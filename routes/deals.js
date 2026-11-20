@@ -33,6 +33,7 @@ const {
   UUID_RE, computeCompletionFields,
 } = require('../lib/dealModel');
 const { notifyCrmActivity } = require('../lib/crmActivityNotifier');
+const { computeMasterFinancials } = require('../lib/dealFinancialAggregation');
 
 // ── Deal notification helper (best-effort, non-blocking) ─────────────────────
 async function sendDealNotification(action, deal, actorEmail, changes) {
@@ -357,20 +358,51 @@ router.get('/:id/addendums', async (req, res) => {
     if (!deal) return res.status(404).json({ error: 'not_found' });
     if (!canAccessDeal(req.user, deal)) return res.status(403).json({ error: 'forbidden' });
 
+    // Resolve the ROOT (master project) deal — whether this route is
+    // called on the parent's own id or on one of ITS addendums, the
+    // consolidated Master Project view must show the SAME combined
+    // numbers either way (requirement: viewing the Bathroom Repair
+    // addendum must show the same master totals as viewing the Roof
+    // Replacement parent). Addendums are one level deep only, so this is
+    // a single lookup, never a recursive walk.
+    let rootDeal = deal;
+    if (deal.parent_deal_id) {
+      const parentRes = await query('SELECT * FROM deals WHERE id = $1', [deal.parent_deal_id]);
+      if (parentRes.rows[0]) rootDeal = parentRes.rows[0];
+    }
+
     const { rows: addendumRows } = await query(
       `SELECT * FROM deals WHERE parent_deal_id = $1 ORDER BY created_at ASC`,
-      [deal.id]
+      [rootDeal.id]
     );
     const addendums = addendumRows.map(serializeDeal);
-    const originalAmount = Number(deal.amount || 0);
+
+    let master = null;
+    let masterError = null;
+    try {
+      master = await computeMasterFinancials({ query }, rootDeal, addendumRows);
+    } catch (e) {
+      // Never let a master-financials computation failure hide the
+      // already-working contract-value totals below (matches this file's
+      // own pre-existing precedent of a best-effort, separately-caught
+      // sub-computation — see dealFinancials.js's waterfall try/catch).
+      console.error('[deals] master financials error:', e.message);
+      masterError = e.message;
+    }
+
+    const originalAmount = Number(rootDeal.amount || 0);
     const addendumsTotal = addendums.reduce((s, a) => s + Number(a.amount || 0), 0);
 
     res.json({
       deal: serializeDeal(deal),
+      is_addendum: !!deal.parent_deal_id,
+      root_deal_id: rootDeal.id,
       addendums,
       original_contract_amount: originalAmount,
       approved_addendums_amount: addendumsTotal,
       total_approved_contract: originalAmount + addendumsTotal,
+      master,
+      masterError,
     });
   } catch (e) {
     console.error('[deals] addendums error:', e.message);
