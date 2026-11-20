@@ -43,8 +43,86 @@ function stub(modPath, exportsObj) {
 delete require.cache[require.resolve('../lib/monitoring/healthProbes')];
 const {
   checkGoogleContactsOutboxHealth, checkGmailIntegrationHealth, checkWebsiteIntakeSilence,
-  checkWebsiteIntakeRejections, checkHandoffHealth,
+  checkWebsiteIntakeRejections, checkHandoffHealth, checkOutboxBacklog,
 } = require('../lib/monitoring/healthProbes');
+
+// ── calendar_outbox backlog — November 2026 "John John" incident fix ──────
+// Previously counted ONLY backlogPendingValue ('pending'); a 'failed'
+// (awaiting backoff) or 'dead' (retries exhausted) row was invisible,
+// regardless of count or age — exactly the "silently leaving stale events"
+// gap the production bug report asked to be closed. These tests use the
+// REAL calendar-outbox-worker service-config shape (backlogRetryableValues/
+// backlogDeadValue), not a bespoke one, so a future drift in
+// serviceInventory.js's actual entry would be caught by the companion
+// source-level test below, not just by these unit tests passing an
+// idealized config.
+const CALENDAR_OUTBOX_SERVICE = {
+  id: 'calendar-outbox-worker', backlogTable: 'calendar_outbox', backlogStatusField: 'status',
+  backlogPendingValue: 'pending', backlogRetryableValues: ['pending', 'failed'], backlogDeadValue: 'dead',
+  maxBacklogAge: 10 * 60 * 1000,
+};
+
+test('checkOutboxBacklog: empty backlog -> healthy', async () => {
+  queryImpl = async () => ({ rows: [{ pending_count: '0', dead_count: '0', oldest_age_ms: '0' }] });
+  const result = await checkOutboxBacklog(CALENDAR_OUTBOX_SERVICE);
+  assert.strictEqual(result.healthy, true);
+});
+
+test('checkOutboxBacklog: rows stuck at "failed" (not just "pending") are counted and can trip the stuck threshold', async () => {
+  queryImpl = async (sql, params) => {
+    // Confirms the query actually asks for BOTH retryable values, not only 'pending'.
+    assert.deepStrictEqual(params[0], ['pending', 'failed']);
+    return { rows: [{ pending_count: '3', dead_count: '0', oldest_age_ms: String(20 * 60 * 1000) }] };
+  };
+  const result = await checkOutboxBacklog(CALENDAR_OUTBOX_SERVICE);
+  assert.strictEqual(result.healthy, false);
+  assert.strictEqual(result.details.pendingCount, 3);
+  assert.match(result.error, /Backlog/);
+});
+
+test('checkOutboxBacklog: any dead-lettered row -> unhealthy, even with zero pending/failed and a fresh backlog', async () => {
+  queryImpl = async (sql, params) => {
+    assert.strictEqual(params[1], 'dead');
+    return { rows: [{ pending_count: '0', dead_count: '1', oldest_age_ms: '0' }] };
+  };
+  const result = await checkOutboxBacklog(CALENDAR_OUTBOX_SERVICE);
+  assert.strictEqual(result.healthy, false);
+  assert.strictEqual(result.details.deadCount, 1);
+  assert.match(result.error, /permanently failed/);
+  assert.match(result.error, /dead-lettered/);
+});
+
+test('checkOutboxBacklog: a small, fresh backlog with zero dead rows is healthy', async () => {
+  queryImpl = async () => ({ rows: [{ pending_count: '2', dead_count: '0', oldest_age_ms: String(30 * 1000) }] });
+  const result = await checkOutboxBacklog(CALENDAR_OUTBOX_SERVICE);
+  assert.strictEqual(result.healthy, true);
+});
+
+test('checkOutboxBacklog: a caller with no backlogRetryableValues/backlogDeadValue (legacy config) is unaffected — defaults to pending-only, dead never checked', async () => {
+  queryImpl = async (sql, params) => {
+    assert.deepStrictEqual(params[0], ['pending']);
+    assert.strictEqual(params[1], null);
+    return { rows: [{ pending_count: '0', dead_count: '0', oldest_age_ms: '0' }] };
+  };
+  const result = await checkOutboxBacklog({ id: 'legacy', backlogTable: 'calendar_outbox', backlogPendingValue: 'pending', maxBacklogAge: 600000 });
+  assert.strictEqual(result.healthy, true);
+});
+
+test('checkOutboxBacklog: a query failure never crashes, reports unhealthy with the error', async () => {
+  queryImpl = async () => { throw new Error('connection reset'); };
+  const result = await checkOutboxBacklog(CALENDAR_OUTBOX_SERVICE);
+  assert.strictEqual(result.healthy, false);
+  assert.match(result.error, /connection reset/);
+});
+
+test('serviceInventory.js: the real calendar-outbox-worker entry actually opts into failed+dead visibility (source-level — keeps the unit tests above honest about the real config)', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const src = fs.readFileSync(path.join(__dirname, '..', 'lib', 'monitoring', 'serviceInventory.js'), 'utf8');
+  const entry = src.slice(src.indexOf("id: 'calendar-outbox-worker'"), src.indexOf("id: 'calendar-outbox-heartbeat'"));
+  assert.match(entry, /backlogRetryableValues:\s*\['pending',\s*'failed'\]/);
+  assert.match(entry, /backlogDeadValue:\s*'dead'/);
+});
 
 // ── Handoff (Direct API) — correct signal: API key presence, NEVER
 //    enabled_modules.handoff (follow-up correction) ─────────────────────────
