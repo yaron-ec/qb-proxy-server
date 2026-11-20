@@ -2,8 +2,8 @@
  * FinancialsTab.test.jsx — November 2026 redesign: a Financial Summary hero
  * (navy/gold/white, plain-English terms — see ProfitabilitySummary.test.jsx)
  * plus Collections/Payment Schedule are ALWAYS visible; everything else
- * (Cost Breakdown, Revenue & Lead Cost, Commissions, Expenses, Loan
- * Payments, Documents & QuickBooks Mapping, Activity Log) lives in a
+ * (Cost Breakdown, Revenue & Lead Cost, Commissions, Expenses,
+ * Documents & QuickBooks Mapping, Activity Log) lives in a
  * collapsed-by-default Expandable Details accordion. Mocks every
  * sub-component's own API dependency — this file exercises FinancialsTab's
  * OWN new accordion wiring, not each sub-component's internal behavior
@@ -57,12 +57,17 @@ describe('FinancialsTab (admin/manager): Financial Summary + Collections always 
     expect(screen.getByText('Cost Breakdown')).toBeInTheDocument();
     expect(screen.getByText('Commissions')).toBeInTheDocument();
     expect(screen.getByText('Expenses')).toBeInTheDocument();
-    expect(screen.getByText('Loan Payments')).toBeInTheDocument();
     expect(screen.getByText('Documents & QuickBooks Mapping')).toBeInTheDocument();
     expect(screen.getByText('Activity Log')).toBeInTheDocument();
     // None of the inner section labels (only rendered once expanded) are present yet.
     expect(screen.queryByText('Total Vendor Costs')).toBeNull();
     expect(screen.queryByText('No expenses yet')).toBeNull();
+  });
+
+  it('never renders a Loan Payments section (removed per request — underlying deal_loan_payments data/API is untouched and still feeds Total Cost)', async () => {
+    render(<FinancialsTab deal={deal()} lead={lead()} invoices={[]} setDeal={vi.fn()} setLead={vi.fn()} refreshLead={vi.fn()} />);
+    await waitFor(() => expect(screen.getByTestId('fin-expandable-details')).toBeInTheDocument());
+    expect(screen.queryByText('Loan Payments')).toBeNull();
   });
 
   it('clicking a collapsed section header expands it and renders its content, and clicking again collapses it', async () => {
@@ -75,7 +80,7 @@ describe('FinancialsTab (admin/manager): Financial Summary + Collections always 
     expect(screen.queryByText('No expenses found.')).toBeNull();
   });
 
-  it('badge counts reflect the real loaded data for Commissions/Expenses/Loan Payments/Activity Log', async () => {
+  it('badge counts reflect the real loaded data for Commissions/Expenses/Activity Log', async () => {
     const dealExpenses = await import('@/api/railway/dealExpenses');
     dealExpenses.list.mockResolvedValue({ items: [{ id: 'e1' }, { id: 'e2' }] });
     render(<FinancialsTab deal={deal()} lead={lead()} invoices={[]} setDeal={vi.fn()} setLead={vi.fn()} refreshLead={vi.fn()} />);

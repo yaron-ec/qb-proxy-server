@@ -12,54 +12,85 @@ const GOLD = "#C9A227";
  * one simple, plain-English answer to "what's the state of this job's
  * money?" before anyone has to open a single expandable detail section
  * below it. Navy/gold/white, matching the brand's own established colors
- * (lib/emailTemplates.js) — this redesign is a direct, explicit product
- * requirement (November 2026), distinct from and superseding the PRIOR
- * redesign's move away from a dark hero: that pass's actual complaint was
- * numbers carrying their weight through raw SIZE instead of label/value
- * hierarchy, not that navy/gold itself was wrong — this version keeps a
- * disciplined label-over-value hierarchy while still using the brand's
- * navy/gold/white, satisfying both concerns.
+ * (lib/emailTemplates.js).
  *
  *   CONTRACT TOTAL − TOTAL COST = PROFIT
  *   PROFIT / CONTRACT TOTAL × 100 = MARGIN
  *
- * Plain-English terminology throughout (never "netProfit"/"totalRevenue"
- * jargon on screen) — see fin.remainingCustomerBalance's own documented
- * meaning in lib/financialCalc.js ("remaining": contract value minus paid,
- * the whole-job balance) for why "Balance Due" reads from that field, not
- * fin.balance (the narrower invoiced-minus-paid figure — CLAUDE.md's own
- * documented balance/remaining distinction).
+ * MASTER PROJECT CONSOLIDATION (November 2026 production correction): a
+ * real production report found this hero still computing from just THIS
+ * deal's own `fin` even while the separate Master Project Summary panel
+ * below it showed the combined parent+addendum totals — two different
+ * numbers on the same page for the same job, exactly the "avoid
+ * conflicting totals" complaint. When an optional `master` prop is passed
+ * (lib/dealFinancialAggregation.js's consolidated output — the SAME single
+ * computation the Master Project Summary panel reads, fetched once by the
+ * parent FinancialsTab and shared, never re-derived here), this hero shows
+ * the COMBINED figures instead of this one deal's own slice, with a
+ * "Combined Project" badge so it's unmistakable these are project-wide
+ * totals. A deal with no addendums (master == null) is completely
+ * unaffected — same single-deal numbers as before.
  */
-export default function ProfitabilitySummary({ fin }) {
-  const isNegative = fin.netProfit < 0;
-  const costPct = fin.totalRevenue > 0 ? Math.min(100, Math.max(0, (fin.totalCosts / fin.totalRevenue) * 100)) : 0;
+export default function ProfitabilitySummary({ fin, master }) {
+  const isConsolidated = !!master;
+  const totalRevenue = isConsolidated ? master.total_approved_contract : fin.totalRevenue;
+  const collected = isConsolidated ? master.collected : fin.paymentsReceived;
+  const outstanding = isConsolidated ? master.outstanding : fin.remainingCustomerBalance;
+  const totalCosts = isConsolidated ? master.total_costs : fin.totalCosts;
+  const netProfit = isConsolidated ? master.projected_profit : fin.netProfit;
+  const profitMargin = isConsolidated ? master.profit_margin_pct : fin.profitMargin;
+
+  const isNegative = netProfit < 0;
+  const costPct = totalRevenue > 0 ? Math.min(100, Math.max(0, (totalCosts / totalRevenue) * 100)) : 0;
   const profitPct = Math.max(0, 100 - costPct);
   const profitColor = isNegative ? "#be123c" : GOLD;
 
+  // "Collected" is derived from each invoice's QuickBooks balance
+  // (total_amt − balance) — a known, honest limitation (never silently
+  // hidden, per a real production finding): a zero balance can also result
+  // from a credit memo or a manual write-off/adjustment in QuickBooks, not
+  // only a genuine cash payment. This codebase's qb_payments_cache table
+  // is customer-level only (no per-invoice linkage to a specific Payment
+  // object), so there is currently no way to distinguish the two from
+  // cached data alone — verifying this precisely would mean building new
+  // QuickBooks sync logic (capturing Payment/CreditMemo line-level
+  // linkage) that cannot be tested without live QuickBooks access, so it
+  // is flagged here rather than guessed at or silently assumed correct.
+  const collectedTooltip = "Based on each invoice's QuickBooks balance. A zero balance can also reflect a credit memo or adjustment, not only a cash payment — not yet verified against individual QuickBooks Payment records.";
+
   const metrics = [
-    { label: "Contract Total", value: formatCurrency(fin.totalRevenue) },
-    { label: "Collected", value: formatCurrency(fin.paymentsReceived) },
-    { label: "Balance Due", value: formatCurrency(fin.remainingCustomerBalance) },
-    { label: "Total Cost", value: formatCurrency(fin.totalCosts) },
+    { label: isConsolidated ? "Combined Contract Value" : "Contract Total", value: formatCurrency(totalRevenue) },
+    { label: "Collected", value: formatCurrency(collected), tooltip: collectedTooltip },
+    { label: "Balance Due", value: formatCurrency(outstanding) },
+    { label: "Total Cost", value: formatCurrency(totalCosts) },
   ];
 
   return (
     <div data-testid="financial-summary-card" className="rounded-xl border border-slate-200 overflow-hidden shadow-sm bg-white">
       <div
-        className="px-4 sm:px-6 py-3 sm:py-4 border-b-[3px] flex items-center justify-between"
+        className="px-4 sm:px-6 py-3 sm:py-4 border-b-[3px] flex items-center justify-between gap-3"
         style={{ background: NAVY, borderBottomColor: GOLD }}
       >
         <p className="text-sm sm:text-base font-bold text-white tracking-wide">Financial Summary</p>
-        <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider" style={{ color: GOLD }}>
-          {isNegative ? "Over Budget" : "On Track"}
-        </p>
+        <div className="flex items-center gap-2">
+          {isConsolidated && (
+            <span data-testid="financial-summary-consolidated-badge" className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white/90 bg-white/10 px-2 py-0.5 rounded-full border border-white/20">
+              Combined Project
+            </span>
+          )}
+          <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider" style={{ color: GOLD }}>
+            {isNegative ? "Over Budget" : "On Track"}
+          </p>
+        </div>
       </div>
 
       <div className="p-4 sm:p-6">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
           {metrics.map((m) => (
-            <div key={m.label} data-testid={`fin-metric-${m.label.toLowerCase().replace(/\s+/g, "-")}`}>
-              <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide text-slate-500">{m.label}</p>
+            <div key={m.label} data-testid={`fin-metric-${m.label.toLowerCase().replace(/\s+/g, "-")}`} title={m.tooltip}>
+              <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                {m.label}{m.tooltip && <span className="ml-1 text-slate-400 cursor-help" aria-hidden="true">ⓘ</span>}
+              </p>
               <p className="text-lg sm:text-2xl font-bold tabular-nums mt-1 text-slate-900">{m.value}</p>
             </div>
           ))}
@@ -70,13 +101,13 @@ export default function ProfitabilitySummary({ fin }) {
             <div data-testid="fin-metric-profit">
               <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide text-slate-500">Profit</p>
               <p className="text-2xl sm:text-3xl font-bold tabular-nums mt-1" style={{ color: profitColor }}>
-                {formatCurrency(fin.netProfit)}
+                {formatCurrency(netProfit)}
               </p>
             </div>
             <div data-testid="fin-metric-margin">
               <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide text-slate-500">Margin</p>
               <p className="text-2xl sm:text-3xl font-bold tabular-nums mt-1" style={{ color: profitColor }}>
-                {formatPercent(fin.profitMargin, 1)}
+                {formatPercent(profitMargin, 1)}
               </p>
             </div>
           </div>

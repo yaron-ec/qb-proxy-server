@@ -88,3 +88,69 @@ describe('ProfitabilitySummary — Financial Summary hero (navy/gold/white, plai
     expect(grid.className).toMatch(/sm:grid-cols-4/);
   });
 });
+
+describe('ProfitabilitySummary — consolidated Master Project totals (November 2026 production correction)', () => {
+  // Real production shape: a $33,000 parent deal's own `fin` vs. the
+  // combined $40,934.35 project total (parent + Bathroom Repair addendum)
+  // — the hero must show the COMBINED figures, never the single-deal ones,
+  // once a `master` prop is supplied, so it can never again disagree with
+  // the Master Project Summary panel below it.
+  const master = {
+    total_approved_contract: 40934.35,
+    collected: 25000,
+    outstanding: 15934.35,
+    total_costs: 2500,
+    projected_profit: 38434.35,
+    profit_margin_pct: 93.9,
+  };
+
+  it('shows the combined contract value, never this deal\'s own $33,000', () => {
+    render(<ProfitabilitySummary fin={fin({ totalRevenue: 33000 })} master={master} />);
+    expect(screen.getByText('Combined Contract Value')).toBeInTheDocument();
+    expect(screen.getByText('$40,934.35')).toBeInTheDocument();
+    expect(screen.queryByText('$33,000.00')).toBeNull();
+    expect(screen.queryByText('Contract Total')).toBeNull();
+  });
+
+  it('shows every other metric from the combined master total, not the single-deal fin', () => {
+    render(<ProfitabilitySummary fin={fin({ totalRevenue: 33000, paymentsReceived: 42031, remainingCustomerBalance: 0, totalCosts: 20138.18, netProfit: 12861.82, profitMargin: 39 })} master={master} />);
+    expect(screen.getByText('$25,000.00')).toBeInTheDocument(); // Collected (combined)
+    expect(screen.getByText('$15,934.35')).toBeInTheDocument(); // Balance Due (combined outstanding)
+    expect(screen.getByText('$2,500.00')).toBeInTheDocument(); // Total Cost (combined)
+    expect(screen.getByText('$38,434.35')).toBeInTheDocument(); // Profit (combined)
+    expect(screen.getByText('93.9%')).toBeInTheDocument(); // Margin (combined)
+    // Never the stale, pre-fix single-deal numbers the real production report showed
+    expect(screen.queryByText('$42,031.00')).toBeNull();
+    expect(screen.queryByText('$20,138.18')).toBeNull();
+    expect(screen.queryByText('$12,861.82')).toBeNull();
+  });
+
+  it('shows a "Combined Project" badge only when master is present', () => {
+    const { rerender } = render(<ProfitabilitySummary fin={fin()} />);
+    expect(screen.queryByTestId('financial-summary-consolidated-badge')).toBeNull();
+    rerender(<ProfitabilitySummary fin={fin()} master={master} />);
+    expect(screen.getByTestId('financial-summary-consolidated-badge')).toBeTruthy();
+  });
+
+  it('a plain single-deal project (master undefined) is completely unaffected — same numbers as before', () => {
+    render(<ProfitabilitySummary fin={fin()} />);
+    expect(screen.getByText('Contract Total')).toBeInTheDocument();
+    expect(screen.getByText('$50,000.00')).toBeInTheDocument();
+  });
+});
+
+describe('ProfitabilitySummary — "Collected" honesty caveat (zero balance is not proof of cash collected)', () => {
+  it('shows a tooltip on Collected explaining it is derived from invoice balance, not verified Payment records', () => {
+    render(<ProfitabilitySummary fin={fin()} />);
+    const collectedMetric = screen.getByTestId('fin-metric-collected');
+    expect(collectedMetric.getAttribute('title')).toMatch(/credit memo|adjustment/i);
+    expect(collectedMetric.getAttribute('title')).toMatch(/not yet verified/i);
+  });
+
+  it('no other metric carries this caveat', () => {
+    render(<ProfitabilitySummary fin={fin()} />);
+    expect(screen.getByTestId('fin-metric-contract-total').getAttribute('title')).toBeFalsy();
+    expect(screen.getByTestId('fin-metric-balance-due').getAttribute('title')).toBeFalsy();
+    expect(screen.getByTestId('fin-metric-total-cost').getAttribute('title')).toBeFalsy();
+  });
+});

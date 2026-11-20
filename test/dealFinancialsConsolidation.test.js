@@ -56,9 +56,14 @@ test('FinancialsTab.jsx shows the full profitability picture to admin/manager', 
   const src = readFile('components/financials/FinancialsTab.jsx');
   const marker = 'ONE deal, one financial picture';
   const fullBranch = src.slice(src.indexOf(marker));
-  for (const comp of ['ProfitabilitySummary', 'CustomerCollections', 'CostBreakdown', 'ExpensesSection', 'RevenueSection', 'LeadCostSection', 'CommissionSection', 'LoanPaymentsSection']) {
+  for (const comp of ['ProfitabilitySummary', 'CustomerCollections', 'CostBreakdown', 'ExpensesSection', 'RevenueSection', 'LeadCostSection', 'CommissionSection']) {
     assert.ok(fullBranch.includes(`<${comp}`), `admin/manager view must render ${comp}`);
   }
+  // November 2026 explicit product request: remove the Loan Payments
+  // accordion from the Financials UI (underlying deal_loan_payments
+  // data/API/cost-calculation inclusion is untouched — see
+  // FinancialsTab.test.jsx's own regression test for that).
+  assert.ok(!fullBranch.includes('<LoanPaymentsSection'), 'the Loan Payments section must no longer be rendered in the Financials tab (removed per explicit request, underlying records untouched)');
 });
 
 test('computeFinancials results feed CustomerCollections with canonical field names (invoiced/balance/remaining, never re-derived ad hoc in JSX)', () => {
