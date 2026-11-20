@@ -265,8 +265,30 @@ export function computeFinancials({ deal, lead, invoices, saleInvoices, expenses
   const totalCosts = round2(
     leadCostAmount + salesCommissionAmount + totalVendorExpenses + totalLoanInterest + otherIncludedCosts
   );
+  // PROJECTED PROFIT (contract-based) — netProfit/profitMargin, unchanged
+  // in meaning: measures profitability against the full CONTRACT value,
+  // including any balance not yet collected. Kept for PLANNING purposes
+  // only (see CLAUDE.md's "ACTUAL PROFIT" business rule below) — never the
+  // primary profitability figure for a completed or in-progress project.
   const netProfit = round2(totalRevenue - totalCosts);
   const profitMargin = totalRevenue > 0 ? round2((netProfit / totalRevenue) * 100) : 0;
+
+  // ACTUAL PROFIT / ACTUAL PROFIT MARGIN (November 2026 business rule,
+  // fundamental and CRM-wide — not a Lalani-specific workaround): EC
+  // Construction Group issues a customer invoice only AFTER receiving the
+  // customer's check, so under this established workflow an issued invoice
+  // IS collected revenue — `paymentsReceived` (Collected) is the realized-
+  // revenue figure, never the full contract value, which may include a
+  // not-yet-collected balance. Recorded cost data (`totalCosts`, the exact
+  // same figure PROJECTED profit already uses) is the one source for
+  // actual project costs — no new cost model, no inferred revenue, no
+  // fabricated payment. ACTUAL PROFIT = COLLECTED REVENUE − TOTAL RECORDED
+  // COSTS; ACTUAL PROFIT MARGIN = ACTUAL PROFIT / COLLECTED REVENUE × 100.
+  // Guarded against division by zero (a genuinely zero-revenue project
+  // reports a 0% margin, never NaN/Infinity) — see
+  // test/financialCalcCostModel.test.js's zero-revenue case.
+  const actualProfit = round2(paymentsReceived - totalCosts);
+  const actualProfitMargin = paymentsReceived > 0 ? round2((actualProfit / paymentsReceived) * 100) : 0;
 
   // Committed vs. paid cost — loan payments and commissionPaid are cash
   // already disbursed; leadCostAmount/otherIncludedCosts have no payment
@@ -302,6 +324,8 @@ export function computeFinancials({ deal, lead, invoices, saleInvoices, expenses
     totalPaidCost,
     netProfit,
     profitMargin,
+    actualProfit,
+    actualProfitMargin,
     ctx,
   };
 }

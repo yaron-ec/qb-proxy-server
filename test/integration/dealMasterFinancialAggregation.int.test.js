@@ -154,8 +154,14 @@ test('1. the exact Ali & Mohemmed Lalani shape: $33,000 + $7,934.35 addendum = $
   assert.strictEqual(m.collected, 25000, '20,000 (parent) + 5,000 (addendum), never a waterfall estimate');
   assert.strictEqual(m.outstanding, round2(40934.35 - 25000));
   assert.strictEqual(m.total_costs, 2500, '2,000 expense (parent) + 500 fixed commission (addendum), each counted exactly once');
-  assert.strictEqual(m.projected_profit, round2(40934.35 - 2500));
+  assert.strictEqual(m.projected_profit, round2(40934.35 - 2500), 'PROJECTED (contract-based, planning only)');
   assert.strictEqual(m.profit_margin_pct, round2((round2(40934.35 - 2500) / 40934.35) * 100));
+  // ACTUAL PROFIT (November 2026 business rule, primary) — collected
+  // revenue ($25,000, consolidated across both deals) minus total
+  // recorded costs ($2,500), never the combined contract value.
+  assert.strictEqual(m.actual_profit, round2(25000 - 2500), 'ACTUAL PROFIT = COLLECTED − TOTAL RECORDED COSTS');
+  assert.strictEqual(m.actual_profit_margin_pct, round2((round2(25000 - 2500) / 25000) * 100));
+  assert.notStrictEqual(m.actual_profit, m.projected_profit, 'actual and projected profit must be genuinely different figures here (collected < contract)');
   assert.strictEqual(m.has_invoiced_vs_contract_discrepancy, false, 'invoiced ($40,934.35) exactly matches the combined contract here — no discrepancy to flag');
 
   assert.strictEqual(m.per_deal.length, 2);
@@ -224,7 +230,50 @@ test('4. generalizes to a different customer with TWO addendums — never hardco
   const m = res.body.master;
   assert.strictEqual(m.per_deal.length, 3);
   assert.strictEqual(m.invoiced, 55500);
-  assert.strictEqual(m.collected, round2(50000 + 2000 + 1750));
-  assert.strictEqual(m.total_costs, round2(8000 + 300), 'costs from all three deals summed exactly once each');
+  const collected = round2(50000 + 2000 + 1750);
+  const totalCosts = round2(8000 + 300);
+  assert.strictEqual(m.collected, collected);
+  assert.strictEqual(m.total_costs, totalCosts, 'costs from all three deals summed exactly once each');
+  assert.strictEqual(m.actual_profit, round2(collected - totalCosts), 'ACTUAL PROFIT generalizes correctly beyond the Lalani numbers too — collected minus costs from all three deals');
+  assert.strictEqual(m.actual_profit_margin_pct, round2((round2(collected - totalCosts) / collected) * 100));
   assert.strictEqual(m.has_invoiced_vs_contract_discrepancy, false);
+});
+
+test('5. a ZERO-REVENUE addendum (no invoices mapped yet) — actual profit margin is exactly 0 for that deal, consolidated totals never NaN/Infinity', { skip }, async () => {
+  const { leadId, qbCustomerId, stamp } = await seedCustomer('Zerorev');
+  const parentId = await insertDeal({ leadId, name: 'Main Project', amount: 20000, daysAgo: 40 });
+  const addendumId = await insertDeal({ leadId, name: 'New Addendum, Not Yet Invoiced', amount: 4000, parentDealId: parentId, daysAgo: 1 });
+
+  // Parent is fully invoiced/collected with a real cost; the brand-new
+  // addendum has ZERO invoices and ZERO recorded costs yet — a genuine
+  // zero-revenue-for-this-deal case within a consolidated project.
+  await mapDirectInvoice({ qbCustomerId, dealId: parentId, leadId, stamp, suffix: 'p', totalAmt: 20000, paid: 20000 });
+  await insertExpense(parentId, { amount: 3000, amountPaid: 3000 });
+
+  const res = await api('GET', `/api/v1/deals/${parentId}/addendums`, undefined, adminToken);
+  assert.strictEqual(res.status, 200, JSON.stringify(res.body));
+  const m = res.body.master;
+
+  const addendumRow = m.per_deal.find((d) => d.deal_id === addendumId);
+  assert.strictEqual(addendumRow.collected, 0, 'the new addendum has not been invoiced/collected at all yet');
+
+  // Consolidated: collected ($20,000, parent only) minus costs ($3,000,
+  // parent only) — the zero-revenue addendum contributes $0 to both sides
+  // and must never produce NaN/Infinity in the combined figure.
+  assert.strictEqual(m.collected, 20000);
+  assert.strictEqual(m.total_costs, 3000);
+  assert.strictEqual(m.actual_profit, 17000);
+  assert.strictEqual(m.actual_profit_margin_pct, 85);
+  assert.ok(Number.isFinite(m.actual_profit_margin_pct));
+
+  // And the fully-zero-revenue case: strip the parent's own collected
+  // amount down to zero too (unpaid invoice) to exercise the whole
+  // consolidated project at zero collected revenue, not just one deal.
+  await db.query(`UPDATE qb_invoices_cache SET paid = 0, balance = total_amt WHERE qb_customer_id = $1`, [qbCustomerId]);
+  const res2 = await api('GET', `/api/v1/deals/${parentId}/addendums`, undefined, adminToken);
+  const m2 = res2.body.master;
+  assert.strictEqual(m2.collected, 0, 'nothing has been collected across the whole consolidated project');
+  assert.strictEqual(m2.actual_profit, round2(0 - 3000), 'ACTUAL PROFIT = 0 collected − 3000 recorded costs');
+  assert.strictEqual(m2.actual_profit_margin_pct, 0, 'division-by-zero guard: must be exactly 0, never NaN or -Infinity, even with a negative actual profit');
+  assert.ok(Number.isFinite(m2.actual_profit_margin_pct));
 });

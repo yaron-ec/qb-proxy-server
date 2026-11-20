@@ -30,6 +30,27 @@ const GOLD = "#C9A227";
  * "Combined Project" badge so it's unmistakable these are project-wide
  * totals. A deal with no addendums (master == null) is completely
  * unaffected — same single-deal numbers as before.
+ *
+ * ACTUAL PROFIT (November 2026 fundamental business rule, CRM-wide — not a
+ * Lalani-specific workaround): EC Construction Group issues a customer
+ * invoice only AFTER receiving the customer's check, so under this
+ * established workflow an issued invoice IS collected revenue, and the
+ * recorded expense total in the CRM is the source for actual project
+ * costs. The PRIMARY profitability figures shown here are therefore:
+ *
+ *   ACTUAL PROFIT = COLLECTED REVENUE − TOTAL RECORDED COSTS
+ *   ACTUAL PROFIT MARGIN = ACTUAL PROFIT / COLLECTED REVENUE × 100
+ *
+ * computed in crm-frontend/src/lib/financialCalc.js#computeFinancials
+ * (single deal) / lib/dealFinancialAggregation.js#computeMasterFinancials
+ * (consolidated) — the SAME one canonical place every other figure here
+ * already comes from, never re-derived in this component. The
+ * contract-based PROJECTED PROFIT (fin.netProfit/profitMargin —
+ * CONTRACT VALUE − TOTAL COSTS, unchanged in meaning) is kept as a
+ * separate, clearly-labeled, secondary line for PLANNING purposes only —
+ * it is never the primary figure for a completed or in-progress project,
+ * and the contract value itself never substitutes for collected revenue
+ * in the actual-profit calculation above.
  */
 export default function ProfitabilitySummary({ fin, master }) {
   const isConsolidated = !!master;
@@ -37,11 +58,20 @@ export default function ProfitabilitySummary({ fin, master }) {
   const collected = isConsolidated ? master.collected : fin.paymentsReceived;
   const outstanding = isConsolidated ? master.outstanding : fin.remainingCustomerBalance;
   const totalCosts = isConsolidated ? master.total_costs : fin.totalCosts;
-  const netProfit = isConsolidated ? master.projected_profit : fin.netProfit;
-  const profitMargin = isConsolidated ? master.profit_margin_pct : fin.profitMargin;
 
-  const isNegative = netProfit < 0;
-  const costPct = totalRevenue > 0 ? Math.min(100, Math.max(0, (totalCosts / totalRevenue) * 100)) : 0;
+  // PRIMARY — Actual Profit/Margin: collected revenue minus recorded costs.
+  // Never the full contract value, per the November 2026 business rule
+  // (see this file's own header).
+  const actualProfit = isConsolidated ? master.actual_profit : fin.actualProfit;
+  const actualProfitMargin = isConsolidated ? master.actual_profit_margin_pct : fin.actualProfitMargin;
+
+  // SECONDARY, planning-only — Projected Profit: contract value minus
+  // recorded costs. Unchanged in meaning, demoted from primary.
+  const projectedProfit = isConsolidated ? master.projected_profit : fin.netProfit;
+  const projectedProfitMargin = isConsolidated ? master.profit_margin_pct : fin.profitMargin;
+
+  const isNegative = actualProfit < 0;
+  const costPct = collected > 0 ? Math.min(100, Math.max(0, (totalCosts / collected) * 100)) : 0;
   const profitPct = Math.max(0, 100 - costPct);
   const profitColor = isNegative ? "#be123c" : GOLD;
 
@@ -99,22 +129,24 @@ export default function ProfitabilitySummary({ fin, master }) {
         <div className="mt-5 pt-5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div className="flex gap-8">
             <div data-testid="fin-metric-profit">
-              <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide text-slate-500">Profit</p>
+              <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide text-slate-500">Actual Profit</p>
               <p className="text-2xl sm:text-3xl font-bold tabular-nums mt-1" style={{ color: profitColor }}>
-                {formatCurrency(netProfit)}
+                {formatCurrency(actualProfit)}
               </p>
             </div>
             <div data-testid="fin-metric-margin">
-              <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide text-slate-500">Margin</p>
+              <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide text-slate-500">Actual Margin</p>
               <p className="text-2xl sm:text-3xl font-bold tabular-nums mt-1" style={{ color: profitColor }}>
-                {formatPercent(profitMargin, 1)}
+                {formatPercent(actualProfitMargin, 1)}
               </p>
             </div>
           </div>
 
           {/* Proportional cost/profit bar — the one visual element that earns
               its place: turns "margin 65%" into something scannable at a
-              glance, without a decorative chart library. */}
+              glance, without a decorative chart library. Now measured
+              against COLLECTED revenue (actual), matching the primary
+              Actual Profit/Margin figures above. */}
           <div className="w-full sm:w-56">
             <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden flex">
               <div className="h-full bg-rose-400" style={{ width: `${costPct}%` }} />
@@ -125,6 +157,22 @@ export default function ProfitabilitySummary({ fin, master }) {
               <span>Profit {formatPercent(profitPct, 0)}</span>
             </div>
           </div>
+        </div>
+
+        {/* SECONDARY, clearly-labeled, planning-only metric — contract-based
+            Projected Profit. Per the November 2026 business rule, this must
+            never be presented as realized/actual profit; it stays visible
+            for planning (estimating margin on work not yet collected) but
+            is deliberately smaller/muted and separated from the primary
+            Actual Profit figures above by its own divider. */}
+        <div data-testid="fin-projected-profit-planning" className="mt-4 pt-3 border-t border-dashed border-slate-200 flex items-center justify-between gap-3 text-xs">
+          <span className="text-slate-500">
+            <span className="font-semibold text-slate-600">Projected Profit</span>
+            <span className="ml-1.5 text-slate-400">(contract-based — for planning only, not realized revenue)</span>
+          </span>
+          <span className="font-semibold tabular-nums text-slate-600 whitespace-nowrap">
+            {formatCurrency(projectedProfit)} · {formatPercent(projectedProfitMargin, 1)}
+          </span>
         </div>
       </div>
     </div>
