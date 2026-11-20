@@ -289,6 +289,51 @@ test('M1. Meeting follow-up via public capture creates no appointment (public ca
   assert.strictEqual(lead.appointment_type, 'Meeting');
 });
 
+// Production follow-up (November 2026): confirms the sync fires on the
+// ORIGINAL follow-up change itself — the very first authenticated save
+// that sets/changes a Meeting follow-up — never requiring a second,
+// redundant Save to "catch up." (John John's specific case needed a
+// one-time manual re-save only because his follow-up was set to the
+// correct date BEFORE this correction existed at all — there was no sync
+// mechanism yet to fire. Any edit made after this correction is deployed
+// syncs on that one save, proven directly below with two brand-new leads,
+// each touched by authenticated writes exactly once.)
+test('M1b. The sync fires on the FIRST authenticated save that sets a Meeting follow-up — never needs a second "catch-up" Save', { skip }, async () => {
+  // Case 1: a lead with NO prior appointment. Its first-ever authenticated
+  // follow-up write (one single PUT call) both sets the Meeting follow-up
+  // AND creates the appointment — in that one call, not a later one.
+  const d1 = uniqueDay();
+  const lead1 = await api('POST', '/api/public/capture', capturePayload({}), null);
+  assert.strictEqual(lead1.status, 201, JSON.stringify(lead1.body));
+  const id1 = lead1.body.lead.id;
+  const firstSave = await api('PUT', `/api/v1/leads/${id1}/follow-up`, {
+    follow_up_date: d1, follow_up_time: '13:00', follow_up_type: 'Meeting', follow_up_status: 'pending',
+  });
+  assert.strictEqual(firstSave.status, 200, JSON.stringify(firstSave.body));
+  assert.strictEqual(firstSave.body.follow_up_appointment_sync.action, 'created', 'the appointment is created on the FIRST save, same call, no second Save needed');
+  const after1 = await getLead(id1);
+  assert.ok(after1.appointment, 'appointment exists immediately after the one save');
+  assert.strictEqual(after1.appointment_date, d1);
+  assert.strictEqual(after1.appointment_time, '13:00');
+
+  // Case 2: a lead that ALREADY has a real appointment at one time, and a
+  // rep sets its Meeting follow-up to a DIFFERENT time for the first time
+  // (never touched through an authenticated follow-up write before) — the
+  // reschedule happens on that one, first save.
+  const d2 = uniqueDay();
+  const lead2 = await api('POST', '/api/public/capture', capturePayload({ appointment_date: d2, appointment_time: '08:00' }), null);
+  assert.strictEqual(lead2.status, 201, JSON.stringify(lead2.body));
+  const id2 = lead2.body.lead.id;
+  assert.ok(lead2.body.appointment, 'precondition: a real appointment already exists at 08:00, never through a follow-up write');
+  const firstFollowUpSave = await api('PUT', `/api/v1/leads/${id2}/follow-up`, {
+    follow_up_date: d2, follow_up_time: '12:00', follow_up_type: 'Meeting', follow_up_status: 'pending',
+  });
+  assert.strictEqual(firstFollowUpSave.status, 200, JSON.stringify(firstFollowUpSave.body));
+  assert.strictEqual(firstFollowUpSave.body.follow_up_appointment_sync.action, 'rescheduled', 'the pre-existing appointment is rescheduled on the FIRST follow-up save that touches it — never a second Save');
+  const after2 = await getLead(id2);
+  assert.strictEqual(after2.appointment_time, '12:00', 'moved on the one call');
+});
+
 test('M2. Exactly ONE appointment row now exists, automatically created from the Meeting follow-up — buffered, with its own calendar outbox jobs', { skip }, async () => {
   const c = await counts(leadId);
   assert.strictEqual(c.appointments, 1, 'one real appointment row, automatically created');
