@@ -237,6 +237,93 @@ test('checkQuickBooks: breaker OPEN but the cooldown has already elapsed -> proc
   } finally { restoreStore(); restoreBreaker(); restoreMgr(); }
 });
 
+test('quotaExhaustedMessage: null for no detail, an unrelated reason, or a malformed value — never throws', () => {
+  const { quotaExhaustedMessage } = require('../lib/systemHealthChecks');
+  assert.strictEqual(quotaExhaustedMessage(null), null);
+  assert.strictEqual(quotaExhaustedMessage(undefined), null);
+  assert.strictEqual(quotaExhaustedMessage({}), null);
+  assert.strictEqual(quotaExhaustedMessage({ reason: 'something_else' }), null);
+});
+
+test('quotaExhaustedMessage: names the real throttle plan and tells the operator automatic recovery will not help (November 2026 incident)', () => {
+  const { quotaExhaustedMessage } = require('../lib/systemHealthChecks');
+  const msg = quotaExhaustedMessage({ reason: 'quota_exhausted', throttlePlanName: 'Block All CorePlus for a Builder App', description: 'You have reached the monthly limit of 500K CorePlus API calls' });
+  assert.match(msg, /monthly call quota exhausted/i);
+  assert.match(msg, /Block All CorePlus for a Builder App/);
+  assert.match(msg, /will NOT resolve automatically/i);
+  assert.match(msg, /Intuit Developer Support/i);
+});
+
+test('checkQuickBooks: breaker OPEN with a classified quota-exhaustion failure -> the live_check message names it distinctly, never "likely transient"', async () => {
+  const restoreStore = stub('../lib/qbTokenStore', {
+    loadPersistedTokens: async () => ({ access_token: 'x' }),
+    credentialStatus: async () => ({ status: 'active' }),
+  });
+  const cooldownUntil = new Date(Date.now() + 60000).toISOString();
+  const restoreBreaker = stub('../lib/qbRateLimitBreaker', {
+    getState: async () => ({
+      state: 'open', consecutive_failures: 5, opens_count: 12, cooldown_until: cooldownUntil,
+      last_failure_detail: { reason: 'quota_exhausted', throttlePlanName: 'Block All CorePlus for a Builder App', description: 'You have reached the monthly limit of 500K CorePlus API calls' },
+    }),
+    isCoolingDown: (s) => !!(s && s.state === 'open' && s.cooldown_until && new Date(s.cooldown_until) > new Date()),
+  });
+  try {
+    const result = await checkQuickBooks({ verify: true });
+    assert.strictEqual(result.live_check.ok, false);
+    assert.strictEqual(result.live_check.degraded, true);
+    assert.match(result.live_check.message, /monthly call quota exhausted/i);
+    assert.doesNotMatch(result.live_check.message, /likely transient/i);
+    assert.strictEqual(deriveState({ moduleEnabled: true, flagEnforced: true, result }), 'DEGRADED');
+  } finally { restoreStore(); restoreBreaker(); }
+});
+
+test('checkQuickBooks: breaker OPEN with NO classified detail (an ordinary short-term 429) keeps the original generic message — byte-identical to prior behavior', async () => {
+  const restoreStore = stub('../lib/qbTokenStore', {
+    loadPersistedTokens: async () => ({ access_token: 'x' }),
+    credentialStatus: async () => ({ status: 'active' }),
+  });
+  const cooldownUntil = new Date(Date.now() + 60000).toISOString();
+  const restoreBreaker = stub('../lib/qbRateLimitBreaker', {
+    getState: async () => ({ state: 'open', consecutive_failures: 5, opens_count: 1, cooldown_until: cooldownUntil, last_failure_detail: null }),
+    isCoolingDown: (s) => !!(s && s.state === 'open' && s.cooldown_until && new Date(s.cooldown_until) > new Date()),
+  });
+  try {
+    const result = await checkQuickBooks({ verify: true });
+    assert.match(result.live_check.message, /circuit breaker open/i);
+    assert.doesNotMatch(result.live_check.message, /monthly call quota exhausted/i);
+  } finally { restoreStore(); restoreBreaker(); }
+});
+
+test('checkQuickBooks: elapsed cooldown, real verify call 429s with a quota-exhaustion body -> re-reads the freshly-updated breaker state for the message', async () => {
+  const restoreStore = stub('../lib/qbTokenStore', {
+    loadPersistedTokens: async () => ({ access_token: 'x' }),
+    credentialStatus: async () => ({ status: 'active' }),
+  });
+  let getStateCalls = 0;
+  const restoreBreaker = stub('../lib/qbRateLimitBreaker', {
+    getState: async () => {
+      getStateCalls++;
+      // First read (cooldown-elapsed check) sees no detail yet; the SECOND
+      // read (after the real verify call's own qbApiRequest just classified
+      // and persisted it) sees the fresh detail — proving this re-reads
+      // rather than reusing the stale, pre-call state.
+      return getStateCalls === 1
+        ? { state: 'open', consecutive_failures: 5, opens_count: 11, cooldown_until: new Date(Date.now() - 1000).toISOString(), last_failure_detail: null }
+        : { state: 'open', consecutive_failures: 6, opens_count: 12, cooldown_until: new Date(Date.now() + 1800000).toISOString(), last_failure_detail: { reason: 'quota_exhausted', throttlePlanName: 'Block All CorePlus for a Builder App', description: 'You have reached the monthly limit of 500K CorePlus API calls' } };
+    },
+    isCoolingDown: (s) => !!(s && s.state === 'open' && s.cooldown_until && new Date(s.cooldown_until) > new Date()),
+  });
+  const restoreMgr = stub('../lib/qbTokenManager', {
+    verifyConnection: async () => ({ ok: false, status: 429, reconnectRequired: false }),
+  });
+  try {
+    const result = await checkQuickBooks({ verify: true });
+    assert.strictEqual(result.live_check.ok, false);
+    assert.match(result.live_check.message, /monthly call quota exhausted/i);
+    assert.strictEqual(getStateCalls, 2);
+  } finally { restoreStore(); restoreBreaker(); restoreMgr(); }
+});
+
 test('checkQuickBooks: a revoked credential is NEVER masked as DEGRADED by the breaker, even while closed', async () => {
   const restoreStore = stub('../lib/qbTokenStore', {
     loadPersistedTokens: async () => ({ access_token: 'x' }),
