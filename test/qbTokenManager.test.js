@@ -379,6 +379,58 @@ test('qbApiRequest: a TERMINAL (retry-exhausted) 429 reports exactly one failure
   assert.deepStrictEqual(circuitEvents, [{ fail: 429 }], 'one terminal failure recorded, not three');
 });
 
+test('qbApiRequest: a TERMINAL 429 whose body is a genuine monthly-quota-exhaustion fault passes the classified detail to the breaker', async () => {
+  persisted = { ...expired(), expires_at: new Date(Date.now() + 3600000).toISOString() };
+  // The exact real production body shape (November 2026 incident).
+  apiResponse = () => ({
+    status: 429,
+    body: {
+      fault: {
+        error: [{
+          message: 'message=ThrottleExceeded; errorCode=003001; statusCode=429',
+          code: '3001',
+          throttle_plan_name: 'Block All CorePlus for a Builder App',
+          description: 'You have reached the monthly limit of 500K CorePlus API calls',
+        }],
+      },
+    },
+  });
+  const captured = [];
+  mgr._setDeps({ ...depsInit, circuitFail: async (status, detail) => { captured.push({ status, detail }); } });
+  try {
+    const r = await mgr.qbApiRequest('production', API);
+    assert.strictEqual(r.res.status, 429);
+    assert.strictEqual(captured.length, 1, 'one terminal failure recorded, not three');
+    assert.strictEqual(captured[0].status, 429);
+    assert.strictEqual(captured[0].detail.reason, 'quota_exhausted');
+    assert.strictEqual(captured[0].detail.throttlePlanName, 'Block All CorePlus for a Builder App');
+    assert.match(captured[0].detail.description, /monthly limit/i);
+  } finally { mgr._setDeps(depsInit); }
+});
+
+test('qbApiRequest: an ORDINARY TERMINAL 429 with no quota-exhaustion wording passes a null detail (never a false quota classification)', async () => {
+  persisted = { ...expired(), expires_at: new Date(Date.now() + 3600000).toISOString() };
+  apiResponse = () => ({ status: 429, body: { fault: { error: [{ message: 'message=ThrottleExceeded; errorCode=003001; statusCode=429', description: 'Please try again later' }] } } });
+  const captured = [];
+  mgr._setDeps({ ...depsInit, circuitFail: async (status, detail) => { captured.push({ status, detail }); } });
+  try {
+    await mgr.qbApiRequest('production', API);
+    assert.strictEqual(captured.length, 1);
+    assert.strictEqual(captured[0].detail, null, 'an ordinary short-term throttle must never be misclassified as quota exhaustion');
+  } finally { mgr._setDeps(depsInit); }
+});
+
+test('classifyIntuitFailureReason: matches only Intuit\'s own documented monthly-limit wording, never guesses, never throws on a malformed body', () => {
+  assert.strictEqual(mgr.classifyIntuitFailureReason(null), null);
+  assert.strictEqual(mgr.classifyIntuitFailureReason({}), null);
+  assert.strictEqual(mgr.classifyIntuitFailureReason({ fault: {} }), null);
+  assert.strictEqual(mgr.classifyIntuitFailureReason({ fault: { error: [] } }), null);
+  assert.strictEqual(mgr.classifyIntuitFailureReason({ fault: { error: [{ description: 'ordinary throttle' }] } }), null);
+  const result = mgr.classifyIntuitFailureReason({ fault: { error: [{ description: 'You have reached the monthly limit of 500K CorePlus API calls', throttle_plan_name: 'Block All CorePlus for a Builder App' }] } });
+  assert.strictEqual(result.reason, 'quota_exhausted');
+  assert.strictEqual(result.throttlePlanName, 'Block All CorePlus for a Builder App');
+});
+
 test('qbApiRequest: an isolated 429 that succeeds on retry reports SUCCESS, never a failure — only a sustained/terminal failure counts', async () => {
   persisted = { ...expired(), expires_at: new Date(Date.now() + 3600000).toISOString() };
   let n = 0;

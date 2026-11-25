@@ -43,7 +43,7 @@ function stub(modPath, exportsObj) {
 delete require.cache[require.resolve('../lib/monitoring/healthProbes')];
 const {
   checkGoogleContactsOutboxHealth, checkGmailIntegrationHealth, checkWebsiteIntakeSilence,
-  checkWebsiteIntakeRejections, checkHandoffHealth, checkOutboxBacklog,
+  checkWebsiteIntakeRejections, checkHandoffHealth, checkOutboxBacklog, checkQbHealth, checkQbSyncScheduler,
 } = require('../lib/monitoring/healthProbes');
 
 // ── calendar_outbox backlog — November 2026 "John John" incident fix ──────
@@ -346,4 +346,175 @@ test('checkWebsiteIntakeRejections: a query failure never crashes, reports unhea
   const result = await checkWebsiteIntakeRejections({ id: 'website-intake-rejections', windowMs: 3600000, threshold: 3 });
   assert.strictEqual(result.healthy, false);
   assert.match(result.error, /db down/);
+});
+
+// ── checkQbHealth: circuit-breaker awareness (November 2026 incident) ──────
+//
+// Production finding: a 3+ day QuickBooks rate-limit outage (confirmed via
+// real Railway logs — opens_count climbing past 100, every sync call
+// failing) never triggered the production watchdog's automated alert at
+// all, because checkQbHealth (the ONE thing that drives it for the
+// 'quickbooks-integration' service) only ever checked OAuth-credential
+// validity (connected/reconnectRequired) — completely blind to the shared
+// circuit breaker, which stayed open the entire time while the access
+// token kept refreshing successfully every hour (confirmed in the same
+// logs) and the stored credential was never revoked. Fixed by folding a
+// SUSTAINED (not a brief, normal) open breaker into this same health
+// signal, reusing the EXISTING app_settings-backed breaker state — no new
+// alert mechanism, no new QuickBooks network call.
+
+function stubBreaker(state) {
+  return stub('../lib/qbRateLimitBreaker', {
+    getState: async () => state,
+    isCoolingDown: (s) => !!(s && s.state === 'open' && s.cooldown_until && new Date(s.cooldown_until) > new Date()),
+  });
+}
+
+test('checkQbHealth: valid credential + breaker CLOSED -> healthy (the ordinary, overwhelmingly common case)', async () => {
+  global.fetch = async () => ({ ok: true, status: 200, json: async () => ({ connected: true, reconnectRequired: false, tokenExpired: false }) });
+  const restore = stubBreaker({ state: 'closed', consecutive_failures: 0, opens_count: 0, cooldown_until: null, last_failure_detail: null });
+  try {
+    const result = await checkQbHealth({ id: 'quickbooks-integration' }, 'http://unused:3000');
+    assert.strictEqual(result.healthy, true);
+    assert.strictEqual(result.error, null);
+  } finally { delete global.fetch; restore(); }
+});
+
+test('checkQbHealth: valid credential + breaker open but BELOW the sustained threshold -> still healthy (never a false alarm on a brief, ordinary blip)', async () => {
+  global.fetch = async () => ({ ok: true, status: 200, json: async () => ({ connected: true, reconnectRequired: false, tokenExpired: false }) });
+  const restore = stubBreaker({ state: 'open', consecutive_failures: 5, opens_count: 1, cooldown_until: new Date(Date.now() + 60000).toISOString(), last_failure_detail: null });
+  try {
+    const result = await checkQbHealth({ id: 'quickbooks-integration' }, 'http://unused:3000');
+    assert.strictEqual(result.healthy, true, 'the breaker opening once is exactly what it is designed to do for an ordinary blip — not yet a watchdog-worthy incident');
+  } finally { delete global.fetch; restore(); }
+});
+
+test('checkQbHealth: valid credential + breaker SUSTAINED open (the real production shape, opens_count=112) -> unhealthy, naming the sustained reopen count', async () => {
+  global.fetch = async () => ({ ok: true, status: 200, json: async () => ({ connected: true, reconnectRequired: false, tokenExpired: false }) });
+  const restore = stubBreaker({ state: 'open', consecutive_failures: 5, opens_count: 112, cooldown_until: new Date(Date.now() + 1800000).toISOString(), last_failure_detail: null });
+  try {
+    const result = await checkQbHealth({ id: 'quickbooks-integration' }, 'http://unused:3000');
+    assert.strictEqual(result.healthy, false, 'a credential that keeps refreshing fine must NOT mask a sync pipeline that has been down for a sustained period');
+    assert.match(result.error, /112 consecutive times/);
+    assert.strictEqual(result.details.circuit_breaker_state, 'open');
+    assert.strictEqual(result.details.circuit_breaker_opens_count, 112);
+  } finally { delete global.fetch; restore(); }
+});
+
+test('checkQbHealth: sustained open breaker classified as a monthly quota exhaustion -> the error names it distinctly, not a generic "rate-limited" message', async () => {
+  global.fetch = async () => ({ ok: true, status: 200, json: async () => ({ connected: true, reconnectRequired: false, tokenExpired: false }) });
+  const restore = stubBreaker({
+    state: 'open', consecutive_failures: 5, opens_count: 126, cooldown_until: new Date(Date.now() + 1800000).toISOString(),
+    last_failure_detail: { reason: 'quota_exhausted', throttlePlanName: 'Block All CorePlus for a Builder App', description: 'You have reached the monthly limit of 500K CorePlus API calls' },
+  });
+  try {
+    const result = await checkQbHealth({ id: 'quickbooks-integration' }, 'http://unused:3000');
+    assert.strictEqual(result.healthy, false);
+    assert.match(result.error, /monthly call quota exhausted/i);
+    assert.match(result.error, /Block All CorePlus for a Builder App/);
+  } finally { delete global.fetch; restore(); }
+});
+
+test('checkQbHealth: an invalid/revoked credential is unhealthy regardless of breaker state — the two signals are independent', async () => {
+  global.fetch = async () => ({ ok: true, status: 200, json: async () => ({ connected: false, reconnectRequired: true, tokenExpired: true }) });
+  const restore = stubBreaker({ state: 'closed', consecutive_failures: 0, opens_count: 0, cooldown_until: null, last_failure_detail: null });
+  try {
+    const result = await checkQbHealth({ id: 'quickbooks-integration' }, 'http://unused:3000');
+    assert.strictEqual(result.healthy, false);
+    assert.match(result.error, /reconnect required/i);
+  } finally { delete global.fetch; restore(); }
+});
+
+test('checkQbHealth: a breaker-read failure never flips this check unhealthy on its own (fails open — a breaker bug must never itself trigger a false alert)', async () => {
+  global.fetch = async () => ({ ok: true, status: 200, json: async () => ({ connected: true, reconnectRequired: false, tokenExpired: false }) });
+  const restore = stub('../lib/qbRateLimitBreaker', { getState: async () => { throw new Error('breaker DB unreachable'); }, isCoolingDown: () => false });
+  try {
+    const result = await checkQbHealth({ id: 'quickbooks-integration' }, 'http://unused:3000');
+    assert.strictEqual(result.healthy, true);
+    assert.strictEqual(result.details.circuit_breaker_state, null);
+  } finally { delete global.fetch; restore(); }
+});
+
+// ── checkQbSyncScheduler: a DIFFERENT failure class from checkQbHealth —
+// the scheduler not making attempts at all, never attempts that are
+// failing (which checkQbHealth's breaker-awareness already covers).
+
+function stubSyncStatus(overrides) {
+  return stub('../lib/qbSyncStatus', {
+    getQbSyncStatus: async () => ({
+      estimate_sync: { available: true, ever_run: true, last_successful_sync_at: null, last_attempted_at: new Date().toISOString(), summary: null },
+      inbound_reconcile: { available: true, ever_run: true, last_successful_sync_at: null, last_attempted_at: new Date().toISOString(), summary: null },
+      ...overrides,
+    }),
+  });
+}
+
+function stubCronEnabled(enabled) {
+  return stub('../lib/qbSyncCronConfig', { isEstimateSyncCronEnabled: () => enabled });
+}
+
+test('checkQbSyncScheduler: both crons ticked recently -> healthy', async () => {
+  const restoreCron = stubCronEnabled(true);
+  const restoreStatus = stubSyncStatus({});
+  try {
+    const result = await checkQbSyncScheduler({ id: 'quickbooks-sync-scheduler' });
+    assert.strictEqual(result.healthy, true);
+    assert.strictEqual(result.error, null);
+  } finally { restoreCron(); restoreStatus(); }
+});
+
+test('checkQbSyncScheduler: QB_SYNC_CRON_ENABLED=false -> healthy (a deliberate operator choice, never a false alarm)', async () => {
+  const restoreCron = stubCronEnabled(false);
+  try {
+    const result = await checkQbSyncScheduler({ id: 'quickbooks-sync-scheduler' });
+    assert.strictEqual(result.healthy, true);
+    assert.strictEqual(result.details.reason, 'cron_disabled');
+  } finally { restoreCron(); }
+});
+
+test('checkQbSyncScheduler: last_attempted_at older than the threshold for a previously-running cron -> unhealthy, names which one went silent (the real "scheduler died" shape)', async () => {
+  const restoreCron = stubCronEnabled(true);
+  const staleTs = new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(); // 5h ago, past the 3h default threshold
+  const restoreStatus = stubSyncStatus({
+    estimate_sync: { available: true, ever_run: true, last_successful_sync_at: staleTs, last_attempted_at: staleTs, summary: null },
+  });
+  try {
+    const result = await checkQbSyncScheduler({ id: 'quickbooks-sync-scheduler' });
+    assert.strictEqual(result.healthy, false);
+    assert.match(result.error, /estimate_sync/);
+    assert.match(result.error, /scheduler may not be executing/i);
+  } finally { restoreCron(); restoreStatus(); }
+});
+
+test('checkQbSyncScheduler: the real sustained-429 incident shape — last_attempted_at stays FRESH (the cron keeps ticking) even though every attempt fails -> healthy (not a duplicate alert; checkQbHealth\'s breaker-awareness already covers this)', async () => {
+  const restoreCron = stubCronEnabled(true);
+  const restoreStatus = stubSyncStatus({}); // default fixture: both last_attempted_at fresh, last_successful_sync_at null/stale
+  try {
+    const result = await checkQbSyncScheduler({ id: 'quickbooks-sync-scheduler' });
+    assert.strictEqual(result.healthy, true, 'a fresh last_attempted_at with no successful sync is a DIFFERENT, already-covered signal — this check must never duplicate that alert');
+  } finally { restoreCron(); restoreStatus(); }
+});
+
+test('checkQbSyncScheduler: a brand-new install that has never ticked yet (ever_run: false) is never a false alarm', async () => {
+  const restoreCron = stubCronEnabled(true);
+  const restoreStatus = stubSyncStatus({
+    estimate_sync: { available: true, ever_run: false, last_successful_sync_at: null, last_attempted_at: null, summary: null },
+    inbound_reconcile: { available: true, ever_run: false, last_successful_sync_at: null, last_attempted_at: null, summary: null },
+  });
+  try {
+    const result = await checkQbSyncScheduler({ id: 'quickbooks-sync-scheduler' });
+    assert.strictEqual(result.healthy, true);
+  } finally { restoreCron(); restoreStatus(); }
+});
+
+test('checkQbSyncScheduler: a sync_cursors read failure is reported distinctly, never silently treated as staleness', async () => {
+  const restoreCron = stubCronEnabled(true);
+  const restoreStatus = stubSyncStatus({
+    estimate_sync: { available: false, error: 'cursor_unavailable' },
+  });
+  try {
+    const result = await checkQbSyncScheduler({ id: 'quickbooks-sync-scheduler' });
+    assert.strictEqual(result.healthy, false);
+    assert.match(result.error, /unavailable/);
+  } finally { restoreCron(); restoreStatus(); }
 });

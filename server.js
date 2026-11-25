@@ -2702,13 +2702,17 @@ app.listen(PORT, async () => {
   }
 
   // ── QB Inbound Reconciliation Cron ────────────────────────────────────────
-  // Runs every 15 minutes. Syncs all QuickBooks invoices/payments for mapped
-  // CRM customers. This is the AUTHORITATIVE recurring reconciliation trigger
-  // (replaces the former Base44 scheduled workflow). The webhook provides
-  // near-real-time updates; this cron is the scheduled recovery fallback.
-  // No env-var gate — this is the sole reconciliation scheduler in production.
+  // Syncs all QuickBooks invoices/payments for mapped CRM customers. This is
+  // the AUTHORITATIVE recurring reconciliation trigger (replaces the former
+  // Base44 scheduled workflow). The webhook provides near-real-time updates;
+  // this cron is the scheduled recovery fallback — always runs (no on/off
+  // gate), but its INTERVAL is configurable via
+  // QB_INBOUND_RECONCILE_INTERVAL_MINUTES (default 60 — see
+  // lib/qbSyncCronConfig.js's own header for the November 2026 monthly-
+  // quota-exhaustion incident this default change addresses).
+  const inboundReconcileCron = require('./lib/qbSyncCronConfig').inboundReconcileCronExpression();
   if (cronLib) {
-    cronLib.schedule('*/15 * * * *', async () => {
+    cronLib.schedule(inboundReconcileCron, async () => {
       const t = new Date().toISOString();
       console.log('[qb-inbound-cron] tick ' + t);
       try {
@@ -2727,8 +2731,9 @@ app.listen(PORT, async () => {
           // they raise this call's worst-case duration (100 customers x up
           // to 2 QB calls x up to ~2s backoff + pacing could approach a few
           // minutes under a SUSTAINED rate-limit, not just an isolated
-          // blip). 280s stays comfortably under the 15-minute tick spacing
-          // so this can never still be running when the next tick fires.
+          // blip). 280s stays comfortably under the configured tick spacing
+          // (default 60 minutes, see lib/qbSyncCronConfig.js) so this can
+          // never still be running when the next tick fires.
           signal: AbortSignal.timeout(280000),
         });
         const result = await response.json();
@@ -2769,7 +2774,7 @@ app.listen(PORT, async () => {
         console.error('[qb-inbound-cron] reconcile failed: ' + e.message);
       }
     });
-    console.log('[proxy] QB inbound reconciliation cron scheduled every 15 minutes');
+    console.log(`[proxy] QB inbound reconciliation cron scheduled (${inboundReconcileCron}, ~${require('./lib/qbSyncCronConfig').getInboundReconcileIntervalMinutes()} minutes)`);
   }
 
   // ── QB Proactive Connection Health Check Cron (October 2026 audit) ───────
