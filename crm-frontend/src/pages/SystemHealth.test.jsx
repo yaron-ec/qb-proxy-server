@@ -441,4 +441,41 @@ describe('SystemHealth', () => {
     await waitFor(() => expect(screen.getByText('Connected')).toBeTruthy());
     expect(screen.queryByText(/GOOGLE_CONTACTS_SUB/)).toBeFalsy();
   });
+
+  it('November 2026 quota-management audit: QuickBooks card shows the circuit breaker state and flags a genuine quota exhaustion distinctly', async () => {
+    get.mockResolvedValue(fixture({
+      integrations: {
+        quickbooks: integration({
+          state: 'DEGRADED',
+          live_check: { ok: false, degraded: true, message: 'QuickBooks API rate-limited — circuit breaker open.', checked_at: new Date().toISOString() },
+          circuit_breaker: {
+            state: 'open', consecutive_failures: 5, opens_count: 8, cooldown_until: '2026-11-25T19:00:00Z',
+            last_failure_detail: { reason: 'quota_exhausted', throttlePlanName: 'Block All CorePlus for a Builder App', description: 'You have reached the monthly limit of 500K CorePlus API calls' },
+          },
+          api_usage: { available: true, month_key: '2026-11', locally_measured_calls: 510000, monthly_quota: 500000, pct_used: 102, measurement_note: 'Locally measured — not confirmed against Intuit\'s own usage figure.' },
+        }),
+      },
+    }));
+    render(<SystemHealth />);
+    await waitFor(() => expect(screen.getByText(/Open \(blocked\)/)).toBeTruthy());
+    expect(screen.getByText(/genuine monthly CorePlus quota exhaustion/)).toBeTruthy();
+    expect(screen.getByText(/510,000 \/ 500,000 \(102%\)/)).toBeTruthy();
+    expect(screen.getByText(/Locally measured/)).toBeTruthy();
+  });
+
+  it('QuickBooks card with a closed breaker and low usage shows a healthy, non-alarming state', async () => {
+    get.mockResolvedValue(fixture({
+      integrations: {
+        quickbooks: integration({
+          state: 'CONNECTED',
+          circuit_breaker: { state: 'closed', consecutive_failures: 0, opens_count: 0, cooldown_until: null, last_failure_detail: null },
+          api_usage: { available: true, month_key: '2026-11', locally_measured_calls: 50000, monthly_quota: 500000, pct_used: 10, measurement_note: 'Locally measured.' },
+        }),
+      },
+    }));
+    render(<SystemHealth />);
+    await waitFor(() => expect(screen.getByText(/Closed \(normal\)/)).toBeTruthy());
+    expect(screen.queryByText(/genuine monthly CorePlus quota exhaustion/)).toBeFalsy();
+    expect(screen.queryByText(/Cooldown until/)).toBeFalsy();
+  });
 });

@@ -148,6 +148,52 @@ function IntegrationCard({ moduleKey, data }) {
             Last lead received {fmt(data.recency.last_lead_received_at)} · {data.recency.total_leads_received ?? 0} total
           </HelperText>
         )}
+        {moduleKey === "quickbooks" && data.circuit_breaker && (
+          <div className="text-xs rounded-md px-2.5 py-2 leading-snug bg-slate-50 text-slate-600 space-y-1">
+            <div>
+              Rate-limit circuit breaker:{" "}
+              <span
+                className={
+                  data.circuit_breaker.state === "closed" ? "text-emerald-700 font-semibold"
+                  : data.circuit_breaker.state === "half_open" ? "text-amber-700 font-semibold"
+                  : "text-red-700 font-semibold"
+                }
+              >
+                {data.circuit_breaker.state === "closed" ? "Closed (normal)"
+                  : data.circuit_breaker.state === "half_open" ? "Half-open (testing recovery)"
+                  : "Open (blocked)"}
+              </span>
+            </div>
+            {data.circuit_breaker.state !== "closed" && (
+              <div>Cooldown until: {fmt(data.circuit_breaker.cooldown_until)}</div>
+            )}
+            <div>
+              Consecutive failures: {data.circuit_breaker.consecutive_failures ?? 0} · Reopened {data.circuit_breaker.opens_count ?? 0} time(s)
+            </div>
+            {data.circuit_breaker.last_failure_detail?.reason === "quota_exhausted" && (
+              <div className="text-red-700">
+                Intuit has reported this as a genuine monthly CorePlus quota exhaustion — this will NOT resolve automatically before Intuit's next calendar-month reset. See the usage figures below for the locally-measured volume that led to this.
+              </div>
+            )}
+          </div>
+        )}
+        {moduleKey === "quickbooks" && data.api_usage && (
+          <div className="text-xs rounded-md px-2.5 py-2 leading-snug bg-slate-50 text-slate-600 space-y-1">
+            {data.api_usage.available ? (
+              <>
+                <div>
+                  API usage this month ({data.api_usage.month_key}):{" "}
+                  <span className={data.api_usage.pct_used >= 95 ? "text-red-700 font-semibold" : data.api_usage.pct_used >= 70 ? "text-amber-700 font-semibold" : "text-emerald-700 font-semibold"}>
+                    {data.api_usage.locally_measured_calls.toLocaleString()} / {data.api_usage.monthly_quota.toLocaleString()} ({data.api_usage.pct_used}%)
+                  </span>
+                </div>
+                <div className="text-[10px] text-slate-400">{data.api_usage.measurement_note}</div>
+              </>
+            ) : (
+              <div>API usage tracking unavailable (query failed).</div>
+            )}
+          </div>
+        )}
         {moduleKey === "sms" && data.webhook_config && (
           <div className="text-xs rounded-md px-2.5 py-2 leading-snug bg-slate-50 text-slate-600 space-y-1">
             <div>

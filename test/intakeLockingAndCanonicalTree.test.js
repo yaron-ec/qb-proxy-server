@@ -179,8 +179,17 @@ test('3a. the stale src/ tree and the Base44-builder handoff bundle stay deleted
 });
 
 test('3b. no image, service, script or module references a src/ implementation', () => {
+  // November 2026: the root Dockerfile legitimately gained
+  // `crm-frontend/src/lib/financialCalc.js` (lib/dealFinancialAggregation.js's
+  // dynamic import dependency, real Master Project financial-summary fix,
+  // never the stale top-level src/ tree this guard exists to keep deleted —
+  // see test 3a, which confirms crm-frontend/ is the canonical frontend
+  // root and that path is a real file under it). Stripped before the
+  // pattern check so this guard keeps catching any OTHER bare/stale src/
+  // reference without false-positiving on this one known-safe path shape.
+  const stripKnownSafe = (text) => text.replace(/crm-frontend\/src\//g, '');
   for (const f of ['Dockerfile', 'Dockerfile.worker', 'railway.json', 'package.json', '.github/workflows/ci.yml']) {
-    assert.doesNotMatch(read(f), /(^|[\s"'(./])src\//m, `${f} must not reference src/`);
+    assert.doesNotMatch(stripKnownSafe(read(f)), /(^|[\s"'(./])src\//m, `${f} must not reference src/`);
   }
   const offenders = [];
   const roots = ['server.js', 'reminderWorker.js', 'reminderWatchdog.js', 'productionWatchdog.js', 'validateRuntime.js'];

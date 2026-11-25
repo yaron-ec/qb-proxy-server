@@ -2229,8 +2229,17 @@ async function fetchAllQbEstimates() {
 async function fetchQbCustomer(customerId, cache) {
   if (cache[customerId] !== undefined) return cache[customerId];
   try {
-    const data = await qbFetch(`/customer/${customerId}?minorversion=65`);
-    cache[customerId] = data.Customer || null;
+    // Durable, cross-tick cache (lib/qbCustomerCache.js, default 24h TTL) —
+    // this `cache` param is only an in-process, per-tick memo; before this
+    // fix, EVERY tick re-fetched every customer from Intuit regardless,
+    // since this function recreates `cache` fresh on every
+    // runQbEstimateSyncInner() invocation. See that module's header for the
+    // November 2026 quota-exhaustion audit finding this closes.
+    const result = await require('./lib/qbCustomerCache').getOrFetchCustomer(customerId, async () => {
+      const data = await qbFetch(`/customer/${customerId}?minorversion=65`);
+      return data.Customer || null;
+    });
+    cache[customerId] = result || null;
   } catch (e) {
     // A breaker-open skip is not an ordinary per-customer failure — let it
     // propagate so the caller's loop (runQbEstimateSyncInner) stops early

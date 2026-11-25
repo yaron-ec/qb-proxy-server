@@ -145,6 +145,49 @@ test('checkQuickBooks: tokens present, verify:false -> CONFIGURED shape, no live
   } finally { restore(); }
 });
 
+test('checkQuickBooks: surfaces api_usage and customer_cache fields, clearly labeled as locally measured, when the underlying trackers succeed', async () => {
+  const restore = stub('../lib/qbTokenStore', {
+    loadPersistedTokens: async () => ({ access_token: 'x', refresh_token: 'y' }),
+    credentialStatus: async () => ({ status: 'active' }),
+  });
+  const restoreUsage = stub('../lib/qbApiUsageTracker', {
+    getUsageSnapshot: async () => ({
+      available: true, month_key: '2026-11', locally_measured_calls: 123456, monthly_quota: 500000, pct_used: 24.7,
+      measurement_note: 'Locally measured by this CRM backend — not confirmed against Intuit\'s own usage figure.',
+    }),
+  });
+  const restoreCache = stub('../lib/qbCustomerCache', {
+    getCacheStats: async () => ({ available: true, total_cached: 50, fresh_within_24h: 48, ttl_ms: 86400000 }),
+  });
+  try {
+    const result = await checkQuickBooks({ verify: false });
+    assert.strictEqual(result.api_usage.available, true);
+    assert.strictEqual(result.api_usage.locally_measured_calls, 123456);
+    assert.match(result.api_usage.measurement_note, /locally measured/i);
+    assert.strictEqual(result.customer_cache.available, true);
+    assert.strictEqual(result.customer_cache.total_cached, 50);
+  } finally { restore(); restoreUsage(); restoreCache(); }
+});
+
+test('checkQuickBooks: api_usage/customer_cache degrade gracefully (available:false) when their trackers fail — never throws, never fabricates a figure', async () => {
+  const restore = stub('../lib/qbTokenStore', {
+    loadPersistedTokens: async () => ({ access_token: 'x', refresh_token: 'y' }),
+    credentialStatus: async () => ({ status: 'active' }),
+  });
+  const restoreUsage = stub('../lib/qbApiUsageTracker', {
+    getUsageSnapshot: async () => { throw new Error('tracker module failed to load'); },
+  });
+  const restoreCache = stub('../lib/qbCustomerCache', {
+    getCacheStats: async () => { throw new Error('cache module failed to load'); },
+  });
+  try {
+    const result = await checkQuickBooks({ verify: false });
+    assert.strictEqual(result.credential_present, true, 'a quota-tracking failure must never affect the real credential/connectivity check');
+    assert.strictEqual(result.api_usage, null);
+    assert.strictEqual(result.customer_cache, null);
+  } finally { restore(); restoreUsage(); restoreCache(); }
+});
+
 test('checkQuickBooks: verify:true + reconnectRequired -> DISCONNECTED-shaped live_check', async () => {
   const restoreStore = stub('../lib/qbTokenStore', {
     loadPersistedTokens: async () => ({ access_token: 'x' }),
