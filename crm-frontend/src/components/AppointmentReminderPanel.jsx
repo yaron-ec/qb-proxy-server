@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { AlertTriangle, Mail, CheckCircle2, Send, Clock } from 'lucide-react';
+import { AlertTriangle, Mail, MessageSquareOff, CheckCircle2, Send, Clock } from 'lucide-react';
 import * as railwayCompanySettings from '@/api/railway/companySettings';
 import { resolveOwnerEmail } from '@/lib/ownerEmailMap';
 
@@ -55,6 +55,19 @@ export default function AppointmentReminderPanel({ lead }) {
   if (apptDate < today) return null;
 
   const noEmail = !lead.email;
+  // November 2026 CRM reliability request ("SMS consent visibility"):
+  // a rep looking at THIS panel — right next to the appointment, the
+  // actual trigger for the automated 12h/2h customer SMS reminders
+  // (lib/reminderEngine.js) — previously had no way to know, without
+  // separately opening the Text Message tab, that those reminders will be
+  // silently skipped for lack of consent. Reuses the existing
+  // `lead.sms_consent` field (the SAME one SmsConversationPanel.jsx's own
+  // consent banner and grant/revoke control already read/write) — no new
+  // consent concept, no new backend call. Only shown when the lead has a
+  // phone number at all (nothing to warn about otherwise) and consent is
+  // not affirmatively on file; never implies consent WAS granted when it
+  // wasn't, and never grants/changes consent itself — purely informational.
+  const smsConsentMissing = !!lead.phone && lead.sms_consent !== true;
   const dateLabel = formatDate(apptDate);
   const timeLabel = fmt12(apptTime);
 
@@ -122,6 +135,12 @@ export default function AppointmentReminderPanel({ lead }) {
       {noEmail && (
         <p className="text-[11px] text-amber-500 mt-1.5 flex items-center gap-1">
           <Mail className="w-3 h-3 flex-shrink-0" /> No customer email — staff only.
+        </p>
+      )}
+      {smsConsentMissing && (
+        <p className="text-[11px] text-amber-500 mt-1.5 flex items-center gap-1">
+          <MessageSquareOff className="w-3 h-3 flex-shrink-0" />
+          No SMS consent on file — automated SMS reminders will not be sent for this appointment.
         </p>
       )}
       {result && (

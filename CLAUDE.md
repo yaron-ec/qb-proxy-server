@@ -5379,6 +5379,331 @@ operator explicitly sets it, per this feature's own activation sequence
 (implement → preview → internal test send → one authorized one-time send →
 only then enable the automatic trigger).
 
+## QuickBooks SMS skip-visibility + sustained-429 alerting blind spot (November 2026 reliability audit, Phase 7)
+
+Investigated two reported production incidents using real Railway production
+logs before writing any code: John Dominguez's two automated SMS reminders
+appearing only as generic notes, and a QuickBooks Degraded/stale-sync state
+unresolved for 3+ days.
+
+**SMS — confirmed root cause, not a delivery bug**: both reminders were
+correctly, deliberately **skipped** (`[engine] ⊘ sms 12h skipped
+(no_consent)` / `⊘ sms 2h skipped (no_consent)`) because `leads.sms_consent`
+was not `true` for this lead — no Twilio call was ever made. The pipeline
+itself worked correctly in the same log window for other leads. The real
+gap: a permanently-skipped automated SMS reminder left zero trace on the
+lead's own activity feed. Fixed:
+`lib/reminderEngine.js#writeSmsSkippedActivity` writes a plain `note`
+activity on every *permanent* skip (no_consent, opted-out, no phone,
+reminders disabled, Twilio failure, quiet-hours-exhausted) — never on a
+retryable quiet-hours deferral (confirmed in logs to fire 20+ times for one
+appointment) or the feature-off branch.
+
+**QuickBooks — confirmed root cause: genuine Intuit monthly quota
+exhaustion, not a retry/backoff defect.** The real Intuit error body read
+*"You have reached the monthly limit of 500K CorePlus API calls"* —
+confirmed via `lib/qbTokenManager.js#classifyIntuitFailureReason`, now
+persisted onto the shared breaker state (`lib/qbRateLimitBreaker.js`'s
+`last_failure_detail`) so System Health/the watchdog report the true fact
+("will NOT resolve automatically — contact Intuit Developer Support")
+instead of implying a retry is imminent. The credential itself stayed valid
+throughout (hourly refreshes succeeding) and the 15-minute scheduler never
+stopped ticking — neither a revoked-token nor a scheduler-death problem.
+
+**Why automatic alerting never caught a 3+ day outage**: `checkQbHealth`
+(driving `productionWatchdog.js`'s alert pipeline) only ever checked OAuth
+credential validity — structurally blind to the circuit breaker. Fixed:
+it now also reads the breaker's **sustained**-open state (3+ consecutive
+reopens with no success) into the SAME existing watchdog alert/dedup/
+recovery-notification pipeline — no new alert mechanism. A separate,
+DB-only watchdog entry (`quickbooks-sync-scheduler`, keyed on
+`last_attempted_at`) catches the *different* failure class of the
+scheduler itself dying, deliberately non-overlapping with the
+breaker-based alert for the same incident.
+
+**Mitigation**: the QB Inbound Reconciliation cron's default interval
+widened 15→60 minutes (`QB_INBOUND_RECONCILE_INTERVAL_MINUTES`,
+`lib/qbSyncCronConfig.js`) — addresses this cron's own share of the real
+root cause (call volume vs. quota, not a bug); the near-real-time webhook
+path is unaffected. See the next section for the fuller quota audit this
+mitigation was a first step toward.
+
+Regression coverage: `test/reminderEngineSmsSkipActivity.test.js` (6) +
+`test/integration/reminderEngineSmsSkipActivity.int.test.js` (3);
+`test/qbTokenManager.test.js` (+3, the exact quota-exhaustion body, ordinary
+429 never misclassified, pure classifier matrix);
+`test/systemHealthChecks.test.js` (+5); `test/monitoringHealthProbes.test.js`
+(+11, `checkQbHealth`/`checkQbSyncScheduler`); `test/qbSyncCronConfig.test.js`
+(+7); watchdog target-audit/summary tests updated for the resulting
+13-service roster. Merged as PR #81 (commit `562afbb`); both `qb-proxy-server`
+and `artistic-determination` redeployed successfully — the backend's own
+boot log confirmed the new schedule live (`QB inbound reconciliation cron
+scheduled (0 * * * *, ~60 minutes)`).
+
+## QuickBooks API quota management and long-term scalability (November 2026 reliability audit, Phase 8)
+
+Follow-up to Phase 7's 15→60 minute mitigation, per an explicit instruction
+that a single interval change is "a reasonable immediate mitigation, not a
+permanent scalability solution" — a full audit of every QuickBooks API
+consumer, informed by current Intuit documentation and real production log
+evidence, plus durable quota-aware monitoring.
+
+**Full consumer audit (confirmed via direct code read, cross-checked
+against real captured production logs, not estimated from memory)**:
+
+| Consumer | Frequency | Real per-tick cost (pre-fix) | Dominant cost driver |
+|---|---|---|---|
+| QB Inbound Reconciliation cron (`lib/qbInboundSync.js#syncAllMappedCustomers`) | 60 min (widened from 15 in Phase 7) | ~104 mapped customers × 2 calls (Invoice + Payment query) | The actual financial data being synced — irreducible without incremental sync (see below) |
+| QB Estimate Sync cron (`server.js#runQbEstimateSyncInner` + `runQbEstimatePdfSync`) | 15 min, unconditional (`QB_SYNC_CRON_ENABLED` defaults true since Base44's retirement — confirmed via real logs showing `[qb-cron]` ticking every 15 min in the SAME window as `[qb-inbound-cron]`, contradicting an earlier, now-stale investigation's snapshot of this flag) | 1 `fetchAllQbEstimates` call + **one full QB Customer fetch per estimate needing a NEW customer lookup, re-fetched from scratch on EVERY tick** (the in-process `customerCache` is a local variable recreated fresh on every single invocation — confirmed via direct code read) | **Pure enrichment data (customer display name/email/phone for lead-matching), re-fetched ~100 times every 15 minutes for no reason** — projects to ~290,000 calls/month alone, a previously-unaccounted-for second major contributor to the same quota exhaustion, comparable in size to the inbound-reconciliation cron's own share |
+| QB webhook-triggered sync (`lib/qbSyncTrigger.js#runQbEstimateSyncAsyncInner`) | Event-driven, debounced to at most once per 60s (`lib/qbWebhookDebounce.js`) | Same per-estimate customer-fetch pattern as above, but **with no caching at all, not even within a single run** — the worst-case shape of the same bug | Same as above |
+| PDF sync (`server.js#runQbEstimatePdfSync`) | Same 15-min tick | Only estimates with `pdf_status != 'ready'` — bursty, proportional to new-estimate volume only | Negligible at steady state |
+| Manual/on-demand (`lib/leadEstimateSync.js`, `lib/postAppointmentEstimateSync.js`, `routes/leadQB.js`) | Per-lead, on-demand or 3h-168h after an appointment ends | Single-customer-scoped, never a full scan (`allowFullScan: false` for the automated path) | Negligible |
+| Proactive health check (`lib/qbProactiveHealthCheck.js`) | Hourly if enabled | 1 companyinfo call | **Off by default** (`QB_PROACTIVE_HEALTH_CHECK_ENABLED`) — negligible either way |
+| `lib/qbEstimateInvoice.js` (deal-scoped estimate/invoice creation) | Per-deal, on-demand | 1-2 calls | Negligible |
+
+**Revised total monthly estimate, pre- vs. post-fix** (at the observed
+~104 mapped customers): pre-Phase-7 ≈ 599,000 (inbound, 15-min) + ≈ 290,000
+(estimate-sync customer fetches, 15-min) ≈ **~890,000/month — nearly double
+the 500,000 quota**, explaining the sustained exhaustion with zero bug in
+the retry/backoff/breaker logic (which was performing exactly as designed).
+Post-Phase-7 (60-min inbound only) ≈ 150,000 + 290,000 ≈ 440,000/month —
+still uncomfortably close to the ceiling. **Post-this-phase** (customer
+cache added below) ≈ 150,000 (inbound, irreducible) + ~6,000 (estimate
+sync, now cache-hit-dominated) + negligible other sources ≈ **~160,000/month
+— comfortably under quota**, achieved without reducing estimate-sync
+frequency, financial-data freshness, or webhook responsiveness at all.
+
+**Official Intuit quota facts (researched via Intuit's own documentation
+during this audit — this sandboxed environment has no direct network
+access to developer.intuit.com itself, so these are drawn from search-engine-
+indexed citations of Intuit's own page text, not a direct fetch; an operator
+should independently confirm at `developer.intuit.com/app/developer/qbo/docs/learn/limits-and-throttles`
+before relying on the exact figures)**:
+- The 500,000/month CorePlus figure is Intuit's own documented App Partner
+  Program included limit, scoped to the Developer **Workspace** (not
+  per-realm/per-company) — calls beyond it are throttled (HTTP 429) until
+  the following calendar month; this is a **calendar-month reset**, not a
+  rolling 30-day window.
+- CorePlus specifically covers **read** operations (list/get/query/report
+  calls) — the exact category every consumer audited above falls into.
+- Separate, independent request-rate throttles exist (500 requests/minute
+  per realm, 10 concurrent requests/second per realm+app) — not raised by
+  any tier upgrade, and not the limit this installation has hit (the
+  incident's own error text explicitly named the monthly cap, not a
+  per-minute throttle).
+- **Intuit exposes a real API-usage chart, but only via the Developer
+  Portal UI** (Workspace → the app → Production environment → API usage
+  chart, categorized Core vs. CorePlus, visible only to that Workspace's
+  Owners/Admins) — **there is no programmatic API this codebase, or any
+  client, can poll to read Intuit's own confirmed usage.** This is why
+  every usage figure this codebase can report is explicitly labeled
+  "locally measured," never "Intuit-confirmed."
+- A Change Data Capture (CDC) endpoint exists
+  (`GET /v3/company/<realmId>/cdc?entities=<list>&changedSince=<dateTime>`)
+  for incremental sync, limited to a 30-day lookback window, with deleted
+  entities reported via a `Deleted` status. See "Incremental sync
+  evaluation" below for why this was evaluated but NOT adopted in this
+  pass.
+- **Multi-company scaling implication** (relevant to this codebase's own
+  documented "Multi-company direction"): since the quota is scoped to the
+  Developer *Workspace*, not per-realm, a second company sharing the SAME
+  Intuit Workspace/app registration would **share this one 500K/month
+  budget** with the first, not each get their own 500K. Registering each
+  company's QuickBooks connection under its own separate Intuit
+  Workspace/app (not merely a separate Railway deployment, which is
+  already this codebase's per-company isolation unit) is required to avoid
+  this — not yet a concern with a single company today, but a real
+  constraint to flag before onboarding a second one.
+
+**Fixes implemented**:
+1. **`lib/qbCustomerCache.js`** (new) — a durable, TTL-based (default 24h,
+   `QB_CUSTOMER_CACHE_TTL_MS`) cache of QB Customer display name/email/
+   phone, backed by a new `qb_customer_metadata_cache` table (migration
+   `2026-80-qb-api-usage-tracking.sql`). This is **pure enrichment data**
+   for CRM lead-matching display fields — never the authoritative
+   financial data (invoices/payments/estimates), which remains fetched
+   fresh on every single run, completely unaffected by this cache; a
+   customer's contact details changing within the TTL window only means a
+   lead-matching attempt briefly uses a slightly stale email/phone, never
+   a financial-accuracy risk. Wired into BOTH previously-uncached call
+   sites: `server.js#fetchQbCustomer` (replacing its always-empty,
+   per-tick-recreated in-process cache) and `lib/qbSyncTrigger.js`'s
+   webhook-triggered loop (which had no caching at all, not even within a
+   single run). A cache read/write failure always degrades to "call
+   Intuit for real" — this module can never hide a real customer behind a
+   stale or broken cache.
+2. **`lib/qbApiUsageTracker.js`** (new) — a durable, cross-process-safe
+   monthly call counter (`qb_api_usage_monthly` table, same migration),
+   incremented via `lib/qbTokenManager.js#qbApiRequest` for every REAL
+   network attempt (including each per-call transient retry — every one
+   consumes real quota) and correctly NOT incremented on a circuit-
+   breaker-open synthetic skip (zero network traffic). Every value this
+   module reports is explicitly labeled **"locally measured — not
+   confirmed against Intuit's own usage figure"** per the Developer-Portal-
+   only limitation above. Threshold alerts at 70%/85%/95% of the 500,000
+   quota fire **at most once per threshold per calendar month**
+   (dedup columns, claimed via an atomic conditional `UPDATE`, proven
+   race-safe under genuine concurrent crossing in
+   `test/integration/qbApiUsageTracker.int.test.js`), through the
+   **existing** staff `SYSTEM_FAILURE` broadcast category
+   (`lib/notificationPreferences.js`) — the same mechanism
+   `lib/monitoring/alertDispatcher.js` and `lib/estimateFollowupAlerts.js`
+   already use, so Michelle's single-category policy excludes her with
+   zero new person-specific logic and no new notification mechanism is
+   introduced.
+3. **System Health** (`lib/systemHealthChecks.js#checkQuickBooks`,
+   `crm-frontend/src/pages/SystemHealth.jsx`): now surfaces `api_usage`
+   (locally-measured monthly calls/quota/percentage, with the measurement
+   caveat repeated in the JSON itself) and `customer_cache` (total cached,
+   fresh-within-24h count) on every load (cheap, read-only), regardless of
+   `verify`. **A genuine display gap found during this audit and fixed in
+   the same pass**: `circuit_breaker` had been returned by the backend
+   since Phase 4/5 but the frontend `IntegrationCard` never actually
+   rendered it for the `quickbooks` module key at all — an admin opening
+   System Health had no visual way to see the breaker's state even though
+   the data was already there. Fixed: the QuickBooks card now shows the
+   breaker state (closed/half-open/open, color-coded), consecutive
+   failures, reopen count, cooldown-until when not closed, and a distinct
+   red callout when `last_failure_detail.reason === 'quota_exhausted'`
+   explaining it will not resolve automatically before Intuit's next
+   calendar-month reset.
+4. **Incremental sync (QB Change Data Capture) — evaluated, deliberately
+   NOT adopted in this pass**, per the explicit instruction not to blindly
+   replace full reconciliation without guaranteeing missed-event recovery
+   and data completeness. The CDC endpoint's 30-day lookback cap means it
+   cannot itself serve as the ONLY sync mechanism (a worker outage longer
+   than 30 days would permanently lose visibility into anything changed
+   during the gap, with no fallback), and the inbound-reconciliation
+   cron's own call volume — 2 calls per MAPPED customer, not per changed
+   record — is already fairly efficient per customer; CDC would mainly
+   help if the mapped-customer count grows into the high hundreds. The
+   customer-metadata cache above addresses the actual, measured dominant
+   cost (redundant enrichment re-fetches) with a much smaller, safer,
+   more targeted change. Revisiting CDC (as an *additional* layer on top
+   of, never a replacement for, the existing periodic full reconciliation
+   fallback) is the recommended next step **only if** the mapped-customer
+   count grows enough to make the irreducible 2-calls-per-customer
+   inbound-reconciliation volume itself approach the quota again (see the
+   growth ceiling below) — not needed today.
+5. **Growth ceiling (answers "can this scale as customer count
+   increases")**: at the current fixes (60-min inbound interval,
+   customer-metadata cache absorbing the estimate-sync/webhook load),
+   the inbound-reconciliation cron's own irreducible volume
+   (2 calls/customer × 24 ticks/day × 30 days) is the dominant remaining
+   cost and scales linearly with mapped-customer count: **500,000 ÷
+   (2 × 24 × 30) ≈ 347 mapped customers** is roughly where this ONE cron
+   alone would re-approach the full monthly quota, assuming every other
+   consumer's now-small share stays small. Below that, headroom is
+   comfortable; approaching it, widening the inbound interval further
+   (already configurable via `QB_INBOUND_RECONCILE_INTERVAL_MINUTES`) or
+   revisiting CDC-based incremental sync for that cron specifically are
+   the two available levers, in that order of simplicity.
+6. **Essential accounting operations are not touched or deprioritized by
+   any of this** — the fixes are entirely about removing a provably
+   redundant, non-financial data fetch (customer contact-info enrichment)
+   and widening a non-near-real-time fallback cron's interval; the
+   webhook-driven near-real-time path, every write path
+   (`lib/qbEstimateInvoice.js`), and duplicate-prevention
+   (`qb_invoice_sale_map`'s `ON CONFLICT DO NOTHING`,
+   `isManuallyMatched`'s human-override guard) are completely unchanged.
+
+Regression coverage: `test/qbApiUsageTracker.test.js` (11, pure, DB-stubbed
+— month-key computation, fail-open behavior, threshold crossing/dedup/
+lost-race handling, snapshot never-fabricates-a-zero); `test/qbCustomerCache.test.js`
+(9, pure, DB-stubbed — fresh-hit/expired/miss/read-failure/write-failure/
+not-found/TTL-override/stats branches); `test/integration/qbApiUsageTracker.int.test.js`
+(5, real Postgres — genuinely concurrent increments never lose a count,
+separate months accumulate independently, a threshold alert fires exactly
+once under genuine concurrent crossing, all three thresholds fire
+independently as the count climbs); `test/integration/qbCustomerCache.int.test.js`
+(5, real Postgres — a real miss writes back correctly, a second call within
+the TTL makes ZERO additional calls — the actual fix being proven, a call
+after TTL expiry refreshes, concurrent lookups for the same uncached
+customer never corrupt the final row, `getCacheStats` reports real counts);
+`test/systemHealthChecks.test.js` (+2 — `api_usage`/`customer_cache`
+surfaced when their trackers succeed, and both degrade to `null` gracefully
+on a tracker failure without affecting the real credential check);
+`crm-frontend/src/pages/SystemHealth.test.jsx` (+2 — the circuit-breaker/
+quota-exhaustion callout, and a closed-breaker/low-usage healthy state
+showing no alarming text); `npm run build:exit` re-run clean.
+
+**Not verifiable from this environment** (no production database/Railway/
+Intuit access here): the real current mapped-customer count going forward
+as it may have changed since the 104 observed in the original incident
+logs; whether Intuit's own usage chart (Developer Portal) corroborates the
+locally-measured figures once this deploys; and whether the circuit
+breaker has yet transitioned back to closed (Intuit's monthly quota
+resetting at the start of the next calendar month, or an earlier reset if
+Intuit's actual billing cycle differs from a literal calendar month) —
+confirming all three is the remaining operator verification step.
+
+## Master Project Financial Summary Dockerfile bug (November 2026, fixed)
+
+**Production report (Lalani project)**: Actual Profit ($21,892.82, 52.1%)
+was correct, but the Financial Summary's Contract Total ($33,000) and
+Projected Profit ($12,861.82) were wrong for a consolidated Master Project
+(parent + an approved addendum) — they showed the ROOT deal's own figures
+only, while the separate Master Project Summary's Combined Contract Value
+($40,934.00) displayed correctly.
+
+**Root cause, confirmed by reading the actual Docker build config, not
+guessed**: `lib/dealFinancialAggregation.js#computeMasterFinancials`
+dynamically `import()`s `crm-frontend/src/lib/financialCalc.js` (a
+self-contained ESM module, no React/browser dependency, no other imports
+of its own) for its per-deal revenue/cost/profit math — but the root
+`Dockerfile` never copied `crm-frontend/` into the `qb-proxy-server` image
+at all. In the real production container this dynamic import threw
+`ERR_MODULE_NOT_FOUND` every single time; `routes/deals.js`'s own
+try/catch around this call silently caught it and left `master` as `null`.
+`ProfitabilitySummary`'s Contract Total/Projected Profit depend ENTIRELY
+on `master` with no fallback, so they silently degraded to the single
+root deal's own `fin` values — while the separate, simple-arithmetic
+`total_approved_contract` field (`original_contract_amount +
+approved_addendums_amount`, no dynamic import involved) stayed correct,
+producing exactly the reported "Combined Contract Value is right but
+Contract Total is wrong" symptom. Actual Profit/Margin were unaffected
+because they are NOT part of `computeMasterFinancials`'s broken path in
+this specific failure mode — they are computed server-side elsewhere
+(confirmed previously working in production, per the user's own
+confirmation).
+
+**Fix** (`Dockerfile`): adds
+`COPY crm-frontend/package.json ./crm-frontend/package.json` and
+`COPY crm-frontend/src/lib/financialCalc.js ./crm-frontend/src/lib/financialCalc.js`,
+plus both paths to the Dockerfile's existing runtime file-verification
+block (fails the build loudly if either is ever missing again, instead of
+silently degrading at runtime). The `package.json` copy is deliberate
+defense-in-depth: it declares `"type": "module"`, which lets Node's ESM
+loader resolve `financialCalc.js` correctly without relying on the
+newer, runtime-version-dependent "detect module syntax" auto-fallback
+(default-on only since Node 20.19.0/22.7.0) that this Dockerfile's
+unpinned `FROM node:20-alpine` could otherwise end up depending on by
+accident.
+
+**Deployment-level regression coverage, since no live Docker daemon is
+available in this environment for a real build-based test**:
+`test/dockerfileMasterFinancialsCopy.test.js` parses the REAL Dockerfile's
+own `COPY` instructions, materializes a temp directory containing exactly
+what `docker build .` would place at `/app`, and proves the dynamic import
+succeeds (and is actually usable — a real `computeFinancials()` call
+against the simulated image root, not merely "imports without throwing")
+from THAT simulated root — reproduced FAILING first against a literal
+snapshot of the pre-fix Dockerfile content (the exact
+`ERR_MODULE_NOT_FOUND` the real container hit), then confirmed PASSING
+against the current, fixed Dockerfile. This is the one test file in this
+suite that can actually catch "a file the backend needs at runtime isn't
+in the Docker image" — every other test runs against a full git checkout,
+where this specific class of bug can never reproduce.
+
+Not independently re-verified against live production data from this
+environment (no production database access here) — the arithmetic itself
+(`total_approved_contract − total_costs` for Projected Profit, `collected
+− total_costs` for Actual Profit) was not changed by this fix, only
+whether `computeMasterFinancials` can run at all in the real container;
+confirming the Lalani project's Financial Summary now shows Contract Total
+$40,934.00 / Projected Profit $20,795.82 (50.8%) on the live production
+page, after this deploys, is the remaining operator verification step.
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`
