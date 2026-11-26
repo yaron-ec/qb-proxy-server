@@ -5959,6 +5959,106 @@ historical and closed — no production data change was made or is needed.**
 No historical reminder was resent and no appointment was recreated, per
 the explicit instruction.
 
+## Lalani $1,097 discrepancy — itemized, read-only invoice reconciliation diagnostic (November 2026, built; result still pending operator run)
+
+Built in direct response to the explicit follow-up requirement: investigate
+the $42,031 (post double-counting-fix, currently computed) vs. $40,934
+(management-confirmed real collected) gap "using existing production data,
+wherever authorized and available," with a safe, read-only fallback
+procedure if direct access is unavailable from this environment — which it
+is: this environment has no production `DATABASE_URL` and no credential
+that opens the live Postgres instance, and creating a full Railway
+environment fork to get one was deliberately NOT done (see "Why a fork was
+not used" below).
+
+**New, purely read-only (every query a `SELECT`) diagnostic**:
+`lib/masterProjectInvoiceReconciliation.js#getMasterProjectInvoiceReconciliation`,
+exposed via `GET /api/v1/deals/:id/invoice-reconciliation`
+(`routes/masterProjectInvoiceReconciliation.js`, `requireAuth`+`requireAdmin`
+— the same admin-only convention as `routes/reminderDiagnostics.js`, never
+`canAccessDeal`'s broader rep-level scope, since this surfaces cross-deal
+invoice data for the whole customer, not just one deal a rep owns). For
+any deal id/legacy ref in a Master Project (root or addendum — same
+resolution as the existing `GET /:id/addendums`), it returns, per
+cached QuickBooks invoice for that customer (mapped to this project's own
+deals, mapped to a DIFFERENT unrelated deal, or not mapped to any CRM deal
+at all — every case shown, never pre-filtered):
+
+- `qb_invoice_id` (the QuickBooks transaction id), `qb_doc_number`,
+  `invoice_date`, `original_amount`, `paid_amount`, `outstanding_balance`,
+  `txn_status`, `cache_voided`/`mapping_voided`, `mapping_method`,
+  `associated_project`, `last_synchronized_at`,
+  `included_in_collected_calculation` (mirrors
+  `lib/qbInvoiceSaleMap.js#getInvoicesForSale`'s exact filter), and
+  `amount_included_in_collected`;
+- a `duplicate_document_number` flag wherever the same `qb_doc_number`
+  appears under more than one distinct `qb_invoice_id` — the strongest
+  available signal of a transaction synced twice;
+- a summary block: `computed_invoiced_total`/`computed_collected_total`
+  (the exact figures the live Master Project aggregation currently
+  produces for this project), `customer_total_received_all_cached_invoices`
+  (every cached invoice for this customer, mapped or not, excluding only
+  genuinely voided cache rows — the same source
+  `lib/customerPaymentWaterfall.js#getCustomerTotalReceived` sums),
+  `unclaimed_remainder_for_fallback_or_excess`, and counts of
+  different-deal/unmapped/voided rows found.
+
+**Why a fork was not used**: the available `fork-create` tool makes a
+copy-on-write fork of the ENTIRE production environment — every service,
+not only Postgres — and starts their deploys. The forked Postgres volume
+would carry a full copy of `integration_credentials` (the same encrypted
+QuickBooks/Gmail/Twilio tokens), and the forked `qb-proxy-server`/
+`artistic-determination` processes, once running, could make REAL external
+calls using those same real credentials (a duplicate reminder/estimate-
+follow-up email, a real Twilio SMS, etc.) — exactly the class of
+unauthorized side effect this engagement has repeatedly required avoiding.
+No tool available forks only a database in isolation. This diagnostic
+route was built instead specifically so an authorized administrator can
+get the same itemized evidence using ONLY their own existing admin CRM
+login (a Bearer JWT from their own already-authenticated browser session)
+— never a raw database credential, never anything pasted into chat.
+
+**Operator procedure** (read-only, no production access performed from
+this environment): as an admin, call
+`GET https://<qb-proxy-server's real backend URL>/api/v1/deals/<Lalani's root or addendum deal id>/invoice-reconciliation`
+with `Authorization: Bearer <your own admin JWT>` (the same token the CRM's
+own browser session already holds — DevTools → Application → Local
+Storage → the Railway access token, or any authenticated `fetch` from the
+already-logged-in admin CRM tab's own console). Review the itemized list
+for: a voided row that nonetheless appears in the `invoiced`/`collected`
+total of $42,031 (would itself be a cache bug, separate from this fix);
+any `duplicate_document_number: true` pair (the leading suspect for the
+$1,097 gap — two cached rows for what may be the same real QuickBooks
+transaction); any row whose `associated_project` reads "A DIFFERENT,
+unrelated deal" (would mean this customer has another, unrelated project
+whose own invoice is being miscounted into Lalani's pool via the
+customer-level waterfall) or "Not mapped to any CRM deal" at all; and
+whether `last_synchronized_at` on any suspicious row predates a
+QuickBooks-side correction the business already knows happened (sync has
+been blocked by the quota exhaustion since before this diagnostic was
+built, so any invoice voided/corrected in QuickBooks itself during the
+outage would NOT yet be reflected here — this diagnostic only ever shows
+what is cached in OUR database, never live QuickBooks state).
+
+**Not run against production from this environment** — no production
+credential or environment fork was used, per the explicit restriction
+above and the explicit instruction not to request production credentials
+through chat. Running this one `GET` call (zero side effects, admin-JWT-
+gated, no different from any other page load in the CRM) is the concrete
+next operator action to resolve the $1,097 gap with real evidence rather
+than further guessing. **No accounting record, invoice, or payment was
+modified, voided, or fabricated by building or testing this tool.**
+
+Regression coverage: `test/integration/masterProjectInvoiceReconciliation.int.test.js`
+(5 tests, real Postgres — the exact Lalani 6-invoice/$42,031 shape with
+full itemized detail; a voided invoice correctly excluded from every
+total while still being reported; an invoice mapped to a different,
+unrelated deal correctly excluded and distinctly labeled; a genuine
+duplicate document number correctly flagged; and a dedicated proof the
+route is admin-only and leaves `qb_invoices_cache`/`qb_invoice_sale_map`
+byte-for-byte unchanged, confirmed by re-querying both tables before and
+after the call).
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`

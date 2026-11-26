@@ -1478,6 +1478,8 @@ app.use('/routing', requireProxySecret, require('./routes/routingDiagnostic'));
 app.use('/api/v1/deals', require('./routes/deals')); // CRUD (mounted first: /:id matches one segment only)
 // Sale-scoped QuickBooks invoice ownership (read-only financials + mapping contract)
 app.use('/api/v1/deals', require('./routes/dealFinancials'));
+// Admin-only, read-only itemized Master Project invoice reconciliation (November 2026)
+app.use('/api/v1/deals', require('./routes/masterProjectInvoiceReconciliation'));
 // Deal Activity — chronological project-history timeline (derived, read-only)
 app.use('/api/v1/deals', require('./routes/dealTimeline'));
 // Real QB Estimate/Invoice creation from a Deal (CRM STABILITY PHASE completion pass)
