@@ -126,6 +126,16 @@ async function recordHealthCheck(result) {
 }
 
 async function handleFailure(service, result, baseUrl) {
+  // November 2026 CRM final-acceptance requirement: a QuickBooks recovery
+  // notification must never be sent merely because auth/breaker look
+  // healthy — see lib/qbRecoveryVerification.js. A fresh failure here means
+  // any earlier, still-pending verification for this service is now stale;
+  // clear it so it can never fire a misleading "recovered" email for an
+  // incident that has since reopened.
+  if (service.id === 'quickbooks-integration') {
+    await require('./lib/qbRecoveryVerification').clearOnFailure();
+  }
+
   const { incident, isNew, isCrashLoop } = await crashLoop.recordFailure(
     service.id, result.error || 'Unknown failure', result.checkType, result.details || {}
   );
@@ -225,17 +235,53 @@ async function handleFailure(service, result, baseUrl) {
 async function handleSuccess(service, result) {
   const { resolved, incident } = await crashLoop.recordSuccess(service.id);
   if (resolved && incident) {
-    await dispatchMonitoringAlert({
-      serviceId: service.id,
-      level: 'info',
-      errorSummary: 'Service recovered — incident resolved (health was observed healthy on a regular watchdog cycle, independent of any restart)',
-      errorType: 'recovery',
-      httpStatus: result.httpStatus,
-      isCrashLoop: false,
-      recoveryAction: 'none',
-      recoveryResult: 'healthy',
-      incidentId: incident.id,
-      logLines: [],
+    // November 2026 CRM final-acceptance requirement: "Recovery
+    // notifications must not be sent merely because authentication
+    // succeeded or the circuit breaker closed. They must accurately
+    // reflect whether dependent synchronization has also caught up."
+    // checkQbHealth reporting healthy here means only that OAuth auth is
+    // valid and the circuit breaker isn't sustained-open — it says nothing
+    // about whether the QB Estimate Sync / Inbound Reconciliation crons
+    // have actually completed a real successful run since recovery. For
+    // `quickbooks-integration` specifically, defer the notification: start
+    // tracking this recovery (lib/qbRecoveryVerification.js) instead of
+    // sending it now; the verified-recovery check below (run on every
+    // healthy tick, not just this resolving one) sends exactly one email
+    // once dependent sync genuinely catches up, however many ticks that
+    // takes. Every other service's recovery notification is unchanged.
+    if (service.id === 'quickbooks-integration') {
+      await require('./lib/qbRecoveryVerification').markRecoveryPending(incident.id);
+    } else {
+      await dispatchMonitoringAlert({
+        serviceId: service.id,
+        level: 'info',
+        errorSummary: 'Service recovered — incident resolved (health was observed healthy on a regular watchdog cycle, independent of any restart)',
+        errorType: 'recovery',
+        httpStatus: result.httpStatus,
+        isCrashLoop: false,
+        recoveryAction: 'none',
+        recoveryResult: 'healthy',
+        incidentId: incident.id,
+        logLines: [],
+      });
+    }
+  }
+
+  if (service.id === 'quickbooks-integration') {
+    await require('./lib/qbRecoveryVerification').maybeNotifyVerifiedRecovery(async (pending, caughtUp) => {
+      const est = caughtUp.evidence?.estimate_sync;
+      const inbound = caughtUp.evidence?.inbound_reconcile;
+      await dispatchMonitoringAlert({
+        serviceId: service.id,
+        level: 'info',
+        errorSummary: `QuickBooks recovery VERIFIED — the circuit breaker is closed AND dependent synchronization has genuinely caught up since recovery. Last successful QB Estimate Sync: ${est?.last_successful_sync_at || 'n/a'}. Last successful QB Inbound Reconciliation: ${inbound?.last_successful_sync_at || 'n/a'}.`,
+        errorType: 'recovery_verified_sync_caught_up',
+        isCrashLoop: false,
+        recoveryAction: 'none',
+        recoveryResult: 'sync_caught_up',
+        incidentId: pending.incidentId,
+        logLines: [],
+      });
     });
   }
 

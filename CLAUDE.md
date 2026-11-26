@@ -5704,6 +5704,261 @@ confirming the Lalani project's Financial Summary now shows Contract Total
 $40,934.00 / Projected Profit $20,795.82 (50.8%) on the live production
 page, after this deploys, is the remaining operator verification step.
 
+## Master Project "Collected" double-counting fix + QuickBooks recovery-verification + estimate-sync cursor bug (November 2026, CRM final acceptance)
+
+**Production report, Ali & Mohemmed Lalani**: after the Dockerfile fix above
+let `computeMasterFinancials` run at all for the first time, the Financial
+Summary showed Collected $49,965.00 / Actual Profit $29,826.82 — both
+wrong. Management confirmed the true combined collected amount is
+$40,934.00 (exactly the combined contract value).
+
+**Root cause #1 (confirmed, fixed) — the real double-counting bug**:
+`lib/dealFinancialAggregation.js#computeMasterFinancials` summed each
+deal's own `collected` independently. The root deal (Roof Replacement) has
+its own direct, `qb_invoice_sale_map`-attributed invoices totaling
+$42,031.00 — the direct-invoice-vs-waterfall precedence rule
+(`routes/dealFinancials.js`) correctly makes this deal's own figure win.
+The Bathroom Repair addendum has **no invoice of its own at all**, so it
+fell back to `lib/customerPaymentWaterfall.js#computeWaterfallForDeal`,
+which independently re-allocates the SAME customer-level pool of QB money
+(`getCustomerTotalReceived`) — giving the addendum its own $7,934.00 share
+with no knowledge that the root deal's direct figure already claimed
+(and, in this case, exceeded) the entire pool. $42,031.00 + $7,934.00 =
+$49,965.00 — the exact reported figure, confirming the hypothesis with no
+guessing required.
+
+**Fix** (`lib/dealFinancialAggregation.js`): the aggregation now computes
+ONE group-wide allocation instead of naively summing independent per-deal
+figures. Every deal with a real, nonzero direct invoice claim
+(`saleScopedPaid > 0`) has that money set aside FIRST, authoritative and
+never re-attributed (`directClaimedByCustomer`). Only the genuinely
+UNCLAIMED remainder of that same QB customer's total received money
+(`customerTotalReceived − directClaimed`) is then allocated — via the
+exact same chronological, contract-capped `allocateWaterfall` sequence the
+single-deal waterfall already uses — across the sibling deals that have no
+direct claim of their own. A deal with no QuickBooks customer at all
+(waterfall never applicable) is left completely untouched — its own
+`fin.paymentsReceived` (manual-invoice/milestone data) carries no
+double-counting risk. Per-deal `collected`/`outstanding` in `per_deal` are
+corrected to match (so the discrepancy banner's per-deal breakdown sums
+correctly), while `profit` (contract-based, planning-only) is untouched —
+it never depended on `collected`. **Genuine overpayments remain visible,
+never capped**: when a QB customer's real total exceeds what the direct
+claims plus every fallback deal's own contract cap can absorb, the
+leftover is added to the group total as `unattributed_customer_excess`
+(never silently dropped, never attributed to a specific deal the waterfall
+has no evidence for) — `collected` can still legitimately exceed the
+combined contract value. This intentionally does NOT change what a single
+deal's own Financials tab shows in isolation
+(`routes/dealFinancials.js`/`financialCalc.js` untouched) — only this
+consolidated Master Project aggregation.
+
+**With this fix applied, Collected = $42,031.00 (root's real direct
+invoice total; the addendum correctly draws $0 from the now-fully-consumed
+pool) and Actual Profit = $42,031.00 − $20,138.18 = $21,892.82** — the
+double-count is eliminated. This is **NOT** yet management's confirmed
+$40,934.00 / $20,795.82 — a SEPARATE, genuine $1,097.00 discrepancy between
+what `qb_invoices_cache` currently shows as invoiced+paid ($42,031.00) and
+what management confirms was actually collected ($40,934.00, exactly the
+combined contract value) remains. **This second discrepancy is explicitly
+NOT fixed, capped, or assumed away here** — per the explicit business
+rule ("never count the same transaction twice" is now satisfied; "do not
+simply cap collected revenue at the contract value" forbids silently
+forcing $42,031.00 down to $40,934.00 without evidence). The leading,
+unverified hypothesis (requires live QuickBooks/production-DB access this
+environment does not have, and QuickBooks is currently externally blocked
+by quota exhaustion — see below): a duplicate or otherwise erroneous
+$1,097.00 QB invoice/payment record among the 6 invoices mapped to the
+root deal. Resolving this requires either (a) an operator inspecting the
+real QuickBooks invoice list for this customer once access is restored, or
+(b) a direct, read-only query of `qb_invoices_cache`/`qb_invoice_sale_map`
+against the production database (neither available from this
+environment). **No accounting record was modified, voided, or fabricated
+to force this number.**
+
+**Audit of every other financial view for the same pattern (item 5,
+"prevent financial regressions across all projects")**: confirmed via
+direct code read that `routes/qbExecutiveMetrics.js` (a different, already
+-documented limitation — aggregates per QB customer, not per-deal, never
+by summing `computeFinancials`/waterfall results) and
+`scripts/auditFinancialRecords2026.js` (a per-deal diagnostic report, never
+a combined total) do not share this bug class. No other code path in this
+codebase sums multiple deals' own `collected`/`paymentsReceived` figures
+together. `computeMasterFinancials` is the only place this fix was needed.
+
+Regression coverage (`test/integration/dealMasterFinancialAggregation.int.test.js`,
++2 tests): the exact Lalani double-counting shape reproduced and proven
+fixed (collected = $42,031.00, never $49,965.00), and a genuine-overpayment
+scenario proving `unattributed_customer_excess` surfaces real money beyond
+what any single fallback deal can absorb, never silently dropped or capped
+at the combined contract value. All 5 pre-existing tests in this file
+(every deal given its own direct invoice — the shape that never exercises
+this bug) continue to pass unchanged.
+
+**Root cause #2 (confirmed, fixed) — a second, independent QuickBooks sync
+bug found during this same investigation**: `server.js#runQbEstimateSyncInner`
+called `fetchAllQbEstimates()` with no try/catch around it. When the
+shared circuit breaker (`lib/qbRateLimitBreaker.js`) is ALREADY open
+before this tick's very first QuickBooks call (the live, ongoing quota-
+exhaustion incident), that call throws a `circuitOpen` error that
+propagated straight out of the function, skipping the cursor-save block
+entirely — so `sync_cursors.quickbooks_estimates.last_attempted_at` never
+advanced during the outage. This made
+`lib/monitoring/healthProbes.js#checkQbSyncScheduler` falsely report "the
+scheduler may not be executing" — a SECOND, misleading watchdog alarm for
+the exact same already-correctly-reported quota-exhaustion condition
+`checkQbHealth` reports — confirmed live via Railway logs showing both
+`quickbooks-integration` (quota exhausted, correct) and
+`quickbooks-sync-scheduler` (false "scheduler not executing" alarm)
+simultaneously unhealthy. Fixed: the call is now wrapped in a try/catch
+that treats a pre-loop `circuitOpen` failure as a stopped-early attempt
+(same shape the per-item loop already used for a breaker that opens
+mid-loop) and still reaches the cursor save. Regression coverage:
+`test/qbSyncCursorPersistence.test.js` (+1 source-level test).
+
+**Verified recovery notifications — the explicit requirement**: "Recovery
+notifications must not be sent merely because authentication succeeded or
+the circuit breaker closed. They must accurately reflect whether dependent
+synchronization has also caught up." Audited `productionWatchdog.js`:
+previously, the moment `checkQbHealth` reported healthy again (valid OAuth
++ breaker not sustained-open), `handleSuccess` immediately dispatched a
+"Service recovered" info email — which says nothing about whether the QB
+Estimate Sync / Inbound Reconciliation crons have actually completed a
+real successful run since recovery. Fixed with a new module,
+`lib/qbRecoveryVerification.js`: resolving a `quickbooks-integration`
+incident now starts a durable, cross-process "pending verification"
+marker (`app_settings`) instead of immediately notifying; every subsequent
+healthy watchdog tick re-checks whether BOTH sync cursors
+(`quickbooks_estimates`/`quickbooks_inbound_reconcile`) show a genuine
+successful run timestamped at or after the breaker's own last-close
+transition — only then does exactly ONE "verified recovery" email go out,
+carrying the real evidence (both cursors' own success timestamps) rather
+than a bare "it's fixed" claim. A fresh QB failure clears any stale pending
+marker so a later, genuinely new recovery is never confused with an
+earlier, never-completed one. Every other service's existing "Service
+recovered" notification is completely unchanged — this logic is scoped
+specifically to `quickbooks-integration`. Regression coverage:
+`test/qbRecoveryVerification.test.js` (13 pure unit tests — the full
+caught-up/not-caught-up decision matrix, never-run-yet cursors, unavailable
+cursors, never-throws guarantees) and
+`test/productionWatchdogQbRecoveryVerification.test.js` (4 end-to-end
+tests through `runWatchdog()` — the deferred-notification path, the
+verified-recovery email's real evidence content, the clear-on-failure
+wiring, and a regression guard proving every other service's unverified
+recovery notification is untouched).
+
+**Confirmed, not yet observed live**: as of this pass, QuickBooks remains
+externally blocked by the same confirmed monthly CorePlus quota
+exhaustion first documented above — the breaker has not yet closed in
+production, so neither the verified-recovery email nor an actual sync
+catch-up has been observed end-to-end against live traffic. The code path
+is unit/integration-tested with simulated breaker-close/cursor states, not
+a live recovery. **QuickBooks must remain classified as externally
+blocked until an operator observes the breaker actually close AND the new
+verified-recovery email actually arrive.**
+
+**24-hour customer metadata cache — safety re-confirmed, not just
+designed-that-way**: audited via direct grep for every reference to
+`qbCustomerCache`/`qb_customer_metadata_cache` across the codebase — found
+in exactly 3 production call sites (`server.js#fetchQbCustomer`,
+`lib/qbSyncTrigger.js`'s webhook sync loop, both enrichment-only; and
+`lib/systemHealthChecks.js`, display-only) — confirmed ZERO references
+from any financial-calculation code path
+(`lib/qbInvoiceSaleMap.js`, `lib/customerPaymentWaterfall.js`,
+`lib/dealFinancialAggregation.js`, `lib/qbEstimateInvoice.js`, `routes/
+dealFinancials.js`). Every financial figure (invoiced/paid/balance) is
+read fresh from `qb_invoices_cache`/`qb_invoice_sale_map` on every call,
+never from the customer-metadata cache. The cache can at most hold a
+customer's DisplayName/email/phone up to 24h stale, which affects ONLY
+`qbMatch.js`'s lead-matching heuristics for a BRAND NEW incoming estimate
+— and only the lower-priority partial-name-match tiers (phone/email-based
+matching reads real, uncached values); a stale name can at most cause a
+transient MATCH MISS (falling through to "unmatched," self-correcting
+within 24h), never cause an estimate to be matched to the WRONG lead or
+create a duplicate customer record. No code change was needed; this is a
+confirmation of the design already in place, not a new fix.
+
+**QuickBooks API quota — Intuit's own official policy, researched (no
+direct network access to developer.intuit.com from this environment; all
+of the below is drawn from search-engine-indexed citations of Intuit's own
+documentation, not a direct fetch — an operator should independently
+confirm before relying on exact wording)**:
+- **Reset**: the 500,000/month CorePlus allowance resets **on the 1st of
+  each new month** — a calendar-month reset, never a rolling 30-day
+  window, and Intuit's own partner FAQ states it "cannot be reset at any
+  other point in time." ([Intuit App Partner Program FAQ](https://developer.intuit.com/app/developer/qbo/docs/get-started/partner-faq))
+  This installation's quota should therefore reset at the start of
+  December 2026 — not independently confirmed against this specific
+  account/realm from this environment.
+- **Early restoration / free exception**: **no official, no-cost early-
+  reset or exception process was found** in any source checked. The one
+  confirmed OFFICIAL path to more CorePlus calls before the next reset is
+  upgrading from the Builder tier to the paid **Silver tier**, which
+  Intuit's own partner documentation describes as an automatic upgrade
+  once a valid payment method is provided — i.e., a plan change with a
+  real cost. **Per explicit instruction, this was NOT done and should not
+  be done without separate authorization.** Gold/Platinum tiers require
+  500+ active connections, an App Marketplace listing, and an Intuit
+  review — not applicable to this single-company installation.
+- **Where to view official usage** (Workspace Owners/Admins only): sign in
+  at [developer.intuit.com](https://developer.intuit.com) → select the
+  Workspace → select the app → **Analytics** tab on the App Overview page
+  → toggle the environment to **Production** to see the real Core/CorePlus
+  call chart (data available from May 17, 2025 onward, per Intuit's own
+  blog documentation of this feature). This is the ONE authoritative
+  number to cross-check against this codebase's own `qbApiUsageTracker.js`
+  figures, which are explicitly labeled "locally measured" everywhere for
+  exactly this reason.
+- **Support**: the Analytics page has its own "Contact us" option (Support
+  dropdown) for questions about the usage chart itself. No evidence was
+  found of a distinct, documented process for requesting an early quota
+  reset or a free limit increase via a support ticket — a ticket could be
+  filed through the developer account, but nothing found confirms it can
+  achieve either outcome without a paid tier upgrade.
+- **Behavior over quota — one genuine ambiguity in Intuit's own
+  documentation, not resolved here**: the partner FAQ says CorePlus calls
+  beyond the included credit are "blocked entirely," while the separate
+  [limits-and-throttles page](https://developer.intuit.com/app/developer/qbo/docs/learn/limits-and-throttles)
+  says they are "throttled" with an HTTP 429. This installation's own live
+  evidence (`last_failure_detail.reason: 'quota_exhausted'`,
+  `throttlePlanName: 'Block All CorePlus for a Builder App'`, a real 429
+  response) is consistent with the "throttled/429" description —
+  practically, every call is currently being rejected, which the two
+  documents describe in different words.
+- **No plan upgrade or additional cost was authorized or incurred** by
+  this investigation, per the explicit instruction.
+
+**John Dominguez (formerly "John John," lead `329d1fa5-f3d9-49c0-a7a2-2bbdf4b88251`) appointment reconciliation — resumed and closed out, historical**:
+production reminder-engine logs (`artistic-determination`, Nov 19–24, 2026)
+show this lead's appointment was rescheduled multiple times between Nov 19
+and Nov 24, and EVERY reschedule produced a correct, fresh set of
+reminder-window fires (48h/24h/12h/2h/30min) with no stale duplicate sends
+and no missing fresh sends for the new time — direct, live production
+confirmation that the reschedule→reminder-sync fix (tasks #43–47,
+previously completed) is working correctly for this exact lead. The final
+appointment occurred ~10:30 AM Pacific on Nov 24, 2026 (now in the past);
+the 12h/2h/30min sequence completed cleanly and no further reminder
+activity has fired since — correct, expected behavior for a past
+appointment. The calendar-outbox worker (`noble-illumination`)'s own
+periodic reconciliation health check (`[outbox-worker] reconcile
+checked=... verified=... missing=0 repaired=0 errors=0`) shows zero
+missing/repaired/error events for the entire window, and no log line in
+that service ever references this lead's id — indirect but corroborating
+evidence that no Google Calendar/driving-block inconsistency was ever
+flagged for this appointment. Email reminders were consistently marked
+`customer_skipped=true` (this lead's own reminder-channel configuration,
+not a bug) and SMS consistently skipped for `no_consent` (expected,
+consistent with this lead's known lack of SMS consent). **Not
+independently verified from this environment**: the real Google Calendar
+event itself and the `appointments`/`followup_calendar_reminders` table
+rows directly (no live Google Calendar API or production database access
+here) — the conclusion above rests on the reminder-engine's own log
+evidence plus the calendar worker's own clean reconciliation signal, two
+independent signals, not a single inference. **Conclusion: this is
+historical and closed — no production data change was made or is needed.**
+No historical reminder was resent and no appointment was recreated, per
+the explicit instruction.
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`
