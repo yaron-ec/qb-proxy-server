@@ -1,4 +1,5 @@
 import { formatCurrency, formatPercent } from "@/lib/financialCalc";
+import InvoiceReconciliationPanel from "./InvoiceReconciliationPanel";
 
 // EC Construction Group brand colors — the SAME exact values every branded
 // email (lib/emailTemplates.js's NAVY/GOLD constants) already uses. Never
@@ -52,7 +53,7 @@ const GOLD = "#C9A227";
  * and the contract value itself never substitutes for collected revenue
  * in the actual-profit calculation above.
  */
-export default function ProfitabilitySummary({ fin, master }) {
+export default function ProfitabilitySummary({ fin, master, dealId, isAdmin }) {
   const isConsolidated = !!master;
   const totalRevenue = isConsolidated ? master.total_approved_contract : fin.totalRevenue;
   const collected = isConsolidated ? master.collected : fin.paymentsReceived;
@@ -108,6 +109,13 @@ export default function ProfitabilitySummary({ fin, master }) {
               Combined Project
             </span>
           )}
+          {/* Admin-only, read-only diagnostic — reuses the existing PR #84
+              backend endpoint and the same authenticated API client every
+              other Financials request already uses (see
+              InvoiceReconciliationPanel.jsx's own header). Enforced here
+              AND independently by the backend route's own
+              requireAuth+requireAdmin gate. */}
+          {isAdmin && dealId && <InvoiceReconciliationPanel dealId={dealId} />}
           <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider" style={{ color: GOLD }}>
             {isNegative ? "Over Budget" : "On Track"}
           </p>

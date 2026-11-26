@@ -6059,6 +6059,63 @@ route is admin-only and leaves `qb_invoices_cache`/`qb_invoice_sale_map`
 byte-for-byte unchanged, confirmed by re-querying both tables before and
 after the call).
 
+## Invoice Reconciliation UI — admin-only Financial Summary button (November 2026)
+
+Per explicit follow-up instruction: administrators should not need to extract
+a JWT, open browser DevTools, or use an external REST client to use the
+read-only invoice reconciliation diagnostic PR #84 added. A small,
+admin-only **"Invoice Reconciliation"** button now lives directly in the
+Financial Summary hero (`ProfitabilitySummary.jsx`'s header bar, next to the
+existing "Combined Project"/"On Track" badges), opening a modal
+(`crm-frontend/src/components/financials/InvoiceReconciliationPanel.jsx`)
+that calls the SAME, already-deployed `GET /api/v1/deals/:id/invoice-reconciliation`
+endpoint through the SAME authenticated `apiCall()` client every other
+Financials-tab request already uses (`crm-frontend/src/api/railway/deals.js#getInvoiceReconciliation`)
+— no second auth mechanism, no JWT ever handled by this component's own
+code, no raw SQL/DB access from the frontend.
+
+- **Admin-only on both sides**: `FinancialsTab.jsx` passes `isAdmin` (its
+  existing `role === 'admin'` check) down through `ProfitabilitySummary` —
+  the button renders only for an admin. The backend route itself
+  independently enforces `requireAuth`+`requireAdmin` regardless of what the
+  frontend does; the frontend gate is a courtesy, not the real enforcement.
+- **Strictly on-demand**: the endpoint is called only when the button is
+  clicked, never on page load alongside the rest of the Financials tab — a
+  diagnostic for an exceptional investigation, not a figure every visit
+  needs to fetch. Closing and reopening within the same page visit does not
+  re-fetch (the data stays in memory until the next explicit click).
+- **Displays**: invoice number, QB transaction id, invoice date (via
+  `fmtBusinessDate` — `txn_date` is a DATE column, per this document's own
+  DATE-vs-timestamp rule above), original/paid/outstanding amounts, cached
+  status, associated project (this project's own, a different unrelated
+  deal, or unmapped), last synchronized timestamp (via `fmtDate` —
+  `last_synced_at` is a real `TIMESTAMPTZ`), whether/how much is counted in
+  Collected, and per-row warning badges (duplicate document number, voided
+  in the cache, voided in the mapping, unmapped, wrong project). The summary
+  section states the exact computed totals and is explicitly labeled
+  "cached data from this CRM's own database... not a live QuickBooks lookup
+  made just now," so cached vs. live is never ambiguous.
+- **Zero new backend code, zero new QuickBooks calls**: this is purely a UI
+  layer on PR #84's existing, already-tested, purely-read-only endpoint — no
+  backend route, module, or query was added, changed, or duplicated for this
+  pass.
+- Regression coverage: `crm-frontend/src/components/financials/InvoiceReconciliationPanel.test.jsx`
+  (on-demand-only fetch, the full itemized render including warning badges,
+  the specific-backend-error-message display, the no-QB-customer empty
+  state, and the no-refetch-on-reopen behavior). Full frontend vitest suite
+  re-run clean (531 pass) and `npm run build:exit` re-run clean after this
+  change.
+
+**Operator navigation** (once this deploys): open Lalani's Master Project in
+the CRM (either the root deal or the addendum — either opens the same
+combined Financial Summary), scroll to the Financials tab's "Financial
+Summary" card at the top, and click the gold-bordered "Invoice
+Reconciliation" button in that card's dark header bar (visible to admin
+accounts only). The modal that opens shows the exact itemized breakdown
+behind the $42,031.00 figure, with duplicate/voided/wrong-project/unmapped
+rows flagged for review — no browser console, no token, no external tool
+needed.
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`

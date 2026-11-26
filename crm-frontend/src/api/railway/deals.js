@@ -58,3 +58,13 @@ export function getAddendums(id) {
 export async function convertToAddendum(id, data) {
   return apiCall(`/api/v1/deals/${id}/convert-to-addendum`, { method: 'POST', body: data });
 }
+
+// Admin-only, read-only itemized Master Project invoice reconciliation
+// (November 2026, PR #84's backend — the Lalani $1,097 discrepancy
+// investigation). Backend route is gated requireAuth+requireAdmin; this
+// client makes no extra calls of its own and never caches the result —
+// fetched fresh, on demand, via the exact same authenticated apiCall()
+// every other deal request already uses (no separate token handling).
+export function getInvoiceReconciliation(id) {
+  return apiCall(`/api/v1/deals/${id}/invoice-reconciliation`, { method: 'GET' });
+}
