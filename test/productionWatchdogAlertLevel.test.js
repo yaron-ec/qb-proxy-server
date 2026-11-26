@@ -71,6 +71,7 @@ test('website-intake-rejections: a genuine, sustained rejection burst ALWAYS dis
     recordFailure: async (serviceId) => ({ incident: { id: 'inc-1', failure_count: 1 }, isNew: true, isCrashLoop: false }),
     recordSuccess: async () => ({ resolved: false, incident: null }),
     markAlertSent: async () => {},
+    shouldAlert: () => true,
   }));
   restores.push(stub('../lib/monitoring/knownGoodBaseline', { verifyAndPromote: async () => {}, getBaseline: async () => null }));
   restores.push(stub('../lib/monitoring/alertDispatcher', { dispatchMonitoringAlert: async (opts) => { dispatchCalls.push(opts); return {}; } }));
@@ -109,6 +110,7 @@ test('website-intake (silence): a stale-silence result from the real serviceInve
     recordFailure: async (serviceId) => { recordFailureCalls.push(serviceId); return { incident: { id: 'inc-1', failure_count: 1 }, isNew: true, isCrashLoop: false }; },
     recordSuccess: async () => ({ resolved: false, incident: null }),
     markAlertSent: async () => {},
+    shouldAlert: () => true,
   }));
   restores.push(stub('../lib/monitoring/knownGoodBaseline', { verifyAndPromote: async () => {}, getBaseline: async () => null }));
   restores.push(stub('../lib/monitoring/alertDispatcher', { dispatchMonitoringAlert: async (opts) => { dispatchCalls.push(opts); return {}; } }));
@@ -142,6 +144,7 @@ test('regression guard: every OTHER service (no alwaysCritical) keeps the origin
     recordFailure: async () => ({ incident: { id: 'inc-2', failure_count: 1 }, isNew: true, isCrashLoop: false }),
     recordSuccess: async () => ({ resolved: false, incident: null }),
     markAlertSent: async () => {},
+    shouldAlert: () => true,
   }));
   restores.push(stub('../lib/monitoring/knownGoodBaseline', { verifyAndPromote: async () => {}, getBaseline: async () => null }));
   restores.push(stub('../lib/monitoring/alertDispatcher', { dispatchMonitoringAlert: async (opts) => { dispatchCalls.push(opts); return {}; } }));

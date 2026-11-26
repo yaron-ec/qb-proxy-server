@@ -56,6 +56,7 @@ function baseStubs({ qbHealthy, otherHealthy = true, recordSuccessResolves = fal
       ? { resolved: true, incident: { id: incidentId } }
       : { resolved: false, incident: null }),
     markAlertSent: async () => {},
+    shouldAlert: () => true,
   }));
   restores.push(stub('../lib/monitoring/knownGoodBaseline', { verifyAndPromote: async () => {}, getBaseline: async () => null }));
   restores.push(stub('../lib/monitoring/alertDispatcher', { dispatchMonitoringAlert: async (opts) => { dispatchCalls.push(opts); return {}; } }));
@@ -146,6 +147,7 @@ test('regression guard: every OTHER service keeps its original, unverified "reco
       ? { resolved: true, incident: { id: 'inc-other' } }
       : { resolved: false, incident: null }),
     markAlertSent: async () => {},
+    shouldAlert: () => true,
   }));
   restores.push(stub('../lib/qbRecoveryVerification', {
     markRecoveryPending: async () => {},
