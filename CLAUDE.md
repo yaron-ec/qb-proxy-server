@@ -1314,22 +1314,33 @@ Twilio webhook/status-callback BACKEND URL (a different purpose entirely —
 see "SMS inbound-webhook / status-callback production incident" above) —
 not a lead link, not touched here.
 
-**Known, NOT-fixed-in-this-pass issue found while reading this code**:
-`lib/qbTokenManager.js#notifyReconnectRequired` destructures
-`const { ALERT_RECIPIENTS } = require('./captureAlerts')` — but
-`lib/captureAlerts.js` does not (and, per its current `module.exports`,
-never did in its current form) export `ALERT_RECIPIENTS`. This makes
-`ALERT_RECIPIENTS` `undefined` in production, so the `for...of` over it
-throws and is silently swallowed by the function's own try/catch — the
-QuickBooks reconnect-required ADMIN alert email has likely never sent in
-production. Every test file that exercises code paths near this (`test/
-integration/company2FunctionalProof.int.test.js` and 10+ others) masks this
-by stubbing the whole `lib/captureAlerts` module with its own
-`ALERT_RECIPIENTS: []`, which is why it was never caught by the existing
-suite. This is a genuinely separate defect (an email never sending, not a
-malformed link) from everything else in this section — tracked here as a
-known issue, deliberately not fixed in this pass to keep this fix scoped to
-link generation.
+**CORRECTION (November 2026 CRM stabilization closure — this bullet was
+stale and incorrectly claimed an active defect):** this section originally
+reported `lib/qbTokenManager.js#notifyReconnectRequired` destructuring a
+nonexistent `ALERT_RECIPIENTS` export off `lib/captureAlerts.js`, silently
+swallowed by its own try/catch, meaning the QuickBooks reconnect-required
+admin alert had likely never sent in production. **Confirmed via direct
+code read that this was fixed in a later pass of this same PR** (#46) —
+`notifyReconnectRequired` now resolves recipients via
+`notificationRecipients.getAllStaffRecipients()` narrowed by
+`notificationPreferences.filterRecipientsForCategory(...,
+CATEGORIES.SYSTEM_FAILURE)` (the same mechanism every other staff
+broadcast in this codebase uses — no bespoke recipient list, no reliance
+on the nonexistent `ALERT_RECIPIENTS` export), links to `/integrations`
+specifically via `lib/crmUrl.js`, is deduplicated per credential per
+recipient per day via its idempotency key, and is best-effort (never
+throws back into the refresh/revocation path that triggered it). It fires
+ONLY on a genuinely revoked/non-retriable refresh (`REVOKED_CODES`, a
+non-429/non-5xx refusal) — never for quota exhaustion or an ordinary
+transient 429/5xx, which are recorded via `tokenStore.markError` with no
+email at all, so the three failure classes (quota exhaustion, temporary
+service failure, genuinely revoked credential) are correctly distinguished
+by construction. Regression coverage:
+`test/qbTokenManagerReconnectAlert.test.js` (6 tests) exercises the REAL,
+unstubbed implementation — recipients/link/content, idempotency-key
+dedup, zero-recipients no-op, and failure-is-swallowed-never-propagates —
+confirmed passing. This document had not been updated to reflect that fix;
+do not re-"fix" this again without first re-confirming it still exists.
 
 ### Post-login redirect now preserves the intended lead (`lib/safeReturnTo.js`)
 
@@ -3367,12 +3378,16 @@ overwhelming majority of the year) is byte-for-byte unchanged — verified
 across ordinary summer/winter dates plus every hour of both 2026 US
 transition dates.
 
-**Not yet merged — held for explicit approval** per this engagement's SMS/
-reminder-system restrictions (no reminder-system code change ships without
-sign-off). No reminder cadence, window, or env var was changed — this is a
-pure due-time-calculation correctness fix; `REMINDER_DRY_RUN`,
-`SMS_AUTOMATED_REMINDERS_ENABLED`, and `SMS_REPLY_NOTIFICATIONS_ENABLED` are
-untouched.
+**CORRECTION (November 2026 CRM stabilization closure): this fix IS
+merged and deployed** — confirmed directly via `git log -- lib/
+reminderTime.js` (PR #54) and reused, by reference, by the later approved
+six-email/three-SMS schedule work below ("the DST fix from PR #54...
+applies identically and automatically"). This section's own "Not yet
+merged" line was never updated after that merge — a stale-documentation
+instance this closure pass corrected. No reminder cadence, window, or env
+var was changed by the fix itself — it is a pure due-time-calculation
+correctness fix; `REMINDER_DRY_RUN`, `SMS_AUTOMATED_REMINDERS_ENABLED`,
+and `SMS_REPLY_NOTIFICATIONS_ENABLED` were untouched by it.
 
 Regression coverage: `test/reminderTime.test.js` (new — every hour of both
 2026 DST transition dates, two ordinary non-transition dates as a
@@ -4171,15 +4186,13 @@ pass above (confirmed identical test names/line numbers) — this pass
 touches no QuickBooks estimate/invoice code at all. No frontend file was
 touched, so no frontend build/test was needed.
 
-**Not yet merged or deployed — held for explicit review and approval**,
-per explicit instruction. The migration (`2026-69-...sql`) has been
-verified to apply cleanly, idempotently, and correctly against a local
-disposable Postgres instance (run twice, including a `DO UPDATE` flip
-proof) but has NOT been run against the real production database from
-this environment (no production `DATABASE_URL`/network access here) —
-`db/migrate.js`'s own deploy-time run is the mechanism that will apply it
-once this PR is approved and merged, matching every other migration in
-this codebase.
+**CORRECTION (November 2026 CRM stabilization closure): this PR (#62) IS
+merged and deployed** — confirmed via `git log` (`main` contains the
+`2026-69-system-failure-notify-michelle-yaron.sql` file) and via Railway's
+own live boot log for `qb-proxy-server` recording the migration applied.
+This section's "Not yet merged" line was never updated after that merge —
+corrected in this closure pass, matching the same stale-documentation
+pattern found and fixed for PR #54's DST section above.
 
 Regression coverage (consolidated, this pass):
 `test/monitoringServiceInventoryDirectUrl.test.js`,
@@ -6115,6 +6128,255 @@ accounts only). The modal that opens shows the exact itemized breakdown
 behind the $42,031.00 figure, with duplicate/voided/wrong-project/unmapped
 rows flagged for review — no browser console, no token, no external tool
 needed.
+
+## CRM stabilization closure: notification-storm fix, Railway-verified production state, and a critical estimate-followup finding (November 2026)
+
+Direct follow-up to the "CRM Final Reconciliation" acceptance review — this
+pass had read-only Railway API access (an operator-connected Railway MCP
+connector) for the first time in this engagement, used strictly within the
+stated boundaries: no credential/JWT request, no production fork, no
+production data/config/accounting change, and `list-variables`' own
+`valuesRedacted: true` behavior (confirmed, not assumed) means every
+finding below is from variable NAMES (presence/absence) and from
+structured application LOG LINES already emitted by the running services —
+never a secret value.
+
+### 1. Repeated hourly QuickBooks quota-exhaustion alerts — root-caused and fixed, confirmed against LIVE, CURRENT production logs
+
+**Confirmed root cause**: `productionWatchdog.js#handleFailure`'s alert
+decision was `isNew || isCrashLoop || (incident.failure_count % 5 === 0)`
+— a COUNT, not a clock. At this watchdog's real tick cadence (confirmed
+live: `artistic-determination`'s cron fires roughly every 15 minutes), 5
+ticks is only ~75 minutes, repeating for as long as the incident stays
+open — which, for a quota exhaustion incident that can last days, means
+"every 5th failure" is effectively "every ~1-1.5 hours, indefinitely."
+
+**Confirmed LIVE against real production logs (not simulated)**: pulling
+`artistic-determination`'s own deploy logs for a 9-hour window ending at
+the moment of this investigation (2026-11-26, 08:15–17:02) found exactly
+13 `[monitor-alerts] ALERT NOT DELIVERED to Slack` lines (the unconditional
+companion log line inside `dispatchMonitoringAlert`, proving the staff
+email-send path was actually invoked 13 times) — at 08:15, 08:47, 09:30,
+10:16, 11:01, 11:47, 12:32, 13:15, 14:00, 14:46, 15:32, 16:30, 17:02,
+averaging one alert every ~40 minutes, for the SAME, unchanged
+`quickbooks-integration` / `quota_exhausted` incident the entire time
+(confirmed via the watchdog's own paired `[reminderWorker] watchdog:`
+scan lines showing the identical error text on every tick: "QuickBooks API
+monthly call quota exhausted (Block All CorePlus for a Builder App)"). This
+is the exact reported symptom, reproduced live, not hypothesized.
+
+**Fix** (`lib/monitoring/crashLoopDetector.js#shouldAlert`, new — see its
+own header for the full policy): replaces the count with a durable,
+24-hour wall-clock cooldown for a persistent, UNCHANGED incident, while
+preserving immediate alerting for (a) a brand-new incident, (b) a
+crash-loop transition, and (c) a GENUINELY DIFFERENT failure for the same
+still-open incident — detected via a new `last_alerted_error_type` column
+(`db/migrations/2026-81-monitoring-incident-alert-cooldown.sql`) compared
+against a new, STABLE `failureReason` field
+(`lib/monitoring/healthProbes.js#checkQbHealth`: `quota_exhausted` /
+`rate_limited_sustained` / `reconnect_required` / `not_connected`) —
+deliberately never the raw, changing `error` message text, which embeds
+`breakerState.opens_count` and would otherwise make an UNCHANGED incident
+look "different" on every single tick, defeating the cooldown entirely
+(exactly the "changing timestamps/counters incorrectly affecting incident
+identity" failure mode the review was asked to rule out).
+
+**A second, independent copy of the exact same stale count-based rule**
+was found and fixed in `routes/cronJobs.js`'s `/diagnose-watchdog` route
+(an admin diagnostic endpoint, built during an earlier P0 investigation) —
+both call sites now delegate to the one shared `crashLoop.shouldAlert()`,
+closing the drift risk of two independently-maintained copies of this
+policy (the same class of bug this codebase already paid for once with
+`QB_ENVIRONMENT`/`QB_SANDBOX` — see `lib/qbEnvironment.js`'s own header).
+
+**A related, lower-severity bug found and fixed in the same pass**:
+`lib/monitoring/alertDispatcher.js`'s email idempotency key included
+`payload.FAILURE_TIME` — `new Date().toISOString()`, freshly computed on
+every single call — making `emailService.send()`'s own send-once
+idempotency protection a complete no-op for this call site (every
+"identical" alert would always look new). Fixed to key on
+`${SERVICE_ID}:${INCIDENT_ID}:${alertSeq}` (`alertSeq` = the incident's
+own `alert_count + 1`, a stable, incident-scoped sequence number), passed
+through from every call site.
+
+**Never touched, per explicit instruction**: the circuit breaker itself,
+QuickBooks API call volume, the `quota_exhausted` incident's own open/
+closed state, and the existing crash-loop threshold (3 failures within 10
+minutes) and every-other-service's alert level — a regression test proves
+every non-QB service's alert behavior is byte-for-byte unaffected.
+
+**Secondary observation, NOT fixed in this pass (flagged for a deliberate
+future decision, not acted on without explicit instruction)**: the live
+watchdog scan data shows the QB incident occasionally flips briefly
+healthy (e.g. 15:16, 16:46 in the window above) before reopening minutes
+later — most likely the circuit breaker's own half-open trial window
+being read as "not cooling down" by `checkQbHealth` for a moment, not a
+genuine recovery (`qbRecoveryVerification`'s own "both sync cursors must
+independently catch up" gate already correctly prevents this from ever
+sending a false "recovered" email — confirmed unaffected). Each such flip,
+however, opens a brand-new `monitoring_incidents` row (`isNew: true`),
+which — correctly, by design — always alerts immediately; in a long
+flapping sequence this could still produce more than one alert per 24h
+for what is really one ongoing incident. This happened only twice in the
+observed 9-hour window, is a distinct, lower-confidence mechanism from the
+confirmed count-based bug above, and was not touched here — revisit if the
+24h-cooldown fix alone does not fully resolve the reported noise once
+deployed.
+
+Regression coverage: `test/crashLoopDetectorAlertCooldown.test.js` (11
+pure unit tests — the full decision matrix, including the exact
+"failure_count===5 must not re-alert" reproduction and a dedicated test
+proving a climbing `opens_count` embedded elsewhere never defeats the
+cooldown); `test/integration/monitoringIncidentAlertCooldown.int.test.js`
+(2 real-Postgres tests — the full persistent/duplicate/24h-reminder/
+different-failure/verified-recovery/recurrence lifecycle end to end, and
+crash-loop transitions interrupting the cooldown); the 4 pre-existing
+watchdog test files updated to stub the new shared `shouldAlert` export.
+Full backend unit suite re-run clean (1784 pass, 0 fail, 1 pre-existing
+unrelated todo) and the full real-Postgres integration suite re-run clean
+(0 failures) with every change in this section applied.
+
+### 2. Production automation-flag presence — verified via Railway variable names + live structured logs, not assumed from code defaults alone
+
+Per the explicit requirement to distinguish code defaults from production
+configuration from effective runtime behavior from actual execution
+evidence — `list-variables` (names only, confirmed `valuesRedacted: true`
+for this connector) plus live structured log lines from both `qb-proxy-
+server` and `artistic-determination`:
+
+| Flag | Variable present in Railway? | Live effective state (log evidence) |
+|---|---|---|
+| `REMINDER_DRY_RUN` | present (artistic-determination) | **Effectively `false` (real sending)** — every `[reminderWorker] done:` line shows `"dryRun":false` for appointment/phone/task reminders. Matches CLAUDE.md's existing claim. |
+| `EMAIL_BOOKING_CONFIRMATION_ENABLED` | present (qb-proxy-server) | Not directly observed (no new booking occurred in the log window) — presence alone means an operator deliberately set it; cannot confirm the literal value without a real booking or a direct admin read |
+| `EMAIL_EXTENDED_REMINDERS_ENABLED` | present (both services) | Not directly observed this window (no appointment matched the 48h/24h windows) |
+| `SMS_AUTOMATED_REMINDERS_ENABLED` | present (both services) | Not directly observed this window (`sms_sent:0` — but zero eligible appointments existed either way, so this is inconclusive, not a negative) |
+| `SMS_SENT_NOTIFICATIONS_ENABLED` | present (qb-proxy-server) | Not observed (no outbound SMS occurred this window) |
+| `SMS_DELIVERY_FAILURE_NOTIFICATIONS_ENABLED` | present (qb-proxy-server) | Not observed |
+| `SMS_REPLY_NOTIFICATIONS_ENABLED` | present (qb-proxy-server) | Not observed (no inbound SMS this window) |
+| `ESTIMATE_FOLLOWUP_DRY_RUN` | **present** (artistic-determination) | **Effectively `false` — CONFIRMED, see item 3 below. This directly contradicts this document's own repeated prior claim that this variable is "unset anywhere in this codebase/environment."** |
+| `ESTIMATE_FOLLOWUP_REPLY_DETECTION_ENABLED` | **present** (artistic-determination) | **Effectively `true` — CONFIRMED** (`"replyMonitoringHealthy":true,"replyMonitoringReason":"ok"` on every tick, and `replyPoll` is actively calling Gmail's `history.list`, `historyId` advancing tick to tick). Also directly contradicts this document's prior "neither flag is set anywhere in this environment" claim. |
+| `ESTIMATE_FOLLOWUP_REPLY_NOTIFICATIONS_ENABLED` | **present** (artistic-determination) | Not independently confirmed from logs (no inbound reply occurred this window) |
+| `SOLD_WELCOME_EMAIL_ENABLED` | **present** (qb-proxy-server) | Not observed this window (no lead entered Sold status) — but presence strongly suggests the prior session's task-completion record ("Enable automatic Sold trigger for future sales") is the ACCURATE account, and this document's own "unset... fully inert" claim is the stale one — see item 4 below |
+| `QB_PROACTIVE_HEALTH_CHECK_ENABLED` | **absent** from both services | Confirmed OFF, matching this document's existing claim |
+
+A variable being present in Railway proves an operator deliberately set
+it to *something* — it does not by itself prove the value is `'true'`
+(Railway's own API never returns the value to this connector type, by
+design, the same boundary that protects every real secret). Where live
+logs independently confirm the EFFECTIVE state (rows marked CONFIRMED
+above), that is real, direct evidence, not inference from presence alone.
+
+### 3. CRITICAL FINDING: the estimate-followup automation pipeline is NOT in its documented safe-default state
+
+Live `artistic-determination` logs show, on every single recent tick:
+```
+"estimateFollowup":{"ok":true,"dryRun":false,...,"replyMonitoringHealthy":true,"replyMonitoringReason":"ok",...}
+"replyPoll":{"ok":true,"messagesSeen":2,"matched":0,"ambiguous":0,"ignored":2,"historyId":"...",...}
+```
+This means, as of this writing: `ESTIMATE_FOLLOWUP_DRY_RUN` is effectively
+`'false'` (real sending enabled) AND `ESTIMATE_FOLLOWUP_REPLY_DETECTION_ENABLED`
+is effectively `'true'` AND the fail-closed reply-monitoring gate reports
+genuinely healthy. **This directly contradicts every prior claim in this
+document that this feature remains inert ("fully inert... until an
+operator explicitly sets..." / "Neither flag is set anywhere in this
+environment")** — those claims were accurate when written, during the
+one approved, allowlist-scoped controlled live-send test earlier in this
+engagement, but this document was never updated after that test concluded
+and (per this session's own prior task record) the dry-run flag was
+believed restored to safe. **The live Railway state does not match that
+belief.**
+
+**Why this has not yet produced an unauthorized customer send**: every
+observed tick shows `"total":0` for `estimateFollowup` and `"scanned":0`
+for `autoEnrollment`/`postAppointmentSync` — there are currently zero
+active or newly-eligible sequences for the pipeline to act on. This is
+most plausibly because the upstream data source (QuickBooks estimate
+sync) has been externally blocked by the ongoing monthly-quota-exhaustion
+incident for an extended period, so no new estimate has had the chance to
+accumulate `EmailStatus=EmailSent` evidence and auto-enroll. **This is not
+a safety control — it is incidental.** The moment QuickBooks' quota
+resets (expected ~December 1) and estimate sync resumes, any
+Handoff-origin estimate that already carries (or newly acquires)
+`EmailSent` evidence could auto-enroll and, with `ESTIMATE_FOLLOWUP_DRY_RUN`
+apparently `false`, begin sending real, automated customer emails —
+**without any further operator action** — the instant that happens.
+
+**This was not changed, disabled, or otherwise touched from this
+environment** — per the explicit instruction not to change production
+activation settings until effective behavior and consequences are
+understood, and because reversing it unilaterally is itself a production
+configuration change requiring the same sign-off. **This is reported as
+the single highest-priority open item for explicit operator decision
+before December 1**: either confirm this is the deliberately-intended,
+approved live state (in which case this document should be updated to
+reflect it, and the controlled-test allowlist variable's absence from the
+`artistic-determination` variable list should be double-checked, since an
+allowlist-less live-send gate now protects nothing) or restore
+`ESTIMATE_FOLLOWUP_DRY_RUN` to `'true'` (or unset it) before QuickBooks
+sync resumes.
+
+### 4. Sold welcome email — contradiction narrowed, not fully resolved
+
+`SOLD_WELCOME_EMAIL_ENABLED` is confirmed present as a configured variable
+on `qb-proxy-server` (the service that actually runs the Sold-status-entry
+trigger, via `routes/leads.js`). No lead entered Sold status during the
+observed log window, so the literal boolean value could not be confirmed
+from logs. Combined with this engagement's own prior task record ("Enable
+automatic Sold trigger for future sales... completed"), the presence of
+this variable makes it considerably more likely the trigger IS live than
+this document's prior "unset... fully inert" claim — but this remains an
+operator-confirmable fact, not yet independently proven here. **Jacqueline's
+already-sent welcome email was NOT resent and no test Sold transition was
+triggered to check this**, per explicit instruction.
+
+### 5. Integration configuration presence — confirmed, health not independently re-verified
+
+`TWILIO_WEBHOOK_BASE_URL`, `QB_WEBHOOK_VERIFIER_TOKEN`, and
+`GOOGLE_CONTACTS_SUB` are all confirmed PRESENT as configured variables on
+`qb-proxy-server` — satisfying the specific "operator must confirm this is
+set" callouts this document has carried since the SMS webhook, QB webhook
+fail-closed, and Google Contacts 403 incidents respectively. Their exact
+values were never read or reported (Railway never returns them to this
+connector). Live SMS/QB-webhook/Google-Contacts health (zero rejections,
+successful deliveries) was NOT independently re-verified against
+`sms_webhook_rejections`/`google_contacts_outbox` — that needs either a
+production database read (not available from this environment, and not
+requested, per instruction) or the CRM's own System Health page, read by
+an admin.
+
+### 6. Backups, disaster recovery, and historical audit scripts — still not run, same constraint as before
+
+No Railway tool available in this session exposes the Postgres service's
+Backups/PITR configuration, and no tool safely executes a one-off script
+against the production database without either a raw credential (never
+requested) or a full environment fork (carries live `integration_credentials`
+and running workers — explicitly ruled out again in this pass, per the
+same reasoning as the original Lalani invoice-reconciliation investigation).
+The historical audit scripts (`remediateTerminalLostLeadAppointments.js`,
+`backfillAppointmentScheduledStatusCasing.js`,
+`auditCalendarIncidentHistory.js`, `auditUnsyncedActiveAppointments.js`,
+`auditTravelArtifacts.js`, `reconcileGoogleContacts.js`,
+`auditQbEstimateEmailStatus.js`) remain built, report-only-by-default, and
+**not run against production from any environment this engagement has had
+access to**. Running them (report-only first) is an operator action; the
+one new thing this pass adds is confirmation that `GOOGLE_CONTACTS_SUB` is
+at least configured, which is a prerequisite for `reconcileGoogleContacts.js`'s
+own health-check path to mean anything once it IS run.
+
+### 7. An unrelated, unexplained finding: a staged, uncommitted environment patch
+
+`environment-status` reports one pending, staged `EnvironmentPatch`
+(workflow `commitChanges/...`) that has been sitting in "staged" status
+since **2026-11-20** — six days before this investigation — with no
+visible diff from the tools available in this session. This was not
+created by this engagement and its contents are unknown from here. **Not
+touched or committed** — flagged only because an abandoned staged change
+is itself a piece of "unresolved production state" worth a human look in
+the Railway dashboard before this phase is called closed.
+
+Regression coverage for this section's code change is listed under item 1
+above; items 2–7 are findings/verifications, not code changes, and
+introduce no regression risk by construction.
 
 ## Open, known-limitation items
 

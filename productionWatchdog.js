@@ -1,11 +1,21 @@
 /* eslint-disable no-undef */
 /**
- * productionWatchdog — standalone entrypoint for a SEPARATE Railway Cron job
- * (every 3 min) on a dedicated single-replica service (`ec-crm-production-watchdog`).
+ * productionWatchdog — standalone module, runnable directly (`node
+ * productionWatchdog.js`) OR required inline (see `require('./productionWatchdog')`
+ * in reminderWorker.js, which is how this actually runs in production
+ * today). CORRECTION (November 2026 reliability audit): this header
+ * previously claimed a separate, dedicated `ec-crm-production-watchdog`
+ * Railway Cron service running every 3 minutes — no such service exists;
+ * CLAUDE.md's own "Production topology (manually verified)" section and
+ * `railway.json`'s own documented staleness both already established this.
+ * In production, `runWatchdog()` executes once per `reminderWorker.js`
+ * cron tick (the `artistic-determination` service), on that service's own
+ * schedule — NOT every 3 minutes.
  *
- * This is a DIFFERENT failure domain from every service it monitors. If
- * qb-proxy-server, the reminder worker, or any outbox worker is dead/stuck,
- * the watchdog still runs and alerts.
+ * This is still a DIFFERENT failure domain from every Express-backed
+ * service it monitors (qb-proxy-server, any outbox worker) — if one of
+ * those is dead/stuck, this dedicated single-replica cron worker still
+ * runs and alerts.
  *
  * What it does:
  *   1. Runs health probes for every monitored service.
@@ -142,8 +152,18 @@ async function handleFailure(service, result, baseUrl) {
 
   if (!incident) return;
 
-  const shouldAlert = isNew || isCrashLoop || (incident.failure_count % 5 === 0);
-  if (!shouldAlert) return;
+  // November 2026: replaced the old inline "every 5th failure" count-based
+  // rule (a notification-storm root cause for a long-lived, externally
+  // blocked incident — see crashLoopDetector.js#shouldAlert's own header)
+  // with the ONE shared decision function, so this file and routes/
+  // cronJobs.js's /diagnose-watchdog route can never drift apart again.
+  const newErrorType = result.failureReason || result.checkType;
+  const alertNow = crashLoop.shouldAlert(incident, { isNew, isCrashLoop, newErrorType });
+  if (!alertNow) return;
+
+  // A stable, incident-scoped sequence number for THIS alert — used as
+  // part of the email idempotency key below instead of a fresh timestamp.
+  const alertSeq = (incident.alert_count || 0) + 1;
 
   const recoveryDecision = evaluateRecovery(service.id, {
     errorSummary: result.error,
@@ -193,9 +213,10 @@ async function handleFailure(service, result, baseUrl) {
         recoveryAction: recoveryDecision.action,
         recoveryResult: verifiedOutcome,
         incidentId: incident.id,
+        alertSeq,
         logLines: [],
       });
-      await crashLoop.markAlertSent(incident.id);
+      await crashLoop.markAlertSent(incident.id, 'recovery_verified');
       return;
     }
     const failedOutcome = `${outcome} Verification FAILED: ${verify.reason}`;
@@ -210,9 +231,10 @@ async function handleFailure(service, result, baseUrl) {
       recoveryAction: recoveryDecision.action,
       recoveryResult: failedOutcome,
       incidentId: incident.id,
+      alertSeq,
       logLines: [],
     });
-    await crashLoop.markAlertSent(incident.id);
+    await crashLoop.markAlertSent(incident.id, 'recovery_failed');
     return;
   }
 
@@ -226,10 +248,11 @@ async function handleFailure(service, result, baseUrl) {
     recoveryAction: recoveryDecision.action,
     recoveryResult: outcome,
     incidentId: incident.id,
+    alertSeq,
     logLines: [],
   });
 
-  await crashLoop.markAlertSent(incident.id);
+  await crashLoop.markAlertSent(incident.id, newErrorType);
 }
 
 async function handleSuccess(service, result) {
@@ -262,6 +285,7 @@ async function handleSuccess(service, result) {
         recoveryAction: 'none',
         recoveryResult: 'healthy',
         incidentId: incident.id,
+        alertSeq: 1, // a resolution alert fires at most once per incident
         logLines: [],
       });
     }
@@ -280,6 +304,7 @@ async function handleSuccess(service, result) {
         recoveryAction: 'none',
         recoveryResult: 'sync_caught_up',
         incidentId: pending.incidentId,
+        alertSeq: 1, // a verified-recovery alert fires at most once per incident
         logLines: [],
       });
     });

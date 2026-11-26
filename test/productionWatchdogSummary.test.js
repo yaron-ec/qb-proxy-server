@@ -48,6 +48,7 @@ test('runWatchdog(): the scan summary names every unhealthy service with its rea
     recordFailure: async (serviceId) => ({ incident: { id: 'inc-1', failure_count: 1 }, isNew: true, isCrashLoop: false }),
     recordSuccess: async () => ({ resolved: false, incident: null }),
     markAlertSent: async () => {},
+    shouldAlert: () => true,
   }));
   restores.push(stub('../lib/monitoring/knownGoodBaseline', { verifyAndPromote: async () => {}, getBaseline: async () => null }));
   restores.push(stub('../lib/monitoring/alertDispatcher', { dispatchMonitoringAlert: async () => ({}) }));

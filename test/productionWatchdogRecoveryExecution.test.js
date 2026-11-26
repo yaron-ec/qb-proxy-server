@@ -74,6 +74,7 @@ test('executeRecovery actually calls railwayApi.restartService for an eligible, 
     recordFailure: async () => ({ incident: { id: 42, failure_count: 1, recovery_action: null, recovery_result: null }, isNew: true, isCrashLoop: false }),
     recordSuccess: async (id) => { recordSuccessCalls++; return { resolved: true, incident: { id: 42 } }; },
     markAlertSent: async () => {},
+    shouldAlert: () => true,
   }));
   restores.push(stub('../lib/monitoring/recoveryPolicy', {
     evaluateRecovery: () => ({ action: 'restart', reason: 'Transient failure on previously-healthy service. One controlled restart permitted.' }),
@@ -114,6 +115,7 @@ test('when a restart is triggered but the service never becomes healthy, escalat
     recordFailure: async () => ({ incident: { id: 43, failure_count: 1, recovery_action: null, recovery_result: null }, isNew: true, isCrashLoop: false }),
     recordSuccess: async () => { recordSuccessCalls++; return { resolved: false, incident: null }; },
     markAlertSent: async () => {},
+    shouldAlert: () => true,
   }));
   restores.push(stub('../lib/monitoring/recoveryPolicy', {
     evaluateRecovery: () => ({ action: 'restart', reason: 'Transient failure on previously-healthy service. One controlled restart permitted.' }),
@@ -160,6 +162,7 @@ test('a SECOND failure on the SAME still-open incident never restarts again — 
     recordFailure: async () => ({ incident: { id: 42, failure_count: 2, recovery_action: 'restart', recovery_result: 'Restart triggered via Railway API. Health will be re-checked on the next watchdog cycle.' }, isNew: false, isCrashLoop: false }),
     recordSuccess: async () => ({ resolved: false, incident: null }),
     markAlertSent: async () => {},
+    shouldAlert: () => true,
   }));
   restores.push(stub('../lib/monitoring/recoveryPolicy', {
     evaluateRecovery: () => ({ action: 'restart', reason: 'Transient failure on previously-healthy service. One controlled restart permitted.' }),
@@ -182,6 +185,7 @@ test('a circuit-breaker service (reminder-worker) never restarts, regardless of 
     recordFailure: async () => ({ incident: { id: 7, failure_count: 1, recovery_action: null, recovery_result: null }, isNew: true, isCrashLoop: false }),
     recordSuccess: async () => ({ resolved: false, incident: null }),
     markAlertSent: async () => {},
+    shouldAlert: () => true,
   }));
   // Use the REAL recoveryPolicy so the circuit breaker itself is exercised, not a stub.
   try {
@@ -201,6 +205,7 @@ test('a restart decision with no Railway IDs configured never calls the API and 
     recordFailure: async () => ({ incident: { id: 9, failure_count: 1, recovery_action: null, recovery_result: null }, isNew: true, isCrashLoop: false }),
     recordSuccess: async () => ({ resolved: false, incident: null }),
     markAlertSent: async () => {},
+    shouldAlert: () => true,
   }));
   restores.push(stub('../lib/monitoring/recoveryPolicy', {
     evaluateRecovery: () => ({ action: 'restart', reason: 'Transient failure on previously-healthy service. One controlled restart permitted.' }),
@@ -224,6 +229,7 @@ test('a restart decision when the token lacks capability never calls the API and
     recordFailure: async () => ({ incident: { id: 10, failure_count: 1, recovery_action: null, recovery_result: null }, isNew: true, isCrashLoop: false }),
     recordSuccess: async () => ({ resolved: false, incident: null }),
     markAlertSent: async () => {},
+    shouldAlert: () => true,
   }));
   restores.push(stub('../lib/monitoring/recoveryPolicy', {
     evaluateRecovery: () => ({ action: 'restart', reason: 'Transient failure on previously-healthy service. One controlled restart permitted.' }),

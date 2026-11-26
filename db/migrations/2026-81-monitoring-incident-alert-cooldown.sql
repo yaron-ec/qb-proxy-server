@@ -1,0 +1,15 @@
+-- 2026-81-monitoring-incident-alert-cooldown.sql
+--
+-- Closes the "repeated hourly QuickBooks quota-exhaustion emails" production
+-- incident (November 2026) — root cause: productionWatchdog.js#handleFailure
+-- re-alerted on every 5th failed probe tick (a COUNT-based rule), which for a
+-- long-lived, externally-blocked incident (Intuit's monthly quota) produced a
+-- notification roughly once an hour for as long as the incident stayed open.
+--
+-- Adds the one durable, time-based signal needed to replace that rule with a
+-- 24-hour persistent-incident reminder cadence: the error category that was
+-- actually ALERTED ON last time, so a genuinely different failure for the
+-- same service can still interrupt the cooldown and alert immediately (per
+-- the approved notification policy), without comparing changing, unstable
+-- values like a byte-for-byte error message or a reopen counter.
+ALTER TABLE monitoring_incidents ADD COLUMN IF NOT EXISTS last_alerted_error_type TEXT;

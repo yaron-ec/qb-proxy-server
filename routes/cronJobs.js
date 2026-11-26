@@ -957,17 +957,24 @@ router.post('/diagnose-watchdog', async (req, res) => {
               service.id, result.error || 'Unknown failure', result.checkType, result.details || {}
             );
             if (incident) {
-              const shouldAlert = isNew || isCrashLoop || (incident.failure_count % 5 === 0);
-              if (shouldAlert) {
+              // Same shared decision function productionWatchdog.js#handleFailure
+              // uses — this diagnostic route previously re-derived the old
+              // count-based "every 5th failure" rule inline, a second
+              // duplicate of the exact logic that caused the November 2026
+              // notification-storm incident. See crashLoopDetector.js#shouldAlert.
+              const newErrorType = result.failureReason || result.checkType;
+              const alertNow = crashLoop.shouldAlert(incident, { isNew, isCrashLoop, newErrorType });
+              if (alertNow) {
                 const recoveryDecision = evaluateRecovery(service.id, {
                   errorSummary: result.error, isCrashLoop, isNewIncident: isNew, previousHealthy: !isCrashLoop,
                 });
                 await dispatchMonitoringAlert({
                   serviceId: service.id, level: isCrashLoop ? 'critical' : 'warning',
                   errorSummary: result.error, errorType: result.checkType, httpStatus: result.httpStatus,
-                  isCrashLoop, recoveryAction: recoveryDecision.action, recoveryResult: recoveryDecision.reason, logLines: [],
+                  isCrashLoop, recoveryAction: recoveryDecision.action, recoveryResult: recoveryDecision.reason,
+                  incidentId: incident.id, alertSeq: (incident.alert_count || 0) + 1, logLines: [],
                 });
-                await crashLoop.markAlertSent(incident.id);
+                await crashLoop.markAlertSent(incident.id, newErrorType);
               }
             }
           } catch (e) {
