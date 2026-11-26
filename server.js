@@ -2284,7 +2284,27 @@ async function runQbEstimateSync() {
 async function runQbEstimateSyncInner() {
   const stats = { found: 0, fetched: 0, imported: 0, updated: 0, matched: 0, unmatched: 0, skipped: 0, unchanged: 0, manual_preserved: 0, failed: 0, stopped_early: false, errors: [] };
 
-  const qbEstimates = await fetchAllQbEstimates();
+  // November 2026 CRM acceptance review finding: when the shared circuit
+  // breaker (lib/qbRateLimitBreaker.js) is ALREADY open before this tick's
+  // very first QuickBooks call, fetchAllQbEstimates() throws a circuitOpen
+  // error — previously uncaught here, so it propagated straight out of this
+  // function and skipped the cursor-save block below entirely. That meant
+  // `sync_cursors.quickbooks_estimates.last_attempted_at` never advanced
+  // during a sustained breaker-open outage, which in turn made
+  // lib/monitoring/healthProbes.js#checkQbSyncScheduler falsely report "the
+  // scheduler may not be executing" — a SECOND, misleading alarm for the
+  // exact same already-correctly-reported quota/rate-limit condition
+  // checkQbHealth already surfaces. The per-item loop below already handles
+  // a breaker that opens MID-loop the same way; this covers it being open
+  // from the very first call.
+  let qbEstimates = [];
+  try {
+    qbEstimates = await fetchAllQbEstimates();
+  } catch (e) {
+    if (!e.circuitOpen) throw e;
+    console.warn('[qb-sync] circuit breaker OPEN before fetching estimates — recording a stopped-early attempt instead of skipping the cursor save');
+    stats.stopped_early = true;
+  }
   stats.found = qbEstimates.length;
   stats.fetched = qbEstimates.length;
   console.log(`[qb-sync] Estimates fetched: ${stats.found}`);

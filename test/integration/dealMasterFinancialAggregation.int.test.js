@@ -277,3 +277,91 @@ test('5. a ZERO-REVENUE addendum (no invoices mapped yet) — actual profit marg
   assert.strictEqual(m2.actual_profit_margin_pct, 0, 'division-by-zero guard: must be exactly 0, never NaN or -Infinity, even with a negative actual profit');
   assert.ok(Number.isFinite(m2.actual_profit_margin_pct));
 });
+
+/**
+ * Tests 6-7 — November 2026 production correction: the Ali & Mohemmed
+ * Lalani "$49,965 Collected" double-counting incident. Every test above
+ * (1-5) gives EVERY deal its own direct, qb_invoice_sale_map-attributed
+ * invoice — the exact shape that never exercises the bug at all. The real
+ * incident shape is specifically: a root deal's own direct invoice total
+ * already reflects MORE than its own contract value (because the same
+ * customer's whole QuickBooks invoice history lives under that one deal's
+ * mapping), while a SIBLING addendum has NO invoice of its own at all and
+ * therefore falls back to `lib/customerPaymentWaterfall.js`'s customer-
+ * level allocation — which, before this fix, independently re-drew from
+ * the SAME pool of money the root's direct figure already claimed.
+ */
+test('6. the exact Lalani double-counting bug: a sibling addendum with no invoice of its own must NOT re-claim money the root deal\'s own direct invoice already accounts for', { skip }, async () => {
+  const { leadId, qbCustomerId, stamp } = await seedCustomer('Lalani');
+  const parentId = await insertDeal({ leadId, name: 'Roof Replacement', amount: 33000, daysAgo: 30 });
+  const addendumId = await insertDeal({ leadId, name: 'Bathroom Repair', amount: 7934, parentDealId: parentId, daysAgo: 5 });
+
+  // ONLY the parent has a direct, mapped invoice — and it already totals
+  // MORE than the parent's own $33,000 contract (the real incident shape:
+  // $42,031, i.e. the parent's own invoices already reflect money for
+  // BOTH the roof work and the bathroom addendum, plus $1,097 beyond
+  // even that combined total). The addendum has ZERO invoices of its own.
+  await mapDirectInvoice({ qbCustomerId, dealId: parentId, leadId, stamp, suffix: 'parent', totalAmt: 42031, paid: 42031 });
+
+  const res = await api('GET', `/api/v1/deals/${parentId}/addendums`, undefined, adminToken);
+  assert.strictEqual(res.status, 200, JSON.stringify(res.body));
+  const m = res.body.master;
+
+  assert.strictEqual(res.body.total_approved_contract, 40934);
+  assert.strictEqual(m.invoiced, 42031, 'invoiced is still the root\'s own real invoice total — unaffected by this fix');
+
+  // THE FIX: collected must be the real $42,031 the customer's QuickBooks
+  // data actually shows as received — NEVER $49,965 (42,031 root direct +
+  // 7,934 addendum waterfall fallback, double-counting the same money).
+  assert.strictEqual(m.collected, 42031, 'collected must equal the customer\'s real total received money exactly once — never double-counted with a sibling addendum\'s independent waterfall share');
+  assert.notStrictEqual(m.collected, 49965, 'must never reproduce the exact reported $49,965 double-counting bug');
+
+  const addendumRow = m.per_deal.find((d) => d.deal_id === addendumId);
+  assert.strictEqual(addendumRow.collected, 0, 'the addendum has no invoice of its own and the customer\'s whole payment pool is already claimed by the parent — it must not independently claim a $7,934 waterfall share on top of that');
+  assert.strictEqual(addendumRow.used_waterfall_fallback, true, 'the addendum genuinely has no direct invoice, so it is still correctly flagged as waterfall-fallback-eligible — only the AMOUNT it draws from that fallback is corrected');
+
+  const parentRow = m.per_deal.find((d) => d.deal_id === parentId);
+  assert.strictEqual(parentRow.collected, 42031, 'the parent\'s own direct invoice claim is completely unaffected by this fix');
+
+  // Outstanding/actual-profit must be derived from the CORRECTED collected
+  // figure, never the old double-counted one.
+  assert.strictEqual(m.outstanding, 0, 'invoiced/collected already exceeds the combined contract — no balance due, not negative');
+  assert.strictEqual(m.actual_profit, 42031, 'ACTUAL PROFIT = corrected COLLECTED (42,031) − TOTAL RECORDED COSTS (0 here)');
+  assert.strictEqual(m.unattributed_customer_excess, 0, 'the full pool is already claimed directly by the parent — there is no leftover to report as unattributed');
+});
+
+test('7. a genuine customer overpayment beyond what any single fallback deal can absorb remains visible, never silently capped or dropped', { skip }, async () => {
+  const { leadId, qbCustomerId, stamp } = await seedCustomer('Overpay');
+  const parentId = await insertDeal({ leadId, name: 'Main Project', amount: 10000, daysAgo: 25 });
+  const addendumId = await insertDeal({ leadId, name: 'Small Addendum', amount: 2000, parentDealId: parentId, daysAgo: 4 });
+
+  // Parent has its own direct, fully-paid invoice.
+  await mapDirectInvoice({ qbCustomerId, dealId: parentId, leadId, stamp, suffix: 'p', totalAmt: 10000, paid: 10000 });
+  // The addendum has NO invoice of its own — eligible for the waterfall
+  // fallback, capped at its own $2,000 contract.
+  //
+  // A THIRD, UNMAPPED invoice exists for this same QuickBooks customer
+  // (never attributed to either deal) — real money this customer paid
+  // that exceeds what either deal in this Master Project can absorb.
+  await db.query(
+    `INSERT INTO qb_invoices_cache (qb_invoice_id, qb_customer_id, total_amt, balance, paid, voided, last_synced_at)
+     VALUES ($1, $2, 5000, 0, 5000, false, NOW())`,
+    [`master-inv-unmapped-${stamp}`, qbCustomerId]
+  );
+
+  const res = await api('GET', `/api/v1/deals/${parentId}/addendums`, undefined, adminToken);
+  const m = res.body.master;
+
+  assert.strictEqual(res.body.total_approved_contract, 12000);
+  // Customer's real total received is 10,000 (parent) + 5,000 (unmapped) =
+  // 15,000. Parent claims 10,000 directly; the addendum's waterfall
+  // fallback can absorb at most its own 2,000 contract from the remaining
+  // 5,000 pool, leaving 3,000 genuinely unattributed to any specific deal
+  // — which must still be VISIBLE in the combined total, never dropped
+  // and never silently capped at the 12,000 combined contract value.
+  const addendumRow = m.per_deal.find((d) => d.deal_id === addendumId);
+  assert.strictEqual(addendumRow.collected, 2000, 'the addendum\'s fallback share is capped at its own contract, exactly as the waterfall already does for any single-deal lookup');
+  assert.strictEqual(m.unattributed_customer_excess, 3000, 'the genuine leftover overpayment is reported explicitly, never silently dropped');
+  assert.strictEqual(m.collected, 15000, 'collected must reflect the full real amount received (10,000 + 2,000 + 3,000 unattributed excess) — never capped at the 12,000 combined contract value');
+  assert.ok(m.collected > res.body.total_approved_contract, 'a genuine overpayment must remain visible as collected > contract, never force-capped');
+});

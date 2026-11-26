@@ -48,3 +48,26 @@ test('the inbound-reconcile cursor write only happens on a real (non-skipped) ti
   assert.ok(skipIdx > -1 && cursorIdx > -1);
   assert.ok(skipIdx < cursorIdx, 'the skip branch must come first (an else branch) relative to the cursor-writing success branch');
 });
+
+/**
+ * November 2026 CRM acceptance review finding: when the shared circuit
+ * breaker was ALREADY open before runQbEstimateSyncInner's very first
+ * QuickBooks call, fetchAllQbEstimates() threw a circuitOpen error that
+ * propagated straight out of the function — skipping the cursor-save block
+ * entirely, so `last_attempted_at` never advanced during a sustained
+ * breaker-open outage. This made checkQbSyncScheduler falsely report "the
+ * scheduler may not be executing" (a second, misleading alarm for the exact
+ * same quota/rate-limit condition checkQbHealth already correctly reports)
+ * — confirmed live in production: `quickbooks-sync-scheduler` reported
+ * unhealthy with that exact message while the breaker was open.
+ */
+test('fetchAllQbEstimates() is called inside a try/catch that treats a pre-loop circuitOpen failure as a stopped-early attempt, never an uncaught throw that skips the cursor save', () => {
+  const fnIdx = SOURCE.indexOf('async function runQbEstimateSyncInner()');
+  assert.ok(fnIdx > -1);
+  const cursorIdx = SOURCE.indexOf("integration: 'quickbooks_estimates'", fnIdx);
+  assert.ok(cursorIdx > fnIdx, 'the quickbooks_estimates cursor save must still be reachable after runQbEstimateSyncInner starts');
+  const block = SOURCE.slice(fnIdx, cursorIdx);
+  assert.ok(/try\s*\{\s*qbEstimates = await fetchAllQbEstimates\(\);/.test(block), 'fetchAllQbEstimates() must be called inside a try block');
+  assert.ok(/if \(!e\.circuitOpen\) throw e;/.test(block), 'a non-circuitOpen error must still propagate (never silently swallowed)');
+  assert.ok(/stats\.stopped_early = true;/.test(block), 'a pre-loop circuitOpen failure must set stopped_early so classifySyncOutcome reports it correctly, never a bare, uncaught throw');
+});
