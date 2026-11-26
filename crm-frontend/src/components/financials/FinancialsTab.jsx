@@ -214,7 +214,7 @@ export default function FinancialsTab({ deal, lead, invoices, setDeal, setLead, 
           mapping, activity log) lives in the Expandable Details accordion
           below, collapsed by default, so the page opens as a summary, not a
           wall of every sub-panel at once. */}
-      <ProfitabilitySummary fin={fin} master={addendumData?.master} />
+      <ProfitabilitySummary fin={fin} master={addendumData?.master} dealId={deal.id} isAdmin={isAdmin} />
 
       {/* Master Project Summary (Original Contract/Approved Addendums/
           Combined Contract Value + the invoiced-vs-contract discrepancy
