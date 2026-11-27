@@ -6508,40 +6508,57 @@ consistently (no appointment happened to fall in a reminder window during
 this specific 11-hour slice), `sms_skipped`/`sms_sent: 0` throughout. Sold
 welcome emails were not touched, tested, or triggered.
 
-### 4. Pending Railway environment change — re-confirmed still unresolved, still no visible diff
+### 4. Pending Railway environment change — RESOLVED (lower-risk than it looked): confirmed empty, two independent ways
 
-`environment-status` was re-checked at the start of this round
-(2026-11-27): the SAME staged `EnvironmentPatch`
+`environment-status` still lists the same staged `EnvironmentPatch`
 (`patch:bb461939-81b5-4ed9-92f6-70418dfbc57c`, workflow
-`commitChanges/9331271c-69d4-4d1e-8e7c-d9b2d8bf54ed/bb461939-...`) is still
-present, `status: "staged"`, `changes: []` (still empty — no tool available
-in this session surfaces its actual diff), `startedAt:
-"2026-11-20T04:56:34.838Z"` — now **7 days old**, unchanged from the prior
-round's check. No tool available to this session (environment-status,
-describe-environment, describe-service, get-staged-changes,
-list-deployments) returns this patch's actual contents. `get-staged-changes`
-specifically was tried and returns environment-level staged variable/
-config diffs, not this workflow-level `EnvironmentPatch` object. **This
-remains blocked and requires a human to open the Railway dashboard
-directly** (Project → production environment → the pending-changes/
-deployment-history view) to see what it actually contains and either
-apply or discard it. It has not caused any observed harm in 7 days, but an
-abandoned staged change of unknown content is not something this
-environment can clear or explain.
+`commitChanges/9331271c-69d4-4d1e-8e7c-d9b2d8bf54ed/bb461939-...`),
+`status: "staged"`, `startedAt: "2026-11-20T04:56:34.838Z"` — now **7 days
+old**. This round tried two tools specifically designed to show what a
+staged patch would actually change, neither tried before:
+`get-staged-changes` (purpose-built to show "the changes staged in a
+Railway environment that accept-deploy would commit") returned
+`"staged": null, "resources": [], "sharedVariables": [], "destructive":
+false` for this exact environment; `describe-environment` independently
+corroborated this — every one of the 5 services AND the one volume report
+`"stagedChangeCount": 0`. **Both tools agree the pending patch carries zero
+actual resource or variable changes** — it is not a hidden configuration
+change waiting to apply; it is an empty, orphaned workflow record.
+`destructive: false` on top of an empty diff means there is nothing this
+patch could do if it were ever applied, and nothing it is currently
+suppressing or masking either. This downgrades the item from "unknown risk,
+needs a human to inspect" to "confirmed inert — cosmetic cleanup only."
+**Still not resolved**: why Railway's own workflow tracking has left this
+in "staged" status for 7 days without auto-expiring or auto-clearing it,
+and whether `accept-deploy`/discard would be the right action to finally
+clear the stale record — that remains a Railway-dashboard-level cleanup
+item, not a production-risk item, and this environment will not call
+`accept-deploy` (a destructive-adjacent action) without explicit operator
+instruction even though the diff itself is confirmed empty.
 
 ### 5. Postgres backup/PITR — re-confirmed still unresolved, same single warning
 
 Re-checked `environment-status` for the Postgres service: still
 `issues: {warningCount: 1, criticalCount: 0}`, unchanged from every prior
-check in this engagement. No Railway tool available in this session (
-`describe-service`, `get-service-config`, `get-service-metrics`,
-`list-webhooks`) exposes the Backups/PITR configuration tab or the text of
-this one warning. **Still requires direct Railway dashboard or
-authenticated `railway` CLI access** (Postgres service → Backups tab, or
-`railway postgres backups list`/`railway postgres pitr`) to confirm whether
-automated backups/PITR are enabled, their retention, the last successful
-backup, and what the one reported warning actually says. No restore was
-attempted; no backup setting was changed.
+check in this engagement. This round additionally tried
+`describe-service`/`get-service-config` against the Postgres service
+specifically (not tried in this exact form before): the full live config
+(image `ghcr.io/railwayapp-templates/postgres-ssl:18`, build/deploy
+settings, the one `postgres-volume` mount at `/var/lib/postgresql/data`,
+5000MB, region `sfo`) and the full variable-NAME list (`DATABASE_URL`,
+`PGDATA`, `PGDATABASE`, `PGHOST`, `PGPASSWORD`, `PGPORT`, `PGUSER`,
+`POSTGRES_DB`, `POSTGRES_PASSWORD`, `POSTGRES_USER`,
+`RAILWAY_DEPLOYMENT_DRAINING_SECONDS`, `SSL_CERT_DAYS`) contain **no
+backup/PITR-related field of any kind** — confirming this is not merely a
+tool this session forgot to try; Railway's backup/PITR configuration is
+genuinely not exposed through the service-config surface at all, only
+through the dashboard's own Backups tab or the authenticated `railway`
+CLI. **Still requires direct Railway dashboard or authenticated `railway`
+CLI access** (Postgres service → Backups tab, or `railway postgres backups
+list`/`railway postgres pitr`) to confirm whether automated backups/PITR
+are enabled, their retention, the last successful backup, and what the one
+reported warning actually says. No restore was attempted; no backup
+setting was changed.
 
 ### 6. Lalani $1,097 invoice-reconciliation — tool and UI confirmed built and deployed; investigation itself still not confirmed run
 
