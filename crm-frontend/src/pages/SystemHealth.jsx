@@ -187,11 +187,32 @@ function IntegrationCard({ moduleKey, data }) {
                     {data.api_usage.locally_measured_calls.toLocaleString()} / {data.api_usage.monthly_quota.toLocaleString()} ({data.api_usage.pct_used}%)
                   </span>
                 </div>
+                {typeof data.api_usage.projected_end_of_month_calls === "number" && (
+                  <div>
+                    Projected end-of-month:{" "}
+                    <span className={data.api_usage.projected_pct_of_quota >= 95 ? "text-red-700 font-semibold" : data.api_usage.projected_pct_of_quota >= 70 ? "text-amber-700 font-semibold" : "text-emerald-700 font-semibold"}>
+                      {data.api_usage.projected_end_of_month_calls.toLocaleString()} ({data.api_usage.projected_pct_of_quota}%)
+                    </span>{" "}
+                    <span className="text-slate-400">— based on {data.api_usage.projection_basis_days} of {data.api_usage.days_in_month} day(s) elapsed</span>
+                  </div>
+                )}
                 <div className="text-[10px] text-slate-400">{data.api_usage.measurement_note}</div>
               </>
             ) : (
               <div>API usage tracking unavailable (query failed).</div>
             )}
+          </div>
+        )}
+        {moduleKey === "quickbooks" && data.api_usage_breakdown?.available && data.api_usage_breakdown.this_month_by_entity?.length > 0 && (
+          <div className="text-xs rounded-md px-2.5 py-2 leading-snug bg-slate-50 text-slate-600 space-y-1">
+            <div className="font-medium text-slate-700">This month's calls by entity/subsystem (locally measured)</div>
+            <ul className="space-y-0.5">
+              {data.api_usage_breakdown.this_month_by_entity.slice(0, 8).map((row) => (
+                <li key={`${row.entity}-${row.subsystem}`}>
+                  {row.entity} <span className="text-slate-400">({row.subsystem})</span>: {row.call_count.toLocaleString()}
+                </li>
+              ))}
+            </ul>
           </div>
         )}
         {moduleKey === "sms" && data.webhook_config && (

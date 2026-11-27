@@ -28,6 +28,7 @@ if (DB_URL) {
 test.beforeEach(async () => {
   if (!DB_URL) return;
   await db.query(`DELETE FROM qb_api_usage_monthly`);
+  await db.query(`DELETE FROM qb_api_usage_by_entity_daily`);
   tracker._resetDeps();
 });
 
@@ -95,4 +96,40 @@ test('threshold alert: 70%, 85%, and 95% each fire independently, once, as the c
   assert.deepStrictEqual(fired, ['70%', '85%', '95%']);
 
   tracker._resetDeps();
+});
+
+// ── November 2026 "QB API consumption root-cause investigation" follow-up
+// — the per-entity/per-subsystem daily breakdown table, proven against a
+// real atomic INSERT ... ON CONFLICT DO UPDATE increment. ─────────────────
+
+test('recordApiCall: with a url, increments the real qb_api_usage_by_entity_daily row atomically under concurrency', { skip }, async () => {
+  const now = new Date('2026-11-25T12:00:00Z');
+  const url = 'https://quickbooks.api.intuit.com/v3/company/R1/cdc?entities=Invoice%2CPayment&changedSince=2026-01-01T00%3A00%3A00.000Z';
+  await Promise.all(Array.from({ length: 20 }, () => tracker.recordApiCall(now, url)));
+  const { rows } = await db.query(`SELECT call_count FROM qb_api_usage_by_entity_daily WHERE call_date = $1 AND entity = $2 AND subsystem = $3`, ['2026-11-25', 'Invoice+Payment', 'cdc']);
+  assert.strictEqual(Number(rows[0].call_count), 20, 'no increment lost under genuine concurrency');
+});
+
+test('recordApiCall: different entities/subsystems on the same day accumulate into separate rows', { skip }, async () => {
+  const now = new Date('2026-11-25T12:00:00Z');
+  await tracker.recordApiCall(now, 'https://quickbooks.api.intuit.com/v3/company/R1/cdc?entities=Invoice%2CPayment&changedSince=x');
+  await tracker.recordApiCall(now, 'https://quickbooks.api.intuit.com/v3/company/R1/customer/42?minorversion=65');
+  await tracker.recordApiCall(now, 'https://quickbooks.api.intuit.com/v3/company/R1/customer/42?minorversion=65');
+  const breakdown = await tracker.getUsageBreakdown(now);
+  assert.strictEqual(breakdown.available, true);
+  const byEntity = Object.fromEntries(breakdown.this_month_by_entity.map((r) => [`${r.entity}:${r.subsystem}`, r.call_count]));
+  assert.strictEqual(byEntity['Invoice+Payment:cdc'], 1);
+  assert.strictEqual(byEntity['Customer:direct_get'], 2);
+  assert.strictEqual(breakdown.total_this_month_classified, 3);
+});
+
+test('getUsageBreakdown: today_by_entity only reflects the current calendar day, not the whole month', { skip }, async () => {
+  await db.query(
+    `INSERT INTO qb_api_usage_by_entity_daily (call_date, entity, subsystem, call_count) VALUES ('2026-11-01', 'Invoice', 'query', 500)`
+  );
+  await tracker.recordApiCall(new Date('2026-11-25T12:00:00Z'), 'https://quickbooks.api.intuit.com/v3/company/R1/customer/1?minorversion=65');
+  const breakdown = await tracker.getUsageBreakdown(new Date('2026-11-25T12:00:00Z'));
+  assert.strictEqual(breakdown.total_this_month_classified, 501, 'this-month total includes both days');
+  assert.strictEqual(breakdown.today_by_entity.length, 1, 'today only includes the one call actually made today');
+  assert.strictEqual(breakdown.today_by_entity[0].entity, 'Customer');
 });

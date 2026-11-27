@@ -13,7 +13,10 @@ const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
 
-const { isEstimateSyncCronEnabled, getInboundReconcileIntervalMinutes, inboundReconcileCronExpression, DEFAULT_INBOUND_RECONCILE_INTERVAL_MINUTES } = require('../lib/qbSyncCronConfig');
+const {
+  isEstimateSyncCronEnabled, getInboundReconcileIntervalMinutes, inboundReconcileCronExpression, DEFAULT_INBOUND_RECONCILE_INTERVAL_MINUTES,
+  getFullReconcileIntervalHours, fullReconcileCronExpression, DEFAULT_FULL_RECONCILE_INTERVAL_HOURS,
+} = require('../lib/qbSyncCronConfig');
 
 function withEnv(vars, fn) {
   const prev = {};
@@ -77,12 +80,16 @@ test('server.js gates the QB Estimate Sync cron through the shared isEstimateSyn
 // November 2026 "sustained 429 never recovers" incident: the QB Inbound
 // Reconciliation cron's own default interval was widened from 15 to 60
 // minutes to reduce its dominant share of total monthly QuickBooks API
-// call volume (see this module's own header for the exact math).
+// call volume. SUPERSEDED in the November 2026 "QB API consumption
+// root-cause investigation" follow-up: this interval now governs the NEW,
+// cheap, company-wide CDC-based incremental sync (not the old per-customer
+// full-refetch loop), so the default is lowered back to 15 minutes — see
+// this module's own header for the full reasoning.
 
-test('getInboundReconcileIntervalMinutes: unset -> the new 60-minute default (never silently 15 again)', () => {
+test('getInboundReconcileIntervalMinutes: unset -> the restored 15-minute default (now governs the cheap CDC-based incremental sync, not the old per-customer loop)', () => {
   withEnv({ QB_INBOUND_RECONCILE_INTERVAL_MINUTES: undefined }, () => {
-    assert.strictEqual(getInboundReconcileIntervalMinutes(), 60);
-    assert.strictEqual(DEFAULT_INBOUND_RECONCILE_INTERVAL_MINUTES, 60);
+    assert.strictEqual(getInboundReconcileIntervalMinutes(), 15);
+    assert.strictEqual(DEFAULT_INBOUND_RECONCILE_INTERVAL_MINUTES, 15);
   });
 });
 
@@ -95,14 +102,14 @@ test('getInboundReconcileIntervalMinutes: a valid positive integer override is h
 test('getInboundReconcileIntervalMinutes: zero, negative, or non-numeric values fall back to the default rather than producing a broken/runaway schedule', () => {
   for (const bad of ['0', '-5', 'abc', '']) {
     withEnv({ QB_INBOUND_RECONCILE_INTERVAL_MINUTES: bad }, () => {
-      assert.strictEqual(getInboundReconcileIntervalMinutes(), 60, `bad value "${bad}" must fall back to the default`);
+      assert.strictEqual(getInboundReconcileIntervalMinutes(), 15, `bad value "${bad}" must fall back to the default`);
     });
   }
 });
 
-test('inboundReconcileCronExpression: the default (60 min) produces "top of every hour"', () => {
+test('inboundReconcileCronExpression: the default (15 min) produces a clean minute-step schedule', () => {
   withEnv({ QB_INBOUND_RECONCILE_INTERVAL_MINUTES: undefined }, () => {
-    assert.strictEqual(inboundReconcileCronExpression(), '0 * * * *');
+    assert.strictEqual(inboundReconcileCronExpression(), '*/15 * * * *');
   });
 });
 
@@ -127,11 +134,61 @@ test('inboundReconcileCronExpression: an unsupported (non-divisor, non-multiple)
   });
 });
 
-test('server.js registers the inbound reconciliation cron using the shared inboundReconcileCronExpression(), not a hardcoded */15 schedule', () => {
+test('server.js registers the incremental reconciliation cron using the shared inboundReconcileCronExpression(), not a hardcoded schedule', () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
-  const idx = source.indexOf('QB Inbound Reconciliation Cron');
-  assert.ok(idx > -1, 'expected the QB Inbound Reconciliation Cron section');
-  const block = source.slice(idx, idx + 1200);
-  assert.ok(/qbSyncCronConfig'\)\.inboundReconcileCronExpression\(\)/.test(block), 'the cron registration must use the shared, configurable interval resolver');
-  assert.ok(!/cronLib\.schedule\('\*\/15 \* \* \* \*'/.test(block), 'the old hardcoded 15-minute schedule must not reappear for this cron');
+  const idx = source.indexOf('QB Inbound Reconciliation: incremental');
+  assert.ok(idx > -1, 'expected the QB Inbound Reconciliation incremental+full section');
+  const block = source.slice(idx, idx + 2500);
+  assert.ok(/qbSyncCronConfig\.inboundReconcileCronExpression\(\)/.test(block), 'the incremental cron registration must use the shared, configurable interval resolver');
+  assert.ok(/qbSyncCronConfig\.fullReconcileCronExpression\(\)/.test(block), 'the daily full-reconcile cron must use its own shared, configurable interval resolver');
+  assert.ok(!/cronLib\.schedule\('\*\/15 \* \* \* \*'/.test(block), 'neither cron may use a hardcoded literal schedule string');
+});
+
+// ── getFullReconcileIntervalHours / fullReconcileCronExpression — the
+// once-daily (default) safety net that still runs the ORIGINAL, unchanged
+// per-customer full reconciliation (syncAllMappedCustomers). ──────────────
+
+test('getFullReconcileIntervalHours: unset -> the 24-hour default', () => {
+  withEnv({ QB_FULL_RECONCILE_INTERVAL_HOURS: undefined }, () => {
+    assert.strictEqual(getFullReconcileIntervalHours(), 24);
+    assert.strictEqual(DEFAULT_FULL_RECONCILE_INTERVAL_HOURS, 24);
+  });
+});
+
+test('getFullReconcileIntervalHours: a valid positive integer override is honored', () => {
+  withEnv({ QB_FULL_RECONCILE_INTERVAL_HOURS: '12' }, () => {
+    assert.strictEqual(getFullReconcileIntervalHours(), 12);
+  });
+});
+
+test('getFullReconcileIntervalHours: zero, negative, or non-numeric values fall back to the 24-hour default', () => {
+  for (const bad of ['0', '-5', 'abc', '']) {
+    withEnv({ QB_FULL_RECONCILE_INTERVAL_HOURS: bad }, () => {
+      assert.strictEqual(getFullReconcileIntervalHours(), 24, `bad value "${bad}" must fall back to the default`);
+    });
+  }
+});
+
+test('fullReconcileCronExpression: the default (24h) runs once daily at 3am', () => {
+  withEnv({ QB_FULL_RECONCILE_INTERVAL_HOURS: undefined }, () => {
+    assert.strictEqual(fullReconcileCronExpression(), '0 3 * * *');
+  });
+});
+
+test('fullReconcileCronExpression: a clean multiple of 24 (multiple days) uses a day-step schedule', () => {
+  withEnv({ QB_FULL_RECONCILE_INTERVAL_HOURS: '48' }, () => {
+    assert.strictEqual(fullReconcileCronExpression(), '0 3 */2 * *');
+  });
+});
+
+test('fullReconcileCronExpression: a clean sub-24 divisor uses hour-step syntax', () => {
+  withEnv({ QB_FULL_RECONCILE_INTERVAL_HOURS: '12' }, () => {
+    assert.strictEqual(fullReconcileCronExpression(), '0 */12 * * *');
+  });
+});
+
+test('fullReconcileCronExpression: an unsupported value falls back to the clean once-daily default', () => {
+  withEnv({ QB_FULL_RECONCILE_INTERVAL_HOURS: '13' }, () => {
+    assert.strictEqual(fullReconcileCronExpression(), '0 3 * * *');
+  });
 });
