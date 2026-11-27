@@ -115,3 +115,33 @@ test('a breaker read failure never throws the whole status call', async () => {
     assert.strictEqual(status.circuit_breaker, null);
   } finally { unstubBreaker(); }
 });
+
+// ── November 2026 "QB API consumption root-cause investigation" follow-up
+// — the new quickbooks_full_reconcile cursor (the once-daily safety net,
+// now separate from the frequent incremental cursor above) and the API
+// usage snapshot/breakdown, both surfaced through this same read model.
+test('reports the full_reconcile cursor independently of inbound_reconcile, and includes api_usage/api_usage_breakdown', async () => {
+  queryImpl = async (sql, params) => {
+    if (/FROM sync_cursors WHERE integration = \$1/.test(sql) && params[0] === 'quickbooks_full_reconcile') {
+      return { rows: [{ last_successful_sync_at: '2026-11-26T03:00:00Z', last_attempted_at: '2026-11-26T03:00:05Z', last_sync_summary: { total: 104, synced: 104, failed: 0 } }] };
+    }
+    if (/FROM sync_cursors/.test(sql)) return { rows: [] };
+    if (/FROM handoff_estimates WHERE sync_source/.test(sql)) return { rows: [{ total: 0, matched: 0, unmatched: 0 }] };
+    if (/FROM qb_invoices_cache/.test(sql)) return { rows: [{ total: 0 }] };
+    if (/FROM leads WHERE qb_customer_id/.test(sql)) return { rows: [{ total: 0 }] };
+    throw new Error('unexpected query: ' + sql);
+  };
+  const unstubBreaker = stub('../lib/qbRateLimitBreaker', { getState: async () => ({ state: 'closed' }) });
+  const unstubTracker = stub('../lib/qbApiUsageTracker', {
+    getUsageSnapshot: async () => ({ available: true, month_key: '2026-11', locally_measured_calls: 9000, monthly_quota: 500000, pct_used: 1.8 }),
+    getUsageBreakdown: async () => ({ available: true, this_month_by_entity: [{ entity: 'Invoice+Payment', subsystem: 'cdc', call_count: 8000 }] }),
+  });
+  try {
+    const status = await getQbSyncStatus();
+    assert.strictEqual(status.full_reconcile.available, true);
+    assert.strictEqual(status.full_reconcile.summary.total, 104);
+    assert.strictEqual(status.inbound_reconcile.ever_run, false, 'the two cursors are independent — reading one never fabricates the other');
+    assert.strictEqual(status.api_usage.locally_measured_calls, 9000);
+    assert.strictEqual(status.api_usage_breakdown.this_month_by_entity[0].entity, 'Invoice+Payment');
+  } finally { unstubBreaker(); unstubTracker(); }
+});

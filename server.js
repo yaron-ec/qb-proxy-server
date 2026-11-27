@@ -2732,60 +2732,88 @@ app.listen(PORT, async () => {
     }
   }
 
-  // ── QB Inbound Reconciliation Cron ────────────────────────────────────────
-  // Syncs all QuickBooks invoices/payments for mapped CRM customers. This is
-  // the AUTHORITATIVE recurring reconciliation trigger (replaces the former
-  // Base44 scheduled workflow). The webhook provides near-real-time updates;
-  // this cron is the scheduled recovery fallback — always runs (no on/off
-  // gate), but its INTERVAL is configurable via
-  // QB_INBOUND_RECONCILE_INTERVAL_MINUTES (default 60 — see
-  // lib/qbSyncCronConfig.js's own header for the November 2026 monthly-
-  // quota-exhaustion incident this default change addresses).
-  const inboundReconcileCron = require('./lib/qbSyncCronConfig').inboundReconcileCronExpression();
+  // ── QB Inbound Reconciliation: incremental (frequent) + full (daily) ─────
+  // November 2026 "QB API consumption root-cause investigation": official
+  // Intuit Developer Portal data confirmed the PER-CUSTOMER, non-incremental
+  // full-refetch loop this cron used to call on every tick was 80%+ of ALL
+  // QuickBooks API consumption. Two independent crons now exist:
+  //   1. INCREMENTAL (frequent, cheap) — lib/qbInboundSync.js
+  //      #syncInvoicesPaymentsIncremental, a company-wide Change-Data-Capture
+  //      call covering every mapped customer's changes in 1-2 requests,
+  //      instead of 2 requests PER customer. This is the one that runs on
+  //      QB_INBOUND_RECONCILE_INTERVAL_MINUTES (default lowered back to 15 —
+  //      see lib/qbSyncCronConfig.js's header for why that's now safe) and
+  //      writes its own 'quickbooks_inbound_reconcile' cursor internally, so
+  //      this tick only logs the result, same as before.
+  //   2. FULL (once/day safety net) — the ORIGINAL, unchanged per-customer
+  //      lib/qbInboundSync.js#syncAllMappedCustomers, now run far less often
+  //      (QB_FULL_RECONCILE_INTERVAL_HOURS, default 24) since the frequent
+  //      path no longer needs its expensive shape. Catches anything CDC's
+  //      narrower scope could miss (a genuine hard delete, cursor-bridging
+  //      drift) — never removed, per the explicit instruction not to
+  //      blindly drop full reconciliation's own completeness guarantee.
+  //      Writes a SEPARATE 'quickbooks_full_reconcile' cursor so the two
+  //      cadences are monitored independently.
+  const qbSyncCronConfig = require('./lib/qbSyncCronConfig');
+  const incrementalReconcileCron = qbSyncCronConfig.inboundReconcileCronExpression();
+  const fullReconcileCron = qbSyncCronConfig.fullReconcileCronExpression();
   if (cronLib) {
-    cronLib.schedule(inboundReconcileCron, async () => {
+    cronLib.schedule(incrementalReconcileCron, async () => {
       const t = new Date().toISOString();
       console.log('[qb-inbound-cron] tick ' + t);
       try {
         const workerSecret = process.env.WORKER_SECRET;
         const port = process.env.PORT || 3000;
-        const response = await fetch('http://localhost:' + port + '/api/v1/cron/qb-inbound-reconcile', {
+        const response = await fetch('http://localhost:' + port + '/api/v1/cron/qb-inbound-reconcile-incremental', {
           method: 'POST',
-          headers: {
-            'x-worker-secret': workerSecret,
-            'Content-Type': 'application/json',
-          },
-          // Raised from 100s (October 2026): lib/qbInboundSync.js now paces
-          // ~200ms between customers and lib/qbTokenManager.js#qbApiRequest
-          // now bounded-retries a 429/5xx with backoff — both deliberate
-          // fixes for the "failed=100" rate-limit incident, but together
-          // they raise this call's worst-case duration (100 customers x up
-          // to 2 QB calls x up to ~2s backoff + pacing could approach a few
-          // minutes under a SUSTAINED rate-limit, not just an isolated
-          // blip). 280s stays comfortably under the configured tick spacing
-          // (default 60 minutes, see lib/qbSyncCronConfig.js) so this can
-          // never still be running when the next tick fires.
-          signal: AbortSignal.timeout(280000),
+          headers: { 'x-worker-secret': workerSecret, 'Content-Type': 'application/json' },
+          // A company-wide CDC call (1-2 requests) is far cheaper and
+          // faster than the old per-customer loop ever was — 60s is
+          // comfortably generous even under a bounded-retry 429/5xx
+          // backoff, and still well under the tick spacing.
+          signal: AbortSignal.timeout(60000),
         });
         const result = await response.json();
         if (result && result.skipped) {
           console.log('[qb-inbound-cron] skipped — ' + result.reason);
+        } else if (result && result.error) {
+          console.error('[qb-inbound-cron] incremental sync failed: ' + result.error + (result.circuit_open ? ' (circuit breaker open)' : ''));
         } else {
-          console.log('[qb-inbound-cron] reconcile ok — total=' + (result?.total ?? '?') + ' synced=' + (result?.synced ?? '?') + ' failed=' + (result?.failed ?? 0));
-          // Sanitized failure breakdown (HTTP status counts only — never a
-          // raw QB error body, customer id, or financial amount) — without
-          // this, a non-zero `failed` count had NO visible reason anywhere
-          // in the logs, even though lib/qbInboundSync.js already computed
-          // and returned it in the HTTP response body this cron discarded.
+          // lib/qbInboundSync.js#syncInvoicesPaymentsIncremental already
+          // persists its own 'quickbooks_inbound_reconcile' cursor
+          // internally (it must — the CDC watermark IS the cursor, tightly
+          // coupled to what was actually processed) — this tick only logs.
+          console.log('[qb-inbound-cron] incremental reconcile ok — mode=' + (result?.mode || '?') +
+            ' invoices_upserted=' + (result?.invoices_upserted ?? '?') + ' payments_upserted=' + (result?.payments_upserted ?? '?') +
+            (result?.invoices_deleted || result?.payments_deleted ? ' deleted(inv/pay)=' + (result?.invoices_deleted ?? 0) + '/' + (result?.payments_deleted ?? 0) : ''));
+        }
+      } catch (e) {
+        console.error('[qb-inbound-cron] incremental reconcile failed: ' + e.message);
+      }
+    });
+    console.log(`[proxy] QB incremental (CDC-based) inbound reconciliation cron scheduled (${incrementalReconcileCron}, ~${qbSyncCronConfig.getInboundReconcileIntervalMinutes()} minutes)`);
+
+    cronLib.schedule(fullReconcileCron, async () => {
+      const t = new Date().toISOString();
+      console.log('[qb-full-reconcile-cron] tick ' + t);
+      try {
+        const workerSecret = process.env.WORKER_SECRET;
+        const port = process.env.PORT || 3000;
+        const response = await fetch('http://localhost:' + port + '/api/v1/cron/qb-inbound-reconcile', {
+          method: 'POST',
+          headers: { 'x-worker-secret': workerSecret, 'Content-Type': 'application/json' },
+          // Unchanged from the prior per-customer-loop timeout rationale —
+          // this is the SAME full sync, just on a daily cadence now.
+          signal: AbortSignal.timeout(280000),
+        });
+        const result = await response.json();
+        if (result && result.skipped) {
+          console.log('[qb-full-reconcile-cron] skipped — ' + result.reason);
+        } else {
+          console.log('[qb-full-reconcile-cron] reconcile ok — total=' + (result?.total ?? '?') + ' synced=' + (result?.synced ?? '?') + ' failed=' + (result?.failed ?? 0));
           if (result?.failed > 0 && result?.failureSummary) {
-            console.warn('[qb-inbound-cron] failure breakdown: ' + JSON.stringify(result.failureSummary));
+            console.warn('[qb-full-reconcile-cron] failure breakdown: ' + JSON.stringify(result.failureSummary));
           }
-          // Persist this tick's outcome to sync_cursors — previously only
-          // ever console.log'd (October 2026 reliability pass finding: the
-          // Integrations page had no durable record of inbound
-          // reconciliation ever running at all, only of the QB Estimate
-          // Sync cron, which writes its own 'quickbooks_estimates' cursor
-          // a few lines above this one in runQbEstimateSync).
           try {
             const { classifySyncOutcome, isSuccessfulOutcome } = require('./lib/syncOutcome');
             const total = result?.total ?? 0, synced = result?.synced ?? 0, failed = result?.failed ?? 0;
@@ -2794,18 +2822,18 @@ app.listen(PORT, async () => {
             const summary = { total, synced, failed, stopped_early: !!result?.stopped_early, outcome, failureSummary: result?.failureSummary || null };
             const fields = { last_attempted_at: nowIso, last_sync_summary: summary };
             if (isSuccessfulOutcome(outcome)) fields.last_successful_sync_at = nowIso;
-            const rows = await rda.filter('SyncCursor', { integration: 'quickbooks_inbound_reconcile' });
+            const rows = await rda.filter('SyncCursor', { integration: 'quickbooks_full_reconcile' });
             if (rows[0]) await rda.update('SyncCursor', rows[0].id, fields);
-            else await rda.create('SyncCursor', { integration: 'quickbooks_inbound_reconcile', ...fields });
+            else await rda.create('SyncCursor', { integration: 'quickbooks_full_reconcile', ...fields });
           } catch (cursorErr) {
-            console.warn('[qb-inbound-cron] cursor save failed: ' + cursorErr.message);
+            console.warn('[qb-full-reconcile-cron] cursor save failed: ' + cursorErr.message);
           }
         }
       } catch (e) {
-        console.error('[qb-inbound-cron] reconcile failed: ' + e.message);
+        console.error('[qb-full-reconcile-cron] reconcile failed: ' + e.message);
       }
     });
-    console.log(`[proxy] QB inbound reconciliation cron scheduled (${inboundReconcileCron}, ~${require('./lib/qbSyncCronConfig').getInboundReconcileIntervalMinutes()} minutes)`);
+    console.log(`[proxy] QB full per-customer reconciliation safety-net cron scheduled (${fullReconcileCron}, ~${qbSyncCronConfig.getFullReconcileIntervalHours()} hours)`);
   }
 
   // ── QB Proactive Connection Health Check Cron (October 2026 audit) ───────

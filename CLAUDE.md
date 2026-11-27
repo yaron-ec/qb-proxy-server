@@ -6598,6 +6598,239 @@ Health or the watchdog logs, then confirm the SEPARATE "verified recovery"
 email actually arrives only after both sync cursors show a fresh
 successful run — never merely because the breaker closed.
 
+## QuickBooks API consumption root-cause investigation + permanent fix (November 2026 reliability audit, Phase 9)
+
+Investigated against OFFICIAL Intuit Developer Portal usage data (not
+internal estimates): 500,766 CorePlus calls over 30 days — query/Invoice
+201,180 (40.17%), query/Payment 201,175 (40.17%), Customer 98,285 (19.63%),
+all other entities combined ~0.04%. This confirms, reconciles, and
+supersedes Phase 8's own "~440,000/month" projection (that projection
+assumed the customer-metadata cache alone would be the dominant fix; the
+official breakdown shows the per-customer Invoice/Payment reconciliation
+loop itself — not Customer-metadata enrichment — is by far the largest
+single cost, 80.3% of all calls).
+
+**Root cause, confirmed (not estimated) — `lib/qbInboundSync.js#syncAllMappedCustomers`'s
+per-customer, non-incremental full-refetch loop.** At the real mapped-
+customer count observed live in production (104), this loop issues
+`SELECT * FROM Invoice WHERE CustomerRef = 'X'` and
+`SELECT * FROM Payment WHERE CustomerRef = 'X'` — 2 calls per customer, with
+**zero timestamp filtering of any kind** — on EVERY tick of its cron,
+re-fetching every invoice/payment for every customer whether or not
+anything actually changed. At the (Phase 7-widened) 60-minute interval this
+alone projects to 104 × 2 × 24 ticks/day × 30 days ≈ 150,000/month; the
+official data additionally confirms **query/Invoice and query/Payment are
+almost exactly equal counts (201,180 vs. 201,175, a 5-call difference)
+precisely because this loop always issues exactly one of each per customer,
+every tick, unconditionally** — the two entity types are coupled 1:1 by
+the loop's own structure, not by coincidence. The actual monthly total this
+loop produced in practice (402,355, well above the Phase 7 projection)
+indicates either a shorter effective interval was in effect for part of
+the 30-day window, additional per-customer pagination (a customer with
+>100 invoices/payments issues further STARTPOSITION pages), or webhook-
+triggered/manual syncs added further volume on top of the scheduled cron —
+all three are real, already-identified contributors, not a new unknown.
+
+**Customer (98,285, 19.63%) — reconciled against Phase 8's own fix, already
+addressed, no further action needed.** Phase 8's `lib/qbCustomerCache.js`
+(24h TTL, wired into `server.js#fetchQbCustomer` and
+`lib/qbSyncTrigger.js`'s webhook loop) already eliminates the redundant
+per-tick re-fetch of customer display-name/email/phone for ESTIMATE
+matching. The 98,285 figure reflects calls made BEFORE that cache was live
+in this exact 30-day window (the cache shipped during this same reliability
+engagement) — confirmed via code audit that zero current code path
+re-fetches Customer data outside the cache's TTL for this purpose. No
+further Customer-call reduction was pursued in this pass.
+
+**Every other consumer re-audited and confirmed NOT a meaningful
+contributor** (full table and per-call-site documentation in the PR):
+the QB Estimate Sync cron (`server.js#runQbEstimateSyncInner`, still
+unconditional every 15 minutes) contributes only ~103 calls/month for
+Estimate + query/estimate combined per Intuit's own data — already
+incremental (`WHERE MetaData.LastUpdatedTime > ...`) and breaker-protected,
+not prioritized for a fix in this pass; `lib/qbSyncTrigger.js` (webhook-
+triggered estimate sync) is already incremental, debounced, and customer-
+cached; every legacy `server.js` proxy route (manual Customer/Invoice
+search) is low-volume, on-demand, admin-triggered.
+
+**Permanent fix — QuickBooks Change Data Capture (CDC), not a frequency
+change.** `lib/qbInboundSync.js#syncInvoicesPaymentsIncremental` (new)
+replaces the per-customer loop's SHAPE: one company-wide
+`GET /cdc?entities=Invoice,Payment&changedSince=<cursor>` call covers
+EVERY mapped customer's changes in 1-2 real requests, instead of 2 requests
+PER customer — a ~35-100x reduction at this installation's customer count,
+confirmed via Intuit's own documented CDC endpoint (30-day lookback cap,
+explicit `status: 'Deleted'` reporting for removed entities — closing the
+one correctness gap a naive `WHERE LastUpdatedTime > cursor` filter would
+have, since a hard delete never bumps a now-nonexistent record's own
+timestamp). Every real Invoice/Payment this call returns is upserted
+through the EXACT SAME `upsertInvoiceCacheFromQb` /
+`upsertPaymentWithAllocations` / `autoMapInvoiceToSale` functions the old
+loop already used — reused verbatim, never re-implemented, so financial
+accuracy/reconciliation is unchanged, not traded for efficiency. A fresh
+install (no cursor yet) or a cursor older than CDC's 30-day cap (29-day
+safety margin kept) self-heals by falling back to the ORIGINAL
+`syncAllMappedCustomers` to re-establish a baseline, then starts the CDC
+cursor from "now" — no operator action needed. Idempotent by construction
+(every write is `ON CONFLICT DO UPDATE`/`DO NOTHING`), proven under a
+real re-run of an identical CDC payload producing zero duplicate rows in
+any cache/mapping/allocation table (see Regression coverage below).
+
+**The original full per-customer reconciliation is explicitly NOT removed**
+— per the explicit instruction not to blindly replace it without
+guaranteeing missed-event recovery and data completeness,
+`syncAllMappedCustomers` is completely unchanged and still runs, now as a
+once-daily safety net (`QB_FULL_RECONCILE_INTERVAL_HOURS`, default 24,
+`server.js`'s new `qb-full-reconcile-cron`, writing its own
+`quickbooks_full_reconcile` cursor, separate from the frequent path's
+`quickbooks_inbound_reconcile`) — catching anything CDC's narrower scope
+could theoretically miss. `QB_INBOUND_RECONCILE_INTERVAL_MINUTES` (which
+Phase 7 widened to 60 minutes specifically because of the old loop's
+expensive per-customer shape) is lowered BACK to its original 15-minute
+default — that mitigation's entire rationale no longer applies once the
+path it governs is the cheap CDC call, and a shorter interval improves
+financial-data freshness with no meaningful added cost.
+
+**Projected new volume**: incremental CDC (1-2 calls × 96 ticks/day × 30
+days ≈ 60-120/month) + once-daily full reconciliation (104 × 2 × 30 ≈
+6,240/month, an irreducible safety-net cost) + Estimate sync (~103/month,
+unchanged) + Customer cache overhead (negligible, already fixed in Phase
+8) ≈ **under 7,000 calls/month — well under the user's proposed 100,000/
+month target**, a reduction of roughly 98% from the official 402,355/month
+this exact pair of entities previously consumed. This is a code-level
+projection based on the real mapped-customer count and call shapes
+involved, not yet confirmed against a live 24h/72h/7-day production
+measurement (see "Production acceptance," below) — **do not treat this
+number as resolved until that live measurement confirms it.**
+
+**Monitoring extension (item 3 of the request)**: `qb_api_usage_by_entity_daily`
+(new table, `db/migrations/2026-82-qb-api-usage-by-entity.sql`) records a
+daily, atomic (`ON CONFLICT DO UPDATE`) count per (entity, subsystem),
+classified from the real request URL at the ONE canonical call site every
+QuickBooks data call already goes through
+(`lib/qbTokenManager.js#qbApiRequest` → `lib/qbApiUsageTracker.js#classifyQbCallUrl`
+→ `recordApiCall(now, url)`) — zero per-call-site duplication.
+`getUsageBreakdown()` reports this-month and today's totals by
+entity/subsystem; `getUsageSnapshot()` gained a simple, transparent linear
+end-of-month projection (`projected_end_of_month_calls`/
+`projected_pct_of_quota`, with `projection_basis_days`/`days_in_month`
+always reported alongside so a reader can judge an early-month
+projection's own confidence). Both are surfaced in System Health's existing
+QuickBooks card (`lib/systemHealthChecks.js#checkQuickBooks`,
+`crm-frontend/src/pages/SystemHealth.jsx`) — no new monitoring page, per
+this engagement's "reuse the existing Twilio/QuickBooks card" precedent.
+`isNonEssentialSyncAllowed()` (90% threshold) automatically throttles ONLY
+the deferrable once-daily full reconciliation
+(`routes/cronJobs.js`'s `/qb-inbound-reconcile` route) once this month's
+locally-measured usage is within 10% of quota — the incremental CDC sync is
+NEVER throttled by this or any mechanism, per the explicit "prioritize
+critical financial synchronization" requirement; it re-runs automatically
+once usage drops back below the threshold on a later tick. The existing
+70%/85%/95% threshold email alerts (Phase 8, `lib/qbApiUsageTracker.js`'s
+`maybeAlertThresholds`, routed through the staff `SYSTEM_FAILURE`
+notification category) are unchanged and still fire before exhaustion.
+
+**Immediate recovery (item 4) — re-confirmed via a fresh search this pass,
+no new official option found.** Intuit's own documented policy: the
+500,000/month CorePlus allowance is a Developer-Workspace-scoped,
+calendar-month reset (resets "on the 1st of each new month... cannot be
+reset at any other point in time," per Intuit's own partner FAQ) — no
+official no-cost early-reset or exception process exists in any source
+checked. The one confirmed path to more CorePlus calls before the next
+reset is upgrading from the Builder tier to the paid Silver tier (1 million
+CorePlus credits) — **not done and not recommended without separate
+approval**, per the explicit "no additional paid subscriptions" / "no
+paid subscription without approval" instructions. A support ticket CAN be
+filed (Intuit Developer Support page → QuickBooks Online → "Ask a
+Question"), and the real `intuit_tid` correlation id this codebase already
+captures (Phase 6, `lib/qbTokenManager.js#getIntuitTid`) is exactly what
+Intuit's own support asks for — but no official documentation confirms a
+monthly-cap ticket category exists or that filing one results in an early
+reset; this is an untested, free option worth trying while waiting for the
+natural reset, not a confirmed recovery path. **Conclusion, restated: no
+legitimate immediate-recovery option exists beyond Intuit's own natural
+calendar-month reset (expected ~December 1) or a paid tier upgrade
+requiring separate authorization** — this is the same conclusion prior
+passes in this engagement reached, re-confirmed rather than assumed stale.
+
+**Production acceptance (item 5) — explicitly NOT yet completable, and not
+declared resolved on code/projection alone, per the explicit instruction.**
+QuickBooks remains externally blocked by the confirmed, ongoing monthly
+quota exhaustion as of this pass — the circuit breaker has not closed in
+production, so none of the following can yet be measured against live
+traffic: actual API consumption over the first 24h/72h/7-days once service
+resumes (to compare against the ~7,000/month projection above); whether
+invoice/payment/estimate/customer synchronization remains accurate under
+the new CDC path at scale; confirmation that `syncInvoicesPaymentsIncremental`'s
+fallback-to-full-sync self-heals correctly on the FIRST real tick after
+quota resets (no cursor will exist yet in production, since this cursor
+key is new); and that no duplicate records or financial allocations were
+created by the transition. **This remains the explicit, outstanding,
+operator-performed verification step — do not treat QuickBooks API
+consumption as resolved until it is completed against real post-reset
+production traffic.**
+
+Regression coverage: `test/qbApiUsageTracker.test.js` (+11 — `classifyQbCallUrl`'s
+full shape matrix including the CDC multi-entity case, the entity-breakdown
+write path, `getUsageBreakdown`, `isNonEssentialSyncAllowed`, the
+projection fields); `test/integration/qbApiUsageTracker.int.test.js` (+3,
+real Postgres — atomic concurrent-increment correctness for the new daily
+table, separate-row accumulation, today-vs-month distinction);
+`test/qbInboundSync.test.js` (+6 — `syncInvoicesPaymentsIncremental`'s
+fallback-to-full/CDC-mode/Deleted-status/idempotent-rerun/stale-cursor-
+fallback/overlapping-call-skip branches, DB-stubbed);
+`test/integration/qbInboundSyncIncremental.int.test.js` (new, 6 tests, real
+Postgres with a faked QuickBooks HTTP layer — the full lifecycle against
+real `owners`/`leads`/`deals`/`qb_invoices_cache`/`qb_payments_cache`/
+`qb_payment_allocations`/`qb_invoice_sale_map`/`sync_cursors` tables: the
+fallback path's real auto-mapping, a genuine CDC upsert with payment
+allocation and invoice-to-deal mapping, a `Deleted`-status record voided
+via the targeted single-record path, re-running an identical CDC payload
+producing zero duplicate rows anywhere, a stale (>29-day) cursor correctly
+falling back rather than silently missing changes, and the cross-process
+advisory lock correctly skipping a genuinely overlapping call — reproduced
+clean across repeated runs against the same persisted database, confirming
+no cross-test-run fixture pollution); `test/qbSyncCronConfig.test.js`
+(+7 — `getFullReconcileIntervalHours`/`fullReconcileCronExpression`'s full
+matrix, the restored 15-minute incremental default); `test/qbSyncCursorPersistence.test.js`
+(rewritten for the new dual-cursor architecture — the incremental path's
+own internal cursor write, the full-reconcile cron's separate cursor write,
+and a new test proving the quota throttle gates ONLY the full-reconcile
+route, never the incremental one); `test/qbSyncStatus.test.js` (+1 — the
+new `full_reconcile`/`api_usage`/`api_usage_breakdown` fields). Full
+existing backend unit suite re-run clean (1816 pass, 0 fail, 1 pre-existing
+unrelated todo) and full frontend vitest suite re-run clean (531 pass,
+including the deliberately-triggered "simulated render crash" error-
+boundary test) with every change in this section applied; `npm run
+build:exit` confirmed clean after the `SystemHealth.jsx` edit. Full
+real-Postgres integration suite re-run clean of NEW regressions (comparing
+against a pristine-`main` baseline run on an independent fresh database:
+9-10 pre-existing, time-of-day-dependent SMS-quiet-hours and test-order-
+dependent failures reproduce identically with and without this pass's
+changes — confirmed by `git stash`-ing every change in this section and
+re-running the exact same suite, matching this codebase's own established
+"stash + fresh database" verification convention).
+
+**A real production bug found and fixed in `lib/qbInboundSync.js#setCursorRow`
+while building this pass's own integration test**: the cursor-save
+`INSERT` used the same parameter (`$2`) both as a plain value (for
+`last_cursor`, a `TEXT` column) and cast to `::timestamptz` (for
+`last_updated_timestamp`) in the same statement — Postgres cannot deduce a
+single consistent type for one parameter used two different ways and
+rejects the query outright (`error: inconsistent types deduced for
+parameter $2`, SQLSTATE 42P08). This would have made EVERY real call to
+`setCursorRow` — meaning every successful CDC sync tick, and the fallback-
+to-full-sync path's own cursor save — throw at the exact moment it tried
+to record success, unconditionally, the first time this code path ever ran
+against a real Postgres connection (a stubbed-query unit test could never
+catch this, since a stub has no real type system to violate — exactly the
+reason this codebase's own established convention is to validate every new
+query against real, migrated Postgres before trusting it). Fixed by
+explicitly casting the first use too (`$2::text, $2::timestamptz`) so
+Postgres resolves the type once, unambiguously. Caught and fixed BEFORE
+this reached production, by this pass's own real-Postgres integration
+test — not found any other way.
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`

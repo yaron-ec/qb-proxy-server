@@ -1038,8 +1038,45 @@ router.post('/qb-inbound-reconcile', async (req, res) => {
     if (!(await companyConfig.isModuleEnabled('quickbooks'))) {
       return res.status(404).json({ error: 'module_disabled', module: 'quickbooks', message: "The 'quickbooks' module is not enabled for this installation." });
     }
+    // November 2026 QB API consumption follow-up: this route's own
+    // behavior (the FULL per-customer reconciliation,
+    // lib/qbInboundSync.js#syncAllMappedCustomers) is UNCHANGED — it is now
+    // called once/day (server.js's new full-reconcile cron) rather than
+    // every tick, since the frequent path below took over the expensive
+    // per-tick cost. Automatic protection against excessive consumption:
+    // this deferrable safety-net pass is skipped (never essential financial
+    // sync, see lib/qbApiUsageTracker.js#isNonEssentialSyncAllowed's own
+    // header) once this month's locally-measured usage crosses 90% of
+    // quota — it reruns automatically on the next scheduled tick once
+    // usage is no longer that close to exhaustion.
+    const qbApiUsageTracker = require('../lib/qbApiUsageTracker');
+    if (!(await qbApiUsageTracker.isNonEssentialSyncAllowed())) {
+      return res.json({ success: true, skipped: true, reason: 'non_essential_sync_throttled_near_quota' });
+    }
     const { syncAllMappedCustomers } = require('../lib/qbInboundSync');
     const result = await syncAllMappedCustomers();
+    res.json({ success: true, ...result });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// November 2026 QB API consumption follow-up — the NEW, cheap, company-wide
+// incremental sync (lib/qbInboundSync.js#syncInvoicesPaymentsIncremental,
+// see that function's own header for the full Change-Data-Capture design).
+// This is the path that now runs frequently (default every 15 minutes,
+// QB_INBOUND_RECONCILE_INTERVAL_MINUTES) — never throttled by the quota
+// guard above, since it is both the cheapest call shape AND carries real,
+// time-sensitive financial data (never deferred, per the explicit
+// requirement to prioritize critical financial synchronization).
+router.post('/qb-inbound-reconcile-incremental', async (req, res) => {
+  try {
+    const workerSecret = process.env.WORKER_SECRET;
+    const provided = req.headers['x-worker-secret'] || req.headers['x-proxy-secret'];
+    if (!workerSecret || provided !== workerSecret) return res.status(401).json({ error: 'unauthorized' });
+    if (!(await companyConfig.isModuleEnabled('quickbooks'))) {
+      return res.status(404).json({ error: 'module_disabled', module: 'quickbooks', message: "The 'quickbooks' module is not enabled for this installation." });
+    }
+    const { syncInvoicesPaymentsIncremental } = require('../lib/qbInboundSync');
+    const result = await syncInvoicesPaymentsIncremental();
     res.json({ success: true, ...result });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
