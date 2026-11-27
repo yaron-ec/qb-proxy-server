@@ -396,6 +396,176 @@ test('syncInvoicesPaymentsIncremental: a circuit-breaker-open CDC call records t
   } finally { restoreDb(); restoreMgr(); }
 });
 
+// ── November 2026 final-acceptance follow-up: a PARTIAL fallback or a
+// CDC tick with item-level errors must never be reported as a genuine
+// successful synchronization — lib/qbRecoveryVerification.js reads
+// last_successful_sync_at specifically to decide whether a "QuickBooks
+// recovered" email may fire, and a false-positive there would repeat the
+// exact breaker-flapping false-recovery bug this engagement already fixed
+// once for the circuit breaker itself (see CLAUDE.md's "CRM stabilization
+// closure, round 2"). ───────────────────────────────────────────────────
+
+test('syncInvoicesPaymentsIncremental: a PARTIAL fallback (some customers failed) never advances last_successful_sync_at or the watermark — only last_attempted_at', async () => {
+  const sqlCalls = [];
+  const restoreDb = stub('../db/client', {
+    query: async (sql, params) => {
+      sqlCalls.push(sql);
+      if (/SELECT last_cursor, last_updated_timestamp FROM sync_cursors/.test(sql)) return { rows: [] };
+      if (/SELECT DISTINCT qb_customer_id FROM leads/.test(sql)) return { rows: [{ qb_customer_id: 'C1' }, { qb_customer_id: 'C2' }] };
+      if (/INSERT INTO sync_cursors/.test(sql)) return { rows: [] };
+      return { rows: [] };
+    },
+    pool: makeFakePool(),
+    guardClient: (c) => { c._guardErrored = c._guardErrored || (() => false); return c; },
+  });
+  const restoreTokenStore = stub('../lib/qbTokenStore', { markUsed: async () => {} });
+  const restoreSaleMap = stub('../lib/qbInvoiceSaleMap', { upsertInvoiceCacheFromQb: async () => {}, upsertMapping: async () => {} });
+  const restoreMgr = stub('../lib/qbTokenManager', {
+    getValidTokens: async () => ({ access_token: 'x', realm_id: 'R1' }),
+    qbApiRequest: async (_env, buildUrl) => {
+      const url = buildUrl({ realm_id: 'R1' });
+      // C1 succeeds, C2 fails (a genuine, non-breaker error) — the full
+      // sync's own outcome is 'partial', never a clean success.
+      if (url.includes('C2')) return { res: { ok: false, status: 500 }, text: 'server error', json: {} };
+      return { res: { ok: true, status: 200 }, text: '{}', json: { QueryResponse: {} } };
+    },
+  });
+
+  const qbInboundSync = freshQbInboundSync();
+  qbInboundSync._setDeps({ sleep: async () => {} });
+
+  try {
+    const result = await qbInboundSync.syncInvoicesPaymentsIncremental();
+    assert.strictEqual(result.mode, 'cdc_fallback_full');
+    assert.strictEqual(result.outcome, 'partial');
+    const cursorInserts = sqlCalls.filter((s) => /INSERT INTO sync_cursors/.test(s));
+    assert.strictEqual(cursorInserts.length, 1);
+    assert.ok(!/last_successful_sync_at/.test(cursorInserts[0]), 'a partial fallback must never touch last_successful_sync_at');
+    assert.ok(!/last_cursor/.test(cursorInserts[0]), 'a partial fallback must never advance the watermark either — some customers were never (re)fetched this attempt');
+    assert.ok(/last_attempted_at/.test(cursorInserts[0]), 'the attempt itself is still recorded');
+  } finally { restoreDb(); restoreTokenStore(); restoreSaleMap(); restoreMgr(); }
+});
+
+test('syncInvoicesPaymentsIncremental: a CLEAN fallback (every customer succeeds) DOES advance last_successful_sync_at and the watermark', async () => {
+  const sqlCalls = [];
+  const restoreDb = stub('../db/client', {
+    query: async (sql) => {
+      sqlCalls.push(sql);
+      if (/SELECT last_cursor, last_updated_timestamp FROM sync_cursors/.test(sql)) return { rows: [] };
+      if (/SELECT DISTINCT qb_customer_id FROM leads/.test(sql)) return { rows: [{ qb_customer_id: 'C1' }] };
+      if (/INSERT INTO sync_cursors/.test(sql)) return { rows: [] };
+      return { rows: [] };
+    },
+    pool: makeFakePool(),
+    guardClient: (c) => { c._guardErrored = c._guardErrored || (() => false); return c; },
+  });
+  const restoreTokenStore = stub('../lib/qbTokenStore', { markUsed: async () => {} });
+  const restoreSaleMap = stub('../lib/qbInvoiceSaleMap', { upsertInvoiceCacheFromQb: async () => {}, upsertMapping: async () => {} });
+  const restoreMgr = stub('../lib/qbTokenManager', {
+    getValidTokens: async () => ({ access_token: 'x', realm_id: 'R1' }),
+    qbApiRequest: async () => ({ res: { ok: true, status: 200 }, text: '{}', json: { QueryResponse: {} } }),
+  });
+
+  const qbInboundSync = freshQbInboundSync();
+  qbInboundSync._setDeps({ sleep: async () => {} });
+
+  try {
+    const result = await qbInboundSync.syncInvoicesPaymentsIncremental();
+    assert.strictEqual(result.mode, 'cdc_fallback_full');
+    assert.strictEqual(result.outcome, 'success');
+    const cursorInserts = sqlCalls.filter((s) => /INSERT INTO sync_cursors/.test(s));
+    assert.strictEqual(cursorInserts.length, 1);
+    assert.ok(/last_successful_sync_at/.test(cursorInserts[0]), 'a genuinely clean fallback must advance last_successful_sync_at');
+    assert.ok(/last_cursor/.test(cursorInserts[0]), 'and the watermark — the full fetch really did bring every mapped customer current as of now');
+  } finally { restoreDb(); restoreTokenStore(); restoreSaleMap(); restoreMgr(); }
+});
+
+test('syncInvoicesPaymentsIncremental: a CDC tick with an item-level error advances the watermark but never last_successful_sync_at', async () => {
+  const watermark = new Date('2026-11-27T00:00:00.000Z');
+  const sqlCalls = [];
+  const restoreDb = stub('../db/client', {
+    query: async (sql, params) => {
+      sqlCalls.push({ sql, params });
+      if (/SELECT last_cursor, last_updated_timestamp FROM sync_cursors/.test(sql)) return { rows: [{ last_cursor: watermark.toISOString(), last_updated_timestamp: watermark.toISOString() }] };
+      if (/INSERT INTO sync_cursors/.test(sql)) return { rows: [] };
+      return { rows: [] };
+    },
+    pool: makeFakePool(),
+    guardClient: (c) => { c._guardErrored = c._guardErrored || (() => false); return c; },
+  });
+  // Forces upsertInvoiceCacheFromQb to throw for INV1 only — INV2 succeeds,
+  // so the tick's outcome is genuinely MIXED ('partial'), never a real
+  // breaker/network issue (CDC mode's per-item loop makes zero further
+  // QuickBooks calls at all).
+  const restoreSaleMap = stub('../lib/qbInvoiceSaleMap', {
+    upsertInvoiceCacheFromQb: async (_db, inv) => { if (inv.Id === 'INV1') throw new Error('constraint violation'); },
+    upsertMapping: async () => {},
+  });
+  const restoreMgr = stub('../lib/qbTokenManager', {
+    getValidTokens: async () => ({ access_token: 'x', realm_id: 'R1' }),
+    qbApiRequest: async () => ({
+      res: { ok: true, status: 200 }, text: '{}',
+      json: makeCdcResponse([
+        { Id: 'INV1', CustomerRef: { value: 'C1' }, MetaData: { LastUpdatedTime: '2026-11-27T01:00:00.000Z' } },
+        { Id: 'INV2', CustomerRef: { value: 'C1' }, MetaData: { LastUpdatedTime: '2026-11-27T01:30:00.000Z' } },
+      ], []),
+    }),
+  });
+
+  const qbInboundSync = freshQbInboundSync();
+  qbInboundSync._setDeps({ sleep: async () => {} });
+
+  try {
+    const result = await qbInboundSync.syncInvoicesPaymentsIncremental();
+    assert.strictEqual(result.mode, 'cdc');
+    assert.strictEqual(result.outcome, 'partial');
+    assert.strictEqual(result.errors.length, 1);
+    const cursorInserts = sqlCalls.filter((c) => /INSERT INTO sync_cursors/.test(c.sql));
+    assert.strictEqual(cursorInserts.length, 1);
+    assert.ok(!/last_successful_sync_at/.test(cursorInserts[0].sql), 'an item-level error must never be reported as a genuine successful sync');
+    assert.ok(/last_cursor/.test(cursorInserts[0].sql), 'the watermark still advances — forward progress is safe, every write here is idempotent on retry');
+    assert.strictEqual(cursorInserts[0].params[1], '2026-11-27T01:30:00.000Z', 'advances to the max LastUpdatedTime actually seen (INV2, the later of the two), even though INV1 errored');
+  } finally { restoreDb(); restoreSaleMap(); restoreMgr(); }
+});
+
+test('syncInvoicesPaymentsIncremental: a CDC response at/above the 1000-object truncation threshold falls back to full reconciliation rather than trusting a possibly-incomplete response', async () => {
+  const watermark = new Date('2026-11-27T00:00:00.000Z');
+  const bigInvoiceList = Array.from({ length: 1000 }, (_, i) => ({ Id: `INV${i}`, CustomerRef: { value: 'C1' }, MetaData: { LastUpdatedTime: '2026-11-27T01:00:00.000Z' } }));
+  let fullSyncCustomerQueried = false;
+  const restoreDb = stub('../db/client', {
+    query: async (sql) => {
+      if (/SELECT last_cursor, last_updated_timestamp FROM sync_cursors/.test(sql)) return { rows: [{ last_cursor: watermark.toISOString(), last_updated_timestamp: watermark.toISOString() }] };
+      if (/SELECT DISTINCT qb_customer_id FROM leads/.test(sql)) { fullSyncCustomerQueried = true; return { rows: [{ qb_customer_id: 'C1' }] }; }
+      if (/INSERT INTO sync_cursors/.test(sql)) return { rows: [] };
+      return { rows: [] };
+    },
+    pool: makeFakePool(),
+    guardClient: (c) => { c._guardErrored = c._guardErrored || (() => false); return c; },
+  });
+  const restoreTokenStore = stub('../lib/qbTokenStore', { markUsed: async () => {} });
+  const restoreSaleMap = stub('../lib/qbInvoiceSaleMap', { upsertInvoiceCacheFromQb: async () => {}, upsertMapping: async () => {} });
+  let cdcCalled = false;
+  const restoreMgr = stub('../lib/qbTokenManager', {
+    getValidTokens: async () => ({ access_token: 'x', realm_id: 'R1' }),
+    qbApiRequest: async (_env, buildUrl) => {
+      const url = buildUrl({ realm_id: 'R1' });
+      if (url.includes('/cdc')) { cdcCalled = true; return { res: { ok: true, status: 200 }, text: '{}', json: makeCdcResponse(bigInvoiceList, []) }; }
+      // The fallback full reconciliation's own per-customer query — never a second CDC call.
+      return { res: { ok: true, status: 200 }, text: '{}', json: { QueryResponse: {} } };
+    },
+  });
+
+  const qbInboundSync = freshQbInboundSync();
+  qbInboundSync._setDeps({ sleep: async () => {} });
+
+  try {
+    const result = await qbInboundSync.syncInvoicesPaymentsIncremental();
+    assert.strictEqual(cdcCalled, true, 'the CDC call itself still happens once, to discover the truncation risk');
+    assert.strictEqual(result.mode, 'cdc_fallback_full', 'a suspected-truncated response falls back to the full per-customer reconciliation instead of trusting it');
+    assert.strictEqual(fullSyncCustomerQueried, true);
+  } finally { restoreDb(); restoreTokenStore(); restoreSaleMap(); restoreMgr(); }
+});
+
 test('syncInvoicesPaymentsIncremental: an overlapping call is skipped, never run concurrently (same advisory-lock pattern as syncAllMappedCustomers)', async () => {
   const fakePool = makeFakePool();
   const restoreDb = stub('../db/client', {
