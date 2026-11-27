@@ -6378,6 +6378,226 @@ Regression coverage for this section's code change is listed under item 1
 above; items 2–7 are findings/verifications, not code changes, and
 introduce no regression risk by construction.
 
+## CRM stabilization closure, round 2: the alert storm was only HALF fixed — a second, distinct mechanism found and fixed; fresh flag verification; outstanding blockers restated (November 27, 2026)
+
+Direct follow-up to the round above, within 24 hours of that fix deploying.
+Pulled fresh `artistic-determination` production logs (2026-11-26 17:00Z
+through 2026-11-27 03:49Z, ~11 hours, 501 real log lines) specifically to
+check whether the 24h-cooldown fix actually reduced the real-world alert
+frequency — it had not.
+
+### 1. THE ALERT STORM CONTINUED after the 24h-cooldown fix — a second, independent root cause, confirmed live and fixed
+
+**Live evidence**: 11 `[monitor-alerts]` dispatches fired in this single
+~11-hour window (19:18, 20:00, 21:30, 22:16, 23:00, 23:47, 00:31, 01:17,
+02:02, 02:45, 03:32) — essentially one every 40-45 minutes, the SAME
+frequency the original incident report described, despite PR #86's fix
+being live and correctly deployed the entire time. Cross-referencing every
+`[reminderWorker] watchdog:` line in the same window showed the
+`quickbooks-integration` healthy/unhealthy reading flapping back and forth
+on almost every single tick (false `healthy` at 19:01, 19:46, 21:16, 22:00,
+22:45, 23:30, 00:17, 01:01, 01:45, 02:32, 03:15 — then unhealthy again
+minutes later each time) — NOT a genuine recovery: `opens_count` never
+stopped climbing and the quota-exhaustion condition never actually
+cleared.
+
+**Root cause, confirmed by direct code read of `lib/qbRateLimitBreaker.js`**:
+`lib/monitoring/healthProbes.js#checkQbHealth` gated its `breakerSustainedOpen`
+signal on `breaker.isCoolingDown(state)`, which returns true only while
+`state.state === 'open' AND state.cooldown_until` is still in the future.
+The breaker's own `cooldown_until` timer can elapse well before anything
+actually attempts (and fails) the next real trial — `checkAndMaybeAllow()`
+only transitions `state` away from `'open'` when an ACTUAL QuickBooks data
+call comes in and wins the one half-open slot, and the only things that
+make such calls are the QB sync crons (15-min estimate-sync, ~60-min
+inbound-reconciliation). With a 30-minute cooldown (per the Phase 5 fix)
+and a 15-17 minute watchdog tick cadence, there is a real window — up to
+the full cron interval — where the timer has elapsed but `state` is still
+literally `'open'` with zero evidence anything has succeeded.
+`checkQbHealth` was reading that elapsed-timer moment as "recovered,"
+resolving the open `monitoring_incidents` row; the breaker reopening
+minutes later (the same, unchanged condition) then created a BRAND NEW
+incident (`isNew: true`), which — correctly, by the PR #86 design — always
+alerts immediately, regardless of the 24h cooldown. This is exactly the
+"secondary observation, NOT fixed in [the prior] pass" the prior round's
+own write-up had already flagged as a real possibility but left unfixed;
+this round confirms it as the DOMINANT, not secondary, cause of the
+continuing noise.
+
+**Fix** (`lib/monitoring/healthProbes.js#checkQbHealth`): replaced
+`breaker.isCoolingDown(breakerState)` with `breakerState.state !== 'closed'`
+in the `breakerSustainedOpen` computation. `recordSuccess()` is the ONLY
+function that ever sets `state: 'closed'` — reached only after a QuickBooks
+call has genuinely succeeded. An elapsed-cooldown-but-untried `'open'`
+state, and an in-flight, unconfirmed `'half_open'` trial, now both
+correctly stay unhealthy — only a verified success flips this signal. This
+touches ONLY this watchdog health signal; it does not change
+`lib/qbRecoveryVerification.js`'s own, separately-gated "verified recovery"
+EMAIL, which already independently requires both QB sync cursors
+(`quickbooks_estimates`/`quickbooks_inbound_reconcile`) to show a real
+successful run before notifying — per the explicit instruction never to
+report recovery on a closed breaker alone, that stronger gate is untouched
+and still the one thing that decides whether a "QuickBooks recovered"
+email is ever sent.
+
+**Not yet observed live post-fix** (this fix was written and tested in
+this same pass, immediately before this document was updated — it has not
+yet been deployed, so the next several hours of real `[reminderWorker]
+watchdog:`/`[monitor-alerts]` log lines after deployment are the actual
+confirmation that the flapping, and the resulting alert frequency, have
+genuinely dropped). Regression coverage:
+`test/monitoringHealthProbes.test.js` (+3 tests — the exact
+cooldown-elapsed-but-state-still-open shape reproduced and proven fixed;
+an in-flight half-open trial also correctly stays unhealthy; a genuinely
+closed breaker stays healthy regardless of a stale historical
+`opens_count`). Full existing backend unit suite re-run clean (1787 pass,
+0 fail, 1 pre-existing unrelated todo) with this change applied — no other
+test (including every `productionWatchdog*.test.js` file and
+`test/qbRateLimitBreaker.test.js`) regressed, since none of them exercise
+the specific "cooldown elapsed, state still open" shape this fix changes.
+
+### 2. CRITICAL, UNRESOLVED, carried forward unchanged from the prior round: the estimate-followup pipeline's live DRY_RUN/reply-detection state
+
+Re-pulled and re-checked the same `[reminderWorker] done:` →
+`estimateFollowup` field on every tick in this fresh 11-hour window: every
+single one reads `"dryRun":false`, `"replyMonitoringHealthy":true`,
+`"replyMonitoringReason":"ok"`, `"liveSendAllowlistActive":false` — and
+every single one also reads `"total":0,"sent":0,"wouldSend":0"` (likewise
+`"autoEnrollment":{"scanned":0,"enrolled":0}` and
+`"postAppointmentSync":{"scannedAppointments":0}`). **This is the exact
+same, unresolved, CRITICAL finding from the prior round, now confirmed
+over a second, independent ~11-hour window**: `ESTIMATE_FOLLOWUP_DRY_RUN`
+is effectively `'false'` (real sending enabled) and
+`ESTIMATE_FOLLOWUP_REPLY_DETECTION_ENABLED` is effectively `'true'` in
+production RIGHT NOW, with `liveSendAllowlistActive: false` — meaning
+`ESTIMATE_FOLLOWUP_LIVE_SEND_ALLOWLIST` is no longer set either, so there
+is currently NO allowlist narrowing which sequence, if any, could send.
+The only reason zero real customer sends have occurred is that zero
+sequences currently exist to act on (`total: 0` every tick) — which traces
+to QuickBooks estimate sync having been unable to run at all during this
+window (the quota-exhaustion incident, confirmed still open throughout).
+**This has NOT been changed from this environment, per "do not enable or
+change customer-facing automations without explicit approval."** This
+remains the single highest-priority open item for an explicit operator
+decision before December 1: either confirm this live state is deliberate
+and approved (and update this document to say so, since every prior
+written claim that this feature is "fully inert" is stale and contradicted
+by two independent live-log checks now), or explicitly restore
+`ESTIMATE_FOLLOWUP_DRY_RUN` to `'true'`/unset before QuickBooks sync has
+any chance to resume and a real Handoff-origin estimate's `EmailStatus`
+evidence could cause a real auto-enrollment and a real send with nothing
+narrowing it.
+
+### 3. Fresh flag-verification table (second independent window, 2026-11-26 17:00Z–2026-11-27 03:49Z)
+
+| Flag | Live effective state this window | Confidence |
+|---|---|---|
+| `REMINDER_DRY_RUN` | `false` (real sending) — every tick shows `"dryRun":false` for appointment/phone/task | Confirmed, both windows |
+| `ESTIMATE_FOLLOWUP_DRY_RUN` | **`false`** (real sending enabled) | **Confirmed, both windows — see item 2** |
+| `ESTIMATE_FOLLOWUP_REPLY_DETECTION_ENABLED` | **`true`**, and healthy (`replyMonitoringReason: "ok"` every tick, `historyId` advancing, `messagesSeen` 0-2 per tick) | **Confirmed, both windows** |
+| `ESTIMATE_FOLLOWUP_LIVE_SEND_ALLOWLIST` | **unset** (`liveSendAllowlistActive: false` every tick) | Confirmed this window (new data point) |
+| `ESTIMATE_FOLLOWUP_REPLY_NOTIFICATIONS_ENABLED` | Not independently observable (zero inbound replies matched this window — `matched: 0` every tick) | Still unconfirmed |
+| `EMAIL_BOOKING_CONFIRMATION_ENABLED` / `EMAIL_EXTENDED_REMINDERS_ENABLED` | Not observable (zero new bookings in window, `scanned: 321` with `eligible: 0` every tick — appointment reminder windows unchanged) | Still unconfirmed |
+| `SMS_AUTOMATED_REMINDERS_ENABLED` / `SMS_SENT_NOTIFICATIONS_ENABLED` / `SMS_DELIVERY_FAILURE_NOTIFICATIONS_ENABLED` / `SMS_REPLY_NOTIFICATIONS_ENABLED` | Not observable (`sms_sent: 0`/no SMS activity this window — inconclusive, not a negative) | Still unconfirmed |
+| `SOLD_WELCOME_EMAIL_ENABLED` | Not observable (no lead entered Sold status this window) | Still unconfirmed — presence-only evidence from the prior round stands |
+| `QB_PROACTIVE_HEALTH_CHECK_ENABLED` | Confirmed absent from both services (prior round) — unaffected by this window | Confirmed off |
+
+**Appointment/phone reminders are confirmed completely unaffected by
+anything in this round** — `scanned: 321` consistently, `eligible: 0`
+consistently (no appointment happened to fall in a reminder window during
+this specific 11-hour slice), `sms_skipped`/`sms_sent: 0` throughout. Sold
+welcome emails were not touched, tested, or triggered.
+
+### 4. Pending Railway environment change — RESOLVED (lower-risk than it looked): confirmed empty, two independent ways
+
+`environment-status` still lists the same staged `EnvironmentPatch`
+(`patch:bb461939-81b5-4ed9-92f6-70418dfbc57c`, workflow
+`commitChanges/9331271c-69d4-4d1e-8e7c-d9b2d8bf54ed/bb461939-...`),
+`status: "staged"`, `startedAt: "2026-11-20T04:56:34.838Z"` — now **7 days
+old**. This round tried two tools specifically designed to show what a
+staged patch would actually change, neither tried before:
+`get-staged-changes` (purpose-built to show "the changes staged in a
+Railway environment that accept-deploy would commit") returned
+`"staged": null, "resources": [], "sharedVariables": [], "destructive":
+false` for this exact environment; `describe-environment` independently
+corroborated this — every one of the 5 services AND the one volume report
+`"stagedChangeCount": 0`. **Both tools agree the pending patch carries zero
+actual resource or variable changes** — it is not a hidden configuration
+change waiting to apply; it is an empty, orphaned workflow record.
+`destructive: false` on top of an empty diff means there is nothing this
+patch could do if it were ever applied, and nothing it is currently
+suppressing or masking either. This downgrades the item from "unknown risk,
+needs a human to inspect" to "confirmed inert — cosmetic cleanup only."
+**Still not resolved**: why Railway's own workflow tracking has left this
+in "staged" status for 7 days without auto-expiring or auto-clearing it,
+and whether `accept-deploy`/discard would be the right action to finally
+clear the stale record — that remains a Railway-dashboard-level cleanup
+item, not a production-risk item, and this environment will not call
+`accept-deploy` (a destructive-adjacent action) without explicit operator
+instruction even though the diff itself is confirmed empty.
+
+### 5. Postgres backup/PITR — re-confirmed still unresolved, same single warning
+
+Re-checked `environment-status` for the Postgres service: still
+`issues: {warningCount: 1, criticalCount: 0}`, unchanged from every prior
+check in this engagement. This round additionally tried
+`describe-service`/`get-service-config` against the Postgres service
+specifically (not tried in this exact form before): the full live config
+(image `ghcr.io/railwayapp-templates/postgres-ssl:18`, build/deploy
+settings, the one `postgres-volume` mount at `/var/lib/postgresql/data`,
+5000MB, region `sfo`) and the full variable-NAME list (`DATABASE_URL`,
+`PGDATA`, `PGDATABASE`, `PGHOST`, `PGPASSWORD`, `PGPORT`, `PGUSER`,
+`POSTGRES_DB`, `POSTGRES_PASSWORD`, `POSTGRES_USER`,
+`RAILWAY_DEPLOYMENT_DRAINING_SECONDS`, `SSL_CERT_DAYS`) contain **no
+backup/PITR-related field of any kind** — confirming this is not merely a
+tool this session forgot to try; Railway's backup/PITR configuration is
+genuinely not exposed through the service-config surface at all, only
+through the dashboard's own Backups tab or the authenticated `railway`
+CLI. `get-service-metrics` (24h window) rules out one plausible
+explanation for the warning: disk usage is `0.33GB` of the 5000MB volume
+(current/average/max all ~0.33GB, 1441 samples) and memory is `0.13GB` of
+an `8GB` limit — nowhere near any capacity threshold, so the one reported
+warning is very unlikely to be a disk/memory-capacity alert. This narrows,
+but does not resolve, what the warning actually says. **Still requires direct Railway dashboard or authenticated `railway`
+CLI access** (Postgres service → Backups tab, or `railway postgres backups
+list`/`railway postgres pitr`) to confirm whether automated backups/PITR
+are enabled, their retention, the last successful backup, and what the one
+reported warning actually says. No restore was attempted; no backup
+setting was changed.
+
+### 6. Lalani $1,097 invoice-reconciliation — tool and UI confirmed built and deployed; investigation itself still not confirmed run
+
+PR #84 (`GET /api/v1/deals/:id/invoice-reconciliation`, admin-only,
+purely read-only) and PR #85 (the "Invoice Reconciliation" button in the
+Financial Summary header, admin-only) are both confirmed merged and live
+(per `git log origin/main`). This environment has no admin CRM login and
+cannot call the endpoint or click the button itself. **Whether an
+administrator has actually opened Lalani's Master Project and clicked
+"Invoice Reconciliation" yet is unconfirmed from this environment** — the
+$1,097 discrepancy between the computed $42,031.00 and management's
+confirmed $40,934.00 remains open pending that itemized review (duplicate
+document number, wrong-project mapping, or a voided-but-still-counted row
+are the three things to look for, per the tool's own design).
+
+### 7. Automatic QuickBooks recovery readiness before December 1 — current, accurate picture
+
+The circuit breaker has NOT genuinely closed at any point observed across
+either verification window — every apparent "healthy" reading in the
+watchdog logs before this round's fix was the timer-artifact flapping bug
+in item 1 above, not a real recovery; `opens_count` continued climbing
+throughout. `lib/qbRecoveryVerification.js`'s own stronger gate (requiring
+both sync cursors to show success) has therefore never had a chance to
+fire a premature "recovered" email — confirmed correct by design, and now
+further protected by item 1's fix removing the false-healthy reads that
+could have started its deferred-verification timer prematurely. Readiness
+for December 1 rests entirely on Intuit's own calendar-month quota reset;
+nothing in this codebase can accelerate or confirm that from here. The
+concrete operator action once the real reset happens: watch for
+`circuit_breaker.state` to genuinely transition to `closed` in System
+Health or the watchdog logs, then confirm the SEPARATE "verified recovery"
+email actually arrives only after both sync cursors show a fresh
+successful run — never merely because the breaker closed.
+
 ## Open, known-limitation items
 
 - **Google Contacts automatic sync** — the original `routes/publicCapture.js`
