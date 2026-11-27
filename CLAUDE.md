@@ -6553,7 +6553,12 @@ backup/PITR-related field of any kind** — confirming this is not merely a
 tool this session forgot to try; Railway's backup/PITR configuration is
 genuinely not exposed through the service-config surface at all, only
 through the dashboard's own Backups tab or the authenticated `railway`
-CLI. **Still requires direct Railway dashboard or authenticated `railway`
+CLI. `get-service-metrics` (24h window) rules out one plausible
+explanation for the warning: disk usage is `0.33GB` of the 5000MB volume
+(current/average/max all ~0.33GB, 1441 samples) and memory is `0.13GB` of
+an `8GB` limit — nowhere near any capacity threshold, so the one reported
+warning is very unlikely to be a disk/memory-capacity alert. This narrows,
+but does not resolve, what the warning actually says. **Still requires direct Railway dashboard or authenticated `railway`
 CLI access** (Postgres service → Backups tab, or `railway postgres backups
 list`/`railway postgres pitr`) to confirm whether automated backups/PITR
 are enabled, their retention, the last successful backup, and what the one
