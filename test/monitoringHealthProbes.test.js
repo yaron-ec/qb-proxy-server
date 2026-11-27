@@ -435,6 +435,54 @@ test('checkQbHealth: a breaker-read failure never flips this check unhealthy on 
   } finally { delete global.fetch; restore(); }
 });
 
+// ── checkQbHealth: THE REPORTED FLAPPING BUG (November 2026 follow-up) ─────
+//
+// Live production evidence (artistic-determination deploy logs, 2026-11-26
+// through 2026-11-27, ~11 hours): the watchdog's own 'quickbooks-integration'
+// healthy/unhealthy reading flapped back and forth roughly every 15-45
+// minutes — NOT a real recovery (the quota-exhaustion condition never
+// actually cleared; opens_count kept climbing) — and each healthy->unhealthy
+// transition opened a BRAND NEW monitoring_incidents row (isNew: true),
+// which always alerts immediately regardless of the 24h cooldown fix shipped
+// in PR #86. 11 alerts fired in 11 hours — the same frequency as before that
+// fix, via a different mechanism. Root cause: breakerSustainedOpen was
+// previously gated on isCoolingDown(state), which flips false the MOMENT
+// cooldown_until elapses — even though the breaker's own `state` field is
+// still 'open' (not yet 'closed') because nothing has actually attempted and
+// won the one half-open trial yet. These two tests pin exactly that gap and
+// prove the fix (state !== 'closed') closes it.
+test('checkQbHealth: THE FLAPPING BUG — breaker state is still "open" (no trial has run yet) even though cooldown_until has already elapsed -> must stay unhealthy, never a false "recovered" reading from the clock alone', async () => {
+  global.fetch = async () => ({ ok: true, status: 200, json: async () => ({ connected: true, reconnectRequired: false, tokenExpired: false }) });
+  // cooldown_until is in the PAST — the old isCoolingDown()-based check would
+  // read this as "not cooling down" and report healthy, purely because the
+  // timer ran out, with zero evidence any real call has succeeded.
+  const restore = stubBreaker({ state: 'open', consecutive_failures: 5, opens_count: 112, cooldown_until: new Date(Date.now() - 60000).toISOString(), last_failure_detail: null });
+  try {
+    const result = await checkQbHealth({ id: 'quickbooks-integration' }, 'http://unused:3000');
+    assert.strictEqual(result.healthy, false, 'an elapsed cooldown timer alone is not a verified recovery — state is still "open"');
+    assert.match(result.error, /112 consecutive times/);
+  } finally { delete global.fetch; restore(); }
+});
+
+test('checkQbHealth: an in-flight, UNCONFIRMED half-open trial also stays unhealthy — only a genuinely successful trial (state flips to "closed") ever reports healthy', async () => {
+  global.fetch = async () => ({ ok: true, status: 200, json: async () => ({ connected: true, reconnectRequired: false, tokenExpired: false }) });
+  const restore = stubBreaker({ state: 'half_open', consecutive_failures: 5, opens_count: 112, cooldown_until: null, half_open_since: new Date().toISOString(), last_failure_detail: null });
+  try {
+    const result = await checkQbHealth({ id: 'quickbooks-integration' }, 'http://unused:3000');
+    assert.strictEqual(result.healthy, false, 'a trial in flight is unconfirmed — reporting healthy here would be the same false-recovery shape as the cooldown-elapsed bug');
+    assert.strictEqual(result.details.circuit_breaker_state, 'half_open');
+  } finally { delete global.fetch; restore(); }
+});
+
+test('checkQbHealth: a genuinely CLOSED breaker (the only state recordSuccess ever sets) reports healthy even with a stale opens_count left over from before the reset — defensive, since recordSuccess always resets opens_count to 0 in practice', async () => {
+  global.fetch = async () => ({ ok: true, status: 200, json: async () => ({ connected: true, reconnectRequired: false, tokenExpired: false }) });
+  const restore = stubBreaker({ state: 'closed', consecutive_failures: 0, opens_count: 999, cooldown_until: null, last_failure_detail: null });
+  try {
+    const result = await checkQbHealth({ id: 'quickbooks-integration' }, 'http://unused:3000');
+    assert.strictEqual(result.healthy, true, 'state === closed is the one genuine, verified-success signal regardless of a historical opens_count');
+  } finally { delete global.fetch; restore(); }
+});
+
 // ── checkQbSyncScheduler: a DIFFERENT failure class from checkQbHealth —
 // the scheduler not making attempts at all, never attempts that are
 // failing (which checkQbHealth's breaker-awareness already covers).
