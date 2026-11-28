@@ -492,13 +492,17 @@ function stubSyncStatus(overrides) {
     getQbSyncStatus: async () => ({
       estimate_sync: { available: true, ever_run: true, last_successful_sync_at: null, last_attempted_at: new Date().toISOString(), summary: null },
       inbound_reconcile: { available: true, ever_run: true, last_successful_sync_at: null, last_attempted_at: new Date().toISOString(), summary: null },
+      full_reconcile: { available: true, ever_run: true, last_successful_sync_at: null, last_attempted_at: new Date().toISOString(), summary: null },
       ...overrides,
     }),
   });
 }
 
-function stubCronEnabled(enabled) {
-  return stub('../lib/qbSyncCronConfig', { isEstimateSyncCronEnabled: () => enabled });
+function stubCronEnabled(enabled, fullReconcileIntervalHours = 24) {
+  return stub('../lib/qbSyncCronConfig', {
+    isEstimateSyncCronEnabled: () => enabled,
+    getFullReconcileIntervalHours: () => fullReconcileIntervalHours,
+  });
 }
 
 test('checkQbSyncScheduler: both crons ticked recently -> healthy', async () => {
@@ -564,5 +568,85 @@ test('checkQbSyncScheduler: a sync_cursors read failure is reported distinctly, 
     const result = await checkQbSyncScheduler({ id: 'quickbooks-sync-scheduler' });
     assert.strictEqual(result.healthy, false);
     assert.match(result.error, /unavailable/);
+  } finally { restoreCron(); restoreStatus(); }
+});
+
+// ── November 2026 final-acceptance follow-up: the once-daily full
+// reconciliation safety net (previously visible in qbSyncStatus but never
+// covered by THIS staleness check) must now be monitored too — with its
+// OWN, much longer threshold, never the frequent path's 3h one.
+
+test('checkQbSyncScheduler: full_reconcile ticked within its own daily threshold -> healthy', async () => {
+  const restoreCron = stubCronEnabled(true, 24);
+  const restoreStatus = stubSyncStatus({
+    full_reconcile: { available: true, ever_run: true, last_successful_sync_at: null, last_attempted_at: new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString(), summary: null },
+  });
+  try {
+    const result = await checkQbSyncScheduler({ id: 'quickbooks-sync-scheduler' });
+    assert.strictEqual(result.healthy, true);
+    assert.ok(result.details.full_reconcile_last_attempted_at);
+  } finally { restoreCron(); restoreStatus(); }
+});
+
+test('checkQbSyncScheduler: full_reconcile silent for well over 2x its 24h interval -> unhealthy, names full_reconcile specifically', async () => {
+  const restoreCron = stubCronEnabled(true, 24);
+  const staleTs = new Date(Date.now() - 51 * 60 * 60 * 1000).toISOString(); // 51h ago, past (24*2+2)=50h threshold
+  const restoreStatus = stubSyncStatus({
+    full_reconcile: { available: true, ever_run: true, last_successful_sync_at: staleTs, last_attempted_at: staleTs, summary: null },
+  });
+  try {
+    const result = await checkQbSyncScheduler({ id: 'quickbooks-sync-scheduler' });
+    assert.strictEqual(result.healthy, false);
+    assert.match(result.error, /full_reconcile/);
+    assert.match(result.error, /scheduler may not be executing/i);
+  } finally { restoreCron(); restoreStatus(); }
+});
+
+test('checkQbSyncScheduler: full_reconcile 20h stale is still healthy under the default 24h interval (never false-alarms within a normal daily cadence)', async () => {
+  const restoreCron = stubCronEnabled(true, 24);
+  const freshEnoughTs = new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString();
+  const restoreStatus = stubSyncStatus({
+    full_reconcile: { available: true, ever_run: true, last_successful_sync_at: freshEnoughTs, last_attempted_at: freshEnoughTs, summary: null },
+  });
+  try {
+    const result = await checkQbSyncScheduler({ id: 'quickbooks-sync-scheduler' });
+    assert.strictEqual(result.healthy, true);
+  } finally { restoreCron(); restoreStatus(); }
+});
+
+test('checkQbSyncScheduler: full_reconcile that has never run yet (ever_run: false) is never a false alarm', async () => {
+  const restoreCron = stubCronEnabled(true, 24);
+  const restoreStatus = stubSyncStatus({
+    full_reconcile: { available: true, ever_run: false, last_successful_sync_at: null, last_attempted_at: null, summary: null },
+  });
+  try {
+    const result = await checkQbSyncScheduler({ id: 'quickbooks-sync-scheduler' });
+    assert.strictEqual(result.healthy, true);
+  } finally { restoreCron(); restoreStatus(); }
+});
+
+test('checkQbSyncScheduler: full_reconcile read failure is reported distinctly, never silently treated as staleness', async () => {
+  const restoreCron = stubCronEnabled(true, 24);
+  const restoreStatus = stubSyncStatus({
+    full_reconcile: { available: false, error: 'cursor_unavailable' },
+  });
+  try {
+    const result = await checkQbSyncScheduler({ id: 'quickbooks-sync-scheduler' });
+    assert.strictEqual(result.healthy, false);
+    assert.match(result.error, /unavailable/);
+    assert.match(result.error, /full_reconcile/);
+  } finally { restoreCron(); restoreStatus(); }
+});
+
+test('checkQbSyncScheduler: a configured QB_FULL_RECONCILE_INTERVAL_HOURS of 48 widens the threshold to (48*2+2)=98h, never using the default 24h math', async () => {
+  const restoreCron = stubCronEnabled(true, 48);
+  const staleFor24hDefaultButNotFor48hInterval = new Date(Date.now() - 51 * 60 * 60 * 1000).toISOString(); // 51h ago: would be stale under a 24h-interval threshold, not under a 48h one
+  const restoreStatus = stubSyncStatus({
+    full_reconcile: { available: true, ever_run: true, last_successful_sync_at: staleFor24hDefaultButNotFor48hInterval, last_attempted_at: staleFor24hDefaultButNotFor48hInterval, summary: null },
+  });
+  try {
+    const result = await checkQbSyncScheduler({ id: 'quickbooks-sync-scheduler' });
+    assert.strictEqual(result.healthy, true, 'a 48h-configured interval must use its own wider threshold, not the 24h default');
+    assert.strictEqual(result.details.full_reconcile_threshold_ms, (48 * 2 + 2) * 60 * 60 * 1000);
   } finally { restoreCron(); restoreStatus(); }
 });

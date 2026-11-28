@@ -344,6 +344,98 @@ test('a cursor older than the 30-day CDC lookback cap falls back to a full resyn
   } finally { restoreMgr(); }
 });
 
+// ── November 2026 final-acceptance follow-up: real-Postgres proof that a
+// PARTIAL fallback (the recovery-event shape — some mapped customers still
+// fail while QuickBooks access is intermittently recovering) never
+// advances last_successful_sync_at or the watermark. This is exactly the
+// case lib/qbRecoveryVerification.js depends on being correct: a false
+// last_successful_sync_at here would let a "QuickBooks recovered" email
+// fire on a sync that never actually finished catching up. ──────────────
+test('a PARTIAL fallback (one customer fails) never advances last_successful_sync_at or the watermark in the real sync_cursors row', { skip }, async () => {
+  const stampGood = crypto.randomUUID();
+  const stampBad = crypto.randomUUID();
+  const qbCustomerGood = `CUST-RECOVER-OK-${stampGood}`;
+  const qbCustomerBad = `CUST-RECOVER-FAIL-${stampBad}`;
+  await seedLeadWithDeal(stampGood, qbCustomerGood);
+  await seedLeadWithDeal(stampBad, qbCustomerBad);
+
+  const restoreMgr = stub('../../lib/qbTokenManager', {
+    getValidTokens: async () => ({ access_token: 'x', realm_id: 'R1' }),
+    qbApiRequest: async (_env, buildUrl) => {
+      const url = buildUrl({ realm_id: 'R1' });
+      if (url.includes(qbCustomerBad)) return { res: { ok: false, status: 500 }, text: 'server error', json: {} };
+      if (url.includes('Invoice') || url.includes('Payment')) return { res: { ok: true, status: 200 }, text: '{}', json: { QueryResponse: {} } };
+      throw new Error('unexpected QB call: ' + url);
+    },
+  });
+  try {
+    const qbInboundSync = freshQbInboundSync();
+    const result = await qbInboundSync.syncInvoicesPaymentsIncremental();
+    assert.strictEqual(result.mode, 'cdc_fallback_full');
+    assert.strictEqual(result.outcome, 'partial');
+
+    const cursor = await db.query(`SELECT * FROM sync_cursors WHERE integration = 'quickbooks_inbound_reconcile'`);
+    assert.strictEqual(cursor.rows.length, 1);
+    assert.strictEqual(cursor.rows[0].last_successful_sync_at, null, 'a partial recovery attempt must never be reported as a genuine successful sync');
+    assert.strictEqual(cursor.rows[0].last_cursor, null, 'the watermark must not advance either — the failed customer was never actually re-fetched this attempt');
+    assert.ok(cursor.rows[0].last_attempted_at, 'the attempt itself is still durably recorded');
+
+    // The next tick retries the SAME fallback (still no usable watermark) —
+    // proving the failed customer's data genuinely gets another real chance
+    // rather than being silently skipped once "now" was wrongly accepted.
+    const restoreMgr2 = stub('../../lib/qbTokenManager', {
+      getValidTokens: async () => ({ access_token: 'x', realm_id: 'R1' }),
+      qbApiRequest: async () => ({ res: { ok: true, status: 200 }, text: '{}', json: { QueryResponse: {} } }),
+    });
+    try {
+      const second = freshQbInboundSync();
+      const result2 = await second.syncInvoicesPaymentsIncremental();
+      assert.strictEqual(result2.mode, 'cdc_fallback_full', 'retried the fallback again, not CDC — there was still no valid watermark to resume from');
+      assert.strictEqual(result2.outcome, 'success');
+      const cursor2 = await db.query(`SELECT last_successful_sync_at, last_cursor FROM sync_cursors WHERE integration = 'quickbooks_inbound_reconcile'`);
+      assert.ok(cursor2.rows[0].last_successful_sync_at, 'now that both customers genuinely succeeded, the watermark and success timestamp both advance');
+      assert.ok(cursor2.rows[0].last_cursor);
+    } finally { restoreMgr2(); }
+  } finally { restoreMgr(); }
+});
+
+test('a CDC response at/above the 1000-object truncation threshold falls back to full reconciliation rather than trusting a possibly-incomplete response', { skip }, async () => {
+  const stamp = crypto.randomUUID();
+  const qbCustomerId = `CUST-TRUNC-${stamp}`;
+  await seedLeadWithDeal(stamp, qbCustomerId);
+
+  const watermark = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  await db.query(
+    `INSERT INTO sync_cursors (integration, last_cursor, last_updated_timestamp) VALUES ('quickbooks_inbound_reconcile', $1::text, $1::timestamptz)`,
+    [watermark]
+  );
+
+  const bigInvoiceList = Array.from({ length: 1000 }, (_, i) => ({
+    Id: `INV-TRUNC-${i}`, CustomerRef: { value: qbCustomerId }, TotalAmt: 1, Balance: 1,
+    MetaData: { LastUpdatedTime: new Date().toISOString() },
+  }));
+  let fullSyncAttempted = false;
+  const restoreMgr = stub('../../lib/qbTokenManager', {
+    getValidTokens: async () => ({ access_token: 'x', realm_id: 'R1' }),
+    qbApiRequest: async (_env, buildUrl) => {
+      const url = buildUrl({ realm_id: 'R1' });
+      if (url.includes('/cdc?entities=')) return { res: { ok: true, status: 200 }, text: '{}', json: makeCdcResponse(bigInvoiceList, []) };
+      fullSyncAttempted = true;
+      return { res: { ok: true, status: 200 }, text: '{}', json: { QueryResponse: {} } };
+    },
+  });
+  try {
+    const qbInboundSync = freshQbInboundSync();
+    const result = await qbInboundSync.syncInvoicesPaymentsIncremental();
+    assert.strictEqual(result.mode, 'cdc_fallback_full', 'a suspected-truncated 1000-object CDC response is never trusted — falls back to the full per-customer reconciliation instead');
+    assert.strictEqual(fullSyncAttempted, true);
+    // None of the 1000 synthetic invoices were ever written — confirming the
+    // truncated response was genuinely discarded, not partially processed.
+    const written = await db.query(`SELECT COUNT(*) AS n FROM qb_invoices_cache WHERE qb_invoice_id LIKE 'INV-TRUNC-%'`);
+    assert.strictEqual(Number(written.rows[0].n), 0);
+  } finally { restoreMgr(); }
+});
+
 test('an overlapping call is skipped (cross-process advisory lock, namespace 1005)', { skip }, async () => {
   const stamp = crypto.randomUUID();
   const qbCustomerId = `CUST-LOCK-${stamp}`;
