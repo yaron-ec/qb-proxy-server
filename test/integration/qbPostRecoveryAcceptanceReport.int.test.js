@@ -35,6 +35,7 @@ test.beforeEach(async () => {
   await db.query(`DELETE FROM qb_api_usage_by_entity_daily`);
   await db.query(`DELETE FROM sync_cursors WHERE integration IN ('quickbooks_estimates','quickbooks_inbound_reconcile','quickbooks_full_reconcile')`);
   await db.query(`DELETE FROM app_settings WHERE key = 'qb_rate_limit_breaker'`);
+  await db.query(`DELETE FROM qb_cdc_failed_records`);
 });
 
 test('buildReport: a closed breaker + both cursors recently successful + no duplicates reports overall_ready_for_acceptance_review=true', { skip }, async () => {
@@ -136,4 +137,34 @@ test('buildReport: a missing circuit breaker row or missing cursors never throws
   assert.strictEqual(typeof report.verdict.overall_ready_for_acceptance_review, 'boolean');
   assert.strictEqual(report.verdict.zero_duplicate_invoice_doc_numbers, true);
   assert.strictEqual(report.verdict.zero_duplicate_payment_doc_numbers, true);
+});
+
+test('buildReport: a stale (>48h) unresolved CDC item failure fails the verdict and is listed by id', { skip }, async () => {
+  const { buildReport } = require('../../scripts/qbPostRecoveryAcceptanceReport');
+  const oldFailure = new Date(Date.now() - 50 * 60 * 60 * 1000).toISOString();
+  await db.query(
+    `INSERT INTO qb_cdc_failed_records (entity_type, qb_id, raw_payload, first_failed_at, last_attempted_at, attempts, last_error)
+     VALUES ('invoice', 'INV-STALE-1', '{"Id":"INV-STALE-1"}'::jsonb, $1, $1, 5, 'still broken')`,
+    [oldFailure]
+  );
+  const report = await buildReport();
+  assert.strictEqual(report.verdict.zero_stale_unresolved_cdc_failures, false);
+  assert.strictEqual(report.verdict.overall_ready_for_acceptance_review, false);
+  assert.strictEqual(report.cdc_item_failures.unresolved_total, 1);
+  assert.strictEqual(report.cdc_item_failures.unresolved_stale_over_48h.length, 1);
+  assert.strictEqual(report.cdc_item_failures.unresolved_stale_over_48h[0].qb_id, 'INV-STALE-1');
+});
+
+test('buildReport: a RECENT (<48h) unresolved CDC item failure is reported but does not fail the verdict', { skip }, async () => {
+  const { buildReport } = require('../../scripts/qbPostRecoveryAcceptanceReport');
+  const recentFailure = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+  await db.query(
+    `INSERT INTO qb_cdc_failed_records (entity_type, qb_id, raw_payload, first_failed_at, last_attempted_at, attempts, last_error)
+     VALUES ('payment', 'PMT-RECENT-1', '{"Id":"PMT-RECENT-1"}'::jsonb, $1, $1, 1, 'transient')`,
+    [recentFailure]
+  );
+  const report = await buildReport();
+  assert.strictEqual(report.verdict.zero_stale_unresolved_cdc_failures, true, 'still within the retry/safety-net grace window');
+  assert.strictEqual(report.cdc_item_failures.unresolved_total, 1);
+  assert.strictEqual(report.cdc_item_failures.unresolved_stale_over_48h.length, 0);
 });

@@ -476,3 +476,83 @@ test('an overlapping call is skipped (cross-process advisory lock, namespace 100
   } finally { restoreMgr(); }
   void releaseFirst;
 });
+
+// ── November 2026 final-acceptance follow-up, item 2: CDC item-level
+// failures are durably retried from their own stored payload, with ZERO
+// additional QuickBooks API calls, independent of any full reconciliation
+// safety net or quota throttle. ─────────────────────────────────────────
+
+test('retryFailedCdcRecords: reprocesses a genuinely stored failed invoice against REAL Postgres — upserts the cache row, maps it to the deal, and marks it resolved', { skip }, async () => {
+  const stamp = `${Date.now()}-retry1`;
+  const { dealId } = await seedLeadWithDeal(stamp, `CUST-RETRY-${stamp}`);
+  const rawInvoice = {
+    Id: `INV-RETRY-${stamp}`,
+    DocNumber: `DOC-RETRY-${stamp}`,
+    CustomerRef: { value: `CUST-RETRY-${stamp}` },
+    TotalAmt: 500,
+    Balance: 500,
+    MetaData: { LastUpdatedTime: new Date().toISOString() },
+  };
+  await db.query(
+    `INSERT INTO qb_cdc_failed_records (entity_type, qb_id, raw_payload, last_error)
+     VALUES ('invoice', $1, $2::jsonb, 'simulated transient failure')`,
+    [rawInvoice.Id, JSON.stringify(rawInvoice)]
+  );
+
+  const qbInboundSync = freshQbInboundSync();
+  const result = await qbInboundSync.retryFailedCdcRecords();
+  assert.strictEqual(result.attempted, 1);
+  assert.strictEqual(result.resolved, 1);
+  assert.strictEqual(result.stillFailing, 0);
+
+  const { rows: cacheRows } = await db.query('SELECT * FROM qb_invoices_cache WHERE qb_invoice_id = $1', [rawInvoice.Id]);
+  assert.strictEqual(cacheRows.length, 1, 'the retried invoice must land in the real cache table');
+  assert.strictEqual(Number(cacheRows[0].total_amt), 500);
+
+  const { rows: mapRows } = await db.query('SELECT * FROM qb_invoice_sale_map WHERE qb_invoice_id = $1', [rawInvoice.Id]);
+  assert.strictEqual(mapRows.length, 1);
+  assert.strictEqual(mapRows[0].crm_sale_id, dealId);
+
+  const { rows: failedRows } = await db.query('SELECT resolved_at FROM qb_cdc_failed_records WHERE qb_id = $1', [rawInvoice.Id]);
+  assert.ok(failedRows[0].resolved_at, 'must be marked resolved after a successful retry');
+});
+
+test('retryFailedCdcRecords: a record whose underlying dependency never resolves stays unresolved with incrementing attempts, never silently dropped', { skip }, async () => {
+  const stamp = `${Date.now()}-retry2`;
+  // Deliberately NO matching lead/deal for this customer — autoMapInvoiceToSale
+  // itself never throws for "no lead" (it returns {mapped:false}), so to
+  // force a genuine, repeatable failure we give the payload a malformed
+  // CustomerRef shape that the real upsert function's SQL will reject.
+  const rawInvoice = {
+    Id: `INV-RETRY-FAIL-${stamp}`,
+    DocNumber: null,
+    CustomerRef: { value: `CUST-NONE-${stamp}` },
+    TotalAmt: 'not-a-number-and-also-missing-required-fields',
+    MetaData: {},
+  };
+  await db.query(
+    `INSERT INTO qb_cdc_failed_records (entity_type, qb_id, raw_payload, last_error, attempts)
+     VALUES ('invoice', $1, $2::jsonb, 'simulated transient failure', 1)`,
+    [rawInvoice.Id, JSON.stringify(rawInvoice)]
+  );
+
+  // Force a genuine failure deterministically by stubbing the upsert to
+  // throw — MUST happen before freshQbInboundSync(), since qbInboundSync.js
+  // destructures upsertInvoiceCacheFromQb out of qbInvoiceSaleMap at its
+  // own require-time (a later stub would never be picked up).
+  const restoreSaleMap = stub('../../lib/qbInvoiceSaleMap', {
+    upsertInvoiceCacheFromQb: async () => { throw new Error('still broken'); },
+    upsertMapping: async () => {},
+  });
+  const qbInboundSync = freshQbInboundSync();
+  try {
+    const result = await qbInboundSync.retryFailedCdcRecords();
+    assert.strictEqual(result.resolved, 0);
+    assert.strictEqual(result.stillFailing, 1);
+  } finally { restoreSaleMap(); }
+
+  const { rows: failedRows } = await db.query('SELECT resolved_at, attempts, last_error FROM qb_cdc_failed_records WHERE qb_id = $1', [rawInvoice.Id]);
+  assert.strictEqual(failedRows[0].resolved_at, null, 'never silently resolved without a genuine success');
+  assert.strictEqual(Number(failedRows[0].attempts), 2, 'attempts increments rather than the row being dropped');
+  assert.match(failedRows[0].last_error, /still broken/);
+});

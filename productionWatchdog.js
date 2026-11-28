@@ -144,6 +144,10 @@ async function handleFailure(service, result, baseUrl) {
   // incident that has since reopened.
   if (service.id === 'quickbooks-integration') {
     await require('./lib/qbRecoveryVerification').clearOnFailure();
+    // November 2026 final-acceptance follow-up, item 1: a fresh failure
+    // also supersedes any active acceptance-report schedule — a 24h/72h/7d
+    // report must never be sent for a recovery that didn't actually hold.
+    await require('./lib/qbAcceptanceReportScheduler').supersedeActiveSchedule();
   }
 
   const { incident, isNew, isCrashLoop } = await crashLoop.recordFailure(
@@ -306,6 +310,35 @@ async function handleSuccess(service, result) {
         incidentId: pending.incidentId,
         alertSeq: 1, // a verified-recovery alert fires at most once per incident
         logLines: [],
+      });
+      // November 2026 final-acceptance follow-up, item 1: the SAME verified
+      // moment (breaker closed AND both cursors genuinely caught up) is the
+      // one, correct anchor for the 24h/72h/7d acceptance-report schedule —
+      // never a second, independently-computed timestamp.
+      await require('./lib/qbAcceptanceReportScheduler').startSchedule(caughtUp.recoveredAt || new Date());
+    });
+  }
+
+  // November 2026 final-acceptance follow-up, item 1: process any
+  // due acceptance-report window on every healthy tick for
+  // quickbooks-integration — independent of whether THIS tick is the one
+  // that resolved an incident, since a report can become due many ticks
+  // after the original recovery.
+  if (service.id === 'quickbooks-integration') {
+    await require('./lib/qbAcceptanceReportScheduler').processDueReports(async ({ windowKey, hoursSinceRecovery, recoveryVerifiedAt, report }) => {
+      const notificationRecipients = require('./lib/notificationRecipients');
+      const notificationPreferences = require('./lib/notificationPreferences');
+      const staff = await notificationRecipients.getAllStaffRecipients();
+      const recipients = await notificationPreferences.filterRecipientsForCategory(staff, notificationPreferences.CATEGORIES.SYSTEM_FAILURE);
+      if (recipients.length === 0) return; // nothing to do — never an error
+      const { renderReportEmailHtml } = require('./lib/qbAcceptanceReportScheduler');
+      const emailService = require('./lib/emailService');
+      const windowLabel = windowKey.replace('report_', '').toUpperCase();
+      await emailService.send({
+        to: recipients,
+        subject: `[EC CRM] QuickBooks Acceptance Report — ${windowLabel} since verified recovery`,
+        htmlBody: renderReportEmailHtml({ windowKey, hoursSinceRecovery, recoveryVerifiedAt, report }),
+        idempotencyKey: `qb-acceptance-report:${recoveryVerifiedAt}:${windowKey}`,
       });
     });
   }

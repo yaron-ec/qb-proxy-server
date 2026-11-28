@@ -79,7 +79,7 @@ test('probeService (lib/monitoring/healthProbes.js) has a dispatch case for ever
   }
 });
 
-test('the full expected healthSignal roster for all 13 monitored services matches this known-good inventory (fails loudly if a service is added/removed/retargeted without updating this audit)', () => {
+test('the full expected healthSignal roster for all 14 monitored services matches this known-good inventory (fails loudly if a service is added/removed/retargeted without updating this audit)', () => {
   const { getMonitoredServices } = freshServiceInventory();
   const services = getMonitoredServices();
   const roster = Object.fromEntries(services.map((s) => [s.id, s.healthSignal || 'http']));
@@ -95,10 +95,11 @@ test('the full expected healthSignal roster for all 13 monitored services matche
     'crm-frontend': 'http',
     'quickbooks-integration': 'qb_integration',
     'quickbooks-sync-scheduler': 'qb_sync_scheduler',
+    'quickbooks-cdc-failed-records': 'qb_cdc_failed_records',
     'handoff-integration': 'handoff_integration',
     postgres: 'db_connection',
   });
-  assert.strictEqual(services.length, 13);
+  assert.strictEqual(services.length, 14);
 });
 
 test('calendar-outbox-heartbeat is alert-only (circuit-breaker-protected), never a restart candidate, since it is the same physical worker as calendar-outbox-worker', () => {
