@@ -685,3 +685,39 @@ test('processEstimateFollowups({dryRun:true}) computes but never writes or sends
   const unchangedSteps = await engine.getStepsForSequence(sequence.id);
   assert.strictEqual(unchangedSteps[0].status, 'pending', 'dry-run must never mutate step status');
 });
+
+// November 2026 final-acceptance follow-up, item 3: a dry-run tick must
+// never consume the step's real sending eligibility (its own pending
+// status, nor the one-email-per-lead-per-day dedup) — a dry-run tick
+// immediately followed by a REAL tick for the SAME due step must still
+// send exactly once. This is the direct proof behind "dry-run execution
+// does not consume real sending eligibility or incorrectly mark messages
+// as delivered."
+test('a dry-run tick for a due step, immediately followed by a REAL tick for the same step, still sends exactly once — dry-run never consumes eligibility', { skip }, async () => {
+  const leadId = await makeLead({ email: `${RUN}.dryrunthenreal@example.com` });
+  const estimateId = await makeEstimate(leadId);
+  const { sequence } = await engine.confirmEstimateSent({ leadId, handoffEstimateId: estimateId, confirmedBy: 'rep@example.com' });
+  const steps = await engine.getStepsForSequence(sequence.id);
+  await db.query(`UPDATE estimate_followup_steps SET due_at = NOW() - INTERVAL '1 hour' WHERE id = $1`, [steps[0].id]);
+
+  // summary.wouldSend/sent/deferredOnePerDay are GLOBAL across every active
+  // sequence in the shared table (this file never resets it between tests —
+  // see its own "necessarily GLOBAL" comment near the top) — so this test's
+  // own proof is THIS lead's step/sequence rows and sentEmails recipients
+  // directly, never the aggregate counts, which other sequences from
+  // earlier tests in this same file also contribute to.
+  sentEmails.length = 0;
+  await engine.processEstimateFollowups({ dryRun: true, triggeredBy: 'test' });
+  assert.strictEqual(sentEmails.length, 0, 'the dry-run tick itself must never send');
+
+  const stepsAfterDryRun = await engine.getStepsForSequence(sequence.id);
+  assert.strictEqual(stepsAfterDryRun[0].status, 'pending', 'still pending — dry-run never claims or marks the step processed');
+  assert.strictEqual(stepsAfterDryRun[0].attempts, 0, 'dry-run never increments attempts either');
+
+  await engine.processEstimateFollowups({ dryRun: false, triggeredBy: 'test' });
+  assert.ok(sentEmails.some((m) => m.to === `${RUN}.dryrunthenreal@example.com`), 'this lead\'s email must have actually sent on the real tick — the preceding dry-run tick must never have consumed this step\'s eligibility');
+
+  const stepsAfterReal = await engine.getStepsForSequence(sequence.id);
+  assert.strictEqual(stepsAfterReal[0].status, 'sent');
+  assert.ok(stepsAfterReal[0].sent_at, 'only the REAL send marks sent_at — never the dry-run tick');
+});
