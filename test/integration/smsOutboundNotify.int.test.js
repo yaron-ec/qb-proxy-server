@@ -42,6 +42,15 @@ const notifyCalls = { sent: [], failure: [] };
 
 let db, leadId, ownerId;
 const RUN = `smson${Date.now().toString(36)}`;
+// November 2026 final-acceptance follow-up, item 4: this file previously
+// called sendSms() with no `now`, defaulting to the real wall clock —
+// making every test in this file fail whenever the suite happened to run
+// outside 8:00-21:00 Pacific (lib/smsService.js#isQuietHours), even though
+// quiet hours is incidental here, not what these tests are about. sendSms
+// already supports an injectable `now` (used by test/integration/sms.int.test.js);
+// this file just hadn't been using it. A fixed mid-day Pacific instant
+// makes every test deterministic regardless of actual run time.
+const BUSINESS_HOURS_NOW = new Date('2099-06-15T18:00:00Z'); // ~11am Pacific
 
 function stubModule(relPath, exportsObj) {
   const p = require.resolve(path.join(ROOT, relPath));
@@ -86,7 +95,7 @@ test.after(async () => {
 test('sendSms: a successful Twilio accept fires notifySmsSent exactly once, with the real inserted row', { skip }, async () => {
   const smsService = require(path.join(ROOT, 'lib/smsService'));
   notifyCalls.sent.length = 0;
-  const row = await smsService.sendSms({ leadId, body: 'Reminder: your appointment is tomorrow at 10am', sentBy: 'system:reminder_12h' });
+  const row = await smsService.sendSms({ leadId, body: 'Reminder: your appointment is tomorrow at 10am', sentBy: 'system:reminder_12h', now: BUSINESS_HOURS_NOW });
   assert.strictEqual(notifyCalls.sent.length, 1);
   assert.strictEqual(notifyCalls.sent[0].leadId, leadId);
   assert.strictEqual(notifyCalls.sent[0].twilio_sid, row.twilio_sid);
@@ -95,7 +104,7 @@ test('sendSms: a successful Twilio accept fires notifySmsSent exactly once, with
 test('handleStatusCallback: a genuine sent->failed transition fires notifySmsDeliveryFailure exactly once', { skip }, async () => {
   const smsService = require(path.join(ROOT, 'lib/smsService'));
   notifyCalls.failure.length = 0;
-  const row = await smsService.sendSms({ leadId, body: 'test message 1', sentBy: 'system:reminder_2h' });
+  const row = await smsService.sendSms({ leadId, body: 'test message 1', sentBy: 'system:reminder_2h', now: BUSINESS_HOURS_NOW });
 
   await smsService.handleStatusCallback({ messageSid: row.twilio_sid, status: 'failed', errorCode: '30006', errorMessage: 'Landline or unreachable carrier' });
   assert.strictEqual(notifyCalls.failure.length, 1);
@@ -106,7 +115,7 @@ test('handleStatusCallback: a genuine sent->failed transition fires notifySmsDel
 test('handleStatusCallback: a REDELIVERED callback for the same terminal status never fires a second alert', { skip }, async () => {
   const smsService = require(path.join(ROOT, 'lib/smsService'));
   notifyCalls.failure.length = 0;
-  const row = await smsService.sendSms({ leadId, body: 'test message 2', sentBy: 'system:reminder_2h' });
+  const row = await smsService.sendSms({ leadId, body: 'test message 2', sentBy: 'system:reminder_2h', now: BUSINESS_HOURS_NOW });
 
   await smsService.handleStatusCallback({ messageSid: row.twilio_sid, status: 'undelivered', errorCode: '30006' });
   assert.strictEqual(notifyCalls.failure.length, 1, 'first transition must fire');
@@ -119,7 +128,7 @@ test('handleStatusCallback: a REDELIVERED callback for the same terminal status 
 test('handleStatusCallback: a different-terminal-status correction (undelivered->failed) never fires a second alert either — "at most one alert per delivery failure"', { skip }, async () => {
   const smsService = require(path.join(ROOT, 'lib/smsService'));
   notifyCalls.failure.length = 0;
-  const row = await smsService.sendSms({ leadId, body: 'test message 3', sentBy: 'system:reminder_2h' });
+  const row = await smsService.sendSms({ leadId, body: 'test message 3', sentBy: 'system:reminder_2h', now: BUSINESS_HOURS_NOW });
 
   await smsService.handleStatusCallback({ messageSid: row.twilio_sid, status: 'undelivered', errorCode: '30006' });
   assert.strictEqual(notifyCalls.failure.length, 1);
@@ -132,7 +141,7 @@ test('handleStatusCallback: a different-terminal-status correction (undelivered-
 test('handleStatusCallback: a non-terminal transition (sent -> delivered) never fires the failure alert', { skip }, async () => {
   const smsService = require(path.join(ROOT, 'lib/smsService'));
   notifyCalls.failure.length = 0;
-  const row = await smsService.sendSms({ leadId, body: 'test message 4', sentBy: 'system:reminder_2h' });
+  const row = await smsService.sendSms({ leadId, body: 'test message 4', sentBy: 'system:reminder_2h', now: BUSINESS_HOURS_NOW });
 
   await smsService.handleStatusCallback({ messageSid: row.twilio_sid, status: 'delivered' });
   assert.strictEqual(notifyCalls.failure.length, 0);

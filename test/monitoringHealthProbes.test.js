@@ -44,6 +44,7 @@ delete require.cache[require.resolve('../lib/monitoring/healthProbes')];
 const {
   checkGoogleContactsOutboxHealth, checkGmailIntegrationHealth, checkWebsiteIntakeSilence,
   checkWebsiteIntakeRejections, checkHandoffHealth, checkOutboxBacklog, checkQbHealth, checkQbSyncScheduler,
+  checkQbCdcFailedRecords,
 } = require('../lib/monitoring/healthProbes');
 
 // ── calendar_outbox backlog — November 2026 "John John" incident fix ──────
@@ -649,4 +650,102 @@ test('checkQbSyncScheduler: a configured QB_FULL_RECONCILE_INTERVAL_HOURS of 48 
     assert.strictEqual(result.healthy, true, 'a 48h-configured interval must use its own wider threshold, not the 24h default');
     assert.strictEqual(result.details.full_reconcile_threshold_ms, (48 * 2 + 2) * 60 * 60 * 1000);
   } finally { restoreCron(); restoreStatus(); }
+});
+
+// ── November 2026 final-acceptance follow-up, item 2: a stale
+// full_reconcile message distinguishes "quota-throttled" (deferred by
+// lib/qbApiUsageTracker.js#isNonEssentialSyncAllowed) from "scheduler may
+// not be executing" — materially different root causes.
+
+test('checkQbSyncScheduler: a stale full_reconcile WHILE the quota throttle is active reports the quota-deferral message, not the generic "scheduler may not be executing" one', async () => {
+  const restoreCron = stubCronEnabled(true, 24);
+  const staleTs = new Date(Date.now() - 51 * 60 * 60 * 1000).toISOString();
+  const restoreStatus = stubSyncStatus({
+    full_reconcile: { available: true, ever_run: true, last_successful_sync_at: staleTs, last_attempted_at: staleTs, summary: null },
+  });
+  const restoreUsageTracker = stub('../lib/qbApiUsageTracker', { isNonEssentialSyncAllowed: async () => false });
+  try {
+    const result = await checkQbSyncScheduler({ id: 'quickbooks-sync-scheduler' });
+    assert.strictEqual(result.healthy, false, 'still unhealthy — never silent — just a clearer reason');
+    assert.match(result.error, /quota-usage throttle/);
+    assert.match(result.error, /CDC retry mechanism is unaffected/);
+    assert.doesNotMatch(result.error, /scheduler may not be executing/);
+    assert.strictEqual(result.details.full_reconcile_quota_throttled, true);
+  } finally { restoreCron(); restoreStatus(); restoreUsageTracker(); }
+});
+
+test('checkQbSyncScheduler: a stale full_reconcile while the quota throttle is NOT active reports the generic "scheduler may not be executing" message', async () => {
+  const restoreCron = stubCronEnabled(true, 24);
+  const staleTs = new Date(Date.now() - 51 * 60 * 60 * 1000).toISOString();
+  const restoreStatus = stubSyncStatus({
+    full_reconcile: { available: true, ever_run: true, last_successful_sync_at: staleTs, last_attempted_at: staleTs, summary: null },
+  });
+  const restoreUsageTracker = stub('../lib/qbApiUsageTracker', { isNonEssentialSyncAllowed: async () => true });
+  try {
+    const result = await checkQbSyncScheduler({ id: 'quickbooks-sync-scheduler' });
+    assert.strictEqual(result.healthy, false);
+    assert.match(result.error, /scheduler may not be executing/);
+    assert.strictEqual(result.details.full_reconcile_quota_throttled, false);
+  } finally { restoreCron(); restoreStatus(); restoreUsageTracker(); }
+});
+
+test('checkQbSyncScheduler: a quota-throttle check failure fails open to the generic message rather than blocking the health check itself', async () => {
+  const restoreCron = stubCronEnabled(true, 24);
+  const staleTs = new Date(Date.now() - 51 * 60 * 60 * 1000).toISOString();
+  const restoreStatus = stubSyncStatus({
+    full_reconcile: { available: true, ever_run: true, last_successful_sync_at: staleTs, last_attempted_at: staleTs, summary: null },
+  });
+  const restoreUsageTracker = stub('../lib/qbApiUsageTracker', { isNonEssentialSyncAllowed: async () => { throw new Error('boom'); } });
+  try {
+    const result = await checkQbSyncScheduler({ id: 'quickbooks-sync-scheduler' });
+    assert.strictEqual(result.healthy, false);
+    assert.match(result.error, /scheduler may not be executing/);
+  } finally { restoreCron(); restoreStatus(); restoreUsageTracker(); }
+});
+
+// ── checkQbCdcFailedRecords — November 2026 final-acceptance follow-up,
+// item 2: a CDC item-level failure is durably retried with zero
+// QuickBooks API calls (lib/qbInboundSync.js#retryFailedCdcRecords); a
+// record still unresolved well past that retry window needs a human,
+// never silently stuck forever.
+
+test('checkQbCdcFailedRecords: zero unresolved rows -> healthy', async () => {
+  queryImpl = async () => ({ rows: [] });
+  const result = await checkQbCdcFailedRecords({ id: 'quickbooks-cdc-failed-records' });
+  assert.strictEqual(result.healthy, true);
+  assert.strictEqual(result.details.total_unresolved, 0);
+  assert.strictEqual(result.error, null);
+});
+
+test('checkQbCdcFailedRecords: an unresolved row still within the retry/safety-net grace window is NOT yet unhealthy', async () => {
+  const recentFailure = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(); // 2h ago
+  queryImpl = async () => ({ rows: [{ entity_type: 'invoice', qb_id: 'INV1', first_failed_at: recentFailure, attempts: 3, last_error: 'constraint violation' }] });
+  const result = await checkQbCdcFailedRecords({ id: 'quickbooks-cdc-failed-records' });
+  assert.strictEqual(result.healthy, true, 'the retry mechanism and daily full reconcile both still have time to resolve this');
+  assert.strictEqual(result.details.total_unresolved, 1);
+  assert.strictEqual(result.details.stale_unresolved, 0);
+});
+
+test('checkQbCdcFailedRecords: a row unresolved past the 48h default threshold is unhealthy, naming the oldest offender', async () => {
+  const oldFailure = new Date(Date.now() - 50 * 60 * 60 * 1000).toISOString(); // 50h ago
+  queryImpl = async () => ({ rows: [{ entity_type: 'payment', qb_id: 'PMT1', first_failed_at: oldFailure, attempts: 12, last_error: 'no matching lead for customer' }] });
+  const result = await checkQbCdcFailedRecords({ id: 'quickbooks-cdc-failed-records' });
+  assert.strictEqual(result.healthy, false);
+  assert.strictEqual(result.details.stale_unresolved, 1);
+  assert.strictEqual(result.details.oldest.qb_id, 'PMT1');
+  assert.match(result.error, /needs manual review/);
+});
+
+test('checkQbCdcFailedRecords: a custom maxUnresolvedAgeMs on the service entry is honored instead of the 48h default', async () => {
+  const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
+  queryImpl = async () => ({ rows: [{ entity_type: 'invoice', qb_id: 'INV2', first_failed_at: sixHoursAgo, attempts: 1, last_error: 'x' }] });
+  const result = await checkQbCdcFailedRecords({ id: 'quickbooks-cdc-failed-records', maxUnresolvedAgeMs: 60 * 60 * 1000 }); // 1h threshold
+  assert.strictEqual(result.healthy, false);
+});
+
+test('checkQbCdcFailedRecords: a DB read failure is reported as unhealthy, never silently healthy', async () => {
+  queryImpl = async () => { throw new Error('connection reset'); };
+  const result = await checkQbCdcFailedRecords({ id: 'quickbooks-cdc-failed-records' });
+  assert.strictEqual(result.healthy, false);
+  assert.match(result.error, /connection reset/);
 });

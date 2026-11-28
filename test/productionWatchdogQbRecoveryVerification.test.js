@@ -62,6 +62,16 @@ function baseStubs({ qbHealthy, otherHealthy = true, recordSuccessResolves = fal
   restores.push(stub('../lib/monitoring/alertDispatcher', { dispatchMonitoringAlert: async (opts) => { dispatchCalls.push(opts); return {}; } }));
   restores.push(stub('../lib/monitoring/recoveryPolicy', { evaluateRecovery: () => ({ action: 'none', reason: 'n/a' }), isEscalationError: () => false }));
   restores.push(stub('../lib/monitoring/railwayApiClient', { checkCapabilities: async () => ({ canRestart: false, reason: 'read-only token' }) }));
+  // November 2026 final-acceptance follow-up, item 1: productionWatchdog.js
+  // now also calls lib/qbAcceptanceReportScheduler.js for quickbooks-
+  // integration — stubbed here (own dedicated coverage lives in
+  // test/qbAcceptanceReportScheduler.test.js) so this file keeps testing
+  // only the qbRecoveryVerification wiring it was written for.
+  restores.push(stub('../lib/qbAcceptanceReportScheduler', {
+    startSchedule: async () => 'schedule-1',
+    supersedeActiveSchedule: async () => {},
+    processDueReports: async () => ({ processed: false, reason: 'no_active_schedule' }),
+  }));
   return { dispatchCalls, restores };
 }
 

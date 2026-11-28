@@ -79,6 +79,16 @@ async function findDuplicateInvoiceDocNumbers() {
   return rows.map((r) => ({ qb_doc_number: r.qb_doc_number, qb_invoice_ids: r.invoice_ids, count: r.n }));
 }
 
+async function findUnresolvedCdcFailedRecords() {
+  const { rows } = await query(
+    `SELECT entity_type, qb_id, first_failed_at, last_attempted_at, attempts, last_error
+       FROM qb_cdc_failed_records
+      WHERE resolved_at IS NULL
+      ORDER BY first_failed_at ASC`
+  );
+  return rows;
+}
+
 async function findDuplicatePaymentDocNumbers() {
   const { rows } = await query(
     `SELECT qb_doc_number, array_agg(qb_payment_id ORDER BY qb_payment_id) AS payment_ids, COUNT(*)::int AS n
@@ -96,7 +106,7 @@ async function buildReport() {
   const syncStatus = require('../lib/qbSyncStatus');
   const recoveryVerification = require('../lib/qbRecoveryVerification');
 
-  const [breakerState, status, caughtUp, window24h, window72h, window7d, dupInvoices, dupPayments] = await Promise.all([
+  const [breakerState, status, caughtUp, window24h, window72h, window7d, dupInvoices, dupPayments, unresolvedCdcFailures] = await Promise.all([
     breaker.getState().catch((e) => ({ available: false, error: e.message })),
     syncStatus.getQbSyncStatus().catch((e) => ({ available: false, error: e.message })),
     recoveryVerification.isQbSyncCaughtUp().catch((e) => ({ caughtUp: false, error: e.message })),
@@ -105,6 +115,7 @@ async function buildReport() {
     sumEntityWindow(7),
     findDuplicateInvoiceDocNumbers(),
     findDuplicatePaymentDocNumbers(),
+    findUnresolvedCdcFailedRecords().catch((e) => ({ available: false, error: e.message })),
   ]);
 
   const breakerClosed = breakerState && breakerState.state === 'closed';
@@ -112,18 +123,24 @@ async function buildReport() {
     status && status.estimate_sync && status.estimate_sync.last_successful_sync_at &&
     status.inbound_reconcile && status.inbound_reconcile.last_successful_sync_at;
 
+  const unresolvedCdcList = Array.isArray(unresolvedCdcFailures) ? unresolvedCdcFailures : [];
+  const STALE_CDC_FAILURE_MS = 48 * 60 * 60 * 1000;
+  const staleUnresolvedCdc = unresolvedCdcList.filter((r) => (Date.now() - new Date(r.first_failed_at).getTime()) > STALE_CDC_FAILURE_MS);
+
   const verdict = {
     breaker_closed: !!breakerClosed,
     sync_verified_caught_up: !!(caughtUp && caughtUp.caughtUp),
     both_cursors_show_a_recent_success: !!bothCursorsRecentlySuccessful,
     zero_duplicate_invoice_doc_numbers: dupInvoices.length === 0,
     zero_duplicate_payment_doc_numbers: dupPayments.length === 0,
+    zero_stale_unresolved_cdc_failures: staleUnresolvedCdc.length === 0,
   };
   verdict.overall_ready_for_acceptance_review =
     verdict.breaker_closed &&
     verdict.sync_verified_caught_up &&
     verdict.zero_duplicate_invoice_doc_numbers &&
-    verdict.zero_duplicate_payment_doc_numbers;
+    verdict.zero_duplicate_payment_doc_numbers &&
+    verdict.zero_stale_unresolved_cdc_failures;
 
   return {
     generated_at: new Date().toISOString(),
@@ -153,6 +170,11 @@ async function buildReport() {
       duplicate_invoice_doc_numbers: dupInvoices,
       duplicate_payment_doc_numbers: dupPayments,
     },
+    cdc_item_failures: {
+      note: 'Items that failed to process in a CDC tick are durably retried from their own stored payload every ~15 minutes with ZERO additional QuickBooks API calls (lib/qbInboundSync.js#retryFailedCdcRecords). A row still unresolved past 48h needs manual review.',
+      unresolved_total: unresolvedCdcList.length,
+      unresolved_stale_over_48h: staleUnresolvedCdc,
+    },
   };
 }
 
@@ -181,6 +203,9 @@ async function main() {
     console.log('');
     console.log('--- Duplicate QuickBooks document numbers (company-wide) ---');
     console.log(JSON.stringify(report.duplicate_detection, null, 2));
+    console.log('');
+    console.log('--- Unresolved CDC item-level failures ---');
+    console.log(JSON.stringify(report.cdc_item_failures, null, 2));
     console.log('');
     if (report.verdict.overall_ready_for_acceptance_review) {
       console.log('RESULT: All automated acceptance checks pass. Proceed with the manual 24h/72h/7-day consumption review.');

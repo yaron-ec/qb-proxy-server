@@ -525,7 +525,111 @@ test('syncInvoicesPaymentsIncremental: a CDC tick with an item-level error advan
     assert.ok(!/last_successful_sync_at/.test(cursorInserts[0].sql), 'an item-level error must never be reported as a genuine successful sync');
     assert.ok(/last_cursor/.test(cursorInserts[0].sql), 'the watermark still advances — forward progress is safe, every write here is idempotent on retry');
     assert.strictEqual(cursorInserts[0].params[1], '2026-11-27T01:30:00.000Z', 'advances to the max LastUpdatedTime actually seen (INV2, the later of the two), even though INV1 errored');
+    const failedRecordInserts = sqlCalls.filter((c) => /INSERT INTO qb_cdc_failed_records/.test(c.sql));
+    assert.strictEqual(failedRecordInserts.length, 1, 'the failed item (INV1) must be durably recorded so it can be retried later — the watermark advancing past it means CDC itself will never return it again');
+    assert.strictEqual(failedRecordInserts[0].params[0], 'invoice');
+    assert.strictEqual(failedRecordInserts[0].params[1], 'INV1');
   } finally { restoreDb(); restoreSaleMap(); restoreMgr(); }
+});
+
+test('recordCdcItemFailure: inserts the raw payload keyed by (entity_type, qb_id), never throws even on a DB error', async () => {
+  const sqlCalls = [];
+  const restoreDb = stub('../db/client', {
+    query: async (sql, params) => { sqlCalls.push({ sql, params }); return { rows: [] }; },
+  });
+  const qbInboundSync = freshQbInboundSync();
+  try {
+    await qbInboundSync.recordCdcItemFailure('invoice', 'INV1', { Id: 'INV1', TotalAmt: 100 }, 'constraint violation');
+    assert.strictEqual(sqlCalls.length, 1);
+    assert.match(sqlCalls[0].sql, /INSERT INTO qb_cdc_failed_records/);
+    assert.match(sqlCalls[0].sql, /ON CONFLICT \(entity_type, qb_id\) DO UPDATE/);
+    assert.deepStrictEqual(JSON.parse(sqlCalls[0].params[2]), { Id: 'INV1', TotalAmt: 100 });
+  } finally { restoreDb(); }
+
+  const restoreThrowingDb = stub('../db/client', {
+    query: async () => { throw new Error('connection reset'); },
+  });
+  const qbInboundSync2 = freshQbInboundSync();
+  try {
+    await qbInboundSync2.recordCdcItemFailure('payment', 'PMT1', { Id: 'PMT1' }, 'boom'); // must not throw
+  } finally { restoreThrowingDb(); }
+});
+
+test('retryFailedCdcRecords: reprocesses a stored payload with ZERO QuickBooks API calls and marks it resolved on success', async () => {
+  const sqlCalls = [];
+  const restoreDb = stub('../db/client', {
+    query: async (sql, params) => {
+      sqlCalls.push({ sql, params });
+      if (/SELECT id, entity_type, qb_id, raw_payload FROM qb_cdc_failed_records/.test(sql)) {
+        return { rows: [{ id: 'row-1', entity_type: 'invoice', qb_id: 'INV1', raw_payload: { Id: 'INV1', CustomerRef: { value: 'C1' } } }] };
+      }
+      return { rows: [] };
+    },
+  });
+  const restoreSaleMap = stub('../lib/qbInvoiceSaleMap', {
+    upsertInvoiceCacheFromQb: async () => {},
+    upsertMapping: async () => {},
+  });
+  // No lib/qbTokenManager stub at all — proves the retry path never calls
+  // qbApiRequest (would throw "Cannot find module" or hit a real network
+  // call otherwise, since the real module isn't stubbed here).
+  const qbInboundSync = freshQbInboundSync();
+  try {
+    const result = await qbInboundSync.retryFailedCdcRecords();
+    assert.strictEqual(result.attempted, 1);
+    assert.strictEqual(result.resolved, 1);
+    assert.strictEqual(result.stillFailing, 0);
+    const resolveCall = sqlCalls.find((c) => /UPDATE qb_cdc_failed_records SET resolved_at = NOW\(\)/.test(c.sql));
+    assert.ok(resolveCall, 'a successful reprocess must mark the row resolved');
+    assert.strictEqual(resolveCall.params[0], 'row-1');
+  } finally { restoreDb(); restoreSaleMap(); }
+});
+
+test('retryFailedCdcRecords: a record that still fails increments attempts/last_error rather than being silently dropped', async () => {
+  const sqlCalls2 = [];
+  const restoreThrowingSaleMap = stub('../lib/qbInvoiceSaleMap', {
+    upsertInvoiceCacheFromQb: async () => { throw new Error('still broken'); },
+    upsertMapping: async () => {},
+  });
+  const restoreDb2 = stub('../db/client', {
+    query: async (sql, params) => {
+      sqlCalls2.push({ sql, params });
+      if (/SELECT id, entity_type, qb_id, raw_payload FROM qb_cdc_failed_records/.test(sql)) {
+        return { rows: [{ id: 'row-3', entity_type: 'invoice', qb_id: 'INV2', raw_payload: { Id: 'INV2', CustomerRef: { value: 'C1' } } }] };
+      }
+      return { rows: [] };
+    },
+  });
+  const qbInboundSync2 = freshQbInboundSync();
+  try {
+    const result2 = await qbInboundSync2.retryFailedCdcRecords();
+    assert.strictEqual(result2.stillFailing, 1);
+    assert.strictEqual(result2.resolved, 0);
+    const retryUpdate = sqlCalls2.find((c) => /UPDATE qb_cdc_failed_records SET attempts = attempts \+ 1/.test(c.sql));
+    assert.ok(retryUpdate, 'a still-failing record must have its attempts/last_error updated, never silently dropped');
+    assert.strictEqual(retryUpdate.params[0], 'row-3');
+  } finally { restoreDb2(); restoreThrowingSaleMap(); }
+});
+
+test('syncInvoicesPaymentsIncremental: calls retryFailedCdcRecords on every tick, even when no QB tokens are available', async () => {
+  const sqlCalls = [];
+  const restoreDb = stub('../db/client', {
+    query: async (sql, params) => {
+      sqlCalls.push({ sql, params });
+      return { rows: [] };
+    },
+    pool: makeFakePool(),
+    guardClient: (c) => { c._guardErrored = c._guardErrored || (() => false); return c; },
+  });
+  const restoreMgr = stub('../lib/qbTokenManager', { getValidTokens: async () => null });
+  const qbInboundSync = freshQbInboundSync();
+  try {
+    const result = await qbInboundSync.syncInvoicesPaymentsIncremental();
+    assert.strictEqual(result.reason, 'no_qb_tokens');
+    assert.ok(result.cdc_retry, 'the retry pass must run every tick, independent of QB connection state');
+    const retrySelect = sqlCalls.find((c) => /SELECT id, entity_type, qb_id, raw_payload FROM qb_cdc_failed_records/.test(c.sql));
+    assert.ok(retrySelect, 'retryFailedCdcRecords must be called even when there are no valid QB tokens, since it makes zero QuickBooks API calls');
+  } finally { restoreDb(); restoreMgr(); }
 });
 
 test('syncInvoicesPaymentsIncremental: a CDC response at/above the 1000-object truncation threshold falls back to full reconciliation rather than trusting a possibly-incomplete response', async () => {
