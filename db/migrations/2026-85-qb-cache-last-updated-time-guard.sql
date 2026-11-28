@@ -1,0 +1,32 @@
+-- 2026-85-qb-cache-last-updated-time-guard.sql
+--
+-- November 2026 final-acceptance follow-up: closes a confirmed financial-
+-- integrity gap found while verifying the durable CDC item-failure retry
+-- mechanism (2026-83). Both qb_invoices_cache and qb_payments_cache were
+-- upserted with a BLIND `ON CONFLICT DO UPDATE` — no comparison of WHICH
+-- version of the record was newer. That is safe for the ordinary, in-order
+-- sync path, but lib/qbInboundSync.js#retryFailedCdcRecords reprocesses a
+-- STORED, potentially stale raw payload (captured at the moment a CDC item
+-- failed) — if a newer, correct sync for the same invoice/payment already
+-- landed in the cache in the meantime, a later retry of the old stored
+-- payload would silently overwrite the newer, correct financial data with
+-- the older one. ("financial accuracy takes priority over API savings.")
+--
+-- Fix: add qb_last_updated_time (QuickBooks' own MetaData.LastUpdatedTime,
+-- NOT our own last_synced_at wall-clock column) to both cache tables.
+-- lib/qbInvoiceSaleMap.js#upsertInvoiceCache / lib/qbInboundSync.js's
+-- payment upsert now gate their ON CONFLICT DO UPDATE on this column:
+-- an incoming write only overwrites existing financial fields when its own
+-- qb_last_updated_time is >= what's already stored (or either side has no
+-- known timestamp yet, permissively allowing the write — never blocks a
+-- legitimate first sync or a caller that doesn't supply one). A stale,
+-- superseded retry becomes a safe no-op that leaves the newer row
+-- untouched, rather than a silent data regression.
+--
+-- Additive, nullable, backfill-free (NULL means "no known QB timestamp
+-- yet" and is treated permissively by the application-layer guard above —
+-- no existing row is invalidated or needs a value before this is safe to
+-- deploy). Idempotent (IF NOT EXISTS). Apply via: node db/migrate.js
+
+ALTER TABLE qb_invoices_cache ADD COLUMN IF NOT EXISTS qb_last_updated_time TIMESTAMPTZ;
+ALTER TABLE qb_payments_cache ADD COLUMN IF NOT EXISTS qb_last_updated_time TIMESTAMPTZ;
